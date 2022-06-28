@@ -1,0 +1,202 @@
+version: '3'
+
+# NOTE about healthchecks.
+#
+# Healthchecks, long-form "depends_on" and "service_healthy" are not used on purpose. Instead, dependencies
+# and health checks are moved to the run-*.sh scripts that the containers run.
+#
+# As of April 2022, podman appears to be buggy when healthchecks are defined for containers: podman can fail
+# to start containers when healthchecks are defined.
+# - https://github.com/containers/podman/discussions/12674 and
+# - https://bugzilla.redhat.com/show_bug.cgi?id=2024229 (strangely, even though the upstream bugs appear to be
+#   merged as of April 2022, the problem still exists).
+#
+# As of April 2022, upstream podman-compose doesn't support "service_healthy" status
+# (see https://github.com/containers/podman-compose/pull/453 ).
+# Even if it did, this code needs to run on RHEL8 that has old podman-compose (0.1.7 as of April 2022).
+#
+# If healthchecks are used, the following Makefile target for compose up must be used for it to work
+# consistently enough. Obviously, using this would be untenable.
+#
+# [BEGIN COMPOSE UP SHOWCASE]
+# #***********************************
+# # podman-compose up
+# #***********************************
+# # NOTE 1: docker-compose has a "depends_on" feature with a possible state "service_healthy" that starts
+# # depending containers only once "healthcheck" determines the prerequisite container is healthy. Currently
+# # (April 2022), podman-compose implements "service_healthy" state as if it was "service_started", but
+# # "healthcheck" is implemented well enough so as to be callable through "podman healthcheck run". Therefore,
+# # to ensure podman-compose compatibility, there are additional healthchecks here in this Makefile; they are
+# # not needed on docker-compose and potentially in the future with a fully-implemented podman-compose. With
+# # docker-compose, it's enough to start all containers with just a single "up -d" call.
+# # NOTE 2: The WORKAROUND_* are there because sometimes, podman containers enter a state where the first one
+# # or two starts fail with an error "Failed to start transient timer unit". See
+# # https://github.com/containers/podman/discussions/12674 and
+# # https://bugzilla.redhat.com/show_bug.cgi?id=2024229 (strangely, even though the upstream bugs appear to be
+# # merged as of April 2022, the problem still exists).
+# # NOTE 3: The checks starting with "cnt" restart the containers if they seem to get stuck in an unhealthy state.
+# # I don't know why it happens sometimes. "podman logs osidb-data" looks absolutely fine and it works fine 95% of
+# # the time. :-( It seems unrelated to the bug in NOTE 2 except for the part where after a restart I perform an
+# # additional start because sometimes both bugs from NOTE 2 and NOTE 3 manifest at the same time and the
+# # container must be started 2 times for it to actually start.
+# WORKAROUND_A={ echo ">Met with a possible podman bug. Workaround for osidb-data. See NOTE 2 in Makefile." ; sleep 2 ; $(podman) start osidb-data || true ; sleep 10 ; $(podman) start osidb-data || true ; }
+# WORKAROUND_B={ echo ">Met with a possible podman bug. Workaround for osidb-service. See NOTE 2 in Makefile." ; sleep 2 ; $(podman) start osidb-data osidb-service || true ; sleep 10 ; $(podman) start osidb-data osidb-service || true ; }
+# WORKAROUND_C={ echo ">Met with a possible podman bug. Workaround. See NOTE 2 in Makefile." ; sleep 2 ; $(podman) start osidb-data osidb-service || true ; sleep 10 ; $(podman) start osidb-data osidb-service || true ; $(podmancompose) -f docker-compose.yml -f docker-compose.test.yml up -d ; }
+# compose-up:
+# 	@echo ">compose up"
+# 	@$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml up -d osidb-data redis || $(WORKAROUND_A) || true
+# 	@cnt=1; until { $(podman) healthcheck run osidb-data >/dev/null 2>&1 ; } ; do ((cnt++)); echo ">waiting for osidb-data" ; sleep 2 ; if (( cnt > 30 )) ; then echo ">Container osidb-data seems stuck. Let's restart it. Sorry, IDK why that sometimes happens. It seems to happen less if 'make stop-local' is run first." ; $(podman) restart osidb-data || true ; sleep 10 ; $(podman) start osidb-data || true ; cnt=1 ; fi ; done
+# 	@$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml up -d osidb-service testldap || $(WORKAROUND_B) || true
+# 	@cnt=1; until { $(podman) healthcheck run osidb-service >/dev/null 2>&1 ; } ; do ((cnt++)); echo ">waiting for osidb-service" ; sleep 2 ; if (( cnt > 30 )) ; then echo ">Container osidb-service seems stuck. Let's restart it. Sorry, IDK why that sometimes happens. It seems to happen less if 'make stop-local' is run first." ; $(podman) restart osidb-service || true ; sleep 10 ; $(podman) start osidb-service || true ; cnt=1 ; fi ; done
+# 	@$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml up -d celery_host1 celery_host2 celery_beat flower
+# 	@$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml up -d || $(WORKAROUND_C)
+# [END COMPOSE UP SHOWCASE]
+
+
+services:
+
+    osidb-service:
+      container_name: osidb-service
+      build: .
+      image: osidb-service
+      stdin_open: true
+      tty: true
+      ports:
+        - "8000:8000"
+      environment:
+        OSIDB_DEBUG: ${OSIDB_DEBUG}
+        DJANGO_SETTINGS_MODULE: "config.settings_local"
+        BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
+        JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
+      command: ./scripts/setup-osidb-service.sh
+      volumes:
+        - ${PWD}:/opt/app-root/src:z
+      depends_on: ["osidb-data"]
+      # See "NOTE about healthchecks":
+      # depends_on:
+      #   osidb-data:
+      #     condition: service_healthy
+      # healthcheck:
+      #   test: ["CMD-SHELL", "curl -f http://localhost:8000/osidb/healthy || exit 1"]
+      #   interval: "60s"
+      #   timeout: "3s"
+      #   retries: 3
+
+    osidb-data:
+      image: registry.redhat.io/rhel8/postgresql-13:1
+      hostname: osidb-data
+      container_name: osidb-data
+      environment:
+        POSTGRESQL_DATABASE: osidb
+        POSTGRESQL_USER: osidb_admin_user
+        # sets the password for the PostgreSQL service
+        POSTGRESQL_PASSWORD: passw0rd
+        # sets the password to log into the service as a user with psql
+        PGPASSWORD: passw0rd
+        POSTGRESQL_HOST: osidb-data
+      volumes:
+        - pg-data:/var/lib/pgsql/data/
+        - ${PWD}/etc/pg:/pg:z
+        - ${PWD}/scripts/setup-osidb-data.sh:/opt/app-root/src/scripts/setup-osidb-data.sh:z
+      ports:
+        - "5432"
+      command: ./scripts/setup-osidb-data.sh
+      # See "NOTE about healthchecks":
+      # healthcheck:
+      #   test: ["CMD-SHELL", "pg_isready -d osidb"]
+      #   interval: "60s"
+      #   timeout: "5s"
+      #   retries: 3
+
+    celery_host1:
+      container_name: celery_host1
+      hostname: celery_host1
+      image: osidb-service
+      command: ./scripts/run-celery.sh
+      volumes:
+        - ${PWD}:/opt/app-root/src:z
+      environment:
+        DJANGO_SETTINGS_MODULE: "config.settings_local"
+        OSIDB_DEBUG: ${OSIDB_DEBUG}
+        BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
+        JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
+        JIRAFFE_AUTO_SYNC: ${JIRAFFE_AUTO_SYNC}
+      depends_on: ["osidb-data", "osidb-service", "redis"]
+      # See "NOTE about healthchecks":
+      # depends_on:
+      #   osidb-data:
+      #     condition: service_healthy
+      #   osidb-service:
+      #     condition: service_healthy
+      #   redis:
+      #     condition: service_started
+
+    celery_host2:
+      container_name: celery_host2
+      hostname: celery_host2
+      image: osidb-service
+      command: ./scripts/run-celery.sh
+      volumes:
+        - ${PWD}:/opt/app-root/src:z
+      environment:
+        DJANGO_SETTINGS_MODULE: "config.settings_local"
+        OSIDB_DEBUG: ${OSIDB_DEBUG}
+        BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
+        JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
+        JIRAFFE_AUTO_SYNC: ${JIRAFFE_AUTO_SYNC}
+      depends_on: ["osidb-data", "osidb-service", "redis"]
+      # See "NOTE about healthchecks":
+      # depends_on:
+      #   osidb-data:
+      #     condition: service_healthy
+      #   osidb-service:
+      #     condition: service_healthy
+      #   redis:
+      #     condition: service_started
+
+    celery_beat:
+      container_name: celery_beat
+      hostname: celery_beat
+      image: osidb-service
+      command: ./scripts/run-celery-beat.sh
+      volumes:
+        - ${PWD}:/opt/app-root/src:z
+      environment:
+        DJANGO_SETTINGS_MODULE: "config.settings_local"
+        OSIDB_DEBUG: ${OSIDB_DEBUG}
+        BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
+        JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
+      depends_on: ["osidb-data", "osidb-service", "redis"]
+      # See "NOTE about healthchecks":
+      # depends_on:
+      #   osidb-data:
+      #     condition: service_healthy
+      #   osidb-service:
+      #     condition: service_healthy
+      #   redis:
+      #     condition: service_started
+
+    flower:
+      container_name: flower
+      hostname: flower
+      image: osidb-service
+      command: ./scripts/run-flower.sh
+      ports:
+        - "5555:5555"
+      volumes:
+        - ${PWD}:/opt/app-root/src:z
+      environment:
+        DJANGO_SETTINGS_MODULE: "config.settings_local"
+        OSIDB_DEBUG: ${OSIDB_DEBUG}
+      depends_on: ["redis", "osidb-data"]
+
+    redis:
+      container_name: redis
+      hostname: redis
+      image: registry.redhat.io/rhel8/redis-6:1
+      ports:
+        - "6379"
+
+volumes:
+  pg-data:
+

@@ -1,0 +1,142 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.26.0
+    method: GET
+    uri: https://errata.stage.engineering.redhat.com/advisory/86100/bugs.json
+  response:
+    body:
+      string: '[{"id":2019660,"is_security":true,"last_updated":"2022-01-17T14:11:21Z","qa_whiteboard":"","reconciled_at":"2022-01-17T14:12:26Z","alias":"CVE-2016-2124","release_notes":"A
+        flaw was found in the way samba implemented SMB1 authentication. An attacker
+        could use this flaw to retrieve the plaintext password sent over the wire
+        even if Kerberos authentication was required.","flags":"requires_doc_text+","is_exception":false,"is_private":false,"package":"vulnerability","pm_score":0,"short_desc":"CVE-2016-2124
+        samba: SMB1 client connections can be downgraded to plaintext authentication","was_marked_on_qa":false,"bug_status":"CLOSED","issuetrackers":"","keywords":"Security","priority":"medium","verified":"","bug_severity":"","is_blocker":false},{"id":2019672,"is_security":true,"last_updated":"2022-02-07T10:46:24Z","qa_whiteboard":"","reconciled_at":"2022-02-08T05:38:22Z","alias":"CVE-2020-25717","release_notes":"A
+        flaw was found in the way Samba maps domain users to local users. An authenticated
+        attacker could use this flaw to cause possible privilege escalation.","flags":"requires_doc_text+","is_exception":false,"is_private":false,"package":"vulnerability","pm_score":0,"short_desc":"CVE-2020-25717
+        samba: Active Directory (AD) domain user could become root on domain members","was_marked_on_qa":false,"bug_status":"CLOSED","issuetrackers":"","keywords":"Security","priority":"high","verified":"","bug_severity":"","is_blocker":false},{"id":2021161,"is_security":false,"last_updated":"2022-01-11T16:29:11Z","qa_whiteboard":"This
+        can only be tested manually. As this is SMB1 we did not bother to write an
+        automated test.\r\n\r\nI reproduced the problem with a server having this:\r\n\r\n[globals]\r\n        server
+        min protocol = NT1\r\n        server max protocol = NT1\r\n        encrypt
+        passwords = no\r\n\r\nthen a fixed client with this:\r\n\r\n[globals]\r\n        client
+        use kerberos = required\r\n\r\n        client ntlmv2 auth = no\r\n        client
+        lanman auth = yes\r\n        client plaintext auth = yes\r\n        client
+        min protocol = NT1\r\n\r\nbin/smbclient //172.31.9.163/netlogon -Uadministrator%A1b2C3d4\r\nsends
+        A1b2C3d4 in plaintext.\r\n\r\nThe same for bin/smbclient4.\r\n\r\nWith the
+        patches I''m getting NT_STATUS_NETWORK_CREDENTIAL_CONFLICT\r\nfor both.","reconciled_at":"2022-01-14T15:34:59Z","alias":"","release_notes":"","flags":"devel_ack+,mirror+,pgm_processed+,qa_ack+,qa_verified_tested+,qe_test_coverage-,release+,requires_doc_text-,stale-,zstream+","is_exception":false,"is_private":true,"package":"samba","pm_score":300,"short_desc":"CVE-2016-2124
+        samba: SMB1 client connections can be downgraded to plaintext authentication
+        [rhel-8.2.0.z]","was_marked_on_qa":false,"bug_status":"CLOSED","issuetrackers":"","keywords":"Security,
+        SecurityTracking, Triaged, ZStream","priority":"medium","verified":"Tested","bug_severity":"","is_blocker":false},{"id":2021168,"is_security":false,"last_updated":"2022-01-11T16:29:25Z","qa_whiteboard":"make
+        test TESTS=\"--include-env=ktest\"","reconciled_at":"2022-01-14T15:34:59Z","alias":"","release_notes":"","flags":"devel_ack+,mirror+,pgm_processed+,qa_ack+,qa_verified_tested+,qe_test_coverage+,release+,requires_doc_text-,stale-,zstream+","is_exception":false,"is_private":true,"package":"samba","pm_score":600,"short_desc":"CVE-2020-25717
+        samba: A user in an AD Domain could become root on domain members [rhel-8.2.0.z]","was_marked_on_qa":false,"bug_status":"CLOSED","issuetrackers":"","keywords":"Security,
+        SecurityTracking, Triaged, ZStream","priority":"high","verified":"Tested","bug_severity":"","is_blocker":false},{"id":2021491,"is_security":false,"last_updated":"2022-01-11T16:29:37Z","qa_whiteboard":"","reconciled_at":"2022-01-14T15:34:59Z","alias":"","release_notes":"","flags":"devel_ack+,mirror+,pgm_processed+,qa_ack+,qe_test_coverage-,release+,requires_doc_text-,stale-,zstream+","is_exception":false,"is_private":true,"package":"samba","pm_score":0,"short_desc":"Backport
+        IDL changes to harden Kerberos communication [rhel-8.2.0.z]","was_marked_on_qa":false,"bug_status":"CLOSED","issuetrackers":"","keywords":"Security,
+        Triaged, ZStream","priority":"unspecified","verified":"SanityOnly","bug_severity":"","is_blocker":false}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Connection:
+      - Keep-Alive
+      Content-Security-Policy:
+      - 'default-src ''self''; script-src ''self'' ''unsafe-eval'' ''unsafe-inline''
+        https://*.redhat.com; connect-src ''self''; img-src ''self'' data: https://*.redhat.com;
+        style-src ''self'' ''unsafe-inline'' https://*.redhat.com; font-src ''self''
+        data: https://*.redhat.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 22 Apr 2022 15:30:28 GMT
+      ETag:
+      - W/"d92a62d90ae0149bf7ce1352c954a7c3-gzip"
+      Keep-Alive:
+      - timeout=5, max=100
+      Server:
+      - Apache/2.4.34 (Red Hat) OpenSSL/1.0.1e-fips mod_auth_kerb/5.4 Phusion_Passenger/4.0.50
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Powered-By:
+      - Phusion Passenger 4.0.50
+      X-Request-Id:
+      - 258ba7ee-96d1-4db6-8d53-0099e3dcf020
+      X-Runtime:
+      - '0.029481'
+      X-XSS-Protection:
+      - 1; mode=block
+      content-length:
+      - '4222'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.26.0
+    method: GET
+    uri: https://errata.stage.engineering.redhat.com/advisory/86100/jira_issues.json
+  response:
+    body:
+      string: '[]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Connection:
+      - Keep-Alive
+      Content-Length:
+      - '2'
+      Content-Security-Policy:
+      - 'default-src ''self''; script-src ''self'' ''unsafe-eval'' ''unsafe-inline''
+        https://*.redhat.com; connect-src ''self''; img-src ''self'' data: https://*.redhat.com;
+        style-src ''self'' ''unsafe-inline'' https://*.redhat.com; font-src ''self''
+        data: https://*.redhat.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 22 Apr 2022 15:30:28 GMT
+      ETag:
+      - W/"4f53cda18c2baa0c0354bb5f9a3ecbe5"
+      Keep-Alive:
+      - timeout=5, max=100
+      Server:
+      - Apache/2.4.34 (Red Hat) OpenSSL/1.0.1e-fips mod_auth_kerb/5.4 Phusion_Passenger/4.0.50
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Powered-By:
+      - Phusion Passenger 4.0.50
+      X-Request-Id:
+      - 83e9f59e-3793-469d-9aaa-d1a130788aaa
+      X-Runtime:
+      - '0.015977'
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,1020 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/version
+  response:
+    body:
+      string: '{"version": "5.0.4.rh72"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 23 Jun 2022 13:08:06 GMT
+      ETag:
+      - N+BsQ7i/1W9hh3ZOgehzwQ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding,User-Agent
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '24'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.b55a33b8.1655989686.93108
+      x-rh-edge-request-id:
+      - '93108'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/user?ids=1
+  response:
+    body:
+      string: '{"users": [{"email": "aander07@packetmaster.com", "can_login": true,
+        "real_name": "Need Real Name", "name": "aander07@packetmaster.com", "id":
+        1}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 23 Jun 2022 13:08:06 GMT
+      ETag:
+      - Bzigpk5BKkP43rGInQ0TDw
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding,User-Agent
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '137'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.b55a33b8.1655989686.9323b
+      x-rh-edge-request-id:
+      - 9323b
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?component=vulnerability&f1=delta_ts&f2=delta_ts&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=1000&o1=greaterthan&o2=lessthaneq&product=Security+Response&query_format=advanced&v1=2000-01-01+00%3A00%3A00%2B00%3A00&v2=2005-01-01+00%3A00%3A00%2B00%3A00
+  response:
+    body:
+      string: '{"total_matches": 0, "offset": 0, "bugs": [], "limit": "1000"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 23 Jun 2022 13:08:07 GMT
+      ETag:
+      - 9r7Nb3IdIGKX6LYMOXYAzA
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding,User-Agent
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '55'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.b55a33b8.1655989687.933e7
+      x-rh-edge-request-id:
+      - 933e7
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?component=vulnerability&f1=delta_ts&f2=delta_ts&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=1000&o1=greaterthan&o2=lessthaneq&product=Security+Response&query_format=advanced&v1=2000-01-01+00%3A00%3A00%2B00%3A00&v2=2010-01-01+00%3A00%3A00%2B00%3A00
+  response:
+    body:
+      string: '{"offset": 0, "total_matches": 199, "limit": "1000", "bugs": [{"id":
+        240155, "last_change_time": "2007-05-15T15:27:32Z", "summary": "CVE-2007-0905
+        php session extension safe_mode/open_basedir bypass"}, {"summary": "CVE-2007-1383
+        php variable counter integer overflow", "last_change_time": "2007-05-15T15:43:09Z",
+        "id": 240158}, {"summary": "CVE-2007-1376 php shmop argument validation",
+        "last_change_time": "2007-05-15T15:47:15Z", "id": 240161}, {"last_change_time":
+        "2007-05-15T15:49:44Z", "id": 240162, "summary": "CVE-2007-1452 fdf extension
+        input filtering"}, {"id": 240163, "last_change_time": "2007-05-15T15:54:03Z",
+        "summary": "CVE-2007-1453 filter extension buffer underflow"}, {"id": 240165,
+        "last_change_time": "2007-05-15T15:59:17Z", "summary": "CVE-2007-1454 php
+        filter extension FILTER_SANITIZE_STRING bypass"}, {"id": 240167, "last_change_time":
+        "2007-05-15T16:02:41Z", "summary": "CVE-2007-1700 php session extension refcount
+        handling issue"}, {"summary": "CVE-2007-1824 php php_stream_filter_create
+        overflow", "id": 240427, "last_change_time": "2007-05-17T14:41:03Z"}, {"summary":
+        "CVE-2007-2519 php-pear install root constraint bypass", "id": 241218, "last_change_time":
+        "2007-05-24T14:06:30Z"}, {"summary": "CVE-2006-7205 php array_fill memory
+        consumption", "last_change_time": "2007-05-29T10:03:54Z", "id": 241640}, {"summary":
+        "CVE-2007-2844 php crypt function not re-entrant", "id": 241641, "last_change_time":
+        "2007-05-29T10:11:29Z"}, {"summary": "CVE-2007-1900 php ext/filter email validation
+        issue", "id": 242034, "last_change_time": "2008-01-16T17:00:46Z"}, {"summary":
+        "CVE-2007-2448 subversion revision property information leak", "last_change_time":
+        "2008-01-16T09:21:07Z", "id": 242041}, {"last_change_time": "2008-01-16T17:16:30Z",
+        "id": 242606, "summary": "CVE-2007-1862 httpd''s mod_mem_cache sensitive information
+        disclosure"}, {"id": 245117, "last_change_time": "2007-06-26T12:57:33Z", "summary":
+        "CVE-2007-3303 httpd worker DoS"}, {"summary": "Denial of Service in the TCP
+        Timestamp implementation", "id": 247234, "last_change_time": "2007-07-11T02:46:47Z"},
+        {"last_change_time": "2007-07-20T19:32:58Z", "id": 248518, "summary": "CVE-2007-3089
+        various flaws in mozilla products (CVE-2007-3734 CVE-2007-3735 CVE-2007-3736
+        CVE-2007-3737 CVE-2007-3656 CVE-2007-3738)"}, {"summary": "SELinux interaction
+        with VMware", "id": 249397, "last_change_time": "2007-10-29T20:06:31Z"}, {"summary":
+        "/etc/tomcat5/tomcat-users.xml with sensitive information is world-readable",
+        "id": 249838, "last_change_time": "2007-07-30T14:51:14Z"}, {"summary": "CVE-2007-4139
+        WordPress 2.2.1 wp-admin/upload.php XSS", "id": 250751, "last_change_time":
+        "2008-01-09T12:16:12Z"}, {"last_change_time": "2007-08-14T08:31:06Z", "id":
+        251717, "summary": "CVE-2007-4251 OpenOffice crashes upon opening certain
+        files"}, {"summary": "GENERIC-MAP-NOMATCH Vulnerability not mapped to a CVE
+        entry", "last_change_time": "2007-08-21T13:02:26Z", "id": 251721}, {"summary":
+        "CVE-2005-4790 tomboy and blam uses insecure LD_LIBRARY_PATH", "last_change_time":
+        "2008-01-11T19:14:50Z", "id": 252294}, {"summary": "CVE-2007-4044 ''c'' character
+        missing from shell metacharacter whitelist", "last_change_time": "2007-08-17T13:10:07Z",
+        "id": 253165}, {"last_change_time": "2007-09-05T09:17:33Z", "id": 277971,
+        "summary": "CVE-2007-4652 php open_basedir bypass in session extension with
+        symlink"}, {"summary": "CVE-2007-4663 php open_basedir bypass inside glob()",
+        "id": 277991, "last_change_time": "2007-09-05T09:17:41Z"}, {"last_change_time":
+        "2007-09-05T09:17:16Z", "id": 278001, "summary": "CVE-2007-3997 php safe_mode
+        bypass with MySQL INFILE LOCAL"}, {"summary": "CVE-2007-4657 php integer overflow
+        in strspn/strcspn", "last_change_time": "2007-09-05T12:46:27Z", "id": 278061},
+        {"summary": "CVE-2007-3378 php session.save_path/error_log safe mode bypass",
+        "last_change_time": "2007-09-05T09:18:45Z", "id": 278071}, {"last_change_time":
+        "2007-09-05T09:14:55Z", "id": 278091, "summary": "CVE-2007-3806 php invalid
+        read in glob"}, {"last_change_time": "2007-09-05T09:50:42Z", "id": 278101,
+        "summary": "CVE-2007-4662 php buffer overflow in php_openssl_make_REQ"}, {"summary":
+        "CVE-2007-4783 php crash in iconv_substr() function", "id": 285891, "last_change_time":
+        "2007-11-29T14:36:57Z"}, {"id": 285941, "last_change_time": "2008-02-26T13:14:17Z",
+        "summary": "Heap overflow in ImageMagick''s PICT coder"}, {"summary": "CVE-2007-4825
+        php open_basedir restriction bypass and possible crash in dl() function",
+        "last_change_time": "2007-09-12T16:45:58Z", "id": 287971}, {"last_change_time":
+        "2007-09-14T10:35:06Z", "id": 290591, "summary": "CVE-2007-4889 php mysql
+        extension safemode flaw"}, {"summary": "CVE-2007-4887 php dl function flaw",
+        "id": 290601, "last_change_time": "2007-11-29T14:29:51Z"}, {"summary": "CVE-2007-4584
+        Buffer overflow in IrcII by long MODE from server", "id": 303311, "last_change_time":
+        "2007-09-24T15:47:40Z"}, {"last_change_time": "2007-09-27T19:40:38Z", "id":
+        305811, "summary": "CVE-NONE openssl single byte overflow in SSL_get_shared_ciphers"},
+        {"summary": "CVE-2007-3279 Functions in PL/pgSQL language can be used to brute
+        force passwords", "last_change_time": "2007-09-27T15:26:01Z", "id": 309151},
+        {"summary": "CVE-2007-3280 Database superuser can execute code on behalf of
+        postgresql server", "id": 309161, "last_change_time": "2007-09-27T15:29:44Z"},
+        {"summary": "CVE-2007-5087 User triggerable kernel panic in ATM", "last_change_time":
+        "2007-09-28T10:42:45Z", "id": 310441}, {"summary": "Linus isn''t yours OS?",
+        "last_change_time": "2007-11-30T10:28:07Z", "id": 326741}, {"summary": "CVE-2007-5424
+        PHP disable_functions does not disable aliases", "id": 332451, "last_change_time":
+        "2007-10-15T14:06:06Z"}, {"id": 345371, "last_change_time": "2007-12-05T15:32:36Z",
+        "summary": "Crash in ImageMagick''s VIFF coder"}, {"summary": "CVE-", "last_change_time":
+        "2007-11-30T10:28:07Z", "id": 353651}, {"last_change_time": "2007-11-09T23:58:31Z",
+        "id": 357051, "summary": "CVE-2007-5712 Django 0.96 i18n DoS"}, {"last_change_time":
+        "2007-11-02T09:26:32Z", "id": 360361, "summary": "CVE-2007-5729 QEMU NE2000
+        Buffer overflow triggerable by frames larger than MTU"}, {"summary": "CVE-2007-5731
+        Absolute path traversal vulnerability in Apache Jakarta Slide 2.1", "last_change_time":
+        "2007-11-12T13:05:47Z", "id": 360911}, {"summary": "CVE-2007-5197: mono Math.BigInteger
+        buffer overflow", "id": 367471, "last_change_time": "2007-12-20T12:01:33Z"},
+        {"summary": "CVE-2007-5934 MDB2 Data injection and disclosure", "id": 379081,
+        "last_change_time": "2008-10-01T14:52:28Z"}, {"last_change_time": "2007-11-22T03:37:32Z",
+        "id": 385881, "summary": "CVE-2007-5976 db_create SQL Injection"}, {"last_change_time":
+        "2007-11-22T03:37:34Z", "id": 385921, "summary": "CVE-2007-5977 XSS in db_create"},
+        {"summary": "CVE-2005-4791 liferea uses insecure LD_LIBRARY_PATH", "id": 393281,
+        "last_change_time": "2008-01-08T12:37:14Z"}, {"last_change_time": "2007-11-30T10:35:29Z",
+        "id": 404191, "summary": "mjc group test"}, {"summary": "CVE-2007-6210 zabbix
+        scripts running with wrong GID", "id": 409911, "last_change_time": "2007-12-04T08:59:14Z"},
+        {"summary": "CVE-2007-6039 PHP crash in various functions", "last_change_time":
+        "2007-12-05T19:05:51Z", "id": 412221}, {"last_change_time": "2008-01-10T08:52:01Z",
+        "id": 412741, "summary": "Multiple security issues fixed in Xfce 4.4.2"},
+        {"last_change_time": "2007-12-09T19:46:16Z", "id": 414741, "summary": "CVE-2007-6227
+        Non-privileged user can cause the virtual CPU to crash"}, {"summary": "CVE-2007-5613:
+        jetty cross site scripting", "last_change_time": "2008-07-07T15:04:35Z", "id":
+        417391}, {"last_change_time": "2008-07-07T15:04:48Z", "id": 417401, "summary":
+        "CVE-2007-5614: jetty session hijacking issue"}, {"summary": "CVE-2007-5615:
+        jetty CRLF injection", "last_change_time": "2008-07-07T15:05:01Z", "id": 417411},
+        {"id": 425921, "last_change_time": "2007-12-20T20:14:41Z", "summary": "CVE-2007-6353
+        exiv2: integer overflow in EXIF parsing"}, {"summary": "Draft text access
+        not restricted to administrators", "id": 426431, "last_change_time": "2008-01-03T01:41:35Z"},
+        {"last_change_time": "2008-04-25T08:50:30Z", "id": 427285, "summary": "CVE-2007-6595
+        clamav insecure /tmp file use"}, {"summary": "CVE-2007-6596 clamav does not
+        recognize Base64-UUEncoded files", "id": 427286, "last_change_time": "2008-04-25T08:44:30Z"},
+        {"summary": "CVE-2007-6612 mongrel: \"DirHandler\" Directory Traversal Vulnerability",
+        "last_change_time": "2008-01-15T14:46:12Z", "id": 427663}, {"summary": "CVE-2007-0103
+        acroread infinite loop DoS", "last_change_time": "2008-01-09T12:44:32Z", "id":
+        428125}, {"last_change_time": "2008-01-09T12:45:02Z", "id": 428126, "summary":
+        "CVE-2007-0104 xpdf infinite loop DoS"}, {"summary": "CVE-2008-0123 Moodle
+        install.php XSS", "id": 428731, "last_change_time": "2008-01-16T07:40:18Z"},
+        {"last_change_time": "2009-10-23T19:05:18Z", "id": 428935, "summary": "CVE-2008-0285
+        ngircd: Remotely triggered crash"}, {"id": 429306, "last_change_time": "2008-01-18T17:21:02Z",
+        "summary": "CVE-2007-6685 Gallery2 arbitrary file upload"}, {"id": 429307,
+        "last_change_time": "2008-01-18T17:21:02Z", "summary": "CVE-2007-6686 Gallery2
+        arbitrary file access and execution"}, {"summary": "CVE-2007-6687 Gallery2
+        cross site scripting", "last_change_time": "2008-01-18T18:00:32Z", "id": 429308},
+        {"summary": "CVE-2007-6688 Gallery2''s install directory had too weak permissions",
+        "last_change_time": "2008-01-18T17:20:11Z", "id": 429309}, {"summary": "CVE-2007-6689
+        Gallery2 insufficient file type check", "last_change_time": "2008-01-18T17:18:59Z",
+        "id": 429310}, {"last_change_time": "2008-01-18T17:17:57Z", "id": 429311,
+        "summary": "CVE-2007-6690 Gallery2 doesn''t sufficiently check permissions
+        for some commands"}, {"summary": "CVE-2007-6691 Gallery2 multiple vulnerabilities",
+        "last_change_time": "2008-01-18T17:17:43Z", "id": 429312}, {"summary": "CVE-2007-6692
+        Gallery2 redirect to arbitrary URLs allows for phishing", "id": 429313, "last_change_time":
+        "2008-01-18T17:17:30Z"}, {"summary": "CVE-2007-6693 Gallery2 flaw in proxied
+        request handling", "id": 429314, "last_change_time": "2008-01-18T17:17:17Z"},
+        {"id": 429375, "last_change_time": "2008-01-18T23:04:41Z", "summary": "CVE-2008-0364
+        Bittorent uses wcscpy() unsafely"}, {"last_change_time": "2009-10-23T19:06:18Z",
+        "id": 429552, "summary": "CVE-2008-0404 mantis: XSS via \"Most Active\" on
+        \"Summary\" screen"}, {"id": 430286, "last_change_time": "2008-04-21T22:25:06Z",
+        "summary": "CVE-2008-0460 Multiple MediaWiki XSS vulnerabilities"}, {"last_change_time":
+        "2008-01-29T11:12:19Z", "id": 430657, "summary": "CVE-2005-2969 openssl mitm
+        downgrade attack"}, {"summary": "CVE-2006-4239 openssl signature forgery",
+        "id": 430658, "last_change_time": "2008-01-29T10:54:38Z"}, {"summary": "CVE-2008-0780
+        MoinMoin XSS in login action", "id": 432747, "last_change_time": "2008-04-24T11:13:36Z"},
+        {"last_change_time": "2009-04-22T01:11:40Z", "id": 432748, "summary": "CVE-2008-0781
+        MoinMoin multiple XSS in AttachFile action"}, {"summary": "CVE-2008-0318 clamav:
+        Integer overflow in libclamav", "last_change_time": "2008-02-14T15:26:25Z",
+        "id": 432753}, {"summary": "CVE-2008-0728 clamav: libclamav heap corruption",
+        "id": 432755, "last_change_time": "2008-02-14T05:02:57Z"}, {"summary": "cacti:
+        multiple input saintization issues (CVE-2008-0783, CVE-2008-0784, CVE-2008-0785,
+        CVE-2008-0786)", "id": 432758, "last_change_time": "2008-02-19T09:03:04Z"},
+        {"id": 432777, "last_change_time": "2008-02-19T01:06:44Z", "summary": "CVE-2008-0252
+        python-cherrypy directory traversal"}, {"id": 433719, "last_change_time":
+        "2008-05-06T16:16:58Z", "summary": "CVE-2008-0806 Wyrd uses insecure temporary
+        file"}, {"summary": "CVE-2008-0932 sword: diatheke.pl command injection",
+        "id": 433723, "last_change_time": "2008-04-24T11:46:48Z"}, {"last_change_time":
+        "2009-10-23T19:06:33Z", "id": 434163, "summary": "CVE-2008-0983 lighttpd crashes
+        when it''s low on file descriptors"}, {"id": 435349, "last_change_time": "2008-03-31T07:00:14Z",
+        "summary": "viewvc: multiple security fixes in upstream version 1.0.5 (CVE-2008-1290,
+        CVE-2008-1291, CVE-2008-1292)"}, {"last_change_time": "2008-03-03T10:38:24Z",
+        "id": 435680, "summary": "CVE-2007-5745 openoffice.org: Quattro Pro files
+        handling heap overflows"}, {"id": 435805, "last_change_time": "2009-10-23T19:06:45Z",
+        "summary": "CVE-2008-1111 lighttpd CGI source disclosure"}, {"summary": "CVE-2008-1131,CVE-2008-1133
+        drupal new release fixes XSS issue", "last_change_time": "2008-03-05T16:25:26Z",
+        "id": 435814}, {"last_change_time": "2008-06-06T07:42:51Z", "id": 436546,
+        "summary": "CVE-2008-1474 Roundup 1.4.4 contains security fixes"}, {"last_change_time":
+        "2008-03-13T07:42:13Z", "id": 436628, "summary": "CVE-2008-1284 horde: arbitrary
+        file inclusion through abuse of the theme preference"}, {"last_change_time":
+        "2008-03-11T20:22:26Z", "id": 437037, "summary": "CVE-2008-1270 lighttpd considers
+        empty directory string to be CWD"}, {"summary": "CVE-2008-1289 asterisk: Two
+        buffer overflows in RTP Codec Payload Handling (AST-2008-002)", "last_change_time":
+        "2008-03-31T09:43:51Z", "id": 438127}, {"id": 438129, "last_change_time":
+        "2008-03-31T09:44:01Z", "summary": "CVE-2008-1332 asterisk: Unauthenticated
+        calls allowed from SIP channel driver (AST-2008-003)"}, {"last_change_time":
+        "2008-03-31T09:35:24Z", "id": 438130, "summary": "CVE-2008-1333 asterisk:
+        Format String Vulnerability in Logger and Manager (AST-2008-004)"}, {"summary":
+        "CVE-2008-1390 asterisk: HTTP Manager ID is predictable (AST-2008-005)", "last_change_time":
+        "2008-03-31T09:44:13Z", "id": 438131}, {"summary": "CVE-2008-0073 xine-lib:
+        sdpplin_parse() Array Indexing Vulnerability", "last_change_time": "2008-04-09T05:16:46Z",
+        "id": 438182}, {"last_change_time": "2008-03-20T17:27:32Z", "id": 438379,
+        "summary": "CVE-2008-1394 Plone stores a password in a cookie"}, {"summary":
+        "EMBARGOED Mozilla Catchall Bug", "last_change_time": "2009-01-09T09:37:43Z",
+        "id": 438383}, {"summary": "p7zip: Archive Formats Issues", "last_change_time":
+        "2009-01-08T18:10:06Z", "id": 438410}, {"summary": "CVE-2008-1011 WebKit Cross
+        Site Scripting", "last_change_time": "2008-05-04T02:51:15Z", "id": 438531},
+        {"summary": "CVE-2008-1010 WebKit Arbitrary code execution", "last_change_time":
+        "2008-05-04T02:51:27Z", "id": 438532}, {"last_change_time": "2009-04-13T12:40:19Z",
+        "id": 438657, "summary": "CVE-2008-1099: moin ACL enforcement flaw"}, {"last_change_time":
+        "2009-04-16T02:57:40Z", "id": 438658, "summary": "CVE-2008-1098: moin multiple
+        XSS issues"}, {"summary": "CVE-2008-1482 xine-lib Integer overflow flaws",
+        "id": 438663, "last_change_time": "2008-04-09T05:17:38Z"}, {"last_change_time":
+        "2008-05-06T16:03:12Z", "id": 438664, "summary": "CVE-2008-1468 namazu XSS
+        flaw"}, {"summary": "CVE-2008-1488 php-pecl-apc strcpy out of bounds", "last_change_time":
+        "2009-10-23T19:06:48Z", "id": 438845}, {"last_change_time": "2008-03-31T07:00:14Z",
+        "id": 438854, "summary": "CVE-2008-1290 viewvc: all-forbidden files visible
+        in commits"}, {"last_change_time": "2008-03-31T07:00:14Z", "id": 438855, "summary":
+        "CVE-2008-1291 viewvc: sensitive information disclosure"}, {"summary": "CVE-2008-1292
+        viewvc: sensitive information disclosure", "id": 438856, "last_change_time":
+        "2008-03-31T07:00:14Z"}, {"last_change_time": "2008-04-24T11:43:42Z", "id":
+        438871, "summary": "CVE-2008-1467 CenterIM passes unescaped URLs to shell"},
+        {"id": 439054, "last_change_time": "2008-04-03T09:28:38Z", "summary": "CVE-2008-1532
+        Perlbal crashes upon empty buffered upload attempts"}, {"summary": "CVE-2008-1531
+        lighttpd closes unrelated SSL connections on SSL error", "id": 439066, "last_change_time":
+        "2008-05-17T22:28:14Z"}, {"summary": "CVE-2008-1384 php crash caused by sprintf()
+        integer overflow", "last_change_time": "2008-03-27T23:02:00Z", "id": 439298},
+        {"summary": "CVE-2008-1530 gnupg NULL pointer dereference", "id": 439305,
+        "last_change_time": "2008-03-27T23:24:06Z"}, {"summary": "CVE-2008-1515 otrs
+        SOAP authentications allows to get remote access without valid SOAP user",
+        "last_change_time": "2008-04-24T11:17:11Z", "id": 439932}, {"last_change_time":
+        "2008-04-02T17:14:44Z", "id": 439974, "summary": "CVE-2008-1567 phpMyAdmin:
+        user/password/secret key are stored plaintext"}, {"summary": "feh shell command
+        injection with crafted file names", "id": 441527, "last_change_time": "2009-10-23T19:06:54Z"},
+        {"id": 443683, "last_change_time": "2008-05-17T18:59:25Z", "summary": "CVE-2008-1924
+        phpMyAdmin: Permission/information leak to access with apache rights"}, {"summary":
+        "Java-1.6.0u6 unknown vulnerability", "last_change_time": "2008-12-19T19:34:06Z",
+        "id": 444060}, {"summary": "CVE-2008-1959 SIPp stack based buffer overflow
+        in get_remote_video_port_media()", "id": 444728, "last_change_time": "2009-10-23T19:06:57Z"},
+        {"id": 448557, "last_change_time": "2008-07-25T10:23:57Z", "summary": "CVE-2008-2359
+        system-config-network: network configuration change by the unprivileged user"},
+        {"id": 449940, "last_change_time": "2008-06-04T12:10:16Z", "summary": "this
+        is a test bug only, to be deleted"}, {"id": 452497, "last_change_time": "2008-07-07T19:06:53Z",
+        "summary": "CVE-2008-2960 phpMyAdmin: XSS on plausible insecure PHP installation
+        (PMASA-2008-4)"}, {"summary": "CVE-2008-3032 phpmyadmin XSS flaw", "last_change_time":
+        "2008-07-07T19:50:09Z", "id": 454333}, {"last_change_time": "2008-10-01T18:26:11Z",
+        "id": 454849, "summary": "drupal: multiple security issues in < 6.3,5.8/5.9
+        (SA-2008-044,SA-2008-046 - CVE-2008-3218, CVE-2008-3219, CVE-2008-3220, CVE-2008-3221,
+        CVE-2008-3222, CVE-2008-3223)"}, {"summary": "CVE-2008-3197 phpMyAdmin: XSRF/CSRF
+        by manipulating the db (PMASA-2008-5)", "id": 455520, "last_change_time":
+        "2008-07-17T14:20:54Z"}, {"last_change_time": "2008-08-05T06:46:05Z", "id":
+        456637, "summary": "phpMyAdmin: Cross-site Framing; XSS in setup.php (PMASA-2008-6
+        - CVE-2008-3456, CVE-2008-3457)"}, {"id": 457274, "last_change_time": "2008-08-01T01:49:48Z",
+        "summary": "filezilla: unhandled SSL/TLS errors causing unnoticed incomplete
+        downloads"}, {"summary": "CVE-2008-3429 httrack: buffer overflow in URI processing",
+        "last_change_time": "2008-09-11T17:16:53Z", "id": 457523}, {"id": 458122,
+        "last_change_time": "2008-08-08T06:51:35Z", "summary": "CVE-2008-3337 pdns:
+        not responding invalid queries my simplify spoofing attacks"}, {"summary":
+        "CVE-2008-2936, CVE-2008-2937: Postfix local privilege escalation and mbox
+        ownership problem", "id": 459091, "last_change_time": "2008-08-14T13:23:17Z"},
+        {"last_change_time": "2008-10-13T11:25:30Z", "id": 459108, "summary": "drupal:
+        multiple drupal issues in < 6.4,5.10 (SA-2008-047 - CVE-2008-3740, CVE-2008-3741,
+        CVE-2008-3742, CVE-2008-3743, CVE-2008-3744, CVE-2008-3745)"}, {"id": 460163,
+        "last_change_time": "2008-08-26T16:02:03Z", "summary": "testing script - ignore
+        this"}, {"summary": "testing script - ignore this", "id": 460427, "last_change_time":
+        "2008-08-28T11:57:09Z"}, {"last_change_time": "2008-10-01T18:22:38Z", "id":
+        460511, "summary": "EMBARGOED Mozilla products placeholder"}, {"summary":
+        "CVE-2008-3903 asterisk: SIP valid account enumeration flaw", "last_change_time":
+        "2009-11-02T19:32:11Z", "id": 461271}, {"summary": "clamav: multiple security
+        fixes in 0.94 (CVE-2008-1389, CVE-2008-3912, CVE-2008-3913, CVE-2008-3914)",
+        "last_change_time": "2008-12-20T14:04:34Z", "id": 461461}, {"summary": "CVE-2008-3970
+        pam_mount: missing luserconf security checks", "id": 461464, "last_change_time":
+        "2008-10-01T18:20:50Z"}, {"id": 462430, "last_change_time": "2008-10-01T18:17:21Z",
+        "summary": "CVE-2008-4096 phpMyAdmin: Code execution vulnerability (< 2.11.9.1)"},
+        {"summary": "CVE-2008-4326 phpMyAdmin: XSS in MSIE using NUL byte", "last_change_time":
+        "2008-10-01T18:17:57Z", "id": 463260}, {"summary": "kernel: af_rose sendmsg
+        length check", "last_change_time": "2008-12-17T06:57:01Z", "id": 463879},
+        {"id": 466741, "last_change_time": "2008-10-30T08:31:26Z", "summary": "drupal:
+        multiple drupal issues in < 6.5,5.11 (SA-2008-060 - CVE-2008-4789, CVE-2008-4790,
+        CVE-2008-4791, CVE-2008-4792, CVE-2008-4793)"}, {"last_change_time": "2008-10-24T18:48:24Z",
+        "id": 467674, "summary": "CVE-2008-4687 mantis: code execution by registered
+        users via sort parameter to manage_proj_page.php"}, {"summary": "CVE-2008-4688
+        mantis: bug title and status leak to unauthorized users", "last_change_time":
+        "2008-10-24T18:48:44Z", "id": 467675}, {"last_change_time": "2008-12-19T19:35:17Z",
+        "id": 468342, "summary": "Java-1.6.0u10 unknown vulnerability"}, {"id": 468422,
+        "last_change_time": "2009-03-10T17:34:43Z", "summary": "CVE-2008-6170 CVE-2008-6171
+        CVE-2008-6176 drupal: multiple security issues in < 6.6,5.12 (SA-2008-067)"},
+        {"last_change_time": "2008-10-24T17:53:05Z", "id": 468423, "summary": "drupal:
+        File upload access, access rules, blogAPI access, node validation bypass (SA-2008-060)"},
+        {"summary": "php-Smarty: arbitrary code execution due to an error when processing
+        data with embedded variables", "last_change_time": "2008-10-24T19:41:23Z",
+        "id": 468450}, {"summary": "CVE-2008-4776 libgadu: contact description buffer
+        over-read vulnerability", "id": 468830, "last_change_time": "2008-11-03T11:28:33Z"},
+        {"summary": "CVE-2008-5905 CVE-2008-5906 ktorrent: multiple security issues
+        in the web interface", "id": 468983, "last_change_time": "2009-12-07T06:29:18Z"},
+        {"id": 469778, "last_change_time": "2009-11-19T15:49:19Z", "summary": "Mozilla
+        placeholder"}, {"summary": "[REG] kernel-xen 3.1.1 does not prevent modification
+        of the CR4 TSC from applications (DoS possible)", "last_change_time": "2009-02-18T09:07:03Z",
+        "id": 470954}, {"summary": "Java-1.6.0u11 unknown vulnerability", "id": 473246,
+        "last_change_time": "2008-12-19T19:35:06Z"}, {"summary": "Java-1.5.0u17 unknown
+        vulnerability", "last_change_time": "2008-12-19T19:34:57Z", "id": 474377},
+        {"id": 475070, "last_change_time": "2008-12-18T09:10:52Z", "summary": "CVE-2008-5660
+        vinagre: format string flaw in vinagre_utils_show_error()"}, {"summary": "EMBARGOED
+        Mozilla Placehodler", "last_change_time": "2009-01-19T13:17:56Z", "id": 475216},
+        {"id": 475954, "last_change_time": "2008-12-17T14:24:31Z", "summary": "CVE-2008-5621
+        phpMyAdmin: SQL injection through XSRF on several pages (PMASA-2008-10)"},
+        {"last_change_time": "2009-01-09T08:39:47Z", "id": 476647, "summary": "CVE-2008-5617
+        rsyslog: $AllowedSender restriction not honoured"}, {"id": 481289, "last_change_time":
+        "2009-02-04T15:08:17Z", "summary": "CVE-2009-0414 tor: remote heap corruption
+        bug fixed in 0.2.0.33"}, {"id": 485021, "last_change_time": "2009-12-04T21:00:41Z",
+        "summary": "tor: multiple security fixes in 0.2.0.34 (CVE-2009-0936, CVE-2009-0937,
+        CVE-2009-0938, CVE-2009-0939)"}, {"summary": "EMBARGOED Mozilla Placeholder",
+        "id": 486336, "last_change_time": "2009-03-05T07:54:18Z"}, {"summary": "CVE-2009-0749
+        optipng: memory re-allocation flaw in GIF reader", "last_change_time": "2009-03-02T19:49:17Z",
+        "id": 487364}, {"last_change_time": "2009-06-16T07:10:34Z", "id": 487694,
+        "summary": "CVE-2009-0368 opensc: insufficient access restrictions on private
+        data"}, {"id": 491727, "last_change_time": "2009-04-08T09:40:12Z", "summary":
+        "CVE-2005-2974 CVE-2005-3350 giflib segmentation faults"}, {"last_change_time":
+        "2009-03-26T16:24:46Z", "id": 491870, "summary": "Java-1.5.0u18 unknown vulnerability"},
+        {"id": 491880, "last_change_time": "2009-03-26T16:24:56Z", "summary": "Java-1.6.0u13
+        unknown vulnerability"}, {"summary": "CVE-2009-1148 CVE-2009-1149 CVE-2009-1150
+        CVE-2009-1151 phpMyAdmin: multiple security fixes in 3.1.3.1 (PMASA-2009-{1,2,3})",
+        "id": 492066, "last_change_time": "2009-04-14T07:19:47Z"}, {"summary": "CVE-2009-1171
+        moodle: file disclosure flaw in TeX filter", "id": 493109, "last_change_time":
+        "2009-06-16T07:09:29Z"}, {"summary": "CVE-2009-1175 banshee: XSS flaw in the
+        DAAP extension", "id": 493116, "last_change_time": "2009-12-04T18:47:51Z"},
+        {"summary": "clamav: security fixes in upstream 0.95 (CVE-2008-6680, CVE-2009-1270)",
+        "id": 495036, "last_change_time": "2009-12-17T21:27:37Z"}, {"id": 495566,
+        "last_change_time": "2009-06-16T07:05:45Z", "summary": "Mozilla Placeholder"},
+        {"last_change_time": "2009-04-18T13:03:33Z", "id": 495768, "summary": "CVE-2009-1285
+        phpMyAdmin: Insufficient output sanitizing when generating configuration file
+        fixed in 3.1.3.2 (PMASA-2009-4)"}, {"id": 501286, "last_change_time": "2009-06-30T16:47:32Z",
+        "summary": "EMBARGOED Mozilla placeholder"}, {"summary": "Apache mod_dav denial
+        of service", "last_change_time": "2009-06-08T08:37:32Z", "id": 503814}, {"summary":
+        "EMBARGOED kernel: sigio_perm should check a capability?", "id": 505992, "last_change_time":
+        "2009-06-17T00:26:20Z"}, {"summary": "CVE-2009-2284 phpMyAdmin: XSS: Insufficient
+        output sanitizing in bookmarks (PMASA-2009-5)", "last_change_time": "2009-07-24T23:12:52Z",
+        "id": 508879}, {"summary": "CVE-2009-2295 ocaml-camlimages: PNG reader multiple
+        integer overflows (oCERT-2009-009)", "last_change_time": "2009-10-16T10:03:26Z",
+        "id": 509531}, {"summary": "EMBARGOED Mozilla placeholder", "last_change_time":
+        "2009-11-19T15:49:55Z", "id": 510269}, {"summary": "partner IBM leak out internal
+        contents", "last_change_time": "2009-07-27T14:39:41Z", "id": 512276}, {"id":
+        515218, "last_change_time": "2009-08-13T19:01:26Z", "summary": "EMBARGOED
+        Mozilla place holder bug DO NOT MAKE PUBLIC"}, {"last_change_time": "2009-10-27T18:21:09Z",
+        "id": 516990, "summary": "CVE-2009-2726 asterisk: Remote Crash Vulnerability
+        in SIP channel driver (AST-2009-005)"}, {"last_change_time": "2009-11-19T15:49:36Z",
+        "id": 518052, "summary": "EMBARGOED Mozilla placeholder"}, {"summary": "Clam
+        AntiVirus: Multiple vulnerabilities", "last_change_time": "2009-09-09T18:01:08Z",
+        "id": 522157}, {"summary": "WebKit, qt: DoS (crash) by handling Linux OS FTP
+        server LIST reply", "id": 525794, "last_change_time": "2009-11-02T18:35:45Z"},
+        {"summary": "EMBARGOED Mozilla placeholder", "last_change_time": "2009-10-28T07:59:36Z",
+        "id": 527692}, {"summary": "CVE-2009-3695 Django''s forms DOS in 1.1/1.0",
+        "last_change_time": "2009-10-16T20:05:53Z", "id": 528246}, {"summary": "kernel:
+        TCP Persist condition issue", "id": 529652, "last_change_time": "2009-11-24T06:43:52Z"},
+        {"id": 537287, "last_change_time": "2009-11-13T03:57:01Z", "summary": "Test
+        script"}, {"summary": "CVE-2009-3896 nginx NULL pointer dereference", "id":
+        539565, "last_change_time": "2009-11-27T20:53:58Z"}, {"summary": "kernel:
+        rhel-6 tracking bug", "last_change_time": "2009-12-15T03:05:08Z", "id": 546525}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 23 Jun 2022 13:08:08 GMT
+      ETag:
+      - oOXTxAPslKsSlY6i4Psk0w
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding,User-Agent
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '25285'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.b55a33b8.1655989688.93661
+      x-rh-edge-request-id:
+      - '93661'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?component=vulnerability&f1=delta_ts&f2=delta_ts&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=1000&o1=greaterthan&o2=lessthaneq&product=Security+Response&query_format=advanced&v1=2009-12-17+21%3A27%3A37%2B00%3A00&v2=2014-12-17+21%3A27%3A37%2B00%3A00
+  response:
+    body:
+      string: '{"limit": "1000", "total_matches": 96, "bugs": [{"id": 223187, "last_change_time":
+        "2013-03-06T03:48:50Z", "summary": "at_console isn''t respected in some cases"},
+        {"id": 245179, "last_change_time": "2010-03-22T15:27:24Z", "summary": "Heap
+        corruption in Imagemagick''s PCX coder"}, {"summary": "Out-of-bound write
+        in Imagemagick''s PICT coder", "id": 245195, "last_change_time": "2010-03-22T15:28:09Z"},
+        {"summary": "CVE-2007-1730 kernel dccp memory disclosure", "last_change_time":
+        "2010-12-22T21:18:56Z", "id": 346441}, {"summary": "smbfs: fix calculation
+        of kernel_recvmsg size parameter in smb_receive", "id": 373171, "last_change_time":
+        "2014-06-18T07:37:04Z"}, {"id": 404131, "last_change_time": "2010-11-26T13:45:59Z",
+        "summary": "test bug, please ignore"}, {"summary": "TCP Persist RFC", "id":
+        413711, "last_change_time": "2010-03-22T15:32:32Z"}, {"summary": "CVE-2007-6672
+        Jetty directory traversal", "id": 428016, "last_change_time": "2010-12-22T23:45:21Z"},
+        {"summary": "CVE-NONE Cups doesn''t sanitise job_printer_uri field", "last_change_time":
+        "2010-03-22T15:36:13Z", "id": 430893}, {"summary": "CVE-2008-1066 smarty arbitrary
+        code execution in template", "id": 435810, "last_change_time": "2011-06-16T18:56:02Z"},
+        {"last_change_time": "2010-12-22T23:46:25Z", "id": 436023, "summary": "CVE-2007-6703
+        vdccm 0.10.1 fixes a security vulnerability"}, {"summary": "CVE-2008-1136
+        vdccm insufficient escaping of shell metacharacters", "last_change_time":
+        "2010-12-23T16:33:52Z", "id": 436024}, {"summary": "CVE-2008-1360 nagios cross
+        site scripting", "last_change_time": "2010-12-23T16:44:20Z", "id": 437849},
+        {"id": 444136, "last_change_time": "2013-04-11T21:33:07Z", "summary": "Bring
+        various components of Satellite Server 5.0 up to date"}, {"last_change_time":
+        "2012-05-24T21:37:28Z", "id": 446902, "summary": "CVE-2008-2363 pan: heap
+        overflow caused by large *.nzb files"}, {"id": 449337, "last_change_time":
+        "2012-02-23T07:20:33Z", "summary": "Bring various components of Satellite
+        Server 4.2 up to date"}, {"id": 457667, "last_change_time": "2010-03-29T09:42:03Z",
+        "summary": "CVE-2008-3459 openvpn: client command execution through remotely
+        received configuration directives"}, {"id": 458146, "last_change_time": "2013-01-10T10:25:36Z",
+        "summary": "CVE-2008-3546 git: Pathname Processing Multiple Buffer Overflows"},
+        {"summary": "CVE-2008-3747 wordpress: insufficient SSL communication enforcement",
+        "id": 460416, "last_change_time": "2010-03-29T11:12:21Z"}, {"summary": "CVE-2008-3906
+        mono: Sys.Web HTTP header injection attack", "last_change_time": "2010-12-23T22:37:17Z",
+        "id": 461752}, {"id": 461882, "last_change_time": "2010-03-29T08:30:51Z",
+        "summary": "CVE-2008-3962 ssmtp: unitialized memory disclosure"}, {"last_change_time":
+        "2010-04-02T10:37:07Z", "id": 461886, "summary": "CVE-2008-3823 horde: XSS
+        via filename of MIME attachments (oCERT-2008-012)"}, {"summary": "CVE-2008-3824
+        horde: XSS via unescaped ''/'' characters (oCERT-2008-012)", "id": 461887,
+        "last_change_time": "2010-04-02T10:37:23Z"}, {"last_change_time": "2011-09-30T19:37:07Z",
+        "id": 462281, "summary": "kernel: netlink: fix overrun in attribute iteration"},
+        {"summary": "kernel: rtc: fix kernel panic on second use of SIGIO notification",
+        "id": 465744, "last_change_time": "2011-09-30T19:51:47Z"}, {"id": 467557,
+        "last_change_time": "2010-03-22T15:44:13Z", "summary": "SLES server hacked.
+        This is the programs that he used for hacking the server"}, {"id": 470758,
+        "last_change_time": "2011-09-30T20:59:16Z", "summary": "kernel: file caps:
+        always start with clear bprm->caps_*"}, {"summary": "This is a test bug.  Ignore
+        please.", "id": 470973, "last_change_time": "2010-12-21T22:38:11Z"}, {"summary":
+        "trac: security fixes in 0.11.2 (CVE-2008-5646, CVE-2008-5647)", "id": 470989,
+        "last_change_time": "2013-01-10T04:55:04Z"}, {"summary": "kernel: V4L/DVB
+        (9621): Avoid writing outside shadow.bytes[] array", "last_change_time": "2011-09-30T21:13:24Z",
+        "id": 471835}, {"id": 473249, "last_change_time": "2010-03-29T08:37:49Z",
+        "summary": "Java-1.6.0-ibm sr3 unknown vulnerability"}, {"last_change_time":
+        "2010-03-29T09:22:03Z", "id": 474396, "summary": "CVE-2008-5080 awstats: incomplete
+        fix for CVE-2008-3714 XSS issue"}, {"id": 476709, "last_change_time": "2010-03-22T15:45:45Z",
+        "summary": "moodle: command injection via TeX filter (texed.php)"}, {"last_change_time":
+        "2010-03-29T10:18:40Z", "id": 477130, "summary": "Java-1.5.0-ibm sr9 unknown
+        vulnerability"}, {"id": 477523, "last_change_time": "2013-01-10T10:28:57Z",
+        "summary": "git: gitweb local privilege escalation"}, {"last_change_time":
+        "2010-04-22T17:36:58Z", "id": 479560, "summary": "CVE-2009-0135 CVE-2009-0136
+        amarok: multiple buffer overflows when parsing Audible .aa files"}, {"summary":
+        "git: gitweb multiple remote command injections (CVE-2008-5516 CVE-2008-5517)",
+        "id": 479715, "last_change_time": "2013-01-10T10:29:20Z"}, {"summary": "CVE-2008-5917
+        horde: IE-specific XSS via image style attribute", "last_change_time": "2010-04-02T10:37:39Z",
+        "id": 480818}, {"summary": "glpi: multiple SQL injection flaws", "id": 481558,
+        "last_change_time": "2010-03-22T15:45:58Z"}, {"last_change_time": "2010-03-29T17:48:40Z",
+        "id": 484389, "summary": "horde: two security fixes in 3.2.4 / 3.3.3"}, {"id":
+        484394, "last_change_time": "2010-03-29T07:54:53Z", "summary": "imp: XSS fix
+        in 4.2.2 / 4.3.3"}, {"summary": "SELinux don''t fully denied access requested
+        by httpd", "id": 484545, "last_change_time": "2010-03-29T08:52:57Z"}, {"id":
+        493364, "last_change_time": "2010-03-29T09:18:47Z", "summary": "mapserver:
+        multiple security fixes in 5.2.2 and 4.10.4 (CVE-2009-0839, CVE-2009-0840,
+        CVE-2009-0841, CVE-2009-0842, CVE-2009-0843, CVE-2009-1176, CVE-2009-1177)"},
+        {"id": 495039, "last_change_time": "2010-09-29T19:19:37Z", "summary": "clamav:
+        security fixes in upstream 0.95.1 (CVE-2009-1371, CVE-2009-1372)"}, {"last_change_time":
+        "2010-03-22T18:32:09Z", "id": 501908, "summary": "Kernel placeholder"}, {"summary":
+        "rt3: privilege to edit ''RT at a Glance'' unintentionally granted by \"ShowConfigTab\"
+        right", "id": 506236, "last_change_time": "2010-03-22T18:31:43Z"}, {"last_change_time":
+        "2011-09-26T21:40:51Z", "id": 509559, "summary": "CVE-2009-2281 mapserver:
+        incomplete upstream fix for CVE-2009-0840"}, {"last_change_time": "2010-12-20T22:28:21Z",
+        "id": 509564, "summary": "CVE-2009-2422 rubygem-actionpack: authenticate_with_http_digest
+        authentication bypass"}, {"summary": "2.6.30+ Local Kernel Exploit 0day, disabling
+        SELinux/AppArmor/LSM", "id": 510983, "last_change_time": "2012-03-28T08:17:41Z"},
+        {"summary": "glibc: add more corruption tests", "last_change_time": "2014-06-20T09:00:36Z",
+        "id": 511075}, {"summary": "CVE-2009-2415 memcached: heap-based buffer overflow",
+        "id": 516489, "last_change_time": "2012-02-07T06:06:13Z"}, {"summary": "CXE-2009-1234
+        Testing bug", "last_change_time": "2010-04-14T23:42:56Z", "id": 530523}, {"summary":
+        "Java-1.5.0-sun EOSL, unfixed vulnerability", "last_change_time": "2010-06-25T09:44:04Z",
+        "id": 532012}, {"summary": "CVE-2009-3555 vs. NSS vs. IDM products", "id":
+        538750, "last_change_time": "2010-10-14T16:13:36Z"}, {"id": 542649, "last_change_time":
+        "2010-07-08T16:27:09Z", "summary": "EMBARGOED Mozilla update"}, {"summary":
+        "CVE-2009-1298 kernel: ip_frag_reasm() NULL pointer dereference", "last_change_time":
+        "2010-04-08T20:45:57Z", "id": 544144}, {"last_change_time": "2010-06-25T09:58:53Z",
+        "id": 557852, "summary": "Java-1.5.0-sun u23 unknown vulnerability"}, {"summary":
+        "EMBARGOED Mozilla security update", "id": 559980, "last_change_time": "2010-03-29T09:08:43Z"},
+        {"summary": "CVE-2009-4642 gnome-screensaver, xfce4-session: gnome-screensaver
+        fails to determine session idle time when runned under Xfce", "last_change_time":
+        "2010-02-16T15:00:25Z", "id": 564583}, {"summary": "kernel: netfilter: nf_conntrack:
+        per netns nf_conntrack_cachep", "last_change_time": "2012-03-28T08:34:14Z",
+        "id": 567180}, {"summary": "short desc", "last_change_time": "2010-03-29T11:20:43Z",
+        "id": 568436}, {"last_change_time": "2010-06-25T09:56:49Z", "id": 569807,
+        "summary": "EMBARGOED Thunderbird tracking bug"}, {"summary": "Test Summary",
+        "last_change_time": "2010-03-02T16:49:55Z", "id": 569874}, {"id": 569888,
+        "last_change_time": "2010-03-02T16:49:51Z", "summary": "Test Summary"}, {"last_change_time":
+        "2010-03-02T16:50:00Z", "id": 569896, "summary": "Test Summary"}, {"summary":
+        "Test Summary", "id": 569897, "last_change_time": "2010-03-02T16:50:00Z"},
+        {"id": 570093, "last_change_time": "2010-03-03T09:35:41Z", "summary": "kernel:
+        NFS: Fix an Oops when truncating a file"}, {"summary": "EMBARGOED Mozilla
+        security update", "last_change_time": "2010-07-08T16:25:39Z", "id": 573981},
+        {"last_change_time": "2012-03-28T08:38:00Z", "id": 576433, "summary": "kernel:
+        bluetooth: Fix kernel crash on L2CAP stress tests"}, {"summary": "CVE-2010-3439
+        alienarena: Two security issues in Quake II 3.20 (Server) (applicable to alienarena)",
+        "last_change_time": "2010-12-16T21:38:12Z", "id": 577810}, {"last_change_time":
+        "2013-07-23T22:16:52Z", "id": 582068, "summary": "CVE-2010-1488 kernel: oom:
+        fix the unsafe usage of badness() in proc_oom_score()"}, {"summary": "java-1.6.0-ibm
+        sr8 unknown vulnerability", "id": 586702, "last_change_time": "2010-06-25T09:52:23Z"},
+        {"last_change_time": "2012-03-28T08:46:30Z", "id": 593226, "summary": "CVE-2010-1636
+        kernel: btrfs: check for read permission on src file in the clone ioctl"},
+        {"summary": "Google Chrome''s Zygote-Sandbox", "last_change_time": "2010-05-18T19:38:16Z",
+        "id": 593370}, {"summary": "java-1.5.0-ibm fp11sr2 unknown vulnerability",
+        "last_change_time": "2010-06-25T09:49:58Z", "id": 602571}, {"id": 603593,
+        "last_change_time": "2012-03-28T08:51:28Z", "summary": "CVE-2010-2071 kernel:
+        btrfs: prevent users from setting ACLs on files they do not own"}, {"summary":
+        "CVE-2010-2092 cacti: graph.php rra_id SQL injection vulnerability (MOPS-2010-023)",
+        "last_change_time": "2010-06-29T11:28:49Z", "id": 609074}, {"id": 616992,
+        "last_change_time": "2010-08-02T03:57:52Z", "summary": "CVE-2010-2537 kernel:
+        btrfs: check for append only file in the clone ioctl"}, {"id": 622406, "last_change_time":
+        "2013-08-02T16:33:06Z", "summary": "Red Hat Network Satellite Security bugs"},
+        {"id": 623024, "last_change_time": "2010-11-22T05:15:09Z", "summary": "kernel:
+        mISDN issue"}, {"last_change_time": "2010-12-22T15:51:12Z", "id": 627498,
+        "summary": "CVE-2010-2953 couchdb: start-up script sets insecure LD_LIBRARY_PATH"},
+        {"summary": "rhel6 regressions", "last_change_time": "2011-07-19T22:08:18Z",
+        "id": 630050}, {"summary": "Test EMBARGOED bug", "last_change_time": "2013-01-11T03:19:17Z",
+        "id": 634441}, {"id": 637036, "last_change_time": "2010-10-18T03:34:36Z",
+        "summary": "EMBARGOED kernel: possible BUG_ON in remap_file_pages()"}, {"id":
+        675827, "last_change_time": "2011-02-07T21:21:15Z", "summary": "EMBARGOED
+        file overwrite vulnerability in testing component"}, {"summary": "Incorrect
+        HTTPS SSL Certificate for download.fedora.redhat.com", "id": 785927, "last_change_time":
+        "2012-02-20T18:30:51Z"}, {"summary": "CVE-2012-2133 kernel: use after free
+        bug in \"quota\" handling", "last_change_time": "2012-06-04T14:35:33Z", "id":
+        815065}, {"summary": "libexif security vulnerabilities", "id": 837956, "last_change_time":
+        "2012-09-06T15:24:56Z"}, {"last_change_time": "2012-07-10T21:41:02Z", "id":
+        839083, "summary": "Test Summary"}, {"summary": "Webmin : Change Passwords
+        Module Cross-Site Scripting Vulnerability", "last_change_time": "2012-11-05T22:18:28Z",
+        "id": 873183}, {"summary": "Testing for Bugzilla xss vulnerability", "last_change_time":
+        "2012-12-11T02:56:18Z", "id": 885924}, {"summary": "OpenSSL version 1.0.1
+        does not support certificates created by older version stored in trust_store.",
+        "last_change_time": "2013-02-19T11:42:06Z", "id": 912610}, {"id": 957481,
+        "last_change_time": "2014-11-09T23:06:08Z", "summary": "Nagios core: Incorrect
+        shell escaping"}, {"last_change_time": "2014-07-07T07:16:57Z", "id": 1116445,
+        "summary": "Test Summary"}, {"last_change_time": "2014-09-24T11:37:59Z", "id":
+        1146051, "summary": "nodejs-qs: Denial-of-Service Extended Event Loop Blocking"},
+        {"summary": "Bind: Libdns cause an assertion failure when the named doesn''t
+        load one IPv4/IPv6 (city or country) geolocation database", "last_change_time":
+        "2014-11-02T19:40:04Z", "id": 1159599}], "offset": 0}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 23 Jun 2022 13:08:09 GMT
+      ETag:
+      - PhTbd4EOR4Wkzeg8TJIVSw
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding,User-Agent
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '11769'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.b55a33b8.1655989689.93a66
+      x-rh-edge-request-id:
+      - 93a66
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?component=vulnerability&f1=delta_ts&f2=delta_ts&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=1000&o1=greaterthan&o2=lessthaneq&product=Security+Response&query_format=advanced&v1=2009-12-17+21%3A27%3A37%2B00%3A00&v2=2015-12-17+21%3A27%3A37%2B00%3A00
+  response:
+    body:
+      string: '{"bugs": [{"last_change_time": "2015-03-02T10:30:21Z", "summary": "CVE-2006-1390
+        nethack: Local privilege escalation via crafted score file", "id": 187353},
+        {"id": 215089, "last_change_time": "2015-01-04T22:29:24Z", "summary": "xchat
+        segfaulted"}, {"last_change_time": "2013-03-06T03:48:50Z", "summary": "at_console
+        isn''t respected in some cases", "id": 223187}, {"summary": "Heap corruption
+        in Imagemagick''s PCX coder", "last_change_time": "2010-03-22T15:27:24Z",
+        "id": 245179}, {"id": 245195, "summary": "Out-of-bound write in Imagemagick''s
+        PICT coder", "last_change_time": "2010-03-22T15:28:09Z"}, {"last_change_time":
+        "2010-12-22T21:18:56Z", "summary": "CVE-2007-1730 kernel dccp memory disclosure",
+        "id": 346441}, {"id": 373171, "summary": "smbfs: fix calculation of kernel_recvmsg
+        size parameter in smb_receive", "last_change_time": "2014-06-18T07:37:04Z"},
+        {"id": 404131, "summary": "test bug, please ignore", "last_change_time": "2010-11-26T13:45:59Z"},
+        {"last_change_time": "2015-02-16T15:41:10Z", "summary": "CVE-2007-6210 zabbix
+        \"UserParameter\" scripts run with zabbix:root", "id": 407181}, {"summary":
+        "TCP Persist RFC", "last_change_time": "2010-03-22T15:32:32Z", "id": 413711},
+        {"id": 428016, "summary": "CVE-2007-6672 Jetty directory traversal", "last_change_time":
+        "2010-12-22T23:45:21Z"}, {"last_change_time": "2010-03-22T15:36:13Z", "summary":
+        "CVE-NONE Cups doesn''t sanitise job_printer_uri field", "id": 430893}, {"summary":
+        "CVE-2008-1066 smarty arbitrary code execution in template", "last_change_time":
+        "2011-06-16T18:56:02Z", "id": 435810}, {"id": 436023, "last_change_time":
+        "2010-12-22T23:46:25Z", "summary": "CVE-2007-6703 vdccm 0.10.1 fixes a security
+        vulnerability"}, {"last_change_time": "2010-12-23T16:33:52Z", "summary": "CVE-2008-1136
+        vdccm insufficient escaping of shell metacharacters", "id": 436024}, {"summary":
+        "New Errata Tool Blocker", "last_change_time": "2015-06-05T16:07:25Z", "id":
+        436098}, {"summary": "CVE-2008-1353 zabbix file descriptor consumption by
+        authorized hosts", "last_change_time": "2015-02-16T15:41:25Z", "id": 437848},
+        {"id": 437849, "summary": "CVE-2008-1360 nagios cross site scripting", "last_change_time":
+        "2010-12-23T16:44:20Z"}, {"id": 444136, "last_change_time": "2013-04-11T21:33:07Z",
+        "summary": "Bring various components of Satellite Server 5.0 up to date"},
+        {"last_change_time": "2012-05-24T21:37:28Z", "summary": "CVE-2008-2363 pan:
+        heap overflow caused by large *.nzb files", "id": 446902}, {"last_change_time":
+        "2012-02-23T07:20:33Z", "summary": "Bring various components of Satellite
+        Server 4.2 up to date", "id": 449337}, {"last_change_time": "2010-03-29T09:42:03Z",
+        "summary": "CVE-2008-3459 openvpn: client command execution through remotely
+        received configuration directives", "id": 457667}, {"id": 458146, "summary":
+        "CVE-2008-3546 git: Pathname Processing Multiple Buffer Overflows", "last_change_time":
+        "2013-01-10T10:25:36Z"}, {"last_change_time": "2010-03-29T11:12:21Z", "summary":
+        "CVE-2008-3747 wordpress: insufficient SSL communication enforcement", "id":
+        460416}, {"last_change_time": "2010-12-23T22:37:17Z", "summary": "CVE-2008-3906
+        mono: Sys.Web HTTP header injection attack", "id": 461752}, {"id": 461882,
+        "last_change_time": "2010-03-29T08:30:51Z", "summary": "CVE-2008-3962 ssmtp:
+        unitialized memory disclosure"}, {"id": 461886, "summary": "CVE-2008-3823
+        horde: XSS via filename of MIME attachments (oCERT-2008-012)", "last_change_time":
+        "2010-04-02T10:37:07Z"}, {"last_change_time": "2010-04-02T10:37:23Z", "summary":
+        "CVE-2008-3824 horde: XSS via unescaped ''/'' characters (oCERT-2008-012)",
+        "id": 461887}, {"summary": "kernel: netlink: fix overrun in attribute iteration",
+        "last_change_time": "2011-09-30T19:37:07Z", "id": 462281}, {"id": 465744,
+        "last_change_time": "2011-09-30T19:51:47Z", "summary": "kernel: rtc: fix kernel
+        panic on second use of SIGIO notification"}, {"id": 467557, "last_change_time":
+        "2010-03-22T15:44:13Z", "summary": "SLES server hacked. This is the programs
+        that he used for hacking the server"}, {"id": 467988, "summary": "kernel:
+        reading from /proc/acpi/video/GFX0/DD01/state crashes system", "last_change_time":
+        "2015-07-29T17:47:25Z"}, {"id": 470758, "summary": "kernel: file caps: always
+        start with clear bprm->caps_*", "last_change_time": "2011-09-30T20:59:16Z"},
+        {"last_change_time": "2010-12-21T22:38:11Z", "summary": "This is a test bug.  Ignore
+        please.", "id": 470973}, {"last_change_time": "2013-01-10T04:55:04Z", "summary":
+        "trac: security fixes in 0.11.2 (CVE-2008-5646, CVE-2008-5647)", "id": 470989},
+        {"summary": "kernel: V4L/DVB (9621): Avoid writing outside shadow.bytes[]
+        array", "last_change_time": "2011-09-30T21:13:24Z", "id": 471835}, {"last_change_time":
+        "2010-03-29T08:37:49Z", "summary": "Java-1.6.0-ibm sr3 unknown vulnerability",
+        "id": 473249}, {"id": 474396, "last_change_time": "2010-03-29T09:22:03Z",
+        "summary": "CVE-2008-5080 awstats: incomplete fix for CVE-2008-3714 XSS issue"},
+        {"summary": "moodle: command injection via TeX filter (texed.php)", "last_change_time":
+        "2010-03-22T15:45:45Z", "id": 476709}, {"id": 477130, "last_change_time":
+        "2010-03-29T10:18:40Z", "summary": "Java-1.5.0-ibm sr9 unknown vulnerability"},
+        {"last_change_time": "2013-01-10T10:28:57Z", "summary": "git: gitweb local
+        privilege escalation", "id": 477523}, {"last_change_time": "2010-04-22T17:36:58Z",
+        "summary": "CVE-2009-0135 CVE-2009-0136 amarok: multiple buffer overflows
+        when parsing Audible .aa files", "id": 479560}, {"summary": "git: gitweb multiple
+        remote command injections (CVE-2008-5516 CVE-2008-5517)", "last_change_time":
+        "2013-01-10T10:29:20Z", "id": 479715}, {"id": 480818, "last_change_time":
+        "2010-04-02T10:37:39Z", "summary": "CVE-2008-5917 horde: IE-specific XSS via
+        image style attribute"}, {"id": 481558, "last_change_time": "2010-03-22T15:45:58Z",
+        "summary": "glpi: multiple SQL injection flaws"}, {"id": 484389, "last_change_time":
+        "2010-03-29T17:48:40Z", "summary": "horde: two security fixes in 3.2.4 / 3.3.3"},
+        {"last_change_time": "2010-03-29T07:54:53Z", "summary": "imp: XSS fix in 4.2.2
+        / 4.3.3", "id": 484394}, {"id": 484545, "summary": "SELinux don''t fully denied
+        access requested by httpd", "last_change_time": "2010-03-29T08:52:57Z"}, {"last_change_time":
+        "2010-03-29T09:18:47Z", "summary": "mapserver: multiple security fixes in
+        5.2.2 and 4.10.4 (CVE-2009-0839, CVE-2009-0840, CVE-2009-0841, CVE-2009-0842,
+        CVE-2009-0843, CVE-2009-1176, CVE-2009-1177)", "id": 493364}, {"id": 495039,
+        "summary": "clamav: security fixes in upstream 0.95.1 (CVE-2009-1371, CVE-2009-1372)",
+        "last_change_time": "2010-09-29T19:19:37Z"}, {"id": 501908, "summary": "Kernel
+        placeholder", "last_change_time": "2010-03-22T18:32:09Z"}, {"summary": "rt3:
+        privilege to edit ''RT at a Glance'' unintentionally granted by \"ShowConfigTab\"
+        right", "last_change_time": "2010-03-22T18:31:43Z", "id": 506236}, {"summary":
+        "CVE-2009-2281 mapserver: incomplete upstream fix for CVE-2009-0840", "last_change_time":
+        "2011-09-26T21:40:51Z", "id": 509559}, {"last_change_time": "2010-12-20T22:28:21Z",
+        "summary": "CVE-2009-2422 rubygem-actionpack: authenticate_with_http_digest
+        authentication bypass", "id": 509564}, {"last_change_time": "2012-03-28T08:17:41Z",
+        "summary": "2.6.30+ Local Kernel Exploit 0day, disabling SELinux/AppArmor/LSM",
+        "id": 510983}, {"summary": "glibc: add more corruption tests", "last_change_time":
+        "2014-06-20T09:00:36Z", "id": 511075}, {"summary": "CVE-2009-2415 memcached:
+        heap-based buffer overflow", "last_change_time": "2012-02-07T06:06:13Z", "id":
+        516489}, {"id": 520546, "last_change_time": "2015-02-07T18:21:13Z", "summary":
+        "\"Security assessment of IPv6\" review"}, {"last_change_time": "2010-04-14T23:42:56Z",
+        "summary": "CXE-2009-1234 Testing bug", "id": 530523}, {"id": 532012, "last_change_time":
+        "2010-06-25T09:44:04Z", "summary": "Java-1.5.0-sun EOSL, unfixed vulnerability"},
+        {"id": 538750, "last_change_time": "2010-10-14T16:13:36Z", "summary": "CVE-2009-3555
+        vs. NSS vs. IDM products"}, {"id": 542649, "summary": "EMBARGOED Mozilla update",
+        "last_change_time": "2010-07-08T16:27:09Z"}, {"last_change_time": "2010-04-08T20:45:57Z",
+        "summary": "CVE-2009-1298 kernel: ip_frag_reasm() NULL pointer dereference",
+        "id": 544144}, {"summary": "Java-1.5.0-sun u23 unknown vulnerability", "last_change_time":
+        "2010-06-25T09:58:53Z", "id": 557852}, {"id": 559980, "last_change_time":
+        "2010-03-29T09:08:43Z", "summary": "EMBARGOED Mozilla security update"}, {"id":
+        564583, "last_change_time": "2010-02-16T15:00:25Z", "summary": "CVE-2009-4642
+        gnome-screensaver, xfce4-session: gnome-screensaver fails to determine session
+        idle time when runned under Xfce"}, {"last_change_time": "2012-03-28T08:34:14Z",
+        "summary": "kernel: netfilter: nf_conntrack: per netns nf_conntrack_cachep",
+        "id": 567180}, {"id": 568436, "last_change_time": "2010-03-29T11:20:43Z",
+        "summary": "short desc"}, {"last_change_time": "2010-06-25T09:56:49Z", "summary":
+        "EMBARGOED Thunderbird tracking bug", "id": 569807}, {"id": 569874, "last_change_time":
+        "2010-03-02T16:49:55Z", "summary": "Test Summary"}, {"summary": "Test Summary",
+        "last_change_time": "2010-03-02T16:49:51Z", "id": 569888}, {"id": 569896,
+        "summary": "Test Summary", "last_change_time": "2010-03-02T16:50:00Z"}, {"id":
+        569897, "last_change_time": "2010-03-02T16:50:00Z", "summary": "Test Summary"},
+        {"id": 570093, "last_change_time": "2010-03-03T09:35:41Z", "summary": "kernel:
+        NFS: Fix an Oops when truncating a file"}, {"summary": "EMBARGOED Mozilla
+        security update", "last_change_time": "2010-07-08T16:25:39Z", "id": 573981},
+        {"summary": "kernel: bluetooth: Fix kernel crash on L2CAP stress tests", "last_change_time":
+        "2012-03-28T08:38:00Z", "id": 576433}, {"id": 577810, "last_change_time":
+        "2010-12-16T21:38:12Z", "summary": "CVE-2010-3439 alienarena: Two security
+        issues in Quake II 3.20 (Server) (applicable to alienarena)"}, {"id": 582068,
+        "summary": "CVE-2010-1488 kernel: oom: fix the unsafe usage of badness() in
+        proc_oom_score()", "last_change_time": "2013-07-23T22:16:52Z"}, {"last_change_time":
+        "2010-06-25T09:52:23Z", "summary": "java-1.6.0-ibm sr8 unknown vulnerability",
+        "id": 586702}, {"summary": "CVE-2010-1636 kernel: btrfs: check for read permission
+        on src file in the clone ioctl", "last_change_time": "2012-03-28T08:46:30Z",
+        "id": 593226}, {"id": 593370, "summary": "Google Chrome''s Zygote-Sandbox",
+        "last_change_time": "2010-05-18T19:38:16Z"}, {"last_change_time": "2015-02-16T15:51:54Z",
+        "summary": "kernel: security: testing the wrong variable in create_by_name()",
+        "id": 594628}, {"summary": "java-1.5.0-ibm fp11sr2 unknown vulnerability",
+        "last_change_time": "2010-06-25T09:49:58Z", "id": 602571}, {"id": 603593,
+        "last_change_time": "2012-03-28T08:51:28Z", "summary": "CVE-2010-2071 kernel:
+        btrfs: prevent users from setting ACLs on files they do not own"}, {"last_change_time":
+        "2010-06-29T11:28:49Z", "summary": "CVE-2010-2092 cacti: graph.php rra_id
+        SQL injection vulnerability (MOPS-2010-023)", "id": 609074}, {"last_change_time":
+        "2010-08-02T03:57:52Z", "summary": "CVE-2010-2537 kernel: btrfs: check for
+        append only file in the clone ioctl", "id": 616992}, {"last_change_time":
+        "2013-08-02T16:33:06Z", "summary": "Red Hat Network Satellite Security bugs",
+        "id": 622406}, {"last_change_time": "2010-11-22T05:15:09Z", "summary": "kernel:
+        mISDN issue", "id": 623024}, {"last_change_time": "2015-06-05T16:07:44Z",
+        "summary": "updateinfo changes to support new products", "id": 624086}, {"summary":
+        "kernel: nfsv4: Fix an Oops in the NFSv4 atomic open code", "last_change_time":
+        "2015-08-22T16:51:42Z", "id": 625710}, {"id": 627498, "summary": "CVE-2010-2953
+        couchdb: start-up script sets insecure LD_LIBRARY_PATH", "last_change_time":
+        "2010-12-22T15:51:12Z"}, {"id": 630050, "last_change_time": "2011-07-19T22:08:18Z",
+        "summary": "rhel6 regressions"}, {"id": 634441, "last_change_time": "2013-01-11T03:19:17Z",
+        "summary": "Test EMBARGOED bug"}, {"last_change_time": "2010-10-18T03:34:36Z",
+        "summary": "EMBARGOED kernel: possible BUG_ON in remap_file_pages()", "id":
+        637036}, {"last_change_time": "2011-02-07T21:21:15Z", "summary": "EMBARGOED
+        file overwrite vulnerability in testing component", "id": 675827}, {"id":
+        675828, "last_change_time": "2015-02-07T18:25:38Z", "summary": "EMBARGOED
+        file overwrite vulnerability in testing component"}, {"summary": "Fedora''s
+        pkgdb exposes summary of non-public bug", "last_change_time": "2015-02-07T18:26:44Z",
+        "id": 677034}, {"id": 749385, "last_change_time": "2015-07-27T08:24:06Z",
+        "summary": "CVE-2011-4076 openstack-nova: EC2 API password leak"}, {"last_change_time":
+        "2012-02-20T18:30:51Z", "summary": "Incorrect HTTPS SSL Certificate for download.fedora.redhat.com",
+        "id": 785927}, {"summary": "CVE-2012-2133 kernel: use after free bug in \"quota\"
+        handling", "last_change_time": "2012-06-04T14:35:33Z", "id": 815065}, {"id":
+        837956, "last_change_time": "2012-09-06T15:24:56Z", "summary": "libexif security
+        vulnerabilities"}, {"last_change_time": "2012-07-10T21:41:02Z", "summary":
+        "Test Summary", "id": 839083}, {"id": 844699, "last_change_time": "2015-06-05T16:08:37Z",
+        "summary": "tcp_wrappers-7.6-40.7.el5 does not honor domain names in /etc/hosts.*"},
+        {"id": 873183, "last_change_time": "2012-11-05T22:18:28Z", "summary": "Webmin
+        : Change Passwords Module Cross-Site Scripting Vulnerability"}, {"last_change_time":
+        "2012-12-11T02:56:18Z", "summary": "Testing for Bugzilla xss vulnerability",
+        "id": 885924}, {"id": 912610, "summary": "OpenSSL version 1.0.1 does not support
+        certificates created by older version stored in trust_store.", "last_change_time":
+        "2013-02-19T11:42:06Z"}, {"summary": "Nagios core: Incorrect shell escaping",
+        "last_change_time": "2014-11-09T23:06:08Z", "id": 957481}, {"id": 1042656,
+        "last_change_time": "2015-02-15T21:52:46Z", "summary": "EMBARGOED TEST BUG
+        *NOT VALID*"}, {"last_change_time": "2015-07-28T13:10:17Z", "summary": "anaconda
+        kickstart creates user with no password", "id": 1063936}, {"last_change_time":
+        "2015-09-05T19:03:00Z", "summary": "Test Summary", "id": 1072047}, {"last_change_time":
+        "2015-02-08T19:59:18Z", "summary": "Zope (transitively el5 luci/conga) reflected
+        XSS vulnerability via acl_users component (via manage_tabs_message parameter)",
+        "id": 1076227}, {"summary": "wpa_supplicant linked against NSS or GnuTLS does
+        not check certificate subject", "last_change_time": "2015-01-05T19:34:46Z",
+        "id": 1084979}, {"summary": "Test Summary", "last_change_time": "2014-07-07T07:16:57Z",
+        "id": 1116445}, {"id": 1146051, "summary": "nodejs-qs: Denial-of-Service Extended
+        Event Loop Blocking", "last_change_time": "2014-09-24T11:37:59Z"}, {"id":
+        1159599, "summary": "Bind: Libdns cause an assertion failure when the named
+        doesn''t load one IPv4/IPv6 (city or country) geolocation database", "last_change_time":
+        "2014-11-02T19:40:04Z"}, {"last_change_time": "2015-07-28T12:48:26Z", "summary":
+        "tigervnc requires rebuild after Dec-2014 xorg-x11-server CVEs", "id": 1180848},
+        {"last_change_time": "2015-01-19T09:11:34Z", "summary": "Test Summary", "id":
+        1183514}, {"id": 1183515, "last_change_time": "2015-01-19T09:11:32Z", "summary":
+        "Test Summary"}, {"id": 1183516, "last_change_time": "2015-01-19T09:11:31Z",
+        "summary": "Test Summary"}, {"id": 1183517, "last_change_time": "2015-01-19T09:11:33Z",
+        "summary": "Test Summary"}, {"id": 1183518, "summary": "Test Dupe", "last_change_time":
+        "2015-01-19T09:11:30Z"}, {"last_change_time": "2015-01-19T09:11:32Z", "summary":
+        "Test Dupe 2", "id": 1183519}, {"summary": "Test Depends", "last_change_time":
+        "2015-01-19T09:11:32Z", "id": 1183520}, {"id": 1183521, "summary": "Test Depends",
+        "last_change_time": "2015-01-19T09:11:31Z"}, {"id": 1183522, "summary": "Test
+        Summary", "last_change_time": "2015-01-19T09:11:33Z"}, {"id": 1183523, "last_change_time":
+        "2015-01-19T09:11:31Z", "summary": "Test Summary"}, {"last_change_time": "2015-01-19T09:11:30Z",
+        "summary": "Test Summary", "id": 1183524}, {"id": 1183525, "last_change_time":
+        "2015-01-19T09:11:33Z", "summary": "Test Summary"}, {"last_change_time": "2015-09-21T11:27:32Z",
+        "summary": "Libxslt 1.1.28 Type Confusion vulnerability may cause DOS", "id":
+        1257058}, {"last_change_time": "2015-09-17T14:07:36Z", "summary": "grub2 has
+        modules built in on EFI builds that allow loading arbitrary code, circumventing
+        secure boot.", "id": 1262904}], "limit": "1000", "offset": 0, "total_matches":
+        130}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 23 Jun 2022 13:08:10 GMT
+      ETag:
+      - UO7HrcGK5zAYW7CEPPDvHg
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding,User-Agent
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '15527'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.b55a33b8.1655989690.93e7d
+      x-rh-edge-request-id:
+      - 93e7d
+    status:
+      code: 200
+      message: OK
+version: 1

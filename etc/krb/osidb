@@ -1,0 +1,8 @@
+[libdefaults]
+  dns_canonicalize_hostname = fallback
+
+[domain_realm]
+  osidb-stage.prodsec.redhat.com = IPA.REDHAT.COM
+  osidb.prodsec.redhat.com = IPA.REDHAT.COM
+  flawdb-service-osidb-stage.apps.ocp.prodsec.psi.redhat.com = IPA.REDHAT.COM
+  flawdb-service-osidb-prod.apps.ocp.prodsec.psi.redhat.com = IPA.REDHAT.COM

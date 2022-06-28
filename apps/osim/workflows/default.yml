@@ -1,0 +1,34 @@
+---
+name: DEFAULT
+description: default vulnerability analysis
+priority: 0
+conditions: []
+states:
+  - name: DRAFT
+    requirements: []
+
+  - name: ANALYSIS
+    requirements:
+      - has affects
+      - has description
+      - has source
+      - has title
+
+  - name: REVIEW
+    requirements:
+      - affects resolved
+      - has cve
+      - has cwe
+
+  - name: FIX
+    requirements:
+      - trackers filed
+
+  # you can freely comment as you wish
+  # maybe about that this is the final state
+  - name: DONE
+    requirements:
+      # TODO embargoed is not model attribute any more but annotation
+      # so this currently errors out and we need to accout for the change
+      #- not embargoed
+      - trackers resolved

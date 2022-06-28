@@ -1,0 +1,25 @@
+---
+name: NOT-AFFECTED
+description: >
+  vulnerability does not affect any Red Hat or community products
+  the flaw was analysed but all affects were resolved as notaffected
+  there is no followup action required after resolving the affects
+priority: 1
+conditions:
+  - has affects
+  - affects resolved
+  - affects notaffected
+states:
+  - name: DRAFT
+    requirements: []
+
+  - name: ANALYSIS
+    requirements:
+      - has affects
+      - has description
+      - has source
+      - has title
+
+  - name: DONE
+    requirements:
+      - affects resolved

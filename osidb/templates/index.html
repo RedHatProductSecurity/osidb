@@ -1,0 +1,63 @@
+<html lang="en" class="layout-pf layout-pf-fixed-with-footer">
+  <head>
+    <meta charset="utf-8">
+    <style>
+      .highlight { background-color:#FFFF00; }
+    </style>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/4.0.0-rc.1/css/patternfly.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/4.0.0-rc.1/css/patternfly-additions.min.css">
+    <title>OSIDB</title>
+  </head>
+  <body style="background-color: whitesmoke">
+    <nav class="navbar navbar-default navbar-pf" role="navigation">
+      <div style="margin: 3px 0 5px 20px;">
+        <a title="Security Data Engine" href="/"
+           style="font-size: 14px; text-decoration: none; color: white">
+          <b>OSIDB - Open Security Issue Database</b>
+        </a>
+      </div>
+      <div class="collapse navbar-collapse navbar-collapse-1">
+        <ul class="nav navbar-nav navbar-utility">
+          <li>
+          {% if user.is_authenticated %}
+            <a style="padding: 10px 10px;" href="/admin">
+              <i class="fa fa-user"></i> {{ request.user.username }}
+            </a>
+          </li>
+          <li>
+            <a style="padding: 10px 10px;" href="/admin/logout">Logout</a>
+          {% else %}
+            <a style="padding: 10px 10px;" href="/admin/login?next=/">Login</a>
+          {% endif %}
+          </li>
+        </ul>
+    </nav>
+    <div class="container-fluid">
+      <hr/>
+      <p>OSIDB: <a href='/osidb/api/v1/flaws'>API</a> | <a href='/osidb/healthy'>health</a> | <a href='/osidb/api/v1/status'>status</a></p>
+      <p>OSIM: <a href='/osim/'>API</a> | <a href='/osim/healthy'>health</a></p>
+      <hr/>
+      <p>Docs: <a href='https://git.prodsec.redhat.com/devops/osidb/-/blob/master/docs/TUTORIAL.md'>OSIDB REST API tutorial</a> |
+      <a href='https://git.prodsec.redhat.com/devops/osidb-bindings/-/blob/master/docs/TUTORIAL.md'>OSIDB Bindings Tutorial</a> |
+      <a href='/osidb/api/v1/schema/swagger-ui'>API</a></p>
+      <p>Schema <a href='/osidb/api/v1/schema?format=json'>JSON</a>| <a href='/osidb/api/v1/schema?format=json'>YAML</a>| <a href='/osidb/api/v1/schema/swagger-ui/'>Interactive</a></p>
+    </div>
+    <div class="container-fluid footer-pf">
+      <div class="text-center" style="font-size:80%; padding-bottom: 5px">
+        <b>RED HAT CONFIDENTIAL</b>
+        |
+        Copyright © {% now 'Y' %} Red Hat, Inc. All rights reserved.
+        |
+        Version: {{ version }}
+        |
+        <a href="https://docs.engineering.redhat.com/display/PRODSEC/Product+Security+Services+and+Tools+Catalog#ProductSecurityServicesandToolsCatalog-OSIDB"
+           rel="noopener noreferrer" target="_blank">
+          Report Issue/Enhancement
+        </a>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.59.5/js/patternfly.min.js"></script>
+  </body>
+</html>

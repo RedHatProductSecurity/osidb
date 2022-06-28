@@ -1,0 +1,368 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/version
+  response:
+    body:
+      string: '{"version":"5.0.4.rh69"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 13 Apr 2022 09:28:44 GMT
+      ETag:
+      - abwKR1TjVJZeK1gHfdLsWA
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding,User-Agent
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '24'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.1cc31302.1649842124.2b5214c
+      x-rh-edge-request-id:
+      - 2b5214c
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/user?match=atorresj%40redhat.com
+  response:
+    body:
+      string: '{"users":[{"email":"atorresj@redhat.com","can_login":true,"saved_searches":[],"real_name":"Adrian
+        Torres","id":467417,"name":"atorresj@redhat.com","saved_reports":[]}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 13 Apr 2022 09:28:45 GMT
+      ETag:
+      - MBzZOYGA05NZgr51QOJ5Ng
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding,User-Agent
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '168'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.1cc31302.1649842125.2b52307
+      x-rh-edge-request-id:
+      - 2b52307
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*.*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.26.0
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://issues.redhat.com/rest/api/2/user/search?includeActive=True&includeInactive=False&maxResults=50&username=atorresj%40redhat.com
+  response:
+    body:
+      string: '[{"self":"https://issues.redhat.com/rest/api/2/user?username=atorresj@redhat.com","key":"JIRAUSER173566","name":"atorresj@redhat.com","emailAddress":"atorresj@redhat.com","avatarUrls":{"48x48":"https://issues.redhat.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078","24x24":"https://issues.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078","16x16":"https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078","32x32":"https://issues.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},"displayName":"Adrian
+        Torres Justo","active":true,"deleted":false,"timeZone":"Europe/Brussels","locale":"en_US"}]'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - sandbox
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Wed, 13 Apr 2022 09:28:45 GMT
+      Expires:
+      - Wed, 13 Apr 2022 09:28:45 GMT
+      Pragma:
+      - no-cache
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      content-length:
+      - '702'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-prod-0
+      x-arequestid:
+      - 568x3413708x2
+      x-asessionid:
+      - 1h6tx3h
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.6ff06e68.1649842125.127c739d
+      x-rh-edge-request-id:
+      - 127c739d
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/version
+  response:
+    body:
+      string: '{"version":"5.0.4.rh69"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 13 Apr 2022 09:28:46 GMT
+      ETag:
+      - abwKR1TjVJZeK1gHfdLsWA
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding,User-Agent
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '24'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.1cc31302.1649842126.2b526c3
+      x-rh-edge-request-id:
+      - 2b526c3
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/user?names=atorresj%40redhat.com
+  response:
+    body:
+      string: '{"users":[{"saved_reports":[],"email":"atorresj@redhat.com","can_login":true,"name":"atorresj@redhat.com","saved_searches":[],"id":467417,"real_name":"Adrian
+        Torres"}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 13 Apr 2022 09:28:46 GMT
+      ETag:
+      - MBzZOYGA05NZgr51QOJ5Ng
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding,User-Agent
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '168'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.1cc31302.1649842126.2b52843
+      x-rh-edge-request-id:
+      - 2b52843
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*.*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.26.0
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://issues.redhat.com/rest/api/2/user?username=atorresj%40redhat.com
+  response:
+    body:
+      string: '{"self":"https://issues.redhat.com/rest/api/2/user?username=atorresj@redhat.com","key":"JIRAUSER173566","name":"atorresj@redhat.com","emailAddress":"atorresj@redhat.com","avatarUrls":{"48x48":"https://issues.redhat.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078","24x24":"https://issues.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078","16x16":"https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078","32x32":"https://issues.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},"displayName":"Adrian
+        Torres Justo","active":true,"deleted":false,"timeZone":"Europe/Brussels","locale":"en_US","groups":{"size":10,"items":[]},"applicationRoles":{"size":1,"items":[]},"expand":"groups,applicationRoles"}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - sandbox
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Wed, 13 Apr 2022 09:28:46 GMT
+      Expires:
+      - Wed, 13 Apr 2022 09:28:46 GMT
+      Pragma:
+      - no-cache
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      content-length:
+      - '808'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-prod-2
+      x-arequestid:
+      - 568x3171448x3
+      x-asessionid:
+      - mev8p2
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.6ff06e68.1649842126.127c81f2
+      x-rh-edge-request-id:
+      - 127c81f2
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,54 @@
+version: '3'
+
+services:
+
+    testldap:
+      container_name: testldap
+      image: quay.io/prodsecdev/openldap:2.5.7-debian-10-r57
+      ports:
+        - '1389:1389'
+        - '1636:1636'
+      environment:
+        - LDAP_ROOT=dc=redhat,dc=com
+        - LDAP_ADMIN_USERNAME=admin
+        - LDAP_ADMIN_PASSWORD=adminpassword
+      volumes:
+        - ${PWD}/etc/openldap:/ldifs:z
+      depends_on: ["osidb-data"]
+      # See "NOTE about healthchecks" in docker-compose.yml:
+      # depends_on:
+      #   osidb-data:
+      #     condition: service_healthy
+
+    phpldapadmin:
+      image: docker.io/osixia/phpldapadmin:latest
+      container_name: phpldapadmin
+      environment:
+        PHPLDAPADMIN_LDAP_HOSTS: "ldap://testldap:1389"
+        PHPLDAPADMIN_HTTPS: "false"
+      ports:
+        - "${OSIDB_TESTRUNNER_PORT-8080}:80"
+      depends_on: ["testldap"]
+
+    testrunner:
+      container_name: testrunner
+      build:
+        context: .
+        dockerfile: Dockerfile.test
+      image: testrunner
+      stdin_open: true
+      tty: true
+      depends_on: ["osidb-data"]
+      # See "NOTE about healthchecks" in docker-compose.yml:
+      # depends_on:
+      #   osidb-data:
+      #     condition: service_healthy
+# #####################
+# NOTE: we make no external calls with tests - below env vars in test environment are
+#       used in capturing new vcr data cassettes
+# #####################
+      environment:
+        - BZIMPORT_BZ_API_KEY=${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
+        - JIRA_AUTH_TOKEN=${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
+      volumes:
+        - ${PWD}:/opt/app-root/src:z

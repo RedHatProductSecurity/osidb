@@ -1,0 +1,360 @@
+interactions:
+- request:
+    body: '<?xml version=''1.0''?>
+
+      <methodCall>
+
+      <methodName>get_advisory_list</methodName>
+
+      <params>
+
+      <param>
+
+      <value><struct>
+
+      <member>
+
+      <name>updated_at</name>
+
+      <value><dateTime.iso8601>20220421T20:12:00</dateTime.iso8601></value>
+
+      </member>
+
+      <member>
+
+      <name>per_page</name>
+
+      <value><int>100</int></value>
+
+      </member>
+
+      <member>
+
+      <name>page</name>
+
+      <value><int>1</int></value>
+
+      </member>
+
+      </struct></value>
+
+      </param>
+
+      </params>
+
+      </methodCall>
+
+      '
+    headers:
+      Accept-Encoding:
+      - gzip
+      Content-Length:
+      - '411'
+      Content-Type:
+      - text/xml
+      User-Agent:
+      - Python-xmlrpc/3.9
+    method: POST
+    uri: https://errata.stage.engineering.redhat.com/errata/errata_service
+  response:
+    body:
+      string: '<?xml version="1.0" ?><methodResponse><params><param><value><array><data><value><struct><member><name>advisory_name</name><value><string>RHBA-2021:62837-01</string></value></member><member><name>errata_id</name><value><i4>62837</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>RPM-
+        releng-training-pkhander for 2.0</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>RHCMTP-pkhander</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2021-01-08
+        15:16:10 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73558-09</string></value></member><member><name>errata_id</name><value><i4>73558</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>test
+        pushing operator hotfix advisory</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>rhol</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-12
+        14:49:41 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2158-01</string></value></member><member><name>errata_id</name><value><i4>73790</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-21
+        20:44:46 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-21
+        21:06:12 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73791-01</string></value></member><member><name>errata_id</name><value><i4>73791</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-21
+        21:24:23 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73792-01</string></value></member><member><name>errata_id</name><value><i4>73792</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-21
+        22:08:40 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2159-01</string></value></member><member><name>errata_id</name><value><i4>73793</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-21
+        23:40:43 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-22
+        00:02:34 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2160-01</string></value></member><member><name>errata_id</name><value><i4>73794</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        00:44:28 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-22
+        00:59:36 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73795-01</string></value></member><member><name>errata_id</name><value><i4>73795</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        01:08:06 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73796-01</string></value></member><member><name>errata_id</name><value><i4>73796</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        02:08:41 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2161-01</string></value></member><member><name>errata_id</name><value><i4>73797</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        03:40:19 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-22
+        04:05:10 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2162-01</string></value></member><member><name>errata_id</name><value><i4>73798</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        04:44:28 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-22
+        05:02:42 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73799-01</string></value></member><member><name>errata_id</name><value><i4>73799</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        04:59:43 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73800-01</string></value></member><member><name>errata_id</name><value><i4>73800</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        06:07:44 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2163-01</string></value></member><member><name>errata_id</name><value><i4>73801</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        07:39:17 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-22
+        08:09:50 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2164-01</string></value></member><member><name>errata_id</name><value><i4>73802</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        08:44:11 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-22
+        09:07:00 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73803-01</string></value></member><member><name>errata_id</name><value><i4>73803</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        08:49:54 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73804-01</string></value></member><member><name>errata_id</name><value><i4>73804</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        10:08:41 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2165-01</string></value></member><member><name>errata_id</name><value><i4>73805</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        11:41:25 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-22
+        12:12:27 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2166-01</string></value></member><member><name>errata_id</name><value><i4>73806</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        12:44:16 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-22
+        12:58:29 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73807-01</string></value></member><member><name>errata_id</name><value><i4>73807</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        13:07:00 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73808-01</string></value></member><member><name>errata_id</name><value><i4>73808</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        14:07:36 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2167-01</string></value></member><member><name>errata_id</name><value><i4>73809</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        15:42:25 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-22
+        16:03:19 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2168-01</string></value></member><member><name>errata_id</name><value><i4>73810</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>module</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        16:32:20 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-22
+        16:53:29 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2169-01</string></value></member><member><name>errata_id</name><value><i4>73811</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        16:44:05 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-22
+        17:01:56 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73812-01</string></value></member><member><name>errata_id</name><value><i4>73812</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        17:15:07 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73813-01</string></value></member><member><name>errata_id</name><value><i4>73813</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        18:07:28 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73814-01</string></value></member><member><name>errata_id</name><value><i4>73814</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        19:40:28 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2170-01</string></value></member><member><name>errata_id</name><value><i4>73815</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        20:44:10 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-22
+        21:04:31 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73816-01</string></value></member><member><name>errata_id</name><value><i4>73816</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-22
+        20:49:51 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2171-01</string></value></member><member><name>errata_id</name><value><i4>73817</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        00:44:28 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-23
+        01:07:05 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73818-01</string></value></member><member><name>errata_id</name><value><i4>73818</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        01:22:14 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73819-01</string></value></member><member><name>errata_id</name><value><i4>73819</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        02:07:40 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2172-01</string></value></member><member><name>errata_id</name><value><i4>73820</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        03:39:16 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-23
+        04:02:24 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2173-01</string></value></member><member><name>errata_id</name><value><i4>73821</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        04:44:13 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-23
+        04:59:51 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73822-01</string></value></member><member><name>errata_id</name><value><i4>73822</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        04:46:51 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73823-01</string></value></member><member><name>errata_id</name><value><i4>73823</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        06:07:43 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2174-01</string></value></member><member><name>errata_id</name><value><i4>73824</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        07:41:15 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-23
+        08:05:08 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2175-01</string></value></member><member><name>errata_id</name><value><i4>73825</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        08:44:13 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-23
+        09:03:26 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73826-01</string></value></member><member><name>errata_id</name><value><i4>73826</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        08:47:52 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73827-01</string></value></member><member><name>errata_id</name><value><i4>73827</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        10:08:45 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2176-01</string></value></member><member><name>errata_id</name><value><i4>73828</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        11:39:23 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-23
+        12:07:46 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2177-01</string></value></member><member><name>errata_id</name><value><i4>73829</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        12:44:23 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-23
+        13:05:03 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73830-01</string></value></member><member><name>errata_id</name><value><i4>73830</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        14:07:44 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2178-01</string></value></member><member><name>errata_id</name><value><i4>73831</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        15:41:10 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-23
+        16:09:29 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2179-01</string></value></member><member><name>errata_id</name><value><i4>73832</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        16:43:09 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-23
+        16:58:21 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73833-01</string></value></member><member><name>errata_id</name><value><i4>73833</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        16:46:44 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73834-01</string></value></member><member><name>errata_id</name><value><i4>73834</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        18:07:30 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2180-01</string></value></member><member><name>errata_id</name><value><i4>73835</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        19:40:14 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-23
+        20:03:49 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2181-01</string></value></member><member><name>errata_id</name><value><i4>73836</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        20:44:02 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-23
+        21:00:50 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73837-01</string></value></member><member><name>errata_id</name><value><i4>73837</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        20:47:43 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73838-01</string></value></member><member><name>errata_id</name><value><i4>73838</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        22:08:39 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2182-01</string></value></member><member><name>errata_id</name><value><i4>73839</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-23
+        23:41:24 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-24
+        00:06:31 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2183-01</string></value></member><member><name>errata_id</name><value><i4>73840</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-24
+        00:44:21 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-24
+        01:05:16 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73841-01</string></value></member><member><name>errata_id</name><value><i4>73841</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-24
+        00:48:51 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73842-01</string></value></member><member><name>errata_id</name><value><i4>73842</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-24
+        02:07:34 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2184-01</string></value></member><member><name>errata_id</name><value><i4>73843</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-24
+        03:40:28 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-24
+        04:10:06 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-8022:2185-01</string></value></member><member><name>errata_id</name><value><i4>73844</i4></value></member><member><name>status</name><value><string>SHIPPED_LIVE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-24
+        04:44:30 UTC</string></value></member><member><name>actual_ship_date</name><value><string>2022-04-24
+        05:07:10 UTC</string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73845-01</string></value></member><member><name>errata_id</name><value><i4>73845</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-24
+        04:46:48 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73846-01</string></value></member><member><name>errata_id</name><value><i4>73846</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-24
+        06:07:34 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73847-01</string></value></member><member><name>errata_id</name><value><i4>73847</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-24
+        07:39:19 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73848-01</string></value></member><member><name>errata_id</name><value><i4>73848</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-24
+        08:44:15 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73849-01</string></value></member><member><name>errata_id</name><value><i4>73849</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-24
+        10:08:38 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73850-01</string></value></member><member><name>errata_id</name><value><i4>73850</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-24
+        11:39:30 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73851-01</string></value></member><member><name>errata_id</name><value><i4>73851</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>rpm</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-24
+        12:44:29 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73852-01</string></value></member><member><name>errata_id</name><value><i4>73852</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-24
+        12:50:53 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value><value><struct><member><name>advisory_name</name><value><string>RHBA-2022:73853-01</string></value></member><member><name>errata_id</name><value><i4>73853</i4></value></member><member><name>status</name><value><string>QE</string></value></member><member><name>synopsis</name><value><string>This
+        is a synopsis of a test advisory.</string></value></member><member><name>priority</name><value><string>normal</string></value></member><member><name>product</name><value><string>release-e2e-test</string></value></member><member><name>errata_type</name><value><string>RHBA</string></value></member><member><name>content_types</name><value><array><data><value><string>docker</string></value></data></array></value></member><member><name>created_at</name><value><string>2022-04-24
+        14:06:38 UTC</string></value></member><member><name>actual_ship_date</name><value><string></string></value></member></struct></value></data></array></value></param></params></methodResponse>
+
+        '
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Security-Policy:
+      - 'default-src ''self''; script-src ''self'' ''unsafe-eval'' ''unsafe-inline''
+        https://*.redhat.com; connect-src ''self''; img-src ''self'' data: https://*.redhat.com;
+        style-src ''self'' ''unsafe-inline'' https://*.redhat.com; font-src ''self''
+        data: https://*.redhat.com;'
+      Content-Type:
+      - text/xml; charset=utf-8
+      Date:
+      - Mon, 25 Apr 2022 20:50:59 GMT
+      ETag:
+      - W/"246e5a7ca9954f709fb7401f3bee30d4-gzip"
+      Server:
+      - Apache/2.4.34 (Red Hat) OpenSSL/1.0.1e-fips mod_auth_kerb/5.4 Phusion_Passenger/4.0.50
+      Status:
+      - 200 OK
+      Vary:
+      - Origin,Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Powered-By:
+      - Phusion Passenger 4.0.50
+      X-Request-Id:
+      - f201708f-ac1d-4957-ab8a-c0debfb39df7
+      X-Runtime:
+      - '0.476529'
+      X-XSS-Protection:
+      - 1; mode=block
+      content-length:
+      - '60709'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '<?xml version=''1.0''?>
+
+      <methodCall>
+
+      <methodName>get_advisory_list</methodName>
+
+      <params>
+
+      <param>
+
+      <value><struct>
+
+      <member>
+
+      <name>updated_at</name>
+
+      <value><dateTime.iso8601>20220421T20:12:00</dateTime.iso8601></value>
+
+      </member>
+
+      <member>
+
+      <name>per_page</name>
+
+      <value><int>100</int></value>
+
+      </member>
+
+      <member>
+
+      <name>page</name>
+
+      <value><int>2</int></value>
+
+      </member>
+
+      </struct></value>
+
+      </param>
+
+      </params>
+
+      </methodCall>
+
+      '
+    headers:
+      Accept-Encoding:
+      - gzip
+      Content-Length:
+      - '411'
+      Content-Type:
+      - text/xml
+      User-Agent:
+      - Python-xmlrpc/3.9
+    method: POST
+    uri: https://errata.stage.engineering.redhat.com/errata/errata_service
+  response:
+    body:
+      string: '<?xml version="1.0" ?><methodResponse><params><param><value><array><data/></array></value></param></params></methodResponse>
+
+        '
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Content-Security-Policy:
+      - 'default-src ''self''; script-src ''self'' ''unsafe-eval'' ''unsafe-inline''
+        https://*.redhat.com; connect-src ''self''; img-src ''self'' data: https://*.redhat.com;
+        style-src ''self'' ''unsafe-inline'' https://*.redhat.com; font-src ''self''
+        data: https://*.redhat.com;'
+      Content-Type:
+      - text/xml; charset=utf-8
+      Date:
+      - Mon, 25 Apr 2022 20:51:00 GMT
+      ETag:
+      - W/"4f711e192399b05a69008dfd77d7a8e5-gzip"
+      Server:
+      - Apache/2.4.34 (Red Hat) OpenSSL/1.0.1e-fips mod_auth_kerb/5.4 Phusion_Passenger/4.0.50
+      Status:
+      - 200 OK
+      Vary:
+      - Origin,Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Powered-By:
+      - Phusion Passenger 4.0.50
+      X-Request-Id:
+      - 0a1c63fd-01c5-4cbc-aede-d9d8a43257b7
+      X-Runtime:
+      - '0.319849'
+      X-XSS-Protection:
+      - 1; mode=block
+      content-length:
+      - '125'
+    status:
+      code: 200
+      message: OK
+version: 1

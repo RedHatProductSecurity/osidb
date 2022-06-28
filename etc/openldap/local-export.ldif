@@ -1,0 +1,453 @@
+version: 1
+
+#################
+# top level
+#################
+
+dn: dc=redhat,dc=com
+dc: redhat
+o: example
+objectclass: dcObject
+objectclass: organization
+
+dn: ou=users,dc=redhat,dc=com
+objectclass: organizationalUnit
+ou: users
+
+dn: ou=serviceaccounts,dc=redhat,dc=com
+objectclass: organizationalUnit
+ou: serviceaccounts
+
+#################
+# Users
+#################
+
+dn: cn=user01,ou=users,dc=redhat,dc=com
+cn: User1
+cn: user01
+gidnumber: 1000
+givenName: silenceawarning
+homedirectory: /home/user01
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Von Neumann
+uid: user01
+uidnumber: 1000
+userpassword: password
+
+dn: cn=user02,ou=users,dc=redhat,dc=com
+cn: User2
+cn: user02
+gidnumber: 1001
+givenName: silenceawarning
+homedirectory: /home/user02
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Turing
+uid: user02
+uidnumber: 1001
+userpassword: password
+
+dn: cn=jfuller,ou=users,dc=redhat,dc=com
+cn: User3
+cn: jfuller
+gidnumber: 1002
+givenName: silenceawarning
+homedirectory: /home/jfuller
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Fuller
+uid: jfuller
+uidnumber: 1002
+userpassword: password
+
+dn: cn=gmollet,ou=users,dc=redhat,dc=com
+cn: User4
+cn: gmollet
+gidnumber: 1003
+givenName: silenceawarning
+homedirectory: /home/gmollet
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Bar4
+uid: gmollet
+uidnumber: 1003
+userpassword: password
+
+dn: cn=jpadman,ou=users,dc=redhat,dc=com
+cn: User5
+cn: jpadman
+gidnumber: 1004
+givenName: silenceawarning
+homedirectory: /home/jpadman
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Padman
+uid: jpadman
+uidnumber: 1004
+userpassword: password
+
+dn: cn=osoukup,ou=users,dc=redhat,dc=com
+cn: User6
+cn: osoukup
+gidnumber: 1005
+givenName: silenceawarning
+homedirectory: /home/osoukup
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Soukup
+uid: osoukup
+uidnumber: 1005
+userpassword: password
+
+dn: cn=juspence,ou=users,dc=redhat,dc=com
+cn: User7
+cn: juspence
+gidnumber: 1006
+givenName: silenceawarning
+homedirectory: /home/juspence
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Spencer
+uid: juspence
+uidnumber: 1006
+userpassword: password
+
+dn: cn=jtkaufman,ou=users,dc=redhat,dc=com
+cn: User8
+cn: jtkaufman
+gidnumber: 1007
+givenName: silenceawarning
+homedirectory: /home/jtkaufman
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Kaufman
+uid: jtkaufman
+uidnumber: 1007
+userpassword: password
+
+dn: cn=jfrejlac,ou=users,dc=redhat,dc=com
+cn: User9
+cn: jfrejlac
+gidnumber: 1008
+givenName: silenceawarning
+homedirectory: /home/jfrejlac
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Frejlach
+uid: jfrejlac
+uidnumber: 1008
+userpassword: password
+
+dn: cn=mprpic,ou=users,dc=redhat,dc=com
+cn: User10
+cn: mprpic
+gidnumber: 1009
+givenName: silenceawarning
+homedirectory: /home/mprpic
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Prpic
+uid: mprpic
+uidnumber: 1009
+userpassword: password
+
+dn: cn=mbaluch,ou=users,dc=redhat,dc=com
+cn: User11
+cn: mbaluch
+gidnumber: 1010
+givenName: silenceawarning
+homedirectory: /home/mbaluch
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Baluch
+uid: mbaluch
+uidnumber: 1010
+userpassword: password
+
+dn: cn=jshepher,ou=users,dc=redhat,dc=com
+cn: User12
+cn: jshepher
+gidnumber: 1011
+givenName: silenceawarning
+homedirectory: /home/jshepher
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Shepherd
+uid: jshepher
+uidnumber: 1011
+userpassword: password
+
+dn: cn=ykostash,ou=users,dc=redhat,dc=com
+cn: User13
+cn: ykostash
+gidnumber: 1012
+givenName: silenceawarning
+homedirectory: /home/ykostash
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Kostash
+uid: ykostash
+uidnumber: 1012
+userpassword: password
+
+dn: cn=jgarriso,ou=users,dc=redhat,dc=com
+cn: User14
+cn: jgarriso
+gidnumber: 1013
+givenName: silenceawarning
+homedirectory: /home/jgarriso
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Garrison
+uid: jgarriso
+uidnumber: 1013
+userpassword: password
+
+dn: cn=atorresj,ou=users,dc=redhat,dc=com
+cn: User15
+cn: atorresj
+gidnumber: 1014
+givenName: silenceawarning
+homedirectory: /home/atorresj
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Torres
+uid: atorresj
+uidnumber: 1014
+userpassword: password
+
+dn: cn=testuser,ou=users,dc=redhat,dc=com
+cn: User16
+cn: testuser
+gidnumber: 1016
+givenName: silenceawarning
+homedirectory: /home/testuser
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Perlis
+uid: testuser
+uidnumber: 1016
+userpassword: password
+
+#################
+# Service accounts
+#################
+
+dn: cn=testservice,ou=serviceaccounts,dc=redhat,dc=com
+cn: Service1
+cn: testservice
+gidnumber: 2000
+givenName: silenceawarning
+homedirectory: /home/testservice
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Faker
+uid: testservice
+uidnumber: 2000
+userpassword: password
+
+#################
+# service groups
+#################
+
+# access to osidb service/interfaces
+dn: cn=osidb-service,ou=users,dc=redhat,dc=com
+cn: osidb-service
+member: cn=user01,ou=users,dc=redhat,dc=com
+member: cn=user02,ou=users,dc=redhat,dc=com
+member: cn=jfuller,ou=users,dc=redhat,dc=com
+member: cn=jpadman,ou=users,dc=redhat,dc=com
+member: cn=gmollet,ou=users,dc=redhat,dc=com
+member: cn=osoukup,ou=users,dc=redhat,dc=com
+member: cn=juspence,ou=users,dc=redhat,dc=com
+member: cn=jtkaufman,ou=users,dc=redhat,dc=com
+member: cn=jfrejlac,ou=users,dc=redhat,dc=com
+member: cn=mprpic,ou=users,dc=redhat,dc=com
+member: cn=mbaluch,ou=users,dc=redhat,dc=com
+member: cn=jshepher,ou=users,dc=redhat,dc=com
+member: cn=ykostash,ou=users,dc=redhat,dc=com
+member: cn=jgarriso,ou=users,dc=redhat,dc=com
+member: cn=atorresj,ou=users,dc=redhat,dc=com
+member: cn=testuser,ou=users,dc=redhat,dc=com
+objectclass: groupOfNames
+
+# access to osidb manage
+dn: cn=osidb-service-manage,ou=users,dc=redhat,dc=com
+cn: osidb-service-manage
+member: cn=user01,ou=users,dc=redhat,dc=com
+member: cn=jfuller,ou=users,dc=redhat,dc=com
+member: cn=juspence,ou=users,dc=redhat,dc=com
+member: cn=mprpic,ou=users,dc=redhat,dc=com
+member: cn=mbaluch,ou=users,dc=redhat,dc=com
+member: cn=jshepher,ou=users,dc=redhat,dc=com
+member: cn=osoukup,ou=users,dc=redhat,dc=com
+member: cn=atorresj,ou=users,dc=redhat,dc=com
+objectclass: groupOfNames
+
+# access to bzimport service/interfaces
+dn: cn=bzimport-service,ou=users,dc=redhat,dc=com
+cn: bzimport-service
+member: cn=user01,ou=users,dc=redhat,dc=com
+member: cn=user02,ou=users,dc=redhat,dc=com
+member: cn=jfuller,ou=users,dc=redhat,dc=com
+member: cn=jpadman,ou=users,dc=redhat,dc=com
+member: cn=gmollet,ou=users,dc=redhat,dc=com
+member: cn=osoukup,ou=users,dc=redhat,dc=com
+member: cn=juspence,ou=users,dc=redhat,dc=com
+member: cn=jtkaufman,ou=users,dc=redhat,dc=com
+member: cn=jfrejlac,ou=users,dc=redhat,dc=com
+member: cn=mprpic,ou=users,dc=redhat,dc=com
+member: cn=mbaluch,ou=users,dc=redhat,dc=com
+member: cn=jshepher,ou=users,dc=redhat,dc=com
+member: cn=ykostash,ou=users,dc=redhat,dc=com
+member: cn=jgarriso,ou=users,dc=redhat,dc=com
+member: cn=atorresj,ou=users,dc=redhat,dc=com
+member: cn=testuser,ou=users,dc=redhat,dc=com
+objectclass: groupOfNames
+
+# active users
+dn: cn=active,ou=users,dc=redhat,dc=com
+cn: active
+member: cn=user01,ou=users,dc=redhat,dc=com
+member: cn=user02,ou=users,dc=redhat,dc=com
+member: cn=jfuller,ou=users,dc=redhat,dc=com
+member: cn=jpadman,ou=users,dc=redhat,dc=com
+member: cn=gmollet,ou=users,dc=redhat,dc=com
+member: cn=osoukup,ou=users,dc=redhat,dc=com
+member: cn=juspence,ou=users,dc=redhat,dc=com
+member: cn=jtkaufman,ou=users,dc=redhat,dc=com
+member: cn=jfrejlac,ou=users,dc=redhat,dc=com
+member: cn=mprpic,ou=users,dc=redhat,dc=com
+member: cn=mbaluch,ou=users,dc=redhat,dc=com
+member: cn=jshepher,ou=users,dc=redhat,dc=com
+member: cn=ykostash,ou=users,dc=redhat,dc=com
+member: cn=jgarriso,ou=users,dc=redhat,dc=com
+member: cn=atorresj,ou=users,dc=redhat,dc=com
+member: cn=testuser,ou=users,dc=redhat,dc=com
+objectclass: groupOfNames
+
+# staff users
+dn: cn=staff,ou=users,dc=redhat,dc=com
+cn: staff
+member: cn=user01,ou=users,dc=redhat,dc=com
+member: cn=user02,ou=users,dc=redhat,dc=com
+member: cn=jfuller,ou=users,dc=redhat,dc=com
+member: cn=jpadman,ou=users,dc=redhat,dc=com
+member: cn=gmollet,ou=users,dc=redhat,dc=com
+member: cn=osoukup,ou=users,dc=redhat,dc=com
+member: cn=juspence,ou=users,dc=redhat,dc=com
+member: cn=jtkaufman,ou=users,dc=redhat,dc=com
+member: cn=jfrejlac,ou=users,dc=redhat,dc=com
+member: cn=mprpic,ou=users,dc=redhat,dc=com
+member: cn=mbaluch,ou=users,dc=redhat,dc=com
+member: cn=jshepher,ou=users,dc=redhat,dc=com
+member: cn=ykostash,ou=users,dc=redhat,dc=com
+member: cn=jgarriso,ou=users,dc=redhat,dc=com
+member: cn=atorresj,ou=users,dc=redhat,dc=com
+member: cn=testuser,ou=users,dc=redhat,dc=com
+objectclass: groupOfNames
+
+#################
+# data groups
+#################
+
+# prodsec data
+dn: cn=data-prodsec,ou=users,dc=redhat,dc=com
+cn: data-prodsec
+member: cn=user01,ou=users,dc=redhat,dc=com
+member: cn=user02,ou=users,dc=redhat,dc=com
+member: cn=jfuller,ou=users,dc=redhat,dc=com
+member: cn=juspence,ou=users,dc=redhat,dc=com
+member: cn=jpadman,ou=users,dc=redhat,dc=com
+member: cn=gmollet,ou=users,dc=redhat,dc=com
+member: cn=osoukup,ou=users,dc=redhat,dc=com
+member: cn=mprpic,ou=users,dc=redhat,dc=com
+member: cn=mbaluch,ou=users,dc=redhat,dc=com
+member: cn=jshepher,ou=users,dc=redhat,dc=com
+member: cn=ykostash,ou=users,dc=redhat,dc=com
+member: cn=jgarriso,ou=users,dc=redhat,dc=com
+member: cn=jtkaufman,ou=users,dc=redhat,dc=com
+member: cn=atorresj,ou=users,dc=redhat,dc=com
+member: cn=testuser,ou=users,dc=redhat,dc=com
+objectclass: groupOfNames
+
+# prodsec data write
+dn: cn=data-prodsec-write,ou=users,dc=redhat,dc=com
+cn: data-prodsec-write
+member: cn=user02,ou=users,dc=redhat,dc=com
+member: cn=jfuller,ou=users,dc=redhat,dc=com
+member: cn=juspence,ou=users,dc=redhat,dc=com
+member: cn=jpadman,ou=users,dc=redhat,dc=com
+member: cn=gmollet,ou=users,dc=redhat,dc=com
+member: cn=osoukup,ou=users,dc=redhat,dc=com
+member: cn=mprpic,ou=users,dc=redhat,dc=com
+member: cn=mbaluch,ou=users,dc=redhat,dc=com
+member: cn=jshepher,ou=users,dc=redhat,dc=com
+member: cn=ykostash,ou=users,dc=redhat,dc=com
+member: cn=jgarriso,ou=users,dc=redhat,dc=com
+member: cn=jtkaufman,ou=users,dc=redhat,dc=com
+member: cn=atorresj,ou=users,dc=redhat,dc=com
+member: cn=testuser,ou=users,dc=redhat,dc=com
+objectclass: groupOfNames
+
+# topsecret data
+dn: cn=data-topsecret,ou=users,dc=redhat,dc=com
+cn: data-topsecret
+member: cn=user01,ou=users,dc=redhat,dc=com
+member: cn=jfuller,ou=users,dc=redhat,dc=com
+member: cn=juspence,ou=users,dc=redhat,dc=com
+member: cn=mprpic,ou=users,dc=redhat,dc=com
+member: cn=mbaluch,ou=users,dc=redhat,dc=com
+member: cn=jshepher,ou=users,dc=redhat,dc=com
+member: cn=osoukup,ou=users,dc=redhat,dc=com
+member: cn=atorresj,ou=users,dc=redhat,dc=com
+member: cn=testuser,ou=users,dc=redhat,dc=com
+objectclass: groupOfNames
+
+# topsecret data
+dn: cn=data-topsecret-write,ou=users,dc=redhat,dc=com
+cn: data-topsecret-write
+member: cn=user01,ou=users,dc=redhat,dc=com
+member: cn=jfuller,ou=users,dc=redhat,dc=com
+member: cn=juspence,ou=users,dc=redhat,dc=com
+member: cn=mprpic,ou=users,dc=redhat,dc=com
+member: cn=mbaluch,ou=users,dc=redhat,dc=com
+member: cn=jshepher,ou=users,dc=redhat,dc=com
+member: cn=osoukup,ou=users,dc=redhat,dc=com
+member: cn=atorresj,ou=users,dc=redhat,dc=com
+objectclass: groupOfNames

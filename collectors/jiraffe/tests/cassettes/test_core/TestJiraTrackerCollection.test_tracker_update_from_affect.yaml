@@ -1,0 +1,202 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*.*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.26.0
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://issues.redhat.com/rest/api/2/search?jql=PROJECT%3DENTESB+++++++++++++++++AND+labels%3D%22CVE-2016-5002%22+++++++++++++++++AND+labels%3D%22pscomponent%3Axmlrpc-common%22+++++++++++++++++AND+labels%3D%22SecurityTracking%22+++++++++++++++++AND+type%3D%22Bug%22&startAt=0&validateQuery=True
+  response:
+    body:
+      string: '{"expand": "names,schema", "startAt": 0, "maxResults": 50, "total":
+        1, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "12746639", "self": "https://issues.redhat.com/rest/api/2/issue/12746639",
+        "key": "ENTESB-8726", "fields": {"fixVersions": [{"self": "https://issues.redhat.com/rest/api/2/version/12324810",
+        "id": "12324810", "description": "", "name": "fuse-7.0", "archived": false,
+        "released": true, "releaseDate": "2018-05-23"}], "resolution": {"self": "https://issues.redhat.com/rest/api/2/resolution/1",
+        "id": "1", "description": "Work has been completed on this issue.", "name":
+        "Done"}, "customfield_12314740": "{}", "customfield_12312442": null, "customfield_12316243":
+        null, "customfield_12312848": null, "customfield_12315950": null, "customfield_12317338":
+        null, "customfield_12310940": null, "lastViewed": null, "customfield_12313140":
+        null, "priority": {"self": "https://issues.redhat.com/rest/api/2/priority/4",
+        "iconUrl": "https://issues.redhat.com/images/icons/priorities/minor.svg",
+        "name": "Minor", "id": "4"}, "labels": ["CVE-2016-5002", "Security", "SecurityTracking",
+        "pscomponent:xmlrpc-common"], "customfield_12311244": null, "customfield_12311640":
+        [{"self": "https://issues.redhat.com/rest/api/2/customFieldOption/10650",
+        "value": "This issue is security relevant", "id": "10650", "disabled": false}],
+        "customfield_12311641": [{"self": "https://issues.redhat.com/rest/api/2/user?username=hooman_b2455",
+        "name": "hooman_b2455", "key": "hooman_b2455", "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
+        "displayName": "Hooman Broujerdi", "active": false, "timeZone": "Australia/Sydney"}],
+        "customfield_12313145": null, "customfield_12311242": null, "customfield_12315840":
+        null, "customfield_12311243": null, "customfield_12311240": null, "aggregatetimeoriginalestimate":
+        null, "timeestimate": null, "versions": [{"self": "https://issues.redhat.com/rest/api/2/version/12337860",
+        "id": "12337860", "description": "", "name": "FIS 2.0", "archived": false,
+        "released": true, "releaseDate": "2017-02-21"}], "customfield_12311241": null,
+        "customfield_12310031": null, "issuelinks": [{"id": "12541061", "self": "https://issues.redhat.com/rest/api/2/issueLink/12541061",
+        "type": {"id": "12310001", "name": "Related", "inward": "is related to", "outward":
+        "relates to", "self": "https://issues.redhat.com/rest/api/2/issueLinkType/12310001"},
+        "inwardIssue": {"id": "12746647", "key": "ENTESB-8301", "self": "https://issues.redhat.com/rest/api/2/issue/12746647",
+        "fields": {"summary": "CVE-2016-5004 xmlrpc-common: xmlrpc: XSS in Content-Encoding
+        HTTP header of xmlrpc [fis-2.0]", "status": {"self": "https://issues.redhat.com/rest/api/2/status/6",
+        "description": "The issue is closed. See the resolution for context regarding
+        why (for example Done, Abandoned, Duplicate, etc)", "iconUrl": "https://issues.redhat.com/images/icons/statuses/closed.png",
+        "name": "Closed", "id": "6", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/3",
+        "id": 3, "key": "done", "colorName": "green", "name": "Done"}}, "priority":
+        {"self": "https://issues.redhat.com/rest/api/2/priority/4", "iconUrl": "https://issues.redhat.com/images/icons/priorities/minor.svg",
+        "name": "Minor", "id": "4"}, "issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/1",
+        "id": "1", "description": "A problem which impairs or prevents the functions
+        of the product.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        "name": "Bug", "subtask": false, "avatarId": 13263}}}}, {"id": "12541062",
+        "self": "https://issues.redhat.com/rest/api/2/issueLink/12541062", "type":
+        {"id": "12310001", "name": "Related", "inward": "is related to", "outward":
+        "relates to", "self": "https://issues.redhat.com/rest/api/2/issueLinkType/12310001"},
+        "inwardIssue": {"id": "12746643", "key": "ENTESB-8635", "self": "https://issues.redhat.com/rest/api/2/issue/12746643",
+        "fields": {"summary": "CVE-2016-5003 xmlrpc-common: xmlrpc: Deserialization
+        of untrusted Java object through <ex:serializable> tag [fis-2.0]", "status":
+        {"self": "https://issues.redhat.com/rest/api/2/status/6", "description": "The
+        issue is closed. See the resolution for context regarding why (for example
+        Done, Abandoned, Duplicate, etc)", "iconUrl": "https://issues.redhat.com/images/icons/statuses/closed.png",
+        "name": "Closed", "id": "6", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/3",
+        "id": 3, "key": "done", "colorName": "green", "name": "Done"}}, "priority":
+        {"self": "https://issues.redhat.com/rest/api/2/priority/4", "iconUrl": "https://issues.redhat.com/images/icons/priorities/minor.svg",
+        "name": "Minor", "id": "4"}, "issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/1",
+        "id": "1", "description": "A problem which impairs or prevents the functions
+        of the product.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        "name": "Bug", "subtask": false, "avatarId": 13263}}}}], "assignee": null,
+        "customfield_12313942": null, "customfield_12313941": null, "status": {"self":
+        "https://issues.redhat.com/rest/api/2/status/6", "description": "The issue
+        is closed. See the resolution for context regarding why (for example Done,
+        Abandoned, Duplicate, etc)", "iconUrl": "https://issues.redhat.com/images/icons/statuses/closed.png",
+        "name": "Closed", "id": "6", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/3",
+        "id": 3, "key": "done", "colorName": "green", "name": "Done"}}, "components":
+        [{"self": "https://issues.redhat.com/rest/api/2/component/12328959", "id":
+        "12328959", "name": "FIS-Productization Pipeline"}], "customfield_12316340":
+        null, "customfield_12316341": null, "customfield_12310080": {"self": "https://issues.redhat.com/rest/api/2/user?username=tturek%40redhat.com",
+        "name": "tturek@redhat.com", "key": "tturek", "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=32"},
+        "displayName": "Tomas Turek", "active": true, "timeZone": "Europe/Berlin"},
+        "customfield_12314040": null, "customfield_12320844": null, "customfield_12320842":
+        null, "customfield_12310120": null, "customfield_12310243": null, "aggregatetimeestimate":
+        null, "customfield_12316342": null, "customfield_12316740": null, "customfield_12317313":
+        null, "customfield_12317317": null, "creator": {"self": "https://issues.redhat.com/rest/api/2/user?username=hooman_b2455",
+        "name": "hooman_b2455", "key": "hooman_b2455", "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
+        "displayName": "Hooman Broujerdi", "active": false, "timeZone": "Australia/Sydney"},
+        "subtasks": [], "customfield_12321140": null, "customfield_12310091": null,
+        "customfield_12310090": null, "reporter": {"self": "https://issues.redhat.com/rest/api/2/user?username=hooman_b2455",
+        "name": "hooman_b2455", "key": "hooman_b2455", "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
+        "displayName": "Hooman Broujerdi", "active": false, "timeZone": "Australia/Sydney"},
+        "customfield_12320850": null, "customfield_12310092": null, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12310010": null, "customfield_12315542":
+        null, "customfield_12315541": null, "customfield_12313240": null, "customfield_12319742":
+        null, "progress": {"progress": 0, "total": 0}, "votes": {"self": "https://issues.redhat.com/rest/api/2/issue/ENTESB-8726/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12317841": "<div> <progress  style=\"vertical-align:middle;
+        max-width: 60%;\" value=\"\" min=\"0\" max=\"100\">%</progress> % </div>",
+        "customfield_12319743": null, "customfield_12317842": null, "issuetype": {"self":
+        "https://issues.redhat.com/rest/api/2/issuetype/1", "id": "1", "description":
+        "A problem which impairs or prevents the functions of the product.", "iconUrl":
+        "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        "name": "Bug", "subtask": false, "avatarId": 13263}, "customfield_12318341":
+        null, "timespent": null, "customfield_12320940": null, "project": {"self":
+        "https://issues.redhat.com/rest/api/2/project/12314570", "id": "12314570",
+        "key": "ENTESB", "name": "Red Hat Fuse", "projectTypeKey": "software", "avatarUrls":
+        {"48x48": "https://issues.redhat.com/secure/projectavatar?pid=12314570&avatarId=24473",
+        "24x24": "https://issues.redhat.com/secure/projectavatar?size=small&pid=12314570&avatarId=24473",
+        "16x16": "https://issues.redhat.com/secure/projectavatar?size=xsmall&pid=12314570&avatarId=24473",
+        "32x32": "https://issues.redhat.com/secure/projectavatar?size=medium&pid=12314570&avatarId=24473"},
+        "projectCategory": {"self": "https://issues.redhat.com/rest/api/2/projectCategory/10130",
+        "id": "10130", "description": "Active projects migrated from Fusesource issue
+        tracker", "name": "Fuse"}}, "customfield_12320944": null, "aggregatetimespent":
+        null, "customfield_12310220": null, "customfield_12310183": null, "resolutiondate":
+        "2018-04-26T15:49:30.000+0000", "workratio": -1, "customfield_12317379": null,
+        "customfield_12316841": null, "customfield_12319040": null, "watches": {"self":
+        "https://issues.redhat.com/rest/api/2/issue/ENTESB-8726/watchers", "watchCount":
+        1, "isWatching": false}, "created": "2018-04-24T01:02:47.000+0000", "customfield_12321240":
+        null, "customfield_12310110": null, "customfield_12315640": null, "customfield_12317302":
+        null, "customfield_12317304": null, "updated": "2018-06-05T16:02:24.000+0000",
+        "customfield_12311840": null, "customfield_12316142": null, "timeoriginalestimate":
+        null, "description": "Security Tracking Issue\n\nDo not make this issue public.\n\nThis
+        bug is subject to the Security Errata Policy.\n\nThe overall impact of the
+        blocking security issue(s) is Moderate. Based on this impact, this bug must
+        be resolved by 24-May-2017. \n\nPlease refer to the Security Errata Policy
+        documentation for further details: https://docs.prodsec.redhat.com/policy-guide/#policy-errata\n\nFlaw:\n-----\n\nCVE-2016-5002
+        xmlrpc: XML external entity vulnerability SSRF via a crafted DTD\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1508110\n\nXML
+        external entity (XXE) vulnerability in the Apache XML-RPC (aka ws-xmlrpc)
+        library 3.1.3, as used in Apache Archiva, allows remote attackers to conduct
+        server-side request forgery (SSRF) attacks via a crafted DTD.\n\nReferences:\n\nhttp://www.openwall.com/lists/oss-security/2016/07/12/5\nhttps://0ang3el.blogspot.in/2016/07/beware-of-ws-xmlrpc-library-in-your.html\n",
+        "customfield_12320640": null, "customfield_12310440": ["https://bugzilla.redhat.com/show_bug.cgi?id=1508110"],
+        "customfield_12312340": null, "customfield_12316542": null, "customfield_12316543":
+        null, "customfield_12310840": "9223372036854775807", "customfield_12316544":
+        null, "summary": "CVE-2016-5002 xmlrpc-common: xmlrpc: XML external entity
+        vulnerability SSRF via a crafted DTD [fis-2.0]", "customfield_12310211": null,
+        "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
+        "", "duedate": "2017-05-24", "customfield_12311140": null, "customfield_12310213":
+        null, "customfield_12311941": null, "customfield_12311940": "1|hzx9d3:"}}]}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - sandbox
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Thu, 23 Jun 2022 14:25:12 GMT
+      Expires:
+      - Thu, 23 Jun 2022 14:25:12 GMT
+      Pragma:
+      - no-cache
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      content-length:
+      - '11814'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-prod-1
+      x-arequestid:
+      - 865x18761724x2
+      x-asessionid:
+      - 156pgbk
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.927cd117.1655994312.13eb9b87
+      x-rh-edge-request-id:
+      - 13eb9b87
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1

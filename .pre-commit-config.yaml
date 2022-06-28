@@ -1,0 +1,39 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+-   repo: https://github.com/psf/black
+    rev: 22.3.0
+    hooks:
+    -   id: black
+        language_version: python3.9
+        stages: [commit]
+        exclude: ^.*\b(migrations)\b.*$
+-   repo: https://github.com/pycqa/isort
+    rev: 5.10.1
+    hooks:
+    -   id: isort
+        name: isort
+        language_version: python3.9
+        stages: [commit]
+-   repo: local
+    hooks:
+    -   id: detect-secrets-hook
+        name: detect-secrets-hook
+        entry: scripts/secrets-hook.sh
+        language: script
+        stages: [commit]
+    -   id: osidb-pre-push
+        name: osidb-pre-push
+        entry: scripts/osidb-pre-push.sh
+        language: script
+        stages: [push]
+    -   id: migrations-check
+        name: migrations-check
+        entry: scripts/migrations-check.sh
+        language: script
+        stages: [commit]
+    -   id: schema-check
+        name: schema-check
+        entry: scripts/schema-check.sh
+        language: script
+        stages: [commit]

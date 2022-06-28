@@ -1,0 +1,75 @@
+<!doctype html>
+<!-- this page is for development purposes only -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>OSIM | graph/workflows</title>
+  </head>
+  <body>
+    {% for workflow in workflows %}
+    <h1>
+        {% if workflow.accepts != null %}
+            {% if workflow.accepts %}
+                <span style="background-color:#00FF3F">
+            {% else %}
+                <span style="background-color:#FF1020">
+            {% endif %}
+        {% else %}
+            <span>
+        {% endif %}
+        {{ workflow.name }} {{ workflow.priority }}
+        </span>
+    </h1>
+      <table border="1">
+        <tr>
+          {% for condition in workflow.conditions %}
+              {% if condition.accepts != null %}
+                  {% if condition.accepts %}
+                      <td bgcolor="#00FF3F">
+                  {% else %}
+                      <td bgcolor="#FF1020">
+                  {% endif %}
+              {% else %}
+                <td>
+              {% endif %}
+              {{ condition.name }}
+              </td>
+          {% endfor %}
+        </tr>
+      </table>
+      <div class="mermaid">
+        flowchart LR
+        {% for state in workflow.states %}
+          subgraph {{ state.name }}
+            direction RL
+            {% for requirement in state.requirements %}
+                {{ state.name }}{{ forloop.counter }}[{{ requirement.name }}]
+                {% if requirement.accepts != null %}
+                    {% if requirement.accepts %}
+                        style {{ state.name }}{{ forloop.counter }} fill:#00FF3F
+                    {% else %}
+                        style {{ state.name }}{{ forloop.counter }} fill:#FF1020
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+            {% if state.accepts != null %}
+                {% if state.accepts %}
+                    style {{ state.name }} fill:#00FF3F
+                {% else %}
+                    style {{ state.name }} fill:#FF1020
+                {% endif %}
+            {% endif %}
+          end
+          {% with outer=forloop.counter|add:1 %}
+            {% for next in workflow.states %}
+              {% if outer == forloop.counter %}
+                {{ state.name }} --> {{ next.name }}
+              {% endif %}
+            {% endfor %}
+          {% endwith %}
+        {% endfor %}
+      </div>
+    {% endfor %}
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  </body>
+</html>

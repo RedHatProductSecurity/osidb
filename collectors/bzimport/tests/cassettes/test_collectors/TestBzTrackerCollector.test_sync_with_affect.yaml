@@ -1,0 +1,207 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/version
+  response:
+    body:
+      string: '{"version": "5.0.4.rh72"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 23 Jun 2022 13:09:57 GMT
+      ETag:
+      - N+BsQ7i/1W9hh3ZOgehzwQ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding,User-Agent
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '24'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.b55a33b8.1655989797.aa0eb
+      x-rh-edge-request-id:
+      - aa0eb
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/user?ids=1
+  response:
+    body:
+      string: '{"users": [{"can_login": true, "id": 1, "email": "aander07@packetmaster.com",
+        "name": "aander07@packetmaster.com", "real_name": "Need Real Name"}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 23 Jun 2022 13:09:58 GMT
+      ETag:
+      - Bzigpk5BKkP43rGInQ0TDw
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding,User-Agent
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '137'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.b55a33b8.1655989798.aa226
+      x-rh-edge-request-id:
+      - aa226
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=577404
+  response:
+    body:
+      string: '{"limit": "20", "total_matches": 1, "offset": 0, "bugs": [{"cf_devel_whiteboard":
+        "", "target_release": ["---"], "is_creator_accessible": true, "is_confirmed":
+        true, "is_cc_accessible": true, "resolution": "NOTABUG", "classification":
+        "Fedora", "alias": [], "actual_time": 0, "deadline": null, "cf_environment":
+        "", "cf_qa_whiteboard": "", "url": "", "cf_pm_score": "0", "cf_internal_whiteboard":
+        "", "estimated_time": 0, "tags": [], "cc": ["bressers@redhat.com", "paul@city-fan.org"],
+        "remaining_time": 0, "severity": "medium", "creator_detail": {"real_name":
+        "Vincent Danen", "id": 275188, "email": "vdanen@redhat.com", "name": "vdanen@redhat.com"},
+        "cf_cust_facing": "---", "docs_contact": "", "platform": "All", "cf_pgm_internal":
+        "", "target_milestone": "---", "dupe_of": null, "description": "fedora-11
+        tracking bug for spamass-milter: see blocks bug list for full details of the
+        security issue(s).\n\nThis bug is never intended to be made public, please
+        put any public notes\nin the ''blocks'' bugs.\n\n\n[bug automatically created
+        by: add-tracking-bugs]", "version": ["11"], "keywords": ["Security", "SecurityTracking"],
+        "status": "CLOSED", "last_change_time": "2010-04-13T22:20:14Z", "is_open":
+        false, "cf_clone_of": null, "external_bugs": [], "assigned_to_detail": {"real_name":
+        "Paul Howarth", "id": 8542, "name": "paul@city-fan.org", "email": "paul@city-fan.org"},
+        "priority": "medium", "id": 577404, "cf_last_closed": "2010-03-26T23:37:51Z",
+        "cc_detail": [{"name": "bressers@redhat.com", "email": "bressers@redhat.com",
+        "id": 163483, "real_name": "Josh Bressers"}, {"id": 8542, "email": "paul@city-fan.org",
+        "name": "paul@city-fan.org", "real_name": "Paul Howarth"}], "groups": [],
+        "cf_qe_conditional_nak": [], "qa_contact_detail": {"email": "extras-qa@fedoraproject.org",
+        "name": "extras-qa@fedoraproject.org", "id": 171387, "real_name": "Fedora
+        Extras Quality Assurance"}, "whiteboard": "", "cf_type": "---", "creation_time":
+        "2010-03-26T21:10:29Z", "depends_on": [], "creator": "vdanen@redhat.com",
+        "op_sys": "Linux", "comments": [{"text": "fedora-11 tracking bug for spamass-milter:
+        see blocks bug list for full details of the security issue(s).\n\nThis bug
+        is never intended to be made public, please put any public notes\nin the ''blocks''
+        bugs.\n\n\n[bug automatically created by: add-tracking-bugs]", "is_private":
+        false, "attachment_id": null, "creator": "vdanen@redhat.com", "count": 0,
+        "tags": [], "bug_id": 577404, "creation_time": "2010-03-26T21:10:29Z", "creator_id":
+        275188, "time": "2010-03-26T21:10:29Z", "id": 2742308}], "cf_build_id": "",
+        "cf_doc_type": "Release Note", "product": "Fedora", "summary": "CVE-2010-1132
+        spamass-milter: remote command execution", "blocks": [577401], "qa_contact":
+        "extras-qa@fedoraproject.org", "assigned_to": "paul@city-fan.org", "cf_conditional_nak":
+        [], "sub_components": {}, "flags": [], "component": ["spamass-milter"], "cf_release_notes":
+        "", "cf_fixed_in": "", "see_also": []}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 23 Jun 2022 13:09:59 GMT
+      ETag:
+      - T1+G+xvpoJZNM6I49OPhdw
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding,User-Agent
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '2750'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.b55a33b8.1655989799.aa42b
+      x-rh-edge-request-id:
+      - aa42b
+    status:
+      code: 200
+      message: OK
+version: 1

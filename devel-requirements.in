@@ -1,0 +1,25 @@
+-c requirements.txt
+detect-secrets
+django-extensions
+django-stubs
+djangorestframework-stubs
+factory-boy
+freezegun
+k5test
+lxml
+mypy
+openshift
+packageurl-python
+pip-tools
+pre-commit
+pylint
+pylint-django
+pytest
+pytest-cov
+pytest-django
+pytest-recording
+pytest-spec
+pytest-sugar
+pytest-xdist
+tox
+vcrpy

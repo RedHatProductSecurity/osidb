@@ -1,0 +1,127 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.26.0
+    method: GET
+    uri: https://errata.stage.engineering.redhat.com/advisory/85800/bugs.json
+  response:
+    body:
+      string: '[{"id":2030932,"is_security":true,"last_updated":"2022-02-22T16:20:26Z","qa_whiteboard":"","reconciled_at":"2022-03-11T14:17:41Z","alias":"CVE-2021-44228","release_notes":"A
+        flaw was found in the Apache Log4j logging library in versions from 2.0.0
+        and before 2.15.0. A remote attacker who can control log messages or log message
+        parameters, can execute arbitrary code on the server via JNDI LDAP endpoint.","flags":"hightouch+,needinfo?,requires_doc_text+","is_exception":false,"is_private":false,"package":"vulnerability","pm_score":0,"short_desc":"CVE-2021-44228
+        log4j-core: Remote code execution in Log4j 2.x when logs contain an attacker-controlled
+        string value","was_marked_on_qa":false,"bug_status":"CLOSED","issuetrackers":"","keywords":"Security","priority":"urgent","verified":"","bug_severity":"","is_blocker":false}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Connection:
+      - Keep-Alive
+      Content-Security-Policy:
+      - 'default-src ''self''; script-src ''self'' ''unsafe-eval'' ''unsafe-inline''
+        https://*.redhat.com; connect-src ''self''; img-src ''self'' data: https://*.redhat.com;
+        style-src ''self'' ''unsafe-inline'' https://*.redhat.com; font-src ''self''
+        data: https://*.redhat.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 22 Apr 2022 15:30:33 GMT
+      ETag:
+      - W/"02c07bcae5eea94379cba29e9e793296-gzip"
+      Keep-Alive:
+      - timeout=5, max=100
+      Server:
+      - Apache/2.4.34 (Red Hat) OpenSSL/1.0.1e-fips mod_auth_kerb/5.4 Phusion_Passenger/4.0.50
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Powered-By:
+      - Phusion Passenger 4.0.50
+      X-Request-Id:
+      - d9ed7619-10c9-449c-ab91-aaed54c50088
+      X-Runtime:
+      - '0.028010'
+      X-XSS-Protection:
+      - 1; mode=block
+      content-length:
+      - '827'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.26.0
+    method: GET
+    uri: https://errata.stage.engineering.redhat.com/advisory/85800/jira_issues.json
+  response:
+    body:
+      string: '[{"id_jira":14388394,"key":"LOG-2064","summary":"CVE-2021-44228 logging-elasticsearch6-container:
+        log4j-core: Remote code execution in Log4j 2.x when logs contain an attacker-controlled
+        string value [openshift-logging-5]","status":"Closed","is_private":true,"labels":["CVE-2021-44228","Security","SecurityTracking","pscomponent:logging-elasticsearch6-container"]}]'
+    headers:
+      Cache-Control:
+      - max-age=0, private, must-revalidate
+      Connection:
+      - Keep-Alive
+      Content-Security-Policy:
+      - 'default-src ''self''; script-src ''self'' ''unsafe-eval'' ''unsafe-inline''
+        https://*.redhat.com; connect-src ''self''; img-src ''self'' data: https://*.redhat.com;
+        style-src ''self'' ''unsafe-inline'' https://*.redhat.com; font-src ''self''
+        data: https://*.redhat.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 22 Apr 2022 15:30:33 GMT
+      ETag:
+      - W/"cfe10e1253abd59276ce6a794b793963-gzip"
+      Keep-Alive:
+      - timeout=5, max=100
+      Server:
+      - Apache/2.4.34 (Red Hat) OpenSSL/1.0.1e-fips mod_auth_kerb/5.4 Phusion_Passenger/4.0.50
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Powered-By:
+      - Phusion Passenger 4.0.50
+      X-Request-Id:
+      - 8aaa6e9f-742d-42ed-9753-b70e953e1123
+      X-Runtime:
+      - '0.019754'
+      X-XSS-Protection:
+      - 1; mode=block
+      content-length:
+      - '364'
+    status:
+      code: 200
+      message: OK
+version: 1
