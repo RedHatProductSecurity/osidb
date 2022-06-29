@@ -16,7 +16,7 @@ OSIDB uses a multi-tier authentication system:
 
 ### Kerberos setup
 
-Please refer to our [README](../README.md#kerberos-authentication), you may not
+Please refer to our [README](AUTH.md#kerberos-authentication), you may not
 be able to authenticate if you don't follow the instructions laid in the linked
 document.
 

@@ -365,11 +365,7 @@ $ make help
 
 [REST API docs](http://localhost:8000/osidb/api/v1/schema/swagger-ui/)
 
-[internal api](docs/api)
-
-[functional spec](docs/func-spec.md)
-
-[operations](docs/OPERATIONS.md)
+[operations](OPERATIONS.md)
 
 
 ## Build, run and develop
