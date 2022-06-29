@@ -19,7 +19,7 @@ git checkout -b release-X.Y.Z
 scripts/update_release.sh X.Y.Z
 ```
 
-Check and eventually update [CHANGELOG](docs/CHANGELOG.md).
+Check and eventually update [CHANGELOG](../CHANGELOG.md).
 
 ```bash
 git commit -am 'Update version to X.Y.Z'
@@ -52,4 +52,4 @@ scripts/update_release.sh X.Y.Z
 OSIDB uses [Semantic Versioning](https://semver.org/). We start versioning with 0.0.1.
 Additionally, we consider OSIDB 1.0.0 as the first General Availability version.
 
-To update OSIDB to a new version use [scripts/update_release.sh](../scripts/update_release.sh).
+To update OSIDB to a new version use [scripts/update_release.sh](../../scripts/update_release.sh).
