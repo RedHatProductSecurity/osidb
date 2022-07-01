@@ -10,6 +10,27 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunSQL(
+            """
+            DO
+            $$
+            DECLARE
+                r record;
+            BEGIN
+                FOR r IN
+                    SELECT oid, relname FROM pg_class WHERE relname LIKE 'osidb_%event%'
+                LOOP
+                    EXECUTE 'DELETE FROM pg_class WHERE oid=' || r.oid;
+                    EXECUTE 'DELETE FROM pg_depend WHERE objid=' || r.oid;
+                    EXECUTE 'DELETE FROM pg_constraint WHERE conrelid=' || r.oid;
+                    EXECUTE 'DELETE FROM pg_policy WHERE polrelid=' || r.oid;
+                    EXECUTE 'DELETE FROM pg_type WHERE typrelid=' || r.oid;
+                    EXECUTE 'CREATE TABLE ' || quote_ident(r.relname) || ' (pgh_context_id integer, flaw_id integer)';
+                END LOOP;
+            END
+            $$;
+            """
+        ),
         migrations.RemoveField(
             model_name='erratumevent',
             name='pgh_context',
