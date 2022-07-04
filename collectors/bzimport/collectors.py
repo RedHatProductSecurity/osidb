@@ -26,7 +26,7 @@ from .constants import (
     NVD_CVSS_URL,
     ROOT_CA_PATH,
 )
-from .exceptions import BZImportException
+from .exceptions import RecoverableBZImportException
 
 logger = get_task_logger(__name__)
 
@@ -52,7 +52,7 @@ class BugzillaQuerier:
         """create Bugzilla connection"""
         bz_conn = bugzilla.Bugzilla(url=BZ_URL, api_key=BZ_API_KEY, force_rest=True)
         if not bz_conn.logged_in:
-            raise BZImportException("Cannot access Bugzilla")
+            raise RecoverableBZImportException("Cannot access Bugzilla")
         return bz_conn
 
     @property
@@ -445,10 +445,13 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
                 self.sync_flaw(flaw_id)
                 successes.append(flaw_id)
 
+            except RecoverableBZImportException:
+                # when we encounter an exception which can be
+                # recovered by the rerun we fail the sync of
+                # the whole batch so it can be fully rerun
+                raise
+
             except Exception as e:
-                # TODO just for testing and should be removed
-                if "No CVE ID found in Bugzilla alias" in str(e):
-                    continue
                 logger.exception(f"Bugzilla flaw bug {flaw_id} import error: {str(e)}")
                 failures.append(flaw_id)
                 # TODO store error

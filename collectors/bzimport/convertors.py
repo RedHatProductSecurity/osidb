@@ -34,7 +34,7 @@ from ..utils import (
     tracker_summary2module_component,
 )
 from .constants import BZ_DT_FMT, BZ_DT_FMT_HISTORY, BZ_ENABLE_IMPORT_EMBARGOED
-from .exceptions import BZImportException
+from .exceptions import NonRecoverableBZImportException
 from .fixups import AffectFixer, FlawFixer
 
 logger = get_task_logger(__name__)
@@ -338,7 +338,7 @@ class FlawBugConvertor:
     and provides all the model pieces to be saved
     """
 
-    class FlawBugConvertorException(BZImportException):
+    class FlawBugConvertorException(NonRecoverableBZImportException):
         """flaw bug to flaw model specific errors"""
 
     _flaws = None
