@@ -39,9 +39,6 @@ RUN dnf --nodocs --setopt install_weak_deps=false -y install \
     && dnf --nodocs --setopt install_weak_deps=false -y upgrade --security \
     && dnf clean all
 
-# copy krb client configuration
-COPY etc/krb/krb5.conf /etc
-
 # Before copying the entire source, copy just requirements.txt.
 # This makes podman cache this (lengthy) step as long as requirements.txt stays unchanged.
 # Without this, any change in src/ would make pip install run again.
