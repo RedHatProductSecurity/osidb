@@ -376,7 +376,17 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
         """get first analysis task from flaw data"""
         for bz_id in flaw_data["blocks"]:
             # we only care for product and assignee
-            bug = self.get_bug_data(bz_id, include_fields=["assigned_to", "product"])
+            try:
+                bug = self.get_bug_data(
+                    bz_id, include_fields=["assigned_to", "product"]
+                )
+            except IndexError:
+                # some related bugs which are no tasks so not interesting may have restricted access
+                # more strict than just security group and the fetching then results in IndexError
+                # - does not seem as a correct handling from python-bugzilla side
+                # we can simply skip these
+                continue
+
             if bug["product"] == ANALYSIS_TASK_PRODUCT:
                 return bug
 
