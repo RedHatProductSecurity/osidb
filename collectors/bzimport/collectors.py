@@ -77,7 +77,9 @@ class BugzillaQuerier:
 
     def get_bug_history(self, bz_id):
         """get Bugzilla bug history"""
-        return self.get_bug(bz_id).get_history_raw()
+        # return self.get_bug(bz_id).get_history_raw()
+        # TODO temporarily disabled - returns empty history immediately
+        return {"bugs": [{"history": []}]}
 
     def get_bug_comments(self, bz_id):
         """get Bugzilla bug comments"""
