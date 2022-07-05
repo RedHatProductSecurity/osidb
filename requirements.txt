@@ -169,9 +169,9 @@ deprecated==1.2.13 \
     --hash=sha256:43ac5335da90c31c24ba028af536a91d41d53f9e6901ddb021bcc572ce44e38d \
     --hash=sha256:64756e3e14c8c5eea9795d93c524551432a0be75629f8f29e67ab8caf076c76d
     # via redis
-django==3.2.13 \
-    --hash=sha256:6d93497a0a9bf6ba0e0b1a29cccdc40efbfc76297255b1309b3a884a688ec4b6 \
-    --hash=sha256:b896ca61edc079eb6bbaa15cf6071eb69d6aac08cce5211583cfb41515644fdf
+django==3.2.14 \
+    --hash=sha256:677182ba8b5b285a4e072f3ac17ceee6aff1b5ce77fd173cc5b6a2d3dc022fcf \
+    --hash=sha256:a8681e098fa60f7c33a4b628d6fcd3fe983a0939ff1301ecacac21d0b38bad56
     # via
     #   -r requirements.in
     #   django-auth-ldap
@@ -257,9 +257,9 @@ drf-spectacular==0.21.0 \
 enforce==0.3.4 \
     --hash=sha256:cdb7720e25d0bd7ad2aaf2311197d5a28d4d2afe73ecc2f74b5d28faee3f68f2
     # via django-postgres-extra
-flower==1.0.0 \
-    --hash=sha256:2e17c4fb55c569508f3bfee7fe41f44b8362d30dbdf77b604a9d9f4740fe8cbd \
-    --hash=sha256:a4fcf959881135303e98a74cc7533298b7dfeb48abcd1d90c5bd52cb789430a8
+flower==1.1.0 \
+    --hash=sha256:77be4bece7330893703e8cca3f3baddba356a0019186594a961e3968289da7ec \
+    --hash=sha256:f920ca2902d7539fc180ab15e51f1d918355e5cc23da854ff9d59c6e5a1725b6
     # via -r requirements.in
 gevent==21.8.0 \
     --hash=sha256:02d1e8ca227d0ab0b7917fd7e411f9a534475e0a41fb6f434e9264b20155201a \
