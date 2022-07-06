@@ -57,7 +57,11 @@ services:
 
     osidb-service:
       container_name: osidb-service
-      build: .
+      build:
+        context: .
+        args:
+          RH_CERT_URL: ${RH_CERT_URL}
+          PYPI_MIRROR: ${PIP_INDEX_URL}
       image: osidb-service
       stdin_open: true
       tty: true
