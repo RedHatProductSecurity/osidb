@@ -4,8 +4,8 @@ stages:
 
 before_script:
   - export LANG=en_US.UTF-8
-  - export PIP_INDEX_URL="https://repository.engineering.redhat.com/nexus/repository/pypi.org/simple/"
-  - curl https://password.corp.redhat.com/RH-IT-Root-CA.crt -o /etc/pki/ca-trust/source/anchors/RH-IT-Root-CA.crt
+  - export PIP_INDEX_URL=$PIP_INDEX_URL
+  - curl $RH_CERT_URL -o /etc/pki/ca-trust/source/anchors/RH-IT-Root-CA.crt
   - update-ca-trust
   - export REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ca-bundle.crt
 
@@ -45,6 +45,9 @@ test:
       LDAP_ROOT: dc=redhat,dc=com
       LDAP_ADMIN_USERNAME: admin
       LDAP_ADMIN_PASSWORD: adminpassword
+      ET_URL: $ET_URL
+      PRODUCT_DEF_URL: $PRODUCT_DEF_URL
+      DASHBOARD_URL: $DASHBOARD_URL
   artifacts:
     expire_in: 1 week
     reports:
