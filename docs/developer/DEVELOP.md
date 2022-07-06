@@ -20,6 +20,12 @@ JIRA_AUTH_TOKEN=####################
 
 # Export the default local postgresql password
 OSIDB_DB_PASSWORD=passw0rd
+
+# Repository from which to pull pip packages (optional)
+PIP_INDEX_URL="https://foo.bar"
+
+# URL from which to pull Red Hat internal certificates (optional)
+RH_CERT_URL="https://foo.bar"
 ```
 
 The `.env` file is loaded automatically by podman-compose. It is also loaded as environment variables in a few Makefile targets (run `grep -rF '.env ' mk/` to see which ones).

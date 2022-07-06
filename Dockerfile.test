@@ -3,18 +3,18 @@ FROM quay.io/fedora/fedora:34
 LABEL summary="OSIDB testrunner" \
       maintainer="Product Security DevOps <prodsec-dev@redhat.com>"
 
+ARG PYPI_MIRROR="https://pypi.python.org/simple"
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=off \
-    PIP_INDEX_URL="https://repository.engineering.redhat.com/nexus/repository/pypi.org/simple/" \
+    PIP_INDEX_URL=$PYPI_MIRROR \
     REQUESTS_CA_BUNDLE="/etc/pki/tls/certs/ca-bundle.crt"
 
 WORKDIR /opt/app-root/src/
 
 # Download internal root CA cert and the IPA CA cert
-RUN curl https://password.corp.redhat.com/RH-IT-Root-CA.crt -o /etc/pki/ca-trust/source/anchors/RH-IT-Root-CA.crt && \
-    mkdir /etc/ipa && \
-    curl https://password.corp.redhat.com/ipa.crt -o /etc/ipa/ca.crt && \
-    update-ca-trust
+ARG RH_CERT_URL=""
+COPY ./scripts /opt/app-root/src/scripts
+RUN ./scripts/install-certs.sh $RH_CERT_URL
 
 # install dependencies and security updates
 RUN dnf --nodocs --setopt install_weak_deps=false -y install \

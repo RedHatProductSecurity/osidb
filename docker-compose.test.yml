@@ -35,6 +35,9 @@ services:
       build:
         context: .
         dockerfile: Dockerfile.test
+        args:
+          RH_CERT_URL: ${RH_CERT_URL}
+          PYPI_MIRROR: ${PIP_INDEX_URL}
       image: testrunner
       stdin_open: true
       tty: true
