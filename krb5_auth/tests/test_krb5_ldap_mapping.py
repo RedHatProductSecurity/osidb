@@ -21,9 +21,7 @@ class TestCleanUsername:
 
         def mock_getenv(env_var, default=""):
             if env_var == "KRB5_TO_LDAP_MAP":
-                return (
-                    '{"host/sdengine-stage.prodsec.redhat.com@REDHAT.COM": "sdengine"}'
-                )
+                return '{"%s": "sdengine"}' % hardcoded_user
             return default
 
         monkeypatch.setattr(os, "getenv", mock_getenv)

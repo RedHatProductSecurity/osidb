@@ -19,7 +19,7 @@ BZ_ENABLE_IMPORT_EMBARGOED = get_env(
 ROOT_CA_PATH = get_env("ROOT_CA_PATH")
 
 # nvd cvss url
-NVD_CVSS_URL = "https://dashboard.prodsec.redhat.com/rest/api/latest/nvd_cvss"
+NVD_CVSS_URL = get_env("DASHBOARD_URL", "") + "/rest/api/latest/nvd_cvss"
 
 # Bugzilla product for analysis tasks
 ANALYSIS_TASK_PRODUCT = "Security Response"

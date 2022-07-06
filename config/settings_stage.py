@@ -107,4 +107,4 @@ AUTHENTICATION_BACKENDS += [
     # TODO: remove and replace by krb auth for admin interface
     "django_auth_ldap.backend.LDAPBackend",
 ]
-KRB5_HOSTNAME = "osidb-stage.prodsec.redhat.com"
+KRB5_HOSTNAME = get_env("KRB5_HOSTNAME")

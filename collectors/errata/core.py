@@ -143,7 +143,7 @@ def search_with_backoff(query, server):
 def search(query):
     """Generator that will eventually return all the errata found by the query.
 
-    https://errata.engineering.redhat.com/rdoc/ErrataService.html#method-i-get_advisory_list
+    See ET's documentation /rdoc/ErrataService.html#method-i-get_advisory_list
     """
     query["per_page"] = PAGE_SIZE
     server = ServerProxy(settings.ERRATA_TOOL_XMLRPC_BASE_URL)
