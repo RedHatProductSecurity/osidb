@@ -107,7 +107,7 @@ AUTHENTICATION_BACKENDS += [
     # TODO: remove and replace by krb auth for admin interface
     "django_auth_ldap.backend.LDAPBackend",
 ]
-KRB5_HOSTNAME = "osidb.prodsec.redhat.com"
+KRB5_HOSTNAME = get_env("KRB5_HOSTNAME")
 
-ERRATA_TOOL_SERVER = "https://errata.engineering.redhat.com"
+ERRATA_TOOL_SERVER = get_env("ET_URL")
 ERRATA_TOOL_XMLRPC_BASE_URL = f"{ERRATA_TOOL_SERVER}/errata/errata_service"

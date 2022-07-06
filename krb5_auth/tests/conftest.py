@@ -20,7 +20,7 @@ def host_user():
 
 @pytest.fixture
 def hardcoded_user():
-    return "host/sdengine-stage.prodsec.redhat.com@REDHAT.COM"
+    return "host/sdengine-foo.redhat.com@REDHAT.COM"
 
 
 @pytest.fixture

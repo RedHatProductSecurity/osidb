@@ -21,6 +21,15 @@ JIRA_AUTH_TOKEN=####################
 # Export the default local postgresql password
 OSIDB_DB_PASSWORD=passw0rd
 
+# Errata Tool URL
+ET_URL="https://foo.bar"
+
+# Product definitions git URL
+PRODUCT_DEF_URL="https://foo.bar"
+
+# Dashboard URL
+DASHBOARD_URL="https://foo.bar"
+
 # Repository from which to pull pip packages (optional)
 PIP_INDEX_URL="https://foo.bar"
 

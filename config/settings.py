@@ -262,5 +262,5 @@ SPECTACULAR_SETTINGS = {
     ],
 }
 
-ERRATA_TOOL_SERVER = "https://errata.stage.engineering.redhat.com"
+ERRATA_TOOL_SERVER = get_env("ET_URL")
 ERRATA_TOOL_XMLRPC_BASE_URL = f"{ERRATA_TOOL_SERVER}/errata/errata_service"

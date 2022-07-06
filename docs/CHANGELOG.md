@@ -150,11 +150,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - this is the initial OSIDB version
 - see git repo for the older changes
 
-[Unreleased]: https://git.prodsec.redhat.com/devops/osidb/-/compare/1.2.0...master
-[1.2.0]: https://git.prodsec.redhat.com/devops/osidb/-/compare/1.1.2...1.2.0
-[1.1.2]: https://git.prodsec.redhat.com/devops/osidb/-/compare/1.1.1...1.1.2
-[1.1.1]: https://git.prodsec.redhat.com/devops/osidb/-/compare/1.1.0...1.1.1
-[1.1.0]: https://git.prodsec.redhat.com/devops/osidb/-/compare/1.0.0...1.1.0
-[1.0.0]: https://git.prodsec.redhat.com/devops/osidb/-/compare/0.0.2...1.0.0
-[0.0.2]: https://git.prodsec.redhat.com/devops/osidb/-/compare/0.0.1...0.0.2
-[0.0.1]: https://git.prodsec.redhat.com/devops/osidb/-/tags/0.0.1
+<!-- TODO: Add links to version comparisons -->

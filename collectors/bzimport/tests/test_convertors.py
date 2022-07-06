@@ -531,7 +531,7 @@ class TestFlawBugConvertor:
         resulting to a multiple occurences can be synced without causing an error
         it should merge the affects into just a single one
 
-        this tests that https://git.prodsec.redhat.com/devops/osidb/-/merge_requests/310#note_101271 is fixed
+        this tests that /merge_requests/310#note_101271 is fixed
         """
         flaw_bug = self.get_flaw_bug()
         srtnotes = """

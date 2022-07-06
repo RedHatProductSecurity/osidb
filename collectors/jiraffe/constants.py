@@ -6,7 +6,7 @@ JIRA_TOKEN = get_env("JIRA_AUTH_TOKEN")
 
 # External resources
 PRODUCT_DEFINITIONS_URL = (
-    "https://dashboard.prodsec.redhat.com/rest/api/latest/product-definitions"
+    get_env("DASHBOARD_URL", "") + "/rest/api/latest/product-definitions"
 )
 
 # JIRA-specific

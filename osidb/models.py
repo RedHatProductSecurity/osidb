@@ -557,7 +557,7 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin):
     cvss3 = models.CharField(max_length=100, blank=True, validators=[validate_cvss3])
     cvss3_score = models.FloatField(null=True, blank=True)
 
-    # updated from https://dashboard.prodsec.redhat.com/rest/api/latest/nvd_cvss
+    # updated from Dashboard's /rest/api/latest/nvd_cvss
     nvd_cvss2 = models.CharField(
         max_length=100, blank=True, validators=[validate_cvss2]
     )
@@ -977,8 +977,7 @@ class Tracker(TrackingMixin, NullStrFieldsMixin):
     @property
     def fix_state(self):
         """
-        Inheritied from SDEngine, see
-        https://git.prodsec.redhat.com/devops/sdengine/-/blob/abe12e30a509824629d05e91ce23c5d987e8ad36/sdengine/models.py#L1165
+        Inheritied from SDEngine, see abe12e30a509824629d05e91ce23c5d987e8ad36/sdengine/models.py#L1165
         Trackers can be Bugzilla or Jira Issues. Because Jira Projects can configure anything they want as various statuses and
         resolutions, it's hard to sensibly map tracker status to a finite set of display values.
         We'll do the best we can from data gathered by SDEngine up to 2021-12-14, but these will change in the

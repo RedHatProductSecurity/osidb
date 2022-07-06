@@ -2,9 +2,9 @@
 
 OSIDB exposes a REST API from which any number of clients can connect, from cURL to a custom-made frontend application to serve as web client, in this tutorial we will go through the basics of using the API under different environments.
 
-To know which endpoints are available and which operations can be performed on each endpoint, please check the [OpenAPI specification](https://git.prodsec.redhat.com/devops/osidb/-/blob/master/openapi.yml) for OSIDB.
+To know which endpoints are available and which operations can be performed on each endpoint, please check the [OpenAPI specification](https://github.com/RedHatProductSecurity/osidb/blob/master/openapi.yml) for OSIDB.
 
-> Note: In this tutorial we will use a local instance of OSIDB as a target for all of our commands, however all of these should work on our [staging server](https://osidb-stage.prodsec.redhat.com/)
+> Note: in the following sections, replace ${SERVICE_URL} with the URL of whichever OSIDB service you're attempting to connect to
 
 ## Authentication and authorization
 
@@ -26,12 +26,10 @@ The first step is to hit the endpoint that will generate a JSON Web Token for us
 
 With cURL
 
-> Note: auth with curl is not currently working due to some kerberos configuration missing on our side
-
 ```bash
 $ curl -H 'Content-Type: application/json' \
        --negotiate -u : \
-       https://osidb-stage.prodsec.redhat.com/auth/token \
+       ${SERVICE_URL}/auth/token \
 
 {"refresh": ..., "access": ...}
 ```
@@ -42,7 +40,7 @@ With python
 import kerberos
 import requests
 
-HOSTNAME = "osidb-stage.prodsec.redhat.com"
+HOSTNAME = "${SERVICE_URL}"
 rc, ctx = kerberos.authGSSClientInit(f"HTTP@{HOSTNAME}")
 kerberos.authGSSClientStep(ctx, "")
 token = kerberos.authGSSClientResponse(ctx)
@@ -66,7 +64,7 @@ First, let's try to get the API's status by hitting the `osidb/api/v1/status` en
 With cURL
 
 ```bash
-$ curl http://localhost:8000/osidb/api/v1/status
+$ curl ${SERVICE_URL}/osidb/api/v1/status
 ```
 
 With python
@@ -74,7 +72,7 @@ With python
 ```python
 import requests
 
-response = requests.get("http://localhost:8000/osidb/api/v1/status")
+response = requests.get("${SERVICE_URL}/osidb/api/v1/status")
 ```
 
 For both, you should get a 403 status code along with the message "You do not have permission to perform this action". This is because the endpoint we tried to hit requires authentication, we just conveniently forgot to pass the token we received earlier along with the request, let's try that again by passing the access token we got in the previous step:
@@ -83,7 +81,7 @@ With cURL
 
 ```bash
 $ curl -H "Authorization: Bearer <access_token>"\
-       http://localhost:8000/osidb/api/v1/status
+       ${SERVICE_URL}/osidb/api/v1/status
 ```
 
 With python
@@ -92,7 +90,7 @@ With python
 import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
-response = requests.get("http://localhost:8000/osidb/api/v1/status", headers=headers)
+response = requests.get("${SERVICE_URL}/osidb/api/v1/status", headers=headers)
 assert response.ok
 ```
 
@@ -119,7 +117,7 @@ from it as you want as long as the refresh token is still valid, let's try it:
 With cURL
 
 ```bash
-$ curl -X POST http://localhost:8000/auth/token/refresh \
+$ curl -X POST ${SERVICE_URL}/auth/token/refresh \
        -H 'Content-Type: application/json' \
        -d '{"refresh": <refresh_token>}'
 
@@ -131,7 +129,7 @@ With python
 ```python
 import requests
 
-REFRESH_URL = "http://localhost:8000/auth/token/refresh"
+REFRESH_URL = "${SERVICE_URL}/auth/token/refresh"
 response = requests.get(REFRESH_URL, json={"refresh": refresh})
 assert response.ok
 token = response.json()["access"]
@@ -152,7 +150,7 @@ or expired.
 With cURL
 
 ```bash
-$ curl -X POST http://localhost:8000/auth/token/verify \
+$ curl -X POST ${SERVICE_URL}/auth/token/verify \
        -H 'Content-Type: application/json' \
        -d '{"token": <access_token | refresh_token>}'
 
@@ -164,7 +162,7 @@ With python
 ```python
 import requests
 
-VERIFY_URL = "http://localhost:8000/auth/token/verify"
+VERIFY_URL = "${SERVICE_URL}/auth/token/verify"
 response = requests.get(VERIFY_URL, json={"token": refresh})
 assert response.ok
 ```
@@ -181,7 +179,7 @@ With cURL
 
 ```bash
 $ curl -H "Authorization: Bearer <access_token>" \
-       http://localhost:8000/osidb/api/v1/flaws
+       ${SERVICE_URL}/osidb/api/v1/flaws
 ```
 
 With python
@@ -190,7 +188,7 @@ With python
 import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
-response = requests.get("http://localhost:8000/osidb/api/v1/flaws", headers=headers)
+response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers)
 assert response.ok
 ```
 
@@ -204,7 +202,7 @@ With cURL
 
 ```bash
 $ curl -H "Authorization: Bearer <access_token>" \
-       http://localhost:8000/osidb/api/v1/flaws/2fe16efb-11cb-4cd2-b31b-d769ba821073
+       ${SERVICE_URL}/osidb/api/v1/flaws/2fe16efb-11cb-4cd2-b31b-d769ba821073
 ```
 
 With python
@@ -214,7 +212,7 @@ import requests
 
 flaw_id = "2fe16efb-11cb-4cd2-b31b-d769ba821073"
 headers = {"Authorization": "Bearer <access_token>"}
-response = requests.get(f"http://localhost:8000/osidb/api/v1/flaws/{flaw_id}", headers=headers)
+response = requests.get(f"${SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}", headers=headers)
 assert response.ok
 ```
 
@@ -226,7 +224,7 @@ With cURL
 
 ```bash
 $ curl -H "Authorization: Bearer <access_token>" \
-       http://localhost:8000/osidb/api/v1/flaws/CVE-2005-0001
+       ${SERVICE_URL}/osidb/api/v1/flaws/CVE-2005-0001
 ```
 
 With python
@@ -236,13 +234,13 @@ import requests
 
 flaw_id = "CVE-2005-0001"
 headers = {"Authorization": "Bearer <access_token>"}
-response = requests.get(f"http://localhost:8000/osidb/api/v1/flaws/{flaw_id}", headers=headers)
+response = requests.get(f"${SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}", headers=headers)
 assert response.ok
 ```
 
 ## Searching for flaws
 
-We can also search flaws by different criterion, by passing query parameters, you can find valid query parameters by looking up the [OpenAPI specification](https://git.prodsec.redhat.com/devops/osidb/-/blob/master/openapi.yml) for the specific endpoint you want to query.
+We can also search flaws by different criterion, by passing query parameters, you can find valid query parameters by looking up the [OpenAPI specification](https://github.com/RedHatProductSecurity/osidb/blob/master/openapi.yml) for the specific endpoint you want to query.
 
 ### Searching by specific fields
 
@@ -252,7 +250,7 @@ With cURL
 
 ```bash
 $ curl -H "Authorization: Bearer <access_token>" \
-       http://localhost:8000/osidb/api/v1/flaws?changed_after=2021-11-18
+       ${SERVICE_URL}/osidb/api/v1/flaws?changed_after=2021-11-18
 ```
 
 With python
@@ -262,7 +260,7 @@ import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
 params = {"changed_after": "2021-11-18"}
-response = requests.get("http://localhost:8000/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
 assert response.ok
 ```
 
@@ -278,7 +276,7 @@ With cURL
 
 ```bash
 $ curl -H "Authorization: Bearer <access_token>" \
-       http://localhost:8000/osidb/api/v1/flaws?search=openjdk
+       ${SERVICE_URL}/osidb/api/v1/flaws?search=openjdk
 ```
 
 With python
@@ -289,7 +287,7 @@ import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
 params = {"search": "openjdk"}
-response = requests.get("http://localhost:8000/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
 assert response.ok
 ```
 
@@ -309,17 +307,17 @@ With cURL
 
 ```bash
 $ curl -H "Authorization: Bearer <access_token>" \
-       http://localhost:8000/osidb/api/v1/flaws?include_fields=cve_id,comments
+       ${SERVICE_URL}/osidb/api/v1/flaws?include_fields=cve_id,comments
 ```
 
 ```bash
 $ curl -H "Authorization: Bearer <access_token>" \
-       http://localhost:8000/osidb/api/v1/flaws?exclude_fields=comments
+       ${SERVICE_URL}/osidb/api/v1/flaws?exclude_fields=comments
 ```
 
 ```bash
 $ curl -H "Authorization: Bearer <access_token>" \
-       http://localhost:8000/osidb/api/v1/flaws?include_meta_attr=*
+       ${SERVICE_URL}/osidb/api/v1/flaws?include_meta_attr=*
 ```
 
 With python
@@ -329,7 +327,7 @@ import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
 params = {"include_fields": ["cve_id", "comments"]}
-response = requests.get("http://localhost:8000/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
 assert response.ok
 ```
 
@@ -338,7 +336,7 @@ import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
 params = {"exclude_fields": ["comments"]}
-response = requests.get("http://localhost:8000/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
 assert response.ok
 ```
 
@@ -347,7 +345,7 @@ import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
 params = {"include_meta_attr": ["*"]}
-response = requests.get("http://localhost:8000/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
 assert response.ok
 ```
 
@@ -373,17 +371,17 @@ With cURL
 
 ```bash
 $ curl -H "Authorization: Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847" \
-       http://localhost:8000/osidb/api/v1/flaws?include_fields=affects.ps_module
+       ${SERVICE_URL}/osidb/api/v1/flaws?include_fields=affects.ps_module
 ```
 
 ```bash
 $ curl -H "Authorization: Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847" \
-       http://localhost:8000/osidb/api/v1/flaws?exclude_fields=affects.trackers.external_system_id
+       ${SERVICE_URL}/osidb/api/v1/flaws?exclude_fields=affects.trackers.external_system_id
 ```
 
 ```bash
 $ curl -H "Authorization: Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847" \
-       http://localhost:8000/osidb/api/v1/flaws?include_meta_attr=affects.*,affects.trackers.bz_id
+       ${SERVICE_URL}/osidb/api/v1/flaws?include_meta_attr=affects.*,affects.trackers.bz_id
 ```
 
 With python
@@ -393,7 +391,7 @@ import requests
 
 headers = {"Authorization": "Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847"}
 params = {"include_fields": ["affects.ps_module"]}
-response = requests.get("http://localhost:8000/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
 assert response.ok
 ```
 
@@ -402,7 +400,7 @@ import requests
 
 headers = {"Authorization": "Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847"}
 params = {"exclude_fields": ["affects.trackers.external_system_id"]}
-response = requests.get("http://localhost:8000/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
 assert response.ok
 ```
 
@@ -411,7 +409,7 @@ import requests
 
 headers = {"Authorization": "Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847"}
 params = {"include_meta_attr": ["affects.*", "affects.trackers.*"]}
-response = requests.get("http://localhost:8000/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
 assert response.ok
 ```
 
@@ -424,7 +422,7 @@ With cURL
 
 ```bash
 $ curl -H "Authorization: Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847" \
-       http://localhost:8000/osidb/api/v1/flaws?tracker_ids=AAH-1284,2038382
+       ${SERVICE_URL}/osidb/api/v1/flaws?tracker_ids=AAH-1284,2038382
 ```
 
 With python
@@ -434,7 +432,7 @@ import requests
 
 headers = {"Authorization": "Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847"}
 params = {"tracker_ids": ["AAH-1284", "2038382"]}
-response = requests.get("http://localhost:8000/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
 assert response.ok
 ```
 
@@ -459,7 +457,7 @@ $ curl -H "Authorization: Bearer <access_token>" \
               "title": "Retrieve the water chip",
               "description": "We need the water chip to survive, explore the wasteland and find a replacement",
        }'
-       http://localhost:8000/osidb/api/v1/flaws
+       ${SERVICE_URL}/osidb/api/v1/flaws
 ```
 
 With python
@@ -480,7 +478,7 @@ data = {
     "title": "Retrieve the water chip",
     "description": "We need the water chip to survive, explore the wasteland and find a replacement",
 }
-response = requests.post("http://localhost:8000/osidb/api/v1/flaws", headers=headers, json=data)
+response = requests.post("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, json=data)
 assert response.ok
 ```
 
@@ -505,7 +503,7 @@ $ curl -H "Authorization: Bearer <access_token>" \
               "title": "Retrieve the water chip",
               "description": "We need the water chip to survive, explore the wasteland and find a replacement",
        }'
-       http://localhost:8000/osidb/api/v1/flaws/CVE-2161-0013
+       ${SERVICE_URL}/osidb/api/v1/flaws/CVE-2161-0013
 ```
 
 With python
@@ -526,7 +524,7 @@ data = {
     "title": "Retrieve the water chip",
     "description": "We need the water chip to survive, explore the wasteland and find a replacement",
 }
-response = requests.put("http://localhost:8000/osidb/api/v1/flaws/CVE-2161-0013", headers=headers, json=data)
+response = requests.put("${SERVICE_URL}/osidb/api/v1/flaws/CVE-2161-0013", headers=headers, json=data)
 assert response.ok
 ```
 
@@ -543,7 +541,7 @@ With cURL
 ```bash
 $ curl -H "Authorization: Bearer <access_token>" \
        -X DELETE
-       http://localhost:8000/osidb/api/v1/flaws/CVE-2161-0013
+       ${SERVICE_URL}/osidb/api/v1/flaws/CVE-2161-0013
 ```
 
 With python
@@ -552,7 +550,7 @@ With python
 import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
-response = requests.delete("http://localhost:8000/osidb/api/v1/flaws/CVE-2161-0013", headers=headers)
+response = requests.delete("${SERVICE_URL}/osidb/api/v1/flaws/CVE-2161-0013", headers=headers)
 assert response.ok
 ```
 

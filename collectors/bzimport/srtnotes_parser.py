@@ -138,7 +138,7 @@ def parse_cf_srtnotes(cf_srtnotes, return_warnings=False, revision=1):
 
     Note that although this function does not check for schema validity (it would make more sense to do that at
     write time) we generally expect things to follow the schema definition.
-    https://git.prodsec.redhat.com/devops/sfm2/blob/master/sfm2/schemas/flaw_cf_srtnotes.json
+    See SFM2 git repo /sfm2/schemas/flaw_cf_srtnotes.json
 
     If return_warnings == False (default):
       Returns: parsed_cf_srtnotes_dict
