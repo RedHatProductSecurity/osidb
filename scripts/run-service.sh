@@ -9,9 +9,6 @@ python3 manage.py collectstatic \
     --ignore 'tmp*' \
     --noinput
 
-# apply django db migrations
-python3 manage.py migrate --noinput
-
 # start gunicorn
 pkill gunicorn || true
 exec gunicorn config.wsgi --config gunicorn_config.py
