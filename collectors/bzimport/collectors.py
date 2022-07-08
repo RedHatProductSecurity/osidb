@@ -394,13 +394,12 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
 
     def sync_flaw(self, flaw_id):
         """fetch-convert-save flaw with give Bugzilla ID"""
-        # 1) fetch flaw data
+        # 1A) fetch flaw data
         try:
             flaw_data = self.get_bug_data(flaw_id)
             flaw_comments = self.get_bug_comments(flaw_id)
             flaw_history = self.get_bug_history(flaw_id)
             flaw_task = self.get_flaw_task(flaw_data)
-            flaw_bz_trackers = self.get_flaw_bz_trackers(flaw_data)
             nvd_cvss = NVDQuerier.nvd_cvss()
         except Exception as e:
             # fetching the data is prone to transient failures which are recoverable
@@ -409,9 +408,26 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
                 f"Temporary exception raised while fetching flaw data: {flaw_id}"
             ) from e
 
-        # TODO we have known Jira permission issues
-        # so let us consider them non-recoverable for now
-        flaw_jira_trackers = self.get_flaw_jira_trackers(flaw_data)
+        # 1B) fetch tracker data
+        # failure in tracker data fetching should not fail the flaw sync
+
+        try:
+            flaw_bz_trackers = self.get_flaw_bz_trackers(flaw_data)
+        except Exception as e:
+            logger.exception(
+                f"Bugzilla flaw bug {flaw_id} tracker import error: {str(e)}"
+            )
+            # TODO store errors
+            flaw_bz_trackers = []
+
+        try:
+            flaw_jira_trackers = self.get_flaw_jira_trackers(flaw_data)
+        except Exception as e:
+            logger.exception(
+                f"Bugzilla flaw bug {flaw_id} tracker import error: {str(e)}"
+            )
+            # TODO store errors
+            flaw_jira_trackers = []
 
         # 2) convert flaw data to Django models
         fbc = FlawBugConvertor(
