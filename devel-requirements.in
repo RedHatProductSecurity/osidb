@@ -6,6 +6,7 @@ djangorestframework-stubs
 factory-boy
 freezegun
 k5test
+# lxml required by mypy for HTML report generation
 lxml
 mypy
 openshift
