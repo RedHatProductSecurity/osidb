@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+    osidb-data:
+      # image: docker.io/library/postgres:13
+      image: docker.io/bitnami/postgresql:13
+      hostname: osidb-data
+      container_name: osidb-data
+      environment:
+        POSTGRESQL_DATABASE: osidb
+        POSTGRESQL_USERNAME: osidb_admin_user
+        # sets the password for the PostgreSQL service
+        POSTGRESQL_PASSWORD: passw0rd
+        POSTGRESQL_POSTGRES_PASSWORD: passw0rd
+        # PGUSER: osidb_admin_user
+        # PGDATABASE: osidb
+        # sets the password to log into the service as a user with psql
+        # PGPASSWORD: passw0rd
+        # POSTGRESQL_HOST: osidb-data
+      volumes:
+        - pg-data:/bitnami/postgresql
+        - ${PWD}/etc/pg:/pg:z
+        # - ${PWD}/scripts/setup-osidb-data-public-image.sh:/opt/app-root/src/scripts/setup-osidb-data.sh:z
+        # - ${PWD}/scripts/setup-osidb-data-public-image.sh:/docker-entrypoint-preinitdb.d/setup-osidb-data-public-image.sh:z
+      ports:
+        - "5432"
+      # working_dir: /opt/app-root/src
+      # command: ./scripts/setup-osidb-data.sh
+      # command: ./scripts/setup-osidb-data.sh ${OSIDB_DATABASE_RUN_SCRIPT-postgres}
+      # command: ./scripts/setup-osidb-data.sh ${OSIDB_DATABASE_RUN_SCRIPT-/opt/bitnami/scripts/postgresql/run.sh}
+      # command: sleep 9999999999
+      # command: ./scripts/setup-osidb-data.sh
+      # command: /opt/app-root/src/scripts/setup-osidb-data.sh
+
+      # See "NOTE about healthchecks":
+      # healthcheck:
+      #   test: ["CMD-SHELL", "pg_isready -d osidb"]
+      #   interval: "60s"
+      #   timeout: "5s"
+      #   retries: 3
+
+    redis:
+      container_name: redis
+      hostname: redis
+      image: docker.io/library/redis:6
+      ports:
+        - "6379"
+
+volumes:
+  pg-data:
