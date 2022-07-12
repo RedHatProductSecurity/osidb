@@ -125,6 +125,9 @@ services:
         BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
         JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
         JIRAFFE_AUTO_SYNC: ${JIRAFFE_AUTO_SYNC}
+        ET_URL: ${ET_URL}
+        PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
+        DASHBOARD_URL: ${DASHBOARD_URL}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
       # depends_on:
@@ -148,6 +151,9 @@ services:
         BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
         JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
         JIRAFFE_AUTO_SYNC: ${JIRAFFE_AUTO_SYNC}
+        ET_URL: ${ET_URL}
+        PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
+        DASHBOARD_URL: ${DASHBOARD_URL}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
       # depends_on:
@@ -170,6 +176,9 @@ services:
         OSIDB_DEBUG: ${OSIDB_DEBUG}
         BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
         JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
+        ET_URL: ${ET_URL}
+        PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
+        DASHBOARD_URL: ${DASHBOARD_URL}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
       # depends_on:
@@ -192,6 +201,9 @@ services:
       environment:
         DJANGO_SETTINGS_MODULE: "config.settings_local"
         OSIDB_DEBUG: ${OSIDB_DEBUG}
+        ET_URL: ${ET_URL}
+        PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
+        DASHBOARD_URL: ${DASHBOARD_URL}
       depends_on: ["redis", "osidb-data"]
 
     redis:
