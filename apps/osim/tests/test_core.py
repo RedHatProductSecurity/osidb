@@ -1,8 +1,5 @@
-import logging
-
 import pytest
 
-logger = logging.getLogger("apps.osim")
 pytestmark = pytest.mark.unit
 
 

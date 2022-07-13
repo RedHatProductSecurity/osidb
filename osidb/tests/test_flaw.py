@@ -1,4 +1,3 @@
-import logging
 import uuid
 
 import pytest
@@ -24,7 +23,6 @@ from osidb.tests.factories import (
     TrackerFactory,
 )
 
-logger = logging.getLogger(__name__)
 pytestmark = pytest.mark.unit
 
 

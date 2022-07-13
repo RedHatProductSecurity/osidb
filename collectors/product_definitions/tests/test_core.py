@@ -1,4 +1,3 @@
-import logging
 from typing import Type
 
 import pytest
@@ -16,7 +15,6 @@ from ..core import (
     sync_ps_update_streams,
 )
 
-logger = logging.getLogger("collectors.bzimport")
 pytestmark = pytest.mark.unit
 
 PRODUCT_DEFINITIONS_CASSETTE = (

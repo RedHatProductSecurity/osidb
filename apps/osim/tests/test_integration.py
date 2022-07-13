@@ -9,7 +9,6 @@
 """
 
 import json
-import logging
 import subprocess
 
 import pytest
@@ -20,7 +19,6 @@ from apps.osim.workflow import WorkflowFramework
 
 pytestmark = pytest.mark.integration
 
-logger = logging.getLogger(__name__)
 pytestmark = pytest.mark.integration
 
 

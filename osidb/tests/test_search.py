@@ -1,4 +1,3 @@
-import logging
 import uuid
 
 import pytest
@@ -7,7 +6,6 @@ from osidb.models import Flaw, FlawImpact, FlawResolution, FlawType
 
 from .factories import FlawFactory
 
-logger = logging.getLogger(__name__)
 pytestmark = pytest.mark.unit
 
 

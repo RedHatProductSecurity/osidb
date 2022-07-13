@@ -1,12 +1,9 @@
-import logging
-
 import pytest
 
 from osidb.models import Flaw
 
 from .factories import FlawFactory
 
-logger: logging = logging.getLogger(__name__)
 pytestmark = pytest.mark.unit
 
 

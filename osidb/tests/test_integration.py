@@ -5,13 +5,11 @@
 
 """
 import json
-import logging
 import subprocess
 
 import pytest
 
 pytestmark = pytest.mark.integration
-logger = logging.getLogger(__name__)
 
 
 class TestIntegration(object):
