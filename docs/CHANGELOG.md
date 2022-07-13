@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Authentication is no longer compulsory for read-only requests against the
   main OSIDB endpoints such as /flaws, /affects and /trackers (OSIDB-313)
 
+### Added
+- unified logging across the whole OSIDB
+
 ## [2.1.0] - 2022-08-02
 ### Changed
 - disable krb5 log redirection in stage and production playbooks.
