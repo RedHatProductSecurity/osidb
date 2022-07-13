@@ -24,14 +24,14 @@ and `tasks.py` where Celery is going to look for the task definitions
 """
 example collector
 """
-import logging
 
 from celery.schedules import crontab
+from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 from collectors.framework.models import collector
 
-logger = logging.getLogger(__name__)
+logger = get_task_logger(__name__)
 
 
 @collector(
@@ -53,6 +53,9 @@ def example_collector(collector_obj):
 Then, you need to register your Django application to `INSTALLED_APPS`
 in [settings](../../config/settings.py). Compose your OSIDB instance down and start again so the
 Celery hosts are up-to-date. Now you should see a new collector status being reported when running
+
+To enable logs, you need to register new logger for the Collector in [settings](../../config/settings.py)
+under the `LOGGING`.
 
 ```bash
 # provide credentials and optionally set URL and port appropriately

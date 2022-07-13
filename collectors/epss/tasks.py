@@ -4,10 +4,10 @@ EPSS data collector
 import csv
 import gzip
 import io
-import logging
 
 import requests
 from celery.schedules import crontab
+from celery.utils.log import get_task_logger
 from django.db import transaction
 from django.utils import timezone
 
@@ -15,7 +15,7 @@ from apps.exploits.helpers import set_exploit_collector_acls, update_objects_wit
 from apps.exploits.models import EPSS
 from collectors.framework.models import collector
 
-logger = logging.getLogger(__name__)
+logger = get_task_logger(__name__)
 
 # CSV fields:
 # cve,epss,percentile

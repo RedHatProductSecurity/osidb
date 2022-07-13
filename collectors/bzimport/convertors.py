@@ -1,11 +1,11 @@
 """
 transform Bugzilla flaw bug into OSIDB flaw model
 """
+import logging
 import re
 from collections import defaultdict
 from functools import cached_property
 
-from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
@@ -37,7 +37,7 @@ from .constants import BZ_DT_FMT, BZ_DT_FMT_HISTORY, BZ_ENABLE_IMPORT_EMBARGOED
 from .exceptions import NonRecoverableBZImportException
 from .fixups import AffectFixer, FlawFixer
 
-logger = get_task_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class TrackerBugConvertor:
