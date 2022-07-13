@@ -3,10 +3,12 @@ Helpers for direct or development shell usage
 """
 
 import json
+import logging
 from distutils.util import strtobool
 from os import getenv
 from typing import Any, List, Type, Union
 
+from celery._state import get_current_task
 from django.db import models
 
 from .exceptions import OSIDBException
@@ -56,3 +58,23 @@ def get_unique_meta_attr_keys(model: Type[models.Model]) -> List[str]:
 def get_model_fields(model: Type[models.Model]) -> List[str]:
     """Get all field names of the model"""
     return [field.name for field in model._meta.get_fields()]
+
+
+class TaskFormatter(logging.Formatter):
+    """
+    Custom formatter based on celery 'celery.utils.log.TaskFormatter'
+    which injects the 'task_name' and 'task_id' into the logs whenever
+    the logs are emitted during the Celery task execution
+    """
+
+    def format(self, record):
+        task = get_current_task()
+        if task and task.request:
+            # Executed inside Celery task - inject task_name and task_id
+            record.__dict__.update(task_id=f"[{task.request.id}]", task_name=task.name)
+        else:
+            # Executed outside Celery task - use name isntead of the task_name
+            # and omit the task_id
+            record.__dict__.setdefault("task_name", record.__dict__.get("name"))
+            record.__dict__.setdefault("task_id", "")
+        return super().format(record)
