@@ -1,5 +1,3 @@
-import logging
-
 import pytest
 from rest_framework.viewsets import ModelViewSet
 
@@ -8,7 +6,6 @@ from osidb.core import set_user_acls
 from osidb.exceptions import OSIDBException
 from osidb.tests.factories import FlawFactory
 
-logger = logging.getLogger(__name__)
 pytestmark = pytest.mark.unit
 
 

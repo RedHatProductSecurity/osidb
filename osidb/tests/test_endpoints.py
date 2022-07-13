@@ -1,4 +1,3 @@
-import logging
 from datetime import timedelta
 from typing import Set, Union
 
@@ -17,7 +16,6 @@ from .factories import (
     TrackerFactory,
 )
 
-logger = logging.getLogger(__name__)
 pytestmark = pytest.mark.unit
 
 

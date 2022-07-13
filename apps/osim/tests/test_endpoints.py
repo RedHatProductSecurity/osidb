@@ -1,5 +1,3 @@
-import logging
-
 import pytest
 
 from apps.osim.models import Workflow
@@ -10,7 +8,6 @@ from apps.osim.workflow import WorkflowFramework
 from osidb.models import Flaw
 from osidb.tests.factories import FlawFactory
 
-logger = logging.getLogger(__name__)
 pytestmark = pytest.mark.unit
 
 

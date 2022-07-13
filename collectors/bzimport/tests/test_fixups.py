@@ -1,5 +1,3 @@
-import logging
-
 import pytest
 
 # TODO parsed_fixed_in was turned into FlawBugConvertor.package_versions
@@ -9,7 +7,6 @@ import pytest
 # from collectors.bzimport.fixups import fixup_affect_ps_module, parse_fixed_in
 # from osidb.tests.factories import AffectFactory
 
-logger = logging.getLogger(__name__)
 pytestmark = pytest.mark.unit
 
 

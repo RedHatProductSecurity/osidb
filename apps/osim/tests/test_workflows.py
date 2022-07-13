@@ -2,13 +2,10 @@
 workflow definitions validation tests
 """
 
-import logging
-
 import pytest
 
 from apps.osim.workflow import WorkflowFramework, WorkflowModel
 
-logger = logging.getLogger(__name__)
 pytestmark = pytest.mark.unit
 
 
