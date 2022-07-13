@@ -15,7 +15,7 @@ from ..core import (
 BZ_CASSETTE = "TestErrataToolCollection.test_get_bz_trackers_for_erratum.yaml"
 JIRA_CASSETTE = "TestErrataToolCollection.test_get_jira_trackers_for_erratum.yaml"
 
-logger = logging.getLogger("collectors.errata")
+logger = logging.getLogger(__name__)
 pytestmark = pytest.mark.unit
 
 
