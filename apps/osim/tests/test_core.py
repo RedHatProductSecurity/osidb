@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-logger = logging.getLogger("apps.osim")
+logger = logging.getLogger(__name__)
 pytestmark = pytest.mark.unit
 
 

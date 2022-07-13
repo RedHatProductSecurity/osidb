@@ -8,7 +8,7 @@ from django.views.generic import TemplateView
 
 from osidb import __version__
 
-logger: logging = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class index(TemplateView):

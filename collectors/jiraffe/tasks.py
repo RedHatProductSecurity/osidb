@@ -2,6 +2,7 @@
 Celery tasks for the JIRA Collector
 """
 from celery import shared_task
+from celery.utils.log import get_task_logger
 from django.conf import settings
 
 from config.celery import app
@@ -16,6 +17,8 @@ from .constants import (
     JIRAFFE_AUTO_SYNC,
 )
 from .core import get_affects_to_sync, upsert_trackers
+
+logger = get_task_logger(__name__)
 
 
 @app.task(

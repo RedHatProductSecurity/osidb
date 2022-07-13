@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the authentication call from the constants file which meant that
   ET authentication would happen every time the code was loaded, generating
   a lot of auth calls and logs.
+- unified logging across the whole OSIDB
 
 ### Removed
 - remove audit mechanisms and tables from main models.

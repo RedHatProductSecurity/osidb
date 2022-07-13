@@ -16,7 +16,7 @@ from ..core import (
     sync_ps_update_streams,
 )
 
-logger = logging.getLogger("collectors.bzimport")
+logger = logging.getLogger(__name__)
 pytestmark = pytest.mark.unit
 
 PRODUCT_DEFINITIONS_CASSETTE = (
