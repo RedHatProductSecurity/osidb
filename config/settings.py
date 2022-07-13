@@ -164,9 +164,13 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
+        "verbose_celery": {
+            "()": "osidb.helpers.TaskFormatter",
+            "format": "%(asctime)s [%(levelname)s] %(task_name)s%(task_id)s: %(message)s",
+        },
         "verbose": {
             # exact format is not important, this is the minimum information
-            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         },
     },
     "handlers": {
@@ -174,7 +178,7 @@ LOGGING = {
         "celery": {
             "level": "WARNING",
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": "verbose_celery",
         },
     },
     "loggers": {
@@ -188,54 +192,32 @@ LOGGING = {
         },
         "celery": {"handlers": ["celery"], "level": "INFO", "propagate": True},
         "osidb": {"level": "WARNING", "handlers": ["console"], "propagate": False},
-        "collectors.bzimport": {
-            "level": "WARNING",
-            "handlers": ["console"],
-            "propagate": True,
-        },
-        "collectors.bzimport.tasks": {
-            "level": "WARNING",
-            "handlers": ["console"],
-            "propagate": True,
-        },
-        # TODO this is all repeated
-        # can it be defined just once ?
-        "collectors.errata": {
-            "level": "WARNING",
-            "handlers": ["console"],
-            "propagate": True,
-        },
-        "collectors.example": {
-            "level": "WARNING",
-            "handlers": ["console"],
-            "propagate": True,
-        },
-        "collectors.framework": {
-            "level": "WARNING",
-            "handlers": ["console"],
-            "propagate": True,
-        },
-        "collectors.jiraffe": {
-            "level": "WARNING",
-            "handlers": ["console"],
-            "propagate": True,
-        },
-        "collectors.jiraffe.tasks": {
-            "level": "WARNING",
-            "handlers": ["console"],
-            "propagate": True,
-        },
-        "collectors.product_definitions": {
-            "level": "WARNING",
-            "handlers": ["console"],
-            "propagate": True,
-        },
         "apps.osim": {
             "level": "WARNING",
             "handlers": ["console"],
             "propagate": True,
         },
         "django_auth_ldap": {"level": "WARNING", "handlers": ["console"]},
+        # Collectors loggers
+        **{
+            collector_name: {
+                "level": "WARNING",
+                "handlers": ["celery"],
+                "propagate": True,
+            }
+            for collector_name in [
+                "collectors.bzimport",
+                "collectors.epss",
+                "collectors.errata",
+                "collectors.example",
+                "collectors.exploits_cisa",
+                "collectors.exploits_exploitdb",
+                "collectors.exploits_metasploit",
+                "collectors.framework",
+                "collectors.jiraffe",
+                "collectors.product_definitions",
+            ]
+        },
     },
 }
 
