@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the authentication call from the constants file which meant that
   ET authentication would happen every time the code was loaded, generating
   a lot of auth calls and logs.
+- Authentication is no longer compulsory for read-only requests against the
+  main OSIDB endpoints such as /flaws, /affects and /trackers (OSIDB-313)
 
 ### Removed
 - remove audit mechanisms and tables from main models.

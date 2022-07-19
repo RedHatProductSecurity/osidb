@@ -991,13 +991,6 @@ class TestEndpoints(object):
         flaw1 = FlawFactory(is_major_incident=True)
         FlawCommentFactory(flaw=flaw1)
 
-        # attempt to access with unauthenticated client using bad token value
-        response = client.get(
-            f"{test_api_uri}/flaws/{flaw1.cve_id}",
-            HTTP_AUTHORIZATION="Token badtokenvalue",
-        )
-        assert response.status_code == 401
-
         # attempt to access with unauthenticated client using good token value
         response = client.get(
             f"{test_api_uri}/flaws/{flaw1.cve_id}", HTTP_AUTHORIZATION=f"Bearer {token}"

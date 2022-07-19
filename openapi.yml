@@ -598,6 +598,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
@@ -669,6 +670,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
@@ -1074,6 +1076,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
@@ -1192,6 +1195,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
@@ -1295,6 +1299,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
@@ -1473,6 +1478,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
@@ -1545,6 +1551,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
@@ -1616,6 +1623,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
@@ -1745,6 +1753,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
