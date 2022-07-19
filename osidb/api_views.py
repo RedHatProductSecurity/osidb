@@ -12,7 +12,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from packageurl import PackageURL
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -43,6 +43,8 @@ def healthy(request: Request) -> Response:
 class StatusView(APIView):
     """authenticated view containing status osidb service"""
 
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     @extend_schema(
         responses={
             200: {
@@ -69,6 +71,8 @@ class StatusView(APIView):
 
 class ManifestView(APIView):
     """authenticated view containing project manifest information"""
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, *args, **kwargs):
         """HTTP get /manifest"""
@@ -284,6 +288,7 @@ class FlawView(ModelViewSet):
     filterset_class = FlawFilter
     lookup_url_kwarg = "id"
     http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_object(self):
         # from https://www.django-rest-framework.org/api-guide/generic-views/#methods
@@ -335,6 +340,7 @@ class FlawView(ModelViewSet):
     }
 )
 @api_view(["GET"])
+@permission_classes((IsAuthenticatedOrReadOnly,))
 def whoami(request: Request) -> Response:
     """View that provides information about the currently logged-in user"""
     return Response(UserSerializer(request.user).data)
@@ -345,6 +351,7 @@ class AffectView(ModelViewSet):
     serializer_class = AffectSerializer
     filterset_class = AffectFilter
     http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         # NOTE: this is incorrect, but will be fixed properly later
@@ -357,6 +364,7 @@ class TrackerView(ModelViewSet):
     serializer_class = TrackerSerializer
     filterset_class = TrackerFilter
     http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         # NOTE: this is incorrect, but will be fixed properly later
