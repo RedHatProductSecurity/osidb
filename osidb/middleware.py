@@ -5,6 +5,8 @@
 """
 import logging
 
+from django.conf import settings
+
 from osidb.core import set_user_acls
 
 _logger = logging.getLogger(__name__)
@@ -24,6 +26,8 @@ class PgCommon:
         self.get_response = get_response
 
     def __call__(self, request):
+        # by default set ACLs to public read if unauthenticated
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
         if request.user.is_authenticated:
             _logger.info(f"ACLs set from middleware for user {request.user.username}")
             set_user_acls(request.user.groups.all())

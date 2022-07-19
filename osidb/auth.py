@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from drf_spectacular.contrib.rest_framework_simplejwt import SimpleJWTScheme
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -24,6 +25,8 @@ class OsidbTokenAuthentication(JWTAuthentication):
 
     def authenticate(self, request):
         creds = super().authenticate(request)
+        # by default set ACLs to public read if unauthenticated
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
         if creds and creds[0].is_authenticated:
             _logger.info(f"ACLs set from auth override for user {creds[0].username}")
             set_user_acls(creds[0].groups.all())
