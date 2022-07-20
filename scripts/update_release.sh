@@ -20,9 +20,9 @@ if [[ $1 =~ [0-9]*\.[0-9]*\.[0-9]* ]]; then
     sed -i 's/"VERSION": "[0-9]*\.[0-9]*\.[0-9]*"/"VERSION": "'$1'"/g' config/settings.py
 
     echo "Replacing version in openapi.yml"
-    make update-schema >/dev/null
+    ./scripts/schema-check.sh
 
-    check_and_set_version 'osidb_source_ref' 'openshift/inventory/osidb' $1
+    check_and_set_version 'osidb_source_ref' '../osidb-ops/inventory/osidb' $1
 else 
     echo "invalid version $1" 
     exit 1
