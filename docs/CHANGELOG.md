@@ -4,32 +4,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [2.1.0] - 2022-08-01
 ### Changed
-- disabled krb5 log redirection in stage and production playbooks.
-- disabled opportunistic_auth when contacting Errata Tool and removed
+- disable krb5 log redirection in stage and production playbooks.
+- disable opportunistic_auth when contacting Errata Tool and removed
   the authentication call from the constants file which meant that
   ET authentication would happen every time the code was loaded, generating
   a lot of auth calls and logs.
+- change the way that data is synchronized to be more fault-tolerant,
+  things like tracker fetching will no longer make the entire flaw
+  sync fail.
 
 ### Removed
 - remove audit mechanisms and tables from main models.
 
 ## [2.0.3] - 2022-06-16
 ### Changed
-- fixed an issue with existing FlawMeta objects not being updated if the
+- fix an issue with existing FlawMeta objects not being updated if the
   parent Flaw was itself updated, meaning that FlawMeta could be kept
   as embargoed if the Flaw was unembargoed.
 
 ## [2.0.2] - 2022-06-14
 ### Changed
-- fixed a change that broke backwards compatibility with IRD, this fix reverts
+- fix a change that broke backwards compatibility with IRD, this fix reverts
   the changes to the empty value of enumerations from "" back to "NONE",
   only IRD clients should be affected.
 
 ## [2.0.1] - 2022-06-03
 ### Changed
-- fixed an issue with objects not being saved to the database due to a bad
+- fix an issue with objects not being saved to the database due to a bad
   interaction between FlawSaver and TrackerBugConvertor (OSIDB-142)
 
 ## [2.0.0] - 2022-06-01
