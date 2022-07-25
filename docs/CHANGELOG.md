@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - change the way that data is synchronized to be more fault-tolerant,
   things like tracker fetching will no longer make the entire flaw
   sync fail.
+- fix a bug where only certain metadata were being correctly synchronized
+  between BZ and OSIDB which resulted in things like typos in acknowledgments
+  persisting in OSIDB despite being removed from BZ.
 
 ### Removed
 - remove audit mechanisms and tables from main models.
