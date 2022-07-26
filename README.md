@@ -17,11 +17,11 @@ Open Security Issue Database
 OSIDB projects aims to create an easy-to-use open-source
 [PSIRT](https://www.first.org/standards/frameworks/psirts/) tooling framework
 designed for collecting, storing, processing, and providing security
-vulnerability data accross software offering portfolio.
+vulnerability data across software offering portfolio.
 
 * Incorporate an enterprise-ready solution and start tracking security
   vulnerabilities in your organization's offerings or utilize an outstanding
-  tooling support to tune your exising product security workflow.
+  tooling support to tune your existing product security workflow.
 * Create and manage the records on [CVE](https://cve.mitre.org/)s
   and potential security issues throughout your portfolio. Set their impact,
   source, [CWE](https://cwe.mitre.org/), [CVSS](https://www.first.org/cvss/)
@@ -86,13 +86,13 @@ All the user facing documentation can be found [here](docs/user/).
 
 OSIDB project is an open initiative and we welcome any help.
 If you are interested in joining us please start by reading
-[contributing](docs/developer/CONTRIBUTING.md) guidlines.
+[contributing](docs/developer/CONTRIBUTING.md) guidelines.
 
 All the developer facing documentation can be found [here](docs/developer).
 
 ## Status
 
-OSIDB service is still under heavy development and new features, improvemnts,
+OSIDB service is still under heavy development and new features, improvements,
 and bug fixes are being continuously delivered. Everything is potentially a
 subject to change. However, the breaking changes are being considered carefully
 as the project is already in a general availability stage and is being actively
