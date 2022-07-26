@@ -246,6 +246,7 @@ class FlawSaver:
 
     def clean_affects(self):
         """clean obsoleted affects"""
+        # TODO: potentially optimize like clean_meta ?
         for old_affect in self.flaw.affects.all():
             for new_affect in self.affects:
                 if (
@@ -258,14 +259,55 @@ class FlawSaver:
                 old_affect.delete()
 
     def clean_meta(self):
-        """clean obsoleted meta"""
-        # TODO this only works for Bugzilla-like meta flags now
-        self.flaw.meta.filter(
-            type__in=(
-                set(FlawBugConvertor.FLAGS_META.values())
-                - set(m.type for m in self.meta)
+        """
+        Removes FlawMeta objects that no longer exist upstream.
+
+        This is achieved by comparing the key attributes of the FlawMeta objects:
+            * flaw -- the flaw for which the meta object applies
+            * type -- the type of flaw metadata
+            * meta_attr -- the contents of the flawmeta
+
+        If none of the existing FlawMeta objects match these three attributes with
+        any of the upstream meta objects, then it means that it was removed upstream
+        and should be removed in OSIDB too.
+
+        E.g.
+
+        OSIDB contains:
+            FlawMeta(
+                flaw=<CVE-2022-1234>
+                type=<ACKNOWLEDGMENT>
+                meta_attr={
+                    "name": "Adrin Tres"
+                }
             )
-        ).delete()
+
+        And upstream generates:
+            FlawMeta(
+                flaw=<CVE-2022-1234>
+                type=<ACKNOWLEDGMENT>
+                meta_attr={
+                    "name": "Adrian Torres"
+                }
+            )
+
+        It's clear that at some point a typo was made, the existing Acknowledgment
+        meta removed and replaced with the version without a typo, in that case OSIDB
+        should keep in sync with upstream.
+
+        The comparison is leveraged using the FlawMetaManager.create_flawmeta method:
+
+            When the convertor creates FlawMeta objects from the upstream data, it will
+            use the create_flawmeta method which will either retrieve an existing FlawMeta
+            or create a new one, but never create a duplicate one. This guarantees that
+            the equality operator (==) is safe to use in this case.
+        """
+        # NOTE: maybe we should simply always recreate all from upstream
+        old = set(self.flaw.meta.all())
+        new = set(self.meta)
+        to_delete = list(old - new)
+        for meta in to_delete:
+            meta.delete()
 
     def clean_trackers(self):
         """clean obsoleted affect-tracker links"""

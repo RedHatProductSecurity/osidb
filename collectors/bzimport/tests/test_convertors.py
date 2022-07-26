@@ -99,14 +99,24 @@ class TestFlawSaver:
         minimal meta getter
         """
         return [
-            FlawMeta(
+            FlawMeta.objects.create_flawmeta(
                 flaw=flaw,
-                type=FlawMeta.FlawMetaType.MAJOR_INCIDENT,
+                _type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT,
+                meta={"name": "Lon Wnderer"},
                 created_dt=timezone.now(),
                 updated_dt=timezone.now(),
                 acl_read=self.get_acls(),
                 acl_write=self.get_acls(),
-            )
+            ),
+            FlawMeta.objects.create_flawmeta(
+                flaw=flaw,
+                _type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT,
+                meta={"name": "Lone Wanderer"},
+                created_dt=timezone.now(),
+                updated_dt=timezone.now(),
+                acl_read=self.get_acls(),
+                acl_write=self.get_acls(),
+            ),
         ]
 
     def get_trackers(self, affect):
@@ -201,7 +211,7 @@ class TestFlawSaver:
         assert history.acl_write == acls
 
         assert meta is not None
-        assert meta.type == FlawMeta.FlawMetaType.MAJOR_INCIDENT
+        assert meta.type == FlawMeta.FlawMetaType.ACKNOWLEDGMENT
         assert meta.acl_read == acls
         assert meta.acl_write == acls
         assert meta.flaw == flaw
@@ -291,7 +301,7 @@ class TestFlawSaver:
 
         assert flaw is not None
         assert meta is not None
-        assert flaw.meta.count() == 1
+        assert flaw.meta.count() == 2
         assert flaw.meta.first() == meta
         assert meta.flaw == flaw
 
@@ -300,7 +310,9 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
+            [
+                self.get_meta(flaw)[1],
+            ],
             [],
             {},
         ).save()
@@ -309,8 +321,9 @@ class TestFlawSaver:
         meta = FlawMeta.objects.first()
 
         assert flaw is not None
-        assert meta is None
-        assert flaw.meta.count() == 0
+        assert flaw.meta.count() == 1
+        assert flaw.meta.first() == self.get_meta(flaw)[1]
+        assert flaw.meta.first().meta_attr["name"] == "Lone Wanderer"
 
     def test_trackers_removed(self):
         """
