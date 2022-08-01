@@ -337,6 +337,47 @@ paths:
                   version:
                     type: string
           description: ''
+  /exploits/api/v1/epss:
+    get:
+      operationId: exploits_api_v1_epss_list
+      description: API endpoint for getting list of Red Hat relevant CVEs with their
+        EPSS score.
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - exploits
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedEPSSList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /exploits/api/v1/report/date/{date}:
     get:
       operationId: exploits_api_v1_report_date_retrieve
@@ -2131,6 +2172,18 @@ components:
       enum:
       - BUGZILLA
       type: string
+    EPSS:
+      type: object
+      properties:
+        cve:
+          type: string
+          maxLength: 50
+        epss:
+          type: number
+          format: float
+      required:
+      - cve
+      - epss
     Erratum:
       type: object
       description: Erratum serializer
@@ -2448,6 +2501,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Affect'
+    PaginatedEPSSList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EPSS'
     PaginatedFlawList:
       type: object
       properties:
