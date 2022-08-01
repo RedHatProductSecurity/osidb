@@ -264,3 +264,6 @@ SPECTACULAR_SETTINGS = {
 
 ERRATA_TOOL_SERVER = get_env("ET_URL")
 ERRATA_TOOL_XMLRPC_BASE_URL = f"{ERRATA_TOOL_SERVER}/errata/errata_service"
+
+# Execute once a day by default
+CISA_COLLECTOR_CRONTAB = crontab(minute=0, hour=1)

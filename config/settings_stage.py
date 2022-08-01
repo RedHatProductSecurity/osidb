@@ -108,3 +108,6 @@ AUTHENTICATION_BACKENDS += [
     "django_auth_ldap.backend.LDAPBackend",
 ]
 KRB5_HOSTNAME = get_env("KRB5_HOSTNAME")
+
+# Execute once an hour in stage to be consistent with production
+CISA_COLLECTOR_CRONTAB = crontab(minute=0)

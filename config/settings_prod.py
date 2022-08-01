@@ -111,3 +111,6 @@ KRB5_HOSTNAME = get_env("KRB5_HOSTNAME")
 
 ERRATA_TOOL_SERVER = get_env("ET_URL")
 ERRATA_TOOL_XMLRPC_BASE_URL = f"{ERRATA_TOOL_SERVER}/errata/errata_service"
+
+# Execute once an hour in production
+CISA_COLLECTOR_CRONTAB = crontab(minute=0)
