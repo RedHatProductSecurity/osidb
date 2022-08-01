@@ -1,7 +1,7 @@
 # Kerberos authentication
 
-In order for kerberos authentication to work properly, you may need to chango your
-existing `krb5.conf` so that the `dns_canonicalize_hostname` setting is set to either
+In order for kerberos authentication to work properly, you may need to change your
+existing `krb5.conf` so that the `dns_canonicalize_hostname` setting is set to 
 `fallback` which is a mostly harmless change since it behaves as both `true` and `false`,
 so it shouldn't impact any other kerberos-enabled services. If your kerberos distribution
 and/or version does not support the `fallback` value then you may set this to `false`
