@@ -1,14 +1,11 @@
 # Kerberos authentication
 
-In order for kerberos authentication to work properly, you may need to install
-our custom krb5.conf settings.
-
-You can find the relevant file [here](../../etc/krb/osidb), download it and install
-it in your `/etc/krb5.conf.d/` directory, the file only sets the
-`dns_canonicalize_hostname` setting to `fallback` which is a mostly harmless change
-since it behaves as both `true` and `false`, so it shouldn't impact any other
-kerberos-enabled services. The file also adds entries for all of OSIDB hostnames
-to map to the correct kerberos realm.
+In order for kerberos authentication to work properly, you may need to change your
+existing `krb5.conf` so that the `dns_canonicalize_hostname` setting is set to 
+`fallback` which is a mostly harmless change since it behaves as both `true` and `false`,
+so it shouldn't impact any other kerberos-enabled services. If your kerberos distribution
+and/or version does not support the `fallback` value then you may set this to `false`
+instead, however this could affect the behavior of other kerberos-enabled services.
 
 ## But, why?
 
