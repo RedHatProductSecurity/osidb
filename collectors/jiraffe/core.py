@@ -151,5 +151,6 @@ def get_affects_to_sync(interval: str) -> Union[tuple[UUID], tuple[Any]]:
         trackers = Tracker.objects.filter(
             external_system_id=issue.key, type=Tracker.TrackerType.JIRA
         )
-        affect_uuids_to_sync |= {tracker.affect.uuid for tracker in trackers}
+        for tracker in trackers:
+            affect_uuids_to_sync |= set(affect.uuid for affect in tracker.affects.all())
     return tuple(affect_uuids_to_sync)

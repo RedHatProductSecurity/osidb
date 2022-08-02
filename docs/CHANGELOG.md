@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Authentication is no longer compulsory for read-only requests against the
   main OSIDB endpoints such as /flaws, /affects and /trackers (OSIDB-313)
+- Fix an issue in which the Jiraffe collector was calling Tracker.affect
+  instead of Tracker.affects (ManyToMany field) which resulted in some
+  failed JIRA tracker synchronizations.
 
 ### Added
 - unified logging across the whole OSIDB
