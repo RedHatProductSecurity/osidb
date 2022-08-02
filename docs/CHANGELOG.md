@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix an issue in which the Jiraffe collector was calling Tracker.affect
   instead of Tracker.affects (ManyToMany field) which resulted in some
   failed JIRA tracker synchronizations.
+- Treat collector failures due to already running collectors or due to
+  waiting for dependencies as celery Retry exceptions.
 
 ### Added
 - unified logging across the whole OSIDB

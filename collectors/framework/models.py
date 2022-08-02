@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Type
 
 import celery.states as celery_states
 import inflection
-from celery import Task
+from celery import Task, exceptions
 from celery.schedules import crontab
 from django.contrib.postgres import fields
 from django.db import models
@@ -426,7 +426,7 @@ class Collector(Task):
     # EXECEPTIONS #
     ###############
 
-    class CollectorRunning(Exception):
+    class CollectorRunning(exceptions.Retry):
         """
         exception raised when this collector is already running
         to prevent duplicit run before the previous one finished
@@ -434,7 +434,7 @@ class Collector(Task):
 
         pass
 
-    class CollectorBlocked(Exception):
+    class CollectorBlocked(exceptions.Retry):
         """
         exception raised when this collector is blocked by unsatisfied dependencies
         to prevent undefined behavior with some required data not yet collected
