@@ -392,7 +392,8 @@ class FlawHistory(NullStrFieldsMixin):
         verbose_name = "FlawHistory"
 
     def __str__(self):
-        return str(self.cve_id)
+        """convert to string"""
+        return str(self.uuid)
 
     objects = FlawHistoryManager()
 
@@ -625,8 +626,8 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin):
         ]
 
     def __str__(self):
-        """return cve_id when str(flaw)"""
-        return str(self.cve_id)
+        """convert to string"""
+        return str(self.uuid)
 
     def _validate_rh_nvd_cvss_score_diff(self):
         """
