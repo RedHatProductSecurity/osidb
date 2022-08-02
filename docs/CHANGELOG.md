@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.1.0] - 2022-08-01
+## [2.1.0] - 2022-08-02
 ### Changed
 - disable krb5 log redirection in stage and production playbooks.
 - disable opportunistic_auth when contacting Errata Tool and removed
@@ -17,9 +17,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix a bug where only certain metadata were being correctly synchronized
   between BZ and OSIDB which resulted in things like typos in acknowledgments
   persisting in OSIDB despite being removed from BZ.
+- fix a bug in which the scheme in next/previous links in paginated
+  responses was http:// and not https://.
+- fix a bug with the way that the collector framework parsed crontab
+  strings.
+- fix various bugs with the collector framework instantiation process.
+- fix a bug with the way that collector dependencies were being handled.
+- fix a bug in which FlawMeta were not being updated correctly due to
+  an ACL issue.
+- update product exclusion lists.
+- fix a bug in which the exploit collectors were not working properly
+  due to an ACL issue.
+- fix an issue with duplicate affects generating database errors.
+
+### Added
+- add various Dockerfile optimizations.
+- add API for exploit report processing.
+- add a mechanism to reflect CVE changes and/or removals.
 
 ### Removed
 - remove audit mechanisms and tables from main models.
+- remove obsoleted bzload.py script.
+- remove outdated service schema.
+- remove obsoleted funcspec.
+- remove prodsec lib dependency.
 
 ## [2.0.3] - 2022-06-16
 ### Changed
