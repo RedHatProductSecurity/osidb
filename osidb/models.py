@@ -525,6 +525,7 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     # CVE-ID, should be unique, from BZ alias
+    # but may be also unset temporarily or permanently
     cve_id = models.CharField(
         max_length=500,
         null=True,
@@ -821,7 +822,6 @@ class AffectManager(models.Manager):
     def fts_search(q):
         """full text search using postgres FTS via django.contrib.postgres"""
         fields_to_search = (
-            "cve_id",
             "ps_component",
             "ps_module",
             "resolution",
