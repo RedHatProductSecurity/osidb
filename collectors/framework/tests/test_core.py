@@ -2,7 +2,7 @@ import pytest
 from celery.schedules import crontab
 from django.utils import timezone
 
-from collectors.framework.models import Collector, CollectorMetadata, collector
+from collectors.framework.models import CollectorMetadata, collector
 from osidb.models import Affect, Flaw, Tracker
 
 pytestmark = pytest.mark.unit
@@ -118,9 +118,7 @@ class TestCollectorFramework:
             collector6_metadata.data_state = incomplete_data_state
             collector6_metadata.save()
 
-            with pytest.raises(Collector.CollectorBlocked) as exc_info:
-                test_collector5.apply().get()
-            assert "Dependent collector data are not complete" in str(exc_info.value)
+            assert test_collector5.apply().state == "RETRY"
 
         collector6_metadata.data_state = CollectorMetadata.DataState.COMPLETE
         collector6_metadata.save()
@@ -144,6 +142,4 @@ class TestCollectorFramework:
         metadata.save()
 
         for _ in range(5):
-            with pytest.raises(Collector.CollectorRunning) as exc_info:
-                test_collector7.apply().get()
-            assert "Collector is already running" in str(exc_info.value)
+            assert test_collector7.apply().state == "RETRY"
