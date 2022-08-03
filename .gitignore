@@ -29,3 +29,4 @@ tests/htmlcov
 .tox/
 /venv
 .vscode/
+*.db.gz
