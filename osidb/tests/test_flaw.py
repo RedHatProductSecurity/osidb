@@ -395,3 +395,74 @@ class TestFlawValidators:
         with pytest.raises(ValidationError) as e:
             FlawFactory(**{attr_name: "half of FISH"})
         assert "Value 'half of FISH' is not a valid choice." in str(e)
+
+    @pytest.mark.parametrize(
+        "flag_pair", [("+", "+"), ("+", "?"), ("?", "+"), ("-", "?"), ("?", "-")]
+    )
+    def test_major_incident_flag_invalid(self, flag_pair):
+        """
+        Test invalid combinations of hightouch / hightouch-lite flag values.
+        """
+        flaw = FlawFactory()
+        FlawMetaFactory(
+            type="MAJOR_INCIDENT",
+            meta_attr={"status": flag_pair[0]},
+            flaw=flaw,
+        )
+
+        with pytest.raises(ValidationError) as e:
+            FlawMetaFactory(
+                type="MAJOR_INCIDENT_LITE",
+                meta_attr={"status": flag_pair[1]},
+                flaw=flaw,
+            )
+        assert (
+            f"Flaw MAJOR_INCIDENT and MAJOR_INCIDENT_LITE combination cannot be {flag_pair}."
+            in str(e)
+        )
+        # test that it works with RelatedManager methods such as add()
+        meta2 = FlawMetaFactory(
+            type="MAJOR_INCIDENT_LITE",
+            meta_attr={"status": flag_pair[1]},
+        )
+        with pytest.raises(ValidationError) as e:
+            # Note: only works with bulk=False which is not the default value
+            # if bulk=False is omitted, it will do an SQL update which means
+            # save() won't be called thus no validation will be performed
+            # this is a Django limitation and there's not much that we can do
+            # about it.
+            flaw.meta.add(meta2, bulk=False)
+
+    @pytest.mark.parametrize(
+        "flag_pair",
+        [
+            ("", ""),
+            ("?", "?"),
+            ("-", "-"),
+            ("+", ""),
+            ("+", "-"),
+            ("", "+"),
+            ("-", "+"),
+        ],
+    )
+    def test_major_incident_flag_valid(self, flag_pair):
+        """
+        Test valid combinations of hightouch / hightouch-lite flag values.
+        """
+        flaw = FlawFactory()
+        meta1 = FlawMetaFactory(
+            type="MAJOR_INCIDENT",
+            meta_attr={"status": flag_pair[0]},
+            flaw=flaw,
+        )
+        meta2 = FlawMetaFactory(
+            type="MAJOR_INCIDENT_LITE",
+            meta_attr={"status": flag_pair[1]},
+            flaw=flaw,
+        )
+        assert FlawMeta.objects.count() == 2
+        # test that it works with RelatedManager methods such as add()
+        flaw = FlawFactory()
+        # see previous test for explanation on bulk=False
+        flaw.meta.set([meta1, meta2], bulk=False)
+        assert flaw.meta.count() == 2

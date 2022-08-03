@@ -9,7 +9,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.postgres import fields
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
@@ -1096,10 +1096,40 @@ class FlawMeta(TrackingMixin):
     def __str__(self):
         return str(self.uuid)
 
+    def _validate_major_incident_combos(self):
+        """
+        Checks that the combination of MAJOR_INCIDENT and MAJOR_INCIDENT_LITE is valid.
+        """
+        if self.type not in (
+            self.FlawMetaType.MAJOR_INCIDENT,
+            self.FlawMetaType.MAJOR_INCIDENT_LITE,
+        ):
+            return
+
+        INVALID_COMBOS = [("+", "+"), ("+", "?"), ("?", "+"), ("?", "-"), ("-", "?")]
+        maj_incident_flag = None
+        maj_incident_lite_flag = None
+
+        # must include self as it's potentially not yet included in flaw.meta.all()
+        for meta in list(self.flaw.meta.all()) + [self]:
+            if meta.type == FlawMeta.FlawMetaType.MAJOR_INCIDENT:
+                maj_incident_flag = meta.meta_attr.get("status")
+            if meta.type == FlawMeta.FlawMetaType.MAJOR_INCIDENT_LITE:
+                maj_incident_lite_flag = meta.meta_attr.get("status")
+            if maj_incident_flag and maj_incident_lite_flag:
+                break
+
+        flag_pair = (maj_incident_flag, maj_incident_lite_flag)
+        if flag_pair in INVALID_COMBOS:
+            raise ValidationError(
+                f"Flaw MAJOR_INCIDENT and MAJOR_INCIDENT_LITE combination cannot be {flag_pair}."
+            )
+
     def validate(self, *args, **kwargs):
         """validate model"""
         # add custom validation here
         super().clean_fields(*args, exclude=["meta_attr"], **kwargs)
+        self._validate_major_incident_combos()
 
     def save(self, *args, **kwargs):
         """save model override"""
