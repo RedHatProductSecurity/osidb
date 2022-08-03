@@ -20,10 +20,10 @@ def fatal_code(e):
     """Do not retry on 4xx responses."""
     # Handle requests.exceptions.RequestException
     # 408 is "Request Timeout" that Brew sometimes returns, which can be retried safely
-    if getattr(e, "response", None):
+    if hasattr(e, "response"):
         return 400 <= e.response.status_code < 500 and e.response.status_code != 408
     # Handle xmlrpc.client.ProtocolError
-    elif getattr(e, "errcode", None):
+    elif hasattr(e, "errcode"):
         return 400 <= e.errcode < 500 and e.errcode != 408
 
 
