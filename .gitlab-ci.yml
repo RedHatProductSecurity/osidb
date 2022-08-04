@@ -15,18 +15,6 @@ check:
   script:
     - dnf install -y openldap-devel python3.9
     - tox --parallel --parallel-live
-  except:
-    refs:
-      - schedules
-
-
-# TODO: There's a better way, will fix this tomorrow if I have time
-pip-audit:
-  stage: check
-  image: quay.io/prodsecdev/fedora-latest:35  # includes tox
-  script:
-    - dnf install -y python3.9
-    - tox -e pip-audit
 
 test:
   stage: test
@@ -59,6 +47,3 @@ test:
     - sleep 60
     - ldapadd -c -H "ldap://testldap:1389" -x -D "cn=admin,dc=redhat,dc=com" -w "adminpassword" -f etc/openldap/local-export.ldif || true
     - tox -e ci-osidb
-  except:
-    refs:
-      - schedules
