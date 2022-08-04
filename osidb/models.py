@@ -3,6 +3,7 @@ draft model for end to end testing
 """
 import logging
 import uuid
+from decimal import Decimal
 from typing import Union
 
 from django.conf import settings
@@ -19,7 +20,7 @@ from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.osim.workflow import WorkflowModel
 
-from .constants import OSIDB_API_VERSION
+from .constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
 from .core import generate_acls
 from .mixins import NullStrFieldsMixin, TrackingMixin
 from .validators import (
@@ -592,10 +593,54 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin):
         """return cve_id when str(flaw)"""
         return str(self.cve_id)
 
+    def _validate_rh_nvd_cvss_score_diff(self):
+        """
+        Checks that the difference between the RH and NVD CVSS score is not >= 1.0
+        """
+        if self.cvss3_score is None or not self.nvd_cvss3:
+            return
+        # we don't store the nvd_cvss3_score directly unlike the RH one
+        nvd_cvss3_score = Decimal(self.nvd_cvss3.split("/", 1)[0])
+        rh_cvss3_score = Decimal(str(self.cvss3_score))
+
+        if abs(nvd_cvss3_score - rh_cvss3_score) >= Decimal("1.0"):
+            raise ValidationError(
+                f"RH and NVD CVSSv3 score differs by 1.0 or more - "
+                f"RH {rh_cvss3_score} | NVD {nvd_cvss3_score}"
+            )
+
+    def _validate_rh_nvd_cvss_severity_diff(self):
+        """
+        Checks that NVD and RH CVSS are not of a different severity.
+        """
+        if self.cvss3_score is None or not self.nvd_cvss3:
+            return
+        nvd_cvss3_score = Decimal(self.nvd_cvss3.split("/", 1)[0])
+        rh_cvss3_score = Decimal(str(self.cvss3_score))
+
+        rh_severity = nvd_severity = None
+        for key, value in CVSS3_SEVERITY_SCALE.items():
+            lower, upper = value
+
+            if lower <= rh_cvss3_score <= upper:
+                rh_severity = key
+
+            if lower <= nvd_cvss3_score <= upper:
+                nvd_severity = key
+
+        if rh_severity != nvd_severity:
+            raise ValidationError(
+                "RH and NVD CVSSv3 score difference crosses severity boundary - "
+                f"RH {rh_cvss3_score}:{rh_severity} | "
+                f"NVD {nvd_cvss3_score}:{nvd_severity}"
+            )
+
     def validate(self, *args, **kwargs):
         """validate flaw model"""
         # add custom validation here
         self.full_clean(*args, exclude=["meta_attr"], **kwargs)
+        self._validate_rh_nvd_cvss_score_diff()
+        self._validate_rh_nvd_cvss_severity_diff()
 
     def save(self, *args, **kwargs):
         """save model override"""

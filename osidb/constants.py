@@ -7,6 +7,7 @@ these may eventually be refactored into config/settings
 
 import re
 from datetime import timedelta, timezone
+from decimal import Decimal
 
 from .helpers import get_env
 
@@ -27,3 +28,11 @@ ENABLE_EMBARGO_PROCESS: bool = get_env(
 # used by osidb manifest endpoint to parse pypi urls
 PYPI_URL = "https://pypi.org/project/"
 URL_REGEX = re.compile(r"https?://[-a-zA-Z0-9@:%_\\+.~#!?&/=;]*[-a-zA-Z0-9@%_~#?&/]")
+
+CVSS3_SEVERITY_SCALE = {
+    "none": (Decimal("0.0"), Decimal("0.0")),
+    "low": (Decimal("0.1"), Decimal("3.9")),
+    "medium": (Decimal("4.0"), Decimal("6.9")),
+    "high": (Decimal("7.0"), Decimal("8.9")),
+    "critical": (Decimal("9.0"), Decimal("10.0")),
+}

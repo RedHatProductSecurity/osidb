@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - unified logging across the whole OSIDB
 - validate hightouch and hightouch-lite flag value combinations (OSIDB-329)
+- validate differences between Red Hat and NVD CVSS score and severity (OSIDB-333)
 
 ## [2.1.0] - 2022-08-02
 ### Changed
