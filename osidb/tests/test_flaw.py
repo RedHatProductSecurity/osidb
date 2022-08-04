@@ -466,3 +466,127 @@ class TestFlawValidators:
         # see previous test for explanation on bulk=False
         flaw.meta.set([meta1, meta2], bulk=False)
         assert flaw.meta.count() == 2
+
+    @pytest.mark.parametrize(
+        "vector_pair",
+        [
+            (
+                "8.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                # delta of exactly 1.0
+                "7.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",
+            ),
+            (
+                "8.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                # delta of > 1.0
+                "6.8/CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:H",
+            ),
+            (
+                "7.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",
+                # delta of exactly 1.0 in the opposite direction
+                "8.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+            ),
+            (
+                "6.8/CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:H",
+                # delta of > 1.0 in the opposite direction
+                "8.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+            ),
+        ],
+    )
+    def test_cvss_rh_nvd_score_diff_invalid(self, vector_pair):
+        nvd_v, rh_v = vector_pair
+        rh_score = rh_v.split("/", 1)[0]
+        with pytest.raises(ValidationError) as e:
+            FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
+        assert "RH and NVD CVSSv3 score differs by 1.0 or more" in str(e)
+
+    @pytest.mark.parametrize(
+        "vector_pair",
+        [
+            (
+                "7.2/CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
+                # delta within acceptable range
+                "7.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",
+            ),
+            (
+                "7.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",
+                # delta within acceptable range in the opposite direction
+                "7.2/CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
+            ),
+        ],
+    )
+    def test_cvss_rh_nvd_score_diff_valid(self, vector_pair):
+        nvd_v, rh_v = vector_pair
+        rh_score = rh_v.split("/", 1)[0]
+        FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
+        assert Flaw.objects.count() == 1
+
+    @pytest.mark.parametrize(
+        "vector_pair",
+        [
+            # Note: not possible to test None vs Low since the lowest possible
+            # CVSS score of low severity is 1.6 which violates the RH vs NVD
+            # score diff constraint
+            (
+                # Low vs Medium
+                "3.8/CVSS:3.1/AV:A/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:L",
+                "4.0/CVSS:3.1/AV:L/AC:L/PR:H/UI:R/S:U/C:L/I:L/A:L",
+            ),
+            (
+                # Medium vs Low
+                "4.0/CVSS:3.1/AV:L/AC:L/PR:H/UI:R/S:U/C:L/I:L/A:L",
+                "3.9/CVSS:3.1/AV:N/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:L",
+            ),
+            (
+                # Medium vs High
+                "6.9/CVSS:3.1/AV:P/AC:H/PR:L/UI:R/S:C/C:H/I:H/A:H",
+                "7.6/CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:H/I:L/A:H",
+            ),
+            (
+                # High vs Critical
+                "8.8/CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H",
+                "9.4/CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:H",
+            ),
+        ],
+    )
+    def test_cvss_rh_nvd_severity_diff_invalid(self, vector_pair):
+        nvd_v, rh_v = vector_pair
+        rh_score = rh_v.split("/", 1)[0]
+        with pytest.raises(ValidationError) as e:
+            FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
+        assert "RH and NVD CVSSv3 score difference crosses severity boundary" in str(e)
+
+    @pytest.mark.parametrize(
+        "vector_pair",
+        [
+            (
+                # None vs None
+                "0.0/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N",
+                "0.0/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N",
+            ),
+            (
+                # Low vs Low (right boundary)
+                "3.9/CVSS:3.1/AV:N/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:L",
+                "3.8/CVSS:3.1/AV:P/AC:H/PR:H/UI:R/S:U/C:N/I:N/A:H",
+            ),
+            (
+                # Medium vs Medium (left boundary)
+                "4.0/CVSS:3.1/AV:L/AC:L/PR:H/UI:R/S:U/C:L/I:L/A:L",
+                "4.9/CVSS:3.1/AV:P/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:H",
+            ),
+            (
+                # High vs High
+                "7.6/CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:H/I:L/A:H",
+                "7.5/CVSS:3.1/AV:N/AC:H/PR:H/UI:R/S:C/C:L/I:H/A:H",
+            ),
+            (
+                # High vs Critical
+                "9.4/CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:H",
+                "10.0/CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:H/A:H",
+            ),
+        ],
+    )
+    def test_cvss_rh_nvd_severity_diff_valid(self, vector_pair):
+        nvd_v, rh_v = vector_pair
+        rh_score = rh_v.split("/", 1)[0]
+        FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
+        assert Flaw.objects.count() == 1
