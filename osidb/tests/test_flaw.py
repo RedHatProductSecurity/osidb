@@ -132,8 +132,8 @@ class TestFlaw:
         assert meta1 in all_meta
         assert meta2 in all_meta
 
-        vuln_2 = Flaw.objects.create_flaw(
-            "CVE-1970-12345",
+        vuln_2 = Flaw(
+            cve_id="CVE-1970-12345",
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             type=FlawType.VULN,
@@ -244,8 +244,8 @@ class TestFlaw:
         ]
         meta_attr = {}
         meta_attr["test"] = 1
-        vuln_1 = Flaw.objects.create_flaw(
-            good_cve_id,
+        vuln_1 = Flaw(
+            cve_id=good_cve_id,
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             type=FlawType.VULN,
@@ -271,8 +271,8 @@ class TestFlaw:
             )
         ]
 
-        flaw = Flaw.objects.create_flaw(
-            "CVE-1970-12345",
+        flaw = Flaw(
+            cve_id="CVE-1970-12345",
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             type=FlawType.VULN,
@@ -297,8 +297,8 @@ class TestFlaw:
             )
         ]
 
-        flaw = Flaw.objects.create_flaw(
-            good_cve_id,
+        flaw = Flaw(
+            cve_id=good_cve_id,
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             type=FlawType.VULN,
