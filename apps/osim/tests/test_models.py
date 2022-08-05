@@ -42,7 +42,7 @@ class CheckDescFactory:
         ("has statement", "statement", "random statement"),
         ("has cwe", "cwe_id", "CWE-123"),
         ("has unembargo_dt", "unembargo_dt", timezone.now()),
-        ("has source", "source", FlawSource.INTERNET),
+        ("has source", "source", FlawSource.APPLE),
         ("has reported_dt", "reported_dt", timezone.now()),
         ("has mitigated_by", "mitigated_by", Flaw.FlawMitigate.SELINUX),
         ("has cvss2", "cvss2", "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C"),

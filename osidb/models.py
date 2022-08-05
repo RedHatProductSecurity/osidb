@@ -146,7 +146,12 @@ class FlawResolution(models.TextChoices):
 
 
 class FlawSource(models.TextChoices):
-    """allowable source - TBD needs to delineate between private/public"""
+    """
+    Enum to indicate where a Flaw was first reported.
+
+    Whether the source is public or private can be determined by calling the
+    is_public() method on any Enum member.
+    """
 
     ADOBE = "ADOBE"
     APPLE = "APPLE"
@@ -235,6 +240,35 @@ class FlawSource(models.TextChoices):
     XCHAT = "XCHAT"
     XEN = "XEN"
     XPDF = "XPDF"
+
+    def is_public(self):
+        """
+        Returns True if the source is public, False otherwise.
+
+        Note that the following sources can be both public and private, but for
+        validation purposes we don't treat them as private:
+
+        MAGEIA, DEBIAN, GENTOO, SUSE, UBUNTU
+        """
+        return self not in {
+            # PRIVATE_SOURCES from SFM2
+            self.ADOBE,
+            self.APPLE,
+            self.CERT,
+            self.CUSTOMER,
+            self.DISTROS,
+            self.GOOGLE,
+            self.MOZILLA,
+            self.OPENSSL,
+            self.REDHAT,
+            self.RESEARCHER,
+            self.SECUNIA,
+            self.UPSTREAM,
+            self.XEN,
+            self.VENDOR_SEC,
+            self.SUN,
+            self.HW_VENDOR,
+        }
 
 
 class FlawHistory(NullStrFieldsMixin):
@@ -635,12 +669,28 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin):
                 f"NVD {nvd_cvss3_score}:{nvd_severity}"
             )
 
+    def _validate_embargoed_source(self):
+        """
+        Checks that the source is private if the Flaw is embargoed.
+        """
+        if not self.source:
+            return
+        # TODO: make embargoed accessible from python code (property?)
+        embargoed = self.acl_read == [
+            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+        ]
+        if embargoed and FlawSource(self.source).is_public():
+            raise ValidationError(
+                f"Flaw is embargoed but contains public source: {self.source}"
+            )
+
     def validate(self, *args, **kwargs):
         """validate flaw model"""
-        # add custom validation here
         self.full_clean(*args, exclude=["meta_attr"], **kwargs)
+        # add custom validation here
         self._validate_rh_nvd_cvss_score_diff()
         self._validate_rh_nvd_cvss_severity_diff()
+        self._validate_embargoed_source()
 
     def save(self, *args, **kwargs):
         """save model override"""
