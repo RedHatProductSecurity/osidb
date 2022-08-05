@@ -12,6 +12,7 @@ from osidb.models import (
     FlawImpact,
     FlawMeta,
     FlawResolution,
+    FlawSource,
     FlawType,
     Tracker,
 )
@@ -589,4 +590,22 @@ class TestFlawValidators:
         nvd_v, rh_v = vector_pair
         rh_score = rh_v.split("/", 1)[0]
         FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
+        assert Flaw.objects.count() == 1
+
+    @pytest.mark.parametrize(
+        "source",
+        [FlawSource.INTERNET, FlawSource.TWITTER, FlawSource.DEBIAN],
+    )
+    def test_embargoed_public_source_invalid(self, source):
+        with pytest.raises(ValidationError) as e:
+            FlawFactory(embargoed=True, source=source)
+        assert "Flaw is embargoed but contains public source" in str(e)
+
+    @pytest.mark.parametrize(
+        "source",
+        [FlawSource.APPLE, FlawSource.GOOGLE, FlawSource.MOZILLA],
+    )
+    def test_embargoed_public_source_valid(self, source):
+        assert Flaw.objects.count() == 0
+        FlawFactory(embargoed=True, source=source)
         assert Flaw.objects.count() == 1
