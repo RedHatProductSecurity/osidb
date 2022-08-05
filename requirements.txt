@@ -4,9 +4,9 @@
 #
 #    pip-compile --allow-unsafe --generate-hashes --no-emit-index-url requirements.in
 #
-amqp==5.0.6 \
-    --hash=sha256:03e16e94f2b34c31f8bf1206d8ddd3ccaa4c315f7f6a1879b7b1210d229568c2 \
-    --hash=sha256:493a2ac6788ce270a2f6a765b017299f60c1998f5a8617908ee9be082f7300fb
+amqp==5.0.9 \
+    --hash=sha256:1e5f707424e544078ca196e72ae6a14887ce74e02bd126be54b7c03c971bef18 \
+    --hash=sha256:9cd81f7b023fc04bbb108718fbac674f06901b77bfcdce85b10e2a5d0ee91be5
     # via kombu
 ansimarkup==1.5.0 \
     --hash=sha256:3146ca74af5f69e48a9c3d41b31085c0d6378f803edeb364856d37c11a684acf \
@@ -43,11 +43,12 @@ cattrs==1.8.0 \
     --hash=sha256:5c121ab06a7cac494813c228721a7feb5a6423b17316eeaebf13f5a03e5b0d53 \
     --hash=sha256:901fb2040529ae8fc9d93f48a2cdf7de3e983312ffb2a164ffa4e9847f253af1
     # via requests-cache
-celery[gevent]==5.2.2 \
-    --hash=sha256:2844eb040e915398623a43253a8e1016723442ece6b0751a3c416d8a2b34216f \
-    --hash=sha256:5a68a351076cfac4f678fa5ffd898105c28825a2224902da006970005196d061
+celery[gevent]==5.2.7 \
+    --hash=sha256:138420c020cd58d6707e6257b6beda91fd39af7afde5d36c6334d175302c0e14 \
+    --hash=sha256:fafbd82934d30f8a004f81e8f7a062e31413a23d444be8ee3326553915958c6d
     # via
     #   -r requirements.in
+    #   django-celery-results
     #   flower
 certifi==2022.12.7 \
     --hash=sha256:35824b4c3a97115964b408844d64aa14db1cc518f6562e8d7261699d1350a9e3 \
@@ -159,6 +160,7 @@ django==3.2.20 \
     # via
     #   -r requirements.in
     #   django-auth-ldap
+    #   django-celery-results
     #   django-cors-headers
     #   django-db
     #   django-deprecate-fields
@@ -173,6 +175,10 @@ django==3.2.20 \
 django-auth-ldap==3.0.0 \
     --hash=sha256:19ee19034f344d9efd07ed88d3187e256ec33ae39d6a47222083b89f7d35c5f6 \
     --hash=sha256:1f2d5c562d9ba9a5e9a64099ae9798e1a63840a11afe4d1c4a9c74121f066eaa
+    # via -r requirements.in
+django-celery-results==2.5.1 \
+    --hash=sha256:0da4cd5ecc049333e4524a23fcfc3460dfae91aa0a60f1fae4b6b2889c254e01 \
+    --hash=sha256:3ecb7147f773f34d0381bac6246337ce4cf88a2ea7b82774ed48e518b67bb8fd
     # via -r requirements.in
 django-cors-headers==4.0.0 \
     --hash=sha256:a971cd4c75b29974068cc36b5c595698822f1e0edd5f1b32ea42ea37326ad4aa \
@@ -405,9 +411,9 @@ keyring==23.2.1 \
     --hash=sha256:6334aee6073db2fb1f30892697b1730105b5e9a77ce7e61fca6b435225493efe \
     --hash=sha256:bd2145a237ed70c8ce72978b497619ddfcae640b6dcf494402d5143e37755c6e
     # via jira
-kombu==5.2.2 \
-    --hash=sha256:0f5d0763fb916808f617b886697b2be28e6bc35026f08e679697fc814b48a608 \
-    --hash=sha256:d36f0cde6a18d9eb7b6b3aa62a59bfdff7f5724689850e447eca5be8efc9d501
+kombu==5.2.3 \
+    --hash=sha256:81a90c1de97e08d3db37dbf163eaaf667445e1068c98bfd89f051a40e9f6dbbd \
+    --hash=sha256:eeaeb8024f3a5cfc71c9250e45cddb8493f269d74ada2f74909a93c59c4b4179
     # via celery
 markdown==3.3.6 \
     --hash=sha256:76df8ae32294ec39dcf89340382882dfa12975f87f45c3ed1ecdb1e8cefc7006 \
@@ -832,7 +838,6 @@ setuptools==65.5.1 \
     --hash=sha256:d0b9a8433464d5800cbe05094acf5c6d52a91bfac9b52bcfc4d41382be5d5d31 \
     --hash=sha256:e197a19aa8ec9722928f2206f8de752def0e4c9fc6953527360d1c36d94ddb2f
     # via
-    #   celery
     #   gevent
     #   gunicorn
     #   jira
