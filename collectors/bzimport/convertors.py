@@ -755,6 +755,7 @@ class FlawBugConvertor:
     def get_flaw(self, cve_id):
         """get Flaw Django model"""
         flaw = Flaw.objects.create_flaw(
+            bz_id=self.bz_id,
             cve_id=cve_id,
             type=FlawType.VULN,
             meta_attr=self.get_meta_attr(cve_id),

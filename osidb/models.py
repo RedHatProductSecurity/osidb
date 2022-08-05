@@ -460,10 +460,21 @@ class FlawManager(models.Manager):
     """flaw manager"""
 
     @staticmethod
-    def create_flaw(cve_id, **extra_fields):
-        """return a new flaw or update an existing flaw without saving"""
+    def create_flaw(bz_id=None, cve_id=None, **extra_fields):
+        """
+        return a new flaw or update an existing flaw without saving
+        this is meant for cases when UUID is not available - collector
+        """
+        # only one case when they're both equal: (None, None)
+        assert cve_id != bz_id, "Either cve_id or bz_id must be provided"
+
         try:
-            flaw = Flaw.objects.get(cve_id=cve_id)
+            flaw = (
+                # CVE-less flaws are identified by Bugzilla ID
+                Flaw.objects.get(meta_attr__bz_id=bz_id)
+                if cve_id is None
+                else Flaw.objects.get(cve_id=cve_id)
+            )
             for attr, value in extra_fields.items():
                 setattr(flaw, attr, value)
             return flaw

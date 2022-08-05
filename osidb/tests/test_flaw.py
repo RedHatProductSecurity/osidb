@@ -150,6 +150,35 @@ class TestFlaw:
         # assert vuln_1.delete()
         # assert vuln_2.delete()
 
+    def test_create_flaw_method(self):
+        acls = [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                "https://osidb.prod.redhat.com/ns/acls#data-prodsec",
+            )
+        ]
+        Flaw.objects.all().delete()
+        Flaw.objects.create_flaw(
+            bz_id="12345",
+            title="first",
+            description="description",
+            acl_read=acls,
+            acl_write=acls,
+            meta_attr={"bz_id": "12345"},
+        ).save()
+        assert Flaw.objects.count() == 1
+        Flaw.objects.create_flaw(
+            bz_id="12345",
+            title="second",
+            description="description",
+            acl_read=acls,
+            acl_write=acls,
+            meta_attr={"bz_id": "12345"},
+        ).save()
+        # no new flaw should be created
+        assert Flaw.objects.count() == 1
+        assert Flaw.objects.first().title == "second"
+
     def test_multi_affect_tracker(self):
         affect1 = AffectFactory()
         tracker = TrackerFactory.create(affects=(affect1,))
