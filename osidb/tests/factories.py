@@ -43,6 +43,9 @@ class FlawFactory(factory.django.DjangoModelFactory):
     description = factory.LazyAttribute(lambda c: f"Description for {c.cve_id}")
     statement = factory.LazyAttribute(lambda c: f"Statement for {c.cve_id}")
     embargoed = factory.Faker("random_element", elements=[False, True])
+    # cannot be set to ("random_element", elements=list(FlawSource)) because it could
+    # inadvertently trigger validation errors in unrelated tests.
+    source = ""
     acl_read = factory.LazyAttribute(
         lambda o: [
             uuid.uuid5(
