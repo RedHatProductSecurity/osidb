@@ -699,10 +699,38 @@ class TestFlawBugConvertor:
             [],
             {},
         )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        flaw.save()
 
-        # missing CVEs result in the exception
-        # TODO this will change when we allow CVE-less flaws
-        with pytest.raises(FlawBugConvertor.FlawBugConvertorException):
-            fbc.bug2flaws()
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.cve_id is None
 
-        assert Flaw.objects.count() == 0
+    def test_no_cve(self):
+        """
+        test that CVE-less flaw is correctly processed
+        """
+        flaw_bug = self.get_flaw_bug()
+        flaw_bug["alias"] = ["non-CVE-alias"]
+
+        fbc = FlawBugConvertor(
+            flaw_bug,
+            [],
+            self.get_flaw_history(),
+            None,
+            [],
+            [],
+            {},
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        flaw.save()
+
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.cve_id is None

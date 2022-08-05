@@ -332,7 +332,7 @@ class FlawSaver:
             if not affect:
                 logger.warning(
                     f"Failed to match tracker {tracker.external_system_id} "
-                    f"with flaw {self.flaw.cve_id} - there is no affect "
+                    f"with flaw {self.flaw.meta_attr['bz_id']}:{self.flaw.cve_id} - there is no affect "
                     f"{tracker.meta_attr['ps_module']}:{tracker.meta_attr['ps_component']}"
                 )
                 # TODO store error
@@ -926,16 +926,37 @@ class FlawBugConvertor:
         """perform flaw bug to flaw models conversion"""
         logger.debug(f"{self.__class__}: processing flaw bug {self.bz_id}")
 
-        flaws = []
+        #################
+        # CVE-less flaw #
+        #################
 
-        # TODO enable CVE-less flaws as draft flaws
         if not self.cve_ids:
-            # remove all flaws with this BZ ID in case there were some CVEs
-            # before and got removed - see the next comment for more details
-            Flaw.objects.filter(meta_attr__bz_id=self.bz_id).delete()
-            raise self.FlawBugConvertorException(
-                f"No CVE ID found in Bugzilla alias: {self.alias}"
-            )
+            # remove all flaws with this BZ ID and any CVE ID in case there were
+            # some CVEs before which got removed as they might have been multiple
+            # and matching them to a single CVE-less flaw would be nontrivial
+            # - see the next comment for more details
+            Flaw.objects.filter(meta_attr__bz_id=self.bz_id).exclude(
+                cve_id__isnull=True
+            ).delete()
+
+            flaw = self.get_flaw(cve_id=None)
+            return [
+                FlawSaver(
+                    flaw,
+                    self.get_affects(flaw),
+                    self.get_comments(flaw),
+                    self.get_history(),
+                    self.get_all_meta(flaw),
+                    self.get_trackers(),
+                    self.package_versions,
+                )
+            ]
+
+        #############
+        # CVE flaws #
+        #############
+
+        flaws = []
 
         # CVE as Bugzilla alias is not persistent unlike BZ ID which is the identifier
         # so if it changes or gets removed (both looks the same from OSIDB point of view)
