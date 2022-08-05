@@ -446,13 +446,16 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
         for flaw in flaws:
             self.save(flaw)
 
-    def collect(self):
+    def collect(self, batch=None):
         """
         collector run handler
         every run we sync one batch of flaws - or possibly less if already in sync
         initially we start with the most historical flaws and proceed chronoligically
         until the flaw data are complete and then periodically sync the modified flaws
         every run starts where the previous one finished
+
+        alternatively you can specify a batch as the parameter - list of Bugzilla IDs
+        then all updated until and completeness sugar is skipped
         """
         successes = []
         failures = []
@@ -461,7 +464,7 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
         # anything starting the next batch from it
         start_dt = timezone.now()
 
-        flaw_ids = self.get_batch()
+        flaw_ids = [(i, i) for i in batch] if batch is not None else self.get_batch()
 
         # TODO good candidate for parallelizing
         for flaw_id, _ in flaw_ids:
@@ -481,6 +484,10 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
                 logger.exception(f"Bugzilla flaw bug {flaw_id} import error: {str(e)}")
                 failures.append(flaw_id)
                 # TODO store error
+
+        # with specified batch we stop here
+        if batch is not None:
+            return
 
         # when not enough data we have fetched everything
         # and later when already complete we stay complete
