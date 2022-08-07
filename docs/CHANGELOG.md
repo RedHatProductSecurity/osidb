@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   failed JIRA tracker synchronizations.
 - Treat collector failures due to already running collectors or due to
   waiting for dependencies as celery Retry exceptions.
+- OSIDB now uses publicly available images from docker.io (OSIDB-170)
 
 ### Added
 - support for CVE-less flaws (OSIDB-25)
