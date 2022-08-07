@@ -22,9 +22,9 @@ db-backup:
 	@echo ">backing up DB to osidb_data_backup_dump.db.gz"
 	@make stop-local
 	@make start-local-psql
-	@$(podman) exec -it osidb-data bash -c 'rm -f /var/lib/pgsql/data/osidb_data_backup_dump.db.gz && pg_dump -Fp osidb | gzip > /var/lib/pgsql/data/osidb_data_backup_dump.db.gz && echo "pg_dump created inside container"'
-	@$(podman) cp osidb-data:/var/lib/pgsql/data/osidb_data_backup_dump.db.gz osidb_data_backup_dump.db.gz && echo "pg_dump backup copied from container"
-	@$(podman) exec -it osidb-data bash -c 'rm -f /var/lib/pgsql/data/osidb_data_backup_dump.db.gz'
+	@$(podman) exec -it osidb-data bash -c 'rm -f /var/lib/postgresql/data/osidb_data_backup_dump.db.gz && pg_dump -Fp osidb | gzip > /var/lib/postgresql/data/osidb_data_backup_dump.db.gz && echo "pg_dump created inside container"'
+	@$(podman) cp osidb-data:/var/lib/postgresql/data/osidb_data_backup_dump.db.gz osidb_data_backup_dump.db.gz && echo "pg_dump backup copied from container"
+	@$(podman) exec -it osidb-data bash -c 'rm -f /var/lib/postgresql/data/osidb_data_backup_dump.db.gz'
 	@ls -la osidb/migrations > osidb_data_backup_dump_known_migrations.txt
 	@git log -v --source --log-size --notes -n 1 > osidb_data_backup_dump_git_commit_status.txt
 	@echo -e "\n---\n" >> osidb_data_backup_dump_git_commit_status.txt
@@ -50,14 +50,14 @@ db-backup:
 db-restore: stop-local start-local-psql
 	@echo ">restoring osidb_data_backup_dump.db.gz"
 	@[ -f osidb_data_backup_dump.db.gz ] || { echo "Error! osidb_data_backup_dump.db.gz doesn't exist." ; exit 1 ; }
-	@$(podman) cp osidb_data_backup_dump.db.gz osidb-data:/var/lib/pgsql/data/osidb_data_backup_dump.db.gz.x && echo "backup dump copied to container"
-	@$(podman) exec -it osidb-data bash -c 'zcat /var/lib/pgsql/data/osidb_data_backup_dump.db.gz.x | sed "s/^SELECT pg_catalog.set_config..search_path/-- &/" | gzip > /var/lib/pgsql/data/osidb_data_backup_dump.db.gz && echo "search path fixed"'
+	@$(podman) cp osidb_data_backup_dump.db.gz osidb-data:/var/lib/postgresql/data/osidb_data_backup_dump.db.gz.x && echo "backup dump copied to container"
+	@$(podman) exec -it osidb-data bash -c 'zcat /var/lib/postgresql/data/osidb_data_backup_dump.db.gz.x | sed "s/^SELECT pg_catalog.set_config..search_path/-- &/" | gzip > /var/lib/postgresql/data/osidb_data_backup_dump.db.gz && echo "search path fixed"'
 	@$(podman) exec -it osidb-data dropdb --if-exists -h osidb-data -p 5432 -U osidb_app_user osidb && echo "existing database osidb dropped"
 	@sleep 1
 	@$(podman) exec -it osidb-data createdb  -T template0  -U osidb_app_user osidb && echo "created new database"
 	@sleep 1
-	@$(podman) exec -it osidb-data bash -c 'zcat /var/lib/pgsql/data/osidb_data_backup_dump.db.gz | psql osidb && echo "dump restored inside container"'
-	@$(podman) exec -it osidb-data bash -c 'rm -f /var/lib/pgsql/data/osidb_data_backup_dump.db.gz*'
+	@$(podman) exec -it osidb-data bash -c 'zcat /var/lib/postgresql/data/osidb_data_backup_dump.db.gz | psql osidb && echo "dump restored inside container"'
+	@$(podman) exec -it osidb-data bash -c 'rm -f /var/lib/postgresql/data/osidb_data_backup_dump.db.gz*'
 	@sleep 3
 	@$(podman) stop osidb-data
 
