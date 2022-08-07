@@ -135,4 +135,5 @@ venv:
 generate_local_pg_tls_cert:
 	@echo ">checking and/or generating local postgresql cert"
 	@[ "(" -f etc/pg/local-server.crt ")" -a "(" -f etc/pg/local-server.key ")" ] || ( echo ">generating self-signed cert for local postgresql" && $(openssl) req -new -x509 -days 365 -nodes -text -out etc/pg/local-server.crt -keyout etc/pg/local-server.key -subj "/C=/ST=/L=/O=/OU=/CN=" )
-	@chmod 0640 etc/pg/local-server.*
+	$(podman) unshare chmod 0600 etc/pg/local-server.*
+	$(podman) unshare chown 999:999 etc/pg/local-server.*
