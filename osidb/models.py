@@ -1220,11 +1220,24 @@ class FlawMeta(TrackingMixin):
                 f"Flaw MAJOR_INCIDENT and MAJOR_INCIDENT_LITE combination cannot be {flag_pair}."
             )
 
+    def _validate_public_source_no_ack(self):
+        """
+        Checks that ACK FlawMetas cannot be linked to flaws with public sources.
+        """
+        if self.type != self.FlawMetaType.ACKNOWLEDGMENT or not self.flaw.source:
+            return
+
+        if FlawSource(self.flaw.source).is_public():
+            raise ValidationError(
+                f"Flaw contains acknowledgments for public source {self.flaw.source}"
+            )
+
     def validate(self, *args, **kwargs):
         """validate model"""
         # add custom validation here
         super().clean_fields(*args, exclude=["meta_attr"], **kwargs)
         self._validate_major_incident_combos()
+        self._validate_public_source_no_ack()
 
     def save(self, *args, **kwargs):
         """save model override"""

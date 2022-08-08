@@ -7,6 +7,7 @@ from django.conf import settings
 from osidb.constants import OSIDB_API_VERSION
 from osidb.core import generate_acls
 from osidb.helpers import get_env
+from osidb.models import FlawSource
 
 
 @pytest.fixture(autouse=True)
@@ -109,3 +110,13 @@ def test_user_dict_no_account():
         "last_name": "Bar",
         "email": "foobarbaz@example.com",
     }
+
+
+@pytest.fixture
+def public_source():
+    return FlawSource.INTERNET
+
+
+@pytest.fixture
+def private_source():
+    return FlawSource.APPLE
