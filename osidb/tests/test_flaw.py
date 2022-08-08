@@ -609,3 +609,18 @@ class TestFlawValidators:
         assert Flaw.objects.count() == 0
         FlawFactory(embargoed=True, source=source)
         assert Flaw.objects.count() == 1
+
+    def test_public_source_ack(self, public_source, private_source):
+        # test the public source w/ ack
+        flaw = FlawFactory(source=public_source, embargoed=False)
+        assert FlawMeta.objects.count() == 0
+        with pytest.raises(ValidationError) as e:
+            FlawMetaFactory(type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT, flaw=flaw)
+        assert (
+            f"Flaw contains acknowledgments for public source {public_source}" in str(e)
+        )
+        assert FlawMeta.objects.count() == 0
+        # test the private source w/ ack
+        flaw = FlawFactory(source=private_source, embargoed=True)
+        FlawMetaFactory(type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT, flaw=flaw)
+        assert FlawMeta.objects.count() == 1
