@@ -763,6 +763,10 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin):
     #             self.embargoed = False
 
     @property
+    def bz_id(self):
+        return self.meta_attr.get("bz_id", None)
+
+    @property
     def api_url(self):
         """return osidb api url"""
         return f"/api/{OSIDB_API_VERSION}/{self.uuid}"
