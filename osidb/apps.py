@@ -9,4 +9,4 @@ class OSIDBConfig(AppConfig):
     name = "osidb"
 
     def ready(self):
-        from . import signals  # pylint: disable=unused-import # noqa: F401
+        from . import signals  # noqa: F401

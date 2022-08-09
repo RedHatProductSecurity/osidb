@@ -3,12 +3,12 @@
 ############################################################################
 
 #***********************************
-### pylint,flake8
+### flake8, bandit
 #***********************************
 .PHONY : lint
 lint: osidb collectors apps check-testenv
 	@echo ">running lint"
-	$(tox) -e pylint,flake8
+	$(tox) -e flake8,bandit
 
 
 
@@ -48,12 +48,3 @@ checkin: check-testenv
 	$(tox)
 
 all: checkin
-
-
-#***********************************
-### osidb pre-push check for githook
-#***********************************
-.PHONY : osidb-pre-push
-osidb-pre-push: check-venv-active
-	@echo ">running osidb pre-push check"
-	make check-testenv && $(tox) -e pylint,flake8,bandit

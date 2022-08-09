@@ -79,7 +79,6 @@ class ManifestView(APIView):
         SKIP = ["prodsec"]  # packages to remain unlisted
         packages = []
 
-        # pylint: disable-next=not-an-iterable
         for pkg in pkg_resources.working_set:
             if pkg.key not in SKIP:
                 home_page = next(

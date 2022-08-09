@@ -33,7 +33,7 @@ clean:
 githooks: check-venv-active
 	@echo -n "This will install githooks that will prevent you from committing unless the commits meet the required criteria. Are you sure? [y/N]" && read ans && [ $${ans:-N} = y ]
 	@echo "> installing git hooks"
-	$(pre-commit) install -t pre-commit -t pre-push
+	$(pre-commit) install -t pre-commit
 
 
 #***********************************

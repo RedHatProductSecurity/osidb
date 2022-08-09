@@ -22,11 +22,11 @@ repos:
         entry: scripts/secrets-hook.sh
         language: script
         stages: [commit]
-    -   id: osidb-pre-push
-        name: osidb-pre-push
-        entry: scripts/osidb-pre-push.sh
+    -   id: lint
+        name: lint
+        entry: scripts/lint.sh
         language: script
-        stages: [push]
+        stages: [commit]
     -   id: migrations-check
         name: migrations-check
         entry: scripts/migrations-check.sh

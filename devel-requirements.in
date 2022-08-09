@@ -13,8 +13,6 @@ openshift
 packageurl-python
 pip-tools
 pre-commit
-pylint
-pylint-django
 pytest
 pytest-cov
 pytest-django
