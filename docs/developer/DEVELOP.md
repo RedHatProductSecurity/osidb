@@ -90,7 +90,7 @@ $ make githooks
 To disable githooks, run
 
 ```bash
-$ rm -f .git/hooks/pre-commit .git/hooks/pre-push
+$ rm -f .git/hooks/pre-commit
 ```
 
 ### Debugging dev-env
