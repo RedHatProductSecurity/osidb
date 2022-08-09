@@ -49,16 +49,17 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "osidb",
+    "apps.bbsync",
+    "apps.exploits",
+    "apps.osim",
     "collectors.bzimport",
     "collectors.errata",
     "collectors.framework",
     "collectors.jiraffe",
     "collectors.product_definitions",
-    "apps.osim",
     "drf_spectacular",
     "polymorphic",
     "rest_framework_simplejwt",
-    "apps.exploits",
     "collectors.epss",
     "collectors.exploits_cisa",
     "collectors.exploits_exploitdb",
@@ -192,12 +193,20 @@ LOGGING = {
         },
         "celery": {"handlers": ["celery"], "level": "INFO", "propagate": True},
         "osidb": {"level": "WARNING", "handlers": ["console"], "propagate": False},
-        "apps.osim": {
-            "level": "WARNING",
-            "handlers": ["console"],
-            "propagate": True,
-        },
         "django_auth_ldap": {"level": "WARNING", "handlers": ["console"]},
+        # app loggers
+        **{
+            app_name: {
+                "level": "WARNING",
+                "handlers": ["console"],
+                "propagate": True,
+            }
+            for app_name in [
+                "apps.bbsync",
+                "apps.exploits",
+                "apps.osim",
+            ]
+        },
         # Collectors loggers
         **{
             collector_name: {

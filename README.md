@@ -54,6 +54,7 @@ Data models, validations, serializers, API, and other vital parts are defined th
 You can find more details [here](osidb/README.md).
 Additional functionality is implemented by specialized [apps](apps/).
 
+* [bbsync](apps/bbsync/) Bugzilla Backwards Synchronization
 * [exploits](apps/exploits/)
 * [osim](apps/osim/) - Open Security Issue Manager
 
