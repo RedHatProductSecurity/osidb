@@ -95,6 +95,9 @@ class CollectorMetadata(models.Model):
     # collector-specific metadata
     meta_attr = HStoreField(blank=True, null=True)
 
+    def __str__(self):
+        return self.name
+
     #################
     # DATA METADATA #
     #################

@@ -275,7 +275,8 @@ class FlawHistory(NullStrFieldsMixin):
     """match existing history table for flaws"""
 
     pgh_created_at = models.DateTimeField(null=True)
-    pgh_label = models.CharField(max_length=100, null=True)
+    # this model is unused so we don't care that it's a CharField with null=True
+    pgh_label = models.CharField(max_length=100, null=True)  # noqa: DJ01
 
     class FlawHistoryState(models.TextChoices):
         """allowable Bugzilla states"""
@@ -1414,6 +1415,9 @@ class PsProduct(models.Model):
     # the business unit to which the product belongs
     business_unit = models.CharField(max_length=50)
 
+    def __str__(self):
+        return self.package
+
 
 class PsModule(NullStrFieldsMixin):
 
@@ -1574,3 +1578,6 @@ class Profile(models.Model):
     )
     bz_user_id = models.CharField(max_length=100, blank=True)
     jira_user_id = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return self.username
