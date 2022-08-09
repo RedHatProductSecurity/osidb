@@ -20,6 +20,8 @@ from osidb.tests.factories import (
     FlawCommentFactory,
     FlawFactory,
     FlawMetaFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
     TrackerFactory,
 )
 
@@ -97,6 +99,16 @@ class TestBZImportCollector:
         """
         Simply test that sync_flaw works and related objects are correctly created.
         """
+        # define all necessary product info
+        # so the test does not produce warnings
+        ps_module = PsModuleFactory(name="rhel-6")
+        PsUpdateStreamFactory(name="rhel-6.0", ps_module=ps_module)
+        ps_module = PsModuleFactory(name="rhel-5")
+        PsUpdateStreamFactory(name="rhel-5.5.z", ps_module=ps_module)
+        PsUpdateStreamFactory(name="rhel-5.6", ps_module=ps_module)
+        ps_module = PsModuleFactory(name="fedora-all")
+        PsUpdateStreamFactory(name="fedora-all", ps_module=ps_module)
+
         assert Flaw.objects.count() == 0
         assert Affect.objects.count() == 0
         assert Tracker.objects.count() == 0
