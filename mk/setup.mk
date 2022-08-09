@@ -57,9 +57,9 @@ dev-env:
 .PHONY : compile-deps
 compile-deps: check-venv-active
 	@echo ">compiling python dependencies"
-	$(pc) --generate-hashes --allow-unsafe requirements.in
-	$(pc) --generate-hashes --allow-unsafe devel-requirements.in
-	[ -f local-requirements.in ] && $(pc) --generate-hashes --allow-unsafe local-requirements.in || true
+	$(pc) --generate-hashes --allow-unsafe --no-emit-index-url requirements.in
+	$(pc) --generate-hashes --allow-unsafe --no-emit-index-url devel-requirements.in
+	[ -f local-requirements.in ] && $(pc) --generate-hashes --allow-unsafe --no-emit-index-url local-requirements.in || true
 
 
 #***********************************
