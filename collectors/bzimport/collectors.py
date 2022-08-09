@@ -31,20 +31,8 @@ from .exceptions import RecoverableBZImportException
 logger = get_task_logger(__name__)
 
 
-class BugzillaQuerier:
-    """Bugzilla query handler"""
-
-    # Bugzilla API limit - 20 is default
-    # query result is cut when exceeding the limit
-    #
-    # 20 is the default but we set the limit to the maximum
-    # by explicitely giving it 0 value and the maximum is 1000
-    # this enhances the queries significantly
-    BZ_API_LIMIT = 1000
-
-    #######################
-    # BUGZILLA CONNECTION #
-    #######################
+class BugzillaConnector:
+    """Bugzilla connection handler"""
 
     _bz_conn = None
 
@@ -62,6 +50,18 @@ class BugzillaQuerier:
             self._bz_conn = self.create_bz_conn()
 
         return self._bz_conn
+
+
+class BugzillaQuerier(BugzillaConnector):
+    """Bugzilla query handler"""
+
+    # Bugzilla API limit - 20 is default
+    # query result is cut when exceeding the limit
+    #
+    # 20 is the default but we set the limit to the maximum
+    # by explicitely giving it 0 value and the maximum is 1000
+    # this enhances the queries significantly
+    BZ_API_LIMIT = 1000
 
     ######################
     # SINGLE BUG QUERIES #
