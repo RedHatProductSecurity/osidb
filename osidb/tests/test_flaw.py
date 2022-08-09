@@ -164,16 +164,15 @@ class TestFlaw:
             description="description",
             acl_read=acls,
             acl_write=acls,
-            meta_attr={"bz_id": "12345"},
         ).save()
         assert Flaw.objects.count() == 1
+        assert Flaw.objects.first().meta_attr["bz_id"] == "12345"
         Flaw.objects.create_flaw(
             bz_id="12345",
             title="second",
             description="description",
             acl_read=acls,
             acl_write=acls,
-            meta_attr={"bz_id": "12345"},
         ).save()
         # no new flaw should be created
         assert Flaw.objects.count() == 1

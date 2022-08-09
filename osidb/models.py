@@ -479,6 +479,10 @@ class FlawManager(models.Manager):
                 setattr(flaw, attr, value)
             return flaw
         except ObjectDoesNotExist:
+            # set Bugzilla ID as meta attribute
+            meta_attr = extra_fields.get("meta_attr", {})
+            meta_attr["bz_id"] = bz_id
+            extra_fields["meta_attr"] = meta_attr
             return Flaw(cve_id=cve_id, **extra_fields)
 
     def get_queryset(self):
