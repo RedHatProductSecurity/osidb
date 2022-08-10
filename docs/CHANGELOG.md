@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   waiting for dependencies as celery Retry exceptions.
 
 ### Added
+- support for CVE-less flaws (OSIDB-25)
 - unified logging across the whole OSIDB
 - validate hightouch and hightouch-lite flag value combinations (OSIDB-329)
 - validate differences between Red Hat and NVD CVSS score and severity (OSIDB-333)
