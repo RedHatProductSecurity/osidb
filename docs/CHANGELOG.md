@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - validate hightouch and hightouch-lite flag value combinations (OSIDB-329)
 - validate differences between Red Hat and NVD CVSS score and severity (OSIDB-333)
 - validate that flaws from public sources don't contain ack FlawMetas (OSIDB-338)
+- `AlertMixin` for the creation of easily-serializable alerts on a per-record
+  basis for any model that inherits from said mixin (OSIDB-324)
 
 ## [2.1.0] - 2022-08-02
 ### Changed

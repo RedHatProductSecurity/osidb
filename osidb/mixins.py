@@ -1,3 +1,5 @@
+from enum import Enum
+
 from django.db import models
 from django.utils import timezone
 
@@ -76,6 +78,52 @@ class NullStrFieldsMixin(models.Model):
         for field in str_based_fields:
             if getattr(self, field.attname) is None:
                 setattr(self, field.attname, "")
+
+    class Meta:
+        abstract = True
+
+
+class AlertMixin(models.Model):
+    """
+    This mixin implements the necessary mechanisms to have validation alerts.
+
+    The way that this mixin works is simple, any model that inherits from this mixin
+    will have a field in which alerts are stored in JSON, this field is re-populated
+    on each save when the validations are run.
+
+    The mixin provides a helper function for creating said alerts, this also serves
+    as an abstraction layer to enforce a schema on the JSON field and guarantee that
+    the alerts are somewhat constant in their content.
+    """
+
+    _alerts = models.JSONField(default=dict)
+
+    class AlertType(Enum):
+        WARNING = "warning"
+        ERROR = "error"
+
+    def alert(self, name, description, _type="warning", resolution_steps=""):
+        """
+        Helper for creating validation alerts on the current object.
+
+        Any and all alerts should be created through this helper method as it
+        guarantees a certain level consistency in the structure of each alert.
+
+        The _alerts column should only be modified manually if you really
+        **really** know what you're doing, as manual modification might break
+        the "schema" and create issues for downstream consumers.
+        """
+        # verify that _type is valid
+        try:
+            self.AlertType(_type)
+        except ValueError:
+            _t = [t.value for t in self.AlertType]
+            raise ValueError(f"Alert type '{_type}' is not valid, use one of {_t}")
+        self._alerts[name] = {
+            "type": _type,
+            "description": description,
+            "resolution_steps": resolution_steps,
+        }
 
     class Meta:
         abstract = True
