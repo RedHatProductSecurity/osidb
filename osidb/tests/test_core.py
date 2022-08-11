@@ -1,10 +1,12 @@
 import pytest
+from django.test.utils import isolate_apps
 from rest_framework.viewsets import ModelViewSet
 
 from osidb.api_views import get_valid_http_methods
 from osidb.core import set_user_acls
 from osidb.exceptions import OSIDBException
 from osidb.tests.factories import FlawFactory
+from osidb.tests.models import TestAlertModel
 
 pytestmark = pytest.mark.unit
 
@@ -42,3 +44,38 @@ class TestCore(object):
         ]
         settings.READONLY_MODE = True
         assert get_valid_http_methods(ModelViewSet) == valid
+
+
+class TestModelDefinitions:
+    @isolate_apps("tests")
+    def test_alert_inheritance(self):
+        m = TestAlertModel()
+        m.save()
+
+        assert m._alerts == {
+            "my_alert": {
+                "type": "warning",
+                "description": "This alert be danger",
+                "resolution_steps": "",
+            }
+        }
+
+    @isolate_apps("tests")
+    def test_alert_create(self):
+        m = TestAlertModel()
+        m.alert("my_error", "This is an error", _type="error", resolution_steps="pray")
+        m.save()
+
+        assert len(m._alerts) == 2
+        assert m._alerts["my_error"] == {
+            "type": "error",
+            "description": "This is an error",
+            "resolution_steps": "pray",
+        }
+
+    @isolate_apps("tests")
+    def test_alert_incorrect_type(self):
+        m = TestAlertModel()
+        with pytest.raises(ValueError) as e:
+            m.alert("my_error", "This is a weird error", _type="weird")
+        assert "Alert type 'weird' is not valid" in str(e)
