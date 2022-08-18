@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - validate that flaws from public sources don't contain ack FlawMetas (OSIDB-338)
 - `AlertMixin` for the creation of easily-serializable alerts on a per-record
   basis for any model that inherits from said mixin (OSIDB-324)
+- validate that an Affect's `ps_module` exists in product definitions (OSIDB-342)
 
 ## [2.1.0] - 2022-08-02
 ### Changed

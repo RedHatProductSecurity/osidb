@@ -960,9 +960,48 @@ class Affect(
     def __str__(self):
         return str(self.uuid)
 
+    def _validate_ps_module_old_flaw(self):
+        """
+        Checks that an affect from an older flaw contains a valid ps_module.
+
+        This method will only generate an alert and will not raise a ValidationError,
+        this is because there is legacy data in external systems that we pull from
+        (i.e. BZ) that worked under a different system (ps_update_stream instead of
+        ps_module for affects) and thus raising a ValidationError would make legacy
+        flaws unupdatable.
+        """
+        bz_id = self.flaw.meta_attr.get("bz_id")
+        if bz_id and int(bz_id) <= BZ_ID_SENTINEL:
+            if not PsModule.objects.filter(name=self.ps_module).exists():
+                self.alert(
+                    "old_flaw_affect_ps_module",
+                    f"{self.ps_module} is not a valid ps_module "
+                    f"for flaw with bz_id {bz_id}.",
+                )
+
+    def _validate_ps_module_new_flaw(self):
+        """
+        Checks that an affect from a newer flaw contains a valid ps_module.
+
+        This method will raise a ValidationError if the ps_module being passed
+        is not a valid one, this is the standard for "newer" flaws and violation
+        of this constraint by newer flaws should outright block the creation or
+        update of an affect.
+        """
+        bz_id = self.flaw.meta_attr.get("bz_id")
+        if bz_id and int(bz_id) > BZ_ID_SENTINEL:
+            if not PsModule.objects.filter(name=self.ps_module).exists():
+                raise ValidationError(
+                    f"{self.ps_module} is not a valid ps_module "
+                    f"for flaw with bz_id {bz_id}."
+                )
+
     def validate(self, *args, **kwargs):
         """validate model"""
         self.full_clean(*args, exclude=["meta_attr"], **kwargs)
+        # add custom validation here
+        self._validate_ps_module_old_flaw()
+        self._validate_ps_module_new_flaw()
 
     def save(self, *args, **kwargs):
         """save model override"""
