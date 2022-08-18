@@ -20,9 +20,9 @@ from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.osim.workflow import WorkflowModel
 
-from .constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
+from .constants import BZ_ID_SENTINEL, CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
 from .core import generate_acls
-from .mixins import NullStrFieldsMixin, TrackingMixin
+from .mixins import AlertMixin, NullStrFieldsMixin, TrackingMixin
 from .validators import (
     no_future_date,
     validate_cve_id,
@@ -848,7 +848,9 @@ class AffectManager(models.Manager):
         # If search has no results, this will now return an empty queryset
 
 
-class Affect(TrackingMixin, AffectExploitExtensionMixin, NullStrFieldsMixin):
+class Affect(
+    AlertMixin, TrackingMixin, AffectExploitExtensionMixin, NullStrFieldsMixin
+):
     """affect model definition"""
 
     class AffectAffectedness(models.TextChoices):
