@@ -30,3 +30,4 @@ tests/htmlcov
 /venv
 .vscode/
 *.db.gz
+osidb_data_backup_dump*
