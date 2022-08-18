@@ -6,7 +6,7 @@ from osidb.api_views import get_valid_http_methods
 from osidb.core import set_user_acls
 from osidb.exceptions import OSIDBException
 from osidb.tests.factories import FlawFactory
-from osidb.tests.models import TestAlertModel
+from osidb.tests.models import TestAlertModel, TestAlertModelBasic
 
 pytestmark = pytest.mark.unit
 
@@ -47,6 +47,13 @@ class TestCore(object):
 
 
 class TestModelDefinitions:
+    @isolate_apps("tests")
+    def test_creation_empty_alerts(self):
+        m = TestAlertModelBasic()
+        m.save()
+
+        assert m._alerts == {}
+
     @isolate_apps("tests")
     def test_alert_inheritance(self):
         m = TestAlertModel()
