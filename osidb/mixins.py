@@ -96,7 +96,7 @@ class AlertMixin(models.Model):
     the alerts are somewhat constant in their content.
     """
 
-    _alerts = models.JSONField(default=dict)
+    _alerts = models.JSONField(default=dict, blank=True)
 
     class AlertType(Enum):
         WARNING = "warning"
