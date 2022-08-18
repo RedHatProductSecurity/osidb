@@ -120,14 +120,21 @@ class TestBZImportCollector:
         assert Tracker.objects.count() != 0
 
     @pytest.mark.vcr
-    def test_flawmeta_acl_change(self, flaw_collector, bz_bug_requires_doc_text):
+    def test_flawmeta_acl_change(
+        self, flaw_collector, bz_bug_requires_doc_text, monkeypatch
+    ):
         """
         Test that FlawMetas are correctly updated.
         """
         assert Flaw.objects.count() == 0
         assert FlawMeta.objects.count() == 0
 
-        flaw_collector.sync_flaw(bz_bug_requires_doc_text)
+        with monkeypatch.context() as m:
+            # avoid triggering the validator, the alternative would be to define
+            # in this test **all** the PsModules found in this particular flaw's
+            # affects, which is a lot of work
+            m.setattr(Affect, "_validate_ps_module_new_flaw", lambda s: None)
+            flaw_collector.sync_flaw(bz_bug_requires_doc_text)
 
         assert Flaw.objects.count() != 0
         assert FlawMeta.objects.count() != 0
@@ -144,7 +151,10 @@ class TestBZImportCollector:
         assert old_acls != new_acls
 
         # ACL data should be updated
-        flaw_collector.sync_flaw(bz_bug_requires_doc_text)
+        with monkeypatch.context() as m:
+            # see explanation above
+            m.setattr(Affect, "_validate_ps_module_new_flaw", lambda s: None)
+            flaw_collector.sync_flaw(bz_bug_requires_doc_text)
         doctext_meta = FlawMeta.objects.filter(
             type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT
         ).first()

@@ -36,3 +36,10 @@ CVSS3_SEVERITY_SCALE = {
     "high": (Decimal("7.0"), Decimal("8.9")),
     "critical": (Decimal("9.0"), Decimal("10.0")),
 }
+
+
+# This is a BZ ID used for marking a certain point in time of flaw analysis in BZ
+# any issues before and including this one belong to the "old way" of having
+# update streams instead of ps_modules for affects, any issues after this one
+# belong to the "new way" in which ps_modules are more heavily enforced
+BZ_ID_SENTINEL = 1489716

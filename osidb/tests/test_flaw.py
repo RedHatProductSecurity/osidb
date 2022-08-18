@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
+from osidb.constants import BZ_ID_SENTINEL
 from osidb.models import (
     Affect,
     Flaw,
@@ -652,3 +653,42 @@ class TestFlawValidators:
         flaw = FlawFactory(source=private_source, embargoed=True)
         FlawMetaFactory(type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT, flaw=flaw)
         assert FlawMeta.objects.count() == 1
+
+    @pytest.mark.parametrize(
+        "bz_id,ps_module,should_alert",
+        [
+            (BZ_ID_SENTINEL, "rhel-6.8.z", True),
+            (BZ_ID_SENTINEL - 1, "rhel-6.8.z", True),
+            (BZ_ID_SENTINEL, "rhel-6", False),
+            (BZ_ID_SENTINEL - 1, "rhel-6", False),
+            (BZ_ID_SENTINEL + 1, "rhel-6", False),
+        ],
+    )
+    def test_validate_affect_ps_module_alerts(self, bz_id, ps_module, should_alert):
+        flaw = FlawFactory(meta_attr={"bz_id": bz_id})
+        affect = AffectFactory(flaw=flaw, ps_module=ps_module)
+        if should_alert:
+            assert "old_flaw_affect_ps_module" in affect._alerts
+        else:
+            assert len(affect._alerts.keys()) == 0
+
+    @pytest.mark.parametrize(
+        "bz_id,ps_module,should_raise",
+        [
+            (BZ_ID_SENTINEL, "rhel-6.8.z", False),
+            (BZ_ID_SENTINEL - 1, "rhel-6.8.z", False),
+            (BZ_ID_SENTINEL + 1, "rhel-6.8.z", True),
+            (BZ_ID_SENTINEL + 1, "rhel-6", False),
+            (BZ_ID_SENTINEL - 1, "rhel-6", False),
+            (BZ_ID_SENTINEL, "rhel-6", False),
+        ],
+    )
+    def test_validate_affect_ps_module_errors(self, bz_id, ps_module, should_raise):
+        flaw = FlawFactory(meta_attr={"bz_id": bz_id})
+        if should_raise:
+            with pytest.raises(ValidationError) as e:
+                AffectFactory(flaw=flaw, ps_module=ps_module)
+            assert f"{ps_module} is not a valid ps_module" in str(e)
+        else:
+            affect = AffectFactory(flaw=flaw, ps_module=ps_module)
+            assert affect
