@@ -4,7 +4,7 @@ services:
 
     testldap:
       container_name: testldap
-      image: quay.io/prodsecdev/openldap:2.5.7-debian-10-r57
+      image: docker.io/bitnami/openldap:2.5
       ports:
         - '1389:1389'
         - '1636:1636'
