@@ -54,9 +54,9 @@ Username: yourusername
 Password: ************
 ```
 
-Log in to **quay.io** (to an account with access to pull images from the prodsecdev quay.io org)
+Optional: Log in to **docker.io** for higher image pull limit
 ```
-> podman login quay.io
+> podman login docker.io
 Username: yourusername
 Password: ************
 ```
