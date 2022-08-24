@@ -10,7 +10,6 @@
 check-reg:
 	@echo ">Checking podman registry login"
 	@$(podman) login --get-login registry.redhat.io > /dev/null
-	@$(podman) login --get-login quay.io > /dev/null
 
 
 #***********************************
