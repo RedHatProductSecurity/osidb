@@ -209,7 +209,7 @@ services:
     redis:
       container_name: redis
       hostname: redis
-      image: registry.redhat.io/rhel8/redis-6:1
+      image: docker.io/library/redis:6
       ports:
         - "6379"
 
