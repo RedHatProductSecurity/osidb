@@ -94,8 +94,10 @@ services:
         POSTGRES_DB: osidb
         POSTGRES_USER: osidb_admin_user
         POSTGRES_PASSWORD: passw0rd
-        PGUSER: osidb_admin_user
+        # Default connection parameter values
         PGDATABASE: osidb
+        PGUSER: osidb_admin_user
+        PGPASSWORD: passw0rd
       volumes:
         - pg-data:/var/lib/postgresql/data
         - ${PWD}/etc/pg/postgresql.conf:/etc/postgresql/postgresql.conf:z
