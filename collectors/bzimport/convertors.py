@@ -902,6 +902,8 @@ class FlawBugConvertor:
                     )
                 )
 
+        flaw.is_major_incident = False
+
         for flag in self.flags:
             flag_name = flag["name"]
             if flag_name not in self.FLAGS_META:
@@ -915,10 +917,11 @@ class FlawBugConvertor:
                 )
             )
 
-            flaw.is_major_incident = bool(
-                flag_name in ["hightouch", "hightouch-lite"]
-                and flag["status"] in ["?", "+"]
-            )
+            if flag_name in ["hightouch", "hightouch-lite"] and flag["status"] in [
+                "?",
+                "+",
+            ]:
+                flaw.is_major_incident = True
 
         return meta
 
