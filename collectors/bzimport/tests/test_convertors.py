@@ -734,3 +734,43 @@ class TestFlawBugConvertor:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.cve_id is None
+
+    def test_major_incident_flag_order(self):
+        """
+        test reproducer for OSIDB-416 where the erroneous condition logic led to unsetting
+        is_major_incident boolean when following flag was not setting it to True
+        """
+        flaw_bug = self.get_flaw_bug()
+        flaw_bug["flags"] = [
+            {
+                "name": "requires_doc_text",
+                "status": "+",
+            },
+            {
+                "name": "hightouch",
+                "status": "?",
+            },
+            {
+                "name": "nist_cvss_validation",
+                "status": "-",
+            },
+        ]
+
+        fbc = FlawBugConvertor(
+            flaw_bug,
+            [],
+            self.get_flaw_history(),
+            None,
+            [],
+            [],
+            {},
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        flaw.save()
+
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.is_major_incident == True
