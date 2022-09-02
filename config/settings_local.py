@@ -64,7 +64,11 @@ DATABASES = {
         "HOST": "osidb-data",
         "PORT": "5432",
         "ENGINE": "psqlextra.backend",
-        "OPTIONS": {"sslmode": "require"},
+        "OPTIONS": {
+            "sslmode": "require",
+            # prevent libpq from automatically trying to connect to the db via GSSAPI
+            "gssencmode": "disable",
+        },
     }
 }
 
