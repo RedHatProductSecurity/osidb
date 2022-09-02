@@ -64,6 +64,8 @@ DATABASES = {
         "HOST": "postgres",
         "PORT": "5432",
         "ENGINE": "psqlextra.backend",
+        # prevent libpq from automatically trying to connect to the db via GSSAPI
+        "OPTIONS": {"gssencmode": "disable"},
     }
 }
 
