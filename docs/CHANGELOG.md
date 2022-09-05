@@ -15,16 +15,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   waiting for dependencies as celery Retry exceptions.
 - OSIDB now uses publicly available images from docker.io (OSIDB-170)
 - fix bug that Major Incident can be unset by unrelated BZ flag (OSIDB-416)
+- CISA collector to run hourly rather than daily (PSINSIGHTS-635)
 
 ### Added
 - support for CVE-less flaws (OSIDB-25)
 - unified logging across the whole OSIDB
 - validate hightouch and hightouch-lite flag value combinations (OSIDB-329)
 - validate differences between Red Hat and NVD CVSS score and severity (OSIDB-333)
+- validate that embargoed flaws do not have public sources (OSIDB-337)
 - validate that flaws from public sources don't contain ack FlawMetas (OSIDB-338)
 - `AlertMixin` for the creation of easily-serializable alerts on a per-record
   basis for any model that inherits from said mixin (OSIDB-324)
 - validate that an Affect's `ps_module` exists in product definitions (OSIDB-342)
+- EPSS data API for Red Hat vulnerabilities (PSINSIGHTS-636)
 
 ## [2.1.0] - 2022-08-02
 ### Changed
