@@ -514,7 +514,7 @@ class FlawManager(models.Manager):
         # If search has no results, this will now return an empty queryset
 
 
-class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin):
+class Flaw(AlertMixin, WorkflowModel, TrackingMixin, NullStrFieldsMixin):
     """Model flaw"""
 
     class FlawState(models.TextChoices):
@@ -656,9 +656,10 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin):
         rh_cvss3_score = Decimal(str(self.cvss3_score))
 
         if abs(nvd_cvss3_score - rh_cvss3_score) >= Decimal("1.0"):
-            raise ValidationError(
+            self.alert(
+                "rh_nvd_cvss_score_diff",
                 f"RH and NVD CVSSv3 score differs by 1.0 or more - "
-                f"RH {rh_cvss3_score} | NVD {nvd_cvss3_score}"
+                f"RH {rh_cvss3_score} | NVD {nvd_cvss3_score}",
             )
 
     def _validate_rh_nvd_cvss_severity_diff(self):
@@ -681,10 +682,11 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin):
                 nvd_severity = key
 
         if rh_severity != nvd_severity:
-            raise ValidationError(
+            self.alert(
+                "rh_nvd_cvss_severity_diff",
                 "RH and NVD CVSSv3 score difference crosses severity boundary - "
                 f"RH {rh_cvss3_score}:{rh_severity} | "
-                f"NVD {nvd_cvss3_score}:{nvd_severity}"
+                f"NVD {nvd_cvss3_score}:{nvd_severity}",
             )
 
     def _validate_embargoed_source(self):
