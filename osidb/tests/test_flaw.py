@@ -525,9 +525,9 @@ class TestFlawValidators:
     def test_cvss_rh_nvd_score_diff_invalid(self, vector_pair):
         nvd_v, rh_v = vector_pair
         rh_score = rh_v.split("/", 1)[0]
-        with pytest.raises(ValidationError) as e:
-            FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
-        assert "RH and NVD CVSSv3 score differs by 1.0 or more" in str(e)
+        flaw = FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
+        assert Flaw.objects.count() == 1
+        assert "rh_nvd_cvss_score_diff" in flaw._alerts
 
     @pytest.mark.parametrize(
         "vector_pair",
@@ -547,8 +547,9 @@ class TestFlawValidators:
     def test_cvss_rh_nvd_score_diff_valid(self, vector_pair):
         nvd_v, rh_v = vector_pair
         rh_score = rh_v.split("/", 1)[0]
-        FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
+        flaw = FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
         assert Flaw.objects.count() == 1
+        assert "rh_nvd_cvss_score_diff" not in flaw._alerts
 
     @pytest.mark.parametrize(
         "vector_pair",
@@ -581,9 +582,9 @@ class TestFlawValidators:
     def test_cvss_rh_nvd_severity_diff_invalid(self, vector_pair):
         nvd_v, rh_v = vector_pair
         rh_score = rh_v.split("/", 1)[0]
-        with pytest.raises(ValidationError) as e:
-            FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
-        assert "RH and NVD CVSSv3 score difference crosses severity boundary" in str(e)
+        flaw = FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
+        assert Flaw.objects.count() == 1
+        assert "rh_nvd_cvss_severity_diff" in flaw._alerts
 
     @pytest.mark.parametrize(
         "vector_pair",
@@ -618,8 +619,9 @@ class TestFlawValidators:
     def test_cvss_rh_nvd_severity_diff_valid(self, vector_pair):
         nvd_v, rh_v = vector_pair
         rh_score = rh_v.split("/", 1)[0]
-        FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
+        flaw = FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
         assert Flaw.objects.count() == 1
+        assert "rh_nvd_cvss_severity_diff" not in flaw._alerts
 
     @pytest.mark.parametrize(
         "source",
