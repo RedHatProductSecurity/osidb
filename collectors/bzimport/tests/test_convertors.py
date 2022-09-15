@@ -773,4 +773,4 @@ class TestFlawBugConvertor:
 
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
-        assert flaw.is_major_incident == True
+        assert flaw.is_major_incident is True
