@@ -127,3 +127,8 @@ def public_source():
 @pytest.fixture
 def private_source():
     return FlawSource.APPLE
+
+
+@pytest.fixture
+def both_source():
+    return FlawSource.GENTOO
