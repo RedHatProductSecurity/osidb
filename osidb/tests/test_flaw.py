@@ -625,7 +625,7 @@ class TestFlawValidators:
 
     @pytest.mark.parametrize(
         "source",
-        [FlawSource.INTERNET, FlawSource.TWITTER, FlawSource.DEBIAN],
+        [FlawSource.INTERNET, FlawSource.TWITTER],
     )
     def test_embargoed_public_source_invalid(self, source):
         with pytest.raises(ValidationError) as e:
@@ -634,15 +634,24 @@ class TestFlawValidators:
 
     @pytest.mark.parametrize(
         "source",
-        [FlawSource.APPLE, FlawSource.GOOGLE, FlawSource.MOZILLA],
+        [FlawSource.APPLE, FlawSource.GOOGLE, FlawSource.MOZILLA, FlawSource.GENTOO],
     )
     def test_embargoed_public_source_valid(self, source):
         assert Flaw.objects.count() == 0
         FlawFactory(embargoed=True, source=source)
         assert Flaw.objects.count() == 1
 
-    def test_public_source_ack(self, public_source, private_source):
-        # test the public source w/ ack
+    @pytest.mark.parametrize(
+        "source",
+        [FlawSource.GENTOO, FlawSource.UBUNTU],
+    )
+    def test_embargoed_both_source_valid(self, source):
+        assert Flaw.objects.count() == 0
+        flaw = FlawFactory(embargoed=True, source=source)
+        assert Flaw.objects.count() == 1
+        assert "embargoed_source_public" in flaw._alerts
+
+    def test_public_source_ack(self, public_source):
         flaw = FlawFactory(source=public_source, embargoed=False)
         assert FlawMeta.objects.count() == 0
         with pytest.raises(ValidationError) as e:
@@ -651,10 +660,17 @@ class TestFlawValidators:
             f"Flaw contains acknowledgments for public source {public_source}" in str(e)
         )
         assert FlawMeta.objects.count() == 0
-        # test the private source w/ ack
+
+    def test_private_source_ack(self, private_source):
         flaw = FlawFactory(source=private_source, embargoed=True)
         FlawMetaFactory(type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT, flaw=flaw)
         assert FlawMeta.objects.count() == 1
+
+    def test_private_and_public_source_ack(self, both_source):
+        flaw = FlawFactory(source=both_source, embargoed=True)
+        FlawMetaFactory(type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT, flaw=flaw)
+        assert FlawMeta.objects.count() == 1
+        assert "public_source_no_ack" in flaw._alerts
 
     @pytest.mark.parametrize(
         "bz_id,ps_module,should_alert",
