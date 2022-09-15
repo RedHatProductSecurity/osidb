@@ -241,23 +241,25 @@ class FlawSource(models.TextChoices):
     XEN = "XEN"
     XPDF = "XPDF"
 
-    def is_public(self):
+    def is_private(self):
         """
-        Returns True if the source is public, False otherwise.
+        Returns True if the source is private, False otherwise.
 
-        Note that the following sources can be both public and private, but for
-        validation purposes we don't treat them as private:
-
-        MAGEIA, DEBIAN, GENTOO, SUSE, UBUNTU
+        Note that the following sources can be both public and private:
+        DEBIAN, MAGEIA, GENTOO, SUSE, UBUNTU
         """
-        return self not in {
+        return self in {
             # PRIVATE_SOURCES from SFM2
             self.ADOBE,
             self.APPLE,
             self.CERT,
             self.CUSTOMER,
+            self.DEBIAN,
             self.DISTROS,
+            self.GENTOO,
             self.GOOGLE,
+            self.HW_VENDOR,
+            self.MAGEIA,
             self.MOZILLA,
             self.OPENSSL,
             self.REDHAT,
@@ -267,7 +269,23 @@ class FlawSource(models.TextChoices):
             self.XEN,
             self.VENDOR_SEC,
             self.SUN,
-            self.HW_VENDOR,
+            self.SUSE,
+            self.UBUNTU,
+        }
+
+    def is_public(self):
+        """
+        Returns True if the source is public, False otherwise.
+
+        Note that the following sources can be both public and private:
+        DEBIAN, MAGEIA, GENTOO, SUSE, UBUNTU
+        """
+        return not self.is_private() or self in {
+            self.DEBIAN,
+            self.MAGEIA,
+            self.GENTOO,
+            self.SUSE,
+            self.UBUNTU,
         }
 
 
@@ -699,10 +717,17 @@ class Flaw(AlertMixin, WorkflowModel, TrackingMixin, NullStrFieldsMixin):
         embargoed = self.acl_read == [
             uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
         ]
-        if embargoed and FlawSource(self.source).is_public():
-            raise ValidationError(
-                f"Flaw is embargoed but contains public source: {self.source}"
-            )
+        if embargoed and (source := FlawSource(self.source)) and source.is_public():
+            if source.is_private():
+                self.alert(
+                    "embargoed_source_public",
+                    f"Flaw source of type {source} can be public or private, "
+                    "ensure that it is private since the Flaw is embargoed.",
+                )
+            else:
+                raise ValidationError(
+                    f"Flaw is embargoed but contains public source: {self.source}"
+                )
 
     def validate(self, *args, **kwargs):
         """validate flaw model"""
@@ -1287,10 +1312,17 @@ class FlawMeta(TrackingMixin):
         if self.type != self.FlawMetaType.ACKNOWLEDGMENT or not self.flaw.source:
             return
 
-        if FlawSource(self.flaw.source).is_public():
-            raise ValidationError(
-                f"Flaw contains acknowledgments for public source {self.flaw.source}"
-            )
+        if (source := FlawSource(self.flaw.source)) and source.is_public():
+            if source.is_private():
+                self.flaw.alert(
+                    "public_source_no_ack",
+                    f"Flaw source of type {source} can be public or private, "
+                    "ensure that it is private since the Flaw has acknowledgments.",
+                )
+            else:
+                raise ValidationError(
+                    f"Flaw contains acknowledgments for public source {self.flaw.source}"
+                )
 
     def validate(self, *args, **kwargs):
         """validate model"""
