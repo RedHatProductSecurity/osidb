@@ -72,6 +72,9 @@ services:
         DJANGO_SETTINGS_MODULE: "config.settings_local"
         BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
         JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
+        ET_URL: ${ET_URL}
+        PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
+        DASHBOARD_URL: ${DASHBOARD_URL}
       command: ./scripts/setup-osidb-service.sh
       volumes:
         - ${PWD}:/opt/app-root/src:z
