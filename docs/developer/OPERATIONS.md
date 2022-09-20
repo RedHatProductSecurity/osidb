@@ -47,6 +47,39 @@ Updates OSIDB version in all places. Run it from project root directory with X.Y
 scripts/update_release.sh X.Y.Z
 ```
 
+## Custom management commands
+
+### syncflaws
+
+`syncflaws` is a custom Django management command that allows developers to
+manually force the sync of one or more flaws by providing their Bugzilla ID.
+
+To use it, simply pass any amount of Bugzilla IDs as positional arguments:
+
+```bash
+$ python3 manage.py syncflaws 12345 815873 2111111
+```
+
+The output will look like so:
+
+```bash
+Synchronizing 12345...OK
+Synchronizing 815873...FAIL
+Synchronizing 2111111...FAIL
+```
+
+This management command supports the default `-v` or `--verbosity` Django
+management command option:
+
+* `-v 0` and `-v 1` are equivalent (and the latter is the Django default).
+
+* `-v 2` provides the error message of the exception raised for a particular
+  flaw sync, so if the error raised is e.g. `ValidationError("Foo!")` the
+  command will print `Exception: Foo!` right after the status.
+
+* `-v 3` provides the full traceback of any hard exceptions as well as any
+  logging done by the sync process itself.
+
 ## Versioning
 
 OSIDB uses [Semantic Versioning](https://semver.org/). We start versioning with 0.0.1.
