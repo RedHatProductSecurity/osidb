@@ -371,6 +371,11 @@ gunicorn==20.1.0 \
     --hash=sha256:9dcc4547dbb1cb284accfb15ab5667a0e5d1881cc443e0677b4882a4067a807e \
     --hash=sha256:e0a968b5ba15f8a328fdfd7ab1fcb5af4470c28aaf7e55df02a99bc13138e6e8
     # via -r requirements.in
+hiredis==2.0.0 \
+    --hash=sha256:81d6d8e39695f2c37954d1011c0480ef7cf444d4e3ae24bc5e89ee5de360139a \
+    --hash=sha256:b84f29971f0ad4adaee391c6364e6f780d5aae7e9226d41964b26b49376071d0 \
+    --hash=sha256:e3447d9e074abf0e3cd85aef8131e01ab93f9f0e86654db7ac8a3f73c63706ce
+    # via redis
 humanize==3.14.0 \
     --hash=sha256:32bcf712ac98ff5e73627a9d31e1ba5650619008d6d13543b5d53b48e8ab8d43 \
     --hash=sha256:60dd8c952b1df1ad83f0903844dec50a34ba7a04eea22a6b14204ffb62dbb0a4
@@ -555,7 +560,7 @@ pyyaml==6.0 \
     # via
     #   -r requirements.in
     #   drf-spectacular
-redis==4.0.1 \
+redis[hiredis]==4.0.1 \
     --hash=sha256:bc6832367d60e1a5f94d75314fc46e8ce6f07fee8e532ee1bfafaf4887f8b4bb \
     --hash=sha256:cc642f70e0ebddce960818ba35776af6a18487cc38f66deace68d55b97e6e3cf
     # via -r requirements.in

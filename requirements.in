@@ -29,7 +29,7 @@ pyjwt==2.4.0
 python-bugzilla
 python-ldap>=3.4.0
 pyyaml
-redis
+redis[hiredis]
 requests
 requests_cache
 requests_gssapi
