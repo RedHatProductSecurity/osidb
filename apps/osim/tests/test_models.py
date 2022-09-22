@@ -30,7 +30,7 @@ class CheckDescFactory:
     HAS_PROPERTY_TRUE = [
         ("has uuid", "uuid", "35d1ad45-0dba-41a3-bad6-5dd36d624ead"),
         ("has cve", "cve_id", "CVE-2020-1234"),
-        ("has type", "type", FlawType.VULN),
+        ("has type", "type", FlawType.VULNERABILITY),
         ("has created_dt", "created_dt", timezone.now()),
         ("has updated_dt", "updated_dt", timezone.now()),
         ("has state", "state", Flaw.FlawState.NEW),

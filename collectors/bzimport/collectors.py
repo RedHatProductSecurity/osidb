@@ -576,7 +576,7 @@ class BzTrackerCollector(Collector, BugzillaQuerier):
         #   that the tracker would not be deleted but corrected and/or set to a
         #   specific state/resolution, but if it truly is deleted then it's currently
         #   not handled.
-        TrackerBugConvertor(tracker_data, Tracker.TrackerType.BZ).convert().save(
+        TrackerBugConvertor(tracker_data, Tracker.TrackerType.BUGZILLA).convert().save(
             auto_timestamps=False
         )
 

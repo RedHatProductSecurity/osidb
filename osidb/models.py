@@ -112,8 +112,8 @@ class FlawHistoryManager(models.Manager):
 class FlawType(models.TextChoices):
     """allowable types"""
 
-    VULN = "VULNERABILITY"
-    WEAK = "WEAKNESS"
+    VULNERABILITY = "VULNERABILITY"
+    WEAKNESS = "WEAKNESS"
 
 
 class FlawImpact(models.TextChoices):
@@ -333,7 +333,7 @@ class FlawHistory(NullStrFieldsMixin):
 
     # vulnerability or weakness
     type = models.CharField(
-        choices=FlawType.choices, default=FlawType.VULN, max_length=20
+        choices=FlawType.choices, default=FlawType.VULNERABILITY, max_length=20
     )
 
     # flaw state, from BZ status
@@ -569,7 +569,7 @@ class Flaw(AlertMixin, WorkflowModel, TrackingMixin, NullStrFieldsMixin):
 
     # vulnerability or weakness
     type = models.CharField(
-        choices=FlawType.choices, default=FlawType.VULN, max_length=20
+        choices=FlawType.choices, default=FlawType.VULNERABILITY, max_length=20
     )
 
     # flaw state, from BZ status
@@ -953,7 +953,7 @@ class Affect(
     ps_component = models.CharField(max_length=100)
 
     # from srtnotes affects/impact
-    impact = models.CharField(choices=AffectImpact.choices, max_length=500, blank=True)
+    impact = models.CharField(choices=AffectImpact.choices, max_length=20, blank=True)
 
     # from srtnotes affects/cvss2
     cvss2 = models.CharField(max_length=100, blank=True, validators=[validate_cvss2])
@@ -1107,7 +1107,7 @@ class Tracker(TrackingMixin, NullStrFieldsMixin):
         """allowable bts name"""
 
         JIRA = "JIRA"
-        BZ = "BUGZILLA"
+        BUGZILLA = "BUGZILLA"
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

@@ -117,7 +117,7 @@ def link_bugs_to_errata(erratum_id_name_pairs: list[tuple[str, str]]):
         for bz_id in bz_tracker_ids:
             try:
                 bz_bug = Tracker.objects.get(
-                    external_system_id=bz_id, type=Tracker.TrackerType.BZ
+                    external_system_id=bz_id, type=Tracker.TrackerType.BUGZILLA
                 )
                 erratum.trackers.add(bz_bug)
             except Tracker.DoesNotExist:

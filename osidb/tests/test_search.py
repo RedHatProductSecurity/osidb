@@ -69,7 +69,7 @@ class TestSearch:
             cve_id=good_cve_id,
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
-            type=FlawType.VULN,
+            type=FlawType.VULNERABILITY,
             title="TITLE",
             description="DESCRIPTION",
             impact=FlawImpact.CRITICAL,

@@ -73,7 +73,7 @@ class TrackerBugConvertor:
         )
 
     def _normalize(self) -> dict:
-        if self.type == Tracker.TrackerType.BZ:
+        if self.type == Tracker.TrackerType.BUGZILLA:
             return self._normalize_from_bz()
         return self._normalize_from_jira()
 
@@ -660,7 +660,7 @@ class FlawBugConvertor:
         """
         return [
             TrackerBugConvertor(
-                tracker, Tracker.TrackerType.BZ, self.acl_read, self.acl_write
+                tracker, Tracker.TrackerType.BUGZILLA, self.acl_read, self.acl_write
             )
             for tracker in self.tracker_bugs
         ]
@@ -757,7 +757,7 @@ class FlawBugConvertor:
         flaw = Flaw.objects.create_flaw(
             bz_id=self.bz_id,
             cve_id=cve_id,
-            type=FlawType.VULN,
+            type=FlawType.VULNERABILITY,
             meta_attr=self.get_meta_attr(cve_id),
             nvd_cvss2=self.get_nvd_cvss2(cve_id),
             nvd_cvss3=self.get_nvd_cvss3(cve_id),
@@ -819,7 +819,7 @@ class FlawBugConvertor:
                         timezone.datetime.strptime(item["when"], BZ_DT_FMT_HISTORY)
                     ),
                     pgh_label=item["who"],
-                    type=FlawType.VULN,
+                    type=FlawType.VULNERABILITY,
                     acl_read=self.acl_read,
                     acl_write=self.acl_write,
                     meta_attr=meta_attr,
