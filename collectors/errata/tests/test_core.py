@@ -69,8 +69,12 @@ class TestErrataToolCollection:
         self, sample_erratum_with_bz_bugs, sample_erratum_name
     ):
         """Test that a given (et_id, advisory_name) pair can have its data fetched, saved to the DB, and linked"""
-        TrackerFactory.create(external_system_id="2021161", type=Tracker.TrackerType.BZ)
-        TrackerFactory.create(external_system_id="2021168", type=Tracker.TrackerType.BZ)
+        TrackerFactory.create(
+            external_system_id="2021161", type=Tracker.TrackerType.BUGZILLA
+        )
+        TrackerFactory.create(
+            external_system_id="2021168", type=Tracker.TrackerType.BUGZILLA
+        )
         link_bugs_to_errata([(sample_erratum_with_bz_bugs, sample_erratum_name)])
 
         # One erratum was created

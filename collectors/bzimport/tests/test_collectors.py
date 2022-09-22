@@ -174,7 +174,7 @@ class TestBzTrackerCollector:
 
         tracker = trackers.first()
         assert tracker.external_system_id == "577404"
-        assert tracker.type == Tracker.TrackerType.BZ
+        assert tracker.type == Tracker.TrackerType.BUGZILLA
         assert tracker.status == "CLOSED"
         assert tracker.resolution == "NOTABUG"
         # no affect, thus this should be empty
@@ -189,7 +189,7 @@ class TestBzTrackerCollector:
             TrackerFactory.create(
                 affects=(affect,),
                 external_system_id="577404",
-                type=Tracker.TrackerType.BZ,
+                type=Tracker.TrackerType.BUGZILLA,
             )
 
         tracker = Tracker.objects.first()
