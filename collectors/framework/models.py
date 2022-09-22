@@ -18,6 +18,7 @@ from psqlextra.fields import HStoreField
 
 from config.celery import app
 from config.settings import CELERY_BEAT_SCHEDULE
+from osidb.mixins import NullStrFieldsMixin
 
 from .constants import COLLECTOR_DRY_RUN, CRONTAB_PARAMS_NAMES
 
@@ -76,7 +77,7 @@ class CollectorFramework:
             collector_metadata.save()
 
 
-class CollectorMetadata(models.Model):
+class CollectorMetadata(NullStrFieldsMixin):
     """
     persistent collector metadata
 
