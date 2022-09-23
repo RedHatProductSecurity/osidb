@@ -730,17 +730,42 @@ class Flaw(AlertMixin, WorkflowModel, TrackingMixin, NullStrFieldsMixin):
                     f"Flaw is embargoed but contains public source: {self.source}"
                 )
 
-    def validate(self, *args, **kwargs):
-        """validate flaw model"""
-        self.full_clean(*args, exclude=["meta_attr"], **kwargs)
-        # add custom validation here
-        self._validate_rh_nvd_cvss_score_diff()
-        self._validate_rh_nvd_cvss_severity_diff()
-        self._validate_embargoed_source()
+    def validate(self, raise_validation_error=True):
+        """
+        validate flaw model
+
+        run standard Django validations first potentially raising ValidationError
+        these ensure minimal necessary data quality and thus cannot be suppressed
+
+        then custom validations are run either raising ValidationError on first issue
+        encountered (default) or storing all found issues as alerts at the end
+        according to the given raise_validation_error option
+        """
+        # standard validations
+        # exclude meta attributes
+        self.full_clean(exclude=["meta_attr"])
+
+        # custom validations
+        for validation_name in [
+            item for item in dir(self) if item.startswith("_validate_")
+        ]:
+            try:
+                getattr(self, validation_name)()
+            except ValidationError as e:
+                if raise_validation_error:
+                    raise
+
+                # do not raise but
+                # store alert as error
+                self.alert(
+                    name=validation_name,
+                    description=e.message,
+                    _type=AlertMixin.AlertType.ERROR.value,
+                )
 
     def save(self, *args, **kwargs):
         """save model override"""
-        self.validate()
+        self.validate(raise_validation_error=kwargs.pop("raise_validation_error", True))
         # TODO see process_embargo_state
         # if ENABLE_EMBARGO_PROCESS:
         #     self.process_embargo_state()

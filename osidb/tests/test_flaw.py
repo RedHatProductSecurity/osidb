@@ -632,6 +632,19 @@ class TestFlawValidators:
             FlawFactory(embargoed=True, source=source)
         assert "Flaw is embargoed but contains public source" in str(e)
 
+    def test_embargoed_public_source_invalid_exception_suppressed(self):
+        """
+        execute the previous validation in same context as in the previous test case however
+        this time suppress the exception raising and check that an alert is stored instead
+        """
+        flaw = FlawFactory(embargoed=True)
+        flaw.source = FlawSource.INTERNET
+        flaw.save(raise_validation_error=False)
+        assert flaw._alerts
+        assert any(
+            alert for alert in flaw._alerts if alert == "_validate_embargoed_source"
+        )
+
     @pytest.mark.parametrize(
         "source",
         [FlawSource.APPLE, FlawSource.GOOGLE, FlawSource.MOZILLA, FlawSource.GENTOO],
