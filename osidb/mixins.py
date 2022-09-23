@@ -1,5 +1,6 @@
 from enum import Enum
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
@@ -124,6 +125,62 @@ class AlertMixin(models.Model):
             "description": description,
             "resolution_steps": resolution_steps,
         }
+
+    class Meta:
+        abstract = True
+
+
+class ValidateMixin(AlertMixin):
+    """
+    generic validate mixin
+    """
+
+    def validate(self, raise_validation_error=True):
+        """
+        validate model
+
+        run standard Django validations first potentially raising ValidationError
+        these ensure minimal necessary data quality and thus cannot be suppressed
+
+        then custom validations are run either raising ValidationError exceptions
+        for error level alerts or storing the alerts through the AlertMixin for
+        warning level alerts
+
+        this mixin does not change the behavior for warning level alerts
+
+        however for the error level alerts it either let the exception raised on
+        first issue encountered to buble out (default) or suppresses all the
+        raised exceptions by storing them as alerts according to the given
+        raise_validation_error option
+        """
+        # standard validations
+        # exclude meta attributes
+        self.full_clean(exclude=["meta_attr"])
+
+        # custom validations
+        for validation_name in [
+            item for item in dir(self) if item.startswith("_validate_")
+        ]:
+            try:
+                getattr(self, validation_name)()
+            except ValidationError as e:
+                if raise_validation_error:
+                    raise
+
+                # do not raise but
+                # store alert as error
+                self.alert(
+                    name=validation_name,
+                    description=e.message,
+                    _type=AlertMixin.AlertType.ERROR.value,
+                )
+
+    def save(self, *args, **kwargs):
+        """
+        save with validate call
+        """
+        self.validate(raise_validation_error=kwargs.pop("raise_validation_error", True))
+        super().save(*args, **kwargs)
 
     class Meta:
         abstract = True

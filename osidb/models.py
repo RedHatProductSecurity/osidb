@@ -23,7 +23,7 @@ from apps.osim.workflow import WorkflowModel
 
 from .constants import BZ_ID_SENTINEL, CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
 from .core import generate_acls
-from .mixins import AlertMixin, NullStrFieldsMixin, TrackingMixin
+from .mixins import AlertMixin, NullStrFieldsMixin, TrackingMixin, ValidateMixin
 from .validators import (
     no_future_date,
     validate_cve_id,
@@ -533,7 +533,7 @@ class FlawManager(models.Manager):
         # If search has no results, this will now return an empty queryset
 
 
-class Flaw(AlertMixin, WorkflowModel, TrackingMixin, NullStrFieldsMixin):
+class Flaw(WorkflowModel, ValidateMixin, TrackingMixin, NullStrFieldsMixin):
     """Model flaw"""
 
     class FlawState(models.TextChoices):
@@ -728,39 +728,6 @@ class Flaw(AlertMixin, WorkflowModel, TrackingMixin, NullStrFieldsMixin):
             else:
                 raise ValidationError(
                     f"Flaw is embargoed but contains public source: {self.source}"
-                )
-
-    def validate(self, raise_validation_error=True):
-        """
-        validate flaw model
-
-        run standard Django validations first potentially raising ValidationError
-        these ensure minimal necessary data quality and thus cannot be suppressed
-
-        then custom validations are run either raising ValidationError on first issue
-        encountered (default) or storing all found issues as alerts at the end
-        according to the given raise_validation_error option
-        """
-        # standard validations
-        # exclude meta attributes
-        self.full_clean(exclude=["meta_attr"])
-
-        # custom validations
-        for validation_name in [
-            item for item in dir(self) if item.startswith("_validate_")
-        ]:
-            try:
-                getattr(self, validation_name)()
-            except ValidationError as e:
-                if raise_validation_error:
-                    raise
-
-                # do not raise but
-                # store alert as error
-                self.alert(
-                    name=validation_name,
-                    description=e.message,
-                    _type=AlertMixin.AlertType.ERROR.value,
                 )
 
     def save(self, *args, **kwargs):
