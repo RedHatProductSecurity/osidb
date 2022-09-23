@@ -23,7 +23,7 @@ from apps.osim.workflow import WorkflowModel
 
 from .constants import BZ_ID_SENTINEL, CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
 from .core import generate_acls
-from .mixins import AlertMixin, NullStrFieldsMixin, TrackingMixin, ValidateMixin
+from .mixins import NullStrFieldsMixin, TrackingMixin, ValidateMixin
 from .validators import (
     no_future_date,
     validate_cve_id,
@@ -730,14 +730,6 @@ class Flaw(WorkflowModel, ValidateMixin, TrackingMixin, NullStrFieldsMixin):
                     f"Flaw is embargoed but contains public source: {self.source}"
                 )
 
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate(raise_validation_error=kwargs.pop("raise_validation_error", True))
-        # TODO see process_embargo_state
-        # if ENABLE_EMBARGO_PROCESS:
-        #     self.process_embargo_state()
-        super().save(*args, **kwargs)
-
     # TODO this needs to be refactored
     # but it makes sense only when we are capable of write actions
     # and we may thus actually do some changes to the embargo
@@ -873,7 +865,7 @@ class AffectManager(models.Manager):
 
 
 class Affect(
-    AlertMixin, TrackingMixin, AffectExploitExtensionMixin, NullStrFieldsMixin
+    ValidateMixin, TrackingMixin, AffectExploitExtensionMixin, NullStrFieldsMixin
 ):
     """affect model definition"""
 
@@ -1019,18 +1011,6 @@ class Affect(
                     f"{self.ps_module} is not a valid ps_module "
                     f"for flaw with bz_id {bz_id}."
                 )
-
-    def validate(self, *args, **kwargs):
-        """validate model"""
-        self.full_clean(*args, exclude=["meta_attr"], **kwargs)
-        # add custom validation here
-        self._validate_ps_module_old_flaw()
-        self._validate_ps_module_new_flaw()
-
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        super().save(*args, **kwargs)
 
     @property
     def delegated_resolution(self):
@@ -1229,7 +1209,7 @@ class FlawMetaManager(models.Manager):
         return super().get_queryset()
 
 
-class FlawMeta(TrackingMixin):
+class FlawMeta(TrackingMixin, ValidateMixin):
     """Model representing extensible structured flaw metadata"""
 
     class FlawMetaType(models.TextChoices):
@@ -1323,21 +1303,6 @@ class FlawMeta(TrackingMixin):
                 raise ValidationError(
                     f"Flaw contains acknowledgments for public source {self.flaw.source}"
                 )
-
-    def validate(self, *args, **kwargs):
-        """validate model"""
-        # add custom validation here
-        super().clean_fields(*args, exclude=["meta_attr"], **kwargs)
-        self._validate_major_incident_combos()
-        self._validate_public_source_no_ack()
-
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        # TODO see process_embargo_state
-        # if ENABLE_EMBARGO_PROCESS:
-        #     self.process_embargo_state()
-        super().save(*args, **kwargs)
 
 
 class FlawCommentManager(models.Manager):
