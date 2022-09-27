@@ -7,7 +7,7 @@ from collections import defaultdict
 from typing import Dict, List, Tuple
 
 from django.contrib.auth.models import User
-from drf_spectacular.utils import extend_schema_field
+from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
 from rest_framework import serializers
 
 from apps.osim.serializers import WorkflowModelSerializer
@@ -423,6 +423,7 @@ class FlawAffectsTrackersField(serializers.Field):
         return list(trackers)
 
 
+@extend_schema_serializer(deprecate_fields=["mitigated_by"])
 class FlawSerializer(
     TrackingMixinSerializer,
     WorkflowModelSerializer,
@@ -485,6 +486,7 @@ class FlawSerializer(
 
     meta = serializers.SerializerMethodField()
     meta_attr = serializers.SerializerMethodField()
+    mitigated_by = serializers.SerializerMethodField()
 
     @extend_schema_field(
         {
@@ -534,6 +536,12 @@ class FlawSerializer(
                 meta = meta.filter(type__in=flaw_meta_types)
         serializer = MetaSerializer(instance=meta, many=True)
         return serializer.data
+
+    def get_mitigated_by(self, obj) -> str:
+        """
+        deprecated field to be removed in 3.0.0
+        """
+        return ""
 
     def create(self, validated_data):
         return Flaw.objects.create(**validated_data)

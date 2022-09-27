@@ -179,7 +179,6 @@ class FlawFixer:
         self.fix_statement()
         self.fix_reported_dt()
         self.fix_source()
-        self.fix_mitigated_by()
         self.fix_cwe_id()
         self.fix_cvss2()
         self.fix_cvss3()
@@ -272,11 +271,6 @@ class FlawFixer:
         else:
             self.errors.append("source has no value")
             self.flaw_obj.source = FlawSource.NOVALUE
-
-    def fix_mitigated_by(self) -> None:
-        """mitigated_by fixup"""
-        if self.srtnotes.get("mitigate"):
-            self.flaw_obj.mitigated_by = self.srtnotes["mitigate"].upper()
 
     def fix_cwe_id(self) -> None:
         """cwe_id fixup"""
