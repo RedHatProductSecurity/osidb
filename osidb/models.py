@@ -381,7 +381,7 @@ class FlawHistory(NullStrFieldsMixin):
 
     # , from srtnotes "mitigate"
     mitigated_by = models.CharField(
-        choices=FlawMitigate.choices, max_length=10, blank=True
+        choices=FlawMitigate.choices, max_length=10, null=True, blank=True
     )
 
     # , from srtnotes "cvss2"
@@ -617,7 +617,7 @@ class Flaw(AlertMixin, WorkflowModel, TrackingMixin, NullStrFieldsMixin):
 
     # , from srtnotes "mitigate"
     mitigated_by = models.CharField(
-        choices=FlawMitigate.choices, max_length=10, blank=True
+        choices=FlawMitigate.choices, max_length=10, null=True, blank=True
     )
 
     # , from srtnotes "cvss2"
