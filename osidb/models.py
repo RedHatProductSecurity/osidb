@@ -13,6 +13,7 @@ from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django_deprecate_fields import deprecate_field
 from polymorphic.models import PolymorphicModel
 from psqlextra.fields import HStoreField
 
@@ -380,8 +381,8 @@ class FlawHistory(NullStrFieldsMixin):
     )
 
     # , from srtnotes "mitigate"
-    mitigated_by = models.CharField(
-        choices=FlawMitigate.choices, max_length=10, null=True, blank=True
+    mitigated_by = deprecate_field(
+        models.CharField(choices=FlawMitigate.choices, max_length=10, blank=True)
     )
 
     # , from srtnotes "cvss2"
@@ -616,8 +617,8 @@ class Flaw(AlertMixin, WorkflowModel, TrackingMixin, NullStrFieldsMixin):
     )
 
     # , from srtnotes "mitigate"
-    mitigated_by = models.CharField(
-        choices=FlawMitigate.choices, max_length=10, null=True, blank=True
+    mitigated_by = deprecate_field(
+        models.CharField(choices=FlawMitigate.choices, max_length=10, blank=True)
     )
 
     # , from srtnotes "cvss2"
