@@ -7,7 +7,7 @@ TRACKER_COMPONENT_UPDATE_STREAM_RE = re.compile(
     r"^(?:\s*EMBARGOED\s+)?"  # Embargoed keyword
     r"(?:CVE-[0-9]+-[0-9]+,?\s*)*"  # list of CVEs
     r"(?:\.+\s+)?"  # dots, when too many CVEs are present
-    r"(?P<component>[^:]+?):\s"  # PSComponent (might contain spaces or rhel module)
+    r"(?P<component>.+?):\s"  # PSComponent (might contain spaces or rhel module)
     r".*"  # text part summary
     r"\[(?P<stream>.*)\]\s*$",  # + PSUpdateStream in brackets
     re.VERBOSE,
