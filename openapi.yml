@@ -923,13 +923,6 @@ paths:
         description: Number of results to return per page.
         schema:
           type: integer
-      - in: query
-        name: mitigated_by
-        schema:
-          type: string
-          enum:
-          - FORTIFY
-          - SELINUX
       - name: offset
         required: false
         in: query
@@ -2262,9 +2255,8 @@ components:
           format: date-time
           nullable: true
         mitigated_by:
-          oneOf:
-          - $ref: '#/components/schemas/MitigatedByEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          type: string
+          readOnly: true
         cvss2:
           type: string
           maxLength: 100
@@ -2401,6 +2393,7 @@ components:
       - embargoed
       - meta
       - meta_attr
+      - mitigated_by
       - package_versions
       - title
       - trackers
@@ -2475,11 +2468,6 @@ components:
       - NEED_INFO
       - CHECKLIST
       - NVD_CVSS
-      type: string
-    MitigatedByEnum:
-      enum:
-      - SELINUX
-      - FORTIFY
       type: string
     PaginatedAffectList:
       type: object
