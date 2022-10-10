@@ -2257,6 +2257,7 @@ components:
         mitigated_by:
           type: string
           readOnly: true
+          deprecated: true
         cvss2:
           type: string
           maxLength: 100
