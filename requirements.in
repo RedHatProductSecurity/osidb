@@ -5,6 +5,7 @@ django
 django-auth-ldap
 django.contrib.postgres
 django-db
+django-deprecate-fields
 django-extensions
 django-filter
 django-model-utils
