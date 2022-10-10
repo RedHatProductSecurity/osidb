@@ -95,7 +95,6 @@ class FlawFilter(FilterSet):
             "unembargo_dt",
             "source",
             "reported_dt",
-            "mitigated_by",
             "cvss2",
             "cvss2_score",
             "cvss3",
