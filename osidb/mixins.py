@@ -84,17 +84,44 @@ class NullStrFieldsMixin(models.Model):
         abstract = True
 
 
-class AlertMixin(models.Model):
+class ValidateMixin(models.Model):
+    """
+    generic validate mixin to run standard Django validations potentially
+    raising ValidationError to ensure minimal necessary data quality
+    """
+
+    def validate(self):
+        """
+        validate model
+        """
+        # standard validations
+        # exclude meta attributes
+        self.full_clean(exclude=["meta_attr"])
+
+    def save(self, *args, **kwargs):
+        """
+        save with validate call
+        """
+        self.validate()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        abstract = True
+
+
+class AlertMixin(ValidateMixin):
     """
     This mixin implements the necessary mechanisms to have validation alerts.
 
     The way that this mixin works is simple, any model that inherits from this mixin
     will have a field in which alerts are stored in JSON, this field is re-populated
-    on each save when the validations are run.
+    on each save when the validations are automatically run.
 
     The mixin provides a helper function for creating said alerts, this also serves
     as an abstraction layer to enforce a schema on the JSON field and guarantee that
     the alerts are somewhat constant in their content.
+
+    It also provides the automatic validation mechanism on every save.
     """
 
     _alerts = models.JSONField(default=dict, blank=True)
@@ -126,32 +153,17 @@ class AlertMixin(models.Model):
             "resolution_steps": resolution_steps,
         }
 
-    class Meta:
-        abstract = True
-
-
-class ValidateMixin(AlertMixin):
-    """
-    generic validate mixin
-    """
-
     def validate(self, raise_validation_error=True):
         """
-        validate model
-
         run standard Django validations first potentially raising ValidationError
         these ensure minimal necessary data quality and thus cannot be suppressed
 
         then custom validations are run either raising ValidationError exceptions
-        for error level alerts or storing the alerts through the AlertMixin for
-        warning level alerts
+        for error level invalidities or storing the alerts for warning level ones
 
-        this mixin does not change the behavior for warning level alerts
-
-        however for the error level alerts it either let the exception raised on
-        first issue encountered to buble out (default) or suppresses all the
-        raised exceptions by storing them as alerts according to the given
-        raise_validation_error option
+        for error level invalidities the default behavior may be changed by setting
+        raise_validation_error option to false resulting in suppressesing all the
+        exceptions and instead storing them as error level alerts
         """
         # standard validations
         # exclude meta attributes
@@ -177,10 +189,12 @@ class ValidateMixin(AlertMixin):
 
     def save(self, *args, **kwargs):
         """
-        save with validate call
+        save with validate call parametrized by raise_validation_error
         """
         self.validate(raise_validation_error=kwargs.pop("raise_validation_error", True))
-        super().save(*args, **kwargs)
+        # here we have to skip ValidateMixin level save as otherwise
+        # it would run validate again and without proper arguments
+        super(ValidateMixin, self).save(*args, **kwargs)
 
     class Meta:
         abstract = True

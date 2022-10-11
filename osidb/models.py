@@ -23,7 +23,7 @@ from apps.osim.workflow import WorkflowModel
 
 from .constants import BZ_ID_SENTINEL, CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
 from .core import generate_acls
-from .mixins import NullStrFieldsMixin, TrackingMixin, ValidateMixin
+from .mixins import AlertMixin, NullStrFieldsMixin, TrackingMixin, ValidateMixin
 from .validators import (
     no_future_date,
     validate_cve_id,
@@ -533,7 +533,7 @@ class FlawManager(models.Manager):
         # If search has no results, this will now return an empty queryset
 
 
-class Flaw(WorkflowModel, ValidateMixin, TrackingMixin, NullStrFieldsMixin):
+class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin):
     """Model flaw"""
 
     class FlawState(models.TextChoices):
@@ -865,7 +865,7 @@ class AffectManager(models.Manager):
 
 
 class Affect(
-    ValidateMixin, TrackingMixin, AffectExploitExtensionMixin, NullStrFieldsMixin
+    TrackingMixin, AffectExploitExtensionMixin, AlertMixin, NullStrFieldsMixin
 ):
     """affect model definition"""
 
@@ -1209,7 +1209,7 @@ class FlawMetaManager(models.Manager):
         return super().get_queryset()
 
 
-class FlawMeta(TrackingMixin, ValidateMixin):
+class FlawMeta(AlertMixin, TrackingMixin):
     """Model representing extensible structured flaw metadata"""
 
     class FlawMetaType(models.TextChoices):
