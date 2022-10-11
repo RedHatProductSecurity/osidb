@@ -290,7 +290,7 @@ class FlawSource(models.TextChoices):
         }
 
 
-class FlawHistory(NullStrFieldsMixin):
+class FlawHistory(NullStrFieldsMixin, ValidateMixin):
     """match existing history table for flaws"""
 
     pgh_created_at = models.DateTimeField(null=True)
@@ -415,20 +415,6 @@ class FlawHistory(NullStrFieldsMixin):
         return str(self.uuid)
 
     objects = FlawHistoryManager()
-
-    def validate(self, *args, **kwargs):
-        """validate flaw model"""
-        # add custom validation here
-        self.clean()
-        # self.full_clean(*args, exclude=["meta_attr"], **kwargs)
-
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        # TODO see process_embargo_state
-        # if ENABLE_EMBARGO_PROCESS:
-        #     self.process_embargo_state()
-        super().save(*args, **kwargs)
 
     # TODO this needs to be refactored
     # but it makes sense only when we are capable of write actions
@@ -1073,7 +1059,7 @@ class TrackerManager(models.Manager):
         return super().get_queryset()
 
 
-class Tracker(TrackingMixin, NullStrFieldsMixin):
+class Tracker(ValidateMixin, TrackingMixin, NullStrFieldsMixin):
     """tracker model definition"""
 
     class TrackerType(models.TextChoices):
@@ -1121,15 +1107,6 @@ class Tracker(TrackingMixin, NullStrFieldsMixin):
 
     def __str__(self):
         return str(self.uuid)
-
-    def validate(self, *args, **kwargs):
-        """validate model"""
-        self.full_clean(*args, exclude=["meta_attr"], **kwargs)
-
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        super().save(*args, **kwargs)
 
     @property
     def fix_state(self):
@@ -1475,7 +1452,7 @@ class PsProduct(models.Model):
         return self.package
 
 
-class PsModule(NullStrFieldsMixin):
+class PsModule(NullStrFieldsMixin, ValidateMixin):
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -1527,18 +1504,8 @@ class PsModule(NullStrFieldsMixin):
         PsProduct, on_delete=models.CASCADE, related_name="ps_modules"
     )
 
-    def validate(self, *args, **kwargs):
-        """validate model"""
-        # add custom validation here
-        self.full_clean(*args, **kwargs)
 
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        super().save(*args, **kwargs)
-
-
-class PsUpdateStream(NullStrFieldsMixin):
+class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -1591,18 +1558,8 @@ class PsUpdateStream(NullStrFieldsMixin):
         blank=True,
     )
 
-    def validate(self, *args, **kwargs):
-        """validate model"""
-        # add custom validation here
-        self.full_clean(*args, **kwargs)
 
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        super().save(*args, **kwargs)
-
-
-class PsContact(NullStrFieldsMixin):
+class PsContact(NullStrFieldsMixin, ValidateMixin):
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -1613,16 +1570,6 @@ class PsContact(NullStrFieldsMixin):
     # BTS usernames
     bz_username = models.CharField(max_length=100)
     jboss_username = models.CharField(max_length=100)
-
-    def validate(self, *args, **kwargs):
-        """validate model"""
-        # add custom validation here
-        self.full_clean(*args, **kwargs)
-
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        super().save(*args, **kwargs)
 
 
 class Profile(models.Model):

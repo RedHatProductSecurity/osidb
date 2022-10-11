@@ -89,6 +89,8 @@ class TestFlawSaver:
                 impact=FlawImpact.IMPORTANT,
                 title="historical title",
                 description="historical description",
+                pgh_created_at=timezone.now(),
+                pgh_label="user",
                 acl_read=self.get_acls(),
                 acl_write=self.get_acls(),
             )
