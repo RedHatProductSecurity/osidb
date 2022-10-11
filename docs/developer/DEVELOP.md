@@ -569,6 +569,41 @@ For any customization you can export the following env variables to change the D
 
 If you do that, it is recommended to also add these env variables to your virtual environment's activate script (eg. `venv/bin/activate`).
 
+### Deprecate fields
+
+When we decide to remove a field from a model, above removing the related functionality we need to carefully
+consider the DB and API compatibility. For the DB we need to ensure that OSIDB is N-1 compatible meaning
+that the app of version N can work with the DB of version N-1 and vice-versa. For the API we need to ensure
+that the breaking changes are introduced only in major releases. The standard procedure is as follows.
+
+* remove functionality using the field
+* mark model field as deprecated with Django
+  [deprecate-fields](https://github.com/3YOURMIND/django-deprecate-fields)
+* mark serializer field as deprecated with
+  [drf-spectacular](https://drf-spectacular.readthedocs.io/en/latest/drf_spectacular.html#drf_spectacular.utils.extend_schema)
+* create Django DB migration
+
+```bash
+$ make migrate
+```
+
+* update OpenAPI schema
+
+```bash
+$ make update-schema
+```
+
+* do [release](OPERATIONS.md#Release)
+* wait until the next major release is ahead
+* remove deprecated model field
+* remove deprecated serializer field and decorator
+* create Django DB migration
+* update OpenAPI schema
+* do major release
+
+Obviously the procedure is simplified and ommits steps like review or release announcement.
+An example pull request can be see [here](https://github.com/RedHatProductSecurity/osidb/pull/55).
+
 ## Row-level security & dummy data
 
 Row-level security ensures only the the same group that created the data can view it.
