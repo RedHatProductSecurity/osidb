@@ -14,7 +14,7 @@ from django.utils.timezone import make_aware
 from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
 from collectors.jiraffe.core import get_field_attr
 from osidb.core import generate_acls, set_user_acls
-from osidb.mixins import TrackingMixin
+from osidb.mixins import AlertMixin, TrackingMixin
 from osidb.models import (
     Affect,
     CVEv5PackageVersions,
@@ -346,10 +346,20 @@ class FlawSaver:
         # we don't query this flaw during the process
         with transaction.atomic():
             for part in self.all_parts:
+                kwargs = {}
+
+                # we want to store the original timestamps
+                # so we turn off assigning the automatic ones
                 if isinstance(part, TrackingMixin):
-                    part.save(auto_timestamps=False)
-                else:
-                    part.save()
+                    kwargs["auto_timestamps"] = False
+
+                # we want to store all the data fetched by the collector
+                # so we suppress the exception raising in favor of alerts
+                if isinstance(part, AlertMixin):
+                    kwargs["raise_validation_error"] = False
+
+                # apply proper kwargs
+                part.save(**kwargs)
 
             # packageversions need special handling
             self.save_packageversions()
@@ -369,7 +379,12 @@ class FlawSaver:
             # the classification changes and thus some flaw
             # changes done before may be lost
             self.flaw.adjust_classification(save=False)
-            self.flaw.save(auto_timestamps=False)
+            # no automatic timestamps and validation exceptions
+            # se explanation above for more details
+            self.flaw.save(
+                auto_timestamps=False,
+                raise_validation_error=False,
+            )
 
 
 class FlawBugConvertor:

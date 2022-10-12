@@ -23,7 +23,7 @@ from apps.osim.workflow import WorkflowModel
 
 from .constants import BZ_ID_SENTINEL, CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
 from .core import generate_acls
-from .mixins import AlertMixin, NullStrFieldsMixin, TrackingMixin
+from .mixins import AlertMixin, NullStrFieldsMixin, TrackingMixin, ValidateMixin
 from .validators import (
     no_future_date,
     validate_cve_id,
@@ -290,7 +290,7 @@ class FlawSource(models.TextChoices):
         }
 
 
-class FlawHistory(NullStrFieldsMixin):
+class FlawHistory(NullStrFieldsMixin, ValidateMixin):
     """match existing history table for flaws"""
 
     pgh_created_at = models.DateTimeField(null=True)
@@ -416,20 +416,6 @@ class FlawHistory(NullStrFieldsMixin):
 
     objects = FlawHistoryManager()
 
-    def validate(self, *args, **kwargs):
-        """validate flaw model"""
-        # add custom validation here
-        self.clean()
-        # self.full_clean(*args, exclude=["meta_attr"], **kwargs)
-
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        # TODO see process_embargo_state
-        # if ENABLE_EMBARGO_PROCESS:
-        #     self.process_embargo_state()
-        super().save(*args, **kwargs)
-
     # TODO this needs to be refactored
     # but it makes sense only when we are capable of write actions
     # and we may thus actually do some changes to the embargo
@@ -533,7 +519,7 @@ class FlawManager(models.Manager):
         # If search has no results, this will now return an empty queryset
 
 
-class Flaw(AlertMixin, WorkflowModel, TrackingMixin, NullStrFieldsMixin):
+class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin):
     """Model flaw"""
 
     class FlawState(models.TextChoices):
@@ -730,22 +716,6 @@ class Flaw(AlertMixin, WorkflowModel, TrackingMixin, NullStrFieldsMixin):
                     f"Flaw is embargoed but contains public source: {self.source}"
                 )
 
-    def validate(self, *args, **kwargs):
-        """validate flaw model"""
-        self.full_clean(*args, exclude=["meta_attr"], **kwargs)
-        # add custom validation here
-        self._validate_rh_nvd_cvss_score_diff()
-        self._validate_rh_nvd_cvss_severity_diff()
-        self._validate_embargoed_source()
-
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        # TODO see process_embargo_state
-        # if ENABLE_EMBARGO_PROCESS:
-        #     self.process_embargo_state()
-        super().save(*args, **kwargs)
-
     # TODO this needs to be refactored
     # but it makes sense only when we are capable of write actions
     # and we may thus actually do some changes to the embargo
@@ -881,7 +851,7 @@ class AffectManager(models.Manager):
 
 
 class Affect(
-    AlertMixin, TrackingMixin, AffectExploitExtensionMixin, NullStrFieldsMixin
+    TrackingMixin, AffectExploitExtensionMixin, AlertMixin, NullStrFieldsMixin
 ):
     """affect model definition"""
 
@@ -1028,18 +998,6 @@ class Affect(
                     f"for flaw with bz_id {bz_id}."
                 )
 
-    def validate(self, *args, **kwargs):
-        """validate model"""
-        self.full_clean(*args, exclude=["meta_attr"], **kwargs)
-        # add custom validation here
-        self._validate_ps_module_old_flaw()
-        self._validate_ps_module_new_flaw()
-
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        super().save(*args, **kwargs)
-
     @property
     def delegated_resolution(self):
         """affect delegated resolution based on resolutions of related trackers"""
@@ -1101,7 +1059,7 @@ class TrackerManager(models.Manager):
         return super().get_queryset()
 
 
-class Tracker(TrackingMixin, NullStrFieldsMixin):
+class Tracker(ValidateMixin, TrackingMixin, NullStrFieldsMixin):
     """tracker model definition"""
 
     class TrackerType(models.TextChoices):
@@ -1149,15 +1107,6 @@ class Tracker(TrackingMixin, NullStrFieldsMixin):
 
     def __str__(self):
         return str(self.uuid)
-
-    def validate(self, *args, **kwargs):
-        """validate model"""
-        self.full_clean(*args, exclude=["meta_attr"], **kwargs)
-
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        super().save(*args, **kwargs)
 
     @property
     def fix_state(self):
@@ -1237,7 +1186,7 @@ class FlawMetaManager(models.Manager):
         return super().get_queryset()
 
 
-class FlawMeta(TrackingMixin):
+class FlawMeta(AlertMixin, TrackingMixin):
     """Model representing extensible structured flaw metadata"""
 
     class FlawMetaType(models.TextChoices):
@@ -1331,21 +1280,6 @@ class FlawMeta(TrackingMixin):
                 raise ValidationError(
                     f"Flaw contains acknowledgments for public source {self.flaw.source}"
                 )
-
-    def validate(self, *args, **kwargs):
-        """validate model"""
-        # add custom validation here
-        super().clean_fields(*args, exclude=["meta_attr"], **kwargs)
-        self._validate_major_incident_combos()
-        self._validate_public_source_no_ack()
-
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        # TODO see process_embargo_state
-        # if ENABLE_EMBARGO_PROCESS:
-        #     self.process_embargo_state()
-        super().save(*args, **kwargs)
 
 
 class FlawCommentManager(models.Manager):
@@ -1518,7 +1452,7 @@ class PsProduct(models.Model):
         return self.package
 
 
-class PsModule(NullStrFieldsMixin):
+class PsModule(NullStrFieldsMixin, ValidateMixin):
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -1570,18 +1504,8 @@ class PsModule(NullStrFieldsMixin):
         PsProduct, on_delete=models.CASCADE, related_name="ps_modules"
     )
 
-    def validate(self, *args, **kwargs):
-        """validate model"""
-        # add custom validation here
-        self.full_clean(*args, **kwargs)
 
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        super().save(*args, **kwargs)
-
-
-class PsUpdateStream(NullStrFieldsMixin):
+class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -1634,18 +1558,8 @@ class PsUpdateStream(NullStrFieldsMixin):
         blank=True,
     )
 
-    def validate(self, *args, **kwargs):
-        """validate model"""
-        # add custom validation here
-        self.full_clean(*args, **kwargs)
 
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        super().save(*args, **kwargs)
-
-
-class PsContact(NullStrFieldsMixin):
+class PsContact(NullStrFieldsMixin, ValidateMixin):
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -1656,16 +1570,6 @@ class PsContact(NullStrFieldsMixin):
     # BTS usernames
     bz_username = models.CharField(max_length=100)
     jboss_username = models.CharField(max_length=100)
-
-    def validate(self, *args, **kwargs):
-        """validate model"""
-        # add custom validation here
-        self.full_clean(*args, **kwargs)
-
-    def save(self, *args, **kwargs):
-        """save model override"""
-        self.validate()
-        super().save(*args, **kwargs)
 
 
 class Profile(models.Model):
