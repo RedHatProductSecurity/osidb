@@ -1216,9 +1216,7 @@ class FlawMeta(AlertMixin, TrackingMixin):
     acl_write = fields.ArrayField(models.UUIDField(), default=list)
 
     # A Flaw can have many structured FlawMeta
-    flaw = models.ForeignKey(
-        Flaw, null=True, on_delete=models.CASCADE, related_name="meta"
-    )
+    flaw = models.ForeignKey(Flaw, on_delete=models.CASCADE, related_name="meta")
 
     objects = FlawMetaManager()
 
