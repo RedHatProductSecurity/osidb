@@ -681,9 +681,11 @@ class TestFlawValidators:
 
     def test_private_and_public_source_ack(self, both_source):
         flaw = FlawFactory(source=both_source, embargoed=True)
-        FlawMetaFactory(type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT, flaw=flaw)
+        flaw_meta = FlawMetaFactory(
+            type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT, flaw=flaw
+        )
         assert FlawMeta.objects.count() == 1
-        assert "public_source_no_ack" in flaw._alerts
+        assert "public_source_no_ack" in flaw_meta._alerts
 
     @pytest.mark.parametrize(
         "bz_id,ps_module,should_alert",

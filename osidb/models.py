@@ -1216,9 +1216,7 @@ class FlawMeta(AlertMixin, TrackingMixin):
     acl_write = fields.ArrayField(models.UUIDField(), default=list)
 
     # A Flaw can have many structured FlawMeta
-    flaw = models.ForeignKey(
-        Flaw, null=True, on_delete=models.CASCADE, related_name="meta"
-    )
+    flaw = models.ForeignKey(Flaw, on_delete=models.CASCADE, related_name="meta")
 
     objects = FlawMetaManager()
 
@@ -1268,14 +1266,11 @@ class FlawMeta(AlertMixin, TrackingMixin):
 
         if (source := FlawSource(self.flaw.source)) and source.is_public():
             if source.is_private():
-                # FIXME: self.flaw is null=True, but in practice it doesn't happen
-                # and it doesn't even make sense
-                if self.flaw is not None:
-                    self.flaw.alert(
-                        "public_source_no_ack",
-                        f"Flaw source of type {source} can be public or private, "
-                        "ensure that it is private since the Flaw has acknowledgments.",
-                    )
+                self.alert(
+                    "public_source_no_ack",
+                    f"Flaw source of type {source} can be public or private, "
+                    "ensure that it is private since the Flaw has acknowledgments.",
+                )
             else:
                 raise ValidationError(
                     f"Flaw contains acknowledgments for public source {self.flaw.source}"
