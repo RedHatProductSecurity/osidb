@@ -46,6 +46,7 @@ class BugzillaQueryBuilder:
         self.generate_keywords()
         self.generate_flags()
         self.generate_groups()
+        self.generate_deadline()
         self.generate_cc()
         # TODO placeholder + has different groups
         # TODO SRT notes
@@ -142,13 +143,11 @@ class BugzillaQueryBuilder:
         # hightouch | hightouch-lite | nist_cvss_validation | requires_doc_text
 
     EMBARGOED_GROUPS = ["qe_staff", "security"]
-    DEADLINE_FORMAT = "%Y-%m-%d"
 
     def generate_groups(self):
         """
         generate query for Bugzilla groups
         which control the access to the flaw
-        plus eventually set deadline
         """
         # TODO groups handling is more complicated and involves
         # product definitions processing but let us do it simple now
@@ -157,17 +156,11 @@ class BugzillaQueryBuilder:
             if self.creation:
                 self._query["groups"] = self.EMBARGOED_GROUPS
 
-            if self.flaw.unembargo_dt:
-                self._query["deadline"] = self.flaw.unembargo_dt.strftime(
-                    self.DEADLINE_FORMAT
-                )
-
         # unembargo
         elif not self.creation and self.old_flaw.embargoed:
             # TODO we have no detailed information on previous groups
             # so if there were some unusual we cannot guess
             self._query["groups"] = {"remove": self.EMBARGOED_GROUPS}
-            self._query["deadline"] = ""
 
         # TODO other case should be theoretically not needed to handle
         # which is probably quite naive so let us test it extensively
@@ -179,6 +172,22 @@ class BugzillaQueryBuilder:
         #
         # - we need to store them on flaw fetch if we
         #   want to do something more clever about them
+
+    DEADLINE_FORMAT = "%Y-%m-%d"
+
+    def generate_deadline(self):
+        """
+        generate query for Bugzilla deadline
+        """
+        if self.flaw.embargoed:
+            if self.flaw.unembargo_dt:
+                self._query["deadline"] = self.flaw.unembargo_dt.strftime(
+                    self.DEADLINE_FORMAT
+                )
+
+        # unembargo
+        elif not self.creation and self.old_flaw.embargoed:
+            self._query["deadline"] = ""
 
     def generate_cc(self):
         """
