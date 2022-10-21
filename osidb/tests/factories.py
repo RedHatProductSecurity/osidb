@@ -80,12 +80,29 @@ class FlawFactory(factory.django.DjangoModelFactory):
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
-        """instance creation"""
+        """
+        instance creation
+        with saving to DB
+        """
         # embargoed is not a real model attribute but annotation so it is read-only
         # but we want preserve it as writable factory attribute as it is easier to work with
         # than with ACLs so we need to remove it for the flaw creation and emulate annotation
         embargoed = kwargs.pop("embargoed")
         flaw = super()._create(model_class, *args, **kwargs)
+        flaw.embargoed = embargoed
+        return flaw
+
+    @classmethod
+    def _build(cls, model_class, *args, **kwargs):
+        """
+        instance build
+        without saving to DB
+        """
+        # embargoed is not a real model attribute but annotation so it is read-only
+        # but we want preserve it as writable factory attribute as it is easier to work with
+        # than with ACLs so we need to remove it for the flaw creation and emulate annotation
+        embargoed = kwargs.pop("embargoed")
+        flaw = super()._build(model_class, *args, **kwargs)
         flaw.embargoed = embargoed
         return flaw
 
