@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+## [2.3.O] - 2022-10-24
+### Changed
+- Fix Errata collector design to periodically refresh data (OSIDB-433)
+- Flaw mitigated_by field is now deprecated and will be completely removed
+  in the next major release (OSIDB-126)
+- Fix component matching from tracker description (OSIDB-464)
+- Store FlawMeta alerts on FlawMeta instead of on Flaw
+- Prevent pgtrigger recreating triggers (OSIDB-429)
+
+### Added
+- Helper for manual flaw synchronization (OSIDB-389)
+- Usage of django-deprecate-fields package for model field deprecation (OSIDB-126)
+
 ## [2.2.2] - 2022-09-20
 ### Changed
 - Fix an issue with FlawSource validation for sources that can be both
