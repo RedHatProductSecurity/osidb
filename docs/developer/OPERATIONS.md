@@ -1,8 +1,30 @@
 # OSIDB -- operations
 
+## Code freeze
+
+At least one week before the intended release date, the main development branch should be frozen into
+a release-X.Y.Z branch, where X.Y.Z is the next intended release version.
+
+You can do it like so:
+
+```bash
+git checkout master
+git pull
+git checkout -b release-X.Y.Z
+git push origin release-X.Y.Z
+```
+
+Only bug fixes should be merged into this new branch, and they should be done so via PRs that target
+the release branch so that the code can be reviewed.
+
+Make sure that the stage environment is set to pull from this branch at least until it is merged
+back into the main development branch.
+
 ## Release
 
-Follow this procedure when performing OSIDB version X.Y.Z release.
+Follow this procedure when performing OSIDB version X.Y.Z release, this step assumes that
+the previous step on code freezing has already been done.
+
 First we need to determine the version number based on the previous version
 and the changes to be released - see [Versioning](#Versioning).
 
@@ -13,27 +35,35 @@ git diff $(git describe --tags --abbrev=0) openapi.yml
 Make sure you perform the following commands from the project root directory.
 
 ```bash
-git checkout master
-git pull
-git checkout -b release-X.Y.Z
+git checkout release-X.Y.Z
+git checkout -b release-X.Y.Z-prep
 scripts/update_release.sh X.Y.Z
 ```
+
+This script will also change some things in the operations repository, those should
+also be submitted via a PR to the appropriate repository and merged after tag creation.
 
 Check and eventually update [CHANGELOG](../CHANGELOG.md).
 
 ```bash
 git commit -am 'Update version to X.Y.Z'
-git push -u origin release-X.Y.Z
+git push -u origin release-X.Y.Z-prep
 ```
 
-Create a merge request and ask for review. Merge it when approved.
+And then submit `release-X.Y.Z-prep` as a PR against the `release-X.Y.Z` branch.
 
-```bash
-git checkout master
-git pull
-git tag X.Y.Z
-git push --tags
-```
+Next, create a tag based off of the `release-X.Y.Z` branch, you can do this via git
+but it's preferable to do it via the [releases](https://github.com/RedHatProductSecurity/osidb/releases) page on GitHub,
+this page lets you create a new tag to go with the release, the Changelog should be copied
+into the release's description, this release link can then be used for new release announcements.
+
+Now you need to either wait for the tag to sync back into GitLab (~30min) or force a manual sync
+from the GitLab settings (Settings > Repository > Mirrors), at this point the changes in the
+operations repo can be merged and the changes can be deployed.
+
+Finally, once everything has been correctly deployed, make sure to create a PR against the
+main development branch in which the source is the `release-X.Y.Z` branch, to guarantee that
+the next versions include any bugfixes that were in the frozen branch.
 
 ## Scripts
 
