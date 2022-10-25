@@ -124,3 +124,31 @@ class TestErrataToolCollection:
         assert Erratum.objects.count() == 1
         # Which is not linked to any trackers
         assert Erratum.objects.first().trackers.count() == 0
+
+    @pytest.mark.vcr
+    def test_update_advisory_name(
+        self, sample_erratum_with_bz_bugs, sample_erratum_name
+    ):
+        """Test that when advisory_name changes the Erratum is updated during linking"""
+        TrackerFactory.create(
+            external_system_id="2021161", type=Tracker.TrackerType.BUGZILLA
+        )
+        TrackerFactory.create(
+            external_system_id="2021168", type=Tracker.TrackerType.BUGZILLA
+        )
+
+        link_bugs_to_errata(
+            [(sample_erratum_with_bz_bugs, f"{sample_erratum_name}-01")]
+        )
+
+        # One erratum was created
+        assert Erratum.objects.count() == 1
+        assert Erratum.objects.first().advisory_name == f"{sample_erratum_name}-01"
+
+        link_bugs_to_errata(
+            [(sample_erratum_with_bz_bugs, f"{sample_erratum_name}-02")]
+        )
+
+        # Erratum is updated
+        assert Erratum.objects.count() == 1
+        assert Erratum.objects.first().advisory_name == f"{sample_erratum_name}-02"
