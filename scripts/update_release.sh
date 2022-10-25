@@ -23,6 +23,9 @@ if [[ $1 =~ [0-9]*\.[0-9]*\.[0-9]* ]]; then
     ./scripts/schema-check.sh
 
     check_and_set_version 'osidb_source_ref' '../osidb-ops/inventory/osidb' $1
+
+    echo "Updating the CHANGELOG.md to $1"
+    sed -i 's/^## Unreleased.*/## Unreleased\n\n## ['"$1"'] - '$(date '+%Y-%m-%d')'/' docs/CHANGELOG.md
 else 
     echo "invalid version $1" 
     exit 1
