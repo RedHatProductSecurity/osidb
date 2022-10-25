@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [2.3.1] - 2022-10-25
+### Changed
+- Fix Errata collector saving to handle advisory name change (OSIDB-565)
+
 ## [2.3.O] - 2022-10-24
 ### Changed
 - Fix Errata collector design to periodically refresh data (OSIDB-433)
