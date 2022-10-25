@@ -107,7 +107,7 @@ def link_bugs_to_errata(erratum_id_name_pairs: list[tuple[str, str]]):
             continue
 
         erratum, _ = Erratum.objects.update_or_create(
-            et_id=et_id, advisory_name=advisory_name
+            et_id=et_id, defaults={"advisory_name": advisory_name}
         )
 
         # TODO: Not enough info here to create a tracker if it doesn't exist
