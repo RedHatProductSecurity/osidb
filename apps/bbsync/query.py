@@ -175,6 +175,15 @@ class BugzillaQueryBuilder:
             - {"redhat"}
         )
 
+    def _lists2diffs(self, new_list, old_list):
+        """
+        take the new and the old list and return
+        the differences to be added and removed
+        """
+        to_add = list(set(new_list) - set(old_list))
+        to_remove = list(set(old_list) - set(new_list))
+        return to_add, to_remove
+
     def generate_groups(self):
         """
         generate query for Bugzilla groups
@@ -218,8 +227,7 @@ class BugzillaQueryBuilder:
         # otherwise we provide the differences
         else:
             old_groups = json.loads(self.old_flaw.meta_attr.get("groups", "[]"))
-            # TODO generate the diffs for update query
-            add_groups, remove_groups = groups, old_groups
+            add_groups, remove_groups = self._lists2diffs(groups, old_groups)
             self._query["groups"] = {
                 "add": add_groups,
                 "remove": remove_groups,
