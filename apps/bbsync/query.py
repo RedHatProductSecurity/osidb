@@ -1,5 +1,8 @@
+import json
+from itertools import chain
+
 from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
-from osidb.models import Flaw, FlawImpact
+from osidb.models import Flaw, FlawImpact, PsModule
 
 
 class BugzillaQueryBuilder:
@@ -148,30 +151,52 @@ class BugzillaQueryBuilder:
         """
         generate query for Bugzilla groups
         which control the access to the flaw
+
+        there are three cases when the groups should be touched
+
+        1) on flaw creation we want to set the groups to either
+           embargoed with respect to the product definitions or empty
+
+        2) on affectedness changes of an embargoed flaw we want to
+           adjust the groups according to the new affectedness
+
+        3) on flaw unembargo when we want to remove all the groups
         """
-        # TODO groups handling is more complicated and involves
-        # product definitions processing but let us do it simple now
+        groups = []
 
         if self.flaw.embargoed:
-            if self.creation:
-                self._query["groups"] = self.EMBARGOED_GROUPS
+            # get names of all affected PS modules
+            # we care for affects with trackers only
+            module_names = [
+                affect.ps_module
+                for affect in self.flaw.affects.filter(trackers__isnull=False)
+            ]
+            # gat all embargoed groups of all affected PS modules
+            module_groups = chain(
+                *[
+                    ps_module.bts_groups.get("embargoed", [])
+                    for ps_module in PsModule.objects.filter(name__in=module_names)
+                ]
+            )
 
-        # unembargo
-        elif not self.creation and self.old_flaw.embargoed:
-            # TODO we have no detailed information on previous groups
-            # so if there were some unusual we cannot guess
-            self._query["groups"] = {"remove": self.EMBARGOED_GROUPS}
+            # TODO standardize embargoed groups
+            groups = module_groups
 
-        # TODO other case should be theoretically not needed to handle
-        # which is probably quite naive so let us test it extensively
-        #
-        # - embargoing of a public flaw is futile
-        #
-        # - groups should be set to embargoed or none
-        #   but there are definitely some corner cases
-        #
-        # - we need to store them on flaw fetch if we
-        #   want to do something more clever about them
+        # TODO we do not account for placeholder flaws
+
+        # on creation we provide a list of groups
+        if self.creation:
+            self._query["groups"] = groups
+
+        # otherwise we provide the differences
+        else:
+            old_groups = json.loads(self.old_flaw.meta_attr.get("groups", "[]"))
+            # TODO generate the diffs for update query
+            add_groups, remove_groups = groups, old_groups
+            self._query["groups"] = {
+                "add": add_groups,
+                "remove": remove_groups,
+            }
 
     DEADLINE_FORMAT = "%Y-%m-%d"
 
