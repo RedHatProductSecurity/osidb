@@ -160,6 +160,21 @@ class BugzillaQueryBuilder:
     ]
     EMBARGOED_GROUPS = ["qe_staff", "security"]
 
+    def _standardize_embargoed_groups(self, groups):
+        """
+        combine groups with default embargoed but make sure all
+        of them are allowed plus always remove redhat group
+
+        this serves as a safegourd ensuring that all embargoed flaws
+        have the embargoed groups and never the redhat group plus we
+        ignore groups which are not allowed to be assigned to flaws
+        in case anyone put them in the product definitions
+        """
+        return list(
+            ((set(groups) | set(self.EMBARGOED_GROUPS)) & set(self.ALLOWED_GROUPS))
+            - {"redhat"}
+        )
+
     def generate_groups(self):
         """
         generate query for Bugzilla groups
@@ -192,8 +207,7 @@ class BugzillaQueryBuilder:
                 ]
             )
 
-            # TODO standardize embargoed groups
-            groups = module_groups
+            groups = self._standardize_embargoed_groups(module_groups)
 
         # TODO we do not account for placeholder flaws
 

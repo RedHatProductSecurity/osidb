@@ -64,6 +64,30 @@ class TestGenerateGroups:
         assert "qe_staff" in groups
         assert "security" in groups
 
+    def test_create_embargoed_no_redhat(self):
+        """
+        test that when creating an embargoed flaw
+        the redhat group is never being added
+        """
+        flaw = FlawFactory(embargoed=True)
+        FlawCommentFactory(flaw=flaw)
+        affect = AffectFactory(flaw=flaw)
+        TrackerFactory(affects=[affect])
+        PsModuleFactory(
+            name=affect.ps_module,
+            bts_groups={
+                "embargoed": [
+                    "redhat",
+                ]
+            },
+        )
+
+        bbq = BugzillaQueryBuilder(flaw)
+        query = bbq.query
+
+        groups = query.get("groups", [])
+        assert "redhat" not in groups
+
     def test_unembargo(self):
         """
         test that unembargoeing flaw
