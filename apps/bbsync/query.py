@@ -145,6 +145,19 @@ class BugzillaQueryBuilder:
         # TODO needinfo and other flags
         # hightouch | hightouch-lite | nist_cvss_validation | requires_doc_text
 
+    # Bugzilla groups allowed to be set for Bugzilla Security Response product
+    # https://bugzilla.redhat.com/editproducts.cgi?action=edit&product=Security%20Response
+    # TODO should be ideally synced so they are kept up-to-date but let us start simple
+    ALLOWED_GROUPS = [
+        "cinco",
+        "private",
+        "qe_staff",
+        "redhat",
+        "secalert",
+        "secalert_entry",
+        "security",
+        "team ocp_embargoes",
+    ]
     EMBARGOED_GROUPS = ["qe_staff", "security"]
 
     def generate_groups(self):
