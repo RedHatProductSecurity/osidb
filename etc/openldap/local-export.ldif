@@ -262,6 +262,21 @@ uid: testuser
 uidnumber: 1016
 userpassword: password
 
+dn: cn=costaconrado,ou=users,dc=redhat,dc=com
+cn: User17
+cn: costaconrado
+gidnumber: 1017
+givenName: silenceawarning
+homedirectory: /home/costaconrado
+mail: silenceawarning
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Costa
+uid: costaconrado
+uidnumber: 1017
+userpassword: password
+
 #################
 # Service accounts
 #################
@@ -304,6 +319,7 @@ member: cn=ykostash,ou=users,dc=redhat,dc=com
 member: cn=jgarriso,ou=users,dc=redhat,dc=com
 member: cn=atorresj,ou=users,dc=redhat,dc=com
 member: cn=testuser,ou=users,dc=redhat,dc=com
+member: cn=costaconrado,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # access to osidb manage
@@ -317,6 +333,7 @@ member: cn=mbaluch,ou=users,dc=redhat,dc=com
 member: cn=jshepher,ou=users,dc=redhat,dc=com
 member: cn=osoukup,ou=users,dc=redhat,dc=com
 member: cn=atorresj,ou=users,dc=redhat,dc=com
+member: cn=costaconrado,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # access to bzimport service/interfaces
@@ -338,6 +355,7 @@ member: cn=ykostash,ou=users,dc=redhat,dc=com
 member: cn=jgarriso,ou=users,dc=redhat,dc=com
 member: cn=atorresj,ou=users,dc=redhat,dc=com
 member: cn=testuser,ou=users,dc=redhat,dc=com
+member: cn=costaconrado,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # active users
@@ -359,6 +377,7 @@ member: cn=ykostash,ou=users,dc=redhat,dc=com
 member: cn=jgarriso,ou=users,dc=redhat,dc=com
 member: cn=atorresj,ou=users,dc=redhat,dc=com
 member: cn=testuser,ou=users,dc=redhat,dc=com
+member: cn=costaconrado,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # staff users
@@ -380,6 +399,7 @@ member: cn=ykostash,ou=users,dc=redhat,dc=com
 member: cn=jgarriso,ou=users,dc=redhat,dc=com
 member: cn=atorresj,ou=users,dc=redhat,dc=com
 member: cn=testuser,ou=users,dc=redhat,dc=com
+member: cn=costaconrado,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
 
 #################
@@ -404,6 +424,7 @@ member: cn=jgarriso,ou=users,dc=redhat,dc=com
 member: cn=jtkaufman,ou=users,dc=redhat,dc=com
 member: cn=atorresj,ou=users,dc=redhat,dc=com
 member: cn=testuser,ou=users,dc=redhat,dc=com
+member: cn=costaconrado,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # prodsec data write
@@ -423,6 +444,7 @@ member: cn=jgarriso,ou=users,dc=redhat,dc=com
 member: cn=jtkaufman,ou=users,dc=redhat,dc=com
 member: cn=atorresj,ou=users,dc=redhat,dc=com
 member: cn=testuser,ou=users,dc=redhat,dc=com
+member: cn=costaconrado,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # topsecret data
@@ -437,6 +459,7 @@ member: cn=jshepher,ou=users,dc=redhat,dc=com
 member: cn=osoukup,ou=users,dc=redhat,dc=com
 member: cn=atorresj,ou=users,dc=redhat,dc=com
 member: cn=testuser,ou=users,dc=redhat,dc=com
+member: cn=costaconrado,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # topsecret data
@@ -450,4 +473,5 @@ member: cn=mbaluch,ou=users,dc=redhat,dc=com
 member: cn=jshepher,ou=users,dc=redhat,dc=com
 member: cn=osoukup,ou=users,dc=redhat,dc=com
 member: cn=atorresj,ou=users,dc=redhat,dc=com
+member: cn=costaconrado,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
