@@ -36,6 +36,16 @@ class TestParseUpdateStreamComponent:
                 "abc12:::3>12387/.*@#$~đĐ",
             ),
             ("component: anotherone: something: [stream]", "stream", "component"),
+            (
+                "[Major Incident] CVE-2222-1111 component: text [stream]",
+                "stream",
+                "component",
+            ),
+            (
+                "[CISA Major Incident] CVE-2222-1111 component: another: text [stream]",
+                "stream",
+                "component",
+            ),
         ],
     )
     def test_correct(self, title, stream, component):
