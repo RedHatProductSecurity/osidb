@@ -337,24 +337,46 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
         return self.get_ids(self.query_all_flaws(), updated_after, updated_before)
 
     def get_flaw_bz_trackers(self, flaw_data: dict) -> list:
-        """get Bugzilla trackers from flaw data"""
+        """
+        get Bugzilla trackers from flaw data
+
+        catch exceptions individually so we do
+        not fail everything for a single issue
+        """
         bz_trackers = []
 
         for bz_id in flaw_data["depends_on"]:
-            bug = self.get_bug_data(bz_id)
-            # security tracking Bugzilla bug has always SecurityTracking keyword
-            # there may be any other non-tracker bugs in the depends_on field
-            if "SecurityTracking" in bug["keywords"]:
-                bz_trackers.append(bug)
+            try:
+                bug = self.get_bug_data(bz_id)
+                # security tracking Bugzilla bug has always SecurityTracking keyword
+                # there may be any other non-tracker bugs in the depends_on field
+                if "SecurityTracking" in bug["keywords"]:
+                    bz_trackers.append(bug)
+            except Exception as e:
+                logger.exception(
+                    f"Bugzilla flaw bug {flaw_data['id']} tracker import error: {str(e)}"
+                )
+                # TODO store errors
 
         return bz_trackers
 
     def get_flaw_jira_trackers(self, flaw_data: dict) -> list:
-        """get Jira trackers from flaw data"""
+        """
+        get Jira trackers from flaw data
+
+        catch exceptions individually so we do
+        not fail everything for a single issue
+        """
         jira_trackers = []
 
         for jira_id in self.get_flaw_jira_tracker_ids(flaw_data):
-            jira_trackers.append(self.get_issue(jira_id))
+            try:
+                jira_trackers.append(self.get_issue(jira_id))
+            except Exception as e:
+                logger.exception(
+                    f"Bugzilla flaw bug {flaw_data['id']} tracker import error: {str(e)}"
+                )
+                # TODO store errors
 
         return jira_trackers
 
@@ -409,25 +431,9 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
             ) from e
 
         # 1B) fetch tracker data
-        # failure in tracker data fetching should not fail the flaw sync
 
-        try:
-            flaw_bz_trackers = self.get_flaw_bz_trackers(flaw_data)
-        except Exception as e:
-            logger.exception(
-                f"Bugzilla flaw bug {flaw_id} tracker import error: {str(e)}"
-            )
-            # TODO store errors
-            flaw_bz_trackers = []
-
-        try:
-            flaw_jira_trackers = self.get_flaw_jira_trackers(flaw_data)
-        except Exception as e:
-            logger.exception(
-                f"Bugzilla flaw bug {flaw_id} tracker import error: {str(e)}"
-            )
-            # TODO store errors
-            flaw_jira_trackers = []
+        flaw_bz_trackers = self.get_flaw_bz_trackers(flaw_data)
+        flaw_jira_trackers = self.get_flaw_jira_trackers(flaw_data)
 
         # 2) convert flaw data to Django models
         fbc = FlawBugConvertor(
