@@ -1,5 +1,8 @@
+import json
+from itertools import chain
+
 from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
-from osidb.models import Flaw, FlawImpact
+from osidb.models import Flaw, FlawImpact, PsModule
 
 
 class BugzillaQueryBuilder:
@@ -46,6 +49,7 @@ class BugzillaQueryBuilder:
         self.generate_keywords()
         self.generate_flags()
         self.generate_groups()
+        self.generate_deadline()
         self.generate_cc()
         # TODO placeholder + has different groups
         # TODO SRT notes
@@ -141,22 +145,101 @@ class BugzillaQueryBuilder:
         # TODO needinfo and other flags
         # hightouch | hightouch-lite | nist_cvss_validation | requires_doc_text
 
+    # Bugzilla groups allowed to be set for Bugzilla Security Response product
+    # https://bugzilla.redhat.com/editproducts.cgi?action=edit&product=Security%20Response
+    # TODO should be ideally synced so they are kept up-to-date but let us start simple
+    ALLOWED_GROUPS = [
+        "cinco",
+        "private",
+        "qe_staff",
+        "redhat",
+        "secalert",
+        "secalert_entry",
+        "security",
+        "team ocp_embargoes",
+    ]
     EMBARGOED_GROUPS = ["qe_staff", "security"]
-    DEADLINE_FORMAT = "%Y-%m-%d"
+
+    def _standardize_embargoed_groups(self, groups):
+        """
+        combine groups with default embargoed but make sure all
+        of them are allowed plus always remove redhat group
+
+        this serves as a safegourd ensuring that all embargoed flaws
+        have the embargoed groups and never the redhat group plus we
+        ignore groups which are not allowed to be assigned to flaws
+        in case anyone put them in the product definitions
+        """
+        return list(
+            ((set(groups) | set(self.EMBARGOED_GROUPS)) & set(self.ALLOWED_GROUPS))
+            - {"redhat"}
+        )
+
+    def _lists2diffs(self, new_list, old_list):
+        """
+        take the new and the old list and return
+        the differences to be added and removed
+        """
+        to_add = list(set(new_list) - set(old_list))
+        to_remove = list(set(old_list) - set(new_list))
+        return to_add, to_remove
 
     def generate_groups(self):
         """
         generate query for Bugzilla groups
         which control the access to the flaw
-        plus eventually set deadline
+
+        there are three cases when the groups should be touched
+
+        1) on flaw creation we want to set the groups to either
+           embargoed with respect to the product definitions or empty
+
+        2) on affectedness changes of an embargoed flaw we want to
+           adjust the groups according to the new affectedness
+
+        3) on flaw unembargo when we want to remove all the groups
         """
-        # TODO groups handling is more complicated and involves
-        # product definitions processing but let us do it simple now
+        groups = []
 
         if self.flaw.embargoed:
-            if self.creation:
-                self._query["groups"] = self.EMBARGOED_GROUPS
+            # get names of all affected PS modules
+            # we care for affects with trackers only
+            module_names = [
+                affect.ps_module
+                for affect in self.flaw.affects.filter(trackers__isnull=False)
+            ]
+            # gat all embargoed groups of all affected PS modules
+            module_groups = chain(
+                *[
+                    ps_module.bts_groups.get("embargoed", [])
+                    for ps_module in PsModule.objects.filter(name__in=module_names)
+                ]
+            )
 
+            groups = self._standardize_embargoed_groups(module_groups)
+
+        # TODO we do not account for placeholder flaws
+
+        # on creation we provide a list of groups
+        if self.creation:
+            self._query["groups"] = groups
+
+        # otherwise we provide the differences
+        else:
+            old_groups = json.loads(self.old_flaw.meta_attr.get("groups", "[]"))
+            add_groups, remove_groups = self._lists2diffs(groups, old_groups)
+            self._query["groups"] = {
+                "add": add_groups,
+                "remove": remove_groups,
+            }
+
+    DEADLINE_FORMAT = "%Y-%m-%d"
+
+    def generate_deadline(self):
+        """
+        generate query for Bugzilla deadline
+        """
+        if self.flaw.embargoed:
             if self.flaw.unembargo_dt:
                 self._query["deadline"] = self.flaw.unembargo_dt.strftime(
                     self.DEADLINE_FORMAT
@@ -164,21 +247,7 @@ class BugzillaQueryBuilder:
 
         # unembargo
         elif not self.creation and self.old_flaw.embargoed:
-            # TODO we have no detailed information on previous groups
-            # so if there were some unusual we cannot guess
-            self._query["groups"] = {"remove": self.EMBARGOED_GROUPS}
             self._query["deadline"] = ""
-
-        # TODO other case should be theoretically not needed to handle
-        # which is probably quite naive so let us test it extensively
-        #
-        # - embargoing of a public flaw is futile
-        #
-        # - groups should be set to embargoed or none
-        #   but there are definitely some corner cases
-        #
-        # - we need to store them on flaw fetch if we
-        #   want to do something more clever about them
 
     def generate_cc(self):
         """

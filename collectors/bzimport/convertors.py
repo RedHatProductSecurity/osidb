@@ -1,6 +1,7 @@
 """
 transform Bugzilla flaw bug into OSIDB flaw model
 """
+import json
 import logging
 import re
 from collections import defaultdict
@@ -651,6 +652,7 @@ class FlawBugConvertor:
         meta_attr["last_imported_dt"] = timezone.now()
         meta_attr["acl_labels"] = self.groups
         meta_attr["task_owner"] = self.task_owner
+        meta_attr["groups"] = json.dumps(self.flaw_bug.get("groups", []))
         return meta_attr
 
     def get_nvd_cvss2(self, cve_id):
