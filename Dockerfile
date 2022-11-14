@@ -18,6 +18,11 @@ ARG RH_CERT_URL=""
 COPY ./scripts /opt/app-root/src/scripts
 RUN ./scripts/install-certs.sh $RH_CERT_URL
 
+# Download and install AWS RDS cert chain in order to connect to the DB via SSL
+RUN curl "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem" \
+    -o /etc/pki/ca-trust/source/anchors/aws-rds.pem && \
+    update-ca-trust
+
 # install dependencies and security updates
 RUN dnf --nodocs --setopt install_weak_deps=false -y install \
         cargo \
