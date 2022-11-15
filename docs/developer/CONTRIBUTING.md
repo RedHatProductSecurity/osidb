@@ -32,6 +32,19 @@ Before contributing please read and follow these guidelines.
   Details on running the test can be found [here](DEVELOP.md#run-tests).
   Also make sure that the CI pipelines report success in the PR.
 
+* The OSIDB repository requires that all commits be GPG-signed, see
+  [GitHub's documentation](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
+
+* Given that signed commit are required, the git flow might be different than
+  what you're used to, one of the limitations is that only merge commits
+  can be used from the PR interface, this in turn means that you should make sure
+  your branch is clean and up-to-date, by clean we mean that **no** merge commits
+  should be included in your patchset and the changes should be rebased on top of
+  the latest master (i.e. `git pull --rebase origin master`).
+
+* All commit messages should follow the classic git flow recommendations as seen
+  in the Git SCM [documentation](https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project#-commit-guidelines)
+
 ### Did you fix whitespace, format code, or make a purely cosmetic patch?
 
 Changes that are cosmetic in nature and do not add anything substantial to the stability,
