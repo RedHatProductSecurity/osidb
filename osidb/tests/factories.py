@@ -36,6 +36,7 @@ class FlawFactory(factory.django.DjangoModelFactory):
     cve_id = factory.sequence(lambda n: f"CVE-2020-000{n}")
     type = factory.Faker("random_element", elements=list(FlawType))
     created_dt = factory.Faker("date_time", tzinfo=UTC)
+    reported_dt = factory.Faker("date_time", tzinfo=UTC)
     state = factory.Faker("random_element", elements=list(Flaw.FlawState))
     resolution = factory.Faker("random_element", elements=list(FlawResolution))
     impact = factory.Faker("random_element", elements=list(FlawImpact))
