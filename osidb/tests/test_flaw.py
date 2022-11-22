@@ -725,3 +725,19 @@ class TestFlawValidators:
         else:
             affect = AffectFactory(flaw=flaw, ps_module=ps_module)
             assert affect
+
+    def test_validate_reported_date_empty(self):
+        """
+        test that the ValidationError is raised when the flaw has an empty reported_dt
+        """
+        with pytest.raises(ValidationError) as e:
+            FlawFactory(reported_dt=None)
+        assert "Flaw has an empty reported_dt" in str(e)
+
+    def test_validate_reported_date_non_empty(self):
+        """
+        test that the ValidationError is not raised when the flaw the reported_dt provided
+        """
+        # whenever we save the flaw which the factory does automatically the validations are run
+        # and if there is an exception the test will fail so creating the flaw is enough to test it
+        FlawFactory()
