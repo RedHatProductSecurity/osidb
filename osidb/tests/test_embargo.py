@@ -1,4 +1,5 @@
 import pytest
+from django.utils import timezone
 
 from osidb.models import Flaw
 
@@ -28,6 +29,7 @@ class TestEmbargo(object):
             impact="LOW",
             title="test",
             description="test",
+            reported_dt=timezone.now(),
         )
         flaw.save()
         flaw = Flaw.objects.get(cve_id="CVE-2000-11111")
@@ -47,6 +49,7 @@ class TestEmbargo(object):
                 title="test",
                 description="test",
                 embargoed=embargoed,
+                reported_dt=timezone.now(),
             )
             flaw.save()
         assert "Flaw() got an unexpected keyword argument 'embargoed'" in str(ex)

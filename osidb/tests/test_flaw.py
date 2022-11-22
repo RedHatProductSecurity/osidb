@@ -48,6 +48,7 @@ class TestFlaw:
             cve_id=good_cve_id,
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
+            reported_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
@@ -137,6 +138,7 @@ class TestFlaw:
             cve_id="CVE-1970-12345",
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
+            reported_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
@@ -165,6 +167,7 @@ class TestFlaw:
             description="description",
             acl_read=acls,
             acl_write=acls,
+            reported_dt=timezone.now(),
         ).save()
         assert Flaw.objects.count() == 1
         assert Flaw.objects.first().meta_attr["bz_id"] == "12345"
@@ -174,6 +177,7 @@ class TestFlaw:
             description="description",
             acl_read=acls,
             acl_write=acls,
+            reported_dt=timezone.now(),
         ).save()
         # no new flaw should be created
         assert Flaw.objects.count() == 1
@@ -277,6 +281,7 @@ class TestFlaw:
             cve_id=good_cve_id,
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
+            reported_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
@@ -304,6 +309,7 @@ class TestFlaw:
             cve_id="CVE-1970-12345",
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
+            reported_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
@@ -330,6 +336,7 @@ class TestFlaw:
             cve_id=good_cve_id,
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
+            reported_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",

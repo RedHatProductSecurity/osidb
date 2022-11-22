@@ -1,6 +1,7 @@
 import uuid
 
 import pytest
+from django.utils import timezone
 from freezegun import freeze_time
 
 from collectors.bzimport.convertors import FlawBugConvertor
@@ -27,6 +28,7 @@ class TestTrackingMixin:
             description="description",
             acl_read=acls,
             acl_write=acls,
+            reported_dt=timezone.now(),
             **kwargs,
         )
 
