@@ -604,7 +604,9 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin):
 
     # , from srtnotes "mitigate"
     mitigated_by = deprecate_field(
-        models.CharField(choices=FlawMitigate.choices, max_length=10, blank=True)
+        models.CharField(choices=FlawMitigate.choices, max_length=10, blank=True),
+        # required to keep backwards compatibility
+        return_instead="",
     )
 
     # , from srtnotes "cvss2"
