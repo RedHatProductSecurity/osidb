@@ -70,6 +70,7 @@ class TestSearch:
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
+            unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="TITLE",
             description="DESCRIPTION",

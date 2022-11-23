@@ -29,6 +29,7 @@ class TestTrackingMixin:
             acl_read=acls,
             acl_write=acls,
             reported_dt=timezone.now(),
+            unembargo_dt=tzdatetime(2000, 1, 1),
             **kwargs,
         )
 

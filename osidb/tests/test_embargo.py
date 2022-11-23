@@ -30,6 +30,7 @@ class TestEmbargo(object):
             title="test",
             description="test",
             reported_dt=timezone.now(),
+            unembargo_dt=timezone.now(),
         )
         flaw.save()
         flaw = Flaw.objects.get(cve_id="CVE-2000-11111")

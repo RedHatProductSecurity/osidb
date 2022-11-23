@@ -62,7 +62,6 @@ class CheckDescFactory:
         ("has summary", "summary", ""),
         ("has statement", "statement", ""),
         ("has cwe", "cwe_id", ""),
-        ("has unembargo_dt", "unembargo_dt", None),
         ("has source", "source", ""),
         # ("has reported_dt", "reported_dt", None),
         ("has cvss2", "cvss2", ""),
