@@ -1009,6 +1009,7 @@ class TestEndpoints(object):
             "state": "NEW",
             "impact": "CRITICAL",
             "description": "test",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
         }
         response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
         assert response.status_code == 201
@@ -1030,6 +1031,7 @@ class TestEndpoints(object):
             "state": "NEW",
             "impact": "CRITICAL",
             "description": "test",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
         }
         response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
         assert response.status_code == 201

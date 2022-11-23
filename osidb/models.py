@@ -716,6 +716,13 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin):
                     f"Flaw is embargoed but contains public source: {self.source}"
                 )
 
+    def _validate_reported_date(self):
+        """
+        Checks that the flaw has non-empty reported_dt
+        """
+        if self.reported_dt is None:
+            raise ValidationError("Flaw has an empty reported_dt")
+
     # TODO this needs to be refactored
     # but it makes sense only when we are capable of write actions
     # and we may thus actually do some changes to the embargo
