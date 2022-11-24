@@ -735,6 +735,19 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin):
             if self.unembargo_dt > timezone.now():
                 raise ValidationError("Public flaw has a future unembargo_dt")
 
+    def _validate_future_unembargo_date(self):
+        """
+        Check that an enbargoed flaw has an unembargo date in the future
+        """
+        if (
+            self.is_embargoed
+            and self.unembargo_dt is not None
+            and self.unembargo_dt < timezone.now()
+        ):
+            raise ValidationError(
+                "Flaw still embargoed but unembargo date is in the past."
+            )
+
     # TODO this needs to be refactored
     # but it makes sense only when we are capable of write actions
     # and we may thus actually do some changes to the embargo

@@ -126,7 +126,7 @@ class TestTrackingMixin:
         test conflicting model changes
         saving an outdated model instance should fail
         """
-        flaw = FlawFactory()
+        flaw = FlawFactory(embargoed=False)
         flaw_copy = Flaw.objects.first()
 
         with freeze_time(tzdatetime(2023, 12, 24)):

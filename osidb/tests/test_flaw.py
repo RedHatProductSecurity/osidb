@@ -762,7 +762,11 @@ class TestFlawValidators:
             (False, tzdatetime(2022, 11, 22), "Public flaw has a future unembargo_dt"),
             (False, tzdatetime(2021, 11, 22), None),
             (True, None, None),
-            (True, tzdatetime(2021, 11, 22), None),
+            (
+                True,
+                tzdatetime(2021, 11, 22),
+                "Flaw still embargoed but unembargo date is in the past.",
+            ),
         ],
     )
     @freeze_time(tzdatetime(2021, 11, 23))
@@ -773,3 +777,17 @@ class TestFlawValidators:
             assert error_str in str(e)
         else:
             assert FlawFactory(unembargo_dt=unembargo_date, embargoed=embargoed)
+
+    @freeze_time(tzdatetime(2021, 11, 23))
+    def test_validate_future_unembargo_date(self):
+        """test that unembargo_dt is in future for embargoed flaws"""
+        past_dt = tzdatetime(2021, 11, 18)
+        future_dt = tzdatetime(2021, 11, 27)
+
+        with pytest.raises(ValidationError) as e:
+            FlawFactory(unembargo_dt=past_dt, embargoed=True)
+        assert "Flaw still embargoed but unembargo date is in the past." in str(e)
+
+        with freeze_time(future_dt):
+            FlawFactory(unembargo_dt=future_dt, embargoed=True)
+            # no exception should be raised now
