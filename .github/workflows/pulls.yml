@@ -1,0 +1,19 @@
+name: PR workflow
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - master
+jobs:
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Check existence of CHANGELOG entry
+        uses: Zomzog/changelog-checker@v1.3.0
+        with:
+          fileName: docs/CHANGELOG.md
+          noChangelogLabel: technical
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
