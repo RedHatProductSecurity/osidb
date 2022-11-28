@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_extensions",
-    "pgconnection",
     "django.contrib.postgres",
     "psqlextra",
     "rest_framework",
