@@ -62,7 +62,6 @@ class CheckDescFactory:
         ("has summary", "summary", ""),
         ("has statement", "statement", ""),
         ("has cwe", "cwe_id", ""),
-        ("has unembargo_dt", "unembargo_dt", None),
         ("has source", "source", ""),
         # ("has reported_dt", "reported_dt", None),
         ("has cvss2", "cvss2", ""),
@@ -212,9 +211,9 @@ class TestCheck:
     @pytest.mark.parametrize("cathegory", ["property", "not_property", "has_property"])
     def test_all_properties_positive(self, cathegory):
         """test all positive properties"""
+        flaw_properties = {"unembargo_dt": None, "embargoed": None}
         requirements, flaw_properties = CheckDescFactory.generate(
-            cathegory=cathegory,
-            accepts=True,
+            cathegory=cathegory, accepts=True, exclude=flaw_properties
         )
         flaw = FlawFactory(**flaw_properties)
 
@@ -227,9 +226,9 @@ class TestCheck:
     @pytest.mark.parametrize("cathegory", ["property", "not_property", "has_property"])
     def test_all_properties_negative(self, cathegory):
         """test all negative properties"""
+        flaw_properties = {"unembargo_dt": None, "embargoed": None}
         requirements, flaw_properties = CheckDescFactory.generate(
-            cathegory=cathegory,
-            accepts=False,
+            cathegory=cathegory, accepts=False, exclude=flaw_properties
         )
         flaw = FlawFactory(**flaw_properties)
 
@@ -255,8 +254,9 @@ class TestState:
     @pytest.mark.parametrize("count", [1, 2, 3, 4, 5])
     def test_satisfied_requirements(self, count):
         """test that a state accepts a flaw which satisfies its requirements"""
+        flaw_properties = {"unembargo_dt": None, "embargoed": None}
         requirements, flaw_properties = CheckDescFactory.generate(
-            accepts=True, count=count
+            accepts=True, count=count, exclude=flaw_properties
         )
         state = State(
             {
@@ -276,8 +276,9 @@ class TestState:
     )
     def test_unsatisfied_requirements(self, positive, negative):
         """test that a state rejects a flaw which does not satisfy its requirements"""
+        flaw_properties = {"unembargo_dt": None, "embargoed": None}
         positive_requirements, flaw_properties = CheckDescFactory.generate(
-            accepts=True, count=positive
+            accepts=True, count=positive, exclude=flaw_properties
         )
         negative_requirements, flaw_properties = CheckDescFactory.generate(
             accepts=False, count=negative, exclude=flaw_properties
@@ -316,8 +317,9 @@ class TestWorkflow:
     @pytest.mark.parametrize("count", [1, 2, 3, 4, 5])
     def test_satisfied_conditions(self, count):
         """test that a workflow accepts a flaw which satisfies its conditions"""
+        flaw_properties = {"unembargo_dt": None, "embargoed": None}
         conditions, flaw_properties = CheckDescFactory.generate(
-            accepts=True, count=count
+            accepts=True, count=count, exclude=flaw_properties
         )
         workflow = Workflow(
             {
@@ -340,8 +342,9 @@ class TestWorkflow:
     )
     def test_unsatisfied_conditions(self, positive, negative):
         """test that a workflow rejects a flaw which does not satisfy its conditions"""
+        flaw_properties = {"unembargo_dt": None, "embargoed": None}
         positive_conditions, flaw_properties = CheckDescFactory.generate(
-            accepts=True, count=positive
+            accepts=True, count=positive, exclude=flaw_properties
         )
         negative_conditions, flaw_properties = CheckDescFactory.generate(
             accepts=False, count=negative, exclude=flaw_properties
@@ -367,9 +370,10 @@ class TestWorkflow:
     @pytest.mark.parametrize("count1,count2", [(1, 1), (2, 2), (3, 1), (1, 4)])
     def test_classify(self, count1, count2):
         """test that a flaw is correctly classified in the workflow states"""
+        flaw_properties = {"unembargo_dt": None, "embargoed": None}
         state_factory = StateFactory()
         accepting_states, flaw_properties = state_factory.generate(
-            accepts=True, count=count1
+            accepts=True, count=count1, exclude=flaw_properties
         )
         rejecting_states, flaw_properties = state_factory.generate(
             accepts=False, count=1, exclude=flaw_properties
@@ -555,7 +559,7 @@ class TestWorkflowFramework:
         """test flaw classification in both workflow and state"""
         workflow_framework = WorkflowFramework()
 
-        flaw_properties = {}
+        flaw_properties = {"unembargo_dt": None, "embargoed": None}
 
         for name, priority, accepting, accepting_states in workflows:
             workflow = Workflow(

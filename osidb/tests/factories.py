@@ -44,6 +44,11 @@ class FlawFactory(factory.django.DjangoModelFactory):
     description = factory.LazyAttribute(lambda c: f"Description for {c.cve_id}")
     statement = factory.LazyAttribute(lambda c: f"Statement for {c.cve_id}")
     embargoed = factory.Faker("random_element", elements=[False, True])
+    unembargo_dt = factory.Maybe(
+        "embargoed",
+        yes_declaration=factory.Faker("future_datetime", tzinfo=UTC),
+        no_declaration=factory.Faker("past_datetime", tzinfo=UTC),
+    )
     # cannot be set to ("random_element", elements=list(FlawSource)) because it could
     # inadvertently trigger validation errors in unrelated tests.
     source = ""

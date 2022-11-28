@@ -1,5 +1,6 @@
 import pytest
 from django.utils import timezone
+from freezegun import freeze_time
 
 from osidb.models import Flaw
 
@@ -17,8 +18,18 @@ class TestEmbargo(object):
         assert flaw.acl_read == embargoed_groups
 
     @pytest.mark.parametrize("embargoed", [False, True])
+    @freeze_time(timezone.datetime(2022, 11, 25))
     def test_embargoed_annotation(self, embargoed_groups, public_groups, embargoed):
-        groups = embargoed_groups if embargoed else public_groups
+        if embargoed:
+            groups = embargoed_groups
+            unembargo_dt = timezone.datetime(
+                2022, 12, 26, tzinfo=timezone.get_current_timezone()
+            )
+        else:
+            groups = public_groups
+            unembargo_dt = timezone.datetime(
+                2022, 11, 24, tzinfo=timezone.get_current_timezone()
+            )
         flaw = Flaw(
             acl_read=groups,
             acl_write=groups,
@@ -30,6 +41,7 @@ class TestEmbargo(object):
             title="test",
             description="test",
             reported_dt=timezone.now(),
+            unembargo_dt=unembargo_dt,
         )
         flaw.save()
         flaw = Flaw.objects.get(cve_id="CVE-2000-11111")

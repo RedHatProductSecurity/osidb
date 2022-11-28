@@ -49,6 +49,7 @@ class TestFlaw:
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
+            unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
@@ -139,6 +140,7 @@ class TestFlaw:
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
+            unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
@@ -164,6 +166,7 @@ class TestFlaw:
         Flaw.objects.create_flaw(
             bz_id="12345",
             title="first",
+            unembargo_dt=tzdatetime(2000, 1, 1),
             description="description",
             acl_read=acls,
             acl_write=acls,
@@ -282,6 +285,7 @@ class TestFlaw:
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
+            unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
@@ -310,6 +314,7 @@ class TestFlaw:
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
+            unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
@@ -337,6 +342,7 @@ class TestFlaw:
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
+            unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
@@ -748,3 +754,40 @@ class TestFlawValidators:
         # whenever we save the flaw which the factory does automatically the validations are run
         # and if there is an exception the test will fail so creating the flaw is enough to test it
         FlawFactory()
+
+    @pytest.mark.parametrize(
+        "embargoed,unembargo_date,error_str",
+        [
+            (False, None, "Public flaw has an empty unembargo_dt"),
+            (False, tzdatetime(2022, 11, 22), "Public flaw has a future unembargo_dt"),
+            (False, tzdatetime(2021, 11, 22), None),
+            (True, None, None),
+            (
+                True,
+                tzdatetime(2021, 11, 22),
+                "Flaw still embargoed but unembargo date is in the past.",
+            ),
+        ],
+    )
+    @freeze_time(tzdatetime(2021, 11, 23))
+    def test_validate_public_unembargo_date(self, embargoed, unembargo_date, error_str):
+        if error_str:
+            with pytest.raises(ValidationError) as e:
+                FlawFactory(unembargo_dt=unembargo_date, embargoed=embargoed)
+            assert error_str in str(e)
+        else:
+            assert FlawFactory(unembargo_dt=unembargo_date, embargoed=embargoed)
+
+    @freeze_time(tzdatetime(2021, 11, 23))
+    def test_validate_future_unembargo_date(self):
+        """test that unembargo_dt is in future for embargoed flaws"""
+        past_dt = tzdatetime(2021, 11, 18)
+        future_dt = tzdatetime(2021, 11, 27)
+
+        with pytest.raises(ValidationError) as e:
+            FlawFactory(unembargo_dt=past_dt, embargoed=True)
+        assert "Flaw still embargoed but unembargo date is in the past." in str(e)
+
+        with freeze_time(future_dt):
+            FlawFactory(unembargo_dt=future_dt, embargoed=True)
+            # no exception should be raised now

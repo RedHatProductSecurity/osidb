@@ -29,6 +29,7 @@ class TestTrackingMixin:
             acl_read=acls,
             acl_write=acls,
             reported_dt=timezone.now(),
+            unembargo_dt=tzdatetime(2000, 1, 1),
             **kwargs,
         )
 
@@ -125,7 +126,7 @@ class TestTrackingMixin:
         test conflicting model changes
         saving an outdated model instance should fail
         """
-        flaw = FlawFactory()
+        flaw = FlawFactory(embargoed=False)
         flaw_copy = Flaw.objects.first()
 
         with freeze_time(tzdatetime(2023, 12, 24)):
