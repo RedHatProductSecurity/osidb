@@ -5,6 +5,46 @@ from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
 from osidb.models import Flaw, FlawImpact, PsModule
 
 
+class SRTNotesBuilder:
+    """
+    Bugzilla flaw bug SRT notes field JSON content builder
+    """
+
+    def __init__(self, flaw, old_flaw=None):
+        """
+        init stuff
+        parametr old_flaw is optional as there is no old flaw on creation
+        and if not set we consider the query to be a create query
+        """
+        self.flaw = flaw
+        self.old_flaw = old_flaw
+        self._json = None
+
+    @property
+    def content(self):
+        """
+        string content getter shorcut
+        """
+        if self._json is None:
+            self.generate()
+
+        return json.dumps(self._json)
+
+    def generate(self):
+        """
+        generate json content
+        """
+        self.restore_original()
+
+    def restore_original(self):
+        """
+        restore the original SRT notes attributes
+        this ensures that we preserve potential unknown attributes intact
+        """
+        srtnotes = self.flaw.meta_attr.get("original_srtnotes")
+        self._json = json.loads(srtnotes) if srtnotes else {}
+
+
 class BugzillaQueryBuilder:
     """
     Bugzilla flaw bug query builder
@@ -51,8 +91,8 @@ class BugzillaQueryBuilder:
         self.generate_groups()
         self.generate_deadline()
         self.generate_cc()
+        self.generate_srt_notes()
         # TODO placeholder + has different groups
-        # TODO SRT notes
         # TODO tracker links
         # TODO prestage eligable date - deprecate
         # TODO checklists
@@ -257,3 +297,10 @@ class BugzillaQueryBuilder:
         # on update it is more complicated
         if self.creation:
             self._query["cc"] = []
+
+    def generate_srt_notes(self):
+        """
+        generate query for SRT notes
+        """
+        srt_notes_builder = SRTNotesBuilder(self.flaw, self.old_flaw)
+        self._query["cf_srtnotes"] = srt_notes_builder.content
