@@ -147,6 +147,7 @@ class TestTrackingMixin:
             "depends_on": [],
             "creation_time": tzdatetime(2020, 12, 24),
             "last_change_time": tzdatetime(2021, 12, 24),
+            "cf_srtnotes": "",
         }
 
     def get_flaw_bug_convertor(self):
