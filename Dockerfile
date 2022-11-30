@@ -31,6 +31,7 @@ RUN dnf --nodocs --setopt install_weak_deps=false -y install \
         krb5-devel \
         krb5-workstation \
         libffi-devel \
+        logrotate \
         make \
         openldap-devel \
         openssl-devel \
