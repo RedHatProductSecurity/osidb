@@ -19,6 +19,7 @@ class SRTNotesBuilder:
         self.flaw = flaw
         self.old_flaw = old_flaw
         self._json = None
+        self._original_keys = []
 
     @property
     def content(self):
@@ -29,6 +30,28 @@ class SRTNotesBuilder:
             self.generate()
 
         return json.dumps(self._json)
+
+    def add_conditionally(self, key, value, empty_value=None):
+        """
+        conditionally add the value to the SRT notes field
+        unless it is empty and was not originally present
+
+        this is to make less noise in Bugzilla history
+        """
+        # value was there already
+        if key in self._original_keys:
+            self._json[key] = value
+
+        # some attributes have special values to denote emptyness
+        # for example empty impact has string value of "none"
+        elif empty_value is not None:
+            if value != empty_value:
+                self._json[key] = value
+
+        # some values are empty when their boolean conversion is False
+        # for example arrays or strings or timestamps
+        elif value:
+            self._json[key] = value
 
     def generate(self):
         """
@@ -43,6 +66,7 @@ class SRTNotesBuilder:
         """
         srtnotes = self.flaw.meta_attr.get("original_srtnotes")
         self._json = json.loads(srtnotes) if srtnotes else {}
+        self._original_keys = list(self._json.keys())
 
 
 class BugzillaQueryBuilder:
