@@ -49,6 +49,7 @@ class FlawFactory(factory.django.DjangoModelFactory):
         yes_declaration=factory.Faker("future_datetime", tzinfo=UTC),
         no_declaration=factory.Faker("past_datetime", tzinfo=UTC),
     )
+    cvss3 = "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
     # cannot be set to ("random_element", elements=list(FlawSource)) because it could
     # inadvertently trigger validation errors in unrelated tests.
     source = ""

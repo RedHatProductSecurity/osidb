@@ -59,6 +59,7 @@ class TestFlaw:
             is_major_incident=True,
             acl_read=acls,
             acl_write=acls,
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             # META
             meta_attr=meta_attr,
         )
@@ -149,6 +150,7 @@ class TestFlaw:
             resolution=FlawResolution.NOVALUE,
             acl_read=acls,
             acl_write=acls,
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
         assert vuln_2.validate() is None
 
@@ -171,6 +173,7 @@ class TestFlaw:
             acl_read=acls,
             acl_write=acls,
             reported_dt=timezone.now(),
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         ).save()
         assert Flaw.objects.count() == 1
         assert Flaw.objects.first().meta_attr["bz_id"] == "12345"
@@ -181,6 +184,7 @@ class TestFlaw:
             acl_read=acls,
             acl_write=acls,
             reported_dt=timezone.now(),
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         ).save()
         # no new flaw should be created
         assert Flaw.objects.count() == 1
@@ -294,6 +298,7 @@ class TestFlaw:
             resolution=FlawResolution.NOVALUE,
             acl_read=acls,
             acl_write=acls,
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             # META
             meta_attr=meta_attr,
         )
@@ -323,6 +328,7 @@ class TestFlaw:
             resolution=FlawResolution.NOVALUE,
             acl_read=acls,
             acl_write=acls,
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
         assert Flaw.objects.get_queryset().count() == 0
         flaw.save()
@@ -351,6 +357,7 @@ class TestFlaw:
             resolution=FlawResolution.NOVALUE,
             acl_read=acls,
             acl_write=acls,
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
 
         assert not Flaw.objects.fts_search("title")
@@ -791,3 +798,21 @@ class TestFlawValidators:
         with freeze_time(future_dt):
             FlawFactory(unembargo_dt=future_dt, embargoed=True)
             # no exception should be raised now
+
+    @pytest.mark.parametrize(
+        "cvss3,should_raise",
+        [
+            ("3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N", False),
+            (None, True),
+        ],
+    )
+    def test_validate_cvss3(self, cvss3, should_raise):
+        """
+        Test that the ValidationError is not raised when the flaw has a CVSS3 string
+        """
+        if should_raise:
+            with pytest.raises(ValidationError) as e:
+                FlawFactory(cvss3=cvss3)
+            assert "CVSSv3 score is missing" in str(e)
+        else:
+            assert FlawFactory(cvss3=cvss3)

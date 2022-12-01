@@ -42,6 +42,7 @@ class TestEmbargo(object):
             description="test",
             reported_dt=timezone.now(),
             unembargo_dt=unembargo_dt,
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
         flaw.save()
         flaw = Flaw.objects.get(cve_id="CVE-2000-11111")
@@ -62,6 +63,7 @@ class TestEmbargo(object):
                 description="test",
                 embargoed=embargoed,
                 reported_dt=timezone.now(),
+                cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             )
             flaw.save()
         assert "Flaw() got an unexpected keyword argument 'embargoed'" in str(ex)
