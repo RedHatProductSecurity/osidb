@@ -2,7 +2,7 @@ import json
 from itertools import chain
 
 from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
-from osidb.models import Flaw, FlawImpact, PsModule
+from osidb.models import Flaw, FlawImpact, PsModule, Tracker
 
 
 class SRTNotesBuilder:
@@ -58,6 +58,24 @@ class SRTNotesBuilder:
         generate json content
         """
         self.restore_original()
+        self.generate_jira_trackers()
+
+    def generate_jira_trackers(self):
+        """
+        generate array of Jira tracker identifier pairs
+        consisting of BTS name being Jira instance identifier
+        and Jira issue key in given Jira instance
+        """
+        self.add_conditionally(
+            "jira_trackers",
+            [
+                # BTS name is always jboss which is the
+                # historical naming of the only Jira instance we use
+                {"bts_name": "jboss", "key": tracker.external_system_id}
+                for affect in self.flaw.affects.all()
+                for tracker in affect.trackers.filter(type=Tracker.TrackerType.JIRA)
+            ],
+        )
 
     def restore_original(self):
         """

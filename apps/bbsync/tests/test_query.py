@@ -5,7 +5,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from apps.bbsync.query import BugzillaQueryBuilder
-from osidb.models import Affect, Flaw, FlawImpact, FlawSource
+from osidb.models import Affect, Flaw, FlawImpact, FlawSource, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawCommentFactory,
@@ -73,6 +73,59 @@ class TestGenerateSRTNotes:
         srtnotes_json = json.loads(srtnotes)
         for key in srtnotes_json.keys():
             assert cf_srtnotes_json[key] == srtnotes_json[key]
+
+    def test_jira_trackers_empty(self):
+        """
+        test generating SRT notes for with no Jira trackers
+        """
+        flaw = FlawFactory()
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(flaw=flaw)
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+        assert "jira_trackers" not in cf_srtnotes_json
+
+    def test_jira_trackers_preserved(self):
+        """
+        test that empty Jira trackers are preserved when
+        there were some Jira trackers there originally
+        """
+        srtnotes = """{"jira_trackers": []}"""
+        flaw = FlawFactory(meta_attr={"original_srtnotes": srtnotes})
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(flaw=flaw)
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+        assert "jira_trackers" in cf_srtnotes_json
+        assert cf_srtnotes_json["jira_trackers"] == []
+
+    def test_jira_trackers_generate(self):
+        """
+        test that Jira tracker is added to SRT notes
+        """
+        flaw = FlawFactory()
+        FlawCommentFactory(flaw=flaw)
+        affect = AffectFactory(flaw=flaw)
+        TrackerFactory(
+            affects=[affect],
+            external_system_id="PROJECT-1",
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+        assert "jira_trackers" in cf_srtnotes_json
+        assert cf_srtnotes_json["jira_trackers"] == [
+            {"bts_name": "jboss", "key": "PROJECT-1"}
+        ]
 
 
 class TestGenerateGroups:
