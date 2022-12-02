@@ -750,6 +750,13 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin):
                 "Flaw still embargoed but unembargo date is in the past."
             )
 
+    def _validate_cvss3(self):
+        """
+        Check that a CVSSv3 string is present.
+        """
+        if not self.cvss3:
+            raise ValidationError("CVSSv3 score is missing")
+
     # TODO this needs to be refactored
     # but it makes sense only when we are capable of write actions
     # and we may thus actually do some changes to the embargo

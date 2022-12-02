@@ -30,6 +30,7 @@ class TestTrackingMixin:
             acl_write=acls,
             reported_dt=timezone.now(),
             unembargo_dt=tzdatetime(2000, 1, 1),
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             **kwargs,
         )
 
