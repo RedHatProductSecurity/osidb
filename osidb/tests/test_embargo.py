@@ -22,11 +22,13 @@ class TestEmbargo(object):
     def test_embargoed_annotation(self, embargoed_groups, public_groups, embargoed):
         if embargoed:
             groups = embargoed_groups
+            title = "EMBARGOED CVE-2022-1234 kernel: some description"
             unembargo_dt = timezone.datetime(
                 2022, 12, 26, tzinfo=timezone.get_current_timezone()
             )
         else:
             groups = public_groups
+            title = "CVE-2022-1234 kernel: some description"
             unembargo_dt = timezone.datetime(
                 2022, 11, 24, tzinfo=timezone.get_current_timezone()
             )
@@ -38,7 +40,7 @@ class TestEmbargo(object):
             state="NEW",
             resolution="",
             impact="LOW",
-            title="test",
+            title=title,
             description="test",
             reported_dt=timezone.now(),
             unembargo_dt=unembargo_dt,

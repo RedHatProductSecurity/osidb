@@ -779,6 +779,24 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin):
         # users from reviewing in the first place, in which case we don't
         # need to perform this validation
 
+    def _validate_public_flaw_title(self):
+        """
+        Check that the flaw's title does not contain the word "EMBARGOED" if the flaw is public.
+        """
+        if not self.is_embargoed and "EMBARGOED" in self.title:
+            raise ValidationError(
+                'Flaw title contains "EMBARGOED" despite being public.'
+            )
+
+    def _validate_embargoed_flaw_title(self):
+        """
+        Check that the flaw's title does contain the word "EMBARGOED" if the flaw is embargoed.
+        """
+        if self.is_embargoed and "EMBARGOED" not in self.title:
+            raise ValidationError(
+                'Flaw title does not contains "EMBARGOED" despite being embargoed.'
+            )
+
     # TODO this needs to be refactored
     # but it makes sense only when we are capable of write actions
     # and we may thus actually do some changes to the embargo

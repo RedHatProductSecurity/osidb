@@ -40,8 +40,16 @@ class FlawFactory(factory.django.DjangoModelFactory):
     state = factory.Faker("random_element", elements=list(Flaw.FlawState))
     resolution = factory.Faker("random_element", elements=list(FlawResolution))
     impact = factory.Faker("random_element", elements=list(FlawImpact))
-    title = factory.LazyAttribute(lambda c: f"Title for {c.cve_id}")
     description = factory.LazyAttribute(lambda c: f"Description for {c.cve_id}")
+    title = factory.Maybe(
+        "embargoed",
+        yes_declaration=factory.LazyAttribute(
+            lambda c: f"EMBARGOED {c.cve_id} kernel: some description"
+        ),
+        no_declaration=factory.LazyAttribute(
+            lambda c: f"{c.cve_id} kernel: some description"
+        ),
+    )
     statement = factory.LazyAttribute(lambda c: f"Statement for {c.cve_id}")
     embargoed = factory.Faker("random_element", elements=[False, True])
     summary = factory.Maybe(
