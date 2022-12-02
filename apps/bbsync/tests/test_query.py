@@ -1,7 +1,11 @@
+import json
+
 import pytest
+from django.utils import timezone
+from freezegun import freeze_time
 
 from apps.bbsync.query import BugzillaQueryBuilder
-from osidb.models import Flaw
+from osidb.models import Affect, Flaw, FlawImpact, FlawSource
 from osidb.tests.factories import (
     AffectFactory,
     FlawCommentFactory,
@@ -11,6 +15,64 @@ from osidb.tests.factories import (
 )
 
 pytestmark = pytest.mark.unit
+
+
+class TestGenerateSRTNotes:
+    @freeze_time(timezone.datetime(2022, 11, 25))
+    def test_restore_original(self):
+        """
+        test that the original SRT notes attributes
+        are preserved intact being known or unknown
+        """
+        srtnotes = """
+        {
+            "affects": [
+                {
+                    "affectedness": "affected",
+                    "cvss2": null,
+                    "cvss3": null,
+                    "impact": null,
+                    "ps_component": "libssh",
+                    "ps_module": "fedora-all",
+                    "resolution": "fix"
+                }
+            ],
+            "impact": "moderate",
+            "jira_trackers": [],
+            "public": "2022-11-23",
+            "reported": "2022-11-23",
+            "source": "customer",
+            "unknown": {
+                "complex": "value",
+                "array": []
+            }
+        }
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            impact=FlawImpact.MODERATE,
+            source=FlawSource.CUSTOMER,
+            reported_dt=timezone.datetime(2022, 11, 23, tzinfo=timezone.utc),
+            unembargo_dt=timezone.datetime(2022, 11, 23, tzinfo=timezone.utc),
+            meta_attr={"original_srtnotes": srtnotes},
+        )
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_component="libssh",
+            ps_module="fedora-all",
+        )
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+
+        srtnotes_json = json.loads(srtnotes)
+        for key in srtnotes_json.keys():
+            assert cf_srtnotes_json[key] == srtnotes_json[key]
 
 
 class TestGenerateGroups:
