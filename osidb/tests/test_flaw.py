@@ -44,7 +44,7 @@ class TestFlaw:
         ]
         meta_attr = {}
         meta_attr["test"] = 1
-        vuln_1 = Flaw(
+        vuln_1 = FlawFactory.build(
             cve_id=good_cve_id,
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
@@ -62,6 +62,12 @@ class TestFlaw:
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             # META
             meta_attr=meta_attr,
+        )
+        vuln_1.save(raise_validation_error=False)
+        FlawMetaFactory(
+            flaw=vuln_1,
+            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+            meta_attr={"status": "+"},
         )
 
         assert vuln_1.save() is None
@@ -132,7 +138,7 @@ class TestFlaw:
         )
         meta2.save()
         all_meta = vuln_1.meta.all()
-        assert len(all_meta) == 2
+        assert len(all_meta) == 3
         assert meta1 in all_meta
         assert meta2 in all_meta
 
@@ -816,3 +822,47 @@ class TestFlawValidators:
             assert "CVSSv3 score is missing" in str(e)
         else:
             assert FlawFactory(cvss3=cvss3)
+
+    @pytest.mark.parametrize(
+        "summary,is_major_incident,req,should_raise",
+        [
+            ("", True, None, True),
+            ("", True, "+", True),
+            ("", True, "?", True),
+            ("", True, "-", False),
+            ("", False, None, False),
+            ("", False, "+", False),
+            ("", False, "?", False),
+            ("", False, "-", False),
+            ("foo", False, None, False),
+            ("foo", False, "+", False),
+            ("foo", False, "?", False),
+            ("foo", False, "-", False),
+            ("foo", True, None, True),
+            ("foo", True, "+", False),
+            ("foo", True, "?", True),
+            ("foo", True, "-", False),
+        ],
+    )
+    def test_validate_major_incident_summary(
+        self, summary, is_major_incident, req, should_raise
+    ):
+        """
+        Test that a Flaw that is Major Incident has a summary
+        """
+        flaw1 = FlawFactory.build(
+            summary=summary,
+            is_major_incident=is_major_incident,
+        )
+        flaw1.save(raise_validation_error=False)
+        if req:
+            FlawMetaFactory(
+                flaw=flaw1,
+                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                meta_attr={"status": req},
+            )
+        if should_raise:
+            with pytest.raises(ValidationError, match="does not have Summary"):
+                flaw1.save()
+        else:
+            assert flaw1.save() is None

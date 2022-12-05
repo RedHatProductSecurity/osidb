@@ -5,7 +5,8 @@ from rest_framework.viewsets import ModelViewSet
 from osidb.api_views import get_valid_http_methods
 from osidb.core import set_user_acls
 from osidb.exceptions import OSIDBException
-from osidb.tests.factories import FlawFactory
+from osidb.models import FlawMeta
+from osidb.tests.factories import FlawFactory, FlawMetaFactory
 from osidb.tests.models import TestAlertModel, TestAlertModelBasic
 
 pytestmark = pytest.mark.unit
@@ -18,7 +19,14 @@ class TestCore(object):
 
     def test_flaw_factory(self):
         """test that we can generate a flaw using factory"""
-        flaw1 = FlawFactory(is_major_incident=True)
+        flaw1 = FlawFactory.build(is_major_incident=True)
+        flaw1.save(raise_validation_error=False)
+        FlawMetaFactory(
+            flaw=flaw1,
+            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+            meta_attr={"status": "+"},
+        )
+        assert flaw1.save() is None
         assert "test" in flaw1.meta_attr
 
     def test_flaw_exceptions(self):

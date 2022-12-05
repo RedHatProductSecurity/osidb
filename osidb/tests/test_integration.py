@@ -27,13 +27,12 @@ class TestIntegration(object):
         )
         assert curl_result.returncode == 0
         json_body = json.loads(curl_result.stdout)
-        assert json_body["status"] == "ok"
+        assert json_body["env"] == "local"
 
     def test_status_with_curl(
         self,
         command_curl,
         test_api_uri,
-        tokens,
     ):
         """access status api using curl"""
         cmd = [
@@ -41,8 +40,6 @@ class TestIntegration(object):
             "-v",
             "-H",
             "Content-type: application/json",
-            "-H",
-            f"Authorization: Bearer {tokens['access']}",
             f"{test_api_uri}/status",
         ]
         curl_result = subprocess.run(
@@ -50,13 +47,12 @@ class TestIntegration(object):
         )
         assert curl_result.returncode == 0
         json_body = json.loads(curl_result.stdout)
-        assert json_body["status"] == "ok"
+        assert json_body["env"] == "local"
 
     def test_flaws_with_curl(
         self,
         command_curl,
         test_api_uri,
-        tokens,
     ):
         """access status api using curl"""
         cmd = [
@@ -64,8 +60,6 @@ class TestIntegration(object):
             "-v",
             "-H",
             "Content-type: application/json",
-            "-H",
-            f"Authorization: Bearer {tokens['access']}",
             f"{test_api_uri}/flaws",
         ]
         curl_result = subprocess.run(

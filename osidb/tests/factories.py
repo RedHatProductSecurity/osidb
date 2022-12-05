@@ -44,6 +44,11 @@ class FlawFactory(factory.django.DjangoModelFactory):
     description = factory.LazyAttribute(lambda c: f"Description for {c.cve_id}")
     statement = factory.LazyAttribute(lambda c: f"Statement for {c.cve_id}")
     embargoed = factory.Faker("random_element", elements=[False, True])
+    summary = factory.Maybe(
+        "is_major_incident",
+        yes_declaration="I'm a spooky CVE",
+        no_declaration=factory.Faker("random_element", elements=["", "foo"]),
+    )
     unembargo_dt = factory.Maybe(
         "embargoed",
         yes_declaration=factory.Faker("future_datetime", tzinfo=UTC),
