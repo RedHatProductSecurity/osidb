@@ -84,7 +84,14 @@ class TestEndpoints(object):
     def test_get_flaw(self, auth_client, test_api_uri):
         """retrieve specific flaw from endpoint"""
 
-        flaw1 = FlawFactory(is_major_incident=True)
+        flaw1 = FlawFactory.build(is_major_incident=True)
+        flaw1.save(raise_validation_error=False)
+        FlawMetaFactory(
+            flaw=flaw1,
+            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+            meta_attr={"status": "+"},
+        )
+        assert flaw1.save() is None
         FlawCommentFactory(flaw=flaw1)
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
         assert response.status_code == 200
@@ -986,7 +993,14 @@ class TestEndpoints(object):
         assert "refresh" in body
         token = body["access"]
 
-        flaw1 = FlawFactory(is_major_incident=True)
+        flaw1 = FlawFactory.build(is_major_incident=True)
+        flaw1.save(raise_validation_error=False)
+        FlawMetaFactory(
+            flaw=flaw1,
+            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+            meta_attr={"status": "+"},
+        )
+        assert flaw1.save() is None
         FlawCommentFactory(flaw=flaw1)
 
         # attempt to access with unauthenticated client using good token value
