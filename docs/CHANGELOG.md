@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - Change logging of celery and django to filesystem (OSIDB-418)
+- Implement validation for CWE ID chain in a Flaw (OSIDB-357)
 
 ## [2.3.3] - 2022-12-13
 ### Changed

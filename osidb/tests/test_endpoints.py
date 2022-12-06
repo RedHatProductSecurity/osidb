@@ -1018,6 +1018,7 @@ class TestEndpoints(object):
         """
         flaw_data = {
             "cve_id": "CVE-2021-0666",
+            "cwe_id": "CWE-1",
             "title": "Foo",
             "type": "VULNERABILITY",
             "state": "NEW",
@@ -1042,6 +1043,7 @@ class TestEndpoints(object):
         """
         # a flaw draft essentially has no CVE
         flaw_data = {
+            "cwe_id": "CWE-1",
             "title": "Foo",
             "type": "VULNERABILITY",
             "state": "NEW",
