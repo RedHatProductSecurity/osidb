@@ -21,7 +21,12 @@ Before contributing please read and follow these guidelines.
   and a comand line or code sample or an executable test case demonstrating the
   expected behavior that is not occurring.
 
-### Did you write a patch that fixes a bug?
+### Did you fix whitespace, format code, or make a purely cosmetic patch?
+
+Changes that are cosmetic in nature and do not add anything substantial to the stability,
+functionality, or testability of the project will generally not be accepted.
+
+### Did you write a patch?
 
 * Open a new GitHub pull request with the patch.
 
@@ -45,24 +50,17 @@ Before contributing please read and follow these guidelines.
 * All commit messages should follow the classic git flow recommendations as seen
   in the Git SCM [documentation](https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project#-commit-guidelines)
 
-### Did you fix whitespace, format code, or make a purely cosmetic patch?
-
-Changes that are cosmetic in nature and do not add anything substantial to the stability,
-functionality, or testability of the project will generally not be accepted.
-
-### Do you intend to add a new feature or change an existing one?
-
-Simply create a pull request and wait for the feedback.
+* All functional changes require an entry in the [CHANGELOG](docs/CHANGELOG.md)
+  that describes the change and a reference to a JIRA issue if any, a GitHub
+  action will check that the file has been updated. If your change is purely
+  technical, you can add or request someone to add the "technical" label to the
+  Pull Request, which will skip the check.
 
 ### Do you have questions about the source code?
 
 We unfortunately do not have a publicly accessible discussion channel yet.
 You can create an issue [here](https://github.com/RedHatProductSecurity/osidb/issues/new)
 and ask your question within.
-
-### Do you want to contribute to the documentation?
-
-Simply create a pull request and wait for the feedback.
 
 ## License
 All contributions to this project will be licensed under [MIT](../../LICENSE) license.
