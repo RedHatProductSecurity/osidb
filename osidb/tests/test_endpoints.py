@@ -1089,7 +1089,7 @@ class TestEndpoints(object):
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
                 "type": flaw.type,
-                "title": "This is a test",
+                "title": f"{flaw.title} appended test title",
                 "description": flaw.description,
                 "state": flaw.state,
                 "resolution": flaw.resolution,
@@ -1101,7 +1101,7 @@ class TestEndpoints(object):
         assert response.status_code == 200
         body = response.json()
         assert original_body["title"] != body["title"]
-        assert body["title"] == "This is a test"
+        assert "appended test title" in body["title"]
         assert original_body["description"] == body["description"]
 
     def test_flaw_delete(self, auth_client, test_api_uri):

@@ -185,6 +185,7 @@ class TestCheck:
             "unembargo_dt": None,
             "embargoed": None,
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
         }
         requirements, flaw_properties = CheckDescFactory.generate(
             cathegory=cathegory, accepts=True, count=1, exclude=flaw_properties
@@ -203,6 +204,7 @@ class TestCheck:
             "unembargo_dt": None,
             "embargoed": None,
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
         }
         requirements, flaw_properties = CheckDescFactory.generate(
             cathegory=cathegory,
@@ -224,6 +226,7 @@ class TestCheck:
             "unembargo_dt": None,
             "embargoed": None,
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
         }
         requirements, flaw_properties = CheckDescFactory.generate(
             cathegory=cathegory, accepts=True, exclude=flaw_properties
@@ -243,6 +246,7 @@ class TestCheck:
             "unembargo_dt": None,
             "embargoed": None,
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
         }
         requirements, flaw_properties = CheckDescFactory.generate(
             cathegory=cathegory, accepts=False, exclude=flaw_properties
@@ -275,6 +279,7 @@ class TestState:
             "unembargo_dt": None,
             "embargoed": None,
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
         }
         requirements, flaw_properties = CheckDescFactory.generate(
             accepts=True, count=count, exclude=flaw_properties
@@ -301,6 +306,7 @@ class TestState:
             "unembargo_dt": None,
             "embargoed": None,
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
         }
         positive_requirements, flaw_properties = CheckDescFactory.generate(
             accepts=True, count=positive, exclude=flaw_properties
@@ -346,6 +352,7 @@ class TestWorkflow:
             "unembargo_dt": None,
             "embargoed": None,
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
         }
         conditions, flaw_properties = CheckDescFactory.generate(
             accepts=True, count=count, exclude=flaw_properties
@@ -375,6 +382,7 @@ class TestWorkflow:
             "unembargo_dt": None,
             "embargoed": None,
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
         }
         positive_conditions, flaw_properties = CheckDescFactory.generate(
             accepts=True, count=positive, exclude=flaw_properties
@@ -407,6 +415,7 @@ class TestWorkflow:
             "unembargo_dt": None,
             "embargoed": None,
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
         }
         state_factory = StateFactory()
         accepting_states, flaw_properties = state_factory.generate(
@@ -600,7 +609,9 @@ class TestWorkflowFramework:
             "unembargo_dt": None,
             "embargoed": None,
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
         }
+
         for name, priority, accepting, accepting_states in workflows:
             workflow = Workflow(
                 {

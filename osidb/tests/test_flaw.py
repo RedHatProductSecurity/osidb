@@ -866,3 +866,38 @@ class TestFlawValidators:
                 flaw1.save()
         else:
             assert flaw1.save() is None
+
+    @pytest.mark.parametrize(
+        "title,should_raise",
+        [
+            ("CVE-2022-1234 kernel: some description", False),
+            ("EMBARGOED CVE-2022-1234 kernel: some description", True),
+        ],
+    )
+    def test_validate_public_flaw_title(self, title, should_raise):
+        """test that public flaws only accepts a valid title without the "EMBARGOED" word"""
+        if should_raise:
+            with pytest.raises(ValidationError) as e:
+                FlawFactory(embargoed=False, title=title)
+            assert 'Flaw title contains "EMBARGOED" despite being public.' in str(e)
+        else:
+            assert FlawFactory(embargoed=False, title=title)
+
+    @pytest.mark.parametrize(
+        "title,should_raise",
+        [
+            ("EMBARGOED CVE-2022-1234 kernel: some description", False),
+            ("CVE-2022-1234 kernel: some description", True),
+        ],
+    )
+    def test_validate_embargoed_flaw_title(self, title, should_raise):
+        """test that embargoed flaws only accepts a valid title containing the "EMBARGOED" word"""
+        if should_raise:
+            with pytest.raises(ValidationError) as e:
+                FlawFactory(embargoed=True, title=title)
+            assert (
+                'Flaw title does not contains "EMBARGOED" despite being embargoed.'
+                in str(e)
+            )
+        else:
+            assert FlawFactory(embargoed=True, title=title)
