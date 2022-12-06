@@ -797,6 +797,18 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin):
                 'Flaw title does not contains "EMBARGOED" despite being embargoed.'
             )
 
+    def _validate_embargoing_public_flaw(self):
+        """
+        Check whether a currently public flaw is being embargoed.
+        """
+        if self._state.adding:
+            # we're creating a new flaw so we don't need to check whether we're
+            # changing from one state to another
+            return
+        old_flaw = Flaw.objects.get(pk=self.pk)
+        if not old_flaw.embargoed and self.is_embargoed:
+            raise ValidationError("Embargoing a public flaw is futile")
+
     # TODO this needs to be refactored
     # but it makes sense only when we are capable of write actions
     # and we may thus actually do some changes to the embargo

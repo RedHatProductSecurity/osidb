@@ -1,11 +1,13 @@
 import uuid
 
 import pytest
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
 from osidb.constants import BZ_ID_SENTINEL
+from osidb.core import generate_acls
 from osidb.models import (
     Affect,
     Flaw,
@@ -901,3 +903,14 @@ class TestFlawValidators:
             )
         else:
             assert FlawFactory(embargoed=True, title=title)
+
+    @freeze_time(tzdatetime(2021, 11, 23))
+    def test_validate_embargoing_public_flaw(self):
+        flaw = FlawFactory(embargoed=False)
+        with pytest.raises(ValidationError, match="Embargoing a public flaw is futile"):
+            flaw.title = "EMBARGOED foo bar baz"
+            flaw.acl_read = [
+                uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+            ]
+            flaw.unembargo_dt = tzdatetime(2022, 1, 1)
+            flaw.save()
