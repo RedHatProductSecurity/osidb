@@ -31,7 +31,33 @@ functionality, or testability of the project will generally not be accepted.
 * Open a new GitHub pull request with the patch.
 
 * Ensure the PR description clearly describes the problem and solution.
-  Include the relevant issue number if applicable.
+
+* Include the relevant issue number if applicable. There is a Jira automation
+  which changes the state of the mentioned Jira issues accordingly. Expected
+  format of the issue mention starts with word `Closes` or `Fixes` (**C or F must be uppercase**)
+  followed by a Jira ID:
+
+  ```
+  Closes OSIDB-111
+  ```
+  OR
+  ```
+  Fixes OSIDB-111
+  ```
+
+  To mention multiple Jira IDs, you need to use multiple keywords:
+
+  ```
+  Closes OSIDB-111
+  Closes OSIDB-222
+  Fixes OSIDB-333
+  ```
+
+  Creating or editing a PR which mentions the Jira issues will transfer the status of all the mentioned Jira issues
+  to **Review**.
+
+  Closing a PR which sets the status of PR to merged will transfer the status of all the mentioned Jira issues to
+  **Release Pending** and change the Fix Version field to **OSIDB-next**.
 
 * Before submitting make sure that linters and tests are passing.
   Details on running the test can be found [here](DEVELOP.md#run-tests).
