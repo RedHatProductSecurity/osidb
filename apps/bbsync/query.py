@@ -58,7 +58,15 @@ class SRTNotesBuilder:
         generate json content
         """
         self.restore_original()
+        self.generate_impact()
         self.generate_jira_trackers()
+
+    def generate_impact(self):
+        """
+        generate impact attribute
+        """
+        impact = "none" if not self.flaw.impact else self.flaw.impact.lower()
+        self.add_conditionally("impact", impact, empty_value="none")
 
     def generate_jira_trackers(self):
         """

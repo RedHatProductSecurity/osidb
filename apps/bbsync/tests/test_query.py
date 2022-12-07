@@ -74,6 +74,68 @@ class TestGenerateSRTNotes:
         for key in srtnotes_json.keys():
             assert cf_srtnotes_json[key] == srtnotes_json[key]
 
+    @pytest.mark.parametrize(
+        "osidb_impact,srtnotes,bz_present,bz_impact",
+        [
+            (
+                FlawImpact.LOW,
+                """{"impact": "low"}""",
+                True,
+                "low",
+            ),
+            (
+                FlawImpact.MODERATE,
+                """{"impact": "low"}""",
+                True,
+                "moderate",
+            ),
+            (
+                FlawImpact.IMPORTANT,
+                "",
+                True,
+                "important",
+            ),
+            (
+                FlawImpact.CRITICAL,
+                "{}",
+                True,
+                "critical",
+            ),
+            (
+                FlawImpact.NOVALUE,
+                """{"impact": "critical"}""",
+                True,
+                "none",
+            ),
+            (
+                FlawImpact.NOVALUE,
+                "",
+                False,
+                None,
+            ),
+        ],
+    )
+    def test_impact(self, osidb_impact, srtnotes, bz_present, bz_impact):
+        """
+        test generating of SRT notes impact attribute
+        """
+        flaw = FlawFactory(
+            impact=osidb_impact, meta_attr={"original_srtnotes": srtnotes}
+        )
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(flaw=flaw)
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+
+        if bz_present:
+            assert "impact" in cf_srtnotes_json
+            assert cf_srtnotes_json["impact"] == bz_impact
+        else:
+            assert "impact" not in cf_srtnotes_json
+
     def test_jira_trackers_empty(self):
         """
         test generating SRT notes for with no Jira trackers
