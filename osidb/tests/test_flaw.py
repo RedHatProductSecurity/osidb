@@ -423,7 +423,7 @@ class TestFlawValidators:
             "AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
         ],
     )
-    def test_validate_cvss3(self, cvss3):
+    def test_validate_cvss3_field(self, cvss3):
         """test cvss3 validator"""
         with pytest.raises(ValidationError) as e:
             FlawFactory(cvss3=cvss3)
@@ -814,7 +814,7 @@ class TestFlawValidators:
             (None, True),
         ],
     )
-    def test_validate_cvss3(self, cvss3, should_raise):
+    def test_validate_cvss3_model(self, cvss3, should_raise):
         """
         Test that the ValidationError is not raised when the flaw has a CVSS3 string
         """
