@@ -1,8 +1,13 @@
 import json
 from itertools import chain
 
-from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
+from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT, BZ_DT_FMT_HISTORY
 from osidb.models import Flaw, FlawImpact, PsModule, Tracker
+
+DATE_FMT = "%Y-%m-%d"
+# these two time formats are the same
+# thus spare us defining it again
+DATETIME_FMT = BZ_DT_FMT_HISTORY
 
 
 class SRTNotesBuilder:
@@ -323,17 +328,13 @@ class BugzillaQueryBuilder:
                 "remove": remove_groups,
             }
 
-    DEADLINE_FORMAT = "%Y-%m-%d"
-
     def generate_deadline(self):
         """
         generate query for Bugzilla deadline
         """
         if self.flaw.embargoed:
             if self.flaw.unembargo_dt:
-                self._query["deadline"] = self.flaw.unembargo_dt.strftime(
-                    self.DEADLINE_FORMAT
-                )
+                self._query["deadline"] = self.flaw.unembargo_dt.strftime(DATE_FMT)
 
         # unembargo
         elif not self.creation and self.old_flaw.embargoed:
