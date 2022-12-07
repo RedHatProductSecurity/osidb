@@ -65,6 +65,7 @@ class SRTNotesBuilder:
         self.restore_original()
         self.generate_impact()
         self.generate_jira_trackers()
+        self.generate_public_date()
 
     def generate_impact(self):
         """
@@ -89,6 +90,32 @@ class SRTNotesBuilder:
                 for tracker in affect.trackers.filter(type=Tracker.TrackerType.JIRA)
             ],
         )
+
+    def generate_public_date(self):
+        """
+        generate public date attribute
+        which is abbreviated to public
+
+        it can be either date or datetime so we should check the old
+        value and preserve the format when the value does not change
+        """
+        if not self.flaw.unembargo_dt:
+            self.add_conditionally("public", None)
+            return
+
+        date_str = self.flaw.unembargo_dt.strftime(DATE_FMT)
+        if (
+            "public" in self._original_keys
+            and self.old_flaw
+            and self.flaw.unembargo_dt == self.old_flaw.unembargo_dt
+            and self._json["public"] == date_str
+        ):
+            # we prefer datetime format but if there was just date format
+            # before and the value does not change we keep the old format
+            self._json["public"] = date_str
+
+        else:
+            self._json["public"] = self.flaw.unembargo_dt.strftime(DATETIME_FMT)
 
     def restore_original(self):
         """

@@ -2,6 +2,7 @@ import json
 
 import pytest
 from django.utils import timezone
+from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
 from apps.bbsync.query import BugzillaQueryBuilder
@@ -64,8 +65,14 @@ class TestGenerateSRTNotes:
             ps_component="libssh",
             ps_module="fedora-all",
         )
+        old_flaw = FlawFactory(
+            embargoed=False,
+            unembargo_dt=timezone.datetime(2022, 11, 23, tzinfo=timezone.utc),
+        )
+        FlawCommentFactory(flaw=old_flaw)
+        AffectFactory(flaw=old_flaw)
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = BugzillaQueryBuilder(flaw, old_flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -188,6 +195,106 @@ class TestGenerateSRTNotes:
         assert cf_srtnotes_json["jira_trackers"] == [
             {"bts_name": "jboss", "key": "PROJECT-1"}
         ]
+
+    @freeze_time(timezone.datetime(2022, 12, 10))
+    @pytest.mark.parametrize(
+        "unembargo_dt,old_unembargo_dt,old_public,new_public",
+        [
+            (
+                timezone.datetime(2022, 12, 20),
+                timezone.datetime(2022, 12, 20),
+                "2022-12-20",
+                "2022-12-20",
+            ),
+            (
+                timezone.datetime(2022, 12, 20, 14),
+                timezone.datetime(2022, 12, 20),
+                "2022-12-20",
+                "2022-12-20T14:00:00Z",
+            ),
+            (
+                timezone.datetime(2022, 12, 20),
+                timezone.datetime(2022, 12, 20),
+                "2022-12-20T00:00:00Z",
+                "2022-12-20T00:00:00Z",
+            ),
+        ],
+    )
+    def test_public_date_was_present(
+        self, unembargo_dt, old_unembargo_dt, old_public, new_public
+    ):
+        """
+        test generating of SRT notes public attribute
+        when public attribute was present in the old SRT notes
+        """
+        flaw = FlawFactory(
+            embargoed=True,
+            meta_attr={"original_srtnotes": '{"public": "' + old_public + '"}'},
+            unembargo_dt=make_aware(unembargo_dt),
+        )
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(flaw=flaw)
+
+        old_flaw = FlawFactory(
+            embargoed=True, unembargo_dt=make_aware(old_unembargo_dt)
+        )
+        FlawCommentFactory(flaw=old_flaw)
+        AffectFactory(flaw=old_flaw)
+
+        bbq = BugzillaQueryBuilder(flaw, old_flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+
+        assert "public" in cf_srtnotes_json
+        assert cf_srtnotes_json["public"] == new_public
+
+    @freeze_time(timezone.datetime(2022, 12, 10))
+    @pytest.mark.parametrize(
+        "unembargo_dt,present,public",
+        [
+            (
+                timezone.datetime(2022, 12, 20),
+                True,
+                "2022-12-20T00:00:00Z",
+            ),
+            (
+                None,
+                False,
+                "",
+            ),
+        ],
+    )
+    def test_public_date_was_not_present(self, unembargo_dt, present, public):
+        """
+        test generating of SRT notes public attribute
+        when public attribute was not present in the old SRT notes
+        """
+        flaw = FlawFactory(
+            embargoed=True,
+            meta_attr={"original_srtnotes": ""},
+            unembargo_dt=make_aware(unembargo_dt) if unembargo_dt else None,
+        )
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(flaw=flaw)
+
+        old_flaw = FlawFactory(
+            embargoed=True,
+            unembargo_dt=make_aware(unembargo_dt) if unembargo_dt else None,
+        )
+        FlawCommentFactory(flaw=old_flaw)
+        AffectFactory(flaw=old_flaw)
+
+        bbq = BugzillaQueryBuilder(flaw, old_flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+
+        if present:
+            assert "public" in cf_srtnotes_json
+            assert cf_srtnotes_json["public"] == public
+        else:
+            assert "public" not in cf_srtnotes_json
 
 
 class TestGenerateGroups:
