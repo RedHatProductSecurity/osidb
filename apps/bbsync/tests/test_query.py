@@ -2,10 +2,11 @@ import json
 
 import pytest
 from django.utils import timezone
+from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
 from apps.bbsync.query import BugzillaQueryBuilder
-from osidb.models import Affect, Flaw, FlawImpact, FlawSource
+from osidb.models import Affect, Flaw, FlawImpact, FlawSource, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawCommentFactory,
@@ -64,8 +65,14 @@ class TestGenerateSRTNotes:
             ps_component="libssh",
             ps_module="fedora-all",
         )
+        old_flaw = FlawFactory(
+            embargoed=False,
+            unembargo_dt=timezone.datetime(2022, 11, 23, tzinfo=timezone.utc),
+        )
+        FlawCommentFactory(flaw=old_flaw)
+        AffectFactory(flaw=old_flaw)
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = BugzillaQueryBuilder(flaw, old_flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -73,6 +80,221 @@ class TestGenerateSRTNotes:
         srtnotes_json = json.loads(srtnotes)
         for key in srtnotes_json.keys():
             assert cf_srtnotes_json[key] == srtnotes_json[key]
+
+    @pytest.mark.parametrize(
+        "osidb_impact,srtnotes,bz_present,bz_impact",
+        [
+            (
+                FlawImpact.LOW,
+                """{"impact": "low"}""",
+                True,
+                "low",
+            ),
+            (
+                FlawImpact.MODERATE,
+                """{"impact": "low"}""",
+                True,
+                "moderate",
+            ),
+            (
+                FlawImpact.IMPORTANT,
+                "",
+                True,
+                "important",
+            ),
+            (
+                FlawImpact.CRITICAL,
+                "{}",
+                True,
+                "critical",
+            ),
+            (
+                FlawImpact.NOVALUE,
+                """{"impact": "critical"}""",
+                True,
+                "none",
+            ),
+            (
+                FlawImpact.NOVALUE,
+                "",
+                False,
+                None,
+            ),
+        ],
+    )
+    def test_impact(self, osidb_impact, srtnotes, bz_present, bz_impact):
+        """
+        test generating of SRT notes impact attribute
+        """
+        flaw = FlawFactory(
+            impact=osidb_impact, meta_attr={"original_srtnotes": srtnotes}
+        )
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(flaw=flaw)
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+
+        if bz_present:
+            assert "impact" in cf_srtnotes_json
+            assert cf_srtnotes_json["impact"] == bz_impact
+        else:
+            assert "impact" not in cf_srtnotes_json
+
+    def test_jira_trackers_empty(self):
+        """
+        test generating SRT notes for with no Jira trackers
+        """
+        flaw = FlawFactory()
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(flaw=flaw)
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+        assert "jira_trackers" not in cf_srtnotes_json
+
+    def test_jira_trackers_preserved(self):
+        """
+        test that empty Jira trackers are preserved when
+        there were some Jira trackers there originally
+        """
+        srtnotes = """{"jira_trackers": []}"""
+        flaw = FlawFactory(meta_attr={"original_srtnotes": srtnotes})
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(flaw=flaw)
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+        assert "jira_trackers" in cf_srtnotes_json
+        assert cf_srtnotes_json["jira_trackers"] == []
+
+    def test_jira_trackers_generate(self):
+        """
+        test that Jira tracker is added to SRT notes
+        """
+        flaw = FlawFactory()
+        FlawCommentFactory(flaw=flaw)
+        affect = AffectFactory(flaw=flaw)
+        TrackerFactory(
+            affects=[affect],
+            external_system_id="PROJECT-1",
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+        assert "jira_trackers" in cf_srtnotes_json
+        assert cf_srtnotes_json["jira_trackers"] == [
+            {"bts_name": "jboss", "key": "PROJECT-1"}
+        ]
+
+    @freeze_time(timezone.datetime(2022, 12, 10))
+    @pytest.mark.parametrize(
+        "unembargo_dt,old_unembargo_dt,old_public,new_public",
+        [
+            (
+                timezone.datetime(2022, 12, 20),
+                timezone.datetime(2022, 12, 20),
+                "2022-12-20",
+                "2022-12-20",
+            ),
+            (
+                timezone.datetime(2022, 12, 20, 14),
+                timezone.datetime(2022, 12, 20),
+                "2022-12-20",
+                "2022-12-20T14:00:00Z",
+            ),
+            (
+                timezone.datetime(2022, 12, 20),
+                timezone.datetime(2022, 12, 20),
+                "2022-12-20T00:00:00Z",
+                "2022-12-20T00:00:00Z",
+            ),
+        ],
+    )
+    def test_public_date_was_present(
+        self, unembargo_dt, old_unembargo_dt, old_public, new_public
+    ):
+        """
+        test generating of SRT notes public attribute
+        when public attribute was present in the old SRT notes
+        """
+        flaw = FlawFactory(
+            embargoed=True,
+            meta_attr={"original_srtnotes": '{"public": "' + old_public + '"}'},
+            unembargo_dt=make_aware(unembargo_dt),
+        )
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(flaw=flaw)
+
+        old_flaw = FlawFactory(
+            embargoed=True, unembargo_dt=make_aware(old_unembargo_dt)
+        )
+        FlawCommentFactory(flaw=old_flaw)
+        AffectFactory(flaw=old_flaw)
+
+        bbq = BugzillaQueryBuilder(flaw, old_flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+
+        assert "public" in cf_srtnotes_json
+        assert cf_srtnotes_json["public"] == new_public
+
+    @freeze_time(timezone.datetime(2022, 12, 10))
+    @pytest.mark.parametrize(
+        "unembargo_dt,present,public",
+        [
+            (
+                timezone.datetime(2022, 12, 20),
+                True,
+                "2022-12-20T00:00:00Z",
+            ),
+            (
+                None,
+                False,
+                "",
+            ),
+        ],
+    )
+    def test_public_date_was_not_present(self, unembargo_dt, present, public):
+        """
+        test generating of SRT notes public attribute
+        when public attribute was not present in the old SRT notes
+        """
+        flaw = FlawFactory(
+            embargoed=True,
+            meta_attr={"original_srtnotes": ""},
+            unembargo_dt=make_aware(unembargo_dt) if unembargo_dt else None,
+        )
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(flaw=flaw)
+
+        old_flaw = FlawFactory(
+            embargoed=True,
+            unembargo_dt=make_aware(unembargo_dt) if unembargo_dt else None,
+        )
+        FlawCommentFactory(flaw=old_flaw)
+        AffectFactory(flaw=old_flaw)
+
+        bbq = BugzillaQueryBuilder(flaw, old_flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+
+        if present:
+            assert "public" in cf_srtnotes_json
+            assert cf_srtnotes_json["public"] == public
+        else:
+            assert "public" not in cf_srtnotes_json
 
 
 class TestGenerateGroups:
