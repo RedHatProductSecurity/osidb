@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - Change logging of celery and django to filesystem (OSIDB-418)
+- Link unacked PS update stream to PS module on product definitions sync (OSIDB-629)
 
 ## [2.3.2] - 2022-11-28
 ### Changed

@@ -97,6 +97,13 @@ def sync_ps_update_streams(data: dict):
         )
 
 
+def ensure_list(item):
+    """
+    helper to ensure that the item is list
+    """
+    return item if isinstance(item, list) else [item]
+
+
 def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
     """
     Create or update PS Products based from given data and for each
@@ -141,4 +148,8 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
             # Create relations with related PS Update Streams
             for stream_type, stream_names in related_ps_update_streams.items():
                 field = getattr(ps_module, stream_type)
-                field.set(PsUpdateStream.objects.filter(name__in=stream_names))
+                field.set(
+                    # unacked PS update stream is string unlinke the others
+                    # so we have to turn it into a list while not touch the others
+                    PsUpdateStream.objects.filter(name__in=ensure_list(stream_names))
+                )

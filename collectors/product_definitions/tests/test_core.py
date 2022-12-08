@@ -179,3 +179,7 @@ class TestProductDefinitionsCollection:
         assert module.ps_update_streams.all()
         assert module.active_ps_update_streams.all()
         assert module.default_ps_update_streams.all()
+
+        # check that unacked PS update stream is not omitted
+        assert module.unacked_ps_update_stream
+        assert module.unacked_ps_update_stream.first().name == "fuse-7"
