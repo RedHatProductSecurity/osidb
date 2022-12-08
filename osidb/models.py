@@ -1592,7 +1592,7 @@ class PsModule(NullStrFieldsMixin, ValidateMixin):
     # active_ps_update_streams
     # default_ps_update_streams
     # aus_ps_update_streams
-    unacked_ps_update_stream = models.CharField(max_length=100, blank=True)
+    # unacked_ps_update_stream
 
     ps_product = models.ForeignKey(
         PsProduct, on_delete=models.CASCADE, related_name="ps_modules"
@@ -1648,6 +1648,15 @@ class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
         PsModule,
         on_delete=models.SET_NULL,
         related_name="eus_ps_update_streams",
+        null=True,
+        blank=True,
+    )
+    # there is only one unacked PS update stream
+    # but let us link it the same way so it is unified
+    unacked_to_ps_module = models.ForeignKey(
+        PsModule,
+        on_delete=models.SET_NULL,
+        related_name="unacked_ps_update_stream",
         null=True,
         blank=True,
     )
