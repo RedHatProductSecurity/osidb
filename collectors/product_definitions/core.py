@@ -97,6 +97,13 @@ def sync_ps_update_streams(data: dict):
         )
 
 
+def ensure_list(item):
+    """
+    helper to ensure that the item is list
+    """
+    return item if isinstance(item, list) else [item]
+
+
 def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
     """
     Create or update PS Products based from given data and for each
@@ -132,6 +139,13 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
                 for stream_type in PS_UPDATE_STREAM_RELATIONSHIP_TYPE
                 if stream_type in filtered_module_data
             }
+            # TODO remove the following assignment in 2.3.4 or above
+            related_ps_update_streams = {
+                "unacked_ps_update_stream_tmp"
+                if key == "unacked_ps_update_stream"
+                else key: value
+                for key, value in related_ps_update_streams.items()
+            }
 
             ps_module, _ = PsModule.objects.update_or_create(
                 name=module_name,
@@ -141,4 +155,8 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
             # Create relations with related PS Update Streams
             for stream_type, stream_names in related_ps_update_streams.items():
                 field = getattr(ps_module, stream_type)
-                field.set(PsUpdateStream.objects.filter(name__in=stream_names))
+                field.set(
+                    # unacked PS update stream is string unlinke the others
+                    # so we have to turn it into a list while not touch the others
+                    PsUpdateStream.objects.filter(name__in=ensure_list(stream_names))
+                )
