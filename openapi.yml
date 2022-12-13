@@ -2008,7 +2008,7 @@ components:
           maxLength: 100
         ps_component:
           type: string
-          maxLength: 100
+          maxLength: 255
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'

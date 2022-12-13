@@ -923,7 +923,10 @@ class Affect(
     ps_module = models.CharField(max_length=100)
 
     # from srtnotes affects/ps_components
-    ps_component = models.CharField(max_length=100)
+    # the length 255 does not have any special meaning in Postgres
+    # but it is the maximum SFM2 value so let us just keep parity for now
+    # to fix https://issues.redhat.com/browse/OSIDB-635
+    ps_component = models.CharField(max_length=255)
 
     # from srtnotes affects/impact
     impact = models.CharField(choices=AffectImpact.choices, max_length=20, blank=True)
