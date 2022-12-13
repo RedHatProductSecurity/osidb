@@ -1177,6 +1177,18 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     def __str__(self):
         return str(self.uuid)
 
+    def _validate_tracker_flaw_accesses(self):
+        """
+        Check whether an public tracker is associated with an embargoed flaw.
+        """
+        if (
+            not self.is_embargoed
+            and Flaw.objects.filter(affects__trackers=self, embargoed=True).exists()
+        ):
+            raise ValidationError(
+                "Tracker is public but is associated with an embargoed flaw."
+            )
+
     @property
     def fix_state(self):
         """
@@ -1231,7 +1243,7 @@ class Erratum(TrackingMixin):
         return str(self.advisory_name)
 
 
-class FlawMetaManager(models.Manager):
+class FlawMetaManager(ACLMixinManager):
     """flawmeta manager"""
 
     @staticmethod
@@ -1249,10 +1261,6 @@ class FlawMetaManager(models.Manager):
                 meta_attr=meta,
                 **extra_fields,
             )
-
-    def get_queryset(self):
-        """define base queryset for retrieving flawmeta, order by oldest date first"""
-        return super().get_queryset()
 
 
 class FlawMeta(AlertMixin, TrackingMixin, ACLMixin):

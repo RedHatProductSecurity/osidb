@@ -448,6 +448,7 @@ class TestGenerateSRTNotes:
             affects=[affect],
             external_system_id="PROJECT-1",
             type=Tracker.TrackerType.JIRA,
+            embargoed=flaw.is_embargoed,
         )
 
         bbq = BugzillaQueryBuilder(flaw)
@@ -780,7 +781,7 @@ class TestGenerateGroups:
         flaw = FlawFactory(embargoed=False)
         FlawCommentFactory(flaw=flaw)
         affect = AffectFactory(flaw=flaw)
-        TrackerFactory(affects=[affect])
+        TrackerFactory(affects=[affect], embargoed=flaw.is_embargoed)
         PsModuleFactory(
             name=affect.ps_module,
             bts_groups={
@@ -803,7 +804,7 @@ class TestGenerateGroups:
         flaw = FlawFactory(embargoed=True)
         FlawCommentFactory(flaw=flaw)
         affect = AffectFactory(flaw=flaw)
-        TrackerFactory(affects=[affect])
+        TrackerFactory(affects=[affect], embargoed=flaw.is_embargoed)
         PsModuleFactory(
             name=affect.ps_module,
             bts_groups={
@@ -830,7 +831,7 @@ class TestGenerateGroups:
         flaw = FlawFactory(embargoed=True)
         FlawCommentFactory(flaw=flaw)
         affect = AffectFactory(flaw=flaw)
-        TrackerFactory(affects=[affect])
+        TrackerFactory(affects=[affect], embargoed=flaw.is_embargoed)
         PsModuleFactory(
             name=affect.ps_module,
             bts_groups={
@@ -856,7 +857,7 @@ class TestGenerateGroups:
         )
         FlawCommentFactory(flaw=flaw)
         affect = AffectFactory(flaw=flaw)
-        TrackerFactory(affects=[affect])
+        TrackerFactory(affects=[affect], embargoed=flaw.is_embargoed)
         PsModuleFactory(
             name=affect.ps_module,
             bts_groups={
@@ -890,7 +891,7 @@ class TestGenerateGroups:
         )
         FlawCommentFactory(flaw=flaw)
         affect1 = AffectFactory(flaw=flaw)
-        TrackerFactory(affects=[affect1])
+        TrackerFactory(affects=[affect1], embargoed=flaw.is_embargoed)
         PsModuleFactory(
             name=affect1.ps_module,
             bts_groups={
@@ -905,7 +906,7 @@ class TestGenerateGroups:
         new_flaw.affects.first().delete()
         # and add a newly created affect
         affect2 = AffectFactory(flaw=new_flaw)
-        TrackerFactory(affects=[affect2])
+        TrackerFactory(affects=[affect2], embargoed=new_flaw.is_embargoed)
         PsModuleFactory(
             name=affect2.ps_module,
             bts_groups={
