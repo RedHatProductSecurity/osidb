@@ -76,6 +76,9 @@ class TestProductDefinitionsCollection:
         for key, value in raw_data.items():
             instance = model.objects.get(**{unique_field: key})
             for field in raw_data[key]:
+                # TODO remove this conditional statement in version 2.3.4 or above
+                if field == "unacked_ps_update_stream":
+                    field = "unacked_ps_update_stream_tmp"
                 if field in fields:
                     if raw_data[key].get(field):
                         assert getattr(instance, field)
@@ -179,3 +182,8 @@ class TestProductDefinitionsCollection:
         assert module.ps_update_streams.all()
         assert module.active_ps_update_streams.all()
         assert module.default_ps_update_streams.all()
+
+        # check that unacked PS update stream is not omitted
+        # TODO remove _tmp in version 2.3.4 or above
+        assert module.unacked_ps_update_stream_tmp
+        assert module.unacked_ps_update_stream_tmp.first().name == "fuse-7"
