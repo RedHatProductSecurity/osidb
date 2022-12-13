@@ -36,13 +36,33 @@ class FlawFactory(factory.django.DjangoModelFactory):
     cve_id = factory.sequence(lambda n: f"CVE-2020-000{n}")
     type = factory.Faker("random_element", elements=list(FlawType))
     created_dt = factory.Faker("date_time", tzinfo=UTC)
+    reported_dt = factory.Faker("date_time", tzinfo=UTC)
     state = factory.Faker("random_element", elements=list(Flaw.FlawState))
     resolution = factory.Faker("random_element", elements=list(FlawResolution))
     impact = factory.Faker("random_element", elements=list(FlawImpact))
-    title = factory.LazyAttribute(lambda c: f"Title for {c.cve_id}")
     description = factory.LazyAttribute(lambda c: f"Description for {c.cve_id}")
+    title = factory.Maybe(
+        "embargoed",
+        yes_declaration=factory.LazyAttribute(
+            lambda c: f"EMBARGOED {c.cve_id} kernel: some description"
+        ),
+        no_declaration=factory.LazyAttribute(
+            lambda c: f"{c.cve_id} kernel: some description"
+        ),
+    )
     statement = factory.LazyAttribute(lambda c: f"Statement for {c.cve_id}")
     embargoed = factory.Faker("random_element", elements=[False, True])
+    summary = factory.Maybe(
+        "is_major_incident",
+        yes_declaration="I'm a spooky CVE",
+        no_declaration=factory.Faker("random_element", elements=["", "foo"]),
+    )
+    unembargo_dt = factory.Maybe(
+        "embargoed",
+        yes_declaration=factory.Faker("future_datetime", tzinfo=UTC),
+        no_declaration=factory.Faker("past_datetime", tzinfo=UTC),
+    )
+    cvss3 = "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
     # cannot be set to ("random_element", elements=list(FlawSource)) because it could
     # inadvertently trigger validation errors in unrelated tests.
     source = ""

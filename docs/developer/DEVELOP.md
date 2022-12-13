@@ -79,6 +79,8 @@ This installs missing RPMs to the system, creates a python virtual environment, 
 
 If you see the error `RuntimeError: Variable BZIMPORT_BZ_API_KEY must be set.`, please follow `DEVELOP.md` from the beginning.
 
+If you see the error `ERROR: Failed building wheel for python-ldap` because it could not find `-lldap_r`, please refer to this [issue](https://github.com/python-ldap/python-ldap/issues/432).
+
 ### Set up githooks
 
 It is strongly recommended to install githooks that check the code for secrets and other errors:

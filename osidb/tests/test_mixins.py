@@ -1,6 +1,7 @@
 import uuid
 
 import pytest
+from django.utils import timezone
 from freezegun import freeze_time
 
 from collectors.bzimport.convertors import FlawBugConvertor
@@ -27,6 +28,9 @@ class TestTrackingMixin:
             description="description",
             acl_read=acls,
             acl_write=acls,
+            reported_dt=timezone.now(),
+            unembargo_dt=tzdatetime(2000, 1, 1),
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             **kwargs,
         )
 
@@ -123,7 +127,7 @@ class TestTrackingMixin:
         test conflicting model changes
         saving an outdated model instance should fail
         """
-        flaw = FlawFactory()
+        flaw = FlawFactory(embargoed=False)
         flaw_copy = Flaw.objects.first()
 
         with freeze_time(tzdatetime(2023, 12, 24)):
@@ -144,6 +148,7 @@ class TestTrackingMixin:
             "depends_on": [],
             "creation_time": tzdatetime(2020, 12, 24),
             "last_change_time": tzdatetime(2021, 12, 24),
+            "cf_srtnotes": "",
         }
 
     def get_flaw_bug_convertor(self):

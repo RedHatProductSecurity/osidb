@@ -41,9 +41,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_extensions",
-    "pghistory",
-    "pgtrigger",
-    "pgconnection",
     "django.contrib.postgres",
     "psqlextra",
     "rest_framework",
@@ -258,6 +255,3 @@ ERRATA_TOOL_XMLRPC_BASE_URL = f"{ERRATA_TOOL_SERVER}/errata/errata_service"
 
 # Execute once a day by default
 CISA_COLLECTOR_CRONTAB = crontab(minute=0, hour=1)
-
-# Do not reinstall pgtriggers during the migration step
-PGTRIGGER_INSTALL_ON_MIGRATE = False

@@ -1,8 +1,130 @@
 import json
 from itertools import chain
 
-from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
-from osidb.models import Flaw, FlawImpact, PsModule
+from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT, BZ_DT_FMT_HISTORY
+from osidb.models import Flaw, FlawImpact, PsModule, Tracker
+
+DATE_FMT = "%Y-%m-%d"
+# these two time formats are the same
+# thus spare us defining it again
+DATETIME_FMT = BZ_DT_FMT_HISTORY
+
+
+class SRTNotesBuilder:
+    """
+    Bugzilla flaw bug SRT notes field JSON content builder
+    """
+
+    def __init__(self, flaw, old_flaw=None):
+        """
+        init stuff
+        parametr old_flaw is optional as there is no old flaw on creation
+        and if not set we consider the query to be a create query
+        """
+        self.flaw = flaw
+        self.old_flaw = old_flaw
+        self._json = None
+        self._original_keys = []
+
+    @property
+    def content(self):
+        """
+        string content getter shorcut
+        """
+        if self._json is None:
+            self.generate()
+
+        return json.dumps(self._json)
+
+    def add_conditionally(self, key, value, empty_value=None):
+        """
+        conditionally add the value to the SRT notes field
+        unless it is empty and was not originally present
+
+        this is to make less noise in Bugzilla history
+        """
+        # value was there already
+        if key in self._original_keys:
+            self._json[key] = value
+
+        # some attributes have special values to denote emptyness
+        # for example empty impact has string value of "none"
+        elif empty_value is not None:
+            if value != empty_value:
+                self._json[key] = value
+
+        # some values are empty when their boolean conversion is False
+        # for example arrays or strings or timestamps
+        elif value:
+            self._json[key] = value
+
+    def generate(self):
+        """
+        generate json content
+        """
+        self.restore_original()
+        self.generate_impact()
+        self.generate_jira_trackers()
+        self.generate_public_date()
+
+    def generate_impact(self):
+        """
+        generate impact attribute
+        """
+        impact = "none" if not self.flaw.impact else self.flaw.impact.lower()
+        self.add_conditionally("impact", impact, empty_value="none")
+
+    def generate_jira_trackers(self):
+        """
+        generate array of Jira tracker identifier pairs
+        consisting of BTS name being Jira instance identifier
+        and Jira issue key in given Jira instance
+        """
+        self.add_conditionally(
+            "jira_trackers",
+            [
+                # BTS name is always jboss which is the
+                # historical naming of the only Jira instance we use
+                {"bts_name": "jboss", "key": tracker.external_system_id}
+                for affect in self.flaw.affects.all()
+                for tracker in affect.trackers.filter(type=Tracker.TrackerType.JIRA)
+            ],
+        )
+
+    def generate_public_date(self):
+        """
+        generate public date attribute
+        which is abbreviated to public
+
+        it can be either date or datetime so we should check the old
+        value and preserve the format when the value does not change
+        """
+        if not self.flaw.unembargo_dt:
+            self.add_conditionally("public", None)
+            return
+
+        date_str = self.flaw.unembargo_dt.strftime(DATE_FMT)
+        if (
+            "public" in self._original_keys
+            and self.old_flaw
+            and self.flaw.unembargo_dt == self.old_flaw.unembargo_dt
+            and self._json["public"] == date_str
+        ):
+            # we prefer datetime format but if there was just date format
+            # before and the value does not change we keep the old format
+            self._json["public"] = date_str
+
+        else:
+            self._json["public"] = self.flaw.unembargo_dt.strftime(DATETIME_FMT)
+
+    def restore_original(self):
+        """
+        restore the original SRT notes attributes
+        this ensures that we preserve potential unknown attributes intact
+        """
+        srtnotes = self.flaw.meta_attr.get("original_srtnotes")
+        self._json = json.loads(srtnotes) if srtnotes else {}
+        self._original_keys = list(self._json.keys())
 
 
 class BugzillaQueryBuilder:
@@ -51,8 +173,8 @@ class BugzillaQueryBuilder:
         self.generate_groups()
         self.generate_deadline()
         self.generate_cc()
+        self.generate_srt_notes()
         # TODO placeholder + has different groups
-        # TODO SRT notes
         # TODO tracker links
         # TODO prestage eligable date - deprecate
         # TODO checklists
@@ -233,17 +355,13 @@ class BugzillaQueryBuilder:
                 "remove": remove_groups,
             }
 
-    DEADLINE_FORMAT = "%Y-%m-%d"
-
     def generate_deadline(self):
         """
         generate query for Bugzilla deadline
         """
         if self.flaw.embargoed:
             if self.flaw.unembargo_dt:
-                self._query["deadline"] = self.flaw.unembargo_dt.strftime(
-                    self.DEADLINE_FORMAT
-                )
+                self._query["deadline"] = self.flaw.unembargo_dt.strftime(DATE_FMT)
 
         # unembargo
         elif not self.creation and self.old_flaw.embargoed:
@@ -257,3 +375,10 @@ class BugzillaQueryBuilder:
         # on update it is more complicated
         if self.creation:
             self._query["cc"] = []
+
+    def generate_srt_notes(self):
+        """
+        generate query for SRT notes
+        """
+        srt_notes_builder = SRTNotesBuilder(self.flaw, self.old_flaw)
+        self._query["cf_srtnotes"] = srt_notes_builder.content

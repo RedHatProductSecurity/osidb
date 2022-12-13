@@ -180,9 +180,6 @@ django==3.2.15 \
     #   django-extensions
     #   django-filter
     #   django-model-utils
-    #   django-pgconnection
-    #   django-pghistory
-    #   django-pgtrigger
     #   django-polymorphic
     #   django-postgres-extra
     #   djangorestframework
@@ -211,20 +208,6 @@ django-model-utils==4.2.0 \
     --hash=sha256:a768a25c80514e0ad4e4a6f9c02c44498985f36c5dfdea47b5b1e8cf994beba6 \
     --hash=sha256:e7a95e102f9c9653427eadab980d5d59e1dea972913b9c9e01ac37f86bba0ddf
     # via -r requirements.in
-django-pgconnection==1.0.2 \
-    --hash=sha256:1c012e789cd65bee1d514de6a4b3f90c888e599c3c2be195e7bb3627923bb7f3 \
-    --hash=sha256:51ea5943faaa4aa4a2f953586b925ecddec852b009c004ee0b5de93d5ae162f7
-    # via
-    #   django-pghistory
-    #   django-pgtrigger
-django-pghistory==1.2.1 \
-    --hash=sha256:5014cc21cad1615cb78948d614b2c94fca1f8433468a703108df26bfb39f24d4 \
-    --hash=sha256:7b5768096bb45348676d59994e1b50f80683be2b31cb374f15b5863a330c51ff
-    # via -r requirements.in
-django-pgtrigger==2.4.0 \
-    --hash=sha256:4515739ade4e1889f86b8ea0ce6fd2be2ed144ed70fa213654935aac050ace8a \
-    --hash=sha256:c3bd10a987d0b05f30425bd48a2218fe0b7d97f440d5bbc4b486c5338527e829
-    # via django-pghistory
 django-polymorphic==3.0.0 \
     --hash=sha256:73b75eb44ea302bd32820f8661e469509d245ce7f7ff09cd2ad149e5c42034ff \
     --hash=sha256:9d886f19f031d26bb1391c055ed9be06fb226a04a4cec1842b372c58873b3caa

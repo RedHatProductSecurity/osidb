@@ -12,6 +12,7 @@ from django.contrib.postgres import fields
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_deprecate_fields import deprecate_field
 from polymorphic.models import PolymorphicModel
@@ -702,11 +703,12 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin):
         """
         if not self.source:
             return
-        # TODO: make embargoed accessible from python code (property?)
-        embargoed = self.acl_read == [
-            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
-        ]
-        if embargoed and (source := FlawSource(self.source)) and source.is_public():
+
+        if (
+            self.is_embargoed
+            and (source := FlawSource(self.source))
+            and source.is_public()
+        ):
             if source.is_private():
                 self.alert(
                     "embargoed_source_public",
@@ -717,6 +719,95 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin):
                 raise ValidationError(
                     f"Flaw is embargoed but contains public source: {self.source}"
                 )
+
+    def _validate_reported_date(self):
+        """
+        Checks that the flaw has non-empty reported_dt
+        """
+        if self.reported_dt is None:
+            raise ValidationError("Flaw has an empty reported_dt")
+
+    def _validate_public_unembargo_date(self):
+        """
+        Check that an unembargo date (public date) exists and is in the past if the Flaw is public
+        """
+        if not self.is_embargoed:
+            if self.unembargo_dt is None:
+                raise ValidationError("Public flaw has an empty unembargo_dt")
+            if self.unembargo_dt > timezone.now():
+                raise ValidationError("Public flaw has a future unembargo_dt")
+
+    def _validate_future_unembargo_date(self):
+        """
+        Check that an enbargoed flaw has an unembargo date in the future
+        """
+        if (
+            self.is_embargoed
+            and self.unembargo_dt is not None
+            and self.unembargo_dt < timezone.now()
+        ):
+            raise ValidationError(
+                "Flaw still embargoed but unembargo date is in the past."
+            )
+
+    def _validate_cvss3(self):
+        """
+        Check that a CVSSv3 string is present.
+        """
+        if not self.cvss3:
+            raise ValidationError("CVSSv3 score is missing")
+
+    def _validate_summary_major_incident(self):
+        """
+        Check that a flaw that is a major incident has a summary
+        """
+        req = self.meta.filter(type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT).last()
+        if not self.is_major_incident or (req and req.meta_attr.get("status") == "-"):
+            return
+
+        if not self.summary:
+            raise ValidationError("Flaw marked as Major Incident does not have Summary")
+
+        if not req or req.meta_attr.get("status") == "?":
+            raise ValidationError(
+                "Flaw marked as Major Incident does not have Summary reviewed"
+            )
+
+        # XXX: In SFM2 we check that the REQUIRES_DOC_TEXT flag is set by
+        # someone who has review access rights, it is uncertain whether
+        # we'd need this in OSIDB as ideally we would block non-authorized
+        # users from reviewing in the first place, in which case we don't
+        # need to perform this validation
+
+    def _validate_public_flaw_title(self):
+        """
+        Check that the flaw's title does not contain the word "EMBARGOED" if the flaw is public.
+        """
+        if not self.is_embargoed and "EMBARGOED" in self.title:
+            raise ValidationError(
+                'Flaw title contains "EMBARGOED" despite being public.'
+            )
+
+    def _validate_embargoed_flaw_title(self):
+        """
+        Check that the flaw's title does contain the word "EMBARGOED" if the flaw is embargoed.
+        """
+        if self.is_embargoed and "EMBARGOED" not in self.title:
+            raise ValidationError(
+                'Flaw title does not contains "EMBARGOED" despite being embargoed.'
+            )
+
+    def _validate_embargoing_public_flaw(self):
+        """
+        Check whether a currently public flaw is being embargoed.
+        """
+        if self._state.adding:
+            # we're creating a new flaw so we don't need to check whether we're
+            # changing from one state to another
+            return
+        old_flaw = Flaw.objects.get(pk=self.pk)
+        if not old_flaw.embargoed and self.is_embargoed:
+            raise ValidationError("Embargoing a public flaw is futile")
 
     # TODO this needs to be refactored
     # but it makes sense only when we are capable of write actions
@@ -809,6 +900,12 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin):
         """check that all trackers have resolution"""
         # TODO we have no tracker resolution for now
         return False
+
+    @property
+    def is_embargoed(self):
+        return self.acl_read == [
+            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+        ]
 
 
 class AffectManager(models.Manager):
