@@ -7,7 +7,6 @@ import uuid
 from decimal import Decimal
 from typing import Union
 
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.postgres import fields
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
@@ -24,8 +23,14 @@ from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.osim.workflow import WorkflowModel
 
 from .constants import BZ_ID_SENTINEL, CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
-from .core import generate_acls
-from .mixins import AlertMixin, NullStrFieldsMixin, TrackingMixin, ValidateMixin
+from .mixins import (
+    ACLMixin,
+    ACLMixinManager,
+    AlertMixin,
+    NullStrFieldsMixin,
+    TrackingMixin,
+    ValidateMixin,
+)
 from .validators import (
     no_future_date,
     validate_cve_id,
@@ -80,29 +85,8 @@ def search_helper(
     # Order remaining results from highest rank to lowest
 
 
-class FlawHistoryManager(models.Manager):
+class FlawHistoryManager(ACLMixinManager):
     """flaw history manager"""
-
-    def get_queryset(self):
-        """define base queryset for retrieving flaws"""
-        return (
-            super()
-            .get_queryset()
-            .annotate(
-                # annotate queryset with embargoed pseudo-attribute as it is fully based on the ACLs
-                embargoed=models.Case(
-                    models.When(
-                        acl_read=[
-                            uuid.UUID(acl)
-                            for acl in generate_acls([settings.EMBARGO_READ_GROUP])
-                        ],
-                        then=True,
-                    ),
-                    default=False,
-                    output_field=models.BooleanField(),
-                )
-            )
-        )
 
     @staticmethod
     def fts_search(q):
@@ -292,7 +276,7 @@ class FlawSource(models.TextChoices):
         }
 
 
-class FlawHistory(NullStrFieldsMixin, ValidateMixin):
+class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
     """match existing history table for flaws"""
 
     pgh_created_at = models.DateTimeField(null=True)
@@ -401,9 +385,6 @@ class FlawHistory(NullStrFieldsMixin, ValidateMixin):
     # TBD-  affects history
     # TBD-  meta history
 
-    acl_read = fields.ArrayField(models.UUIDField(), default=list)
-    acl_write = fields.ArrayField(models.UUIDField(), default=list)
-
     # non operational meta data
     meta_attr = HStoreField(default=dict)
 
@@ -463,7 +444,7 @@ class FlawHistory(NullStrFieldsMixin, ValidateMixin):
     #             self.embargoed = False
 
 
-class FlawManager(models.Manager):
+class FlawManager(ACLMixinManager):
     """flaw manager"""
 
     @staticmethod
@@ -492,27 +473,6 @@ class FlawManager(models.Manager):
             extra_fields["meta_attr"] = meta_attr
             return Flaw(cve_id=cve_id, **extra_fields)
 
-    def get_queryset(self):
-        """define base queryset for retrieving flaws"""
-        return (
-            super()
-            .get_queryset()
-            .annotate(
-                # annotate queryset with embargoed pseudo-attribute as it is fully based on the ACLs
-                embargoed=models.Case(
-                    models.When(
-                        acl_read=[
-                            uuid.UUID(acl)
-                            for acl in generate_acls([settings.EMBARGO_READ_GROUP])
-                        ],
-                        then=True,
-                    ),
-                    default=False,
-                    output_field=models.BooleanField(),
-                )
-            )
-        )
-
     @staticmethod
     def fts_search(q):
         """full text search using postgres FTS via django.contrib.postgres"""
@@ -521,7 +481,7 @@ class FlawManager(models.Manager):
         # If search has no results, this will now return an empty queryset
 
 
-class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin):
+class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixin):
     """Model flaw"""
 
     class FlawState(models.TextChoices):
@@ -632,9 +592,6 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin):
 
     # non operational meta data
     meta_attr = HStoreField(default=dict)
-
-    acl_read = fields.ArrayField(models.UUIDField(), default=list)
-    acl_write = fields.ArrayField(models.UUIDField(), default=list)
 
     class Meta:
         """define meta"""
@@ -931,14 +888,8 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin):
         # TODO we have no tracker resolution for now
         return False
 
-    @property
-    def is_embargoed(self):
-        return self.acl_read == [
-            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
-        ]
 
-
-class AffectManager(models.Manager):
+class AffectManager(ACLMixinManager):
     """affect manager"""
 
     @staticmethod
@@ -960,10 +911,6 @@ class AffectManager(models.Manager):
                 **extra_fields,
             )
 
-    def get_queryset(self):
-        """define base queryset for retrieving affects"""
-        return super().get_queryset()
-
     @staticmethod
     def fts_search(q):
         """full text search using postgres FTS via django.contrib.postgres"""
@@ -980,7 +927,7 @@ class AffectManager(models.Manager):
 
 
 class Affect(
-    TrackingMixin, AffectExploitExtensionMixin, AlertMixin, NullStrFieldsMixin
+    TrackingMixin, AffectExploitExtensionMixin, AlertMixin, NullStrFieldsMixin, ACLMixin
 ):
     """affect model definition"""
 
@@ -1068,9 +1015,6 @@ class Affect(
 
     # non operational meta data
     meta_attr = HStoreField(default=dict)
-
-    acl_read = fields.ArrayField(models.UUIDField(), default=list)
-    acl_write = fields.ArrayField(models.UUIDField(), default=list)
 
     # A Flaw can have many Affects
     flaw = models.ForeignKey(
@@ -1160,7 +1104,7 @@ class Affect(
         return Affect.AffectFix.AFFECTED
 
 
-class TrackerManager(models.Manager):
+class TrackerManager(ACLMixinManager):
     """tracker manager"""
 
     @staticmethod
@@ -1186,12 +1130,8 @@ class TrackerManager(models.Manager):
             tracker.affects.add(affect)
         return tracker
 
-    def get_queryset(self):
-        """define base queryset for retrieving trackers"""
-        return super().get_queryset()
 
-
-class Tracker(ValidateMixin, TrackingMixin, NullStrFieldsMixin):
+class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     """tracker model definition"""
 
     class TrackerType(models.TextChoices):
@@ -1217,9 +1157,6 @@ class Tracker(ValidateMixin, TrackingMixin, NullStrFieldsMixin):
 
     # non operational meta data
     meta_attr = HStoreField(default=dict)
-
-    acl_read = fields.ArrayField(models.UUIDField(), default=list)
-    acl_write = fields.ArrayField(models.UUIDField(), default=list)
 
     # An Affect can have many trackers, and a tracker can track multiple flaw/affects
     affects = models.ManyToManyField(Affect, related_name="trackers", blank=True)
@@ -1318,7 +1255,7 @@ class FlawMetaManager(models.Manager):
         return super().get_queryset()
 
 
-class FlawMeta(AlertMixin, TrackingMixin):
+class FlawMeta(AlertMixin, TrackingMixin, ACLMixin):
     """Model representing extensible structured flaw metadata"""
 
     class FlawMetaType(models.TextChoices):
@@ -1343,9 +1280,6 @@ class FlawMeta(AlertMixin, TrackingMixin):
 
     # non operational meta data
     meta_attr = HStoreField(default=dict)
-
-    acl_read = fields.ArrayField(models.UUIDField(), default=list)
-    acl_write = fields.ArrayField(models.UUIDField(), default=list)
 
     # A Flaw can have many structured FlawMeta
     flaw = models.ForeignKey(Flaw, on_delete=models.CASCADE, related_name="meta")
@@ -1409,7 +1343,7 @@ class FlawMeta(AlertMixin, TrackingMixin):
                 )
 
 
-class FlawCommentManager(models.Manager):
+class FlawCommentManager(ACLMixinManager):
     """flawcomment manager"""
 
     @staticmethod
@@ -1429,12 +1363,8 @@ class FlawCommentManager(models.Manager):
                 **extra_fields,
             )
 
-    def get_queryset(self):
-        """define base queryset for retrieving flawcomment, order by oldest date first"""
-        return super().get_queryset()
 
-
-class FlawComment(TrackingMixin):
+class FlawComment(TrackingMixin, ACLMixin):
     """Model representing flaw comments"""
 
     class FlawCommentType(models.TextChoices):
@@ -1463,9 +1393,6 @@ class FlawComment(TrackingMixin):
 
     # comment meta data
     meta_attr = HStoreField(default=dict)
-
-    acl_read = fields.ArrayField(models.UUIDField(), default=list)
-    acl_write = fields.ArrayField(models.UUIDField(), default=list)
 
     # one flaw can have many comments
     flaw = models.ForeignKey(Flaw, on_delete=models.CASCADE, related_name="comments")

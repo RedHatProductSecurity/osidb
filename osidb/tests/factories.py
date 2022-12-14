@@ -205,8 +205,38 @@ class TrackerFactory(factory.django.DjangoModelFactory):
     status = factory.Faker("word")
     resolution = factory.Faker("word")
 
-    acl_read = factory.List([DATA_PRODSEC_ACL])
-    acl_write = acl_read
+    embargoed = factory.Faker("random_element", elements=[False, True])
+    acl_read = factory.LazyAttribute(
+        lambda o: [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}"
+            )
+            for group in settings.PUBLIC_READ_GROUPS
+        ]
+        if o.embargoed is False
+        else [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_READ_GROUP}",
+            )
+        ]
+    )
+    acl_write = factory.LazyAttribute(
+        lambda o: [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                f"https://osidb.prod.redhat.com/ns/acls#{settings.PUBLIC_WRITE_GROUP}",
+            )
+        ]
+        if o.embargoed is False
+        else [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_WRITE_GROUP}",
+            )
+        ]
+    )
+
     meta_attr = {"test": "1"}
 
     @factory.post_generation
@@ -217,6 +247,34 @@ class TrackerFactory(factory.django.DjangoModelFactory):
         if extracted:
             for affect in extracted:
                 self.affects.add(affect)
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        """
+        instance creation
+        with saving to DB
+        """
+        # embargoed is not a real model attribute but annotation so it is read-only
+        # but we want preserve it as writable factory attribute as it is easier to work with
+        # than with ACLs so we need to remove it for the tracker creation and emulate annotation
+        embargoed = kwargs.pop("embargoed")
+        tracker = super()._create(model_class, *args, **kwargs)
+        tracker.embargoed = embargoed
+        return tracker
+
+    @classmethod
+    def _build(cls, model_class, *args, **kwargs):
+        """
+        instance build
+        without saving to DB
+        """
+        # embargoed is not a real model attribute but annotation so it is read-only
+        # but we want preserve it as writable factory attribute as it is easier to work with
+        # than with ACLs so we need to remove it for the tracker creation and emulate annotation
+        embargoed = kwargs.pop("embargoed")
+        tracker = super()._build(model_class, *args, **kwargs)
+        tracker.embargoed = embargoed
+        return tracker
 
 
 class FlawCommentFactory(factory.django.DjangoModelFactory):

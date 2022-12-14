@@ -1,10 +1,15 @@
+import uuid
 from enum import Enum
 
+from django.conf import settings
+from django.contrib.postgres import fields
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
 from osidb.exceptions import DataInconsistencyException
+
+from .core import generate_acls
 
 
 class TrackingMixin(models.Model):
@@ -195,6 +200,44 @@ class AlertMixin(ValidateMixin):
         # here we have to skip ValidateMixin level save as otherwise
         # it would run validate again and without proper arguments
         super(ValidateMixin, self).save(*args, **kwargs)
+
+    class Meta:
+        abstract = True
+
+
+class ACLMixinManager(models.Manager):
+    def get_queryset(self):
+        """define base queryset for retrieving models that uses ACLs"""
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                # annotate queryset with embargoed pseudo-attribute as it is fully based on the ACLs
+                embargoed=models.Case(
+                    models.When(
+                        acl_read=[
+                            uuid.UUID(acl)
+                            for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+                        ],
+                        then=True,
+                    ),
+                    default=False,
+                    output_field=models.BooleanField(),
+                )
+            )
+        )
+
+
+class ACLMixin(models.Model):
+    objects = ACLMixinManager()
+    acl_read = fields.ArrayField(models.UUIDField(), default=list)
+    acl_write = fields.ArrayField(models.UUIDField(), default=list)
+
+    @property
+    def is_embargoed(self):
+        return self.acl_read == [
+            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+        ]
 
     class Meta:
         abstract = True
