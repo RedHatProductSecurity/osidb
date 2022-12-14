@@ -36,6 +36,7 @@ class TestEmbargo(object):
             acl_read=groups,
             acl_write=groups,
             cve_id="CVE-2000-11111",
+            cwe_id="CWE-1",
             type="VULNERABILITY",
             state="NEW",
             resolution="",

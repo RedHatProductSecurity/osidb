@@ -146,6 +146,7 @@ class TestFlaw:
 
         vuln_2 = Flaw(
             cve_id="CVE-1970-12345",
+            cwe_id="CWE-1",
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
@@ -175,6 +176,7 @@ class TestFlaw:
         Flaw.objects.all().delete()
         Flaw.objects.create_flaw(
             bz_id="12345",
+            cwe_id="CWE-1",
             title="first",
             unembargo_dt=tzdatetime(2000, 1, 1),
             description="description",
@@ -294,6 +296,7 @@ class TestFlaw:
         meta_attr["test"] = 1
         vuln_1 = Flaw(
             cve_id=good_cve_id,
+            cwe_id="CWE-1",
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
@@ -324,6 +327,7 @@ class TestFlaw:
 
         flaw = Flaw(
             cve_id="CVE-1970-12345",
+            cwe_id="CWE-1",
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
@@ -353,6 +357,7 @@ class TestFlaw:
 
         flaw = Flaw(
             cve_id=good_cve_id,
+            cwe_id="CWE-1",
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
@@ -914,3 +919,25 @@ class TestFlawValidators:
             ]
             flaw.unembargo_dt = tzdatetime(2022, 1, 1)
             flaw.save()
+
+    @pytest.mark.parametrize(
+        "cwe,should_raise",
+        [
+            ("", False),
+            ("CWE-123", False),
+            ("(CWE-123)", False),
+            ("CWE-123->CWE-12324", False),
+            ("CWE-123->(CWE-12324)", False),
+            ("CWE-1+CWE-2", True),
+            ("CWE-1->", True),
+            ("cwe-1->CWE-2", True),
+        ],
+    )
+    def test_validate_cwe_format(self, cwe, should_raise):
+        """test that flaws only accepts a valid CWE ID"""
+        if should_raise:
+            with pytest.raises(ValidationError) as e:
+                FlawFactory(cwe_id=cwe)
+            assert "CWE IDs is not well formated." in str(e)
+        else:
+            assert FlawFactory(cwe_id=cwe)

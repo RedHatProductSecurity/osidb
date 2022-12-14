@@ -68,6 +68,7 @@ class TestSearch:
 
         flaw = Flaw(
             cve_id=good_cve_id,
+            cwe_id="CWE-1",
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
