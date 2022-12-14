@@ -155,3 +155,11 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
                     # so we have to turn it into a list while not touch the others
                     PsUpdateStream.objects.filter(name__in=ensure_list(stream_names))
                 )
+                # unacked PS update stream may or may not be present in ps_updates_streams array
+                # therefore we need to explicitly ensure that it is linked to PS module
+                if stream_type == "unacked_ps_update_stream":
+                    unacked_ps_update_stream = PsUpdateStream.objects.filter(
+                        name=stream_names
+                    ).first()
+                    if unacked_ps_update_stream:
+                        ps_module.ps_update_streams.add(unacked_ps_update_stream)
