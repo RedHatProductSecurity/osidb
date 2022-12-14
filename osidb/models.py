@@ -1020,7 +1020,10 @@ class Affect(
     ps_module = models.CharField(max_length=100)
 
     # from srtnotes affects/ps_components
-    ps_component = models.CharField(max_length=100)
+    # the length 255 does not have any special meaning in Postgres
+    # but it is the maximum SFM2 value so let us just keep parity for now
+    # to fix https://issues.redhat.com/browse/OSIDB-635
+    ps_component = models.CharField(max_length=255)
 
     # from srtnotes affects/impact
     impact = models.CharField(choices=AffectImpact.choices, max_length=20, blank=True)
@@ -1592,7 +1595,10 @@ class PsModule(NullStrFieldsMixin, ValidateMixin):
     # active_ps_update_streams
     # default_ps_update_streams
     # aus_ps_update_streams
-    unacked_ps_update_stream = models.CharField(max_length=100, blank=True)
+    # TODO remove the next line in version 2.3.4 or above
+    unacked_ps_update_stream = models.CharField(  # noqa: DJ01
+        max_length=100, blank=True, null=True
+    )
 
     ps_product = models.ForeignKey(
         PsProduct, on_delete=models.CASCADE, related_name="ps_modules"
@@ -1648,6 +1654,16 @@ class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
         PsModule,
         on_delete=models.SET_NULL,
         related_name="eus_ps_update_streams",
+        null=True,
+        blank=True,
+    )
+    # there is only one unacked PS update stream
+    # but let us link it the same way so it is unified
+    # TODO in version 2.3.4 or above change the related_name to unacked_ps_update_stream
+    unacked_to_ps_module = models.ForeignKey(
+        PsModule,
+        on_delete=models.SET_NULL,
+        related_name="unacked_ps_update_stream_tmp",
         null=True,
         blank=True,
     )

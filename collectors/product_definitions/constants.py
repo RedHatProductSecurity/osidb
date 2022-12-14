@@ -34,4 +34,5 @@ PS_UPDATE_STREAM_RELATIONSHIP_TYPE = (
     "default_ps_update_streams",
     "eus_ps_update_streams",
     "aus_ps_update_streams",
+    "unacked_ps_update_stream_tmp",
 )

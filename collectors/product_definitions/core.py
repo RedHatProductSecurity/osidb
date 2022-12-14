@@ -97,6 +97,13 @@ def sync_ps_update_streams(data: dict):
         )
 
 
+def ensure_list(item):
+    """
+    helper to ensure that the item is list
+    """
+    return item if isinstance(item, list) else [item]
+
+
 def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
     """
     Create or update PS Products based from given data and for each
@@ -119,11 +126,18 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
         # Sync PS Product related PS Modules
         for module_name in related_ps_modules:
             module_data = ps_modules_data[module_name]
-            filtered_module_data = {
-                key: value
-                for key, value in module_data.items()
-                if key in ps_module_fields
-            }
+            filtered_module_data = {}
+            for fname in ps_module_fields:
+                # TODO: Remove hack in version 2.3.4 or above
+                # This essentially maps unacked_ps_update_stream_tmp (new field)
+                # to the value of unacked_ps_update_stream (old field) without
+                # using nor setting the old field, so that we can remain N-1
+                # compatible.
+                key = fname
+                if fname == "unacked_ps_update_stream":
+                    fname = "unacked_ps_update_stream_tmp"
+                if val := module_data.get(key, False):
+                    filtered_module_data[fname] = val
 
             # get names of the related PS Update Streams as they will be
             # synced separately after PS Module creation
@@ -133,6 +147,12 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
                 if stream_type in filtered_module_data
             }
 
+            # since filtered_module_data no longer contains the key for
+            # unacked_ps_update_stream (old field) we can determine that
+            # there's now 0 usage of the old field.
+            # note that this behavior is probably incorrect somehow as
+            # we're attempting to set multiple related objects with string
+            # values but Django doesn't seem to care?
             ps_module, _ = PsModule.objects.update_or_create(
                 name=module_name,
                 defaults={"ps_product": ps_product, **filtered_module_data},
@@ -141,4 +161,8 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
             # Create relations with related PS Update Streams
             for stream_type, stream_names in related_ps_update_streams.items():
                 field = getattr(ps_module, stream_type)
-                field.set(PsUpdateStream.objects.filter(name__in=stream_names))
+                field.set(
+                    # unacked PS update stream is string unlinke the others
+                    # so we have to turn it into a list while not touch the others
+                    PsUpdateStream.objects.filter(name__in=ensure_list(stream_names))
+                )

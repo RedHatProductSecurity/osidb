@@ -347,7 +347,6 @@ class PsModuleFactory(factory.django.DjangoModelFactory):
     private_tracker_cc = factory.List([factory.Faker("word") for _ in range(3)])
 
     default_component = factory.Faker("word")
-    unacked_ps_update_stream = factory.Faker("word")
 
     ps_product = factory.SubFactory(PsProductFactory)
 
@@ -369,3 +368,4 @@ class PsUpdateStreamFactory(factory.django.DjangoModelFactory):
     default_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
     aus_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
     eus_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
+    unacked_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))

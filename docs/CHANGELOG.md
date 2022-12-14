@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Change logging of celery and django to filesystem (OSIDB-418)
 
+## [2.3.3] - 2022-12-13
+### Changed
+- Link unacked PS update stream to PS module on product definitions sync (OSIDB-629)
+- Increase PS component name length from 100 to 255 characters (OSIDB-635)
+
 ## [2.3.2] - 2022-11-28
 ### Changed
 - Catch tracker sync exceptions individually (OSIDB-580)
