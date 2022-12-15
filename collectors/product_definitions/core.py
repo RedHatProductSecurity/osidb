@@ -128,15 +128,7 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
             module_data = ps_modules_data[module_name]
             filtered_module_data = {}
             for fname in ps_module_fields:
-                # TODO: Remove hack in version 2.3.4 or above
-                # This essentially maps unacked_ps_update_stream_tmp (new field)
-                # to the value of unacked_ps_update_stream (old field) without
-                # using nor setting the old field, so that we can remain N-1
-                # compatible.
-                key = fname
-                if fname == "unacked_ps_update_stream":
-                    fname = "unacked_ps_update_stream_tmp"
-                if val := module_data.get(key, False):
+                if val := module_data.get(fname, False):
                     filtered_module_data[fname] = val
 
             # get names of the related PS Update Streams as they will be
@@ -147,10 +139,7 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
                 if stream_type in filtered_module_data
             }
 
-            # since filtered_module_data no longer contains the key for
-            # unacked_ps_update_stream (old field) we can determine that
-            # there's now 0 usage of the old field.
-            # note that this behavior is probably incorrect somehow as
+            # TODO note that the following is probably incorrect somehow as
             # we're attempting to set multiple related objects with string
             # values but Django doesn't seem to care?
             ps_module, _ = PsModule.objects.update_or_create(
@@ -166,3 +155,11 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
                     # so we have to turn it into a list while not touch the others
                     PsUpdateStream.objects.filter(name__in=ensure_list(stream_names))
                 )
+                # unacked PS update stream may or may not be present in ps_updates_streams array
+                # therefore we need to explicitly ensure that it is linked to PS module
+                if stream_type == "unacked_ps_update_stream":
+                    unacked_ps_update_stream = PsUpdateStream.objects.filter(
+                        name=stream_names
+                    ).first()
+                    if unacked_ps_update_stream:
+                        ps_module.ps_update_streams.add(unacked_ps_update_stream)

@@ -27,6 +27,8 @@ class TestProductDefinitionsCollection:
         """take only sample of the raw data"""
         to_keep = {
             "ps_modules": [
+                "cfme-5",
+                "cfme-6",
                 "rhint-dv-1",
                 "rhint-camel-k-1",
                 "rhint-debezium-1",
@@ -40,6 +42,17 @@ class TestProductDefinitionsCollection:
                 "fis-2",
             ],
             "ps_update_streams": [
+                "cfme-5.2",
+                "cfme-5.3",
+                "cfme-5.4",
+                "cfme-5.5",
+                "cfme-5.6",
+                "cfme-5.7",
+                "cfme-5.8",
+                "cfme-5.9",
+                "cfme-5.10",
+                "cfme-5.11",
+                "cfme-5",
                 "rhint-dv-1",
                 "rhelsa-7.1",
                 "rhelsa-7.2",
@@ -51,7 +64,7 @@ class TestProductDefinitionsCollection:
                 "fuse-7.3.1",
                 "fuse-7.4.0",
             ],
-            "ps_products": ["rhint", "rhelsa", "fuse"],
+            "ps_products": ["cfme", "rhint", "rhelsa", "fuse"],
         }
 
         sampled_data = {
@@ -76,9 +89,6 @@ class TestProductDefinitionsCollection:
         for key, value in raw_data.items():
             instance = model.objects.get(**{unique_field: key})
             for field in raw_data[key]:
-                # TODO remove this conditional statement in version 2.3.4 or above
-                if field == "unacked_ps_update_stream":
-                    field = "unacked_ps_update_stream_tmp"
                 if field in fields:
                     if raw_data[key].get(field):
                         assert getattr(instance, field)
@@ -171,19 +181,30 @@ class TestProductDefinitionsCollection:
         # syncing Update Streams
         sync_ps_products_modules(ps_products, ps_modules)
 
-        module = PsModule.objects.get(name="fuse-7")
-        assert not module.ps_update_streams.all()
-        assert not module.active_ps_update_streams.all()
-        assert not module.default_ps_update_streams.all()
+        module1 = PsModule.objects.get(name="fuse-7")
+        assert not module1.ps_update_streams.all()
+        assert not module1.active_ps_update_streams.all()
+        assert not module1.default_ps_update_streams.all()
+
+        # cfme-5 and fuse-7 has the unacked stream defined
+        # differently according to ps_update_streams array
+        module2 = PsModule.objects.get(name="cfme-5")
+        assert not module2.ps_update_streams.all()
+        assert not module2.active_ps_update_streams.all()
+        assert not module2.default_ps_update_streams.all()
 
         # Sync PS Update Streams and resync Products and Modules
         sync_ps_update_streams(ps_update_streams)
         sync_ps_products_modules(ps_products, ps_modules)
-        assert module.ps_update_streams.all()
-        assert module.active_ps_update_streams.all()
-        assert module.default_ps_update_streams.all()
+        assert module1.ps_update_streams.all()
+        assert module1.active_ps_update_streams.all()
+        assert module1.default_ps_update_streams.all()
+        assert module2.ps_update_streams.all()
+        assert module2.active_ps_update_streams.all()
+        assert module2.default_ps_update_streams.all()
 
         # check that unacked PS update stream is not omitted
-        # TODO remove _tmp in version 2.3.4 or above
-        assert module.unacked_ps_update_stream_tmp
-        assert module.unacked_ps_update_stream_tmp.first().name == "fuse-7"
+        assert module1.unacked_ps_update_stream
+        assert module1.unacked_ps_update_stream.first().name == "fuse-7"
+        assert module2.unacked_ps_update_stream
+        assert module2.unacked_ps_update_stream.first().name == "cfme-5"
