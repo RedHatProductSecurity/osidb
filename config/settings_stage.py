@@ -115,3 +115,34 @@ KRB5_HOSTNAME = get_env("KRB5_HOSTNAME")
 
 # Execute once an hour in stage to be consistent with production
 CISA_COLLECTOR_CRONTAB = crontab(minute=0)
+
+# Setup rotation logging into filesystem
+LOG_FILE_SIZE = 1024 * 1024 * 10  # 10mb
+LOG_FILE_COUNT = 3
+
+# To not disrupt the logging of OSIDB instance running in PSI
+# this guard ensures that only OSIDB running in MPP logs to filesystem
+# TODO: Remove after OSIDB is fully migrated to MPP
+if get_env("MPP", is_bool=True, default="False"):
+    LOGGING.update(
+        {
+            "handlers": {
+                "celery": {
+                    "level": "WARNING",
+                    "class": "logging.handlers.RotatingFileHandler",
+                    "formatter": "verbose_celery",
+                    "filename": "/var/log/stage-celery.log",
+                    "maxBytes": LOG_FILE_SIZE,
+                    "backupCount": LOG_FILE_COUNT,
+                },
+                "console": {
+                    "level": "WARNING",
+                    "class": "logging.handlers.RotatingFileHandler",
+                    "formatter": "verbose",
+                    "filename": "/var/log/stage-django.log",
+                    "maxBytes": LOG_FILE_SIZE,
+                    "backupCount": LOG_FILE_COUNT,
+                },
+            }
+        }
+    )

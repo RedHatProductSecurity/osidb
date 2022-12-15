@@ -1,11 +1,13 @@
 import uuid
 
 import pytest
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
 from osidb.constants import BZ_ID_SENTINEL
+from osidb.core import generate_acls
 from osidb.models import (
     Affect,
     Flaw,
@@ -44,10 +46,12 @@ class TestFlaw:
         ]
         meta_attr = {}
         meta_attr["test"] = 1
-        vuln_1 = Flaw(
+        vuln_1 = FlawFactory.build(
             cve_id=good_cve_id,
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
+            reported_dt=datetime_with_tz,
+            unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
@@ -57,8 +61,15 @@ class TestFlaw:
             is_major_incident=True,
             acl_read=acls,
             acl_write=acls,
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             # META
             meta_attr=meta_attr,
+        )
+        vuln_1.save(raise_validation_error=False)
+        FlawMetaFactory(
+            flaw=vuln_1,
+            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+            meta_attr={"status": "+"},
         )
 
         assert vuln_1.save() is None
@@ -129,14 +140,17 @@ class TestFlaw:
         )
         meta2.save()
         all_meta = vuln_1.meta.all()
-        assert len(all_meta) == 2
+        assert len(all_meta) == 3
         assert meta1 in all_meta
         assert meta2 in all_meta
 
         vuln_2 = Flaw(
             cve_id="CVE-1970-12345",
+            cwe_id="CWE-1",
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
+            reported_dt=datetime_with_tz,
+            unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
@@ -145,6 +159,7 @@ class TestFlaw:
             resolution=FlawResolution.NOVALUE,
             acl_read=acls,
             acl_write=acls,
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
         assert vuln_2.validate() is None
 
@@ -161,10 +176,14 @@ class TestFlaw:
         Flaw.objects.all().delete()
         Flaw.objects.create_flaw(
             bz_id="12345",
+            cwe_id="CWE-1",
             title="first",
+            unembargo_dt=tzdatetime(2000, 1, 1),
             description="description",
             acl_read=acls,
             acl_write=acls,
+            reported_dt=timezone.now(),
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         ).save()
         assert Flaw.objects.count() == 1
         assert Flaw.objects.first().meta_attr["bz_id"] == "12345"
@@ -174,6 +193,8 @@ class TestFlaw:
             description="description",
             acl_read=acls,
             acl_write=acls,
+            reported_dt=timezone.now(),
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         ).save()
         # no new flaw should be created
         assert Flaw.objects.count() == 1
@@ -275,8 +296,11 @@ class TestFlaw:
         meta_attr["test"] = 1
         vuln_1 = Flaw(
             cve_id=good_cve_id,
+            cwe_id="CWE-1",
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
+            reported_dt=datetime_with_tz,
+            unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
@@ -285,6 +309,7 @@ class TestFlaw:
             resolution=FlawResolution.NOVALUE,
             acl_read=acls,
             acl_write=acls,
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             # META
             meta_attr=meta_attr,
         )
@@ -302,8 +327,11 @@ class TestFlaw:
 
         flaw = Flaw(
             cve_id="CVE-1970-12345",
+            cwe_id="CWE-1",
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
+            reported_dt=datetime_with_tz,
+            unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
@@ -312,6 +340,7 @@ class TestFlaw:
             resolution=FlawResolution.NOVALUE,
             acl_read=acls,
             acl_write=acls,
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
         assert Flaw.objects.get_queryset().count() == 0
         flaw.save()
@@ -328,8 +357,11 @@ class TestFlaw:
 
         flaw = Flaw(
             cve_id=good_cve_id,
+            cwe_id="CWE-1",
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
+            reported_dt=datetime_with_tz,
+            unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
@@ -338,6 +370,7 @@ class TestFlaw:
             resolution=FlawResolution.NOVALUE,
             acl_read=acls,
             acl_write=acls,
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
 
         assert not Flaw.objects.fts_search("title")
@@ -395,7 +428,7 @@ class TestFlawValidators:
             "AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
         ],
     )
-    def test_validate_cvss3(self, cvss3):
+    def test_validate_cvss3_field(self, cvss3):
         """test cvss3 validator"""
         with pytest.raises(ValidationError) as e:
             FlawFactory(cvss3=cvss3)
@@ -725,3 +758,186 @@ class TestFlawValidators:
         else:
             affect = AffectFactory(flaw=flaw, ps_module=ps_module)
             assert affect
+
+    def test_validate_reported_date_empty(self):
+        """
+        test that the ValidationError is raised when the flaw has an empty reported_dt
+        """
+        with pytest.raises(ValidationError) as e:
+            FlawFactory(reported_dt=None)
+        assert "Flaw has an empty reported_dt" in str(e)
+
+    def test_validate_reported_date_non_empty(self):
+        """
+        test that the ValidationError is not raised when the flaw the reported_dt provided
+        """
+        # whenever we save the flaw which the factory does automatically the validations are run
+        # and if there is an exception the test will fail so creating the flaw is enough to test it
+        FlawFactory()
+
+    @pytest.mark.parametrize(
+        "embargoed,unembargo_date,error_str",
+        [
+            (False, None, "Public flaw has an empty unembargo_dt"),
+            (False, tzdatetime(2022, 11, 22), "Public flaw has a future unembargo_dt"),
+            (False, tzdatetime(2021, 11, 22), None),
+            (True, None, None),
+            (
+                True,
+                tzdatetime(2021, 11, 22),
+                "Flaw still embargoed but unembargo date is in the past.",
+            ),
+        ],
+    )
+    @freeze_time(tzdatetime(2021, 11, 23))
+    def test_validate_public_unembargo_date(self, embargoed, unembargo_date, error_str):
+        if error_str:
+            with pytest.raises(ValidationError) as e:
+                FlawFactory(unembargo_dt=unembargo_date, embargoed=embargoed)
+            assert error_str in str(e)
+        else:
+            assert FlawFactory(unembargo_dt=unembargo_date, embargoed=embargoed)
+
+    @freeze_time(tzdatetime(2021, 11, 23))
+    def test_validate_future_unembargo_date(self):
+        """test that unembargo_dt is in future for embargoed flaws"""
+        past_dt = tzdatetime(2021, 11, 18)
+        future_dt = tzdatetime(2021, 11, 27)
+
+        with pytest.raises(ValidationError) as e:
+            FlawFactory(unembargo_dt=past_dt, embargoed=True)
+        assert "Flaw still embargoed but unembargo date is in the past." in str(e)
+
+        with freeze_time(future_dt):
+            FlawFactory(unembargo_dt=future_dt, embargoed=True)
+            # no exception should be raised now
+
+    @pytest.mark.parametrize(
+        "cvss3,should_raise",
+        [
+            ("3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N", False),
+            (None, True),
+        ],
+    )
+    def test_validate_cvss3_model(self, cvss3, should_raise):
+        """
+        Test that the ValidationError is not raised when the flaw has a CVSS3 string
+        """
+        if should_raise:
+            with pytest.raises(ValidationError) as e:
+                FlawFactory(cvss3=cvss3)
+            assert "CVSSv3 score is missing" in str(e)
+        else:
+            assert FlawFactory(cvss3=cvss3)
+
+    @pytest.mark.parametrize(
+        "summary,is_major_incident,req,should_raise",
+        [
+            ("", True, None, True),
+            ("", True, "+", True),
+            ("", True, "?", True),
+            ("", True, "-", False),
+            ("", False, None, False),
+            ("", False, "+", False),
+            ("", False, "?", False),
+            ("", False, "-", False),
+            ("foo", False, None, False),
+            ("foo", False, "+", False),
+            ("foo", False, "?", False),
+            ("foo", False, "-", False),
+            ("foo", True, None, True),
+            ("foo", True, "+", False),
+            ("foo", True, "?", True),
+            ("foo", True, "-", False),
+        ],
+    )
+    def test_validate_major_incident_summary(
+        self, summary, is_major_incident, req, should_raise
+    ):
+        """
+        Test that a Flaw that is Major Incident has a summary
+        """
+        flaw1 = FlawFactory.build(
+            summary=summary,
+            is_major_incident=is_major_incident,
+        )
+        flaw1.save(raise_validation_error=False)
+        if req:
+            FlawMetaFactory(
+                flaw=flaw1,
+                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                meta_attr={"status": req},
+            )
+        if should_raise:
+            with pytest.raises(ValidationError, match="does not have Summary"):
+                flaw1.save()
+        else:
+            assert flaw1.save() is None
+
+    @pytest.mark.parametrize(
+        "title,should_raise",
+        [
+            ("CVE-2022-1234 kernel: some description", False),
+            ("EMBARGOED CVE-2022-1234 kernel: some description", True),
+        ],
+    )
+    def test_validate_public_flaw_title(self, title, should_raise):
+        """test that public flaws only accepts a valid title without the "EMBARGOED" word"""
+        if should_raise:
+            with pytest.raises(ValidationError) as e:
+                FlawFactory(embargoed=False, title=title)
+            assert 'Flaw title contains "EMBARGOED" despite being public.' in str(e)
+        else:
+            assert FlawFactory(embargoed=False, title=title)
+
+    @pytest.mark.parametrize(
+        "title,should_raise",
+        [
+            ("EMBARGOED CVE-2022-1234 kernel: some description", False),
+            ("CVE-2022-1234 kernel: some description", True),
+        ],
+    )
+    def test_validate_embargoed_flaw_title(self, title, should_raise):
+        """test that embargoed flaws only accepts a valid title containing the "EMBARGOED" word"""
+        if should_raise:
+            with pytest.raises(ValidationError) as e:
+                FlawFactory(embargoed=True, title=title)
+            assert (
+                'Flaw title does not contains "EMBARGOED" despite being embargoed.'
+                in str(e)
+            )
+        else:
+            assert FlawFactory(embargoed=True, title=title)
+
+    @freeze_time(tzdatetime(2021, 11, 23))
+    def test_validate_embargoing_public_flaw(self):
+        flaw = FlawFactory(embargoed=False)
+        with pytest.raises(ValidationError, match="Embargoing a public flaw is futile"):
+            flaw.title = "EMBARGOED foo bar baz"
+            flaw.acl_read = [
+                uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+            ]
+            flaw.unembargo_dt = tzdatetime(2022, 1, 1)
+            flaw.save()
+
+    @pytest.mark.parametrize(
+        "cwe,should_raise",
+        [
+            ("", False),
+            ("CWE-123", False),
+            ("(CWE-123)", False),
+            ("CWE-123->CWE-12324", False),
+            ("CWE-123->(CWE-12324)", False),
+            ("CWE-1+CWE-2", True),
+            ("CWE-1->", True),
+            ("cwe-1->CWE-2", True),
+        ],
+    )
+    def test_validate_cwe_format(self, cwe, should_raise):
+        """test that flaws only accepts a valid CWE ID"""
+        if should_raise:
+            with pytest.raises(ValidationError) as e:
+                FlawFactory(cwe_id=cwe)
+            assert "CWE IDs is not well formated." in str(e)
+        else:
+            assert FlawFactory(cwe_id=cwe)

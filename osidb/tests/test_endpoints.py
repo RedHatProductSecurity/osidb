@@ -84,7 +84,14 @@ class TestEndpoints(object):
     def test_get_flaw(self, auth_client, test_api_uri):
         """retrieve specific flaw from endpoint"""
 
-        flaw1 = FlawFactory(is_major_incident=True)
+        flaw1 = FlawFactory.build(is_major_incident=True)
+        flaw1.save(raise_validation_error=False)
+        FlawMetaFactory(
+            flaw=flaw1,
+            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+            meta_attr={"status": "+"},
+        )
+        assert flaw1.save() is None
         FlawCommentFactory(flaw=flaw1)
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
         assert response.status_code == 200
@@ -986,7 +993,14 @@ class TestEndpoints(object):
         assert "refresh" in body
         token = body["access"]
 
-        flaw1 = FlawFactory(is_major_incident=True)
+        flaw1 = FlawFactory.build(is_major_incident=True)
+        flaw1.save(raise_validation_error=False)
+        FlawMetaFactory(
+            flaw=flaw1,
+            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+            meta_attr={"status": "+"},
+        )
+        assert flaw1.save() is None
         FlawCommentFactory(flaw=flaw1)
 
         # attempt to access with unauthenticated client using good token value
@@ -1004,11 +1018,15 @@ class TestEndpoints(object):
         """
         flaw_data = {
             "cve_id": "CVE-2021-0666",
+            "cwe_id": "CWE-1",
             "title": "Foo",
             "type": "VULNERABILITY",
             "state": "NEW",
             "impact": "CRITICAL",
             "description": "test",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         }
         response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
         assert response.status_code == 201
@@ -1025,11 +1043,15 @@ class TestEndpoints(object):
         """
         # a flaw draft essentially has no CVE
         flaw_data = {
+            "cwe_id": "CWE-1",
             "title": "Foo",
             "type": "VULNERABILITY",
             "state": "NEW",
             "impact": "CRITICAL",
             "description": "test",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         }
         response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
         assert response.status_code == 201
@@ -1069,7 +1091,7 @@ class TestEndpoints(object):
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
                 "type": flaw.type,
-                "title": "This is a test",
+                "title": f"{flaw.title} appended test title",
                 "description": flaw.description,
                 "state": flaw.state,
                 "resolution": flaw.resolution,
@@ -1081,7 +1103,7 @@ class TestEndpoints(object):
         assert response.status_code == 200
         body = response.json()
         assert original_body["title"] != body["title"]
-        assert body["title"] == "This is a test"
+        assert "appended test title" in body["title"]
         assert original_body["description"] == body["description"]
 
     def test_flaw_delete(self, auth_client, test_api_uri):

@@ -21,35 +21,72 @@ Before contributing please read and follow these guidelines.
   and a comand line or code sample or an executable test case demonstrating the
   expected behavior that is not occurring.
 
-### Did you write a patch that fixes a bug?
-
-* Open a new GitHub pull request with the patch.
-
-* Ensure the PR description clearly describes the problem and solution.
-  Include the relevant issue number if applicable.
-
-* Before submitting make sure that linters and tests are passing.
-  Details on running the test can be found [here](DEVELOP.md#run-tests).
-  Also make sure that the CI pipelines report success in the PR.
-
 ### Did you fix whitespace, format code, or make a purely cosmetic patch?
 
 Changes that are cosmetic in nature and do not add anything substantial to the stability,
 functionality, or testability of the project will generally not be accepted.
 
-### Do you intend to add a new feature or change an existing one?
+### Did you write a patch?
 
-Simply create a pull request and wait for the feedback.
+* Open a new GitHub pull request with the patch.
+
+* Ensure the PR description clearly describes the problem and solution.
+
+* Include the relevant issue number if applicable. There is a Jira automation
+  which changes the state of the mentioned Jira issues accordingly. Expected
+  format of the issue mention starts with word `Closes` or `Fixes` (**C or F must be uppercase**)
+  followed by a Jira ID:
+
+  ```
+  Closes OSIDB-111
+  ```
+  OR
+  ```
+  Fixes OSIDB-111
+  ```
+
+  To mention multiple Jira IDs, you need to use multiple keywords:
+
+  ```
+  Closes OSIDB-111
+  Closes OSIDB-222
+  Fixes OSIDB-333
+  ```
+
+  Creating or editing a PR which mentions the Jira issues will transfer the status of all the mentioned Jira issues
+  to **Review**.
+
+  Closing a PR which sets the status of PR to merged will transfer the status of all the mentioned Jira issues to
+  **Release Pending** and change the Fix Version field to **OSIDB-next**.
+
+* Before submitting make sure that linters and tests are passing.
+  Details on running the test can be found [here](DEVELOP.md#run-tests).
+  Also make sure that the CI pipelines report success in the PR.
+
+* The OSIDB repository requires that all commits be GPG-signed, see
+  [GitHub's documentation](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
+
+* Given that signed commit are required, the git flow might be different than
+  what you're used to, one of the limitations is that only merge commits
+  can be used from the PR interface, this in turn means that you should make sure
+  your branch is clean and up-to-date, by clean we mean that **no** merge commits
+  should be included in your patchset and the changes should be rebased on top of
+  the latest master (i.e. `git pull --rebase origin master`).
+
+* All commit messages should follow the classic git flow recommendations as seen
+  in the Git SCM [documentation](https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project#-commit-guidelines)
+
+* All functional changes require an entry in the [CHANGELOG](docs/CHANGELOG.md)
+  that describes the change and a reference to a JIRA issue if any, a GitHub
+  action will check that the file has been updated. If your change is purely
+  technical, you can add or request someone to add the "technical" label to the
+  Pull Request, which will skip the check.
 
 ### Do you have questions about the source code?
 
 We unfortunately do not have a publicly accessible discussion channel yet.
 You can create an issue [here](https://github.com/RedHatProductSecurity/osidb/issues/new)
 and ask your question within.
-
-### Do you want to contribute to the documentation?
-
-Simply create a pull request and wait for the feedback.
 
 ## License
 All contributions to this project will be licensed under [MIT](../../LICENSE) license.

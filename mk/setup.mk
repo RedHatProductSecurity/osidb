@@ -95,7 +95,7 @@ apply-requirements-txt: check-reg check-venv sync-deps compose-up
 #***********************************
 ### Install necessary development packages
 #***********************************
-DEVRPMS = make podman podman-compose libpq-devel python3-devel gcc openldap-devel krb5-devel openldap-clients python3.9 black
+DEVRPMS = make podman podman-compose libpq-devel python3-devel gcc openldap-devel krb5-devel openldap-clients python3.9 black openssl libffi-devel libxslt-devel
 .PHONY: dev-rpm-install
 dev-rpm-install:
 	@echo ">Checking whether necessary development RPMs are installed."
@@ -123,7 +123,7 @@ build:
 .PHONY: venv
 venv:
 	@echo ">Creating venv for local development environment"
-	python -m venv venv
+	python3.9 -m venv venv
 	source venv/bin/activate && pip install wheel && pip install -r requirements.txt -r devel-requirements.txt $$([ -f local-requirements.txt ] && echo '-r local-requirements.txt')
 
 

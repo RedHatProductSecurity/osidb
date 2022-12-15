@@ -18,10 +18,11 @@ class TestSearch:
         assert body["count"] == 0
 
         FlawFactory(
-            title="TITLE",
+            title="CVE-2022-1234 kernel: TITLE",
             description="DESCRIPTION",
             summary="SUMMARY",
             statement="STATEMENT",
+            embargoed=False,
         )
 
         response = auth_client.get(f"{test_api_uri}/flaws?search=title")
@@ -67,10 +68,13 @@ class TestSearch:
 
         flaw = Flaw(
             cve_id=good_cve_id,
+            cwe_id="CWE-1",
             state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
+            reported_dt=datetime_with_tz,
+            unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
-            title="TITLE",
+            title="CVE-2022-1234 kernel: TITLE",
             description="DESCRIPTION",
             impact=FlawImpact.CRITICAL,
             summary="SUMMARY",
@@ -78,6 +82,7 @@ class TestSearch:
             resolution=FlawResolution.NOVALUE,
             acl_read=acls,
             acl_write=acls,
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             # META
             meta_attr=meta_attr,
         )
@@ -144,15 +149,16 @@ class TestSearch:
         assert body["count"] == 0
 
         FlawFactory(
-            title="words",
+            title="CVE-2022-1234 kernel: words",
             description="words",
             summary="words",
             statement="words",
+            embargoed=False,
         )
 
-        FlawFactory(title="words")
+        FlawFactory(embargoed=False, title="CVE-2022-1234 kernel: words")
 
-        FlawFactory(description="words")
+        FlawFactory(description="words", embargoed=False)
 
         FlawFactory(summary="words")
 
@@ -167,14 +173,14 @@ class TestSearch:
             body["count"] == 5
         )  # 5 Flaws have "words" in a text field, "word" should match due to stemming
         # First / most relevant match should be the Flaw with "words" in every field (most number of matches)
-        assert body["results"][0]["title"] == "words"
+        assert body["results"][0]["title"] == "CVE-2022-1234 kernel: words"
         assert body["results"][0]["description"] == "words"
         assert body["results"][0]["summary"] == "words"
         assert body["results"][0]["statement"] == "words"
 
         # Following results are ranked based on what field "word" appears in
         # Matches in title are weighted highest (1.0), followed by description (0.4), summary (0.2), and statement (0.1)
-        assert body["results"][1]["title"] == "words"
+        assert body["results"][1]["title"] == "CVE-2022-1234 kernel: words"
         assert body["results"][2]["description"] == "words"
         assert body["results"][3]["summary"] == "words"
         assert body["results"][4]["statement"] == "words"
@@ -190,6 +196,7 @@ class TestSearch:
             title="title",
             description="description",
             summary="summary",
+            embargoed=False,
             statement="statement",
         )
 
