@@ -64,8 +64,13 @@ DATABASES = {
         "HOST": "postgres",
         "PORT": "5432",
         "ENGINE": "psqlextra.backend",
-        # prevent libpq from automatically trying to connect to the db via GSSAPI
-        "OPTIONS": {"gssencmode": "disable"},
+        "OPTIONS": {
+            # prevent libpq from automatically trying to connect to the db via GSSAPI
+            "gssencmode": "disable",
+            # this is a hack due to our inability to set a custom parameter either at
+            # the database or role level in managed databases such as AWS RDS
+            "options": "-c osidb.acl=''",
+        },
     }
 }
 
