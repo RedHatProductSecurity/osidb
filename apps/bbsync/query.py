@@ -65,7 +65,9 @@ class SRTNotesBuilder:
         self.restore_original()
         self.generate_impact()
         self.generate_jira_trackers()
-        self.generate_public_date()
+        self.generate_date("unembargo_dt", "public")
+        self.generate_date("reported_dt", "reported")
+        self.generate_source()
 
     def generate_impact(self):
         """
@@ -91,31 +93,40 @@ class SRTNotesBuilder:
             ],
         )
 
-    def generate_public_date(self):
+    def generate_date(self, flaw_attribute, srtnotes_attribute):
         """
-        generate public date attribute
-        which is abbreviated to public
+        generate given date attribute
 
         it can be either date or datetime so we should check the old
         value and preserve the format when the value does not change
         """
-        if not self.flaw.unembargo_dt:
-            self.add_conditionally("public", None)
+        date_value = getattr(self.flaw, flaw_attribute)
+        if not date_value:
+            self.add_conditionally(srtnotes_attribute, None)
             return
 
-        date_str = self.flaw.unembargo_dt.strftime(DATE_FMT)
+        date_str = date_value.strftime(DATE_FMT)
         if (
-            "public" in self._original_keys
+            srtnotes_attribute in self._original_keys
             and self.old_flaw
-            and self.flaw.unembargo_dt == self.old_flaw.unembargo_dt
-            and self._json["public"] == date_str
+            and date_value == getattr(self.old_flaw, flaw_attribute)
+            and self._json[srtnotes_attribute] == date_str
         ):
             # we prefer datetime format but if there was just date format
             # before and the value does not change we keep the old format
-            self._json["public"] = date_str
+            pass
 
         else:
-            self._json["public"] = self.flaw.unembargo_dt.strftime(DATETIME_FMT)
+            self._json[srtnotes_attribute] = date_value.strftime(DATETIME_FMT)
+
+    def generate_source(self):
+        """
+        generate source attribute
+        """
+        # HW_VENDOR is represented as hw-vendor in data
+        source = self.flaw.source.lower().replace("_", "-")
+        source = source if source else None
+        self.add_conditionally("source", source)
 
     def restore_original(self):
         """
