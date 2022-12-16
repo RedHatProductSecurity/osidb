@@ -67,6 +67,7 @@ class TestGenerateSRTNotes:
         )
         old_flaw = FlawFactory(
             embargoed=False,
+            reported_dt=timezone.datetime(2022, 11, 23, tzinfo=timezone.utc),
             unembargo_dt=timezone.datetime(2022, 11, 23, tzinfo=timezone.utc),
         )
         FlawCommentFactory(flaw=old_flaw)
@@ -196,9 +197,10 @@ class TestGenerateSRTNotes:
             {"bts_name": "jboss", "key": "PROJECT-1"}
         ]
 
-    @freeze_time(timezone.datetime(2022, 12, 10))
+    @freeze_time(timezone.datetime(2022, 12, 30))
+    @pytest.mark.parametrize("attribute_name", ["public", "reported"])
     @pytest.mark.parametrize(
-        "unembargo_dt,old_unembargo_dt,old_public,new_public",
+        "new_dt,old_dt,old_date,new_date",
         [
             (
                 timezone.datetime(2022, 12, 20),
@@ -220,23 +222,26 @@ class TestGenerateSRTNotes:
             ),
         ],
     )
-    def test_public_date_was_present(
-        self, unembargo_dt, old_unembargo_dt, old_public, new_public
-    ):
+    def test_date_was_present(self, new_dt, old_dt, old_date, new_date, attribute_name):
         """
-        test generating of SRT notes public attribute
-        when public attribute was present in the old SRT notes
+        test generating of SRT notes date attributes
+        when it was present in the old SRT notes
         """
         flaw = FlawFactory(
-            embargoed=True,
-            meta_attr={"original_srtnotes": '{"public": "' + old_public + '"}'},
-            unembargo_dt=make_aware(unembargo_dt),
+            embargoed=False,
+            meta_attr={
+                "original_srtnotes": '{"' + attribute_name + '": "' + old_date + '"}'
+            },
+            reported_dt=make_aware(new_dt),
+            unembargo_dt=make_aware(new_dt),
         )
         FlawCommentFactory(flaw=flaw)
         AffectFactory(flaw=flaw)
 
         old_flaw = FlawFactory(
-            embargoed=True, unembargo_dt=make_aware(old_unembargo_dt)
+            embargoed=False,
+            reported_dt=make_aware(old_dt),
+            unembargo_dt=make_aware(old_dt),
         )
         FlawCommentFactory(flaw=old_flaw)
         AffectFactory(flaw=old_flaw)
@@ -246,12 +251,13 @@ class TestGenerateSRTNotes:
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
 
-        assert "public" in cf_srtnotes_json
-        assert cf_srtnotes_json["public"] == new_public
+        assert attribute_name in cf_srtnotes_json
+        assert cf_srtnotes_json[attribute_name] == new_date
 
-    @freeze_time(timezone.datetime(2022, 12, 10))
+    @freeze_time(timezone.datetime(2022, 12, 30))
+    @pytest.mark.parametrize("attribute_name", ["public", "reported"])
     @pytest.mark.parametrize(
-        "unembargo_dt,present,public",
+        "date_obj,present,date_str",
         [
             (
                 timezone.datetime(2022, 12, 20),
@@ -265,23 +271,28 @@ class TestGenerateSRTNotes:
             ),
         ],
     )
-    def test_public_date_was_not_present(self, unembargo_dt, present, public):
+    def test_date_was_not_present(self, date_obj, present, date_str, attribute_name):
         """
-        test generating of SRT notes public attribute
-        when public attribute was not present in the old SRT notes
+        test generating of SRT notes date attributes
+        when it was not present in the old SRT notes
         """
-        flaw = FlawFactory(
-            embargoed=True,
+        flaw = FlawFactory.build(
             meta_attr={"original_srtnotes": ""},
-            unembargo_dt=make_aware(unembargo_dt) if unembargo_dt else None,
+            reported_dt=make_aware(date_obj) if date_obj else None,
+            unembargo_dt=make_aware(date_obj) if date_obj else None,
         )
+        # reported and unembargo dates have very different validations
+        # but these are not the subject of this test so let us ignore them
+        flaw.save(raise_validation_error=False)
         FlawCommentFactory(flaw=flaw)
         AffectFactory(flaw=flaw)
 
-        old_flaw = FlawFactory(
-            embargoed=True,
-            unembargo_dt=make_aware(unembargo_dt) if unembargo_dt else None,
+        old_flaw = FlawFactory.build(
+            reported_dt=make_aware(date_obj) if date_obj else None,
+            unembargo_dt=make_aware(date_obj) if date_obj else None,
         )
+        # and here we ignore the validations too
+        old_flaw.save(raise_validation_error=False)
         FlawCommentFactory(flaw=old_flaw)
         AffectFactory(flaw=old_flaw)
 
@@ -291,10 +302,10 @@ class TestGenerateSRTNotes:
         cf_srtnotes_json = json.loads(cf_srtnotes)
 
         if present:
-            assert "public" in cf_srtnotes_json
-            assert cf_srtnotes_json["public"] == public
+            assert attribute_name in cf_srtnotes_json
+            assert cf_srtnotes_json[attribute_name] == date_str
         else:
-            assert "public" not in cf_srtnotes_json
+            assert attribute_name not in cf_srtnotes_json
 
 
 class TestGenerateGroups:
