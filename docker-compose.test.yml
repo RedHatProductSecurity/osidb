@@ -20,16 +20,6 @@ services:
       #   osidb-data:
       #     condition: service_healthy
 
-    phpldapadmin:
-      image: docker.io/osixia/phpldapadmin:latest
-      container_name: phpldapadmin
-      environment:
-        PHPLDAPADMIN_LDAP_HOSTS: "ldap://testldap:1389"
-        PHPLDAPADMIN_HTTPS: "false"
-      ports:
-        - "${OSIDB_TESTRUNNER_PORT-8080}:80"
-      depends_on: ["testldap"]
-
     testrunner:
       container_name: testrunner
       build:
