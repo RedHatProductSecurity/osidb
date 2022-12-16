@@ -67,6 +67,7 @@ class SRTNotesBuilder:
         self.generate_jira_trackers()
         self.generate_date("unembargo_dt", "public")
         self.generate_date("reported_dt", "reported")
+        self.generate_source()
 
     def generate_impact(self):
         """
@@ -117,6 +118,15 @@ class SRTNotesBuilder:
 
         else:
             self._json[srtnotes_attribute] = date_value.strftime(DATETIME_FMT)
+
+    def generate_source(self):
+        """
+        generate source attribute
+        """
+        # HW_VENDOR is represented as hw-vendor in data
+        source = self.flaw.source.lower().replace("_", "-")
+        source = source if source else None
+        self.add_conditionally("source", source)
 
     def restore_original(self):
         """

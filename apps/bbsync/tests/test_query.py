@@ -307,6 +307,66 @@ class TestGenerateSRTNotes:
         else:
             assert attribute_name not in cf_srtnotes_json
 
+    @pytest.mark.parametrize(
+        "osidb_source,srtnotes,bz_present,bz_source",
+        [
+            (
+                FlawSource.CUSTOMER,
+                """{"source": "customer"}""",
+                True,
+                "customer",
+            ),
+            (
+                FlawSource.CUSTOMER,
+                """{"source": "internet"}""",
+                True,
+                "customer",
+            ),
+            (
+                FlawSource.HW_VENDOR,
+                "",
+                True,
+                "hw-vendor",
+            ),
+            # this case should never be allowed by the validations
+            # but let us consider it from the point of SRT notes builder
+            (
+                FlawSource.NOVALUE,
+                """{"source": "internet"}""",
+                True,
+                None,
+            ),
+            (
+                FlawSource.NOVALUE,
+                "",
+                False,
+                None,
+            ),
+        ],
+    )
+    def test_source(self, osidb_source, srtnotes, bz_present, bz_source):
+        """
+        test generating of SRT notes source attribute
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            meta_attr={"original_srtnotes": srtnotes},
+            source=osidb_source,
+        )
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(flaw=flaw)
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+
+        if bz_present:
+            assert "source" in cf_srtnotes_json
+            assert cf_srtnotes_json["source"] == bz_source
+        else:
+            assert "source" not in cf_srtnotes_json
+
 
 class TestGenerateGroups:
     def test_create_public(self):
