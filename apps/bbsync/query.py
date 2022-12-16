@@ -63,11 +63,19 @@ class SRTNotesBuilder:
         generate json content
         """
         self.restore_original()
+        self.generate_cvss()
         self.generate_impact()
         self.generate_jira_trackers()
         self.generate_date("unembargo_dt", "public")
         self.generate_date("reported_dt", "reported")
         self.generate_source()
+
+    def generate_cvss(self):
+        """
+        generate CVSS attributes
+        """
+        self.add_conditionally("cvss2", self.flaw.cvss2 or None)
+        self.add_conditionally("cvss3", self.flaw.cvss3 or None)
 
     def generate_impact(self):
         """

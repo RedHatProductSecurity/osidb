@@ -83,6 +83,85 @@ class TestGenerateSRTNotes:
             assert cf_srtnotes_json[key] == srtnotes_json[key]
 
     @pytest.mark.parametrize(
+        "osidb_cvss2,osidb_cvss3,srtnotes,bz_cvss2_present,bz_cvss3_present,bz_cvss2,bz_cvss3",
+        [
+            (
+                "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+                "7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                """
+                {
+                    "cvss2": "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+                    "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+                }
+                """,
+                True,
+                True,
+                "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+                "7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+            ),
+            (
+                "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+                None,
+                "",
+                True,
+                False,
+                "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+                None,
+            ),
+            (
+                None,
+                None,
+                """
+                {
+                    "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+                }
+                """,
+                False,
+                True,
+                None,
+                None,
+            ),
+        ],
+    )
+    def test_cvss(
+        self,
+        osidb_cvss2,
+        osidb_cvss3,
+        srtnotes,
+        bz_cvss2_present,
+        bz_cvss3_present,
+        bz_cvss2,
+        bz_cvss3,
+    ):
+        """
+        test generating of SRT notes CVSS attributes
+        """
+        flaw = FlawFactory.build(
+            cvss2=osidb_cvss2,
+            cvss3=osidb_cvss3,
+            meta_attr={"original_srtnotes": srtnotes},
+        )
+        flaw.save(raise_validation_error=False)
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(flaw=flaw)
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+
+        if bz_cvss2_present:
+            assert "cvss2" in cf_srtnotes_json
+            assert cf_srtnotes_json["cvss2"] == bz_cvss2
+        else:
+            assert "cvss2" not in cf_srtnotes_json
+        if bz_cvss3_present:
+            assert "cvss3" in cf_srtnotes_json
+            assert cf_srtnotes_json["cvss3"] == bz_cvss3
+        else:
+            assert "cvss3" not in cf_srtnotes_json
+
+    @pytest.mark.parametrize(
         "osidb_impact,srtnotes,bz_present,bz_impact",
         [
             (
