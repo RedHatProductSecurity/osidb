@@ -71,6 +71,11 @@ class SRTNotesBuilder:
         self.generate_string("cvss2", "cvss2")
         self.generate_string("cvss3", "cvss3")
         self.generate_string("cwe_id", "cwe")
+        # TODO mitigation field is not yet supported in OSIDB
+        # this requirement is tracked in when OSIDB-584 and when fulfilled
+        # we need to implement its proper SRT notes generator too while
+        # it should probably be enough to just uncomment the next line
+        # self.generate_string("mitigation", "mitigation")
         self.generate_string("statement", "statement")
 
     def generate_date(self, flaw_attribute, srtnotes_attribute):
