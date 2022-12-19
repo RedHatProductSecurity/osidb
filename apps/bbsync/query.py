@@ -63,26 +63,14 @@ class SRTNotesBuilder:
         generate json content
         """
         self.restore_original()
-        self.generate_cvss()
-        self.generate_cwe()
         self.generate_date("unembargo_dt", "public")
         self.generate_date("reported_dt", "reported")
         self.generate_impact()
         self.generate_jira_trackers()
         self.generate_source()
-
-    def generate_cvss(self):
-        """
-        generate CVSS attributes
-        """
-        self.add_conditionally("cvss2", self.flaw.cvss2 or None)
-        self.add_conditionally("cvss3", self.flaw.cvss3 or None)
-
-    def generate_cwe(self):
-        """
-        generate CWE attribute
-        """
-        self.add_conditionally("cwe", self.flaw.cwe_id or None)
+        self.generate_string("cvss2", "cvss2")
+        self.generate_string("cvss3", "cvss3")
+        self.generate_string("cwe_id", "cwe")
 
     def generate_date(self, flaw_attribute, srtnotes_attribute):
         """
@@ -142,6 +130,15 @@ class SRTNotesBuilder:
         source = self.flaw.source.lower().replace("_", "-")
         source = source if source else None
         self.add_conditionally("source", source)
+
+    def generate_string(self, flaw_attribute, srtnotes_attribute):
+        """
+        generate given string attribute
+        generic generator for string attributes with no special handling
+        """
+        self.add_conditionally(
+            srtnotes_attribute, getattr(self.flaw, flaw_attribute) or None
+        )
 
     def restore_original(self):
         """
