@@ -71,6 +71,7 @@ class SRTNotesBuilder:
         self.generate_string("cvss2", "cvss2")
         self.generate_string("cvss3", "cvss3")
         self.generate_string("cwe_id", "cwe")
+        self.generate_string("statement", "statement")
 
     def generate_date(self, flaw_attribute, srtnotes_attribute):
         """

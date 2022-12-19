@@ -499,6 +499,55 @@ class TestGenerateSRTNotes:
         else:
             assert "source" not in cf_srtnotes_json
 
+    @pytest.mark.parametrize(
+        "osidb_statement,srtnotes,bz_present,bz_statement",
+        [
+            (
+                "some text",
+                """{"statement": "some text"}""",
+                True,
+                "some text",
+            ),
+            (
+                "other text",
+                """{"statement": "some text"}""",
+                True,
+                "other text",
+            ),
+            (
+                "",
+                """{"statement": "some text"}""",
+                True,
+                None,
+            ),
+            (
+                "",
+                "",
+                False,
+                None,
+            ),
+        ],
+    )
+    def test_statement(self, osidb_statement, srtnotes, bz_present, bz_statement):
+        """
+        test generating of SRT notes statement attribute
+        """
+        flaw = FlawFactory(
+            statement=osidb_statement, meta_attr={"original_srtnotes": srtnotes}
+        )
+        FlawCommentFactory(flaw=flaw)
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+
+        if bz_present:
+            assert "statement" in cf_srtnotes_json
+            assert cf_srtnotes_json["statement"] == bz_statement
+        else:
+            assert "statement" not in cf_srtnotes_json
+
 
 class TestGenerateGroups:
     def test_create_public(self):
