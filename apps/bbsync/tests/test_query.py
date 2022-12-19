@@ -162,6 +162,59 @@ class TestGenerateSRTNotes:
             assert "cvss3" not in cf_srtnotes_json
 
     @pytest.mark.parametrize(
+        "osidb_cwe,srtnotes,bz_present,bz_cwe",
+        [
+            (
+                "CWE-123",
+                """{"cwe": "CWE-123"}""",
+                True,
+                "CWE-123",
+            ),
+            (
+                "CWE-555",
+                """{"cwe": "CWE-123"}""",
+                True,
+                "CWE-555",
+            ),
+            (
+                "",
+                """{"cwe": "CWE-123"}""",
+                True,
+                None,
+            ),
+            (
+                "CWE-555",
+                "",
+                True,
+                "CWE-555",
+            ),
+            (
+                "",
+                "",
+                False,
+                None,
+            ),
+        ],
+    )
+    def test_cwe(self, osidb_cwe, srtnotes, bz_present, bz_cwe):
+        """
+        test generating of SRT notes CWE attribute
+        """
+        flaw = FlawFactory(cwe_id=osidb_cwe, meta_attr={"original_srtnotes": srtnotes})
+        FlawCommentFactory(flaw=flaw)
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+
+        if bz_present:
+            assert "cwe" in cf_srtnotes_json
+            assert cf_srtnotes_json["cwe"] == bz_cwe
+        else:
+            assert "cwe" not in cf_srtnotes_json
+
+    @pytest.mark.parametrize(
         "osidb_impact,srtnotes,bz_present,bz_impact",
         [
             (
