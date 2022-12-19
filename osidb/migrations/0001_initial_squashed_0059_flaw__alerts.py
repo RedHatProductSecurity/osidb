@@ -1347,8 +1347,6 @@ class Migration(migrations.Migration):
 --enable row based security for following tables
 ALTER TABLE osidb_flaw ENABLE ROW LEVEL SECURITY;
 ALTER TABLE osidb_flaw FORCE ROW LEVEL SECURITY;
---set default value for osidb.acl parameter
-SET osidb.acl TO '';
 --following policies define fine grained read/write control on osidb_flaw entity
 --policy for entity insert (eg. create)
 DROP policy if exists acl_policy_flaw_create on osidb_flaw;

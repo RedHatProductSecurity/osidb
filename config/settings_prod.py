@@ -75,6 +75,9 @@ DATABASES = {
             "sslmode": "require",
             # prevent libpq from automatically trying to connect to the db via GSSAPI
             "gssencmode": "disable",
+            # this is a hack due to our inability to set a custom parameter either at
+            # the database or role level in managed databases such as AWS RDS
+            "options": "-c osidb.acl=''",
         },
     }
 }
