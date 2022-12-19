@@ -63,6 +63,7 @@ class SRTNotesBuilder:
         generate json content
         """
         self.restore_original()
+        self.generate_affects()
         self.generate_date("unembargo_dt", "public")
         self.generate_date("reported_dt", "reported")
         self.generate_impact()
@@ -77,6 +78,30 @@ class SRTNotesBuilder:
         # it should probably be enough to just uncomment the next line
         # self.generate_string("mitigation", "mitigation")
         self.generate_string("statement", "statement")
+
+    def generate_affects(self):
+        """
+        generate array of affects to SRT notes
+        """
+        self.add_conditionally(
+            "affects",
+            [
+                {
+                    "ps_module": affect.ps_module,
+                    "ps_component": affect.ps_component,
+                    "affectedness": affect.affectedness.lower() or None,
+                    "resolution": affect.resolution.lower() or None,
+                    # there is an interesting fact that the impact may be null or none
+                    # while these two values hold the same information (empty impact)
+                    # so let us prefer null which may cause some unexpected rewrites
+                    # from none to null but this can be considered as data fixes
+                    "impact": affect.impact.lower() or None,
+                    "cvss2": affect.cvss2 or None,
+                    "cvss3": affect.cvss3 or None,
+                }
+                for affect in self.flaw.affects.all()
+            ],
+        )
 
     def generate_date(self, flaw_attribute, srtnotes_attribute):
         """

@@ -64,6 +64,9 @@ class TestGenerateSRTNotes:
             resolution=Affect.AffectResolution.FIX,
             ps_component="libssh",
             ps_module="fedora-all",
+            impact=Affect.AffectImpact.NOVALUE,
+            cvss2="",
+            cvss3="",
         )
         old_flaw = FlawFactory(
             embargoed=False,
@@ -81,6 +84,86 @@ class TestGenerateSRTNotes:
         srtnotes_json = json.loads(srtnotes)
         for key in srtnotes_json.keys():
             assert cf_srtnotes_json[key] == srtnotes_json[key]
+
+    def test_generate_affects(self):
+        """
+        test generating of SRT affects attribute array
+        """
+        flaw = FlawFactory()
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(
+            flaw=flaw,
+            ps_module="rhel-6",
+            ps_component="ImageMagick",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            impact=Affect.AffectImpact.CRITICAL,
+            cvss2="10.0/AV:N/AC:L/Au:N/C:C/I:C/A:C",
+            cvss3="",
+        )
+        AffectFactory(
+            flaw=flaw,
+            ps_module="rhel-7",
+            ps_component="kernel",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            impact=Affect.AffectImpact.MODERATE,
+            cvss2="5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+            cvss3="7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+        )
+        AffectFactory(
+            flaw=flaw,
+            ps_module="rhel-8",
+            ps_component="bash",
+            affectedness=Affect.AffectAffectedness.NOTAFFECTED,
+            resolution=Affect.AffectResolution.NOVALUE,
+            impact=Affect.AffectImpact.NOVALUE,
+            cvss2="",
+            cvss3="",
+        )
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+        assert "affects" in cf_srtnotes_json
+        affects = cf_srtnotes_json["affects"]
+        assert len(affects) == 3
+
+        rhel6affect = rhel7affect = rhel8affect = None
+        for affect in affects:
+            if affect["ps_module"] == "rhel-6":
+                rhel6affect = affect
+            if affect["ps_module"] == "rhel-7":
+                rhel7affect = affect
+            if affect["ps_module"] == "rhel-8":
+                rhel8affect = affect
+        assert rhel6affect
+        assert rhel7affect
+        assert rhel8affect
+
+        assert rhel6affect["ps_component"] == "ImageMagick"
+        assert rhel6affect["affectedness"] == "affected"
+        assert rhel6affect["resolution"] == "fix"
+        assert rhel6affect["impact"] == "critical"
+        assert rhel6affect["cvss2"] == "10.0/AV:N/AC:L/Au:N/C:C/I:C/A:C"
+        assert rhel6affect["cvss3"] is None
+
+        assert rhel7affect["ps_component"] == "kernel"
+        assert rhel7affect["affectedness"] == "affected"
+        assert rhel7affect["resolution"] == "delegated"
+        assert rhel7affect["impact"] == "moderate"
+        assert rhel7affect["cvss2"] == "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C"
+        assert (
+            rhel7affect["cvss3"] == "7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        )
+
+        assert rhel8affect["ps_component"] == "bash"
+        assert rhel8affect["affectedness"] == "notaffected"
+        assert rhel8affect["resolution"] is None
+        assert rhel8affect["impact"] is None
+        assert rhel8affect["cvss2"] is None
+        assert rhel8affect["cvss3"] is None
 
     @pytest.mark.parametrize(
         "osidb_cvss2,osidb_cvss3,srtnotes,bz_cvss2_present,bz_cvss3_present,bz_cvss2,bz_cvss3",
