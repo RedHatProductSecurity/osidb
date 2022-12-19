@@ -64,10 +64,10 @@ class SRTNotesBuilder:
         """
         self.restore_original()
         self.generate_cvss()
-        self.generate_impact()
-        self.generate_jira_trackers()
         self.generate_date("unembargo_dt", "public")
         self.generate_date("reported_dt", "reported")
+        self.generate_impact()
+        self.generate_jira_trackers()
         self.generate_source()
 
     def generate_cvss(self):
@@ -76,30 +76,6 @@ class SRTNotesBuilder:
         """
         self.add_conditionally("cvss2", self.flaw.cvss2 or None)
         self.add_conditionally("cvss3", self.flaw.cvss3 or None)
-
-    def generate_impact(self):
-        """
-        generate impact attribute
-        """
-        impact = "none" if not self.flaw.impact else self.flaw.impact.lower()
-        self.add_conditionally("impact", impact, empty_value="none")
-
-    def generate_jira_trackers(self):
-        """
-        generate array of Jira tracker identifier pairs
-        consisting of BTS name being Jira instance identifier
-        and Jira issue key in given Jira instance
-        """
-        self.add_conditionally(
-            "jira_trackers",
-            [
-                # BTS name is always jboss which is the
-                # historical naming of the only Jira instance we use
-                {"bts_name": "jboss", "key": tracker.external_system_id}
-                for affect in self.flaw.affects.all()
-                for tracker in affect.trackers.filter(type=Tracker.TrackerType.JIRA)
-            ],
-        )
 
     def generate_date(self, flaw_attribute, srtnotes_attribute):
         """
@@ -126,6 +102,30 @@ class SRTNotesBuilder:
 
         else:
             self._json[srtnotes_attribute] = date_value.strftime(DATETIME_FMT)
+
+    def generate_impact(self):
+        """
+        generate impact attribute
+        """
+        impact = "none" if not self.flaw.impact else self.flaw.impact.lower()
+        self.add_conditionally("impact", impact, empty_value="none")
+
+    def generate_jira_trackers(self):
+        """
+        generate array of Jira tracker identifier pairs
+        consisting of BTS name being Jira instance identifier
+        and Jira issue key in given Jira instance
+        """
+        self.add_conditionally(
+            "jira_trackers",
+            [
+                # BTS name is always jboss which is the
+                # historical naming of the only Jira instance we use
+                {"bts_name": "jboss", "key": tracker.external_system_id}
+                for affect in self.flaw.affects.all()
+                for tracker in affect.trackers.filter(type=Tracker.TrackerType.JIRA)
+            ],
+        )
 
     def generate_source(self):
         """
