@@ -68,6 +68,9 @@ class SRTNotesBuilder:
         self.generate_date("reported_dt", "reported")
         self.generate_impact()
         self.generate_jira_trackers()
+        # TODO the references are not yet fully implemented in OSIDB
+        # this requirement is trackerd in OSIDB-71 and when fulfilled
+        # we need to implement generate_references accordingly
         self.generate_source()
         self.generate_string("cvss2", "cvss2")
         self.generate_string("cvss3", "cvss3")
