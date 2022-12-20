@@ -74,6 +74,9 @@ class SRTNotesBuilder:
         self.generate_source()
         self.generate_string("cvss2", "cvss2")
         self.generate_string("cvss3", "cvss3")
+        # TODO the CVSS comments are not yet supported in OSIDB and tracked as part of OSIDB-377
+        # we need to implement their SRT notes generator afterwards and probably modify
+        # the existing CVSS into SRT notes generation too
         self.generate_string("cwe_id", "cwe")
         # TODO mitigation field is not yet supported in OSIDB
         # this requirement is tracked in when OSIDB-584 and when fulfilled
