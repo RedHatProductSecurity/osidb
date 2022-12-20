@@ -5,7 +5,8 @@ from django.utils import timezone
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
-from apps.bbsync.query import BugzillaQueryBuilder
+from apps.bbsync.exceptions import SRTNotesValidationError
+from apps.bbsync.query import BugzillaQueryBuilder, SRTNotesBuilder
 from osidb.models import Affect, Flaw, FlawImpact, FlawMeta, FlawSource, Tracker
 from osidb.tests.factories import (
     AffectFactory,
@@ -676,6 +677,98 @@ class TestGenerateSRTNotes:
             assert cf_srtnotes_json["statement"] == bz_statement
         else:
             assert "statement" not in cf_srtnotes_json
+
+    def test_schema(self):
+        """
+        test complex flaw SRT notes generation
+        to make sure that it is all according to the JSON schema
+        """
+        srtnotes = """
+        {
+            "acknowledgments": [
+                {
+                    "affiliation": "von Stadt",
+                    "from_upstream": true,
+                    "name": "Eduard"
+                }
+            ],
+            "affects": [
+                {
+                    "affectedness": "affected",
+                    "cvss2": "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+                    "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+                    "impact": "moderate",
+                    "ps_component": "libssh",
+                    "ps_module": "fedora-all",
+                    "resolution": "fix"
+                }
+            ],
+            "cwe": "CWE-123",
+            "impact": "moderate",
+            "jira_trackers": [],
+            "public": "2022-11-23",
+            "reported": "2022-09-21",
+            "source": "customer",
+            "statement": "this flaw is funny",
+            "unknown": {
+                "complex": "value",
+                "array": []
+            }
+        }
+        """
+        flaw = FlawFactory(
+            cwe_id="CWE-123",
+            embargoed=False,
+            impact=FlawImpact.IMPORTANT,
+            meta_attr={"original_srtnotes": srtnotes},
+            reported_dt=make_aware(timezone.datetime(2022, 9, 21)),
+            source=FlawSource.CUSTOMER,
+            statement="this flaw is very funny",
+            unembargo_dt=make_aware(timezone.datetime(2021, 11, 23)),
+        )
+        FlawMetaFactory(
+            flaw=flaw,
+            type="ACKNOWLEDGMENT",
+            meta_attr={
+                "affiliation": "von Stadt",
+                "from_upstream": True,
+                "name": "Eduard",
+            },
+        )
+        FlawCommentFactory(flaw=flaw)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_component="libssh",
+            ps_module="fedora-all",
+            impact=Affect.AffectImpact.MODERATE,
+            cvss2="5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+        )
+        TrackerFactory(
+            affects=[affect],
+            external_system_id="PROJECT-1",
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        bbq = BugzillaQueryBuilder(flaw)
+        # SRTNotesValidationError exception should not be raised here
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes and json.loads(cf_srtnotes)
+
+    def test_invalid_schema(self):
+        """
+        test invalid flaw SRT notes data to make sure that the JSON schema validation works
+        """
+        srtnotes_builder = SRTNotesBuilder(None)
+        # inject invalid JSON data
+        srtnotes_builder._json = {"affects": None}
+
+        with pytest.raises(
+            SRTNotesValidationError, match="Invalid JSON produced for SRT notes"
+        ):
+            srtnotes_builder.validate()
 
 
 class TestGenerateGroups:

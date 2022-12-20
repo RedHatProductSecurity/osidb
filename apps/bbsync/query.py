@@ -2,13 +2,13 @@ import json
 from ast import literal_eval
 from itertools import chain
 
-from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT, BZ_DT_FMT_HISTORY
+import jsonschema
+
+from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
 from osidb.models import Flaw, FlawImpact, FlawMeta, PsModule, Tracker
 
-DATE_FMT = "%Y-%m-%d"
-# these two time formats are the same
-# thus spare us defining it again
-DATETIME_FMT = BZ_DT_FMT_HISTORY
+from .constants import DATE_FMT, DATETIME_FMT, SRTNOTES_SCHEMA_PATH
+from .exceptions import SRTNotesValidationError
 
 
 class SRTNotesBuilder:
@@ -34,6 +34,7 @@ class SRTNotesBuilder:
         """
         if self._json is None:
             self.generate()
+            self.validate()
 
         return json.dumps(self._json)
 
@@ -206,6 +207,19 @@ class SRTNotesBuilder:
         srtnotes = self.flaw.meta_attr.get("original_srtnotes")
         self._json = json.loads(srtnotes) if srtnotes else {}
         self._original_keys = list(self._json.keys())
+
+    def validate(self):
+        """
+        validation safeguard to ensure that we always create valid SRT notes JSON data
+        throws SRTNotesValidationError exception in the case of invalid SRT notes JSON
+        """
+        with open(SRTNOTES_SCHEMA_PATH) as schema_fp:
+            self.srtnotes_schema = json.load(schema_fp)
+
+        try:
+            jsonschema.validate(self._json, schema=self.srtnotes_schema)
+        except jsonschema.ValidationError:
+            raise SRTNotesValidationError("Invalid JSON produced for SRT notes")
 
 
 class BugzillaQueryBuilder:
