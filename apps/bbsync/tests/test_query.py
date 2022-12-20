@@ -6,11 +6,12 @@ from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
 from apps.bbsync.query import BugzillaQueryBuilder
-from osidb.models import Affect, Flaw, FlawImpact, FlawSource, Tracker
+from osidb.models import Affect, Flaw, FlawImpact, FlawMeta, FlawSource, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawCommentFactory,
     FlawFactory,
+    FlawMetaFactory,
     PsModuleFactory,
     TrackerFactory,
 )
@@ -84,6 +85,51 @@ class TestGenerateSRTNotes:
         srtnotes_json = json.loads(srtnotes)
         for key in srtnotes_json.keys():
             assert cf_srtnotes_json[key] == srtnotes_json[key]
+
+    def test_generate_acknowledgments(self):
+        """
+        test generating of SRT acknowledgments attribute array
+        """
+        flaw = FlawFactory()
+        FlawCommentFactory(flaw=flaw)
+        FlawMetaFactory(flaw=flaw, type=FlawMeta.FlawMetaType.REFERENCE)  # not an ack
+        FlawMetaFactory(
+            flaw=flaw,
+            type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT,
+            meta_attr={
+                "affiliation": "dear",
+                "from_upstream": False,
+                "name": "sir",
+            },
+        )
+        FlawMetaFactory(
+            flaw=flaw,
+            type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT,
+            meta_attr={
+                "affiliation": "von Bahnhof",
+                "from_upstream": True,
+                "name": "Carl",
+            },
+        )
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+        assert "acknowledgments" in cf_srtnotes_json
+        acknowledgments = cf_srtnotes_json["acknowledgments"]
+        assert len(acknowledgments) == 2
+
+        for ack in acknowledgments:
+            assert (
+                ack["affiliation"] == "dear"
+                and not ack["from_upstream"]
+                and ack["name"] == "sir"
+            ) or (
+                ack["affiliation"] == "von Bahnhof"
+                and ack["from_upstream"]
+                and ack["name"] == "Carl"
+            )
 
     def test_generate_affects(self):
         """

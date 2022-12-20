@@ -1,8 +1,9 @@
 import json
+from ast import literal_eval
 from itertools import chain
 
 from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT, BZ_DT_FMT_HISTORY
-from osidb.models import Flaw, FlawImpact, PsModule, Tracker
+from osidb.models import Flaw, FlawImpact, FlawMeta, PsModule, Tracker
 
 DATE_FMT = "%Y-%m-%d"
 # these two time formats are the same
@@ -63,6 +64,7 @@ class SRTNotesBuilder:
         generate json content
         """
         self.restore_original()
+        self.generate_acknowledgments()
         self.generate_affects()
         self.generate_date("unembargo_dt", "public")
         self.generate_date("reported_dt", "reported")
@@ -84,6 +86,25 @@ class SRTNotesBuilder:
         # it should probably be enough to just uncomment the next line
         # self.generate_string("mitigation", "mitigation")
         self.generate_string("statement", "statement")
+
+    def generate_acknowledgments(self):
+        """
+        generate array of acknowledgments to SRT notes
+        """
+        self.add_conditionally(
+            "acknowledgments",
+            [
+                {
+                    "affiliation": meta.meta_attr["affiliation"],
+                    # hstore holds bolean values as strings containing True|False
+                    # so we need to explicitly convert it to the bolean value
+                    "from_upstream": literal_eval(meta.meta_attr["from_upstream"]),
+                    "name": meta.meta_attr["name"],
+                }
+                for meta in self.flaw.meta.all()
+                if meta.type == FlawMeta.FlawMetaType.ACKNOWLEDGMENT
+            ],
+        )
 
     def generate_affects(self):
         """
