@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Implement Bugzilla SRT notes builder in Bugzilla Backwards Sync (OSIDB-384)
+
 ### Changed
 - Change logging of celery and django to filesystem (OSIDB-418)
 - Implement validation for CWE ID chain in a Flaw (OSIDB-357)

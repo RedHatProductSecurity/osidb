@@ -21,6 +21,7 @@ gevent
 gunicorn
 inflection
 jira
+jsonschema
 kerberos
 markdown
 packageurl-python

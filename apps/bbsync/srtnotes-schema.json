@@ -1,0 +1,281 @@
+{
+  "$id": "https://redhat.com/flaw_cf_srtnotes.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Product Security Flaw Metadata",
+  "description": "Metadata related to Flaws that Product Security tracks.",
+  "type": "object",
+  "properties": {
+    "jira_trackers": {
+      "type": "array",
+      "items": {"$ref": "#/definitions/jira_tracker"}
+    },
+    "checklists": {
+      "type": "array",
+      "items": {"$ref": "#/definitions/checklist"}
+    },
+    "sla_exceptions": {
+      "type": "array",
+      "items": {"$ref": "#/definitions/sla_exception"}
+    },
+    "impact": {
+      "type": ["string", "null"],
+      "description": "The Impact of the flaw",
+      "pattern": "^(critical|important|moderate|low|none)$"
+    },
+    "public": {
+      "type": ["string", "null"],
+      "description": "A UTC ISO 8601 formated Date or Datetime of when the Flaw became (or becomes) public",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}:\\d{2}Z)?$"
+    },
+    "reported": {
+      "type": ["string", "null"],
+      "description": "A UTC ISO 8601 formated Date or Datetime of when the Flaw was reported",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}:\\d{2}Z)?$"
+    },
+    "source": {
+      "type": ["string", "null"],
+      "description": "Where did the Flaw report come from"
+    },
+    "cvss2": {
+      "type": ["string", "null"],
+      "description": "The CVSS 2 score/vector for the Flaw"
+    },
+    "cvss3": {
+      "type": ["string", "null"],
+      "description": "The CVSS 3 score/vector for the Flaw"
+    },
+    "cvss3_comment": {
+      "type": ["string", "null"],
+      "description": "Comment of RH CVSS 3 scoring primarily targeted to explain differences from NVD scoring"
+    },
+    "cwe": {
+      "type": ["string", "null"],
+      "description": "The CWE rating of the Flaw"
+    },
+    "statement": {
+      "type": ["string", "null"],
+      "description": "This is Red Hat's official statement on this Flaw for customers."
+    },
+    "mitigation": {
+      "type": ["string", "null"],
+      "description": "Tracks the steps or countermeasures that can be taken by our customers to mitigate the Flaw or lower its potential impact."
+    },
+    "mitigate": {
+      "type": "array",
+      "description": "Specifies technologies/countermeasures that mitigate or completely neutralize the security impact of the Flaw",
+      "items": {"type": "string"}
+    },
+    "classification": {
+      "type": ["string", "null"],
+      "description": "The Flaw's classification level. Currently only holds the value 'secret' for Flaws we need to handle extra carefully, may be extended later."
+    },
+    "affects": {
+      "type": "array",
+      "description": "A list of affects entries where we define what is affected and what is not",
+      "items": {"$ref": "#/definitions/affectsEntry"}
+    },
+    "references": {
+      "type": "array",
+      "description": "A list of URL references that include type information",
+      "items": {"$ref": "#/definitions/reference"}
+    },
+    "exploits": {
+      "type": "array",
+      "description": "A list of exploits gathered from various sources",
+      "items": {"$ref": "#/definitions/exploit"}
+    },
+    "acknowledgments": {
+      "type": "array",
+      "description": "A list of acknowledgments",
+      "items": {"$ref": "#/definitions/acknowledgment"}
+    },
+    "acks_not_needed": {
+      "type": ["boolean", "null"],
+      "description": "Determine whether an acknowledgment is needed for the flaw or not"
+    },
+    "prestage_eligible_date": {
+      "type": ["string", "null"],
+      "description": "A UTC ISO 8601 formated Date or Datetime of when Flaw and mainly their Trackers can be prestaged in CPaaS environment",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}:\\d{2}Z)?$"
+    }
+  },
+  "definitions": {
+    "acknowledgment": {
+      "type": "object",
+      "description": "A single acknowledgment",
+      "required": ["name", "affiliation", "from_upstream"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the person or entity being acknowledged."
+        },
+        "affiliation": {
+          "type": ["string", "null"],
+          "description": "The affiliation of the person being acknowledged."
+        },
+        "from_upstream": {
+          "type": "boolean",
+          "description": "Whether this acknowledgment comes an upstream source."
+        }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "description": "A single URL reference",
+      "required": ["url", "type"],
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "Reference URL"
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of reference"
+        }
+      }
+    },
+    "exploit": {
+      "type": "object",
+      "description": "A single Exploit record",
+      "required": ["name", "source"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name or ID of the exploit, according to the source"
+        },
+        "source": {
+          "type": "string",
+          "description": "Source of the data (e.g. metasploit)"
+        },
+        "summary": {
+          "type": "string",
+          "description": "A short summary of an exploit"
+        },
+        "cvss3_temporal_metrics": {
+          "type": ["string", "null"],
+          "description": "The CVSS 3 temporal metrics vector for exploit"
+        },
+        "last_updated": {
+          "type": "string",
+          "description": "A UTC ISO 8601 formatted Datetime of when the source was updated",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+        },
+        "first_seen": {
+          "type": "string",
+          "description": "A UTC ISO 8601 formatted Datetime of when the record was set on the Flaw",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+        },
+        "disclosure_date": {
+          "type": ["string", "null"],
+          "description": "A UTC ISO 8601 formatted Datetime of when the exploit was publicly disclosed",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+        }
+      }
+    },
+    "checklist": {
+      "type": "object",
+      "description": "A single checklist",
+      "required": ["name", "template", "signature", "items"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "User-facing name"
+        },
+        "template": {
+          "type": "string",
+          "description": "The id of the checklist template this was created from"
+        },
+        "signature": {
+          "type": ["string", "null"],
+          "description": "A fingerprint of the template so we can easily tell when it has changed"
+        },
+        "items": {
+          "type": "array",
+          "description": "The list of Checklist Items in this checklist",
+          "items": {"$ref": "#/definitions/checklistItem"}
+        }
+      }
+    },
+    "checklistItem": {
+      "type": "object",
+      "description": "A single checklist item",
+      "required": ["checked", "item", "not_applicable"],
+      "properties": {
+        "checked": {
+          "type": "boolean",
+          "description": "Whether the item is checked or not"
+        },
+        "comment": {
+          "type": ["string", "null"],
+          "description": "Comment on the item"
+        },
+        "item": {
+          "type": "string",
+          "description": "The description of the item itself"
+        },
+        "not_applicable": {
+          "type": "boolean",
+          "description": "Whether the item is applicable in this case or not"
+        }
+      }
+    },
+    "affectsEntry": {
+      "type": "object",
+      "required": ["ps_module", "ps_component", "affectedness", "resolution"],
+      "properties": {
+        "ps_module": {
+          "type": "string",
+          "description": "The PsModule of the product in question"
+        },
+        "ps_component": {
+          "type": "string",
+          "description": "The PsComponent (package) in question. May also include module information"
+        },
+        "affectedness": {
+          "type": ["string", "null"],
+          "description": "Whether it is affected or not. A state of 'new' indicates it has not yet been analyzed, 'none' is for historic data",
+          "pattern": "^(none|new|affected|notaffected)$"
+        },
+        "resolution": {
+          "type": ["string", "null"],
+          "description": "The resolution we determined we need to pursue",
+          "pattern": "^(fix|defer|delegated|wontreport|wontfix|ooss)$"
+        },
+        "impact": {
+          "type": ["string", "null"],
+          "description": "An impact that overrides the Flaw-specific one in this case",
+          "pattern": "^(critical|important|moderate|low|none)$"
+        },
+        "cvss2": {
+          "type": ["string", "null"],
+          "description": "A CVSS 2 score/vector that overrides the Flaw-specific one in this case"
+        },
+        "cvss3": {
+          "type": ["string", "null"],
+          "description": "A CVSS 3 score/vector that overrides the Flaw-specific one in this case"
+        }
+      }
+    },
+    "sla_exception": {
+      "type": "array",
+      "description": "A pair of [PsUpdateStream, PsComponent] that should be considered 'not under sla'",
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "jira_tracker": {
+      "type": "object",
+      "required": ["bts_name", "key"],
+      "properties": {
+        "bts_name": {
+          "type": "string",
+          "description": "JIRA instance identifier",
+          "enum": ["jboss"]
+        },
+        "key": {
+          "type": "string",
+          "description": "JIRA issue key in given JIRA instance"
+        }
+      }
+    }
+  }
+}

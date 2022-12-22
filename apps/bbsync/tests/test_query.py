@@ -5,12 +5,14 @@ from django.utils import timezone
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
-from apps.bbsync.query import BugzillaQueryBuilder
-from osidb.models import Affect, Flaw, FlawImpact, FlawSource, Tracker
+from apps.bbsync.exceptions import SRTNotesValidationError
+from apps.bbsync.query import BugzillaQueryBuilder, SRTNotesBuilder
+from osidb.models import Affect, Flaw, FlawImpact, FlawMeta, FlawSource, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawCommentFactory,
     FlawFactory,
+    FlawMetaFactory,
     PsModuleFactory,
     TrackerFactory,
 )
@@ -64,6 +66,9 @@ class TestGenerateSRTNotes:
             resolution=Affect.AffectResolution.FIX,
             ps_component="libssh",
             ps_module="fedora-all",
+            impact=Affect.AffectImpact.NOVALUE,
+            cvss2="",
+            cvss3="",
         )
         old_flaw = FlawFactory(
             embargoed=False,
@@ -81,6 +86,263 @@ class TestGenerateSRTNotes:
         srtnotes_json = json.loads(srtnotes)
         for key in srtnotes_json.keys():
             assert cf_srtnotes_json[key] == srtnotes_json[key]
+
+    def test_generate_acknowledgments(self):
+        """
+        test generating of SRT acknowledgments attribute array
+        """
+        flaw = FlawFactory()
+        FlawCommentFactory(flaw=flaw)
+        FlawMetaFactory(flaw=flaw, type=FlawMeta.FlawMetaType.REFERENCE)  # not an ack
+        FlawMetaFactory(
+            flaw=flaw,
+            type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT,
+            meta_attr={
+                "affiliation": "dear",
+                "from_upstream": False,
+                "name": "sir",
+            },
+        )
+        FlawMetaFactory(
+            flaw=flaw,
+            type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT,
+            meta_attr={
+                "affiliation": "von Bahnhof",
+                "from_upstream": True,
+                "name": "Carl",
+            },
+        )
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+        assert "acknowledgments" in cf_srtnotes_json
+        acknowledgments = cf_srtnotes_json["acknowledgments"]
+        assert len(acknowledgments) == 2
+
+        for ack in acknowledgments:
+            assert (
+                ack["affiliation"] == "dear"
+                and not ack["from_upstream"]
+                and ack["name"] == "sir"
+            ) or (
+                ack["affiliation"] == "von Bahnhof"
+                and ack["from_upstream"]
+                and ack["name"] == "Carl"
+            )
+
+    def test_generate_affects(self):
+        """
+        test generating of SRT affects attribute array
+        """
+        flaw = FlawFactory()
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(
+            flaw=flaw,
+            ps_module="rhel-6",
+            ps_component="ImageMagick",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            impact=Affect.AffectImpact.CRITICAL,
+            cvss2="10.0/AV:N/AC:L/Au:N/C:C/I:C/A:C",
+            cvss3="",
+        )
+        AffectFactory(
+            flaw=flaw,
+            ps_module="rhel-7",
+            ps_component="kernel",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            impact=Affect.AffectImpact.MODERATE,
+            cvss2="5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+            cvss3="7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+        )
+        AffectFactory(
+            flaw=flaw,
+            ps_module="rhel-8",
+            ps_component="bash",
+            affectedness=Affect.AffectAffectedness.NOTAFFECTED,
+            resolution=Affect.AffectResolution.NOVALUE,
+            impact=Affect.AffectImpact.NOVALUE,
+            cvss2="",
+            cvss3="",
+        )
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+        assert "affects" in cf_srtnotes_json
+        affects = cf_srtnotes_json["affects"]
+        assert len(affects) == 3
+
+        rhel6affect = rhel7affect = rhel8affect = None
+        for affect in affects:
+            if affect["ps_module"] == "rhel-6":
+                rhel6affect = affect
+            if affect["ps_module"] == "rhel-7":
+                rhel7affect = affect
+            if affect["ps_module"] == "rhel-8":
+                rhel8affect = affect
+        assert rhel6affect
+        assert rhel7affect
+        assert rhel8affect
+
+        assert rhel6affect["ps_component"] == "ImageMagick"
+        assert rhel6affect["affectedness"] == "affected"
+        assert rhel6affect["resolution"] == "fix"
+        assert rhel6affect["impact"] == "critical"
+        assert rhel6affect["cvss2"] == "10.0/AV:N/AC:L/Au:N/C:C/I:C/A:C"
+        assert rhel6affect["cvss3"] is None
+
+        assert rhel7affect["ps_component"] == "kernel"
+        assert rhel7affect["affectedness"] == "affected"
+        assert rhel7affect["resolution"] == "delegated"
+        assert rhel7affect["impact"] == "moderate"
+        assert rhel7affect["cvss2"] == "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C"
+        assert (
+            rhel7affect["cvss3"] == "7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+        )
+
+        assert rhel8affect["ps_component"] == "bash"
+        assert rhel8affect["affectedness"] == "notaffected"
+        assert rhel8affect["resolution"] is None
+        assert rhel8affect["impact"] is None
+        assert rhel8affect["cvss2"] is None
+        assert rhel8affect["cvss3"] is None
+
+    @pytest.mark.parametrize(
+        "osidb_cvss2,osidb_cvss3,srtnotes,bz_cvss2_present,bz_cvss3_present,bz_cvss2,bz_cvss3",
+        [
+            (
+                "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+                "7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                """
+                {
+                    "cvss2": "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+                    "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+                }
+                """,
+                True,
+                True,
+                "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+                "7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+            ),
+            (
+                "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+                None,
+                "",
+                True,
+                False,
+                "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+                None,
+            ),
+            (
+                None,
+                None,
+                """
+                {
+                    "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+                }
+                """,
+                False,
+                True,
+                None,
+                None,
+            ),
+        ],
+    )
+    def test_cvss(
+        self,
+        osidb_cvss2,
+        osidb_cvss3,
+        srtnotes,
+        bz_cvss2_present,
+        bz_cvss3_present,
+        bz_cvss2,
+        bz_cvss3,
+    ):
+        """
+        test generating of SRT notes CVSS attributes
+        """
+        flaw = FlawFactory.build(
+            cvss2=osidb_cvss2,
+            cvss3=osidb_cvss3,
+            meta_attr={"original_srtnotes": srtnotes},
+        )
+        flaw.save(raise_validation_error=False)
+        FlawCommentFactory(flaw=flaw)
+        AffectFactory(flaw=flaw)
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+
+        if bz_cvss2_present:
+            assert "cvss2" in cf_srtnotes_json
+            assert cf_srtnotes_json["cvss2"] == bz_cvss2
+        else:
+            assert "cvss2" not in cf_srtnotes_json
+        if bz_cvss3_present:
+            assert "cvss3" in cf_srtnotes_json
+            assert cf_srtnotes_json["cvss3"] == bz_cvss3
+        else:
+            assert "cvss3" not in cf_srtnotes_json
+
+    @pytest.mark.parametrize(
+        "osidb_cwe,srtnotes,bz_present,bz_cwe",
+        [
+            (
+                "CWE-123",
+                """{"cwe": "CWE-123"}""",
+                True,
+                "CWE-123",
+            ),
+            (
+                "CWE-555",
+                """{"cwe": "CWE-123"}""",
+                True,
+                "CWE-555",
+            ),
+            (
+                "",
+                """{"cwe": "CWE-123"}""",
+                True,
+                None,
+            ),
+            (
+                "CWE-555",
+                "",
+                True,
+                "CWE-555",
+            ),
+            (
+                "",
+                "",
+                False,
+                None,
+            ),
+        ],
+    )
+    def test_cwe(self, osidb_cwe, srtnotes, bz_present, bz_cwe):
+        """
+        test generating of SRT notes CWE attribute
+        """
+        flaw = FlawFactory(cwe_id=osidb_cwe, meta_attr={"original_srtnotes": srtnotes})
+        FlawCommentFactory(flaw=flaw)
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+
+        if bz_present:
+            assert "cwe" in cf_srtnotes_json
+            assert cf_srtnotes_json["cwe"] == bz_cwe
+        else:
+            assert "cwe" not in cf_srtnotes_json
 
     @pytest.mark.parametrize(
         "osidb_impact,srtnotes,bz_present,bz_impact",
@@ -366,6 +628,147 @@ class TestGenerateSRTNotes:
             assert cf_srtnotes_json["source"] == bz_source
         else:
             assert "source" not in cf_srtnotes_json
+
+    @pytest.mark.parametrize(
+        "osidb_statement,srtnotes,bz_present,bz_statement",
+        [
+            (
+                "some text",
+                """{"statement": "some text"}""",
+                True,
+                "some text",
+            ),
+            (
+                "other text",
+                """{"statement": "some text"}""",
+                True,
+                "other text",
+            ),
+            (
+                "",
+                """{"statement": "some text"}""",
+                True,
+                None,
+            ),
+            (
+                "",
+                "",
+                False,
+                None,
+            ),
+        ],
+    )
+    def test_statement(self, osidb_statement, srtnotes, bz_present, bz_statement):
+        """
+        test generating of SRT notes statement attribute
+        """
+        flaw = FlawFactory(
+            statement=osidb_statement, meta_attr={"original_srtnotes": srtnotes}
+        )
+        FlawCommentFactory(flaw=flaw)
+
+        bbq = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+
+        if bz_present:
+            assert "statement" in cf_srtnotes_json
+            assert cf_srtnotes_json["statement"] == bz_statement
+        else:
+            assert "statement" not in cf_srtnotes_json
+
+    def test_schema(self):
+        """
+        test complex flaw SRT notes generation
+        to make sure that it is all according to the JSON schema
+        """
+        srtnotes = """
+        {
+            "acknowledgments": [
+                {
+                    "affiliation": "von Stadt",
+                    "from_upstream": true,
+                    "name": "Eduard"
+                }
+            ],
+            "affects": [
+                {
+                    "affectedness": "affected",
+                    "cvss2": "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+                    "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+                    "impact": "moderate",
+                    "ps_component": "libssh",
+                    "ps_module": "fedora-all",
+                    "resolution": "fix"
+                }
+            ],
+            "cwe": "CWE-123",
+            "impact": "moderate",
+            "jira_trackers": [],
+            "public": "2022-11-23",
+            "reported": "2022-09-21",
+            "source": "customer",
+            "statement": "this flaw is funny",
+            "unknown": {
+                "complex": "value",
+                "array": []
+            }
+        }
+        """
+        flaw = FlawFactory(
+            cwe_id="CWE-123",
+            embargoed=False,
+            impact=FlawImpact.IMPORTANT,
+            meta_attr={"original_srtnotes": srtnotes},
+            reported_dt=make_aware(timezone.datetime(2022, 9, 21)),
+            source=FlawSource.CUSTOMER,
+            statement="this flaw is very funny",
+            unembargo_dt=make_aware(timezone.datetime(2021, 11, 23)),
+        )
+        FlawMetaFactory(
+            flaw=flaw,
+            type="ACKNOWLEDGMENT",
+            meta_attr={
+                "affiliation": "von Stadt",
+                "from_upstream": True,
+                "name": "Eduard",
+            },
+        )
+        FlawCommentFactory(flaw=flaw)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_component="libssh",
+            ps_module="fedora-all",
+            impact=Affect.AffectImpact.MODERATE,
+            cvss2="5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+        )
+        TrackerFactory(
+            affects=[affect],
+            external_system_id="PROJECT-1",
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        bbq = BugzillaQueryBuilder(flaw)
+        # SRTNotesValidationError exception should not be raised here
+        cf_srtnotes = bbq.query.get("cf_srtnotes")
+        assert cf_srtnotes and json.loads(cf_srtnotes)
+
+    def test_invalid_schema(self):
+        """
+        test invalid flaw SRT notes data to make sure that the JSON schema validation works
+        """
+        srtnotes_builder = SRTNotesBuilder(None)
+        # inject invalid JSON data
+        srtnotes_builder._json = {"affects": None}
+
+        with pytest.raises(
+            SRTNotesValidationError, match="Invalid JSON produced for SRT notes"
+        ):
+            srtnotes_builder.validate()
 
 
 class TestGenerateGroups:
