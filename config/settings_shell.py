@@ -25,7 +25,7 @@ DATABASES = {
             "gssencmode": "disable",
             # this is a hack due to our inability to set a custom parameter either at
             # the database or role level in managed databases such as AWS RDS
-            "options": "-c osidb.acl=''",
+            "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000",
         },
     }
 }
