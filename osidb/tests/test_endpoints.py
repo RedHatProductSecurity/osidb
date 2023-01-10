@@ -452,7 +452,7 @@ class TestEndpoints(object):
         flaw = FlawFactory()
         for _ in range(5):
             affect = AffectFactory(flaw=flaw)
-            affect.trackers.set([TrackerFactory()])
+            affect.trackers.set([TrackerFactory(embargoed=flaw.is_embargoed)])
 
         flaw_exclude_fields = ["resolution", "state", "uuid", "impact"]
         affect_exclude_fields = ["ps_module", "ps_component", "type", "affectedness"]
@@ -492,7 +492,7 @@ class TestEndpoints(object):
         flaw = FlawFactory()
         for _ in range(5):
             affect = AffectFactory(flaw=flaw)
-            affect.trackers.set([TrackerFactory()])
+            affect.trackers.set([TrackerFactory(embargoed=flaw.is_embargoed)])
 
         flaw_include_fields = ["resolution", "state", "uuid", "impact"]
         affect_include_fields = ["ps_module", "ps_component", "type", "affectedness"]
@@ -542,7 +542,7 @@ class TestEndpoints(object):
         flaw = FlawFactory()
         for _ in range(5):
             affect = AffectFactory(flaw=flaw)
-            affect.trackers.set([TrackerFactory()])
+            affect.trackers.set([TrackerFactory(embargoed=flaw.is_embargoed)])
 
         affect_include_fields = ["ps_module", "ps_component", "type", "affectedness"]
 
@@ -579,7 +579,7 @@ class TestEndpoints(object):
         flaw = FlawFactory()
         for _ in range(5):
             affect = AffectFactory(flaw=flaw)
-            affect.trackers.set([TrackerFactory()])
+            affect.trackers.set([TrackerFactory(embargoed=flaw.is_embargoed)])
 
         flaw_include_fields = ["resolution", "state", "uuid", "impact"]
         affect_include_fields = ["ps_module", "ps_component", "type", "affectedness"]
@@ -735,7 +735,8 @@ class TestEndpoints(object):
                 affect.trackers.set(
                     [
                         TrackerFactory(
-                            meta_attr={f"test_key_{i}": "test" for i in range(5)}
+                            embargoed=flaw.is_embargoed,
+                            meta_attr={f"test_key_{i}": "test" for i in range(5)},
                         )
                     ]
                 )
@@ -836,7 +837,12 @@ class TestEndpoints(object):
                 flaw=flaw, meta_attr={f"test_key_{i}": "test" for i in range(5)}
             )
             affect.trackers.set(
-                [TrackerFactory(meta_attr={f"test_key_{i}": "test" for i in range(5)})]
+                [
+                    TrackerFactory(
+                        embargoed=flaw.is_embargoed,
+                        meta_attr={f"test_key_{i}": "test" for i in range(5)},
+                    )
+                ]
             )
 
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}?{query_params}")
@@ -960,7 +966,9 @@ class TestEndpoints(object):
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
-        TrackerFactory(affects=(delegated_affect,), status="won't fix")
+        TrackerFactory(
+            affects=(delegated_affect,), status="won't fix", embargoed=flaw.is_embargoed
+        )
 
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}")
         assert response.status_code == 200
@@ -1133,8 +1141,10 @@ class TestEndpoints(object):
         affects_with_trackers_to_fetch = [AffectFactory(flaw=flaw) for _ in range(5)]
         other_affects = [AffectFactory(flaw=flaw) for _ in range(5)]
 
-        trackers_to_fetch = [TrackerFactory() for _ in range(5)]
-        other_trackers = [TrackerFactory() for _ in range(5)]
+        trackers_to_fetch = [
+            TrackerFactory(embargoed=flaw.is_embargoed) for _ in range(5)
+        ]
+        other_trackers = [TrackerFactory(embargoed=flaw.is_embargoed) for _ in range(5)]
 
         for affect, tracker in zip(affects_with_trackers_to_fetch, trackers_to_fetch):
             affect.trackers.set([tracker])

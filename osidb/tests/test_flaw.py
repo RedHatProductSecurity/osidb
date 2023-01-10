@@ -202,9 +202,11 @@ class TestFlaw:
 
     def test_multi_affect_tracker(self):
         affect1 = AffectFactory()
-        tracker = TrackerFactory.create(affects=(affect1,))
+        tracker = TrackerFactory.create(
+            affects=(affect1,), embargoed=affect1.flaw.is_embargoed
+        )
         assert len(tracker.affects.all()) == 1
-        affect2 = AffectFactory()
+        affect2 = AffectFactory(flaw__embargoed=False)
         Tracker.objects.create_tracker(
             affect2, tracker.external_system_id, tracker.type
         )
@@ -218,7 +220,7 @@ class TestFlaw:
             flaw=flaw,
         )
         assert not flaw.trackers_filed
-        TrackerFactory(affects=(fix_affect,))
+        TrackerFactory(affects=(fix_affect,), embargoed=flaw.is_embargoed)
         assert flaw.trackers_filed
         AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
@@ -231,15 +233,28 @@ class TestFlaw:
         delegated_affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
+            flaw__embargoed=False,
         )
-        TrackerFactory(affects=(delegated_affect,), status="won't fix")
+        TrackerFactory(
+            affects=(delegated_affect,),
+            status="won't fix",
+            embargoed=delegated_affect.flaw.is_embargoed,
+        )
         assert delegated_affect.delegated_resolution == Affect.AffectFix.WONTFIX
         # NOTAFFECTED is ranked higher than WONTFIX
-        TrackerFactory(affects=(delegated_affect,), status="done", resolution="notabug")
+        TrackerFactory(
+            affects=(delegated_affect,),
+            status="done",
+            resolution="notabug",
+            embargoed=delegated_affect.flaw.is_embargoed,
+        )
         assert delegated_affect.delegated_resolution == Affect.AffectFix.NOTAFFECTED
         # DEFER is ranged lower than NOTAFFECTED
         TrackerFactory(
-            affects=(delegated_affect,), status="closed", resolution="deferred"
+            affects=(delegated_affect,),
+            status="closed",
+            resolution="deferred",
+            embargoed=delegated_affect.flaw.is_embargoed,
         )
         assert delegated_affect.delegated_resolution == Affect.AffectFix.NOTAFFECTED
 
@@ -941,3 +956,36 @@ class TestFlawValidators:
             assert "CWE IDs is not well formated." in str(e)
         else:
             assert FlawFactory(cwe_id=cwe)
+
+    @pytest.mark.parametrize(
+        "flaws_embargoed_status,embargoed_tracker,should_raise",
+        [
+            ([True], True, False),
+            ([True], False, True),
+            ([False], False, False),
+            ([False], True, False),
+            ([True, True], True, False),
+            ([True, True], False, True),
+            ([False, False], True, False),
+            ([False, False], False, False),
+            ([True, False], True, False),
+            ([True, False], False, True),
+        ],
+    )
+    def test_validate_tracker_flaw_accesses(
+        self, flaws_embargoed_status, embargoed_tracker, should_raise
+    ):
+        """test Tracker model validator making sure flaws can't have a public tracker"""
+
+        affects = []
+        for embargoed_flaw in flaws_embargoed_status:
+            affects.append(AffectFactory(flaw__embargoed=embargoed_flaw))
+
+        if should_raise:
+            with pytest.raises(
+                ValidationError,
+                match="Tracker is public but is associated with an embargoed flaw",
+            ):
+                TrackerFactory(affects=affects, embargoed=embargoed_tracker)
+        else:
+            assert TrackerFactory(affects=affects, embargoed=embargoed_tracker)
