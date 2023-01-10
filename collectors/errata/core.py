@@ -32,24 +32,36 @@ def get(path, return_json=True, session=None, **request_kwargs):
     return response.json() if return_json else response
 
 
-def get_all_errata() -> list[tuple[str, str]]:
+def get_erratum(et_id) -> dict:
+    """
+    get all necessary data for a given erratum
+
+    this is unfortunately one more API query but
+    both list and search miss some timestamps
+    """
+    erratum_json = get(f"/advisory/{et_id}.json")
+    return {
+        "et_id": et_id,
+        "advisory_name": erratum_json["advisory_name"],
+        "created_dt": erratum_json["timestamps"]["created_at"],
+        "updated_dt": erratum_json["timestamps"]["updated_at"],
+    }
+
+
+def get_all_errata() -> list[dict]:
     """
     Fetches IDs for all Errata with CVEs when collector is run for first time
     """
-    all_errata_with_cves = get("/cve/list.json").items()
-    return [
-        (errata_id, errata["advisory"]) for errata_id, errata in all_errata_with_cves
-    ]
+    all_errata_with_cves = get("/cve/list.json").keys()
+    return [get_erratum(errata_id) for errata_id in all_errata_with_cves]
 
 
-def get_errata_to_sync(updated_after: datetime) -> list[tuple[str, str]]:
+def get_errata_to_sync(updated_after: datetime) -> list[dict]:
     """
     Fetches IDs for Errata that changed after last collector success time
     """
     query = {"updated_at": updated_after}
-    return [
-        (erratum["errata_id"], erratum["advisory_name"]) for erratum in search(query)
-    ]
+    return [get_erratum(erratum["errata_id"]) for erratum in search(query)]
 
 
 def get_flaws_and_trackers_for_erratum(
@@ -88,17 +100,17 @@ def get_flaws_and_trackers_for_erratum(
     return flaw_ids, bz_tracker_ids, jira_tracker_ids
 
 
-def link_bugs_to_errata(erratum_id_name_pairs: list[tuple[str, str]]):
+def link_bugs_to_errata(erratum_json_list: list[dict]):
     """
     For each erratum ID, find the Bugzilla and Jira bug IDs that are linked to that erratum
     The search API endpoint, to find all errata changed after X time, doesn't return this information
-    Then create the Erratum model instance from the ID + name, and link the associated bug IDs
+    Then create the Erratum model instance from the ID + name + timestamps, and link the associated bug IDs
     If the bug IDs do not exist, skip linking them. In future we will run bzimport to create them
     """
     # Separate method from above to make testing simpler
-    for et_id, advisory_name in erratum_id_name_pairs:
+    for erratum_json in erratum_json_list:
         flaw_ids, bz_tracker_ids, jira_tracker_ids = get_flaws_and_trackers_for_erratum(
-            et_id
+            erratum_json["et_id"]
         )
 
         if not flaw_ids:
@@ -106,9 +118,8 @@ def link_bugs_to_errata(erratum_id_name_pairs: list[tuple[str, str]]):
             # But we can avoid storing it unnecessarily
             continue
 
-        erratum, _ = Erratum.objects.update_or_create(
-            et_id=et_id, defaults={"advisory_name": advisory_name}
-        )
+        erratum = Erratum.objects.create_erratum(**erratum_json)
+        erratum.save(auto_timestamps=False)
 
         # TODO: Not enough info here to create a tracker if it doesn't exist
         # Technically we could create the trackers, but they would be missing affects + many other properties

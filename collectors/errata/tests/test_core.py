@@ -1,4 +1,5 @@
 import pytest
+from django.utils import timezone
 
 from osidb.models import Erratum, Tracker
 from osidb.tests.factories import TrackerFactory
@@ -22,15 +23,14 @@ class TestErrataToolCollection:
         """Test that we can get all errata with CVEs from Errata Tool for initial collector run"""
         errata_id_name_pairs = get_all_errata()
 
-        assert len(errata_id_name_pairs) == 5421
+        assert len(errata_id_name_pairs) == 3
 
     @pytest.mark.vcr
     def test_get_errata_to_sync(self, sample_search_time):
         """Test that we can search Errata Tool for all errata updated after last collector success time"""
         errata_id_name_pairs = get_errata_to_sync(sample_search_time)
 
-        assert len(errata_id_name_pairs) == 66
-        # Using stage data for this + above cassette to avoid pulling in very new / still-embargoed CVEs
+        assert len(errata_id_name_pairs) == 2
 
     @pytest.mark.vcr
     def test_get_bz_trackers_for_erratum(self, sample_erratum_with_bz_bugs):
@@ -75,12 +75,27 @@ class TestErrataToolCollection:
         TrackerFactory.create(
             external_system_id="2021168", type=Tracker.TrackerType.BUGZILLA
         )
-        link_bugs_to_errata([(sample_erratum_with_bz_bugs, sample_erratum_name)])
+        link_bugs_to_errata(
+            [
+                {
+                    "et_id": sample_erratum_with_bz_bugs,
+                    "advisory_name": sample_erratum_name,
+                    "created_dt": "2023-01-08T00:41:10Z",
+                    "updated_dt": "2023-03-08T00:41:10Z",
+                }
+            ]
+        )
 
         # One erratum was created
         assert Erratum.objects.count() == 1
         # Which is linked to two Bugzilla trackers, the same as above
         assert Erratum.objects.first().trackers.count() == 2
+        assert Erratum.objects.first().created_dt == timezone.datetime(
+            2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
+        assert Erratum.objects.first().updated_dt == timezone.datetime(
+            2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
 
     @pytest.mark.default_cassette(JIRA_CASSETTE)
     @pytest.mark.vcr
@@ -92,19 +107,43 @@ class TestErrataToolCollection:
         TrackerFactory.create(
             external_system_id="LOG-2064", type=Tracker.TrackerType.JIRA
         )
-        link_bugs_to_errata([(sample_erratum_with_jira_issues, sample_erratum_name)])
+        link_bugs_to_errata(
+            [
+                {
+                    "et_id": sample_erratum_with_jira_issues,
+                    "advisory_name": sample_erratum_name,
+                    "created_dt": "2023-01-08T00:41:10Z",
+                    "updated_dt": "2023-03-08T00:41:10Z",
+                }
+            ]
+        )
 
         # One erratum was created
         assert Erratum.objects.count() == 1
         # Which is linked to one Jira tracker, the same as above
         assert Erratum.objects.first().trackers.count() == 1
+        assert Erratum.objects.first().created_dt == timezone.datetime(
+            2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
+        assert Erratum.objects.first().updated_dt == timezone.datetime(
+            2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
 
     @pytest.mark.vcr
     def test_skip_saving_when_flaws_missing(
         self, sample_erratum_with_no_flaws, sample_erratum_name
     ):
         """Test that we will not save an Erratum into the DB if it has no linked flaws in Errata Tool"""
-        link_bugs_to_errata([(sample_erratum_with_no_flaws, sample_erratum_name)])
+        link_bugs_to_errata(
+            [
+                {
+                    "et_id": sample_erratum_with_no_flaws,
+                    "advisory_name": sample_erratum_name,
+                    "created_dt": "2023-01-08T00:41:10Z",
+                    "updated_dt": "2023-03-08T00:41:10Z",
+                }
+            ]
+        )
 
         # No erratum was created
         assert Erratum.objects.count() == 0
@@ -118,12 +157,27 @@ class TestErrataToolCollection:
         # Today we skip linking errata to trackers if they do not already exist
         # Once the bzimport refactor is complete, we can run dependent collectors to create trackers
         # Then the ET collector can link them even when they do not already exist, and this test can go away
-        link_bugs_to_errata([(sample_erratum_with_jira_issues, sample_erratum_name)])
+        link_bugs_to_errata(
+            [
+                {
+                    "et_id": sample_erratum_with_jira_issues,
+                    "advisory_name": sample_erratum_name,
+                    "created_dt": "2023-01-08T00:41:10Z",
+                    "updated_dt": "2023-03-08T00:41:10Z",
+                }
+            ]
+        )
 
         # One erratum was created
         assert Erratum.objects.count() == 1
         # Which is not linked to any trackers
         assert Erratum.objects.first().trackers.count() == 0
+        assert Erratum.objects.first().created_dt == timezone.datetime(
+            2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
+        assert Erratum.objects.first().updated_dt == timezone.datetime(
+            2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
 
     @pytest.mark.vcr
     def test_update_advisory_name(
@@ -138,17 +192,43 @@ class TestErrataToolCollection:
         )
 
         link_bugs_to_errata(
-            [(sample_erratum_with_bz_bugs, f"{sample_erratum_name}-01")]
+            [
+                {
+                    "et_id": sample_erratum_with_bz_bugs,
+                    "advisory_name": f"{sample_erratum_name}-01",
+                    "created_dt": "2023-01-08T00:41:10Z",
+                    "updated_dt": "2023-03-08T00:41:10Z",
+                }
+            ]
         )
 
         # One erratum was created
         assert Erratum.objects.count() == 1
         assert Erratum.objects.first().advisory_name == f"{sample_erratum_name}-01"
+        assert Erratum.objects.first().created_dt == timezone.datetime(
+            2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
+        assert Erratum.objects.first().updated_dt == timezone.datetime(
+            2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
 
         link_bugs_to_errata(
-            [(sample_erratum_with_bz_bugs, f"{sample_erratum_name}-02")]
+            [
+                {
+                    "et_id": sample_erratum_with_bz_bugs,
+                    "advisory_name": f"{sample_erratum_name}-02",
+                    "created_dt": "2023-01-08T00:41:10Z",
+                    "updated_dt": "2023-05-08T00:41:10Z",
+                }
+            ]
         )
 
         # Erratum is updated
         assert Erratum.objects.count() == 1
         assert Erratum.objects.first().advisory_name == f"{sample_erratum_name}-02"
+        assert Erratum.objects.first().created_dt == timezone.datetime(
+            2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
+        assert Erratum.objects.first().updated_dt == timezone.datetime(
+            2023, 5, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
