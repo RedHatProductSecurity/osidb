@@ -653,6 +653,7 @@ class FlawBugConvertor:
         meta_attr["acl_labels"] = self.groups
         meta_attr["task_owner"] = self.task_owner
         meta_attr["groups"] = json.dumps(self.flaw_bug.get("groups", []))
+        meta_attr["keywords"] = json.dumps(self.flaw_bug.get("keywords", []))
         # store the original SRT notes string as meta attributes tamper the JSON
         meta_attr["original_srtnotes"] = self.flaw_bug["cf_srtnotes"]
         return meta_attr

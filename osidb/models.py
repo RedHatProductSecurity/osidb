@@ -1,6 +1,7 @@
 """
 draft model for end to end testing
 """
+import json
 import logging
 import re
 import uuid
@@ -21,6 +22,7 @@ from psqlextra.fields import HStoreField
 from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.osim.workflow import WorkflowModel
+from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 
 from .constants import BZ_ID_SENTINEL, CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
 from .mixins import (
@@ -839,6 +841,27 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
     #             self.embargoed = True
     #         if self.unembargo_dt < datetime.now():
     #             self.embargoed = False
+
+    def _validate_no_placeholder(self):
+        """
+        restrict any write operations on placeholder flaws
+
+        they have a special handling mainly in sense
+        of visibility and we deprecate this concept
+        """
+        if self.is_placeholder:
+            raise ValidationError(
+                "OSIDB does not support write operations on placeholder flaws"
+            )
+
+    @property
+    def is_placeholder(self):
+        """
+        placeholder flaws contain a special Bugzilla keyword
+        """
+        return FLAW_PLACEHOLDER_KEYWORD in json.loads(
+            self.meta_attr.get("keywords", "[]")
+        )
 
     @property
     def bz_id(self):

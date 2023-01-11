@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
+from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 from osidb.constants import BZ_ID_SENTINEL
 from osidb.core import generate_acls
 from osidb.models import (
@@ -989,3 +990,18 @@ class TestFlawValidators:
                 TrackerFactory(affects=affects, embargoed=embargoed_tracker)
         else:
             assert TrackerFactory(affects=affects, embargoed=embargoed_tracker)
+
+    def test_validate_no_placeholder(self):
+        """
+        test that placeholder flaw cannot be saved
+        unless it is performed by the collector
+        """
+        flaw = FlawFactory.build(
+            meta_attr={"keywords": '["' + FLAW_PLACEHOLDER_KEYWORD + '"]'}
+        )
+
+        with pytest.raises(ValidationError):
+            flaw.save()
+
+        # exclude collectors from restriction
+        flaw.save(raise_validation_error=False)
