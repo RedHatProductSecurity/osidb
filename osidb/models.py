@@ -401,50 +401,6 @@ class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
 
     objects = FlawHistoryManager()
 
-    # TODO this needs to be refactored
-    # but it makes sense only when we are capable of write actions
-    # and we may thus actually do some changes to the embargo
-    #
-    # def process_embargo_state(self):
-    #     """TBD - this is process related so deactivating it
-
-    #     explicitly set embargoed based on co-constraints
-
-    #     embargoed = (True|False|None)
-    #     unembargo_dt = (Past date|Future date | None)
-    #     # permutations = 9
-
-    #     | embargoed | unembargo_dt | embargoed set value |
-    #     |-----------|--------------|---------------------|
-    #     | True      | None         | True                |
-    #     | False     | None         | False               |
-    #     | None      | None         | False               |
-
-    #     | True      | Future date  | True                |
-    #     | False     | Future date  | True                |
-    #     | None      | Future date  | True                |
-
-    #     | True      | Past date    | True                | no trust defensive - in the future we may change
-    #     | False     | Past date    | False               |
-    #     | None      | Past date    | False               |
-
-    #     corner case(s) = [ unembargo_dt = now() ]
-
-    #     TBD -  process with respect to perms access
-
-    #     """
-    #     if self.embargoed and self.unembargo_dt is None:
-    #         pass
-    #     elif self.embargoed and self.unembargo_dt < datetime.now():
-    #         pass
-    #     elif self.unembargo_dt is None:
-    #         self.embargoed = False
-    #     else:
-    #         if self.unembargo_dt > datetime.now():
-    #             self.embargoed = True
-    #         if self.unembargo_dt < datetime.now():
-    #             self.embargoed = False
-
 
 class FlawManager(ACLMixinManager):
     """flaw manager"""
@@ -797,50 +753,6 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
         for element in parsed_elements:
             if not re.match(r"^(CWE-[0-9]+|\(CWE-[0-9]+(\|CWE-[0-9]+)*\))$", element):
                 raise ValidationError("CWE IDs is not well formated.")
-
-    # TODO this needs to be refactored
-    # but it makes sense only when we are capable of write actions
-    # and we may thus actually do some changes to the embargo
-    #
-    # def process_embargo_state(self):
-    #     """TBD - this is process related so deactivating it
-
-    #     explicitly set embargoed based on co-constraints
-
-    #     embargoed = (True|False|None)
-    #     unembargo_dt = (Past date|Future date | None)
-    #     # permutations = 9
-
-    #     | embargoed | unembargo_dt | embargoed set value |
-    #     |-----------|--------------|---------------------|
-    #     | True      | None         | True                |
-    #     | False     | None         | False               |
-    #     | None      | None         | False               |
-
-    #     | True      | Future date  | True                |
-    #     | False     | Future date  | True                |
-    #     | None      | Future date  | True                |
-
-    #     | True      | Past date    | True                | no trust defensive - in the future we may change
-    #     | False     | Past date    | False               |
-    #     | None      | Past date    | False               |
-
-    #     corner case(s) = [ unembargo_dt = now() ]
-
-    #     TBD -  process with respect to perms access
-
-    #     """
-    #     if self.embargoed and self.unembargo_dt is None:
-    #         pass
-    #     elif self.embargoed and self.unembargo_dt < datetime.now():
-    #         pass
-    #     elif self.unembargo_dt is None:
-    #         self.embargoed = False
-    #     else:
-    #         if self.unembargo_dt > datetime.now():
-    #             self.embargoed = True
-    #         if self.unembargo_dt < datetime.now():
-    #             self.embargoed = False
 
     def _validate_no_placeholder(self):
         """
