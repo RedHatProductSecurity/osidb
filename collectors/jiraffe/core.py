@@ -90,7 +90,7 @@ def get_field_attr(issue, field, attr):
     return None
 
 
-def upsert_trackers(affect: Affect, dry_run=False) -> None:
+def upsert_trackers(affect: Affect) -> None:
     """
     Creates or updates an affect's trackers.
     """
@@ -128,11 +128,9 @@ def upsert_trackers(affect: Affect, dry_run=False) -> None:
                 ),
             },
         )
-        if not dry_run:
-            tracker.save()
-            tracker.affects.add(affect)
-    if not dry_run:
-        affect.save()
+        tracker.save()
+        tracker.affects.add(affect)
+    affect.save()
 
 
 def get_affects_to_sync(interval: str) -> Union[tuple[UUID], tuple[Any]]:
