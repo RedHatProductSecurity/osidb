@@ -1,6 +1,7 @@
 """
 draft model for end to end testing
 """
+import json
 import logging
 import re
 import uuid
@@ -21,6 +22,7 @@ from psqlextra.fields import HStoreField
 from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.osim.workflow import WorkflowModel
+from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 
 from .constants import BZ_ID_SENTINEL, CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
 from .mixins import (
@@ -399,50 +401,6 @@ class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
 
     objects = FlawHistoryManager()
 
-    # TODO this needs to be refactored
-    # but it makes sense only when we are capable of write actions
-    # and we may thus actually do some changes to the embargo
-    #
-    # def process_embargo_state(self):
-    #     """TBD - this is process related so deactivating it
-
-    #     explicitly set embargoed based on co-constraints
-
-    #     embargoed = (True|False|None)
-    #     unembargo_dt = (Past date|Future date | None)
-    #     # permutations = 9
-
-    #     | embargoed | unembargo_dt | embargoed set value |
-    #     |-----------|--------------|---------------------|
-    #     | True      | None         | True                |
-    #     | False     | None         | False               |
-    #     | None      | None         | False               |
-
-    #     | True      | Future date  | True                |
-    #     | False     | Future date  | True                |
-    #     | None      | Future date  | True                |
-
-    #     | True      | Past date    | True                | no trust defensive - in the future we may change
-    #     | False     | Past date    | False               |
-    #     | None      | Past date    | False               |
-
-    #     corner case(s) = [ unembargo_dt = now() ]
-
-    #     TBD -  process with respect to perms access
-
-    #     """
-    #     if self.embargoed and self.unembargo_dt is None:
-    #         pass
-    #     elif self.embargoed and self.unembargo_dt < datetime.now():
-    #         pass
-    #     elif self.unembargo_dt is None:
-    #         self.embargoed = False
-    #     else:
-    #         if self.unembargo_dt > datetime.now():
-    #             self.embargoed = True
-    #         if self.unembargo_dt < datetime.now():
-    #             self.embargoed = False
-
 
 class FlawManager(ACLMixinManager):
     """flaw manager"""
@@ -796,49 +754,26 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
             if not re.match(r"^(CWE-[0-9]+|\(CWE-[0-9]+(\|CWE-[0-9]+)*\))$", element):
                 raise ValidationError("CWE IDs is not well formated.")
 
-    # TODO this needs to be refactored
-    # but it makes sense only when we are capable of write actions
-    # and we may thus actually do some changes to the embargo
-    #
-    # def process_embargo_state(self):
-    #     """TBD - this is process related so deactivating it
+    def _validate_no_placeholder(self):
+        """
+        restrict any write operations on placeholder flaws
 
-    #     explicitly set embargoed based on co-constraints
+        they have a special handling mainly in sense
+        of visibility and we deprecate this concept
+        """
+        if self.is_placeholder:
+            raise ValidationError(
+                "OSIDB does not support write operations on placeholder flaws"
+            )
 
-    #     embargoed = (True|False|None)
-    #     unembargo_dt = (Past date|Future date | None)
-    #     # permutations = 9
-
-    #     | embargoed | unembargo_dt | embargoed set value |
-    #     |-----------|--------------|---------------------|
-    #     | True      | None         | True                |
-    #     | False     | None         | False               |
-    #     | None      | None         | False               |
-
-    #     | True      | Future date  | True                |
-    #     | False     | Future date  | True                |
-    #     | None      | Future date  | True                |
-
-    #     | True      | Past date    | True                | no trust defensive - in the future we may change
-    #     | False     | Past date    | False               |
-    #     | None      | Past date    | False               |
-
-    #     corner case(s) = [ unembargo_dt = now() ]
-
-    #     TBD -  process with respect to perms access
-
-    #     """
-    #     if self.embargoed and self.unembargo_dt is None:
-    #         pass
-    #     elif self.embargoed and self.unembargo_dt < datetime.now():
-    #         pass
-    #     elif self.unembargo_dt is None:
-    #         self.embargoed = False
-    #     else:
-    #         if self.unembargo_dt > datetime.now():
-    #             self.embargoed = True
-    #         if self.unembargo_dt < datetime.now():
-    #             self.embargoed = False
+    @property
+    def is_placeholder(self):
+        """
+        placeholder flaws contain a special Bugzilla keyword
+        """
+        return FLAW_PLACEHOLDER_KEYWORD in json.loads(
+            self.meta_attr.get("keywords", "[]")
+        )
 
     @property
     def bz_id(self):
