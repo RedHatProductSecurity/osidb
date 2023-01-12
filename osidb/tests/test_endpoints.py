@@ -91,6 +91,7 @@ class TestEndpoints(object):
             type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
             meta_attr={"status": "+"},
         )
+        AffectFactory(flaw=flaw1)
         assert flaw1.save() is None
         FlawCommentFactory(flaw=flaw1)
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
@@ -1008,6 +1009,8 @@ class TestEndpoints(object):
             type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
             meta_attr={"status": "+"},
         )
+        AffectFactory(flaw=flaw1)
+
         assert flaw1.save() is None
         FlawCommentFactory(flaw=flaw1)
 
@@ -1089,6 +1092,7 @@ class TestEndpoints(object):
         Test that updating a Flaw by sending a PUT request works.
         """
         flaw = FlawFactory()
+        AffectFactory(flaw=flaw)
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
         original_body = response.json()

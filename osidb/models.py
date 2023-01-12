@@ -754,6 +754,17 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
             if not re.match(r"^(CWE-[0-9]+|\(CWE-[0-9]+(\|CWE-[0-9]+)*\))$", element):
                 raise ValidationError("CWE IDs is not well formated.")
 
+    def _validate_flaw_without_affect(self):
+        """
+        Check if flaw have at least one affect
+        """
+        # Skip validation at creation allowing to draft a Flaw
+        if self._state.adding:
+            return
+
+        if not Affect.objects.filter(flaw=self).exists():
+            raise ValidationError("Flaw does not contain any affects.")
+
     def _validate_no_placeholder(self):
         """
         restrict any write operations on placeholder flaws

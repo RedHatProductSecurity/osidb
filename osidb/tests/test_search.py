@@ -4,7 +4,7 @@ import pytest
 
 from osidb.models import Flaw, FlawImpact, FlawResolution, FlawType
 
-from .factories import FlawFactory
+from .factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
 
@@ -88,6 +88,7 @@ class TestSearch:
         )
 
         assert flaw.save() is None
+        AffectFactory(flaw=flaw)
 
         response = auth_client.get(f"{test_api_uri}/flaws?search=title")
         assert response.status_code == 200

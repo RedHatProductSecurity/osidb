@@ -6,7 +6,7 @@ from osidb.api_views import get_valid_http_methods
 from osidb.core import set_user_acls
 from osidb.exceptions import OSIDBException
 from osidb.models import FlawMeta
-from osidb.tests.factories import FlawFactory, FlawMetaFactory
+from osidb.tests.factories import AffectFactory, FlawFactory, FlawMetaFactory
 from osidb.tests.models import TestAlertModel, TestAlertModelBasic
 
 pytestmark = pytest.mark.unit
@@ -26,6 +26,7 @@ class TestCore(object):
             type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
             meta_attr={"status": "+"},
         )
+        AffectFactory(flaw=flaw1)
         assert flaw1.save() is None
         assert "test" in flaw1.meta_attr
 

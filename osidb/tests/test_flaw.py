@@ -72,12 +72,11 @@ class TestFlaw:
             type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
             meta_attr={"status": "+"},
         )
-
-        assert vuln_1.save() is None
         assert vuln_1.is_major_incident
 
         affect1 = AffectFactory(flaw=vuln_1)
         all_trackers = affect1.trackers.all()
+        assert vuln_1.save() is None
         assert len(all_trackers) == 0
 
         affect2 = Affect.objects.create_affect(
@@ -175,7 +174,7 @@ class TestFlaw:
             )
         ]
         Flaw.objects.all().delete()
-        Flaw.objects.create_flaw(
+        flaw1 = Flaw.objects.create_flaw(
             bz_id="12345",
             cwe_id="CWE-1",
             title="first",
@@ -185,7 +184,10 @@ class TestFlaw:
             acl_write=acls,
             reported_dt=timezone.now(),
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-        ).save()
+        )
+        flaw1.save()
+        AffectFactory(flaw=flaw1)
+
         assert Flaw.objects.count() == 1
         assert Flaw.objects.first().meta_attr["bz_id"] == "12345"
         Flaw.objects.create_flaw(
@@ -878,6 +880,8 @@ class TestFlawValidators:
             is_major_incident=is_major_incident,
         )
         flaw1.save(raise_validation_error=False)
+        AffectFactory(flaw=flaw1)
+
         if req:
             FlawMetaFactory(
                 flaw=flaw1,
@@ -1005,3 +1009,14 @@ class TestFlawValidators:
 
         # exclude collectors from restriction
         flaw.save(raise_validation_error=False)
+
+    def test_validate_flaw_without_affect(self):
+        """test that flaws without affect raises an error on editing"""
+        flaw1 = FlawFactory()
+        AffectFactory(flaw=flaw1)
+        assert flaw1.save() is None
+
+        flaw2 = FlawFactory()
+        with pytest.raises(ValidationError) as e:
+            flaw2.save()
+        assert "Flaw does not contain any affects." in str(e)
