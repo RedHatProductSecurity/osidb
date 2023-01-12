@@ -765,6 +765,36 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
         if not Affect.objects.filter(flaw=self).exists():
             raise ValidationError("Flaw does not contain any affects.")
 
+    def _validate_unsupported_impact_change(self):
+        """
+        Check that an update of a flaw with open trackers does not change between
+        Critical/Important/Major Incident and Moderate/Low and vice-versa.
+        """
+        if self._state.adding:
+            return
+
+        old_flaw = Flaw.objects.get(pk=self.pk)
+        was_high_impact = (
+            old_flaw.impact in [FlawImpact.CRITICAL, FlawImpact.IMPORTANT]
+            or old_flaw.is_major_incident
+        )
+        is_high_impact = (
+            self.impact in [FlawImpact.CRITICAL, FlawImpact.IMPORTANT]
+            or self.is_major_incident
+        )
+        if (
+            was_high_impact != is_high_impact
+            and Tracker.objects.filter(affects__flaw=self)
+            .exclude(status="Closed")
+            .exists()
+        ):
+            self.alert(
+                "unsupported_impact_change",
+                "Performed impact/Major Incident update is not supported because the flaw "
+                "has unclosed trackers. Make sure to manually update all related trackers in "
+                "accordance to the flaw bug changes.",
+            )
+
     def _validate_no_placeholder(self):
         """
         restrict any write operations on placeholder flaws
