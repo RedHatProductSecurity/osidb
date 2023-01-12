@@ -7,7 +7,7 @@ from freezegun import freeze_time
 from collectors.bzimport.convertors import FlawBugConvertor
 from osidb.exceptions import DataInconsistencyException
 from osidb.models import Flaw
-from osidb.tests.factories import FlawFactory
+from osidb.tests.factories import AffectFactory, FlawFactory
 
 from .test_flaw import tzdatetime
 
@@ -79,6 +79,7 @@ class TestTrackingMixin:
         """
         flaw = self.create_flaw()
         flaw.save()
+        AffectFactory(flaw=flaw)
 
         assert flaw.created_dt == tzdatetime(2022, 12, 24)
         assert flaw.updated_dt == tzdatetime(2022, 12, 24)
@@ -97,6 +98,7 @@ class TestTrackingMixin:
         """
         flaw = self.create_flaw()
         flaw.save()
+        AffectFactory(flaw=flaw)
 
         assert flaw.created_dt == tzdatetime(2022, 12, 24)
         assert flaw.updated_dt == tzdatetime(2022, 12, 24)
@@ -129,6 +131,8 @@ class TestTrackingMixin:
         saving an outdated model instance should fail
         """
         flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw)
+
         flaw_copy = Flaw.objects.first()
 
         with freeze_time(tzdatetime(2023, 12, 24)):
