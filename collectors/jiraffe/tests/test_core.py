@@ -1,4 +1,6 @@
 import pytest
+from django.utils import timezone
+from freezegun import freeze_time
 
 from osidb.models import Affect, Tracker
 
@@ -45,6 +47,7 @@ class TestJiraTrackerCollection(object):
         assert not trackers
 
     @pytest.mark.vcr
+    @freeze_time(timezone.datetime(2020, 10, 10))
     def test_tracker_creation_from_affect(self, good_flaw, good_jira_trackers):
         """
         Test the creation of Tracker objects from Affect objects by querying the JIRA API.
@@ -66,8 +69,15 @@ class TestJiraTrackerCollection(object):
         assert tracker.meta_attr.get("qe_owner", False) is None
         assert tracker.meta_attr.get("ps_module", False)
         assert tracker.meta_attr.get("ps_component", False)
+        assert tracker.created_dt == timezone.datetime(
+            2018, 4, 24, 1, 2, 47, tzinfo=timezone.utc
+        )
+        assert tracker.updated_dt == timezone.datetime(
+            2018, 6, 5, 16, 2, 24, tzinfo=timezone.utc
+        )
 
     @pytest.mark.vcr
+    @freeze_time(timezone.datetime(2020, 10, 10))
     def test_tracker_update_from_affect(self, good_flaw, good_jira_trackers):
         """
         Test updating an existing Tracker object from an Affect object by querying the JIRA API.
@@ -91,6 +101,12 @@ class TestJiraTrackerCollection(object):
         assert tracker.status == "random_status"
         assert tracker.resolution == "random_resolution"
         assert tracker.ps_update_stream == ""
+        assert tracker.created_dt == timezone.datetime(
+            2020, 10, 10, tzinfo=timezone.utc
+        )
+        assert tracker.updated_dt == timezone.datetime(
+            2020, 10, 10, tzinfo=timezone.utc
+        )
 
         # Should update the previously created tracker, not create a new one
         upsert_trackers(affect)
@@ -101,3 +117,9 @@ class TestJiraTrackerCollection(object):
         assert tracker.status == "Closed"
         assert tracker.resolution == "Done"
         assert tracker.ps_update_stream == "fis-2.0"
+        assert tracker.created_dt == timezone.datetime(
+            2018, 4, 24, 1, 2, 47, tzinfo=timezone.utc
+        )
+        assert tracker.updated_dt == timezone.datetime(
+            2018, 6, 5, 16, 2, 24, tzinfo=timezone.utc
+        )

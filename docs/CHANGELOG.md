@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change logging of celery and django to filesystem (OSIDB-418)
 - Implement validation for CWE ID chain in a Flaw (OSIDB-357)
 - Implement validation for embargoed flaws not be able to have public trackers (OSIDB-350)
+- Fix Jira tracker created and updated timestamps (OSIDB-14)
 
 ## [2.3.4] - 2022-12-15
 ### Changed

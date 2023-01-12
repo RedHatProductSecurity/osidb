@@ -26,7 +26,7 @@ logger = get_task_logger(__name__)
     soft_time_limit=JIRA_SOFT_TIME_LIMIT,
     rate_limit=JIRA_RATE_LIMIT,
 )
-def process_affect(affect_uuid, dry_run, groups_read, groups_write):
+def process_affect(affect_uuid, groups_read, groups_write):
     """
     Fetches an affect and creates or updates any Trackers related to it
     """
@@ -41,7 +41,7 @@ def process_affect(affect_uuid, dry_run, groups_read, groups_write):
         ]
     )
     affect = Affect.objects.get(uuid=affect_uuid)
-    upsert_trackers(affect, dry_run=dry_run)
+    upsert_trackers(affect)
 
 
 @shared_task
@@ -55,7 +55,6 @@ def jiraffe_sync():
             for affect_uuid in affect_uuids:
                 process_affect.delay(
                     affect_uuid=affect_uuid,
-                    dry_run=False,
                     groups_read=settings.PUBLIC_READ_GROUPS,
                     groups_write=[settings.PUBLIC_WRITE_GROUP],
                 )

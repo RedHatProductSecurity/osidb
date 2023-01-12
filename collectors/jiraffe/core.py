@@ -90,7 +90,7 @@ def get_field_attr(issue, field, attr):
     return None
 
 
-def upsert_trackers(affect: Affect, dry_run=False) -> None:
+def upsert_trackers(affect: Affect) -> None:
     """
     Creates or updates an affect's trackers.
     """
@@ -128,11 +128,12 @@ def upsert_trackers(affect: Affect, dry_run=False) -> None:
                 ),
             },
         )
-        if not dry_run:
-            tracker.save()
-            tracker.affects.add(affect)
-    if not dry_run:
-        affect.save()
+        # eventual save inside create_tracker would override the timestamps
+        # so we have to set them here and both ensure save and turn off auto-timestamps
+        # this might be refactored but as separate task as it changes the affect linking
+        tracker.created_dt = issue.fields.created
+        tracker.updated_dt = issue.fields.updated or issue.fields.created
+        tracker.save(auto_timestamps=False)
 
 
 def get_affects_to_sync(interval: str) -> Union[tuple[UUID], tuple[Any]]:
