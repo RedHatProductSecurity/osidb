@@ -1020,3 +1020,66 @@ class TestFlawValidators:
         with pytest.raises(ValidationError) as e:
             flaw2.save()
         assert "Flaw does not contain any affects." in str(e)
+
+    @pytest.mark.parametrize(
+        "start_impact,new_impact,tracker_statuses,should_raise",
+        [
+            (FlawImpact.LOW, FlawImpact.MODERATE, ["Closed", "Open"], False),
+            (FlawImpact.CRITICAL, FlawImpact.IMPORTANT, ["Closed", "Open"], False),
+            (FlawImpact.LOW, FlawImpact.CRITICAL, ["Closed", "Open"], True),
+            (FlawImpact.CRITICAL, FlawImpact.LOW, ["Closed", "Open"], True),
+            (FlawImpact.LOW, FlawImpact.CRITICAL, ["Closed", "Closed"], False),
+            (FlawImpact.CRITICAL, FlawImpact.LOW, ["Closed", "Closed"], False),
+        ],
+    )
+    def test_validate_unsupported_impact_change(
+        self, start_impact, new_impact, tracker_statuses, should_raise
+    ):
+        """
+        test that flaws with CRITICAL / IMPORTANT impact cannot be changed
+        to LOW / MODERATE while having open trackers and vice-versa
+        """
+
+        flaw = FlawFactory(
+            embargoed=False, is_major_incident=False, impact=start_impact
+        )
+        affect = AffectFactory(flaw=flaw)
+        for status in tracker_statuses:
+            TrackerFactory(embargoed=False, status=status, affects=(affect,))
+        flaw.impact = new_impact
+        flaw.save()
+
+        assert should_raise == bool("unsupported_impact_change" in flaw._alerts)
+
+    @pytest.mark.parametrize(
+        "was_major,is_major,tracker_statuses,should_raise",
+        [
+            (False, False, ["Closed", "Open"], False),
+            (True, True, ["Closed", "Open"], False),
+            (False, True, ["Closed", "Open"], True),
+            (True, False, ["Closed", "Open"], True),
+            (False, True, ["Closed", "Closed"], False),
+            (True, False, ["Closed", "Closed"], False),
+        ],
+    )
+    def test_validate_unsupported_major_incident_change(
+        self, was_major, is_major, tracker_statuses, should_raise
+    ):
+        """test that major incident flaws cannot be changed to non-major while having open trackers"""
+
+        flaw = FlawFactory.build(
+            embargoed=False, is_major_incident=was_major, impact=FlawImpact.LOW
+        )
+        flaw.save(raise_validation_error=False)
+        FlawMetaFactory(
+            flaw=flaw,
+            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+            meta_attr={"status": "-"},
+        )
+        affect = AffectFactory(flaw=flaw)
+        for status in tracker_statuses:
+            TrackerFactory(embargoed=False, status=status, affects=(affect,))
+        flaw.is_major_incident = is_major
+        flaw.save()
+
+        assert should_raise == bool("unsupported_impact_change" in flaw._alerts)

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Implement Bugzilla SRT notes builder in Bugzilla Backwards Sync (OSIDB-384)
 - Implement validation for flaw without affect (OSIDB-353)
+- Implement validation for changes in flaws with high criticicity with open tracker (OSIDB-347)
 
 ### Changed
 - Change logging of celery and django to filesystem (OSIDB-418)
