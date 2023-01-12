@@ -1219,6 +1219,27 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         return Affect.AffectFix.AFFECTED
 
 
+class ErratumManager(models.Manager):
+    """
+    erratum manager
+    """
+
+    @staticmethod
+    def create_erratum(et_id=None, **extra_fields):
+        """
+        return a new erratum or update an existing erratum without saving
+        """
+        assert et_id is not None, "Erratum ID must by provided"
+
+        try:
+            erratum = Erratum.objects.get(et_id=et_id)
+            for attr, value in extra_fields.items():
+                setattr(erratum, attr, value)
+            return erratum
+        except ObjectDoesNotExist:
+            return Erratum(et_id=et_id, **extra_fields)
+
+
 class Erratum(TrackingMixin):
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -1233,6 +1254,8 @@ class Erratum(TrackingMixin):
     # And another erratum may fix the same component on RHEL 8
     # But all errata report the same Bugzilla / Jira tracker as "fixed"
     trackers = models.ManyToManyField(Tracker, related_name="errata")
+
+    objects = ErratumManager()
 
     class Meta:
         verbose_name = "Erratum"
