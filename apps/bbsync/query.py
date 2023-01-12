@@ -269,7 +269,6 @@ class BugzillaQueryBuilder:
         self.generate_deadline()
         self.generate_cc()
         self.generate_srt_notes()
-        # TODO placeholder + has different groups
         # TODO tracker links
         # TODO prestage eligable date - deprecate
         # TODO checklists
@@ -434,8 +433,6 @@ class BugzillaQueryBuilder:
             )
 
             groups = self._standardize_embargoed_groups(module_groups)
-
-        # TODO we do not account for placeholder flaws
 
         # on creation we provide a list of groups
         if self.creation:
