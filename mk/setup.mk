@@ -71,6 +71,11 @@ sync-deps: check-venv-active
 	$(ps) requirements.txt devel-requirements.txt $$([ -f local-requirements.txt ] && echo 'local-requirements.txt')
 
 
+.PHONY : upgrade-dep
+upgrade-dep: check-venv-active
+	@echo ">upgrading specified packages"
+	$(pc) --allow-unsafe --generate-hashes --no-emit-index-url -P $(package) $(reqfile)
+
 #***********************************
 ### Update installed python packages based on requirements.txt both in local venv and in all containers
 #***********************************
