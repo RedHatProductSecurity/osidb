@@ -25,6 +25,8 @@ from osidb.tests.factories import (
     FlawCommentFactory,
     FlawFactory,
     FlawMetaFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
     TrackerFactory,
 )
 
@@ -1158,3 +1160,37 @@ class TestFlawValidators:
         flaw.affects.add(affect)
         flaw.save()
         assert should_raise == bool("notabug_affect_ps_component" in flaw._alerts)
+
+    @pytest.mark.parametrize(
+        "ps_module,ps_component,alerts",
+        [
+            ("rhscl-module", "valid-component", []),
+            ("rhscl-module", "source-to-image", []),
+            ("not-rhscl-module", "valid-component", []),
+            ("not-rhscl-module", "valid", []),
+            ("not-rhscl-module", "invalid-component", []),
+            ("not-rhscl-module", "source-to-image", []),
+            (
+                "rhscl-module",
+                "valid",
+                [
+                    "flaw_affects_rhscl_collection_only",
+                    "flaw_affects_rhscl_invalid_collection",
+                ],
+            ),
+            (
+                "rhscl-module",
+                "invalid-component",
+                ["flaw_affects_rhscl_invalid_collection"],
+            ),
+        ],
+    )
+    def test_flaw_affects_rhscl_invalid_collection(
+        self, ps_module, ps_component, alerts
+    ):
+        VALID_COLLECTIONS = ["valid"]
+        module_obj = PsModuleFactory(name=ps_module)
+        PsUpdateStreamFactory(collections=VALID_COLLECTIONS, ps_module=module_obj)
+        affect = AffectFactory(ps_module=ps_module, ps_component=ps_component)
+        if alerts:
+            assert set(alerts).issubset(affect._alerts)
