@@ -38,4 +38,3 @@ redis[hiredis]
 requests
 requests_cache
 requests_gssapi
-whitenoise
