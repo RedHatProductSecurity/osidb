@@ -1083,3 +1083,78 @@ class TestFlawValidators:
         flaw.save()
 
         assert should_raise == bool("unsupported_impact_change" in flaw._alerts)
+
+    @pytest.mark.parametrize(
+        "state,resolution,affectedness,should_raise",
+        [
+            (
+                Flaw.FlawState.CLOSED,
+                FlawResolution.NOTABUG,
+                Affect.AffectAffectedness.AFFECTED,
+                True,
+            ),
+            (
+                Flaw.FlawState.NEW,
+                FlawResolution.NOTABUG,
+                Affect.AffectAffectedness.AFFECTED,
+                False,
+            ),
+            (
+                Flaw.FlawState.CLOSED,
+                FlawResolution.NEXTRELEASE,
+                Affect.AffectAffectedness.AFFECTED,
+                False,
+            ),
+            (
+                Flaw.FlawState.CLOSED,
+                FlawResolution.NOTABUG,
+                Affect.AffectAffectedness.NOTAFFECTED,
+                False,
+            ),
+        ],
+    )
+    def test_validate_affect_in_notabug_flaw(
+        self, state, resolution, affectedness, should_raise
+    ):
+        flaw = FlawFactory(resolution=resolution, state=state)
+        AffectFactory(flaw=flaw, affectedness=affectedness)
+
+        assert should_raise == bool("notabug_affect_ps_component" in flaw._alerts)
+
+    @pytest.mark.parametrize(
+        "state,resolution,affectedness,should_raise",
+        [
+            (
+                Flaw.FlawState.CLOSED,
+                FlawResolution.NOTABUG,
+                Affect.AffectAffectedness.AFFECTED,
+                True,
+            ),
+            (
+                Flaw.FlawState.NEW,
+                FlawResolution.NOTABUG,
+                Affect.AffectAffectedness.AFFECTED,
+                False,
+            ),
+            (
+                Flaw.FlawState.CLOSED,
+                FlawResolution.NEXTRELEASE,
+                Affect.AffectAffectedness.AFFECTED,
+                False,
+            ),
+            (
+                Flaw.FlawState.CLOSED,
+                FlawResolution.NOTABUG,
+                Affect.AffectAffectedness.NOTAFFECTED,
+                False,
+            ),
+        ],
+    )
+    def test_validate_notabug_flaw_affected(
+        self, state, resolution, affectedness, should_raise
+    ):
+        affect = AffectFactory(affectedness=affectedness)
+        flaw = FlawFactory(resolution=resolution, state=state)
+        flaw.affects.add(affect)
+        flaw.save()
+        assert should_raise == bool("notabug_affect_ps_component" in flaw._alerts)

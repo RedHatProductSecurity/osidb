@@ -807,6 +807,26 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
                 "OSIDB does not support write operations on placeholder flaws"
             )
 
+    def _validate_notabug_flaw_affected(self):
+        """
+        Alerts in case flaw is closed as NOTABUG but has affected components
+        """
+        if (
+            self.state != Flaw.FlawState.CLOSED
+            or self.resolution != FlawResolution.NOTABUG
+        ):
+            return
+
+        affected = self.affects.filter(
+            affectedness=Affect.AffectAffectedness.AFFECTED
+        ).first()
+        if affected:
+            self.alert(
+                "notabug_affect_ps_component",
+                f"Module {affected.ps_module} of component "
+                f"{affected.ps_component} is affected by a flaw solved as NOTABUG.",
+            )
+
     @property
     def is_placeholder(self):
         """
@@ -1049,6 +1069,21 @@ class Affect(
                     f"{self.ps_module} is not a valid ps_module "
                     f"for flaw with bz_id {bz_id}."
                 )
+
+    def _validate_affect_in_notabug_flaw(self):
+        """
+        Alerts in case a component is affected by a flaw closed as NOTABUG
+        """
+        if (
+            self.affectedness == Affect.AffectAffectedness.AFFECTED
+            and self.flaw.resolution == FlawResolution.NOTABUG
+            and self.flaw.state == Flaw.FlawState.CLOSED
+        ):
+            self.flaw.alert(
+                "notabug_affect_ps_component",
+                f"Module {self.ps_module} of component "
+                f"{self.ps_component} is affected by a flaw solved as NOTABUG.",
+            )
 
     @property
     def delegated_resolution(self):
