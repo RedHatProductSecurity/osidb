@@ -24,7 +24,12 @@ from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.osim.workflow import WorkflowModel
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 
-from .constants import BZ_ID_SENTINEL, CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
+from .constants import (
+    BZ_ID_SENTINEL,
+    COMPONENTS_WITHOUT_COLLECTION,
+    CVSS3_SEVERITY_SCALE,
+    OSIDB_API_VERSION,
+)
 from .mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -1083,6 +1088,44 @@ class Affect(
                 "notabug_affect_ps_component",
                 f"Module {self.ps_module} of component "
                 f"{self.ps_component} is affected by a flaw solved as NOTABUG.",
+            )
+
+    def _validate_sofware_collection(self):
+        """
+        Check that all RHSCL components in flaw's affects start with a valid collection.
+        """
+        if (
+            not self.ps_module.startswith("rhscl")
+            or self.ps_component in COMPONENTS_WITHOUT_COLLECTION
+        ):
+            return
+
+        streams = PsUpdateStream.objects.filter(ps_module__name=self.ps_module)
+        collections = streams.values_list("collections", flat=True).all()
+
+        is_valid_component = False
+        is_meta_package = False
+        for collection in collections:
+            for component in collection:
+                if self.ps_component == component:
+                    is_meta_package = True
+                if self.ps_component.startswith(component + "-"):
+                    is_valid_component = True
+
+        is_valid_component = is_valid_component and not is_meta_package
+
+        if is_meta_package:
+            self.alert(
+                "flaw_affects_rhscl_collection_only",
+                f"PSComponent {self.ps_component} for {self.ps_module} indicates collection "
+                "meta-package rather than a specific component in the collection",
+            )
+
+        if not is_valid_component:
+            self.alert(
+                "flaw_affects_rhscl_invalid_collection",
+                f"PSComponent {self.ps_component} for {self.ps_module} "
+                "does not match any valid collection",
             )
 
     @property

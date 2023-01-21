@@ -43,3 +43,6 @@ CVSS3_SEVERITY_SCALE = {
 # update streams instead of ps_modules for affects, any issues after this one
 # belong to the "new way" in which ps_modules are more heavily enforced
 BZ_ID_SENTINEL = 1489716
+
+# Lists of components from RHSCL without collection
+COMPONENTS_WITHOUT_COLLECTION = ["source-to-image", "scl-utils"]
