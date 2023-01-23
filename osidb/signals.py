@@ -1,3 +1,4 @@
+import logging
 import os
 
 from bugzilla import Bugzilla
@@ -8,37 +9,53 @@ from jira import JIRA
 
 from osidb.models import Profile
 
+logger = logging.getLogger(__name__)
+
 
 def get_bz_user_id(email: str) -> str:
     api_key = os.getenv("BZIMPORT_BZ_API_KEY")
     bz_url = os.getenv("BZIMPORT_BZ_URL", "https://bugzilla.redhat.com")
-    bz_api = Bugzilla(
-        bz_url,
-        api_key=api_key,
-        force_rest=True,
-    )
-    users = bz_api.searchusers([email])
-    if users:
-        return users[0].name
-    return ""
+    try:
+        bz_api = Bugzilla(
+            bz_url,
+            api_key=api_key,
+            force_rest=True,
+        )
+        users = bz_api.searchusers([email])
+    except Exception:
+        logger.error(
+            f"Failed to fetch Bugzilla username for {email}, is the Bugzilla token valid?"
+        )
+        return ""
+    else:
+        if users:
+            return users[0].name
+        return ""
 
 
 def get_jira_user_id(email: str) -> str:
     auth_token = os.getenv("JIRA_AUTH_TOKEN")
     jira_url = os.getenv("JIRA_URL", "https://issues.redhat.com")
-    jira_api = JIRA(
-        {
-            "server": jira_url,
-            # avoid auto-updating the lib
-            "check_update": False,
-        },
-        token_auth=auth_token,
-        get_server_info=False,
-    )
-    users = jira_api.search_users([email])
-    if users:
-        return users[0].name
-    return ""
+    try:
+        jira_api = JIRA(
+            {
+                "server": jira_url,
+                # avoid auto-updating the lib
+                "check_update": False,
+            },
+            token_auth=auth_token,
+            get_server_info=False,
+        )
+        users = jira_api.search_users([email])
+    except Exception:
+        logger.error(
+            f"Failed to fetch JIRA username for {email}, is the JIRA token valid?"
+        )
+        return ""
+    else:
+        if users:
+            return users[0].name
+        return ""
 
 
 @receiver(post_save, sender=User)
