@@ -1,6 +1,7 @@
 """
 draft model for end to end testing
 """
+import ast
 import json
 import logging
 import re
@@ -832,6 +833,34 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
                 f"{affected.ps_component} is affected by a flaw solved as NOTABUG.",
             )
 
+    def _validate_incomplete_errata_comment(self):
+        """
+        Alerts in case comments are missing affected product(s) for a released erratum.
+
+        Due to [bug 659234](https://bugzilla.redhat.com/show_bug.cgi?id=659234),
+        Errata Tool would leave Bugzilla comments informing of a released erratum without a
+        product name. This issue has been fixed but such comments may still appear in older
+        flaws.
+        """
+        empty_erratum_comment = re.compile(r"This issue has been addressed.*\n{4}Via")
+
+        incomplete = []
+        for comment in self.comments.all():
+            if "is_private" in comment.meta_attr and ast.literal_eval(
+                comment.meta_attr["is_private"]
+            ):
+                continue
+
+            if empty_erratum_comment.match(comment.text):
+                incomplete.append("#" + str(comment.external_system_id))
+
+        if incomplete:
+            self.alert(
+                "flaw_incomplete_erratum_comment",
+                "Comment(s) {} are missing affected product(s) "
+                "for a released erratum".format(", ".join(incomplete)),
+            )
+
     @property
     def is_placeholder(self):
         """
@@ -1468,7 +1497,7 @@ class FlawCommentManager(ACLMixinManager):
             )
 
 
-class FlawComment(TrackingMixin, ACLMixin):
+class FlawComment(TrackingMixin, ACLMixin, AlertMixin):
     """Model representing flaw comments"""
 
     class FlawCommentType(models.TextChoices):
@@ -1514,6 +1543,29 @@ class FlawComment(TrackingMixin, ACLMixin):
             "external_system_id",
             "created_dt",
         )
+
+    def _validate_incomplete_errata_comment(self):
+        """
+        Alerts in case comment are missing affected product(s) for a released erratum.
+
+        Due to [bug 659234](https://bugzilla.redhat.com/show_bug.cgi?id=659234),
+        Errata Tool would leave Bugzilla comments informing of a released erratum without a
+        product name. This issue has been fixed but such comments may still appear in older
+        flaws.
+        """
+        empty_erratum_comment = re.compile(r"This issue has been addressed.*\n{4}Via")
+
+        if "is_private" in self.meta_attr and ast.literal_eval(
+            self.meta_attr["is_private"]
+        ):
+            return
+
+        if empty_erratum_comment.match(self.text) and self.flaw:
+            self.flaw.alert(
+                "flaw_incomplete_erratum_comment",
+                f"Comment(s) #{self.external_system_id} are missing "
+                "affected product(s) for a released erratum",
+            )
 
 
 class VersionStatus(models.TextChoices):

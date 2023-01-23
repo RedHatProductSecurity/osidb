@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement validation for invalid components in software collection (OSIDB-356)
 - Implement Bugzilla metadata collector
 - Implement validation for for affects with exceptional combination of affectedness and resolution (OSIDB-361)
+- Implement validation for comments of released products without the product name (OSIDB-359)
 
 ### Changed
 - Change logging of celery and django to filesystem (OSIDB-418)

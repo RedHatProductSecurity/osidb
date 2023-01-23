@@ -120,6 +120,8 @@ class TestFlaw:
                 "creation_time": "2006-03-30T11:56:45Z",
             },
             type=FlawComment.FlawCommentType.BUGZILLA,
+            text="comment",
+            order=0,
             acl_read=acls,
             acl_write=acls,
         )
@@ -1228,3 +1230,84 @@ class TestFlawValidators:
         """
         affect = AffectFactory(resolution=resolution, affectedness=affectedness)
         assert should_raise == bool("flaw_exceptional_affect_status" in affect._alerts)
+
+    @pytest.mark.parametrize(
+        "comment_attrs,should_raise",
+        [
+            ([("This issue has been addressed\n\n\n\nVia", "False")], True),
+            (
+                [
+                    (
+                        "This issue has been addressed in the following products:\n\n"
+                        "  Red Hat Enterprise Linux 7.4 Advanced Update Support\n\nVia",
+                        "False",
+                    )
+                ],
+                False,
+            ),
+            ([("This is a fine comment", "False")], False),
+            (
+                [
+                    ("This issue has been addressed\n\n\n\nVia", "False"),
+                    ("This is a fine comment", "False"),
+                ],
+                True,
+            ),
+        ],
+    )
+    def test_flaw_validate_incomplete_errata_comment(self, comment_attrs, should_raise):
+        """
+        Test that alerts is raised in case comments are
+        missing affected product(s) for a released erratum
+        """
+        # comments are created before flaw to test the validator in flaw save
+        comments = []
+        for text, is_private in comment_attrs:
+            comments.append(
+                FlawCommentFactory(text=text, meta_attr={"is_private": is_private})
+            )
+
+        flaw = FlawFactory()
+        flaw.affects.add(AffectFactory())
+        flaw.comments.set(comments)
+        flaw.save()
+        assert should_raise == bool("flaw_incomplete_erratum_comment" in flaw._alerts)
+
+    @pytest.mark.parametrize(
+        "comment_attrs,should_raise",
+        [
+            ([("This issue has been addressed\n\n\n\nVia", "False")], True),
+            ([("This issue has been addressed\n\n\n\nVia", "True")], False),
+            (
+                [
+                    (
+                        "This issue has been addressed in the following products:\n\n"
+                        "  Red Hat Enterprise Linux 7.4 Advanced Update Support\n\nVia",
+                        "False",
+                    )
+                ],
+                False,
+            ),
+            (
+                [
+                    ("This issue has been addressed\n\n\n\nVia", "False"),
+                    ("This is also a fine comment", "False"),
+                ],
+                True,
+            ),
+        ],
+    )
+    def test_validate_incomplete_errata_comment(self, comment_attrs, should_raise):
+        """
+        Test that alerts is raised in case comments are
+        missing affected product(s) for a released erratum
+        """
+        flaw = FlawFactory()
+        for text, is_private in comment_attrs:
+            flaw.comments.add(
+                FlawCommentFactory(
+                    flaw=flaw, text=text, meta_attr={"is_private": is_private}
+                )
+            )
+
+        assert should_raise == bool("flaw_incomplete_erratum_comment" in flaw._alerts)

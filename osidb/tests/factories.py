@@ -290,6 +290,8 @@ class FlawCommentFactory(factory.django.DjangoModelFactory):
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     external_system_id = factory.sequence(lambda n: f"fake-external-id{n}")
     acl_read = factory.List([DATA_PRODSEC_ACL])
+    order = factory.Faker("random_int", min=0, max=10)
+    text = factory.Faker("word")
 
     flaw = factory.SubFactory(FlawFactory)
 

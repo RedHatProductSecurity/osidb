@@ -72,6 +72,7 @@ class TestFlawSaver:
                 flaw=flaw,
                 external_system_id="123",
                 text="test comment",
+                order=0,
                 created_dt=timezone.now(),
                 updated_dt=timezone.now(),
                 acl_read=self.get_acls(),
