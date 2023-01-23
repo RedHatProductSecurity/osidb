@@ -9,14 +9,16 @@ import requests_cache
 from bugzilla.base import Bugzilla
 from celery.utils.log import get_task_logger
 from dateutil.relativedelta import relativedelta
+from django.db import transaction
 from django.utils import timezone
 from requests_gssapi import HTTPKerberosAuth
 
+from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.convertors import FlawBugConvertor, TrackerBugConvertor
 from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
 from collectors.framework.models import Collector
 from collectors.jiraffe.core import JiraQuerier
-from osidb.models import Flaw, Tracker
+from osidb.models import Flaw, PsModule, Tracker
 
 from .constants import (
     ANALYSIS_TASK_PRODUCT,
@@ -223,6 +225,20 @@ class BugzillaQuerier(BugzillaConnector):
                 flaw.delete()
 
         return non_testing
+
+    ####################
+    # METADATA QUERIES #
+    ####################
+
+    def get_product_with_components(self, name):
+        """
+        getter shortcut for a given Bugzilla product
+        together with the list of its Bugzilla components
+        """
+        products = self.bz_conn.product_get(
+            names=[name], include_fields=["name", "components"]
+        )
+        return products[0] if products else None
 
 
 # TODO
@@ -618,3 +634,65 @@ class BzTrackerCollector(Collector, BugzillaQuerier):
         msg += f" Unsuccessfully fetched: {', '.join(failures)}." if failures else ""
         msg += " Nothing new to fetch." if not tracker_ids else ""
         return msg
+
+
+class MetadataCollector(Collector, BugzillaQuerier):
+    """
+    Bugzilla metadata collector
+    to collect data on Bugzilla products and components
+    """
+
+    def collect(self):
+        """
+        collector run handler
+        """
+        start_dt = timezone.now()
+
+        products = {}
+        product_names = (
+            # when fetching Fedora the connection often hangs (maybe to much data)
+            # and we do not add CCs to the community stuff so we can ignore it
+            PsModule.objects.exclude(ps_product__business_unit="Community")
+            .filter(bts_name="bugzilla")
+            .values_list("bts_key", flat=True)
+            .distinct()
+        )
+        for product_name in product_names:
+            # we need to fetch the products one by one or the connection hangs
+            product = self.get_product_with_components(product_name)
+
+            if product is None:
+                continue
+
+            products[product["name"]] = [
+                {
+                    "name": component["name"],
+                    "default_owner": component["default_assigned_to"],
+                    "default_cc": component["default_cc"],
+                }
+                for component in product["components"]
+            ]
+
+        self.update_metadata(products)
+
+        self.store(updated_until_dt=start_dt)
+        logger.info(f"{self.name} is updated until {start_dt}")
+        return f"{self.name} is updated until {start_dt}: {len(product_names)} Bugzilla products' metadata fetched"
+
+    @transaction.atomic
+    def update_metadata(self, products):
+        """
+        remove old and store new Bugzilla metadata
+
+        as we first remove the old data and only then save the new data it should
+        happen as an atomic transaction to prevent some invalid midterm state
+        """
+        BugzillaProduct.objects.all().delete()
+        BugzillaComponent.objects.all().delete()
+
+        for product_name, components in products.items():
+            product = BugzillaProduct(name=product_name)
+            product.save()
+
+            for component in components:
+                BugzillaComponent(product=product, **component).save()

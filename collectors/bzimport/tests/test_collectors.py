@@ -5,7 +5,8 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from collectors.bzimport.collectors import BugzillaQuerier
+from apps.bbsync.models import BugzillaComponent, BugzillaProduct
+from collectors.bzimport.collectors import BugzillaQuerier, MetadataCollector
 from osidb.models import (
     Affect,
     CVEv5PackageVersions,
@@ -21,6 +22,7 @@ from osidb.tests.factories import (
     FlawFactory,
     FlawMetaFactory,
     PsModuleFactory,
+    PsProductFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
 )
@@ -217,3 +219,57 @@ class TestBzTrackerCollector:
         assert tracker.resolution == "NOTABUG"
         assert tracker.status == "CLOSED"
         assert affect in list(tracker.affects.all())
+
+
+class TestMetadataCollector:
+    @pytest.mark.vcr
+    def test_collect(self):
+        ps_product = PsProductFactory(business_unit="Cloud Platform")
+        PsModuleFactory(
+            ps_product=ps_product,
+            bts_name="bugzilla",
+            bts_key="Container Native Virtualization (CNV)",
+        )
+
+        mc = MetadataCollector()
+        mc.collect()
+
+        assert BugzillaProduct.objects.count() == 1
+        bz_product = BugzillaProduct.objects.first()
+        assert bz_product.name == "Container Native Virtualization (CNV)"
+        assert (
+            BugzillaProduct.objects.first().name
+            == "Container Native Virtualization (CNV)"
+        )
+        assert BugzillaComponent.objects.count() == 18
+        assert all(
+            c for c in BugzillaComponent.objects.all() if c.product == bz_product
+        )
+        assert {c.name for c in BugzillaComponent.objects.all()} == {
+            "Build",
+            "Design",
+            "Documentation",
+            "Entitlements",
+            "Guest Support",
+            "Infrastructure",
+            "Installation",
+            "Logging",
+            "Metrics",
+            "Networking",
+            "Providers",
+            "Release",
+            "RFE",
+            "SSP",
+            "Storage",
+            "User Experience",
+            "V2V",
+            "Virtualization",
+        }
+        # pick one component and check details
+        assert (
+            BugzillaComponent.objects.get(name="Installation").default_owner
+            == "stirabos@redhat.com"
+        )
+        assert BugzillaComponent.objects.get(name="Installation").default_cc == [
+            "stirabos@redhat.com"
+        ]

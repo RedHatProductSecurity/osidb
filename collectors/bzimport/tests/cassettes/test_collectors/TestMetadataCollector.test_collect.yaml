@@ -1,0 +1,1636 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/version
+  response:
+    body:
+      string: '{"version": "5.0.4.rh81"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '24'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 23 Jan 2023 11:38:10 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.bd045368.1674473890.28cf9182
+      x-rh-edge-request-id:
+      - 28cf9182
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/user?ids=1
+  response:
+    body:
+      string: '{"users": [{"email": "aander07@packetmaster.com", "real_name": "Need
+        Real Name", "can_login": true, "name": "aander07@packetmaster.com", "id":
+        1}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '137'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 23 Jan 2023 11:38:10 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.bd045368.1674473890.28cf9621
+      x-rh-edge-request-id:
+      - 28cf9621
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/product/get?include_fields=components&include_fields=name&names=Container+Native+Virtualization+%28CNV%29
+  response:
+    body:
+      string: '{"products": [{"name": "Container Native Virtualization (CNV)", "components":
+        [{"sort_key": 0, "id": 174757, "default_assigned_to": "gbenhaim@redhat.com",
+        "default_docs_contact": "", "default_cc": [], "name": "Build", "description":
+        "Build", "is_active": true, "flag_types": {"attachment": [{"is_active": true,
+        "description": "The code attached is in need of peer review.", "is_requesteeble":
+        true, "name": "review", "grant_group": null, "cc_list": "", "request_group":
+        null, "is_multiplicable": true, "sort_key": 1, "id": 155, "is_requestable":
+        true}], "bug": [{"grant_group": null, "cc_list": "", "request_group": null,
+        "description": "Set this flag to ? to request this issue be proposed in the
+        5.11.z release of CloudForms Management Engine (CloudForms 4.8.z). Your request
+        will be reviewed by Product Management.", "is_active": true, "name": "cfme-5.11.z",
+        "is_requesteeble": true, "is_requestable": true, "is_multiplicable": true,
+        "sort_key": 1, "id": 1630}, {"id": 1211, "sort_key": 1, "is_multiplicable":
+        false, "is_requestable": true, "name": "cnv-1", "is_requesteeble": false,
+        "description": "Release flag for CNV v1", "is_active": true, "cc_list": "cnv-s12y@redhat.com",
+        "request_group": 161, "grant_group": 141}, {"name": "cnv-2", "is_requesteeble":
+        false, "description": "Release flag for CNV v2", "is_active": true, "request_group":
+        161, "cc_list": "cnv-s12y@redhat.com", "grant_group": 141, "sort_key": 1,
+        "id": 1267, "is_multiplicable": false, "is_requestable": true}, {"grant_group":
+        141, "request_group": 161, "cc_list": "cnv-s12y@redhat.com", "is_active":
+        true, "description": "Release flag for CNV v3", "name": "cnv-3", "is_requesteeble":
+        false, "is_requestable": true, "is_multiplicable": false, "sort_key": 1, "id":
+        1639}, {"request_group": 161, "cc_list": "cnv-s12y@redhat.com", "grant_group":
+        141, "is_requesteeble": false, "name": "cnv-4", "description": "Release flag
+        for CNV v4", "is_active": true, "is_requestable": true, "id": 1841, "sort_key":
+        1, "is_multiplicable": false}, {"grant_group": null, "cc_list": "", "request_group":
+        null, "is_active": true, "description": "Additional Information is Requested",
+        "name": "needinfo", "is_requesteeble": true, "is_requestable": true, "is_multiplicable":
+        true, "id": 16, "sort_key": 1}, {"name": "qe_test_coverage", "is_requesteeble":
+        false, "description": "Quality Assurance Bugzilla Test Coverage Review", "is_active":
+        true, "cc_list": "", "request_group": 207, "grant_group": 207, "id": 318,
+        "sort_key": 1, "is_multiplicable": false, "is_requestable": true}, {"name":
+        "requires_doc_text", "is_requesteeble": false, "is_active": true, "description":
+        "Does this bug require documentation of a sort indicated by Doc Type, or not.\r\n\r\n+:
+        documentation text has been submitted by engineering and has been\r\napproved
+        by Content Services.\r\n\r\n?: initial documentation text has been submitted
+        by engineering. Content\r\nServices has not reviewed this text.\r\n\r\n-:
+        this bug should not be described in an advisory or the Release or\r\nTechnical
+        Notes.", "request_group": 161, "cc_list": "content-services-list@redhat.com",
+        "grant_group": 161, "id": 415, "sort_key": 1, "is_multiplicable": false, "is_requestable":
+        true}, {"is_multiplicable": false, "id": 1065, "sort_key": 1, "is_requestable":
+        false, "is_active": true, "description": "For bugs that must adhere to the
+        Product Security RHSA errata SLA", "is_requesteeble": true, "name": "rhsa_sla",
+        "grant_group": 297, "request_group": 297, "cc_list": ""}, {"is_requesteeble":
+        false, "name": "requires_release_note", "description": "Bug requires an entry
+        in the release notes. (No longer used with RHEL.)", "is_active": true, "cc_list":
+        "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "request_group": 12, "grant_group": 185, "sort_key": 2, "id": 60, "is_multiplicable":
+        false, "is_requestable": true}, {"is_requestable": true, "is_multiplicable":
+        false, "sort_key": 5, "id": 24, "grant_group": 522, "request_group": 155,
+        "cc_list": "rhn-release-team@redhat.com", "is_active": true, "description":
+        "Blocker for Target Milestone: alpha, beta or rc", "name": "blocker", "is_requesteeble":
+        false}, {"is_multiplicable": false, "sort_key": 5, "id": 15, "is_requestable":
+        true, "is_active": true, "description": "Exception for release", "is_requesteeble":
+        false, "name": "exception", "grant_group": 522, "request_group": 155, "cc_list":
+        "rhn-release-team@redhat.com"}, {"id": 11, "sort_key": 11, "is_multiplicable":
+        false, "is_requestable": true, "is_requesteeble": false, "name": "pm_ack",
+        "is_active": true, "description": "Product Management Acknowledgement", "cc_list":
+        "", "request_group": 92, "grant_group": 211}, {"is_active": true, "description":
+        "Development Acknowledgement", "name": "devel_ack", "is_requesteeble": false,
+        "grant_group": 511, "request_group": 92, "cc_list": "", "is_multiplicable":
+        false, "sort_key": 12, "id": 10, "is_requestable": true}, {"grant_group":
+        207, "request_group": 92, "cc_list": "", "is_active": true, "description":
+        "Quality Assurance Acknowledgement", "name": "qa_ack", "is_requesteeble":
+        false, "is_requestable": true, "is_multiplicable": false, "id": 9, "sort_key":
+        13}, {"is_requesteeble": false, "name": "insights_rule", "is_active": true,
+        "description": "Set this flag to ? to request a CEE review to propose that
+        an insights rule be created. CEE sets this flag to ''+'' when a new rule is
+        created or ''-'' otherwise.", "request_group": 659, "cc_list": "", "grant_group":
+        551, "id": 1291, "sort_key": 40, "is_multiplicable": false, "is_requestable":
+        true}, {"is_requestable": false, "is_multiplicable": false, "id": 1840, "sort_key":
+        40, "grant_group": 551, "request_group": 551, "cc_list": "", "description":
+        "This flag is set when an Insights rule is no longer active.", "is_active":
+        true, "is_requesteeble": false, "name": "insights_rule_retired"}, {"name":
+        "psi", "is_requesteeble": false, "description": "Set this flag to ''+'' if
+        this bug has any impact on the PNT Shared Infrastructure (PSI) Production
+        Environment.", "is_active": true, "cc_list": "", "request_group": 161, "grant_group":
+        161, "sort_key": 45, "id": 1753, "is_multiplicable": false, "is_requestable":
+        true}, {"is_active": true, "description": "The flag should appear automatically
+        when a customer ticket is marked as Watchlist ticket.", "name": "Watchlist",
+        "is_requesteeble": false, "grant_group": 682, "cc_list": "", "request_group":
+        682, "is_multiplicable": false, "id": 2044, "sort_key": 10000, "is_requestable":
+        false}]}, "sub_components": [], "default_qa_contact": "ngavrilo@redhat.com",
+        "default_pool": null}, {"default_qa_contact": "oramraz@redhat.com", "flag_types":
+        {"attachment": [{"grant_group": null, "request_group": null, "cc_list": "",
+        "is_active": true, "description": "The code attached is in need of peer review.",
+        "is_requesteeble": true, "name": "review", "is_requestable": true, "is_multiplicable":
+        true, "sort_key": 1, "id": 155}], "bug": [{"grant_group": null, "request_group":
+        null, "cc_list": "", "is_active": true, "description": "Set this flag to ?
+        to request this issue be proposed in the 5.11.z release of CloudForms Management
+        Engine (CloudForms 4.8.z). Your request will be reviewed by Product Management.",
+        "is_requesteeble": true, "name": "cfme-5.11.z", "is_requestable": true, "is_multiplicable":
+        true, "sort_key": 1, "id": 1630}, {"is_multiplicable": false, "id": 1211,
+        "sort_key": 1, "is_requestable": true, "is_active": true, "description": "Release
+        flag for CNV v1", "is_requesteeble": false, "name": "cnv-1", "grant_group":
+        141, "request_group": 161, "cc_list": "cnv-s12y@redhat.com"}, {"is_requestable":
+        true, "is_multiplicable": false, "id": 1267, "sort_key": 1, "grant_group":
+        141, "request_group": 161, "cc_list": "cnv-s12y@redhat.com", "is_active":
+        true, "description": "Release flag for CNV v2", "is_requesteeble": false,
+        "name": "cnv-2"}, {"is_multiplicable": false, "sort_key": 1, "id": 1639, "is_requestable":
+        true, "description": "Release flag for CNV v3", "is_active": true, "is_requesteeble":
+        false, "name": "cnv-3", "grant_group": 141, "cc_list": "cnv-s12y@redhat.com",
+        "request_group": 161}, {"grant_group": 141, "request_group": 161, "cc_list":
+        "cnv-s12y@redhat.com", "description": "Release flag for CNV v4", "is_active":
+        true, "name": "cnv-4", "is_requesteeble": false, "is_requestable": true, "is_multiplicable":
+        false, "sort_key": 1, "id": 1841}, {"is_multiplicable": true, "sort_key":
+        1, "id": 16, "is_requestable": true, "description": "Additional Information
+        is Requested", "is_active": true, "name": "needinfo", "is_requesteeble": true,
+        "grant_group": null, "cc_list": "", "request_group": null}, {"is_requestable":
+        true, "is_multiplicable": false, "id": 318, "sort_key": 1, "grant_group":
+        207, "request_group": 207, "cc_list": "", "description": "Quality Assurance
+        Bugzilla Test Coverage Review", "is_active": true, "name": "qe_test_coverage",
+        "is_requesteeble": false}, {"request_group": 161, "cc_list": "content-services-list@redhat.com",
+        "grant_group": 161, "name": "requires_doc_text", "is_requesteeble": false,
+        "description": "Does this bug require documentation of a sort indicated by
+        Doc Type, or not.\r\n\r\n+: documentation text has been submitted by engineering
+        and has been\r\napproved by Content Services.\r\n\r\n?: initial documentation
+        text has been submitted by engineering. Content\r\nServices has not reviewed
+        this text.\r\n\r\n-: this bug should not be described in an advisory or the
+        Release or\r\nTechnical Notes.", "is_active": true, "is_requestable": true,
+        "id": 415, "sort_key": 1, "is_multiplicable": false}, {"grant_group": 297,
+        "cc_list": "", "request_group": 297, "description": "For bugs that must adhere
+        to the Product Security RHSA errata SLA", "is_active": true, "name": "rhsa_sla",
+        "is_requesteeble": true, "is_requestable": false, "is_multiplicable": false,
+        "sort_key": 1, "id": 1065}, {"is_requestable": true, "is_multiplicable": false,
+        "id": 60, "sort_key": 2, "grant_group": 185, "cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "request_group": 12, "description": "Bug requires an entry in the release
+        notes. (No longer used with RHEL.)", "is_active": true, "is_requesteeble":
+        false, "name": "requires_release_note"}, {"is_requestable": true, "sort_key":
+        5, "id": 24, "is_multiplicable": false, "cc_list": "rhn-release-team@redhat.com",
+        "request_group": 155, "grant_group": 522, "is_requesteeble": false, "name":
+        "blocker", "description": "Blocker for Target Milestone: alpha, beta or rc",
+        "is_active": true}, {"is_active": true, "description": "Exception for release",
+        "name": "exception", "is_requesteeble": false, "grant_group": 522, "cc_list":
+        "rhn-release-team@redhat.com", "request_group": 155, "is_multiplicable": false,
+        "sort_key": 5, "id": 15, "is_requestable": true}, {"is_multiplicable": false,
+        "sort_key": 11, "id": 11, "is_requestable": true, "description": "Product
+        Management Acknowledgement", "is_active": true, "name": "pm_ack", "is_requesteeble":
+        false, "grant_group": 211, "request_group": 92, "cc_list": ""}, {"description":
+        "Development Acknowledgement", "is_active": true, "name": "devel_ack", "is_requesteeble":
+        false, "grant_group": 511, "cc_list": "", "request_group": 92, "is_multiplicable":
+        false, "id": 10, "sort_key": 12, "is_requestable": true}, {"is_multiplicable":
+        false, "id": 9, "sort_key": 13, "is_requestable": true, "is_active": true,
+        "description": "Quality Assurance Acknowledgement", "name": "qa_ack", "is_requesteeble":
+        false, "grant_group": 207, "request_group": 92, "cc_list": ""}, {"request_group":
+        659, "cc_list": "", "grant_group": 551, "name": "insights_rule", "is_requesteeble":
+        false, "description": "Set this flag to ? to request a CEE review to propose
+        that an insights rule be created. CEE sets this flag to ''+'' when a new rule
+        is created or ''-'' otherwise.", "is_active": true, "is_requestable": true,
+        "sort_key": 40, "id": 1291, "is_multiplicable": false}, {"cc_list": "", "request_group":
+        551, "grant_group": 551, "name": "insights_rule_retired", "is_requesteeble":
+        false, "is_active": true, "description": "This flag is set when an Insights
+        rule is no longer active.", "is_requestable": false, "sort_key": 40, "id":
+        1840, "is_multiplicable": false}, {"description": "Set this flag to ''+''
+        if this bug has any impact on the PNT Shared Infrastructure (PSI) Production
+        Environment.", "is_active": true, "name": "psi", "is_requesteeble": false,
+        "grant_group": 161, "request_group": 161, "cc_list": "", "is_multiplicable":
+        false, "id": 1753, "sort_key": 45, "is_requestable": true}, {"is_multiplicable":
+        false, "id": 2044, "sort_key": 10000, "is_requestable": false, "description":
+        "The flag should appear automatically when a customer ticket is marked as
+        Watchlist ticket.", "is_active": true, "name": "Watchlist", "is_requesteeble":
+        false, "grant_group": 682, "cc_list": "", "request_group": 682}]}, "sub_components":
+        [], "default_pool": null, "name": "Design", "description": "Overall desgin/architecture
+        issues", "is_active": false, "default_assigned_to": "fdeutsch@redhat.com",
+        "default_cc": [], "default_docs_contact": "", "id": 174759, "sort_key": 0},
+        {"sort_key": 0, "id": 174760, "default_docs_contact": "", "default_cc": [],
+        "default_assigned_to": "ctomasko@redhat.com", "description": "Issues related
+        to documentation of CNV", "is_active": true, "name": "Documentation", "default_pool":
+        null, "sub_components": [], "default_qa_contact": "oramraz@redhat.com", "flag_types":
+        {"bug": [{"is_requestable": true, "is_multiplicable": true, "id": 1630, "sort_key":
+        1, "grant_group": null, "cc_list": "", "request_group": null, "description":
+        "Set this flag to ? to request this issue be proposed in the 5.11.z release
+        of CloudForms Management Engine (CloudForms 4.8.z). Your request will be reviewed
+        by Product Management.", "is_active": true, "is_requesteeble": true, "name":
+        "cfme-5.11.z"}, {"is_active": true, "description": "Release flag for CNV v1",
+        "name": "cnv-1", "is_requesteeble": false, "grant_group": 141, "request_group":
+        161, "cc_list": "cnv-s12y@redhat.com", "is_multiplicable": false, "id": 1211,
+        "sort_key": 1, "is_requestable": true}, {"is_active": true, "description":
+        "Release flag for CNV v2", "is_requesteeble": false, "name": "cnv-2", "grant_group":
+        141, "cc_list": "cnv-s12y@redhat.com", "request_group": 161, "is_multiplicable":
+        false, "id": 1267, "sort_key": 1, "is_requestable": true}, {"sort_key": 1,
+        "id": 1639, "is_multiplicable": false, "is_requestable": true, "is_requesteeble":
+        false, "name": "cnv-3", "is_active": true, "description": "Release flag for
+        CNV v3", "cc_list": "cnv-s12y@redhat.com", "request_group": 161, "grant_group":
+        141}, {"is_active": true, "description": "Release flag for CNV v4", "is_requesteeble":
+        false, "name": "cnv-4", "grant_group": 141, "request_group": 161, "cc_list":
+        "cnv-s12y@redhat.com", "is_multiplicable": false, "sort_key": 1, "id": 1841,
+        "is_requestable": true}, {"request_group": null, "cc_list": "", "grant_group":
+        null, "is_requesteeble": true, "name": "needinfo", "description": "Additional
+        Information is Requested", "is_active": true, "is_requestable": true, "id":
+        16, "sort_key": 1, "is_multiplicable": true}, {"grant_group": 207, "request_group":
+        207, "cc_list": "", "is_active": true, "description": "Quality Assurance Bugzilla
+        Test Coverage Review", "is_requesteeble": false, "name": "qe_test_coverage",
+        "is_requestable": true, "is_multiplicable": false, "id": 318, "sort_key":
+        1}, {"is_requestable": true, "sort_key": 1, "id": 415, "is_multiplicable":
+        false, "cc_list": "content-services-list@redhat.com", "request_group": 161,
+        "grant_group": 161, "name": "requires_doc_text", "is_requesteeble": false,
+        "is_active": true, "description": "Does this bug require documentation of
+        a sort indicated by Doc Type, or not.\r\n\r\n+: documentation text has been
+        submitted by engineering and has been\r\napproved by Content Services.\r\n\r\n?:
+        initial documentation text has been submitted by engineering. Content\r\nServices
+        has not reviewed this text.\r\n\r\n-: this bug should not be described in
+        an advisory or the Release or\r\nTechnical Notes."}, {"is_requesteeble": true,
+        "name": "rhsa_sla", "description": "For bugs that must adhere to the Product
+        Security RHSA errata SLA", "is_active": true, "request_group": 297, "cc_list":
+        "", "grant_group": 297, "id": 1065, "sort_key": 1, "is_multiplicable": false,
+        "is_requestable": false}, {"sort_key": 2, "id": 60, "is_multiplicable": false,
+        "is_requestable": true, "name": "requires_release_note", "is_requesteeble":
+        false, "is_active": true, "description": "Bug requires an entry in the release
+        notes. (No longer used with RHEL.)", "cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "request_group": 12, "grant_group": 185}, {"description": "Blocker for Target
+        Milestone: alpha, beta or rc", "is_active": true, "is_requesteeble": false,
+        "name": "blocker", "grant_group": 522, "request_group": 155, "cc_list": "rhn-release-team@redhat.com",
+        "is_multiplicable": false, "sort_key": 5, "id": 24, "is_requestable": true},
+        {"is_multiplicable": false, "sort_key": 5, "id": 15, "is_requestable": true,
+        "description": "Exception for release", "is_active": true, "is_requesteeble":
+        false, "name": "exception", "grant_group": 522, "cc_list": "rhn-release-team@redhat.com",
+        "request_group": 155}, {"is_multiplicable": false, "id": 11, "sort_key": 11,
+        "is_requestable": true, "is_active": true, "description": "Product Management
+        Acknowledgement", "is_requesteeble": false, "name": "pm_ack", "grant_group":
+        211, "cc_list": "", "request_group": 92}, {"is_multiplicable": false, "id":
+        10, "sort_key": 12, "is_requestable": true, "description": "Development Acknowledgement",
+        "is_active": true, "is_requesteeble": false, "name": "devel_ack", "grant_group":
+        511, "request_group": 92, "cc_list": ""}, {"grant_group": 207, "request_group":
+        92, "cc_list": "", "is_active": true, "description": "Quality Assurance Acknowledgement",
+        "is_requesteeble": false, "name": "qa_ack", "is_requestable": true, "is_multiplicable":
+        false, "id": 9, "sort_key": 13}, {"grant_group": 551, "request_group": 659,
+        "cc_list": "", "is_active": true, "description": "Set this flag to ? to request
+        a CEE review to propose that an insights rule be created. CEE sets this flag
+        to ''+'' when a new rule is created or ''-'' otherwise.", "name": "insights_rule",
+        "is_requesteeble": false, "is_requestable": true, "is_multiplicable": false,
+        "sort_key": 40, "id": 1291}, {"is_requestable": false, "sort_key": 40, "id":
+        1840, "is_multiplicable": false, "cc_list": "", "request_group": 551, "grant_group":
+        551, "name": "insights_rule_retired", "is_requesteeble": false, "description":
+        "This flag is set when an Insights rule is no longer active.", "is_active":
+        true}, {"description": "Set this flag to ''+'' if this bug has any impact
+        on the PNT Shared Infrastructure (PSI) Production Environment.", "is_active":
+        true, "is_requesteeble": false, "name": "psi", "grant_group": 161, "cc_list":
+        "", "request_group": 161, "is_multiplicable": false, "id": 1753, "sort_key":
+        45, "is_requestable": true}, {"sort_key": 10000, "id": 2044, "is_multiplicable":
+        false, "is_requestable": false, "name": "Watchlist", "is_requesteeble": false,
+        "description": "The flag should appear automatically when a customer ticket
+        is marked as Watchlist ticket.", "is_active": true, "cc_list": "", "request_group":
+        682, "grant_group": 682}], "attachment": [{"sort_key": 1, "id": 155, "is_multiplicable":
+        true, "is_requestable": true, "is_requesteeble": true, "name": "review", "description":
+        "The code attached is in need of peer review.", "is_active": true, "cc_list":
+        "", "request_group": null, "grant_group": null}]}}, {"default_assigned_to":
+        "pelauter@redhat.com", "default_docs_contact": "", "default_cc": [], "sort_key":
+        0, "id": 174761, "default_qa_contact": "oramraz@redhat.com", "sub_components":
+        [], "flag_types": {"attachment": [{"id": 155, "sort_key": 1, "is_multiplicable":
+        true, "is_requestable": true, "is_requesteeble": true, "name": "review", "is_active":
+        true, "description": "The code attached is in need of peer review.", "cc_list":
+        "", "request_group": null, "grant_group": null}], "bug": [{"is_requestable":
+        true, "is_multiplicable": true, "sort_key": 1, "id": 1630, "grant_group":
+        null, "request_group": null, "cc_list": "", "is_active": true, "description":
+        "Set this flag to ? to request this issue be proposed in the 5.11.z release
+        of CloudForms Management Engine (CloudForms 4.8.z). Your request will be reviewed
+        by Product Management.", "is_requesteeble": true, "name": "cfme-5.11.z"},
+        {"request_group": 161, "cc_list": "cnv-s12y@redhat.com", "grant_group": 141,
+        "is_requesteeble": false, "name": "cnv-1", "description": "Release flag for
+        CNV v1", "is_active": true, "is_requestable": true, "sort_key": 1, "id": 1211,
+        "is_multiplicable": false}, {"grant_group": 141, "request_group": 161, "cc_list":
+        "cnv-s12y@redhat.com", "is_active": true, "description": "Release flag for
+        CNV v2", "name": "cnv-2", "is_requesteeble": false, "is_requestable": true,
+        "is_multiplicable": false, "id": 1267, "sort_key": 1}, {"cc_list": "cnv-s12y@redhat.com",
+        "request_group": 161, "grant_group": 141, "is_requesteeble": false, "name":
+        "cnv-3", "is_active": true, "description": "Release flag for CNV v3", "is_requestable":
+        true, "sort_key": 1, "id": 1639, "is_multiplicable": false}, {"is_requestable":
+        true, "sort_key": 1, "id": 1841, "is_multiplicable": false, "request_group":
+        161, "cc_list": "cnv-s12y@redhat.com", "grant_group": 141, "is_requesteeble":
+        false, "name": "cnv-4", "description": "Release flag for CNV v4", "is_active":
+        true}, {"is_multiplicable": true, "sort_key": 1, "id": 16, "is_requestable":
+        true, "is_active": true, "description": "Additional Information is Requested",
+        "name": "needinfo", "is_requesteeble": true, "grant_group": null, "request_group":
+        null, "cc_list": ""}, {"is_multiplicable": false, "sort_key": 1, "id": 318,
+        "is_requestable": true, "description": "Quality Assurance Bugzilla Test Coverage
+        Review", "is_active": true, "is_requesteeble": false, "name": "qe_test_coverage",
+        "grant_group": 207, "request_group": 207, "cc_list": ""}, {"is_requestable":
+        true, "id": 415, "sort_key": 1, "is_multiplicable": false, "cc_list": "content-services-list@redhat.com",
+        "request_group": 161, "grant_group": 161, "name": "requires_doc_text", "is_requesteeble":
+        false, "description": "Does this bug require documentation of a sort indicated
+        by Doc Type, or not.\r\n\r\n+: documentation text has been submitted by engineering
+        and has been\r\napproved by Content Services.\r\n\r\n?: initial documentation
+        text has been submitted by engineering. Content\r\nServices has not reviewed
+        this text.\r\n\r\n-: this bug should not be described in an advisory or the
+        Release or\r\nTechnical Notes.", "is_active": true}, {"grant_group": 297,
+        "cc_list": "", "request_group": 297, "description": "For bugs that must adhere
+        to the Product Security RHSA errata SLA", "is_active": true, "name": "rhsa_sla",
+        "is_requesteeble": true, "is_requestable": false, "is_multiplicable": false,
+        "id": 1065, "sort_key": 1}, {"is_requestable": true, "sort_key": 2, "id":
+        60, "is_multiplicable": false, "request_group": 12, "cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "grant_group": 185, "is_requesteeble": false, "name": "requires_release_note",
+        "description": "Bug requires an entry in the release notes. (No longer used
+        with RHEL.)", "is_active": true}, {"is_multiplicable": false, "sort_key":
+        5, "id": 24, "is_requestable": true, "description": "Blocker for Target Milestone:
+        alpha, beta or rc", "is_active": true, "name": "blocker", "is_requesteeble":
+        false, "grant_group": 522, "cc_list": "rhn-release-team@redhat.com", "request_group":
+        155}, {"description": "Exception for release", "is_active": true, "is_requesteeble":
+        false, "name": "exception", "grant_group": 522, "request_group": 155, "cc_list":
+        "rhn-release-team@redhat.com", "is_multiplicable": false, "sort_key": 5, "id":
+        15, "is_requestable": true}, {"request_group": 92, "cc_list": "", "grant_group":
+        211, "is_requesteeble": false, "name": "pm_ack", "description": "Product Management
+        Acknowledgement", "is_active": true, "is_requestable": true, "id": 11, "sort_key":
+        11, "is_multiplicable": false}, {"id": 10, "sort_key": 12, "is_multiplicable":
+        false, "is_requestable": true, "name": "devel_ack", "is_requesteeble": false,
+        "is_active": true, "description": "Development Acknowledgement", "cc_list":
+        "", "request_group": 92, "grant_group": 511}, {"is_requestable": true, "is_multiplicable":
+        false, "id": 9, "sort_key": 13, "grant_group": 207, "request_group": 92, "cc_list":
+        "", "is_active": true, "description": "Quality Assurance Acknowledgement",
+        "name": "qa_ack", "is_requesteeble": false}, {"description": "Set this flag
+        to ? to request a CEE review to propose that an insights rule be created.
+        CEE sets this flag to ''+'' when a new rule is created or ''-'' otherwise.",
+        "is_active": true, "name": "insights_rule", "is_requesteeble": false, "grant_group":
+        551, "cc_list": "", "request_group": 659, "is_multiplicable": false, "sort_key":
+        40, "id": 1291, "is_requestable": true}, {"is_requestable": false, "is_multiplicable":
+        false, "id": 1840, "sort_key": 40, "grant_group": 551, "cc_list": "", "request_group":
+        551, "is_active": true, "description": "This flag is set when an Insights
+        rule is no longer active.", "is_requesteeble": false, "name": "insights_rule_retired"},
+        {"is_requesteeble": false, "name": "psi", "is_active": true, "description":
+        "Set this flag to ''+'' if this bug has any impact on the PNT Shared Infrastructure
+        (PSI) Production Environment.", "cc_list": "", "request_group": 161, "grant_group":
+        161, "sort_key": 45, "id": 1753, "is_multiplicable": false, "is_requestable":
+        true}, {"is_multiplicable": false, "sort_key": 10000, "id": 2044, "is_requestable":
+        false, "is_active": true, "description": "The flag should appear automatically
+        when a customer ticket is marked as Watchlist ticket.", "name": "Watchlist",
+        "is_requesteeble": false, "grant_group": 682, "request_group": 682, "cc_list":
+        ""}]}, "default_pool": null, "name": "Entitlements", "description": "entitlements",
+        "is_active": true}, {"name": "Guest Support", "description": "Issues related
+        to Guest Support (templates) for CNV/kubevirt.", "is_active": true, "default_qa_contact":
+        "kbidarka@redhat.com", "sub_components": [], "flag_types": {"attachment":
+        [{"cc_list": "", "request_group": null, "grant_group": null, "is_requesteeble":
+        true, "name": "review", "description": "The code attached is in need of peer
+        review.", "is_active": true, "is_requestable": true, "id": 155, "sort_key":
+        1, "is_multiplicable": true}], "bug": [{"description": "Set this flag to ?
+        to request this issue be proposed in the 5.11.z release of CloudForms Management
+        Engine (CloudForms 4.8.z). Your request will be reviewed by Product Management.",
+        "is_active": true, "is_requesteeble": true, "name": "cfme-5.11.z", "grant_group":
+        null, "cc_list": "", "request_group": null, "is_multiplicable": true, "sort_key":
+        1, "id": 1630, "is_requestable": true}, {"is_requestable": true, "is_multiplicable":
+        false, "id": 1211, "sort_key": 1, "grant_group": 141, "cc_list": "cnv-s12y@redhat.com",
+        "request_group": 161, "is_active": true, "description": "Release flag for
+        CNV v1", "name": "cnv-1", "is_requesteeble": false}, {"is_requestable": true,
+        "sort_key": 1, "id": 1267, "is_multiplicable": false, "cc_list": "cnv-s12y@redhat.com",
+        "request_group": 161, "grant_group": 141, "is_requesteeble": false, "name":
+        "cnv-2", "description": "Release flag for CNV v2", "is_active": true}, {"is_active":
+        true, "description": "Release flag for CNV v3", "is_requesteeble": false,
+        "name": "cnv-3", "grant_group": 141, "cc_list": "cnv-s12y@redhat.com", "request_group":
+        161, "is_multiplicable": false, "id": 1639, "sort_key": 1, "is_requestable":
+        true}, {"grant_group": 141, "cc_list": "cnv-s12y@redhat.com", "request_group":
+        161, "description": "Release flag for CNV v4", "is_active": true, "name":
+        "cnv-4", "is_requesteeble": false, "is_requestable": true, "is_multiplicable":
+        false, "sort_key": 1, "id": 1841}, {"is_requesteeble": true, "name": "needinfo",
+        "description": "Additional Information is Requested", "is_active": true, "request_group":
+        null, "cc_list": "", "grant_group": null, "sort_key": 1, "id": 16, "is_multiplicable":
+        true, "is_requestable": true}, {"is_requestable": true, "is_multiplicable":
+        false, "sort_key": 1, "id": 318, "grant_group": 207, "cc_list": "", "request_group":
+        207, "description": "Quality Assurance Bugzilla Test Coverage Review", "is_active":
+        true, "name": "qe_test_coverage", "is_requesteeble": false}, {"is_multiplicable":
+        false, "id": 415, "sort_key": 1, "is_requestable": true, "is_active": true,
+        "description": "Does this bug require documentation of a sort indicated by
+        Doc Type, or not.\r\n\r\n+: documentation text has been submitted by engineering
+        and has been\r\napproved by Content Services.\r\n\r\n?: initial documentation
+        text has been submitted by engineering. Content\r\nServices has not reviewed
+        this text.\r\n\r\n-: this bug should not be described in an advisory or the
+        Release or\r\nTechnical Notes.", "name": "requires_doc_text", "is_requesteeble":
+        false, "grant_group": 161, "cc_list": "content-services-list@redhat.com",
+        "request_group": 161}, {"is_multiplicable": false, "id": 1065, "sort_key":
+        1, "is_requestable": false, "description": "For bugs that must adhere to the
+        Product Security RHSA errata SLA", "is_active": true, "name": "rhsa_sla",
+        "is_requesteeble": true, "grant_group": 297, "request_group": 297, "cc_list":
+        ""}, {"is_active": true, "description": "Bug requires an entry in the release
+        notes. (No longer used with RHEL.)", "is_requesteeble": false, "name": "requires_release_note",
+        "grant_group": 185, "request_group": 12, "cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "is_multiplicable": false, "id": 60, "sort_key": 2, "is_requestable": true},
+        {"is_requestable": true, "is_multiplicable": false, "sort_key": 5, "id": 24,
+        "grant_group": 522, "cc_list": "rhn-release-team@redhat.com", "request_group":
+        155, "description": "Blocker for Target Milestone: alpha, beta or rc", "is_active":
+        true, "is_requesteeble": false, "name": "blocker"}, {"is_requestable": true,
+        "sort_key": 5, "id": 15, "is_multiplicable": false, "cc_list": "rhn-release-team@redhat.com",
+        "request_group": 155, "grant_group": 522, "name": "exception", "is_requesteeble":
+        false, "description": "Exception for release", "is_active": true}, {"is_multiplicable":
+        false, "sort_key": 11, "id": 11, "is_requestable": true, "is_active": true,
+        "description": "Product Management Acknowledgement", "name": "pm_ack", "is_requesteeble":
+        false, "grant_group": 211, "cc_list": "", "request_group": 92}, {"description":
+        "Development Acknowledgement", "is_active": true, "is_requesteeble": false,
+        "name": "devel_ack", "grant_group": 511, "request_group": 92, "cc_list": "",
+        "is_multiplicable": false, "id": 10, "sort_key": 12, "is_requestable": true},
+        {"cc_list": "", "request_group": 92, "grant_group": 207, "is_requesteeble":
+        false, "name": "qa_ack", "description": "Quality Assurance Acknowledgement",
+        "is_active": true, "is_requestable": true, "id": 9, "sort_key": 13, "is_multiplicable":
+        false}, {"name": "insights_rule", "is_requesteeble": false, "description":
+        "Set this flag to ? to request a CEE review to propose that an insights rule
+        be created. CEE sets this flag to ''+'' when a new rule is created or ''-''
+        otherwise.", "is_active": true, "cc_list": "", "request_group": 659, "grant_group":
+        551, "sort_key": 40, "id": 1291, "is_multiplicable": false, "is_requestable":
+        true}, {"id": 1840, "sort_key": 40, "is_multiplicable": false, "is_requestable":
+        false, "is_requesteeble": false, "name": "insights_rule_retired", "is_active":
+        true, "description": "This flag is set when an Insights rule is no longer
+        active.", "cc_list": "", "request_group": 551, "grant_group": 551}, {"request_group":
+        161, "cc_list": "", "grant_group": 161, "is_requesteeble": false, "name":
+        "psi", "description": "Set this flag to ''+'' if this bug has any impact on
+        the PNT Shared Infrastructure (PSI) Production Environment.", "is_active":
+        true, "is_requestable": true, "sort_key": 45, "id": 1753, "is_multiplicable":
+        false}, {"is_multiplicable": false, "sort_key": 10000, "id": 2044, "is_requestable":
+        false, "description": "The flag should appear automatically when a customer
+        ticket is marked as Watchlist ticket.", "is_active": true, "name": "Watchlist",
+        "is_requesteeble": false, "grant_group": 682, "request_group": 682, "cc_list":
+        ""}]}, "default_pool": null, "sort_key": 0, "id": 182470, "default_assigned_to":
+        "nobody@redhat.com", "default_docs_contact": "", "default_cc": []}, {"description":
+        "Infrastructure takes care of the guests and OpenShift Virtualization''s own
+        infrastructure needs", "is_active": true, "name": "Infrastructure", "default_pool":
+        null, "flag_types": {"bug": [{"request_group": null, "cc_list": "", "grant_group":
+        null, "is_requesteeble": true, "name": "cfme-5.11.z", "description": "Set
+        this flag to ? to request this issue be proposed in the 5.11.z release of
+        CloudForms Management Engine (CloudForms 4.8.z). Your request will be reviewed
+        by Product Management.", "is_active": true, "is_requestable": true, "id":
+        1630, "sort_key": 1, "is_multiplicable": true}, {"grant_group": 141, "request_group":
+        161, "cc_list": "cnv-s12y@redhat.com", "description": "Release flag for CNV
+        v1", "is_active": true, "name": "cnv-1", "is_requesteeble": false, "is_requestable":
+        true, "is_multiplicable": false, "sort_key": 1, "id": 1211}, {"is_multiplicable":
+        false, "sort_key": 1, "id": 1267, "is_requestable": true, "is_active": true,
+        "description": "Release flag for CNV v2", "name": "cnv-2", "is_requesteeble":
+        false, "grant_group": 141, "cc_list": "cnv-s12y@redhat.com", "request_group":
+        161}, {"id": 1639, "sort_key": 1, "is_multiplicable": false, "is_requestable":
+        true, "is_requesteeble": false, "name": "cnv-3", "description": "Release flag
+        for CNV v3", "is_active": true, "cc_list": "cnv-s12y@redhat.com", "request_group":
+        161, "grant_group": 141}, {"is_requesteeble": false, "name": "cnv-4", "description":
+        "Release flag for CNV v4", "is_active": true, "cc_list": "cnv-s12y@redhat.com",
+        "request_group": 161, "grant_group": 141, "sort_key": 1, "id": 1841, "is_multiplicable":
+        false, "is_requestable": true}, {"grant_group": null, "cc_list": "", "request_group":
+        null, "is_active": true, "description": "Additional Information is Requested",
+        "name": "needinfo", "is_requesteeble": true, "is_requestable": true, "is_multiplicable":
+        true, "sort_key": 1, "id": 16}, {"cc_list": "", "request_group": 207, "grant_group":
+        207, "is_requesteeble": false, "name": "qe_test_coverage", "is_active": true,
+        "description": "Quality Assurance Bugzilla Test Coverage Review", "is_requestable":
+        true, "sort_key": 1, "id": 318, "is_multiplicable": false}, {"id": 415, "sort_key":
+        1, "is_multiplicable": false, "is_requestable": true, "name": "requires_doc_text",
+        "is_requesteeble": false, "is_active": true, "description": "Does this bug
+        require documentation of a sort indicated by Doc Type, or not.\r\n\r\n+: documentation
+        text has been submitted by engineering and has been\r\napproved by Content
+        Services.\r\n\r\n?: initial documentation text has been submitted by engineering.
+        Content\r\nServices has not reviewed this text.\r\n\r\n-: this bug should
+        not be described in an advisory or the Release or\r\nTechnical Notes.", "request_group":
+        161, "cc_list": "content-services-list@redhat.com", "grant_group": 161}, {"is_multiplicable":
+        false, "sort_key": 1, "id": 1065, "is_requestable": false, "description":
+        "For bugs that must adhere to the Product Security RHSA errata SLA", "is_active":
+        true, "name": "rhsa_sla", "is_requesteeble": true, "grant_group": 297, "cc_list":
+        "", "request_group": 297}, {"is_requestable": true, "id": 60, "sort_key":
+        2, "is_multiplicable": false, "request_group": 12, "cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "grant_group": 185, "name": "requires_release_note", "is_requesteeble": false,
+        "description": "Bug requires an entry in the release notes. (No longer used
+        with RHEL.)", "is_active": true}, {"is_multiplicable": false, "id": 24, "sort_key":
+        5, "is_requestable": true, "is_active": true, "description": "Blocker for
+        Target Milestone: alpha, beta or rc", "is_requesteeble": false, "name": "blocker",
+        "grant_group": 522, "cc_list": "rhn-release-team@redhat.com", "request_group":
+        155}, {"is_requesteeble": false, "name": "exception", "is_active": true, "description":
+        "Exception for release", "request_group": 155, "cc_list": "rhn-release-team@redhat.com",
+        "grant_group": 522, "sort_key": 5, "id": 15, "is_multiplicable": false, "is_requestable":
+        true}, {"request_group": 92, "cc_list": "", "grant_group": 211, "name": "pm_ack",
+        "is_requesteeble": false, "description": "Product Management Acknowledgement",
+        "is_active": true, "is_requestable": true, "id": 11, "sort_key": 11, "is_multiplicable":
+        false}, {"is_requestable": true, "id": 10, "sort_key": 12, "is_multiplicable":
+        false, "request_group": 92, "cc_list": "", "grant_group": 511, "name": "devel_ack",
+        "is_requesteeble": false, "description": "Development Acknowledgement", "is_active":
+        true}, {"is_requestable": true, "id": 9, "sort_key": 13, "is_multiplicable":
+        false, "cc_list": "", "request_group": 92, "grant_group": 207, "is_requesteeble":
+        false, "name": "qa_ack", "is_active": true, "description": "Quality Assurance
+        Acknowledgement"}, {"request_group": 659, "cc_list": "", "grant_group": 551,
+        "name": "insights_rule", "is_requesteeble": false, "is_active": true, "description":
+        "Set this flag to ? to request a CEE review to propose that an insights rule
+        be created. CEE sets this flag to ''+'' when a new rule is created or ''-''
+        otherwise.", "is_requestable": true, "sort_key": 40, "id": 1291, "is_multiplicable":
+        false}, {"is_requestable": false, "is_multiplicable": false, "id": 1840, "sort_key":
+        40, "grant_group": 551, "cc_list": "", "request_group": 551, "description":
+        "This flag is set when an Insights rule is no longer active.", "is_active":
+        true, "name": "insights_rule_retired", "is_requesteeble": false}, {"is_multiplicable":
+        false, "id": 1753, "sort_key": 45, "is_requestable": true, "description":
+        "Set this flag to ''+'' if this bug has any impact on the PNT Shared Infrastructure
+        (PSI) Production Environment.", "is_active": true, "name": "psi", "is_requesteeble":
+        false, "grant_group": 161, "cc_list": "", "request_group": 161}, {"description":
+        "The flag should appear automatically when a customer ticket is marked as
+        Watchlist ticket.", "is_active": true, "name": "Watchlist", "is_requesteeble":
+        false, "grant_group": 682, "request_group": 682, "cc_list": "", "is_multiplicable":
+        false, "id": 2044, "sort_key": 10000, "is_requestable": false}], "attachment":
+        [{"sort_key": 1, "id": 155, "is_multiplicable": true, "is_requestable": true,
+        "is_requesteeble": true, "name": "review", "description": "The code attached
+        is in need of peer review.", "is_active": true, "request_group": null, "cc_list":
+        "", "grant_group": null}]}, "default_qa_contact": "ycui@redhat.com", "sub_components":
+        [], "id": 200424, "sort_key": 0, "default_cc": [], "default_docs_contact":
+        "", "default_assigned_to": "dholler@redhat.com"}, {"default_pool": null, "flag_types":
+        {"bug": [{"request_group": null, "cc_list": "", "grant_group": null, "is_requesteeble":
+        true, "name": "cfme-5.11.z", "description": "Set this flag to ? to request
+        this issue be proposed in the 5.11.z release of CloudForms Management Engine
+        (CloudForms 4.8.z). Your request will be reviewed by Product Management.",
+        "is_active": true, "is_requestable": true, "id": 1630, "sort_key": 1, "is_multiplicable":
+        true}, {"is_multiplicable": false, "id": 1211, "sort_key": 1, "is_requestable":
+        true, "description": "Release flag for CNV v1", "is_active": true, "name":
+        "cnv-1", "is_requesteeble": false, "grant_group": 141, "cc_list": "cnv-s12y@redhat.com",
+        "request_group": 161}, {"is_requestable": true, "is_multiplicable": false,
+        "id": 1267, "sort_key": 1, "grant_group": 141, "cc_list": "cnv-s12y@redhat.com",
+        "request_group": 161, "is_active": true, "description": "Release flag for
+        CNV v2", "name": "cnv-2", "is_requesteeble": false}, {"grant_group": 141,
+        "cc_list": "cnv-s12y@redhat.com", "request_group": 161, "description": "Release
+        flag for CNV v3", "is_active": true, "is_requesteeble": false, "name": "cnv-3",
+        "is_requestable": true, "is_multiplicable": false, "id": 1639, "sort_key":
+        1}, {"description": "Release flag for CNV v4", "is_active": true, "name":
+        "cnv-4", "is_requesteeble": false, "grant_group": 141, "cc_list": "cnv-s12y@redhat.com",
+        "request_group": 161, "is_multiplicable": false, "sort_key": 1, "id": 1841,
+        "is_requestable": true}, {"is_multiplicable": true, "sort_key": 1, "id": 16,
+        "is_requestable": true, "is_active": true, "description": "Additional Information
+        is Requested", "name": "needinfo", "is_requesteeble": true, "grant_group":
+        null, "request_group": null, "cc_list": ""}, {"grant_group": 207, "cc_list":
+        "", "request_group": 207, "description": "Quality Assurance Bugzilla Test
+        Coverage Review", "is_active": true, "name": "qe_test_coverage", "is_requesteeble":
+        false, "is_requestable": true, "is_multiplicable": false, "sort_key": 1, "id":
+        318}, {"is_requestable": true, "id": 415, "sort_key": 1, "is_multiplicable":
+        false, "request_group": 161, "cc_list": "content-services-list@redhat.com",
+        "grant_group": 161, "is_requesteeble": false, "name": "requires_doc_text",
+        "description": "Does this bug require documentation of a sort indicated by
+        Doc Type, or not.\r\n\r\n+: documentation text has been submitted by engineering
+        and has been\r\napproved by Content Services.\r\n\r\n?: initial documentation
+        text has been submitted by engineering. Content\r\nServices has not reviewed
+        this text.\r\n\r\n-: this bug should not be described in an advisory or the
+        Release or\r\nTechnical Notes.", "is_active": true}, {"is_multiplicable":
+        false, "sort_key": 1, "id": 1065, "is_requestable": false, "is_active": true,
+        "description": "For bugs that must adhere to the Product Security RHSA errata
+        SLA", "name": "rhsa_sla", "is_requesteeble": true, "grant_group": 297, "request_group":
+        297, "cc_list": ""}, {"is_requestable": true, "id": 60, "sort_key": 2, "is_multiplicable":
+        false, "cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "request_group": 12, "grant_group": 185, "is_requesteeble": false, "name":
+        "requires_release_note", "description": "Bug requires an entry in the release
+        notes. (No longer used with RHEL.)", "is_active": true}, {"grant_group": 522,
+        "request_group": 155, "cc_list": "rhn-release-team@redhat.com", "description":
+        "Blocker for Target Milestone: alpha, beta or rc", "is_active": true, "name":
+        "blocker", "is_requesteeble": false, "is_requestable": true, "is_multiplicable":
+        false, "sort_key": 5, "id": 24}, {"is_requesteeble": false, "name": "exception",
+        "description": "Exception for release", "is_active": true, "request_group":
+        155, "cc_list": "rhn-release-team@redhat.com", "grant_group": 522, "sort_key":
+        5, "id": 15, "is_multiplicable": false, "is_requestable": true}, {"is_requestable":
+        true, "is_multiplicable": false, "sort_key": 11, "id": 11, "grant_group":
+        211, "cc_list": "", "request_group": 92, "is_active": true, "description":
+        "Product Management Acknowledgement", "name": "pm_ack", "is_requesteeble":
+        false}, {"is_multiplicable": false, "sort_key": 12, "id": 10, "is_requestable":
+        true, "is_active": true, "description": "Development Acknowledgement", "is_requesteeble":
+        false, "name": "devel_ack", "grant_group": 511, "request_group": 92, "cc_list":
+        ""}, {"id": 9, "sort_key": 13, "is_multiplicable": false, "is_requestable":
+        true, "is_requesteeble": false, "name": "qa_ack", "description": "Quality
+        Assurance Acknowledgement", "is_active": true, "cc_list": "", "request_group":
+        92, "grant_group": 207}, {"is_multiplicable": false, "id": 1291, "sort_key":
+        40, "is_requestable": true, "is_active": true, "description": "Set this flag
+        to ? to request a CEE review to propose that an insights rule be created.
+        CEE sets this flag to ''+'' when a new rule is created or ''-'' otherwise.",
+        "name": "insights_rule", "is_requesteeble": false, "grant_group": 551, "request_group":
+        659, "cc_list": ""}, {"id": 1840, "sort_key": 40, "is_multiplicable": false,
+        "is_requestable": false, "is_requesteeble": false, "name": "insights_rule_retired",
+        "is_active": true, "description": "This flag is set when an Insights rule
+        is no longer active.", "cc_list": "", "request_group": 551, "grant_group":
+        551}, {"id": 1753, "sort_key": 45, "is_multiplicable": false, "is_requestable":
+        true, "name": "psi", "is_requesteeble": false, "is_active": true, "description":
+        "Set this flag to ''+'' if this bug has any impact on the PNT Shared Infrastructure
+        (PSI) Production Environment.", "request_group": 161, "cc_list": "", "grant_group":
+        161}, {"id": 2044, "sort_key": 10000, "is_multiplicable": false, "is_requestable":
+        false, "name": "Watchlist", "is_requesteeble": false, "description": "The
+        flag should appear automatically when a customer ticket is marked as Watchlist
+        ticket.", "is_active": true, "request_group": 682, "cc_list": "", "grant_group":
+        682}], "attachment": [{"is_requestable": true, "id": 155, "sort_key": 1, "is_multiplicable":
+        true, "request_group": null, "cc_list": "", "grant_group": null, "is_requesteeble":
+        true, "name": "review", "is_active": true, "description": "The code attached
+        is in need of peer review."}]}, "sub_components": [], "default_qa_contact":
+        "ngavrilo@redhat.com", "is_active": true, "description": "Installation related
+        to installation or upgrades", "name": "Installation", "default_cc": ["stirabos@redhat.com"],
+        "default_docs_contact": "", "default_assigned_to": "stirabos@redhat.com",
+        "id": 174762, "sort_key": 0}, {"sort_key": 0, "id": 192084, "default_assigned_to":
+        "nobody@redhat.com", "default_docs_contact": "", "default_cc": ["stirabos@redhat.com"],
+        "name": "Logging", "description": "Logging related bugs.", "is_active": true,
+        "sub_components": [], "default_qa_contact": "", "flag_types": {"attachment":
+        [{"is_requestable": true, "is_multiplicable": true, "id": 155, "sort_key":
+        1, "grant_group": null, "request_group": null, "cc_list": "", "is_active":
+        true, "description": "The code attached is in need of peer review.", "is_requesteeble":
+        true, "name": "review"}], "bug": [{"is_multiplicable": true, "sort_key": 1,
+        "id": 1630, "is_requestable": true, "description": "Set this flag to ? to
+        request this issue be proposed in the 5.11.z release of CloudForms Management
+        Engine (CloudForms 4.8.z). Your request will be reviewed by Product Management.",
+        "is_active": true, "name": "cfme-5.11.z", "is_requesteeble": true, "grant_group":
+        null, "cc_list": "", "request_group": null}, {"is_requestable": true, "sort_key":
+        1, "id": 1211, "is_multiplicable": false, "request_group": 161, "cc_list":
+        "cnv-s12y@redhat.com", "grant_group": 141, "name": "cnv-1", "is_requesteeble":
+        false, "is_active": true, "description": "Release flag for CNV v1"}, {"grant_group":
+        141, "request_group": 161, "cc_list": "cnv-s12y@redhat.com", "is_active":
+        true, "description": "Release flag for CNV v2", "is_requesteeble": false,
+        "name": "cnv-2", "is_requestable": true, "is_multiplicable": false, "id":
+        1267, "sort_key": 1}, {"sort_key": 1, "id": 1639, "is_multiplicable": false,
+        "is_requestable": true, "is_requesteeble": false, "name": "cnv-3", "description":
+        "Release flag for CNV v3", "is_active": true, "request_group": 161, "cc_list":
+        "cnv-s12y@redhat.com", "grant_group": 141}, {"request_group": 161, "cc_list":
+        "cnv-s12y@redhat.com", "grant_group": 141, "is_requesteeble": false, "name":
+        "cnv-4", "is_active": true, "description": "Release flag for CNV v4", "is_requestable":
+        true, "sort_key": 1, "id": 1841, "is_multiplicable": false}, {"is_multiplicable":
+        true, "id": 16, "sort_key": 1, "is_requestable": true, "is_active": true,
+        "description": "Additional Information is Requested", "is_requesteeble": true,
+        "name": "needinfo", "grant_group": null, "request_group": null, "cc_list":
+        ""}, {"request_group": 207, "cc_list": "", "grant_group": 207, "name": "qe_test_coverage",
+        "is_requesteeble": false, "description": "Quality Assurance Bugzilla Test
+        Coverage Review", "is_active": true, "is_requestable": true, "id": 318, "sort_key":
+        1, "is_multiplicable": false}, {"is_requestable": true, "id": 415, "sort_key":
+        1, "is_multiplicable": false, "cc_list": "content-services-list@redhat.com",
+        "request_group": 161, "grant_group": 161, "is_requesteeble": false, "name":
+        "requires_doc_text", "description": "Does this bug require documentation of
+        a sort indicated by Doc Type, or not.\r\n\r\n+: documentation text has been
+        submitted by engineering and has been\r\napproved by Content Services.\r\n\r\n?:
+        initial documentation text has been submitted by engineering. Content\r\nServices
+        has not reviewed this text.\r\n\r\n-: this bug should not be described in
+        an advisory or the Release or\r\nTechnical Notes.", "is_active": true}, {"id":
+        1065, "sort_key": 1, "is_multiplicable": false, "is_requestable": false, "is_requesteeble":
+        true, "name": "rhsa_sla", "description": "For bugs that must adhere to the
+        Product Security RHSA errata SLA", "is_active": true, "request_group": 297,
+        "cc_list": "", "grant_group": 297}, {"is_requestable": true, "id": 60, "sort_key":
+        2, "is_multiplicable": false, "request_group": 12, "cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "grant_group": 185, "name": "requires_release_note", "is_requesteeble": false,
+        "description": "Bug requires an entry in the release notes. (No longer used
+        with RHEL.)", "is_active": true}, {"is_requestable": true, "is_multiplicable":
+        false, "id": 24, "sort_key": 5, "grant_group": 522, "request_group": 155,
+        "cc_list": "rhn-release-team@redhat.com", "is_active": true, "description":
+        "Blocker for Target Milestone: alpha, beta or rc", "is_requesteeble": false,
+        "name": "blocker"}, {"grant_group": 522, "request_group": 155, "cc_list":
+        "rhn-release-team@redhat.com", "is_active": true, "description": "Exception
+        for release", "is_requesteeble": false, "name": "exception", "is_requestable":
+        true, "is_multiplicable": false, "id": 15, "sort_key": 5}, {"name": "pm_ack",
+        "is_requesteeble": false, "is_active": true, "description": "Product Management
+        Acknowledgement", "request_group": 92, "cc_list": "", "grant_group": 211,
+        "sort_key": 11, "id": 11, "is_multiplicable": false, "is_requestable": true},
+        {"is_multiplicable": false, "sort_key": 12, "id": 10, "is_requestable": true,
+        "description": "Development Acknowledgement", "is_active": true, "is_requesteeble":
+        false, "name": "devel_ack", "grant_group": 511, "cc_list": "", "request_group":
+        92}, {"cc_list": "", "request_group": 92, "grant_group": 207, "name": "qa_ack",
+        "is_requesteeble": false, "description": "Quality Assurance Acknowledgement",
+        "is_active": true, "is_requestable": true, "id": 9, "sort_key": 13, "is_multiplicable":
+        false}, {"is_multiplicable": false, "sort_key": 40, "id": 1291, "is_requestable":
+        true, "is_active": true, "description": "Set this flag to ? to request a CEE
+        review to propose that an insights rule be created. CEE sets this flag to
+        ''+'' when a new rule is created or ''-'' otherwise.", "is_requesteeble":
+        false, "name": "insights_rule", "grant_group": 551, "request_group": 659,
+        "cc_list": ""}, {"grant_group": 551, "request_group": 551, "cc_list": "",
+        "description": "This flag is set when an Insights rule is no longer active.",
+        "is_active": true, "name": "insights_rule_retired", "is_requesteeble": false,
+        "is_requestable": false, "is_multiplicable": false, "sort_key": 40, "id":
+        1840}, {"grant_group": 161, "cc_list": "", "request_group": 161, "description":
+        "Set this flag to ''+'' if this bug has any impact on the PNT Shared Infrastructure
+        (PSI) Production Environment.", "is_active": true, "is_requesteeble": false,
+        "name": "psi", "is_requestable": true, "is_multiplicable": false, "sort_key":
+        45, "id": 1753}, {"is_multiplicable": false, "sort_key": 10000, "id": 2044,
+        "is_requestable": false, "description": "The flag should appear automatically
+        when a customer ticket is marked as Watchlist ticket.", "is_active": true,
+        "name": "Watchlist", "is_requesteeble": false, "grant_group": 682, "request_group":
+        682, "cc_list": ""}]}, "default_pool": null}, {"name": "Metrics", "description":
+        "Metrics related bugs.", "is_active": true, "flag_types": {"attachment": [{"is_requestable":
+        true, "sort_key": 1, "id": 155, "is_multiplicable": true, "cc_list": "", "request_group":
+        null, "grant_group": null, "name": "review", "is_requesteeble": true, "is_active":
+        true, "description": "The code attached is in need of peer review."}], "bug":
+        [{"is_requestable": true, "is_multiplicable": true, "sort_key": 1, "id": 1630,
+        "grant_group": null, "cc_list": "", "request_group": null, "description":
+        "Set this flag to ? to request this issue be proposed in the 5.11.z release
+        of CloudForms Management Engine (CloudForms 4.8.z). Your request will be reviewed
+        by Product Management.", "is_active": true, "name": "cfme-5.11.z", "is_requesteeble":
+        true}, {"name": "cnv-1", "is_requesteeble": false, "is_active": true, "description":
+        "Release flag for CNV v1", "request_group": 161, "cc_list": "cnv-s12y@redhat.com",
+        "grant_group": 141, "id": 1211, "sort_key": 1, "is_multiplicable": false,
+        "is_requestable": true}, {"grant_group": 141, "cc_list": "cnv-s12y@redhat.com",
+        "request_group": 161, "is_active": true, "description": "Release flag for
+        CNV v2", "name": "cnv-2", "is_requesteeble": false, "is_requestable": true,
+        "is_multiplicable": false, "id": 1267, "sort_key": 1}, {"id": 1639, "sort_key":
+        1, "is_multiplicable": false, "is_requestable": true, "is_requesteeble": false,
+        "name": "cnv-3", "is_active": true, "description": "Release flag for CNV v3",
+        "request_group": 161, "cc_list": "cnv-s12y@redhat.com", "grant_group": 141},
+        {"request_group": 161, "cc_list": "cnv-s12y@redhat.com", "grant_group": 141,
+        "is_requesteeble": false, "name": "cnv-4", "description": "Release flag for
+        CNV v4", "is_active": true, "is_requestable": true, "sort_key": 1, "id": 1841,
+        "is_multiplicable": false}, {"request_group": null, "cc_list": "", "grant_group":
+        null, "is_requesteeble": true, "name": "needinfo", "description": "Additional
+        Information is Requested", "is_active": true, "is_requestable": true, "id":
+        16, "sort_key": 1, "is_multiplicable": true}, {"is_multiplicable": false,
+        "id": 318, "sort_key": 1, "is_requestable": true, "description": "Quality
+        Assurance Bugzilla Test Coverage Review", "is_active": true, "name": "qe_test_coverage",
+        "is_requesteeble": false, "grant_group": 207, "request_group": 207, "cc_list":
+        ""}, {"description": "Does this bug require documentation of a sort indicated
+        by Doc Type, or not.\r\n\r\n+: documentation text has been submitted by engineering
+        and has been\r\napproved by Content Services.\r\n\r\n?: initial documentation
+        text has been submitted by engineering. Content\r\nServices has not reviewed
+        this text.\r\n\r\n-: this bug should not be described in an advisory or the
+        Release or\r\nTechnical Notes.", "is_active": true, "name": "requires_doc_text",
+        "is_requesteeble": false, "grant_group": 161, "cc_list": "content-services-list@redhat.com",
+        "request_group": 161, "is_multiplicable": false, "sort_key": 1, "id": 415,
+        "is_requestable": true}, {"id": 1065, "sort_key": 1, "is_multiplicable": false,
+        "is_requestable": false, "is_requesteeble": true, "name": "rhsa_sla", "description":
+        "For bugs that must adhere to the Product Security RHSA errata SLA", "is_active":
+        true, "cc_list": "", "request_group": 297, "grant_group": 297}, {"grant_group":
+        185, "request_group": 12, "cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "is_active": true, "description": "Bug requires an entry in the release notes.
+        (No longer used with RHEL.)", "name": "requires_release_note", "is_requesteeble":
+        false, "is_requestable": true, "is_multiplicable": false, "id": 60, "sort_key":
+        2}, {"is_requesteeble": false, "name": "blocker", "is_active": true, "description":
+        "Blocker for Target Milestone: alpha, beta or rc", "request_group": 155, "cc_list":
+        "rhn-release-team@redhat.com", "grant_group": 522, "sort_key": 5, "id": 24,
+        "is_multiplicable": false, "is_requestable": true}, {"request_group": 155,
+        "cc_list": "rhn-release-team@redhat.com", "grant_group": 522, "name": "exception",
+        "is_requesteeble": false, "is_active": true, "description": "Exception for
+        release", "is_requestable": true, "sort_key": 5, "id": 15, "is_multiplicable":
+        false}, {"cc_list": "", "request_group": 92, "grant_group": 211, "name": "pm_ack",
+        "is_requesteeble": false, "description": "Product Management Acknowledgement",
+        "is_active": true, "is_requestable": true, "sort_key": 11, "id": 11, "is_multiplicable":
+        false}, {"sort_key": 12, "id": 10, "is_multiplicable": false, "is_requestable":
+        true, "name": "devel_ack", "is_requesteeble": false, "description": "Development
+        Acknowledgement", "is_active": true, "request_group": 92, "cc_list": "", "grant_group":
+        511}, {"is_requesteeble": false, "name": "qa_ack", "description": "Quality
+        Assurance Acknowledgement", "is_active": true, "cc_list": "", "request_group":
+        92, "grant_group": 207, "id": 9, "sort_key": 13, "is_multiplicable": false,
+        "is_requestable": true}, {"request_group": 659, "cc_list": "", "grant_group":
+        551, "name": "insights_rule", "is_requesteeble": false, "description": "Set
+        this flag to ? to request a CEE review to propose that an insights rule be
+        created. CEE sets this flag to ''+'' when a new rule is created or ''-'' otherwise.",
+        "is_active": true, "is_requestable": true, "id": 1291, "sort_key": 40, "is_multiplicable":
+        false}, {"is_requestable": false, "is_multiplicable": false, "sort_key": 40,
+        "id": 1840, "grant_group": 551, "cc_list": "", "request_group": 551, "is_active":
+        true, "description": "This flag is set when an Insights rule is no longer
+        active.", "is_requesteeble": false, "name": "insights_rule_retired"}, {"description":
+        "Set this flag to ''+'' if this bug has any impact on the PNT Shared Infrastructure
+        (PSI) Production Environment.", "is_active": true, "name": "psi", "is_requesteeble":
+        false, "grant_group": 161, "request_group": 161, "cc_list": "", "is_multiplicable":
+        false, "id": 1753, "sort_key": 45, "is_requestable": true}, {"request_group":
+        682, "cc_list": "", "grant_group": 682, "name": "Watchlist", "is_requesteeble":
+        false, "is_active": true, "description": "The flag should appear automatically
+        when a customer ticket is marked as Watchlist ticket.", "is_requestable":
+        false, "id": 2044, "sort_key": 10000, "is_multiplicable": false}]}, "default_qa_contact":
+        "ngavrilo@redhat.com", "sub_components": [], "default_pool": null, "sort_key":
+        0, "id": 192085, "default_assigned_to": "sradco@redhat.com", "default_docs_contact":
+        "", "default_cc": ["stirabos@redhat.com"]}, {"default_assigned_to": "phoracek@redhat.com",
+        "default_docs_contact": "", "default_cc": [], "sort_key": 0, "id": 174763,
+        "default_qa_contact": "nrozen@redhat.com", "flag_types": {"bug": [{"is_active":
+        true, "description": "Set this flag to ? to request this issue be proposed
+        in the 5.11.z release of CloudForms Management Engine (CloudForms 4.8.z).
+        Your request will be reviewed by Product Management.", "is_requesteeble":
+        true, "name": "cfme-5.11.z", "grant_group": null, "request_group": null, "cc_list":
+        "", "is_multiplicable": true, "sort_key": 1, "id": 1630, "is_requestable":
+        true}, {"grant_group": 141, "cc_list": "cnv-s12y@redhat.com", "request_group":
+        161, "is_active": true, "description": "Release flag for CNV v1", "is_requesteeble":
+        false, "name": "cnv-1", "is_requestable": true, "is_multiplicable": false,
+        "id": 1211, "sort_key": 1}, {"is_requestable": true, "id": 1267, "sort_key":
+        1, "is_multiplicable": false, "request_group": 161, "cc_list": "cnv-s12y@redhat.com",
+        "grant_group": 141, "name": "cnv-2", "is_requesteeble": false, "description":
+        "Release flag for CNV v2", "is_active": true}, {"grant_group": 141, "request_group":
+        161, "cc_list": "cnv-s12y@redhat.com", "description": "Release flag for CNV
+        v3", "is_active": true, "is_requesteeble": false, "name": "cnv-3", "is_requestable":
+        true, "is_multiplicable": false, "sort_key": 1, "id": 1639}, {"is_multiplicable":
+        false, "sort_key": 1, "id": 1841, "is_requestable": true, "is_active": true,
+        "description": "Release flag for CNV v4", "name": "cnv-4", "is_requesteeble":
+        false, "grant_group": 141, "cc_list": "cnv-s12y@redhat.com", "request_group":
+        161}, {"is_requestable": true, "sort_key": 1, "id": 16, "is_multiplicable":
+        true, "request_group": null, "cc_list": "", "grant_group": null, "name": "needinfo",
+        "is_requesteeble": true, "description": "Additional Information is Requested",
+        "is_active": true}, {"description": "Quality Assurance Bugzilla Test Coverage
+        Review", "is_active": true, "name": "qe_test_coverage", "is_requesteeble":
+        false, "grant_group": 207, "cc_list": "", "request_group": 207, "is_multiplicable":
+        false, "sort_key": 1, "id": 318, "is_requestable": true}, {"description":
+        "Does this bug require documentation of a sort indicated by Doc Type, or not.\r\n\r\n+:
+        documentation text has been submitted by engineering and has been\r\napproved
+        by Content Services.\r\n\r\n?: initial documentation text has been submitted
+        by engineering. Content\r\nServices has not reviewed this text.\r\n\r\n-:
+        this bug should not be described in an advisory or the Release or\r\nTechnical
+        Notes.", "is_active": true, "is_requesteeble": false, "name": "requires_doc_text",
+        "grant_group": 161, "request_group": 161, "cc_list": "content-services-list@redhat.com",
+        "is_multiplicable": false, "sort_key": 1, "id": 415, "is_requestable": true},
+        {"is_multiplicable": false, "sort_key": 1, "id": 1065, "is_requestable": false,
+        "is_active": true, "description": "For bugs that must adhere to the Product
+        Security RHSA errata SLA", "name": "rhsa_sla", "is_requesteeble": true, "grant_group":
+        297, "request_group": 297, "cc_list": ""}, {"cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "request_group": 12, "grant_group": 185, "is_requesteeble": false, "name":
+        "requires_release_note", "description": "Bug requires an entry in the release
+        notes. (No longer used with RHEL.)", "is_active": true, "is_requestable":
+        true, "id": 60, "sort_key": 2, "is_multiplicable": false}, {"description":
+        "Blocker for Target Milestone: alpha, beta or rc", "is_active": true, "is_requesteeble":
+        false, "name": "blocker", "grant_group": 522, "request_group": 155, "cc_list":
+        "rhn-release-team@redhat.com", "is_multiplicable": false, "id": 24, "sort_key":
+        5, "is_requestable": true}, {"is_requesteeble": false, "name": "exception",
+        "is_active": true, "description": "Exception for release", "request_group":
+        155, "cc_list": "rhn-release-team@redhat.com", "grant_group": 522, "sort_key":
+        5, "id": 15, "is_multiplicable": false, "is_requestable": true}, {"is_requestable":
+        true, "id": 11, "sort_key": 11, "is_multiplicable": false, "cc_list": "",
+        "request_group": 92, "grant_group": 211, "is_requesteeble": false, "name":
+        "pm_ack", "is_active": true, "description": "Product Management Acknowledgement"},
+        {"request_group": 92, "cc_list": "", "grant_group": 511, "is_requesteeble":
+        false, "name": "devel_ack", "description": "Development Acknowledgement",
+        "is_active": true, "is_requestable": true, "sort_key": 12, "id": 10, "is_multiplicable":
+        false}, {"is_requestable": true, "id": 9, "sort_key": 13, "is_multiplicable":
+        false, "request_group": 92, "cc_list": "", "grant_group": 207, "name": "qa_ack",
+        "is_requesteeble": false, "is_active": true, "description": "Quality Assurance
+        Acknowledgement"}, {"is_requestable": true, "sort_key": 40, "id": 1291, "is_multiplicable":
+        false, "request_group": 659, "cc_list": "", "grant_group": 551, "is_requesteeble":
+        false, "name": "insights_rule", "is_active": true, "description": "Set this
+        flag to ? to request a CEE review to propose that an insights rule be created.
+        CEE sets this flag to ''+'' when a new rule is created or ''-'' otherwise."},
+        {"sort_key": 40, "id": 1840, "is_multiplicable": false, "is_requestable":
+        false, "name": "insights_rule_retired", "is_requesteeble": false, "description":
+        "This flag is set when an Insights rule is no longer active.", "is_active":
+        true, "request_group": 551, "cc_list": "", "grant_group": 551}, {"is_requestable":
+        true, "is_multiplicable": false, "sort_key": 45, "id": 1753, "grant_group":
+        161, "request_group": 161, "cc_list": "", "description": "Set this flag to
+        ''+'' if this bug has any impact on the PNT Shared Infrastructure (PSI) Production
+        Environment.", "is_active": true, "name": "psi", "is_requesteeble": false},
+        {"is_requestable": false, "id": 2044, "sort_key": 10000, "is_multiplicable":
+        false, "cc_list": "", "request_group": 682, "grant_group": 682, "name": "Watchlist",
+        "is_requesteeble": false, "description": "The flag should appear automatically
+        when a customer ticket is marked as Watchlist ticket.", "is_active": true}],
+        "attachment": [{"description": "The code attached is in need of peer review.",
+        "is_active": true, "is_requesteeble": true, "name": "review", "grant_group":
+        null, "request_group": null, "cc_list": "", "is_multiplicable": true, "sort_key":
+        1, "id": 155, "is_requestable": true}]}, "sub_components": [], "default_pool":
+        null, "name": "Networking", "is_active": true, "description": "Issues related
+        to networking related to the VM instances"}, {"id": 174758, "sort_key": 0,
+        "default_cc": [], "default_docs_contact": "", "default_assigned_to": "pkliczew@redhat.com",
+        "description": "Issues related to integrations with 3rd parties (CF, Sat,
+        Ansible)", "is_active": true, "name": "Providers", "default_pool": null, "sub_components":
+        [], "default_qa_contact": "oramraz@redhat.com", "flag_types": {"bug": [{"name":
+        "cfme-5.11.z", "is_requesteeble": true, "description": "Set this flag to ?
+        to request this issue be proposed in the 5.11.z release of CloudForms Management
+        Engine (CloudForms 4.8.z). Your request will be reviewed by Product Management.",
+        "is_active": true, "cc_list": "", "request_group": null, "grant_group": null,
+        "id": 1630, "sort_key": 1, "is_multiplicable": true, "is_requestable": true},
+        {"is_active": true, "description": "Release flag for CNV v1", "name": "cnv-1",
+        "is_requesteeble": false, "grant_group": 141, "request_group": 161, "cc_list":
+        "cnv-s12y@redhat.com", "is_multiplicable": false, "sort_key": 1, "id": 1211,
+        "is_requestable": true}, {"is_requestable": true, "id": 1267, "sort_key":
+        1, "is_multiplicable": false, "request_group": 161, "cc_list": "cnv-s12y@redhat.com",
+        "grant_group": 141, "name": "cnv-2", "is_requesteeble": false, "description":
+        "Release flag for CNV v2", "is_active": true}, {"grant_group": 141, "request_group":
+        161, "cc_list": "cnv-s12y@redhat.com", "description": "Release flag for CNV
+        v3", "is_active": true, "name": "cnv-3", "is_requesteeble": false, "is_requestable":
+        true, "is_multiplicable": false, "sort_key": 1, "id": 1639}, {"is_requestable":
+        true, "sort_key": 1, "id": 1841, "is_multiplicable": false, "request_group":
+        161, "cc_list": "cnv-s12y@redhat.com", "grant_group": 141, "is_requesteeble":
+        false, "name": "cnv-4", "is_active": true, "description": "Release flag for
+        CNV v4"}, {"is_active": true, "description": "Additional Information is Requested",
+        "name": "needinfo", "is_requesteeble": true, "grant_group": null, "cc_list":
+        "", "request_group": null, "is_multiplicable": true, "sort_key": 1, "id":
+        16, "is_requestable": true}, {"grant_group": 207, "cc_list": "", "request_group":
+        207, "is_active": true, "description": "Quality Assurance Bugzilla Test Coverage
+        Review", "name": "qe_test_coverage", "is_requesteeble": false, "is_requestable":
+        true, "is_multiplicable": false, "id": 318, "sort_key": 1}, {"description":
+        "Does this bug require documentation of a sort indicated by Doc Type, or not.\r\n\r\n+:
+        documentation text has been submitted by engineering and has been\r\napproved
+        by Content Services.\r\n\r\n?: initial documentation text has been submitted
+        by engineering. Content\r\nServices has not reviewed this text.\r\n\r\n-:
+        this bug should not be described in an advisory or the Release or\r\nTechnical
+        Notes.", "is_active": true, "is_requesteeble": false, "name": "requires_doc_text",
+        "grant_group": 161, "request_group": 161, "cc_list": "content-services-list@redhat.com",
+        "is_multiplicable": false, "sort_key": 1, "id": 415, "is_requestable": true},
+        {"sort_key": 1, "id": 1065, "is_multiplicable": false, "is_requestable": false,
+        "is_requesteeble": true, "name": "rhsa_sla", "is_active": true, "description":
+        "For bugs that must adhere to the Product Security RHSA errata SLA", "request_group":
+        297, "cc_list": "", "grant_group": 297}, {"name": "requires_release_note",
+        "is_requesteeble": false, "description": "Bug requires an entry in the release
+        notes. (No longer used with RHEL.)", "is_active": true, "request_group": 12,
+        "cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "grant_group": 185, "sort_key": 2, "id": 60, "is_multiplicable": false, "is_requestable":
+        true}, {"grant_group": 522, "request_group": 155, "cc_list": "rhn-release-team@redhat.com",
+        "is_active": true, "description": "Blocker for Target Milestone: alpha, beta
+        or rc", "is_requesteeble": false, "name": "blocker", "is_requestable": true,
+        "is_multiplicable": false, "id": 24, "sort_key": 5}, {"cc_list": "rhn-release-team@redhat.com",
+        "request_group": 155, "grant_group": 522, "name": "exception", "is_requesteeble":
+        false, "is_active": true, "description": "Exception for release", "is_requestable":
+        true, "sort_key": 5, "id": 15, "is_multiplicable": false}, {"is_requestable":
+        true, "is_multiplicable": false, "sort_key": 11, "id": 11, "grant_group":
+        211, "request_group": 92, "cc_list": "", "is_active": true, "description":
+        "Product Management Acknowledgement", "name": "pm_ack", "is_requesteeble":
+        false}, {"id": 10, "sort_key": 12, "is_multiplicable": false, "is_requestable":
+        true, "name": "devel_ack", "is_requesteeble": false, "description": "Development
+        Acknowledgement", "is_active": true, "cc_list": "", "request_group": 92, "grant_group":
+        511}, {"is_active": true, "description": "Quality Assurance Acknowledgement",
+        "name": "qa_ack", "is_requesteeble": false, "grant_group": 207, "cc_list":
+        "", "request_group": 92, "is_multiplicable": false, "id": 9, "sort_key": 13,
+        "is_requestable": true}, {"is_requesteeble": false, "name": "insights_rule",
+        "description": "Set this flag to ? to request a CEE review to propose that
+        an insights rule be created. CEE sets this flag to ''+'' when a new rule is
+        created or ''-'' otherwise.", "is_active": true, "request_group": 659, "cc_list":
+        "", "grant_group": 551, "id": 1291, "sort_key": 40, "is_multiplicable": false,
+        "is_requestable": true}, {"is_multiplicable": false, "id": 1840, "sort_key":
+        40, "is_requestable": false, "is_active": true, "description": "This flag
+        is set when an Insights rule is no longer active.", "name": "insights_rule_retired",
+        "is_requesteeble": false, "grant_group": 551, "request_group": 551, "cc_list":
+        ""}, {"grant_group": 161, "request_group": 161, "cc_list": "", "description":
+        "Set this flag to ''+'' if this bug has any impact on the PNT Shared Infrastructure
+        (PSI) Production Environment.", "is_active": true, "name": "psi", "is_requesteeble":
+        false, "is_requestable": true, "is_multiplicable": false, "sort_key": 45,
+        "id": 1753}, {"description": "The flag should appear automatically when a
+        customer ticket is marked as Watchlist ticket.", "is_active": true, "is_requesteeble":
+        false, "name": "Watchlist", "grant_group": 682, "cc_list": "", "request_group":
+        682, "is_multiplicable": false, "id": 2044, "sort_key": 10000, "is_requestable":
+        false}], "attachment": [{"is_requestable": true, "sort_key": 1, "id": 155,
+        "is_multiplicable": true, "cc_list": "", "request_group": null, "grant_group":
+        null, "is_requesteeble": true, "name": "review", "description": "The code
+        attached is in need of peer review.", "is_active": true}]}}, {"default_qa_contact":
+        "oramraz@redhat.com", "sub_components": [], "flag_types": {"attachment": [{"is_requestable":
+        true, "sort_key": 1, "id": 155, "is_multiplicable": true, "request_group":
+        null, "cc_list": "", "grant_group": null, "name": "review", "is_requesteeble":
+        true, "description": "The code attached is in need of peer review.", "is_active":
+        true}], "bug": [{"is_requesteeble": true, "name": "cfme-5.11.z", "description":
+        "Set this flag to ? to request this issue be proposed in the 5.11.z release
+        of CloudForms Management Engine (CloudForms 4.8.z). Your request will be reviewed
+        by Product Management.", "is_active": true, "cc_list": "", "request_group":
+        null, "grant_group": null, "sort_key": 1, "id": 1630, "is_multiplicable":
+        true, "is_requestable": true}, {"is_requestable": true, "id": 1211, "sort_key":
+        1, "is_multiplicable": false, "cc_list": "cnv-s12y@redhat.com", "request_group":
+        161, "grant_group": 141, "is_requesteeble": false, "name": "cnv-1", "description":
+        "Release flag for CNV v1", "is_active": true}, {"is_requestable": true, "is_multiplicable":
+        false, "id": 1267, "sort_key": 1, "grant_group": 141, "cc_list": "cnv-s12y@redhat.com",
+        "request_group": 161, "is_active": true, "description": "Release flag for
+        CNV v2", "name": "cnv-2", "is_requesteeble": false}, {"is_requesteeble": false,
+        "name": "cnv-3", "description": "Release flag for CNV v3", "is_active": true,
+        "cc_list": "cnv-s12y@redhat.com", "request_group": 161, "grant_group": 141,
+        "sort_key": 1, "id": 1639, "is_multiplicable": false, "is_requestable": true},
+        {"is_active": true, "description": "Release flag for CNV v4", "name": "cnv-4",
+        "is_requesteeble": false, "grant_group": 141, "request_group": 161, "cc_list":
+        "cnv-s12y@redhat.com", "is_multiplicable": false, "sort_key": 1, "id": 1841,
+        "is_requestable": true}, {"is_active": true, "description": "Additional Information
+        is Requested", "name": "needinfo", "is_requesteeble": true, "grant_group":
+        null, "cc_list": "", "request_group": null, "is_multiplicable": true, "id":
+        16, "sort_key": 1, "is_requestable": true}, {"grant_group": 207, "request_group":
+        207, "cc_list": "", "description": "Quality Assurance Bugzilla Test Coverage
+        Review", "is_active": true, "is_requesteeble": false, "name": "qe_test_coverage",
+        "is_requestable": true, "is_multiplicable": false, "id": 318, "sort_key":
+        1}, {"description": "Does this bug require documentation of a sort indicated
+        by Doc Type, or not.\r\n\r\n+: documentation text has been submitted by engineering
+        and has been\r\napproved by Content Services.\r\n\r\n?: initial documentation
+        text has been submitted by engineering. Content\r\nServices has not reviewed
+        this text.\r\n\r\n-: this bug should not be described in an advisory or the
+        Release or\r\nTechnical Notes.", "is_active": true, "name": "requires_doc_text",
+        "is_requesteeble": false, "grant_group": 161, "request_group": 161, "cc_list":
+        "content-services-list@redhat.com", "is_multiplicable": false, "sort_key":
+        1, "id": 415, "is_requestable": true}, {"description": "For bugs that must
+        adhere to the Product Security RHSA errata SLA", "is_active": true, "is_requesteeble":
+        true, "name": "rhsa_sla", "grant_group": 297, "request_group": 297, "cc_list":
+        "", "is_multiplicable": false, "id": 1065, "sort_key": 1, "is_requestable":
+        false}, {"is_requestable": true, "sort_key": 2, "id": 60, "is_multiplicable":
+        false, "cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "request_group": 12, "grant_group": 185, "name": "requires_release_note",
+        "is_requesteeble": false, "description": "Bug requires an entry in the release
+        notes. (No longer used with RHEL.)", "is_active": true}, {"request_group":
+        155, "cc_list": "rhn-release-team@redhat.com", "grant_group": 522, "is_requesteeble":
+        false, "name": "blocker", "is_active": true, "description": "Blocker for Target
+        Milestone: alpha, beta or rc", "is_requestable": true, "sort_key": 5, "id":
+        24, "is_multiplicable": false}, {"is_multiplicable": false, "sort_key": 5,
+        "id": 15, "is_requestable": true, "is_active": true, "description": "Exception
+        for release", "is_requesteeble": false, "name": "exception", "grant_group":
+        522, "request_group": 155, "cc_list": "rhn-release-team@redhat.com"}, {"is_requestable":
+        true, "sort_key": 11, "id": 11, "is_multiplicable": false, "cc_list": "",
+        "request_group": 92, "grant_group": 211, "is_requesteeble": false, "name":
+        "pm_ack", "is_active": true, "description": "Product Management Acknowledgement"},
+        {"name": "devel_ack", "is_requesteeble": false, "description": "Development
+        Acknowledgement", "is_active": true, "request_group": 92, "cc_list": "", "grant_group":
+        511, "id": 10, "sort_key": 12, "is_multiplicable": false, "is_requestable":
+        true}, {"is_requestable": true, "is_multiplicable": false, "id": 9, "sort_key":
+        13, "grant_group": 207, "request_group": 92, "cc_list": "", "is_active": true,
+        "description": "Quality Assurance Acknowledgement", "name": "qa_ack", "is_requesteeble":
+        false}, {"sort_key": 40, "id": 1291, "is_multiplicable": false, "is_requestable":
+        true, "name": "insights_rule", "is_requesteeble": false, "is_active": true,
+        "description": "Set this flag to ? to request a CEE review to propose that
+        an insights rule be created. CEE sets this flag to ''+'' when a new rule is
+        created or ''-'' otherwise.", "request_group": 659, "cc_list": "", "grant_group":
+        551}, {"is_multiplicable": false, "sort_key": 40, "id": 1840, "is_requestable":
+        false, "is_active": true, "description": "This flag is set when an Insights
+        rule is no longer active.", "name": "insights_rule_retired", "is_requesteeble":
+        false, "grant_group": 551, "cc_list": "", "request_group": 551}, {"name":
+        "psi", "is_requesteeble": false, "description": "Set this flag to ''+'' if
+        this bug has any impact on the PNT Shared Infrastructure (PSI) Production
+        Environment.", "is_active": true, "request_group": 161, "cc_list": "", "grant_group":
+        161, "sort_key": 45, "id": 1753, "is_multiplicable": false, "is_requestable":
+        true}, {"id": 2044, "sort_key": 10000, "is_multiplicable": false, "is_requestable":
+        false, "is_requesteeble": false, "name": "Watchlist", "is_active": true, "description":
+        "The flag should appear automatically when a customer ticket is marked as
+        Watchlist ticket.", "request_group": 682, "cc_list": "", "grant_group": 682}]},
+        "default_pool": null, "name": "Release", "is_active": true, "description":
+        "Release Engineering Tasks", "default_assigned_to": "dcadzow@redhat.com",
+        "default_cc": [], "default_docs_contact": "", "id": 174765, "sort_key": 0},
+        {"id": 174764, "sort_key": 0, "default_assigned_to": "pelauter@redhat.com",
+        "default_cc": [], "default_docs_contact": "", "name": "RFE", "is_active":
+        true, "description": "Request for Feature Enhancements accross all CNV components",
+        "flag_types": {"bug": [{"is_requestable": true, "is_multiplicable": true,
+        "sort_key": 1, "id": 1630, "grant_group": null, "cc_list": "", "request_group":
+        null, "description": "Set this flag to ? to request this issue be proposed
+        in the 5.11.z release of CloudForms Management Engine (CloudForms 4.8.z).
+        Your request will be reviewed by Product Management.", "is_active": true,
+        "is_requesteeble": true, "name": "cfme-5.11.z"}, {"request_group": 161, "cc_list":
+        "cnv-s12y@redhat.com", "grant_group": 141, "name": "cnv-1", "is_requesteeble":
+        false, "is_active": true, "description": "Release flag for CNV v1", "is_requestable":
+        true, "id": 1211, "sort_key": 1, "is_multiplicable": false}, {"sort_key":
+        1, "id": 1267, "is_multiplicable": false, "is_requestable": true, "is_requesteeble":
+        false, "name": "cnv-2", "description": "Release flag for CNV v2", "is_active":
+        true, "cc_list": "cnv-s12y@redhat.com", "request_group": 161, "grant_group":
+        141}, {"is_multiplicable": false, "id": 1639, "sort_key": 1, "is_requestable":
+        true, "is_active": true, "description": "Release flag for CNV v3", "name":
+        "cnv-3", "is_requesteeble": false, "grant_group": 141, "cc_list": "cnv-s12y@redhat.com",
+        "request_group": 161}, {"is_multiplicable": false, "id": 1841, "sort_key":
+        1, "is_requestable": true, "description": "Release flag for CNV v4", "is_active":
+        true, "name": "cnv-4", "is_requesteeble": false, "grant_group": 141, "cc_list":
+        "cnv-s12y@redhat.com", "request_group": 161}, {"is_requestable": true, "is_multiplicable":
+        true, "id": 16, "sort_key": 1, "grant_group": null, "cc_list": "", "request_group":
+        null, "description": "Additional Information is Requested", "is_active": true,
+        "name": "needinfo", "is_requesteeble": true}, {"is_requestable": true, "id":
+        318, "sort_key": 1, "is_multiplicable": false, "cc_list": "", "request_group":
+        207, "grant_group": 207, "is_requesteeble": false, "name": "qe_test_coverage",
+        "is_active": true, "description": "Quality Assurance Bugzilla Test Coverage
+        Review"}, {"is_multiplicable": false, "sort_key": 1, "id": 415, "is_requestable":
+        true, "is_active": true, "description": "Does this bug require documentation
+        of a sort indicated by Doc Type, or not.\r\n\r\n+: documentation text has
+        been submitted by engineering and has been\r\napproved by Content Services.\r\n\r\n?:
+        initial documentation text has been submitted by engineering. Content\r\nServices
+        has not reviewed this text.\r\n\r\n-: this bug should not be described in
+        an advisory or the Release or\r\nTechnical Notes.", "name": "requires_doc_text",
+        "is_requesteeble": false, "grant_group": 161, "cc_list": "content-services-list@redhat.com",
+        "request_group": 161}, {"is_requestable": false, "is_multiplicable": false,
+        "sort_key": 1, "id": 1065, "grant_group": 297, "cc_list": "", "request_group":
+        297, "is_active": true, "description": "For bugs that must adhere to the Product
+        Security RHSA errata SLA", "name": "rhsa_sla", "is_requesteeble": true}, {"cc_list":
+        "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "request_group": 12, "grant_group": 185, "name": "requires_release_note",
+        "is_requesteeble": false, "description": "Bug requires an entry in the release
+        notes. (No longer used with RHEL.)", "is_active": true, "is_requestable":
+        true, "sort_key": 2, "id": 60, "is_multiplicable": false}, {"is_requestable":
+        true, "is_multiplicable": false, "sort_key": 5, "id": 24, "grant_group": 522,
+        "cc_list": "rhn-release-team@redhat.com", "request_group": 155, "is_active":
+        true, "description": "Blocker for Target Milestone: alpha, beta or rc", "name":
+        "blocker", "is_requesteeble": false}, {"is_multiplicable": false, "id": 15,
+        "sort_key": 5, "is_requestable": true, "description": "Exception for release",
+        "is_active": true, "name": "exception", "is_requesteeble": false, "grant_group":
+        522, "cc_list": "rhn-release-team@redhat.com", "request_group": 155}, {"is_requestable":
+        true, "id": 11, "sort_key": 11, "is_multiplicable": false, "cc_list": "",
+        "request_group": 92, "grant_group": 211, "name": "pm_ack", "is_requesteeble":
+        false, "is_active": true, "description": "Product Management Acknowledgement"},
+        {"is_requestable": true, "is_multiplicable": false, "sort_key": 12, "id":
+        10, "grant_group": 511, "cc_list": "", "request_group": 92, "description":
+        "Development Acknowledgement", "is_active": true, "is_requesteeble": false,
+        "name": "devel_ack"}, {"is_requestable": true, "sort_key": 13, "id": 9, "is_multiplicable":
+        false, "request_group": 92, "cc_list": "", "grant_group": 207, "is_requesteeble":
+        false, "name": "qa_ack", "description": "Quality Assurance Acknowledgement",
+        "is_active": true}, {"is_multiplicable": false, "id": 1291, "sort_key": 40,
+        "is_requestable": true, "description": "Set this flag to ? to request a CEE
+        review to propose that an insights rule be created. CEE sets this flag to
+        ''+'' when a new rule is created or ''-'' otherwise.", "is_active": true,
+        "is_requesteeble": false, "name": "insights_rule", "grant_group": 551, "cc_list":
+        "", "request_group": 659}, {"is_multiplicable": false, "id": 1840, "sort_key":
+        40, "is_requestable": false, "description": "This flag is set when an Insights
+        rule is no longer active.", "is_active": true, "is_requesteeble": false, "name":
+        "insights_rule_retired", "grant_group": 551, "request_group": 551, "cc_list":
+        ""}, {"grant_group": 161, "request_group": 161, "cc_list": "", "is_active":
+        true, "description": "Set this flag to ''+'' if this bug has any impact on
+        the PNT Shared Infrastructure (PSI) Production Environment.", "is_requesteeble":
+        false, "name": "psi", "is_requestable": true, "is_multiplicable": false, "sort_key":
+        45, "id": 1753}, {"is_multiplicable": false, "sort_key": 10000, "id": 2044,
+        "is_requestable": false, "description": "The flag should appear automatically
+        when a customer ticket is marked as Watchlist ticket.", "is_active": true,
+        "is_requesteeble": false, "name": "Watchlist", "grant_group": 682, "request_group":
+        682, "cc_list": ""}], "attachment": [{"sort_key": 1, "id": 155, "is_multiplicable":
+        true, "is_requestable": true, "name": "review", "is_requesteeble": true, "description":
+        "The code attached is in need of peer review.", "is_active": true, "cc_list":
+        "", "request_group": null, "grant_group": null}]}, "sub_components": [], "default_qa_contact":
+        "oramraz@redhat.com", "default_pool": null}, {"sort_key": 0, "id": 182469,
+        "default_assigned_to": "sgott@redhat.com", "default_docs_contact": "", "default_cc":
+        [], "name": "SSP", "description": "Issues related to scheduling, scaling and
+        performance for CNV/kubevirt.", "is_active": true, "default_qa_contact": "kbidarka@redhat.com",
+        "sub_components": [], "flag_types": {"bug": [{"is_requestable": true, "is_multiplicable":
+        true, "id": 1630, "sort_key": 1, "grant_group": null, "cc_list": "", "request_group":
+        null, "is_active": true, "description": "Set this flag to ? to request this
+        issue be proposed in the 5.11.z release of CloudForms Management Engine (CloudForms
+        4.8.z). Your request will be reviewed by Product Management.", "is_requesteeble":
+        true, "name": "cfme-5.11.z"}, {"description": "Release flag for CNV v1", "is_active":
+        true, "is_requesteeble": false, "name": "cnv-1", "grant_group": 141, "cc_list":
+        "cnv-s12y@redhat.com", "request_group": 161, "is_multiplicable": false, "id":
+        1211, "sort_key": 1, "is_requestable": true}, {"is_multiplicable": false,
+        "id": 1267, "sort_key": 1, "is_requestable": true, "is_active": true, "description":
+        "Release flag for CNV v2", "is_requesteeble": false, "name": "cnv-2", "grant_group":
+        141, "cc_list": "cnv-s12y@redhat.com", "request_group": 161}, {"is_multiplicable":
+        false, "id": 1639, "sort_key": 1, "is_requestable": true, "description": "Release
+        flag for CNV v3", "is_active": true, "is_requesteeble": false, "name": "cnv-3",
+        "grant_group": 141, "cc_list": "cnv-s12y@redhat.com", "request_group": 161},
+        {"is_active": true, "description": "Release flag for CNV v4", "name": "cnv-4",
+        "is_requesteeble": false, "grant_group": 141, "request_group": 161, "cc_list":
+        "cnv-s12y@redhat.com", "is_multiplicable": false, "sort_key": 1, "id": 1841,
+        "is_requestable": true}, {"is_requestable": true, "id": 16, "sort_key": 1,
+        "is_multiplicable": true, "cc_list": "", "request_group": null, "grant_group":
+        null, "name": "needinfo", "is_requesteeble": true, "is_active": true, "description":
+        "Additional Information is Requested"}, {"request_group": 207, "cc_list":
+        "", "grant_group": 207, "name": "qe_test_coverage", "is_requesteeble": false,
+        "description": "Quality Assurance Bugzilla Test Coverage Review", "is_active":
+        true, "is_requestable": true, "sort_key": 1, "id": 318, "is_multiplicable":
+        false}, {"is_active": true, "description": "Does this bug require documentation
+        of a sort indicated by Doc Type, or not.\r\n\r\n+: documentation text has
+        been submitted by engineering and has been\r\napproved by Content Services.\r\n\r\n?:
+        initial documentation text has been submitted by engineering. Content\r\nServices
+        has not reviewed this text.\r\n\r\n-: this bug should not be described in
+        an advisory or the Release or\r\nTechnical Notes.", "name": "requires_doc_text",
+        "is_requesteeble": false, "grant_group": 161, "request_group": 161, "cc_list":
+        "content-services-list@redhat.com", "is_multiplicable": false, "id": 415,
+        "sort_key": 1, "is_requestable": true}, {"is_multiplicable": false, "sort_key":
+        1, "id": 1065, "is_requestable": false, "description": "For bugs that must
+        adhere to the Product Security RHSA errata SLA", "is_active": true, "name":
+        "rhsa_sla", "is_requesteeble": true, "grant_group": 297, "request_group":
+        297, "cc_list": ""}, {"is_multiplicable": false, "sort_key": 2, "id": 60,
+        "is_requestable": true, "is_active": true, "description": "Bug requires an
+        entry in the release notes. (No longer used with RHEL.)", "is_requesteeble":
+        false, "name": "requires_release_note", "grant_group": 185, "request_group":
+        12, "cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com"},
+        {"id": 24, "sort_key": 5, "is_multiplicable": false, "is_requestable": true,
+        "name": "blocker", "is_requesteeble": false, "is_active": true, "description":
+        "Blocker for Target Milestone: alpha, beta or rc", "request_group": 155, "cc_list":
+        "rhn-release-team@redhat.com", "grant_group": 522}, {"is_requesteeble": false,
+        "name": "exception", "is_active": true, "description": "Exception for release",
+        "request_group": 155, "cc_list": "rhn-release-team@redhat.com", "grant_group":
+        522, "id": 15, "sort_key": 5, "is_multiplicable": false, "is_requestable":
+        true}, {"is_multiplicable": false, "id": 11, "sort_key": 11, "is_requestable":
+        true, "is_active": true, "description": "Product Management Acknowledgement",
+        "is_requesteeble": false, "name": "pm_ack", "grant_group": 211, "cc_list":
+        "", "request_group": 92}, {"grant_group": 511, "cc_list": "", "request_group":
+        92, "description": "Development Acknowledgement", "is_active": true, "is_requesteeble":
+        false, "name": "devel_ack", "is_requestable": true, "is_multiplicable": false,
+        "sort_key": 12, "id": 10}, {"id": 9, "sort_key": 13, "is_multiplicable": false,
+        "is_requestable": true, "name": "qa_ack", "is_requesteeble": false, "description":
+        "Quality Assurance Acknowledgement", "is_active": true, "cc_list": "", "request_group":
+        92, "grant_group": 207}, {"cc_list": "", "request_group": 659, "grant_group":
+        551, "name": "insights_rule", "is_requesteeble": false, "is_active": true,
+        "description": "Set this flag to ? to request a CEE review to propose that
+        an insights rule be created. CEE sets this flag to ''+'' when a new rule is
+        created or ''-'' otherwise.", "is_requestable": true, "id": 1291, "sort_key":
+        40, "is_multiplicable": false}, {"sort_key": 40, "id": 1840, "is_multiplicable":
+        false, "is_requestable": false, "name": "insights_rule_retired", "is_requesteeble":
+        false, "is_active": true, "description": "This flag is set when an Insights
+        rule is no longer active.", "request_group": 551, "cc_list": "", "grant_group":
+        551}, {"is_multiplicable": false, "sort_key": 45, "id": 1753, "is_requestable":
+        true, "is_active": true, "description": "Set this flag to ''+'' if this bug
+        has any impact on the PNT Shared Infrastructure (PSI) Production Environment.",
+        "name": "psi", "is_requesteeble": false, "grant_group": 161, "request_group":
+        161, "cc_list": ""}, {"is_multiplicable": false, "id": 2044, "sort_key": 10000,
+        "is_requestable": false, "is_active": true, "description": "The flag should
+        appear automatically when a customer ticket is marked as Watchlist ticket.",
+        "name": "Watchlist", "is_requesteeble": false, "grant_group": 682, "cc_list":
+        "", "request_group": 682}], "attachment": [{"is_active": true, "description":
+        "The code attached is in need of peer review.", "is_requesteeble": true, "name":
+        "review", "grant_group": null, "cc_list": "", "request_group": null, "is_multiplicable":
+        true, "id": 155, "sort_key": 1, "is_requestable": true}]}, "default_pool":
+        null}, {"default_docs_contact": "", "default_cc": [], "default_assigned_to":
+        "alitke@redhat.com", "sort_key": 0, "id": 174766, "default_pool": null, "flag_types":
+        {"attachment": [{"is_requesteeble": true, "name": "review", "description":
+        "The code attached is in need of peer review.", "is_active": true, "cc_list":
+        "", "request_group": null, "grant_group": null, "sort_key": 1, "id": 155,
+        "is_multiplicable": true, "is_requestable": true}], "bug": [{"is_active":
+        true, "description": "Set this flag to ? to request this issue be proposed
+        in the 5.11.z release of CloudForms Management Engine (CloudForms 4.8.z).
+        Your request will be reviewed by Product Management.", "is_requesteeble":
+        true, "name": "cfme-5.11.z", "grant_group": null, "cc_list": "", "request_group":
+        null, "is_multiplicable": true, "sort_key": 1, "id": 1630, "is_requestable":
+        true}, {"description": "Release flag for CNV v1", "is_active": true, "is_requesteeble":
+        false, "name": "cnv-1", "grant_group": 141, "request_group": 161, "cc_list":
+        "cnv-s12y@redhat.com", "is_multiplicable": false, "id": 1211, "sort_key":
+        1, "is_requestable": true}, {"is_requestable": true, "id": 1267, "sort_key":
+        1, "is_multiplicable": false, "cc_list": "cnv-s12y@redhat.com", "request_group":
+        161, "grant_group": 141, "name": "cnv-2", "is_requesteeble": false, "description":
+        "Release flag for CNV v2", "is_active": true}, {"is_requestable": true, "id":
+        1639, "sort_key": 1, "is_multiplicable": false, "cc_list": "cnv-s12y@redhat.com",
+        "request_group": 161, "grant_group": 141, "name": "cnv-3", "is_requesteeble":
+        false, "description": "Release flag for CNV v3", "is_active": true}, {"description":
+        "Release flag for CNV v4", "is_active": true, "name": "cnv-4", "is_requesteeble":
+        false, "grant_group": 141, "request_group": 161, "cc_list": "cnv-s12y@redhat.com",
+        "is_multiplicable": false, "id": 1841, "sort_key": 1, "is_requestable": true},
+        {"name": "needinfo", "is_requesteeble": true, "is_active": true, "description":
+        "Additional Information is Requested", "cc_list": "", "request_group": null,
+        "grant_group": null, "id": 16, "sort_key": 1, "is_multiplicable": true, "is_requestable":
+        true}, {"is_requesteeble": false, "name": "qe_test_coverage", "is_active":
+        true, "description": "Quality Assurance Bugzilla Test Coverage Review", "cc_list":
+        "", "request_group": 207, "grant_group": 207, "id": 318, "sort_key": 1, "is_multiplicable":
+        false, "is_requestable": true}, {"is_requestable": true, "sort_key": 1, "id":
+        415, "is_multiplicable": false, "request_group": 161, "cc_list": "content-services-list@redhat.com",
+        "grant_group": 161, "name": "requires_doc_text", "is_requesteeble": false,
+        "is_active": true, "description": "Does this bug require documentation of
+        a sort indicated by Doc Type, or not.\r\n\r\n+: documentation text has been
+        submitted by engineering and has been\r\napproved by Content Services.\r\n\r\n?:
+        initial documentation text has been submitted by engineering. Content\r\nServices
+        has not reviewed this text.\r\n\r\n-: this bug should not be described in
+        an advisory or the Release or\r\nTechnical Notes."}, {"is_requestable": false,
+        "sort_key": 1, "id": 1065, "is_multiplicable": false, "cc_list": "", "request_group":
+        297, "grant_group": 297, "is_requesteeble": true, "name": "rhsa_sla", "description":
+        "For bugs that must adhere to the Product Security RHSA errata SLA", "is_active":
+        true}, {"is_multiplicable": false, "id": 60, "sort_key": 2, "is_requestable":
+        true, "is_active": true, "description": "Bug requires an entry in the release
+        notes. (No longer used with RHEL.)", "is_requesteeble": false, "name": "requires_release_note",
+        "grant_group": 185, "cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "request_group": 12}, {"is_requestable": true, "sort_key": 5, "id": 24, "is_multiplicable":
+        false, "request_group": 155, "cc_list": "rhn-release-team@redhat.com", "grant_group":
+        522, "name": "blocker", "is_requesteeble": false, "is_active": true, "description":
+        "Blocker for Target Milestone: alpha, beta or rc"}, {"is_requestable": true,
+        "id": 15, "sort_key": 5, "is_multiplicable": false, "request_group": 155,
+        "cc_list": "rhn-release-team@redhat.com", "grant_group": 522, "name": "exception",
+        "is_requesteeble": false, "is_active": true, "description": "Exception for
+        release"}, {"is_multiplicable": false, "sort_key": 11, "id": 11, "is_requestable":
+        true, "description": "Product Management Acknowledgement", "is_active": true,
+        "name": "pm_ack", "is_requesteeble": false, "grant_group": 211, "request_group":
+        92, "cc_list": ""}, {"id": 10, "sort_key": 12, "is_multiplicable": false,
+        "is_requestable": true, "is_requesteeble": false, "name": "devel_ack", "description":
+        "Development Acknowledgement", "is_active": true, "cc_list": "", "request_group":
+        92, "grant_group": 511}, {"is_requesteeble": false, "name": "qa_ack", "description":
+        "Quality Assurance Acknowledgement", "is_active": true, "cc_list": "", "request_group":
+        92, "grant_group": 207, "id": 9, "sort_key": 13, "is_multiplicable": false,
+        "is_requestable": true}, {"is_multiplicable": false, "id": 1291, "sort_key":
+        40, "is_requestable": true, "description": "Set this flag to ? to request
+        a CEE review to propose that an insights rule be created. CEE sets this flag
+        to ''+'' when a new rule is created or ''-'' otherwise.", "is_active": true,
+        "name": "insights_rule", "is_requesteeble": false, "grant_group": 551, "request_group":
+        659, "cc_list": ""}, {"id": 1840, "sort_key": 40, "is_multiplicable": false,
+        "is_requestable": false, "is_requesteeble": false, "name": "insights_rule_retired",
+        "is_active": true, "description": "This flag is set when an Insights rule
+        is no longer active.", "cc_list": "", "request_group": 551, "grant_group":
+        551}, {"is_requesteeble": false, "name": "psi", "is_active": true, "description":
+        "Set this flag to ''+'' if this bug has any impact on the PNT Shared Infrastructure
+        (PSI) Production Environment.", "cc_list": "", "request_group": 161, "grant_group":
+        161, "sort_key": 45, "id": 1753, "is_multiplicable": false, "is_requestable":
+        true}, {"is_requesteeble": false, "name": "Watchlist", "is_active": true,
+        "description": "The flag should appear automatically when a customer ticket
+        is marked as Watchlist ticket.", "cc_list": "", "request_group": 682, "grant_group":
+        682, "sort_key": 10000, "id": 2044, "is_multiplicable": false, "is_requestable":
+        false}]}, "sub_components": [], "default_qa_contact": "ngavrilo@redhat.com",
+        "description": "Issues related to VM image storage, VM instance storage, and
+        image import", "is_active": true, "name": "Storage"}, {"default_qa_contact":
+        "gouyang@redhat.com", "sub_components": [], "flag_types": {"bug": [{"is_requesteeble":
+        true, "name": "cfme-5.11.z", "description": "Set this flag to ? to request
+        this issue be proposed in the 5.11.z release of CloudForms Management Engine
+        (CloudForms 4.8.z). Your request will be reviewed by Product Management.",
+        "is_active": true, "cc_list": "", "request_group": null, "grant_group": null,
+        "sort_key": 1, "id": 1630, "is_multiplicable": true, "is_requestable": true},
+        {"is_requestable": true, "is_multiplicable": false, "sort_key": 1, "id": 1211,
+        "grant_group": 141, "cc_list": "cnv-s12y@redhat.com", "request_group": 161,
+        "is_active": true, "description": "Release flag for CNV v1", "is_requesteeble":
+        false, "name": "cnv-1"}, {"is_multiplicable": false, "sort_key": 1, "id":
+        1267, "is_requestable": true, "description": "Release flag for CNV v2", "is_active":
+        true, "is_requesteeble": false, "name": "cnv-2", "grant_group": 141, "request_group":
+        161, "cc_list": "cnv-s12y@redhat.com"}, {"name": "cnv-3", "is_requesteeble":
+        false, "is_active": true, "description": "Release flag for CNV v3", "request_group":
+        161, "cc_list": "cnv-s12y@redhat.com", "grant_group": 141, "id": 1639, "sort_key":
+        1, "is_multiplicable": false, "is_requestable": true}, {"is_multiplicable":
+        false, "id": 1841, "sort_key": 1, "is_requestable": true, "is_active": true,
+        "description": "Release flag for CNV v4", "name": "cnv-4", "is_requesteeble":
+        false, "grant_group": 141, "cc_list": "cnv-s12y@redhat.com", "request_group":
+        161}, {"name": "needinfo", "is_requesteeble": true, "description": "Additional
+        Information is Requested", "is_active": true, "request_group": null, "cc_list":
+        "", "grant_group": null, "sort_key": 1, "id": 16, "is_multiplicable": true,
+        "is_requestable": true}, {"is_active": true, "description": "Quality Assurance
+        Bugzilla Test Coverage Review", "name": "qe_test_coverage", "is_requesteeble":
+        false, "grant_group": 207, "request_group": 207, "cc_list": "", "is_multiplicable":
+        false, "id": 318, "sort_key": 1, "is_requestable": true}, {"id": 415, "sort_key":
+        1, "is_multiplicable": false, "is_requestable": true, "name": "requires_doc_text",
+        "is_requesteeble": false, "description": "Does this bug require documentation
+        of a sort indicated by Doc Type, or not.\r\n\r\n+: documentation text has
+        been submitted by engineering and has been\r\napproved by Content Services.\r\n\r\n?:
+        initial documentation text has been submitted by engineering. Content\r\nServices
+        has not reviewed this text.\r\n\r\n-: this bug should not be described in
+        an advisory or the Release or\r\nTechnical Notes.", "is_active": true, "cc_list":
+        "content-services-list@redhat.com", "request_group": 161, "grant_group": 161},
+        {"grant_group": 297, "cc_list": "", "request_group": 297, "is_active": true,
+        "description": "For bugs that must adhere to the Product Security RHSA errata
+        SLA", "is_requesteeble": true, "name": "rhsa_sla", "is_requestable": false,
+        "is_multiplicable": false, "sort_key": 1, "id": 1065}, {"is_requestable":
+        true, "sort_key": 2, "id": 60, "is_multiplicable": false, "cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "request_group": 12, "grant_group": 185, "name": "requires_release_note",
+        "is_requesteeble": false, "is_active": true, "description": "Bug requires
+        an entry in the release notes. (No longer used with RHEL.)"}, {"cc_list":
+        "rhn-release-team@redhat.com", "request_group": 155, "grant_group": 522, "name":
+        "blocker", "is_requesteeble": false, "description": "Blocker for Target Milestone:
+        alpha, beta or rc", "is_active": true, "is_requestable": true, "id": 24, "sort_key":
+        5, "is_multiplicable": false}, {"sort_key": 5, "id": 15, "is_multiplicable":
+        false, "is_requestable": true, "is_requesteeble": false, "name": "exception",
+        "description": "Exception for release", "is_active": true, "cc_list": "rhn-release-team@redhat.com",
+        "request_group": 155, "grant_group": 522}, {"is_active": true, "description":
+        "Product Management Acknowledgement", "is_requesteeble": false, "name": "pm_ack",
+        "grant_group": 211, "request_group": 92, "cc_list": "", "is_multiplicable":
+        false, "sort_key": 11, "id": 11, "is_requestable": true}, {"sort_key": 12,
+        "id": 10, "is_multiplicable": false, "is_requestable": true, "name": "devel_ack",
+        "is_requesteeble": false, "is_active": true, "description": "Development Acknowledgement",
+        "request_group": 92, "cc_list": "", "grant_group": 511}, {"grant_group": 207,
+        "cc_list": "", "request_group": 92, "description": "Quality Assurance Acknowledgement",
+        "is_active": true, "name": "qa_ack", "is_requesteeble": false, "is_requestable":
+        true, "is_multiplicable": false, "sort_key": 13, "id": 9}, {"grant_group":
+        551, "request_group": 659, "cc_list": "", "is_active": true, "description":
+        "Set this flag to ? to request a CEE review to propose that an insights rule
+        be created. CEE sets this flag to ''+'' when a new rule is created or ''-''
+        otherwise.", "is_requesteeble": false, "name": "insights_rule", "is_requestable":
+        true, "is_multiplicable": false, "sort_key": 40, "id": 1291}, {"is_requestable":
+        false, "sort_key": 40, "id": 1840, "is_multiplicable": false, "request_group":
+        551, "cc_list": "", "grant_group": 551, "is_requesteeble": false, "name":
+        "insights_rule_retired", "is_active": true, "description": "This flag is set
+        when an Insights rule is no longer active."}, {"is_multiplicable": false,
+        "sort_key": 45, "id": 1753, "is_requestable": true, "is_active": true, "description":
+        "Set this flag to ''+'' if this bug has any impact on the PNT Shared Infrastructure
+        (PSI) Production Environment.", "name": "psi", "is_requesteeble": false, "grant_group":
+        161, "request_group": 161, "cc_list": ""}, {"is_requesteeble": false, "name":
+        "Watchlist", "description": "The flag should appear automatically when a customer
+        ticket is marked as Watchlist ticket.", "is_active": true, "request_group":
+        682, "cc_list": "", "grant_group": 682, "sort_key": 10000, "id": 2044, "is_multiplicable":
+        false, "is_requestable": false}], "attachment": [{"is_active": true, "description":
+        "The code attached is in need of peer review.", "name": "review", "is_requesteeble":
+        true, "grant_group": null, "cc_list": "", "request_group": null, "is_multiplicable":
+        true, "id": 155, "sort_key": 1, "is_requestable": true}]}, "default_pool":
+        null, "name": "User Experience", "description": "Issues related to Console
+        or Command Line", "is_active": true, "default_assigned_to": "tnisan@redhat.com",
+        "default_cc": [], "default_docs_contact": "", "id": 174767, "sort_key": 0},
+        {"is_active": true, "description": "Issues related to import VMs from one
+        environment into CNV", "name": "V2V", "default_pool": null, "default_qa_contact":
+        "dagur@redhat.com", "flag_types": {"bug": [{"is_requestable": true, "is_multiplicable":
+        true, "sort_key": 1, "id": 1630, "grant_group": null, "cc_list": "", "request_group":
+        null, "is_active": true, "description": "Set this flag to ? to request this
+        issue be proposed in the 5.11.z release of CloudForms Management Engine (CloudForms
+        4.8.z). Your request will be reviewed by Product Management.", "name": "cfme-5.11.z",
+        "is_requesteeble": true}, {"description": "Release flag for CNV v1", "is_active":
+        true, "name": "cnv-1", "is_requesteeble": false, "grant_group": 141, "request_group":
+        161, "cc_list": "cnv-s12y@redhat.com", "is_multiplicable": false, "sort_key":
+        1, "id": 1211, "is_requestable": true}, {"id": 1267, "sort_key": 1, "is_multiplicable":
+        false, "is_requestable": true, "name": "cnv-2", "is_requesteeble": false,
+        "is_active": true, "description": "Release flag for CNV v2", "request_group":
+        161, "cc_list": "cnv-s12y@redhat.com", "grant_group": 141}, {"is_multiplicable":
+        false, "id": 1639, "sort_key": 1, "is_requestable": true, "is_active": true,
+        "description": "Release flag for CNV v3", "name": "cnv-3", "is_requesteeble":
+        false, "grant_group": 141, "cc_list": "cnv-s12y@redhat.com", "request_group":
+        161}, {"cc_list": "cnv-s12y@redhat.com", "request_group": 161, "grant_group":
+        141, "is_requesteeble": false, "name": "cnv-4", "is_active": true, "description":
+        "Release flag for CNV v4", "is_requestable": true, "id": 1841, "sort_key":
+        1, "is_multiplicable": false}, {"is_requestable": true, "is_multiplicable":
+        true, "id": 16, "sort_key": 1, "grant_group": null, "cc_list": "", "request_group":
+        null, "is_active": true, "description": "Additional Information is Requested",
+        "name": "needinfo", "is_requesteeble": true}, {"cc_list": "", "request_group":
+        207, "grant_group": 207, "name": "qe_test_coverage", "is_requesteeble": false,
+        "is_active": true, "description": "Quality Assurance Bugzilla Test Coverage
+        Review", "is_requestable": true, "id": 318, "sort_key": 1, "is_multiplicable":
+        false}, {"name": "requires_doc_text", "is_requesteeble": false, "is_active":
+        true, "description": "Does this bug require documentation of a sort indicated
+        by Doc Type, or not.\r\n\r\n+: documentation text has been submitted by engineering
+        and has been\r\napproved by Content Services.\r\n\r\n?: initial documentation
+        text has been submitted by engineering. Content\r\nServices has not reviewed
+        this text.\r\n\r\n-: this bug should not be described in an advisory or the
+        Release or\r\nTechnical Notes.", "cc_list": "content-services-list@redhat.com",
+        "request_group": 161, "grant_group": 161, "id": 415, "sort_key": 1, "is_multiplicable":
+        false, "is_requestable": true}, {"is_requestable": false, "is_multiplicable":
+        false, "sort_key": 1, "id": 1065, "grant_group": 297, "cc_list": "", "request_group":
+        297, "description": "For bugs that must adhere to the Product Security RHSA
+        errata SLA", "is_active": true, "is_requesteeble": true, "name": "rhsa_sla"},
+        {"cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "request_group": 12, "grant_group": 185, "name": "requires_release_note",
+        "is_requesteeble": false, "description": "Bug requires an entry in the release
+        notes. (No longer used with RHEL.)", "is_active": true, "is_requestable":
+        true, "sort_key": 2, "id": 60, "is_multiplicable": false}, {"is_multiplicable":
+        false, "sort_key": 5, "id": 24, "is_requestable": true, "is_active": true,
+        "description": "Blocker for Target Milestone: alpha, beta or rc", "name":
+        "blocker", "is_requesteeble": false, "grant_group": 522, "request_group":
+        155, "cc_list": "rhn-release-team@redhat.com"}, {"is_requesteeble": false,
+        "name": "exception", "is_active": true, "description": "Exception for release",
+        "request_group": 155, "cc_list": "rhn-release-team@redhat.com", "grant_group":
+        522, "sort_key": 5, "id": 15, "is_multiplicable": false, "is_requestable":
+        true}, {"grant_group": 211, "request_group": 92, "cc_list": "", "description":
+        "Product Management Acknowledgement", "is_active": true, "is_requesteeble":
+        false, "name": "pm_ack", "is_requestable": true, "is_multiplicable": false,
+        "sort_key": 11, "id": 11}, {"is_requestable": true, "is_multiplicable": false,
+        "id": 10, "sort_key": 12, "grant_group": 511, "request_group": 92, "cc_list":
+        "", "description": "Development Acknowledgement", "is_active": true, "is_requesteeble":
+        false, "name": "devel_ack"}, {"id": 9, "sort_key": 13, "is_multiplicable":
+        false, "is_requestable": true, "is_requesteeble": false, "name": "qa_ack",
+        "description": "Quality Assurance Acknowledgement", "is_active": true, "cc_list":
+        "", "request_group": 92, "grant_group": 207}, {"is_requestable": true, "sort_key":
+        40, "id": 1291, "is_multiplicable": false, "request_group": 659, "cc_list":
+        "", "grant_group": 551, "is_requesteeble": false, "name": "insights_rule",
+        "description": "Set this flag to ? to request a CEE review to propose that
+        an insights rule be created. CEE sets this flag to ''+'' when a new rule is
+        created or ''-'' otherwise.", "is_active": true}, {"grant_group": 551, "request_group":
+        551, "cc_list": "", "description": "This flag is set when an Insights rule
+        is no longer active.", "is_active": true, "name": "insights_rule_retired",
+        "is_requesteeble": false, "is_requestable": false, "is_multiplicable": false,
+        "sort_key": 40, "id": 1840}, {"grant_group": 161, "request_group": 161, "cc_list":
+        "", "is_active": true, "description": "Set this flag to ''+'' if this bug
+        has any impact on the PNT Shared Infrastructure (PSI) Production Environment.",
+        "name": "psi", "is_requesteeble": false, "is_requestable": true, "is_multiplicable":
+        false, "sort_key": 45, "id": 1753}, {"id": 2044, "sort_key": 10000, "is_multiplicable":
+        false, "is_requestable": false, "name": "Watchlist", "is_requesteeble": false,
+        "is_active": true, "description": "The flag should appear automatically when
+        a customer ticket is marked as Watchlist ticket.", "request_group": 682, "cc_list":
+        "", "grant_group": 682}], "attachment": [{"grant_group": null, "cc_list":
+        "", "request_group": null, "is_active": true, "description": "The code attached
+        is in need of peer review.", "is_requesteeble": true, "name": "review", "is_requestable":
+        true, "is_multiplicable": true, "sort_key": 1, "id": 155}]}, "sub_components":
+        [], "id": 174768, "sort_key": 0, "default_cc": [], "default_docs_contact":
+        "", "default_assigned_to": "nobody@redhat.com"}, {"is_active": true, "description":
+        "Issues related all aspects of virtualization of CNV/kubevirt", "name": "Virtualization",
+        "default_pool": null, "flag_types": {"attachment": [{"is_requesteeble": true,
+        "name": "review", "description": "The code attached is in need of peer review.",
+        "is_active": true, "cc_list": "", "request_group": null, "grant_group": null,
+        "sort_key": 1, "id": 155, "is_multiplicable": true, "is_requestable": true}],
+        "bug": [{"id": 1630, "sort_key": 1, "is_multiplicable": true, "is_requestable":
+        true, "is_requesteeble": true, "name": "cfme-5.11.z", "is_active": true, "description":
+        "Set this flag to ? to request this issue be proposed in the 5.11.z release
+        of CloudForms Management Engine (CloudForms 4.8.z). Your request will be reviewed
+        by Product Management.", "cc_list": "", "request_group": null, "grant_group":
+        null}, {"request_group": 161, "cc_list": "cnv-s12y@redhat.com", "grant_group":
+        141, "is_requesteeble": false, "name": "cnv-1", "is_active": true, "description":
+        "Release flag for CNV v1", "is_requestable": true, "sort_key": 1, "id": 1211,
+        "is_multiplicable": false}, {"is_multiplicable": false, "sort_key": 1, "id":
+        1267, "is_requestable": true, "description": "Release flag for CNV v2", "is_active":
+        true, "is_requesteeble": false, "name": "cnv-2", "grant_group": 141, "request_group":
+        161, "cc_list": "cnv-s12y@redhat.com"}, {"name": "cnv-3", "is_requesteeble":
+        false, "is_active": true, "description": "Release flag for CNV v3", "cc_list":
+        "cnv-s12y@redhat.com", "request_group": 161, "grant_group": 141, "sort_key":
+        1, "id": 1639, "is_multiplicable": false, "is_requestable": true}, {"is_requestable":
+        true, "id": 1841, "sort_key": 1, "is_multiplicable": false, "cc_list": "cnv-s12y@redhat.com",
+        "request_group": 161, "grant_group": 141, "name": "cnv-4", "is_requesteeble":
+        false, "is_active": true, "description": "Release flag for CNV v4"}, {"cc_list":
+        "", "request_group": null, "grant_group": null, "is_requesteeble": true, "name":
+        "needinfo", "is_active": true, "description": "Additional Information is Requested",
+        "is_requestable": true, "id": 16, "sort_key": 1, "is_multiplicable": true},
+        {"grant_group": 207, "cc_list": "", "request_group": 207, "is_active": true,
+        "description": "Quality Assurance Bugzilla Test Coverage Review", "name":
+        "qe_test_coverage", "is_requesteeble": false, "is_requestable": true, "is_multiplicable":
+        false, "sort_key": 1, "id": 318}, {"id": 415, "sort_key": 1, "is_multiplicable":
+        false, "is_requestable": true, "name": "requires_doc_text", "is_requesteeble":
+        false, "is_active": true, "description": "Does this bug require documentation
+        of a sort indicated by Doc Type, or not.\r\n\r\n+: documentation text has
+        been submitted by engineering and has been\r\napproved by Content Services.\r\n\r\n?:
+        initial documentation text has been submitted by engineering. Content\r\nServices
+        has not reviewed this text.\r\n\r\n-: this bug should not be described in
+        an advisory or the Release or\r\nTechnical Notes.", "request_group": 161,
+        "cc_list": "content-services-list@redhat.com", "grant_group": 161}, {"id":
+        1065, "sort_key": 1, "is_multiplicable": false, "is_requestable": false, "name":
+        "rhsa_sla", "is_requesteeble": true, "is_active": true, "description": "For
+        bugs that must adhere to the Product Security RHSA errata SLA", "cc_list":
+        "", "request_group": 297, "grant_group": 297}, {"cc_list": "content-services-list@redhat.com,release-notes-list@redhat.com,mprpic@redhat.com",
+        "request_group": 12, "grant_group": 185, "name": "requires_release_note",
+        "is_requesteeble": false, "description": "Bug requires an entry in the release
+        notes. (No longer used with RHEL.)", "is_active": true, "is_requestable":
+        true, "id": 60, "sort_key": 2, "is_multiplicable": false}, {"is_multiplicable":
+        false, "sort_key": 5, "id": 24, "is_requestable": true, "description": "Blocker
+        for Target Milestone: alpha, beta or rc", "is_active": true, "name": "blocker",
+        "is_requesteeble": false, "grant_group": 522, "cc_list": "rhn-release-team@redhat.com",
+        "request_group": 155}, {"is_multiplicable": false, "sort_key": 5, "id": 15,
+        "is_requestable": true, "description": "Exception for release", "is_active":
+        true, "name": "exception", "is_requesteeble": false, "grant_group": 522, "cc_list":
+        "rhn-release-team@redhat.com", "request_group": 155}, {"is_requestable": true,
+        "is_multiplicable": false, "sort_key": 11, "id": 11, "grant_group": 211, "cc_list":
+        "", "request_group": 92, "is_active": true, "description": "Product Management
+        Acknowledgement", "is_requesteeble": false, "name": "pm_ack"}, {"request_group":
+        92, "cc_list": "", "grant_group": 511, "name": "devel_ack", "is_requesteeble":
+        false, "description": "Development Acknowledgement", "is_active": true, "is_requestable":
+        true, "id": 10, "sort_key": 12, "is_multiplicable": false}, {"is_active":
+        true, "description": "Quality Assurance Acknowledgement", "is_requesteeble":
+        false, "name": "qa_ack", "grant_group": 207, "request_group": 92, "cc_list":
+        "", "is_multiplicable": false, "id": 9, "sort_key": 13, "is_requestable":
+        true}, {"is_requestable": true, "is_multiplicable": false, "sort_key": 40,
+        "id": 1291, "grant_group": 551, "request_group": 659, "cc_list": "", "is_active":
+        true, "description": "Set this flag to ? to request a CEE review to propose
+        that an insights rule be created. CEE sets this flag to ''+'' when a new rule
+        is created or ''-'' otherwise.", "name": "insights_rule", "is_requesteeble":
+        false}, {"name": "insights_rule_retired", "is_requesteeble": false, "description":
+        "This flag is set when an Insights rule is no longer active.", "is_active":
+        true, "cc_list": "", "request_group": 551, "grant_group": 551, "id": 1840,
+        "sort_key": 40, "is_multiplicable": false, "is_requestable": false}, {"cc_list":
+        "", "request_group": 161, "grant_group": 161, "name": "psi", "is_requesteeble":
+        false, "is_active": true, "description": "Set this flag to ''+'' if this bug
+        has any impact on the PNT Shared Infrastructure (PSI) Production Environment.",
+        "is_requestable": true, "id": 1753, "sort_key": 45, "is_multiplicable": false},
+        {"name": "Watchlist", "is_requesteeble": false, "description": "The flag should
+        appear automatically when a customer ticket is marked as Watchlist ticket.",
+        "is_active": true, "cc_list": "", "request_group": 682, "grant_group": 682,
+        "id": 2044, "sort_key": 10000, "is_multiplicable": false, "is_requestable":
+        false}]}, "sub_components": [], "default_qa_contact": "kbidarka@redhat.com",
+        "sort_key": 0, "id": 174769, "default_docs_contact": "", "default_cc": [],
+        "default_assigned_to": "sgott@redhat.com"}]}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 23 Jan 2023 11:38:11 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '109685'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.bd045368.1674473891.28cf9c50
+      x-rh-edge-request-id:
+      - 28cf9c50
+    status:
+      code: 200
+      message: OK
+version: 1
