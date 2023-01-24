@@ -6,7 +6,7 @@ from apps.osim.tests.test_models import StateFactory
 from apps.osim.urls import urlpatterns
 from apps.osim.workflow import WorkflowFramework
 from osidb.models import Flaw
-from osidb.tests.factories import FlawFactory
+from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
 
@@ -125,7 +125,10 @@ class TestEndpoints(object):
         workflow.states = random_states
         workflow_framework.register_workflow(workflow)
 
-        flaw = FlawFactory(is_major_incident=True)
+        flaw = FlawFactory.build(is_major_incident=True)
+        flaw.save(raise_validation_error=False)
+        AffectFactory(flaw=flaw)
+
         assert flaw.classification == {
             "workflow": "major incident workflow",
             "state": "DRAFT",
