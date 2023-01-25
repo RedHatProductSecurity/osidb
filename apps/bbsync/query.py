@@ -56,12 +56,10 @@ class BugzillaQueryBuilder:
         self.generate_cc()
         self.generate_srt_notes()
         # TODO tracker links
-        # TODO prestage eligable date - deprecate
-        # TODO checklists
         # TODO fixed_in
         # TODO dupe_of
         # TODO cf_devel_whiteboard
-        # TODO ARRAY_FIELDS_ON_CREATE = ("depends_on", "blocks", "cc", "groups", "keywords")
+        # TODO ARRAY_FIELDS_ON_CREATE = ("depends_on", "blocks")
         # TODO auto-requires doc text on create
 
     def generate_base(self):
