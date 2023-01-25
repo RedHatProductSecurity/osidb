@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement validation for components affected by flaws closed as NOTABUG (OSIDB-363)
 - Implement validation for invalid components in software collection (OSIDB-356)
 - Implement Bugzilla metadata collector
+- Implement validation for for affects with exceptional combination of affectedness and resolution (OSIDB-361)
 
 ### Changed
 - Change logging of celery and django to filesystem (OSIDB-418)

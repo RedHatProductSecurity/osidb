@@ -1194,3 +1194,37 @@ class TestFlawValidators:
         affect = AffectFactory(ps_module=ps_module, ps_component=ps_component)
         if alerts:
             assert set(alerts).issubset(affect._alerts)
+
+    @pytest.mark.parametrize(
+        "affectedness,resolution,should_raise",
+        [
+            (
+                Affect.AffectAffectedness.NOVALUE,
+                Affect.AffectResolution.DEFER,
+                True,
+            ),
+            (
+                Affect.AffectAffectedness.NOVALUE,
+                Affect.AffectResolution.WONTFIX,
+                True,
+            ),
+            (
+                Affect.AffectAffectedness.NEW,
+                Affect.AffectResolution.DEFER,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.NEW,
+                Affect.AffectResolution.WONTFIX,
+                False,
+            ),
+        ],
+    )
+    def test_validate_exceptional_affectedness_resolution(
+        self, affectedness, resolution, should_raise
+    ):
+        """
+        Test that old flaw with empty affect raises alert
+        """
+        affect = AffectFactory(resolution=resolution, affectedness=affectedness)
+        assert should_raise == bool("flaw_exceptional_affect_status" in affect._alerts)
