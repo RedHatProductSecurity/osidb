@@ -10,5 +10,8 @@ DATE_FMT = "%Y-%m-%d"
 # thus spare us defining it again
 DATETIME_FMT = BZ_DT_FMT_HISTORY
 
+# RHSCL Bugzilla project key
+RHSCL_BTS_KEY = "Red Hat Software Collections"
+
 # JSON schema for SRT notes flaw metadata
 SRTNOTES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "./srtnotes-schema.json")
