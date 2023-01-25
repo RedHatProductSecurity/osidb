@@ -6,6 +6,7 @@ import factory.fuzzy
 from django.conf import settings
 from pytz import UTC
 
+from osidb.constants import AFFECTEDNESS_VALID_RESOLUTIONS
 from osidb.models import (
     Affect,
     CVEv5PackageVersions,
@@ -168,15 +169,8 @@ class AffectFactory(factory.django.DjangoModelFactory):
             Affect.AffectAffectedness.NOTAFFECTED,
         ]
     )
-    resolution = factory.fuzzy.FuzzyChoice(
-        [
-            Affect.AffectResolution.NOVALUE,
-            Affect.AffectResolution.FIX,
-            Affect.AffectResolution.DEFER,
-            Affect.AffectResolution.WONTFIX,
-            Affect.AffectResolution.OOSS,
-            Affect.AffectResolution.DELEGATED,
-        ]
+    resolution = factory.LazyAttribute(
+        lambda a: AFFECTEDNESS_VALID_RESOLUTIONS[a.affectedness][0]
     )
     ps_module = factory.sequence(lambda n: f"ps-module-{n}")
     ps_component = factory.sequence(lambda n: f"ps-component-{n}")
