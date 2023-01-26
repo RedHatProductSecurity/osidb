@@ -26,6 +26,7 @@ from osidb.tests.factories import (
     FlawFactory,
     FlawMetaFactory,
     PsModuleFactory,
+    PsProductFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
 )
@@ -1228,3 +1229,71 @@ class TestFlawValidators:
         """
         affect = AffectFactory(resolution=resolution, affectedness=affectedness)
         assert should_raise == bool("flaw_exceptional_affect_status" in affect._alerts)
+
+    @pytest.mark.parametrize(
+        "impact,resolution,product,should_raise",
+        [
+            (
+                Affect.AffectImpact.LOW,
+                Affect.AffectResolution.WONTREPORT,
+                "other-services",
+                False,
+            ),
+            (
+                Affect.AffectImpact.MODERATE,
+                Affect.AffectResolution.WONTREPORT,
+                "other-services",
+                False,
+            ),
+            (
+                Affect.AffectImpact.IMPORTANT,
+                Affect.AffectResolution.WONTREPORT,
+                "other-services",
+                True,
+            ),
+            (
+                Affect.AffectImpact.LOW,
+                Affect.AffectResolution.WONTREPORT,
+                "regular-product",
+                True,
+            ),
+            (
+                Affect.AffectImpact.LOW,
+                Affect.AffectResolution.WONTREPORT,
+                "invalid",
+                True,
+            ),
+        ],
+    )
+    def test_validate_wontreport_products(
+        self, impact, resolution, product, should_raise
+    ):
+        """
+        Tests that only products associated services, having a impact
+        of LOW or MODERATE, can be marked as AFFECTED by a WONTREPORT affect
+        """
+        # Every test should have only one service product/module
+        if product != "other-services":
+            PsModuleFactory(
+                name="other-services-test-module",
+                ps_product=PsProductFactory(short_name="other-services-test-product"),
+            )
+
+        PsModuleFactory(
+            name=product + "-test-module",
+            ps_product=PsProductFactory(short_name=product),
+        )
+
+        affect = AffectFactory.build(
+            impact=impact,
+            resolution=resolution,
+            ps_module=product + "-test-module",
+            flaw=FlawFactory(),
+        )
+
+        if should_raise:
+            with pytest.raises(ValidationError) as e:
+                affect.save()
+            assert "wontreport can only be associated with" in str(e)
+        else:
+            assert affect.save() is None
