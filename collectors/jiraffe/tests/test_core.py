@@ -14,7 +14,7 @@ class TestJiraTrackerCollection(object):
     def _gen_affect(flaw, module, component):
         affect = Affect.objects.create_affect(
             flaw,
-            affectedness=Affect.AffectAffectedness.NOVALUE,
+            affectedness=Affect.AffectAffectedness.NEW,
             resolution=Affect.AffectResolution.NOVALUE,
             impact=Affect.AffectImpact.NOVALUE,
             ps_module=module,

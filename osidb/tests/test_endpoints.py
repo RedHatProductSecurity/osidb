@@ -1193,7 +1193,7 @@ class TestEndpoints(object):
         flaw = FlawFactory()
         affect_data = {
             "flaw": str(flaw.uuid),
-            "affectedness": Affect.AffectAffectedness.NOVALUE,
+            "affectedness": Affect.AffectAffectedness.NEW,
             "resolution": Affect.AffectResolution.NOVALUE,
             "ps_module": "rhacm-2",
             "ps_component": "curl",

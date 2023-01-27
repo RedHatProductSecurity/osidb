@@ -2,6 +2,7 @@ import uuid
 from random import choice
 
 import factory
+import factory.fuzzy
 from django.conf import settings
 from pytz import UTC
 
@@ -160,8 +161,12 @@ class AffectFactory(factory.django.DjangoModelFactory):
         django_get_or_create = ("flaw", "ps_module", "ps_component")
 
     type = factory.Faker("random_element", elements=list(Affect.AffectType))
-    affectedness = factory.Faker(
-        "random_element", elements=list(Affect.AffectAffectedness)
+    affectedness = factory.fuzzy.FuzzyChoice(
+        [
+            Affect.AffectAffectedness.NEW,
+            Affect.AffectAffectedness.AFFECTED,
+            Affect.AffectAffectedness.NOTAFFECTED,
+        ]
     )
     resolution = factory.Faker("random_element", elements=list(Affect.AffectResolution))
     ps_module = factory.sequence(lambda n: f"ps-module-{n}")

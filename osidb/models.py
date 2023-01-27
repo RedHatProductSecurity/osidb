@@ -1128,6 +1128,25 @@ class Affect(
                 "does not match any valid collection",
             )
 
+    def _validate_exceptional_affectedness_resolution(self):
+        """
+        Alerts that an old flaw have empty affectedness.
+        (Only accepts WONTFIX and DEFER as resolution, validated by other validation)
+        """
+        valid_resolutions = [
+            Affect.AffectResolution.WONTFIX,
+            Affect.AffectResolution.DEFER,
+        ]
+        if (
+            self.affectedness == Affect.AffectAffectedness.NOVALUE
+            and self.resolution in valid_resolutions
+        ):
+            self.alert(
+                "flaw_exceptional_affect_status",
+                f"Affect for {self.ps_module}/{self.ps_component} is in "
+                "a exceptional state having no affectedness.",
+            )
+
     @property
     def delegated_resolution(self):
         """affect delegated resolution based on resolutions of related trackers"""
