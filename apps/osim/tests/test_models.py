@@ -5,8 +5,15 @@ from django.utils import timezone
 
 from apps.osim.models import Check, State, Workflow
 from apps.osim.workflow import WorkflowFramework, WorkflowModel
-from osidb.models import Flaw, FlawImpact, FlawResolution, FlawSource, FlawType
-from osidb.tests.factories import FlawFactory
+from osidb.models import (
+    Flaw,
+    FlawImpact,
+    FlawMeta,
+    FlawResolution,
+    FlawSource,
+    FlawType,
+)
+from osidb.tests.factories import AffectFactory, FlawFactory, FlawMetaFactory
 
 pytestmark = pytest.mark.unit
 
@@ -192,7 +199,20 @@ class TestCheck:
         )
         check_desc = requirements[0]  # one requirement was requested
         check = Check(check_desc)
-        flaw = FlawFactory(**flaw_properties)
+        flaw = FlawFactory.build(**flaw_properties)
+
+        if (
+            "is_major_incident" in flaw_properties
+            and flaw_properties["is_major_incident"]
+        ):
+            flaw.save(raise_validation_error=False)
+            AffectFactory(flaw=flaw)
+            FlawMetaFactory(
+                flaw=flaw,
+                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                meta_attr={"status": "-"},
+            )
+        flaw.save()
         assert check(
             flaw
         ), f'"{check_desc}" check does not accept a flaw with {flaw_properties}'
@@ -212,9 +232,21 @@ class TestCheck:
             count=1,
             exclude=flaw_properties,
         )
+
         check_desc = requirements[0]  # one requirement was requested
         check = Check(check_desc)
-        flaw = FlawFactory(**flaw_properties)
+        flaw = FlawFactory.build(**flaw_properties)
+
+        if flaw.is_major_incident:
+            flaw.save(raise_validation_error=False)
+            AffectFactory(flaw=flaw)
+            FlawMetaFactory(
+                flaw=flaw,
+                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                meta_attr={"status": "-"},
+            )
+        flaw.save()
+
         assert not check(
             flaw
         ), f'"{check_desc}" check does not reject a flaw with {flaw_properties}'
@@ -231,7 +263,17 @@ class TestCheck:
         requirements, flaw_properties = CheckDescFactory.generate(
             cathegory=cathegory, accepts=True, exclude=flaw_properties
         )
-        flaw = FlawFactory(**flaw_properties)
+        flaw = FlawFactory.build(**flaw_properties)
+
+        if flaw.is_major_incident:
+            flaw.save(raise_validation_error=False)
+            AffectFactory(flaw=flaw)
+            FlawMetaFactory(
+                flaw=flaw,
+                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                meta_attr={"status": "-"},
+            )
+        flaw.save()
 
         for check_desc in requirements:
             check = Check(check_desc)
@@ -251,7 +293,17 @@ class TestCheck:
         requirements, flaw_properties = CheckDescFactory.generate(
             cathegory=cathegory, accepts=False, exclude=flaw_properties
         )
-        flaw = FlawFactory(**flaw_properties)
+        flaw = FlawFactory.build(**flaw_properties)
+
+        if flaw.is_major_incident:
+            flaw.save(raise_validation_error=False)
+            AffectFactory(flaw=flaw)
+            FlawMetaFactory(
+                flaw=flaw,
+                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                meta_attr={"status": "-"},
+            )
+        flaw.save()
 
         for check_desc in requirements:
             check = Check(check_desc)
@@ -290,7 +342,18 @@ class TestState:
                 "requirements": requirements,
             }
         )
-        flaw = FlawFactory(**flaw_properties)
+        flaw = FlawFactory.build(**flaw_properties)
+
+        if flaw.is_major_incident:
+            flaw.save(raise_validation_error=False)
+            AffectFactory(flaw=flaw)
+            FlawMetaFactory(
+                flaw=flaw,
+                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                meta_attr={"status": "-"},
+            )
+        flaw.save()
+
         message = (
             f'state with requirements "{requirements}"'
             f"does not accept a flaw with {flaw_properties}"
@@ -322,7 +385,21 @@ class TestState:
                 "requirements": requirements,
             }
         )
-        flaw = FlawFactory(**flaw_properties)
+        flaw = FlawFactory.build(**flaw_properties)
+
+        if (
+            "is_major_incident" in flaw_properties
+            and flaw_properties["is_major_incident"]
+        ):
+            flaw.save(raise_validation_error=False)
+            AffectFactory(flaw=flaw)
+            FlawMetaFactory(
+                flaw=flaw,
+                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                meta_attr={"status": "-"},
+            )
+        flaw.save()
+
         message = (
             f'state with requirements "{requirements}"'
             f"does not reject a flaw with {flaw_properties}"
@@ -366,7 +443,18 @@ class TestWorkflow:
                 "states": [],  # this is not valid but OK for this test
             }
         )
-        flaw = FlawFactory(**flaw_properties)
+        flaw = FlawFactory.build(**flaw_properties)
+
+        if flaw.is_major_incident:
+            flaw.save(raise_validation_error=False)
+            AffectFactory(flaw=flaw)
+            FlawMetaFactory(
+                flaw=flaw,
+                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                meta_attr={"status": "-"},
+            )
+        flaw.save()
+
         message = (
             f'workflow with conditions "{conditions}"'
             f"does not accept a flaw with {flaw_properties}"
@@ -401,7 +489,20 @@ class TestWorkflow:
                 "states": [],  # this is not valid but OK for this test
             }
         )
-        flaw = FlawFactory(**flaw_properties)
+        flaw = FlawFactory.build(**flaw_properties)
+
+        if (
+            "is_major_incident" in flaw_properties
+            and flaw_properties["is_major_incident"]
+        ):
+            flaw.save(raise_validation_error=False)
+            AffectFactory(flaw=flaw)
+            FlawMetaFactory(
+                flaw=flaw,
+                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                meta_attr={"status": "-"},
+            )
+        flaw.save()
         message = (
             f'workflow with conditions "{conditions}"'
             f"does not reject a flaw with {flaw_properties}"
@@ -440,7 +541,20 @@ class TestWorkflow:
             }
         )
         workflow.states = accepting_states + rejecting_states + random_states
-        flaw = FlawFactory(**flaw_properties)
+        flaw = FlawFactory.build(**flaw_properties)
+
+        if (
+            "is_major_incident" in flaw_properties
+            and flaw_properties["is_major_incident"]
+        ):
+            flaw.save(raise_validation_error=False)
+            AffectFactory(flaw=flaw)
+            FlawMetaFactory(
+                flaw=flaw,
+                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                meta_attr={"status": "-"},
+            )
+        flaw.save()
 
         message = (
             "flaw in workflow classification failure - was classified in state "
@@ -639,7 +753,17 @@ class TestWorkflowFramework:
             # register workflow in the workflow framework
             workflow_framework.register_workflow(workflow)
 
-        flaw = FlawFactory(**flaw_properties)
+        flaw = FlawFactory.build(**flaw_properties)
+
+        if flaw.is_major_incident:
+            flaw.save(raise_validation_error=False)
+            AffectFactory(flaw=flaw)
+            FlawMetaFactory(
+                flaw=flaw,
+                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                meta_attr={"status": "-"},
+            )
+        flaw.save()
 
         classified_workflow, classified_state = workflow_framework.classify(flaw)
         message = (
@@ -732,7 +856,16 @@ class TestFlaw:
         workflow.states = random_states
         workflow_framework.register_workflow(workflow)
 
-        flaw = FlawFactory(is_major_incident=True)
+        flaw = FlawFactory.build(is_major_incident=True)
+        flaw.save(raise_validation_error=False)
+
+        AffectFactory(flaw=flaw)
+        FlawMetaFactory(
+            flaw=flaw,
+            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+            meta_attr={"status": "-"},
+        )
+
         assert flaw.classification == {
             "workflow": "major incident workflow",
             "state": "DRAFT",
