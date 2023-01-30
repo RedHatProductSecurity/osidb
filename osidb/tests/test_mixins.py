@@ -190,7 +190,8 @@ class TestTrackingMixin:
         """
         test Bugzilla flaw bug convertion and save when importing an existing flaw
         """
-        flaw = self.create_flaw(cve_id="CVE-2020-12345")
+        meta_attr = {"bz_id": "12345"}
+        flaw = self.create_flaw(cve_id="CVE-2020-12345", meta_attr=meta_attr)
         flaw.save()
 
         convertor = self.get_flaw_bug_convertor()

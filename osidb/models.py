@@ -412,21 +412,25 @@ class FlawManager(ACLMixinManager):
     """flaw manager"""
 
     @staticmethod
-    def create_flaw(bz_id=None, cve_id=None, **extra_fields):
+    def create_flaw(bz_id, full_match=False, **extra_fields):
         """
         return a new flaw or update an existing flaw without saving
         this is meant for cases when UUID is not available - collector
-        """
-        # only one case when they're both equal: (None, None)
-        assert cve_id != bz_id, "Either cve_id or bz_id must be provided"
 
+        full match means that we match on both Bugzilla and CVE ID
+        """
         try:
-            flaw = (
-                # CVE-less flaws are identified by Bugzilla ID
-                Flaw.objects.get(meta_attr__bz_id=bz_id)
-                if cve_id is None
-                else Flaw.objects.get(cve_id=cve_id)
-            )
+            cve_id = extra_fields.get("cve_id")
+            if full_match:
+                flaw = Flaw.objects.get(cve_id=cve_id, meta_attr__bz_id=bz_id)
+            else:
+                # flaws are primarily identified by Bugzilla ID
+                # as it is constant while the CVE ID may change
+                # however we eventually try both as if the source
+                # is multi-CVE flaw the Bugzilla ID is not unique
+                flaws = Flaw.objects.filter(meta_attr__bz_id=bz_id)
+                flaw = flaws.get() if flaws.count() == 1 else flaws.get(cve_id=cve_id)
+
             for attr, value in extra_fields.items():
                 setattr(flaw, attr, value)
             return flaw
@@ -435,7 +439,7 @@ class FlawManager(ACLMixinManager):
             meta_attr = extra_fields.get("meta_attr", {})
             meta_attr["bz_id"] = bz_id
             extra_fields["meta_attr"] = meta_attr
-            return Flaw(cve_id=cve_id, **extra_fields)
+            return Flaw(**extra_fields)
 
     @staticmethod
     def fts_search(q):
