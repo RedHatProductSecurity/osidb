@@ -207,12 +207,14 @@ class TestFlaw:
         assert Flaw.objects.first().title == "second"
 
     def test_multi_affect_tracker(self):
-        affect1 = AffectFactory()
+        affect1 = AffectFactory(affectedness=Affect.AffectAffectedness.NEW)
         tracker = TrackerFactory.create(
             affects=(affect1,), embargoed=affect1.flaw.is_embargoed
         )
         assert len(tracker.affects.all()) == 1
-        affect2 = AffectFactory(flaw__embargoed=False)
+        affect2 = AffectFactory(
+            flaw__embargoed=False, affectedness=Affect.AffectAffectedness.NEW
+        )
         Tracker.objects.create_tracker(
             affect2, tracker.external_system_id, tracker.type
         )
@@ -994,9 +996,13 @@ class TestFlawValidators:
                 ValidationError,
                 match="Tracker is public but is associated with an embargoed flaw",
             ):
-                TrackerFactory(affects=affects, embargoed=embargoed_tracker)
+                TrackerFactory(
+                    affects=affects, embargoed=embargoed_tracker, status="CLOSED"
+                )
         else:
-            assert TrackerFactory(affects=affects, embargoed=embargoed_tracker)
+            assert TrackerFactory(
+                affects=affects, embargoed=embargoed_tracker, status="CLOSED"
+            )
 
     def test_validate_no_placeholder(self):
         """
@@ -1046,7 +1052,10 @@ class TestFlawValidators:
         flaw = FlawFactory(
             embargoed=False, is_major_incident=False, impact=start_impact
         )
-        affect = AffectFactory(flaw=flaw)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+        )
         for status in tracker_statuses:
             TrackerFactory(embargoed=False, status=status, affects=(affect,))
         flaw.impact = new_impact
@@ -1079,7 +1088,7 @@ class TestFlawValidators:
             type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
             meta_attr={"status": "-"},
         )
-        affect = AffectFactory(flaw=flaw)
+        affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         for status in tracker_statuses:
             TrackerFactory(embargoed=False, status=status, affects=(affect,))
         flaw.is_major_incident = is_major
@@ -1377,3 +1386,97 @@ class TestFlawValidators:
                 affect.save()
         else:
             assert affect.save() is None
+
+    @pytest.mark.parametrize("entity", ["affect", "tracker"])
+    @pytest.mark.parametrize(
+        "affectedness,is_tracker_open,should_raise",
+        [
+            (
+                Affect.AffectAffectedness.NOTAFFECTED,
+                True,
+                True,
+            ),
+            (
+                Affect.AffectAffectedness.NEW,
+                True,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.NOTAFFECTED,
+                False,
+                False,
+            ),
+        ],
+    )
+    def test_validate_notaffected_open_tracker(
+        self, entity, affectedness, is_tracker_open, should_raise
+    ):
+        """
+        Test that notaffected products with open trackers raises error.
+        """
+        status = "OPEN" if is_tracker_open else "CLOSED"
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=affectedness,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        tracker = TrackerFactory(embargoed=False, status=status)
+        tracker.affects.add(affect)
+
+        entity = tracker if entity == "tracker" else affect
+        if should_raise:
+            with pytest.raises(
+                ValidationError,
+                match=f"{affect.uuid}.*is marked as.*but has open tracker",
+            ):
+                entity.save()
+        else:
+            assert entity.save() is None
+
+    @pytest.mark.parametrize("entity", ["affect", "tracker"])
+    @pytest.mark.parametrize(
+        "resolution,is_tracker_open,should_raise",
+        [
+            (
+                Affect.AffectResolution.WONTFIX,
+                True,
+                True,
+            ),
+            (
+                Affect.AffectResolution.FIX,
+                True,
+                False,
+            ),
+            (
+                Affect.AffectResolution.WONTFIX,
+                False,
+                False,
+            ),
+        ],
+    )
+    def test_validate_wontfix_open_tracker(
+        self, entity, resolution, is_tracker_open, should_raise
+    ):
+        """
+        Test that wontfix affects with open trackers raises error.
+        """
+        status = "OPEN" if is_tracker_open else "CLOSED"
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(
+            flaw=flaw,
+            resolution=resolution,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+        )
+        tracker = TrackerFactory(embargoed=False, status=status)
+        tracker.affects.add(affect)
+
+        entity = tracker if entity == "tracker" else affect
+        if should_raise:
+            with pytest.raises(
+                ValidationError,
+                match=f"{affect.uuid}.*is marked as.*but has open tracker",
+            ):
+                entity.save()
+        else:
+            assert entity.save() is None

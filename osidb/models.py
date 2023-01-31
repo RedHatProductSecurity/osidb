@@ -1141,7 +1141,7 @@ class Affect(
         ):
             self.alert(
                 "flaw_exceptional_affect_status",
-                f"Affect for {self.ps_module}/{self.ps_component} is in "
+                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is in "
                 "a exceptional state having no affectedness.",
             )
 
@@ -1152,6 +1152,32 @@ class Affect(
         if self.resolution not in AFFECTEDNESS_VALID_RESOLUTIONS[self.affectedness]:
             raise ValidationError(
                 f"{self.resolution} is not a valid resolution for {self.affectedness}."
+            )
+
+    def _validate_notaffected_open_tracker(self):
+        """
+        Check whether notaffected products have open trackers.
+        """
+        if (
+            self.affectedness == Affect.AffectAffectedness.NOTAFFECTED
+            and self.trackers.exclude(status__iexact="CLOSED").exists()
+        ):
+            raise ValidationError(
+                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
+                "NOTAFFECTED but has open tracker(s).",
+            )
+
+    def _validate_wontfix_open_tracker(self):
+        """
+        Check whether wontfix affects have open trackers.
+        """
+        if (
+            self.resolution == Affect.AffectResolution.WONTFIX
+            and self.trackers.exclude(status__iexact="CLOSED").exists()
+        ):
+            raise ValidationError(
+                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
+                "WONTFIX but has open tracker(s).",
             )
 
     @property
@@ -1298,6 +1324,31 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 "Tracker is public but is associated with an embargoed flaw."
             )
 
+    def _validate_notaffected_open_tracker(self):
+        """
+        Check whether notaffected products have open trackers.
+        """
+        affect = self.affects.filter(
+            affectedness=Affect.AffectAffectedness.NOTAFFECTED
+        ).first()
+
+        if not self.is_closed and affect:
+            raise ValidationError(
+                f"Affect ({affect.uuid}) for {affect.ps_module}/{affect.ps_component} is marked as "
+                "NOTAFFECTED but has open tracker(s).",
+            )
+
+    def _validate_wontfix_open_tracker(self):
+        """
+        Check whether wontfix affects have open trackers.
+        """
+        affect = self.affects.filter(resolution=Affect.AffectResolution.WONTFIX).first()
+        if not self.is_closed and affect:
+            raise ValidationError(
+                f"Affect ({affect.uuid}) for {affect.ps_module}/{affect.ps_component} is marked as "
+                "WONTFIX but has open tracker(s).",
+            )
+
     @property
     def fix_state(self):
         """
@@ -1326,6 +1377,10 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             elif self.resolution in ("deferred", "nextrelease", "rawhide", "upstream"):
                 return Affect.AffectFix.DEFER
         return Affect.AffectFix.AFFECTED
+
+    @property
+    def is_closed(self):
+        return self.status.upper() == "CLOSED"
 
 
 class ErratumManager(models.Manager):

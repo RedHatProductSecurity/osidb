@@ -191,7 +191,9 @@ class TestBzTrackerCollector:
     def test_sync_with_affect(self, bz_tracker_collector):
         creation_dt = datetime(2011, 1, 1, tzinfo=timezone.utc)
         with freeze_time(creation_dt):
-            affect = AffectFactory.create(flaw__embargoed=False)
+            affect = AffectFactory.create(
+                flaw__embargoed=False, affectedness=Affect.AffectAffectedness.NEW
+            )
             TrackerFactory.create(
                 affects=(affect,),
                 external_system_id="577404",
