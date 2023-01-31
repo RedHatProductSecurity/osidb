@@ -18,11 +18,15 @@ class BugzillaSaver(BugzillaConnector):
 
         pass
 
-    def __init__(self, flaw):
+    def __init__(self, flaw, bz_api_key):
         """
         init stuff
         """
         self.flaw = flaw
+        # substitute the default service Bugzilla API key
+        # so the resulting Bugzilla audit log corresponds
+        # to the acutal user requesting the operation
+        self._bz_api_key = bz_api_key
 
     def save(self):
         """
