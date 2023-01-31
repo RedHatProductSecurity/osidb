@@ -773,10 +773,11 @@ class FlawBugConvertor:
             for comment in self.flaw_comments
         ]
 
-    def get_flaw(self, cve_id):
+    def get_flaw(self, cve_id, full_match=False):
         """get Flaw Django model"""
         flaw = Flaw.objects.create_flaw(
             bz_id=self.bz_id,
+            full_match=full_match,
             cve_id=cve_id,
             type=FlawType.VULNERABILITY,
             meta_attr=self.get_meta_attr(cve_id),
@@ -947,21 +948,31 @@ class FlawBugConvertor:
         return meta
 
     def bug2flaws(self):
-        """perform flaw bug to flaw models conversion"""
+        """
+        perform flaw bug to flaw models conversion
+
+        the tricky part here is the possible CVE change as we do not want to change
+        the UUID willy-nilly but rather consider it as CVE-only change when possible
+
+        the exception is the case of multi-CVE flaw where there are no
+        guarantees whenever the mapping is not completely unambiguous
+        """
         logger.debug(f"{self.__class__}: processing flaw bug {self.bz_id}")
+
+        # there might be between zero and infinity existing flaws with this BZ ID
+        existing_flaws = Flaw.objects.filter(meta_attr__bz_id=self.bz_id)
 
         #################
         # CVE-less flaw #
         #################
 
         if not self.cve_ids:
-            # remove all flaws with this BZ ID and any CVE ID in case there were
-            # some CVEs before which got removed as they might have been multiple
-            # and matching them to a single CVE-less flaw would be nontrivial
-            # - see the next comment for more details
-            Flaw.objects.filter(meta_attr__bz_id=self.bz_id).exclude(
-                cve_id__isnull=True
-            ).delete()
+            logger.debug(f"{self.__class__}: processing CVE-less flaw")
+
+            # remove all flaws with this BZ ID in case there were multiple CVE flaws before
+            # and got removed as matching them to a single CVE-less flaw would be ambiguous
+            if existing_flaws.count() > 1:
+                existing_flaws.delete()
 
             flaw = self.get_flaw(cve_id=None)
             return [
@@ -976,26 +987,50 @@ class FlawBugConvertor:
                 )
             ]
 
-        #############
-        # CVE flaws #
-        #############
+        ###################
+        # single-CVE flaw #
+        ###################
+
+        if len(self.cve_ids) == 1:
+            logger.debug(f"{self.__class__}: processing {self.cve_ids[0]}")
+
+            # if there was multiple flaws but now it is only one
+            # we remove all the previous as the mapping is ambiguous
+            # except the CVE itself where the mapping is straightforward
+            if existing_flaws.count() > 1:
+                existing_flaws.exclude(cve_id=self.cve_ids[0]).delete()
+
+            flaw = self.get_flaw(self.cve_ids[0])
+            return [
+                FlawSaver(
+                    flaw,
+                    self.get_affects(flaw),
+                    self.get_comments(flaw),
+                    self.get_history(),
+                    self.get_all_meta(flaw),
+                    self.get_trackers(),
+                    self.package_versions,
+                )
+            ]
+
+        ##################
+        # multi-CVE flaw #
+        ##################
 
         flaws = []
 
-        # CVE as Bugzilla alias is not persistent unlike BZ ID which is the identifier
-        # so if it changes or gets removed (both looks the same from OSIDB point of view)
-        # during the sync there will be that CVE missing in the fetched data
-        # and to reflect it correctly we should remove corresponding flaw
-        Flaw.objects.filter(meta_attr__bz_id=self.bz_id).exclude(
-            cve_id__in=self.cve_ids
-        ).delete()
+        # as we have multiple flaws now the mapping is always ambiguous
+        # except the exact CVE match where the mapping is straightforward
+        existing_flaws.exclude(cve_id__in=self.cve_ids).delete()
 
         # in the past there was possible to have multiple CVEs for a flaw
         # but it is no more desired and we create a flaw for every CVE
         for cve_id in self.cve_ids:
             logger.debug(f"{self.__class__}: processing {cve_id}")
 
-            flaw = self.get_flaw(cve_id)
+            # for multi-CVE flaw we have to perform
+            # the full match to make it unambiguous
+            flaw = self.get_flaw(cve_id, full_match=True)
             flaws.append(
                 FlawSaver(
                     flaw,

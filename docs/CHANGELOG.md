@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Jira tracker created and updated timestamps (OSIDB-14)
 - Fix errata created and updated timestamps (OSIDB-453)
 - Restrict write operations on placeholder flaws (OSIDB-388)
+- Avoid recreating flaws on CVE ID changes whenever possible (OSIDB-392)
 
 ## [2.3.4] - 2022-12-15
 ### Changed
