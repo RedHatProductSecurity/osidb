@@ -36,14 +36,24 @@ logger = get_task_logger(__name__)
 class BugzillaConnector:
     """Bugzilla connection handler"""
 
+    # by default use the service key of the running instance
+    # but allow the key substitution in the child classes
+    _bz_api_key = BZ_API_KEY
     _bz_conn = None
 
     def create_bz_conn(self) -> Bugzilla:
         """create Bugzilla connection"""
-        bz_conn = bugzilla.Bugzilla(url=BZ_URL, api_key=BZ_API_KEY, force_rest=True)
+        bz_conn = bugzilla.Bugzilla(url=BZ_URL, api_key=self.api_key, force_rest=True)
         if not bz_conn.logged_in:
             raise RecoverableBZImportException("Cannot access Bugzilla")
         return bz_conn
+
+    @property
+    def api_key(self) -> str:
+        """
+        Bugzilla API key getter
+        """
+        return self._bz_api_key
 
     @property
     def bz_conn(self) -> Bugzilla:
