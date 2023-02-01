@@ -1228,3 +1228,36 @@ class TestFlawValidators:
         """
         affect = AffectFactory(resolution=resolution, affectedness=affectedness)
         assert should_raise == bool("flaw_exceptional_affect_status" in affect._alerts)
+
+    @pytest.mark.parametrize(
+        "prestage_eligible_date,unembargo_dt,should_raise",
+        [
+            (tzdatetime(2023, 1, 1), tzdatetime(2023, 1, 4), True),
+            (tzdatetime(2023, 1, 1), tzdatetime(2023, 1, 2), False),
+            (tzdatetime(2023, 1, 1), None, True),
+            (None, tzdatetime(2023, 1, 1), False),
+            (None, None, False),
+        ],
+    )
+    @freeze_time(tzdatetime(2022, 12, 25))
+    def test_validate_prestage_eligible_date(
+        self, prestage_eligible_date, unembargo_dt, should_raise
+    ):
+        """
+        Test that flaws with pre-stage eligible date without unembargo date
+        or being unembaegoed within more than 48 hours raises error
+        """
+        flaw = FlawFactory.build(
+            meta_attr={"prestage_eligible_date": prestage_eligible_date},
+            unembargo_dt=unembargo_dt,
+            embargoed=True,
+        )
+        if should_raise:
+            with pytest.raises(ValidationError) as e:
+                flaw.save()
+            assert (
+                "Flaw cannot have pre-stage eligible date without an unbembargo date"
+                in str(e)
+            )
+        else:
+            assert flaw.save() is None

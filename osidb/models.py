@@ -5,6 +5,7 @@ import json
 import logging
 import re
 import uuid
+from datetime import timedelta
 from decimal import Decimal
 from typing import Union
 
@@ -830,6 +831,21 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
                 "notabug_affect_ps_component",
                 f"Module {affected.ps_module} of component "
                 f"{affected.ps_component} is affected by a flaw solved as NOTABUG.",
+            )
+
+    def _validate_prestage_eligible_date(self):
+        """
+        Validates that flaw with a pre-stage eligible date has an
+        unembargo date at maximum 48 hours in future.
+        """
+        prestage_eligible_date = self.meta_attr.get("prestage_eligible_date")
+        if prestage_eligible_date and (
+            not self.unembargo_dt
+            or self.unembargo_dt - prestage_eligible_date > timedelta(hours=48)
+        ):
+            raise ValidationError(
+                "Flaw cannot have pre-stage eligible date without an "
+                "unbembargo date at maximum 48 hours in future."
             )
 
     @property
