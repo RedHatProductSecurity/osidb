@@ -509,7 +509,6 @@ class FlawSerializer(
 
         request = self.context.get("request")
         if request:
-
             # Filter only affects with trackers corresponding to specified IDs
             tracker_ids = request.query_params.get("tracker_ids")
             if tracker_ids:

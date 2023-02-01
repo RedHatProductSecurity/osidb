@@ -877,7 +877,6 @@ class TestEndpoints(object):
     def test_list_flaw_meta_type(
         self, query_params, expected_values, auth_client, test_api_uri
     ):
-
         for _ in range(2):
             flaw = FlawFactory()
 
@@ -990,7 +989,6 @@ class TestEndpoints(object):
         ldap_test_username,
         ldap_test_password,
     ):
-
         """retrieve specific flaw from endpoint using generated auth token"""
 
         # get token

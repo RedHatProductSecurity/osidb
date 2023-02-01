@@ -67,7 +67,6 @@ class ClassificationWorkflowSerializer(ClassificationSerializer, WorkflowSeriali
 
 
 class WorkflowModelSerializer(serializers.ModelSerializer):
-
     classification = serializers.SerializerMethodField()
 
     class Meta:

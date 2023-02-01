@@ -27,7 +27,6 @@ class TestPackageVersions(object):
         assert vr_2.save() is None
 
     def test_create_cve_v5_package_versions(self):
-
         vrs_1 = CVEv5PackageVersions()
         with pytest.raises(ValidationError):
             vrs_1.validate()

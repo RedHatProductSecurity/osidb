@@ -715,7 +715,6 @@ class FlawBugConvertor:
         """get list of Affect Django models"""
         affects = []
         for affect_json in self.srtnotes.get("affects", []):
-
             # PS module is identifier so the fixup must be applied before the lookup
             ps_module = AffectFixer.fixplace_ps_module(affect_json.get("ps_module"))
             ps_component = affect_json.get("ps_component")
@@ -805,7 +804,6 @@ class FlawBugConvertor:
             history_srtnotes = self.srtnotes.copy()
 
             for item in reversed(self.flaw_history["bugs"][0]["history"]):
-
                 for change in item["changes"]:
                     removed[change["field_name"]] = change["removed"]
                     added[change["field_name"]] = change["added"]

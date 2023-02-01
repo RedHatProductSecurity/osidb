@@ -229,7 +229,6 @@ def parse_whiteboard(whiteboard):
     wb = {"affects": []}
 
     for wb_attr in whiteboard.split(","):
-
         if not wb_attr:
             continue
 

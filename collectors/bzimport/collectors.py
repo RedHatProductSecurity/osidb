@@ -531,7 +531,6 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
 
 
 class BzTrackerCollector(Collector, BugzillaQuerier):
-
     # version 0.0.1 of OSIDB was released on January 21st 2022
     BEGINNING = timezone.datetime(2022, 1, 21, tzinfo=timezone.get_current_timezone())
     BATCH_SIZE = 100

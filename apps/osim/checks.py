@@ -102,7 +102,6 @@ class CheckParser(metaclass=MetaCheckParser):
         if check_desc.startswith("has_"):
             attr = cls.map_attribute(check_desc[4:])
             if hasattr(cls.model, attr):
-
                 message = (
                     f"check that {cls.model.__name__} attribute {attr} has a value set"
                 )

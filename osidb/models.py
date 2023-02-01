@@ -1574,7 +1574,6 @@ class PackageVersions(PolymorphicModel):
 
 
 class CVEv5PackageVersions(PackageVersions):
-
     # the name of the affected upstream package within collection_url
     # will be reported to Mitre as packageName
     # see https://gist.github.com/rsc/0b448f99e73bf745eeca1319d882efb2#product-objects
@@ -1590,7 +1589,6 @@ class CVEv5PackageVersions(PackageVersions):
 
 
 class PsProduct(models.Model):
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -1611,7 +1609,6 @@ class PsProduct(models.Model):
 
 
 class PsModule(NullStrFieldsMixin, ValidateMixin):
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -1664,7 +1661,6 @@ class PsModule(NullStrFieldsMixin, ValidateMixin):
 
 
 class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -1727,7 +1723,6 @@ class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
 
 
 class PsContact(NullStrFieldsMixin, ValidateMixin):
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 

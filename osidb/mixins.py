@@ -36,7 +36,6 @@ class TrackingMixin(models.Model):
         """
         # allow disabling timestamp auto-updates
         if auto_timestamps:
-
             # get DB counterpart of self if any
             db_self = type(self).objects.filter(pk=self.pk).first()
 

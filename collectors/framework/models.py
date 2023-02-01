@@ -529,7 +529,6 @@ def collector(
     """
 
     def wrapper(func):
-
         if crontab is None:
             raise RuntimeError("Collector crontab must be defined")
 
