@@ -621,6 +621,7 @@ class TestFlawBugConvertor:
 
         # changing CVE - bug ID is unchanged
         flaw_bug["alias"] = ["CVE-2000-9999"]
+        flaw_uuid = flaw.uuid
 
         fbc = FlawBugConvertor(
             flaw_bug,
@@ -640,6 +641,59 @@ class TestFlawBugConvertor:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.cve_id == "CVE-2000-9999"
+        assert flaw.uuid == flaw_uuid
+
+    def test_cve_preserved_and_changed(self):
+        """
+        test that flaw CVE change is correctly reflected
+        while there is additionally another CVE preserved
+        """
+        flaw_bug = self.get_flaw_bug()
+        flaw_bug["alias"] = ["CVE-2000-0001", "CVE-2000-0002"]
+
+        fbc = FlawBugConvertor(
+            flaw_bug,
+            [],
+            self.get_flaw_history(),
+            None,
+            [],
+            [],
+            {},
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 2
+        for flaw in flaws:
+            flaw.save()
+
+        assert Flaw.objects.count() == 2
+        cve_ids = [flaw.cve_id for flaw in Flaw.objects.all()]
+        assert sorted(cve_ids) == ["CVE-2000-0001", "CVE-2000-0002"]
+        # store UUID for later comparison
+        flaw_uuid = Flaw.objects.get(cve_id="CVE-2000-0001").uuid
+
+        # changing CVE - bug ID is unchanged
+        flaw_bug["alias"] = ["CVE-2000-0001", "CVE-2000-9999"]
+
+        fbc = FlawBugConvertor(
+            flaw_bug,
+            [],
+            self.get_flaw_history(),
+            None,
+            [],
+            [],
+            {},
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 2
+        for flaw in flaws:
+            flaw.save()
+
+        assert Flaw.objects.count() == 2
+        cve_ids = [flaw.cve_id for flaw in Flaw.objects.all()]
+        assert sorted(cve_ids) == ["CVE-2000-0001", "CVE-2000-9999"]
+        assert flaw_uuid == Flaw.objects.get(cve_id="CVE-2000-0001").uuid
 
     def test_cve_removed(self):
         """
@@ -666,6 +720,8 @@ class TestFlawBugConvertor:
         assert Flaw.objects.count() == 2
         cve_ids = [flaw.cve_id for flaw in Flaw.objects.all()]
         assert sorted(cve_ids) == ["CVE-2000-0001", "CVE-2000-0002"]
+        # store UUID for later comparison
+        flaw_uuid = Flaw.objects.get(cve_id="CVE-2000-0001").uuid
 
         # removing one of the CVEs
         flaw_bug["alias"] = ["CVE-2000-0001"]
@@ -688,6 +744,7 @@ class TestFlawBugConvertor:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.cve_id == "CVE-2000-0001"
+        assert flaw.uuid == flaw_uuid
 
         # removing all CVEs
         flaw_bug["alias"] = []
@@ -710,6 +767,58 @@ class TestFlawBugConvertor:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.cve_id is None
+        assert flaw.uuid == flaw_uuid
+
+    def test_cves_removed(self):
+        """
+        test that removal of multiple CVEs at once is correctly reflected
+        """
+        flaw_bug = self.get_flaw_bug()
+        flaw_bug["alias"] = ["CVE-2000-0001", "CVE-2000-0002", "CVE-2000-0003"]
+
+        fbc = FlawBugConvertor(
+            flaw_bug,
+            [],
+            self.get_flaw_history(),
+            None,
+            [],
+            [],
+            {},
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 3
+        for flaw in flaws:
+            flaw.save()
+
+        assert Flaw.objects.count() == 3
+        cve_ids = [flaw.cve_id for flaw in Flaw.objects.all()]
+        assert sorted(cve_ids) == ["CVE-2000-0001", "CVE-2000-0002", "CVE-2000-0003"]
+        # store UUID for later comparison
+        flaw_uuid = Flaw.objects.get(cve_id="CVE-2000-0001").uuid
+
+        # removing two CVEs at once
+        flaw_bug["alias"] = ["CVE-2000-0001"]
+
+        fbc = FlawBugConvertor(
+            flaw_bug,
+            [],
+            self.get_flaw_history(),
+            None,
+            [],
+            [],
+            {},
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        flaw.save()
+
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.cve_id == "CVE-2000-0001"
+        assert flaw.uuid == flaw_uuid
 
     def test_no_cve(self):
         """
@@ -736,6 +845,79 @@ class TestFlawBugConvertor:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.cve_id is None
+
+        # test that repeated sync preserves UUID
+        flaw_uuid = flaw.uuid
+
+        fbc = FlawBugConvertor(
+            flaw_bug,
+            [],
+            self.get_flaw_history(),
+            None,
+            [],
+            [],
+            {},
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        flaw.save()
+
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.cve_id is None
+        assert flaw.uuid == flaw_uuid
+
+    def test_cve_assign(self):
+        """
+        test that CVE assignment to a CVE-less flaw is correctly processed
+        """
+        flaw_bug = self.get_flaw_bug()
+        flaw_bug["alias"] = []
+
+        fbc = FlawBugConvertor(
+            flaw_bug,
+            [],
+            self.get_flaw_history(),
+            None,
+            [],
+            [],
+            {},
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        flaw.save()
+
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.cve_id is None
+        flaw_uuid = flaw.uuid
+
+        # assign CVE to the flaw
+        flaw_bug["alias"] = ["CVE-2000-0001"]
+
+        fbc = FlawBugConvertor(
+            flaw_bug,
+            [],
+            self.get_flaw_history(),
+            None,
+            [],
+            [],
+            {},
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        flaw.save()
+
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.cve_id == "CVE-2000-0001"
+        assert flaw.uuid == flaw_uuid
 
     def test_major_incident_flag_order(self):
         """
