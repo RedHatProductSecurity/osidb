@@ -113,9 +113,9 @@ distlib==0.3.3 \
     --hash=sha256:c8b54e8454e5bf6237cc84c20e8264c3e991e824ef27e8f1e81049867d861e31 \
     --hash=sha256:d982d0751ff6eaaab5e2ec8e691d949ee80eddf01a62eaa96ddb11531fe16b05
     # via virtualenv
-django==3.2.15 \
-    --hash=sha256:115baf5049d5cf4163e43492cdc7139c306ed6d451e7d3571fe9612903903713 \
-    --hash=sha256:f71934b1a822f14a86c9ac9634053689279cd04ae69cb6ade4a59471b886582b
+django==3.2.17 \
+    --hash=sha256:59c39fc342b242fb42b6b040ad8b1b4c15df438706c1d970d416d63cdd73e7fd \
+    --hash=sha256:644288341f06ebe4938eec6801b6bd59a6534a78e4aedde2a153075d11143894
     # via
     #   -c requirements.txt
     #   django-extensions
