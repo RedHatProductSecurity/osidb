@@ -46,3 +46,15 @@ BZ_ID_SENTINEL = 1489716
 
 # Lists of components from RHSCL without collection
 COMPONENTS_WITHOUT_COLLECTION = ["source-to-image", "scl-utils"]
+
+# List of ps_product that are classified as services
+SERVICES_PRODUCTS = [
+    "ansible-services",
+    "cloud-redhat-com",
+    "hosted-openshift",
+    "insights",
+    "managed-application-services",
+    "other-services",
+    "openshift-hosted",
+    "hostedservices",
+]

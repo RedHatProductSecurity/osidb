@@ -29,6 +29,7 @@ from .constants import (
     COMPONENTS_WITHOUT_COLLECTION,
     CVSS3_SEVERITY_SCALE,
     OSIDB_API_VERSION,
+    SERVICES_PRODUCTS,
 )
 from .mixins import (
     ACLMixin,
@@ -1175,6 +1176,35 @@ class Affect(
         logger.error("How did we get here??? %s, %s", trackers, statuses)
 
         return Affect.AffectFix.AFFECTED
+
+    def _validate_wontreport_products(self):
+        """
+        Validate that affected/wontreport only can be used for
+        products associated with services
+        """
+        if self.resolution == Affect.AffectResolution.WONTREPORT:
+            ps_module = PsModule.objects.filter(name=self.ps_module).first()
+            if (
+                not ps_module
+                or ps_module.ps_product.short_name not in SERVICES_PRODUCTS
+            ):
+                raise ValidationError(
+                    "wontreport can only be associated with service products"
+                )
+
+    def _validate_wontreport_severity(self):
+        """
+        Validate that wontreport only can be used for
+        low or moderate severity flaws
+        """
+        if (
+            self.resolution == Affect.AffectResolution.WONTREPORT
+            and self.impact
+            not in [Affect.AffectImpact.LOW, Affect.AffectImpact.MODERATE]
+        ):
+            raise ValidationError(
+                "wontreport can only be associated with low or moderate severity"
+            )
 
 
 class TrackerManager(ACLMixinManager):

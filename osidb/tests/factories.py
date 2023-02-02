@@ -168,7 +168,16 @@ class AffectFactory(factory.django.DjangoModelFactory):
             Affect.AffectAffectedness.NOTAFFECTED,
         ]
     )
-    resolution = factory.Faker("random_element", elements=list(Affect.AffectResolution))
+    resolution = factory.fuzzy.FuzzyChoice(
+        [
+            Affect.AffectResolution.NOVALUE,
+            Affect.AffectResolution.FIX,
+            Affect.AffectResolution.DEFER,
+            Affect.AffectResolution.WONTFIX,
+            Affect.AffectResolution.OOSS,
+            Affect.AffectResolution.DELEGATED,
+        ]
+    )
     ps_module = factory.sequence(lambda n: f"ps-module-{n}")
     ps_component = factory.sequence(lambda n: f"ps-component-{n}")
     impact = factory.Faker("random_element", elements=list(Affect.AffectImpact))
