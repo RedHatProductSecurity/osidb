@@ -315,6 +315,14 @@ class FlawView(ModelViewSet):
         acls = generate_acls(self.request.user.groups.all())
         serializer.save(acl_read=acls, acl_write=acls)
 
+    def destroy(self, *args, **kwargs):
+        # TODO in Bugzilla it is not possible to delete an already existing flaw
+        # so deal with it when it is no more the authoritative source of the flaw data
+        raise NotImplementedError(
+            "Bugzilla nature does not allow to delete an existing flaw "
+            "and OSIDB is not yet the authoritative source of the flaw data"
+        )
+
 
 @extend_schema(
     responses={

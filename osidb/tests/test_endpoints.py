@@ -1126,11 +1126,15 @@ class TestEndpoints(object):
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
 
-        response = auth_client.delete(f"{test_api_uri}/flaws/{flaw.uuid}")
-        assert response.status_code == 204
+        with pytest.raises(NotImplementedError) as e:
+            response = auth_client.delete(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert "Bugzilla nature does not allow to delete an existing flaw" in str(e)
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
-        assert response.status_code == 404
+        # TODO until we use Bugzilla it is not possible to delete a flaw
+        # assert response.status_code == 204
+
+        # response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        # assert response.status_code == 404
 
     def test_list_flaws_tracker_ids(self, auth_client, test_api_uri):
         """
