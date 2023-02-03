@@ -16,7 +16,6 @@ _logger = logging.getLogger(__name__)
 # code. This issue has been raised in the DRF multiple times but
 # nothing has been done nor is there any plan to fix it.
 # https://github.com/jpadilla/django-rest-framework-jwt/issues/45
-# https://stackoverflow.com/a/41281748
 # https://github.com/encode/django-rest-framework/discussions/7770
 
 
