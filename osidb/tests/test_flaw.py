@@ -1088,75 +1088,85 @@ class TestFlawValidators:
         assert should_raise == bool("unsupported_impact_change" in flaw._alerts)
 
     @pytest.mark.parametrize(
-        "state,resolution,affectedness,should_raise",
+        "state,resolution,affectedness,affect_resolution,should_raise",
         [
             (
                 Flaw.FlawState.CLOSED,
                 FlawResolution.NOTABUG,
                 Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.WONTFIX,
                 True,
             ),
             (
                 Flaw.FlawState.NEW,
                 FlawResolution.NOTABUG,
                 Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.WONTFIX,
                 False,
             ),
             (
                 Flaw.FlawState.CLOSED,
                 FlawResolution.NEXTRELEASE,
                 Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.WONTFIX,
                 False,
             ),
             (
                 Flaw.FlawState.CLOSED,
                 FlawResolution.NOTABUG,
                 Affect.AffectAffectedness.NOTAFFECTED,
+                Affect.AffectResolution.NOVALUE,
                 False,
             ),
         ],
     )
     def test_validate_affect_in_notabug_flaw(
-        self, state, resolution, affectedness, should_raise
+        self, state, resolution, affectedness, affect_resolution, should_raise
     ):
         flaw = FlawFactory(resolution=resolution, state=state)
-        AffectFactory(flaw=flaw, affectedness=affectedness)
+        AffectFactory(
+            flaw=flaw, affectedness=affectedness, resolution=affect_resolution
+        )
 
         assert should_raise == bool("notabug_affect_ps_component" in flaw._alerts)
 
     @pytest.mark.parametrize(
-        "state,resolution,affectedness,should_raise",
+        "state,resolution,affectedness,affect_resolution,should_raise",
         [
             (
                 Flaw.FlawState.CLOSED,
                 FlawResolution.NOTABUG,
                 Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.WONTFIX,
                 True,
             ),
             (
                 Flaw.FlawState.NEW,
                 FlawResolution.NOTABUG,
                 Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.WONTFIX,
                 False,
             ),
             (
                 Flaw.FlawState.CLOSED,
                 FlawResolution.NEXTRELEASE,
                 Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.WONTFIX,
                 False,
             ),
             (
                 Flaw.FlawState.CLOSED,
                 FlawResolution.NOTABUG,
                 Affect.AffectAffectedness.NOTAFFECTED,
+                Affect.AffectResolution.NOVALUE,
                 False,
             ),
         ],
     )
     def test_validate_notabug_flaw_affected(
-        self, state, resolution, affectedness, should_raise
+        self, state, resolution, affectedness, affect_resolution, should_raise
     ):
-        affect = AffectFactory(affectedness=affectedness)
+        affect = AffectFactory(affectedness=affectedness, resolution=affect_resolution)
         flaw = FlawFactory(resolution=resolution, state=state)
         flaw.affects.add(affect)
         flaw.save()
@@ -1289,11 +1299,81 @@ class TestFlawValidators:
             resolution=resolution,
             ps_module=product + "-test-module",
             flaw=FlawFactory(),
+            affectedness=Affect.AffectAffectedness.AFFECTED,
         )
 
         if should_raise:
             with pytest.raises(ValidationError) as e:
                 affect.save()
             assert "wontreport can only be associated with" in str(e)
+        else:
+            assert affect.save() is None
+
+    @pytest.mark.parametrize(
+        "affectedness,resolution,should_raise",
+        [
+            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.NOVALUE, False),
+            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.DEFER, False),
+            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.WONTFIX, False),
+            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.OOSS, False),
+            (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.FIX, False),
+            (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.DEFER, False),
+            (
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.DELEGATED,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.WONTREPORT,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.WONTFIX,
+                False,
+            ),
+            (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.OOSS, False),
+            (
+                Affect.AffectAffectedness.NOTAFFECTED,
+                Affect.AffectResolution.NOVALUE,
+                False,
+            ),
+            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.FIX, True),
+            (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.NOVALUE, True),
+            (
+                Affect.AffectAffectedness.NOTAFFECTED,
+                Affect.AffectResolution.DEFER,
+                True,
+            ),
+        ],
+    )
+    def test_validate_flaw_affects_status_resolution(
+        self, affectedness, resolution, should_raise
+    ):
+        """
+        Test that error is raised if any affect have a
+        invalid combination of affectedness and resolution
+        """
+        flaw = FlawFactory()
+        affect = AffectFactory.build(
+            flaw=flaw, affectedness=affectedness, resolution=resolution
+        )
+
+        # Service product and low/medium impact is needed to test pass WONTREPORT affects validations
+        if resolution == Affect.AffectResolution.WONTREPORT:
+            PsModuleFactory(
+                name="other-services-test-module",
+                ps_product=PsProductFactory(short_name="other-services"),
+            )
+            affect.ps_module = "other-services-test-module"
+            affect.impact = Affect.AffectImpact.LOW
+
+        if should_raise:
+            with pytest.raises(
+                ValidationError,
+                match=f"{affect.resolution} is not a valid resolution for {affect.affectedness}.",
+            ):
+                affect.save()
         else:
             assert affect.save() is None

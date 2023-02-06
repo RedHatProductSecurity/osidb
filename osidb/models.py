@@ -24,13 +24,6 @@ from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.osim.workflow import WorkflowModel
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 
-from .constants import (
-    BZ_ID_SENTINEL,
-    COMPONENTS_WITHOUT_COLLECTION,
-    CVSS3_SEVERITY_SCALE,
-    OSIDB_API_VERSION,
-    SERVICES_PRODUCTS,
-)
 from .mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -1152,6 +1145,15 @@ class Affect(
                 "a exceptional state having no affectedness.",
             )
 
+    def _validate_affect_status_resolution(self):
+        """
+        Validates that affected product have a valid combination of affectedness and resolution
+        """
+        if self.resolution not in AFFECTEDNESS_VALID_RESOLUTIONS[self.affectedness]:
+            raise ValidationError(
+                f"{self.resolution} is not a valid resolution for {self.affectedness}."
+            )
+
     @property
     def delegated_resolution(self):
         """affect delegated resolution based on resolutions of related trackers"""
@@ -1785,3 +1787,13 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.username
+
+
+from .constants import (  # noqa: E402
+    AFFECTEDNESS_VALID_RESOLUTIONS,
+    BZ_ID_SENTINEL,
+    COMPONENTS_WITHOUT_COLLECTION,
+    CVSS3_SEVERITY_SCALE,
+    OSIDB_API_VERSION,
+    SERVICES_PRODUCTS,
+)
