@@ -24,7 +24,7 @@ class TestTrackingMixin:
             )
         ]
         return Flaw(
-            title="title",
+            title="kernel: some description",
             cwe_id="CWE-1",
             description="description",
             acl_read=acls,

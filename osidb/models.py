@@ -830,6 +830,44 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
                 f"{affected.ps_component} is affected by a flaw solved as NOTABUG.",
             )
 
+    def _validate_flaw_title(self):
+        """
+        Validate that flaw title (former BZ summary) meets the following guidelines:
+            Text part of a flaw's summary should contain a component
+            that the flaw affects.
+            In case of a flaw that that is present in more components,
+            a "metacomponent" can be used, e.g. "SSL/TLS" or "Apache HTTPD".
+            The component name may contain space and special characters.
+
+            Writing the component into the summary makes bug mails and bug lists more clear,
+            in regards to which component is affected.
+
+            The final summary follows this format:
+            (EMBARGOED )?(CVE-...)* <component>: text part
+
+            Example:
+            CVE-2018-0100 openssl: Encryption attack
+        """
+        # Try to strip 'EMBARGOED'
+        title = re.sub(r"^EMBARGOED\s*", "", self.title)
+
+        # Try to strip CVES, possibly followed by three dots
+        title = re.sub(r"^(CVE-[0-9]{4}-[0-9]+\s*)+\.*\s*", "", title)
+
+        # Strip component name followed by colon; if not present at all, report it
+        component_regex = r"^[^\s]+(,?\s+[^\s]+)*:"
+        if re.match(component_regex, title):
+            title = re.sub(component_regex, "", title)
+        else:
+            raise ValidationError("Title is missing a component prefix.")
+
+        # Strip any whitespace
+        title = title.lstrip()
+
+        # If we're left with an empty string, we're missing a meaningful title
+        if not title:
+            raise ValidationError("Title is empty, or missing required information.")
+
     @property
     def is_placeholder(self):
         """

@@ -57,7 +57,7 @@ class TestFlaw:
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
-            title="title",
+            title=f"{good_cve_id} kernel: some description",
             description="description",
             impact=FlawImpact.CRITICAL,
             statement="statement",
@@ -155,7 +155,7 @@ class TestFlaw:
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
-            title="title",
+            title="CVE-1970-12345 kernel: some description",
             description="description",
             impact=FlawImpact.CRITICAL,
             statement="statement",
@@ -180,7 +180,7 @@ class TestFlaw:
         flaw1 = Flaw.objects.create_flaw(
             bz_id="12345",
             cwe_id="CWE-1",
-            title="first",
+            title="kernel: some description",
             unembargo_dt=tzdatetime(2000, 1, 1),
             description="description",
             acl_read=acls,
@@ -195,7 +195,7 @@ class TestFlaw:
         assert Flaw.objects.first().meta_attr["bz_id"] == "12345"
         Flaw.objects.create_flaw(
             bz_id="12345",
-            title="second",
+            title="kernel: some other description",
             description="description",
             acl_read=acls,
             acl_write=acls,
@@ -204,7 +204,7 @@ class TestFlaw:
         ).save()
         # no new flaw should be created
         assert Flaw.objects.count() == 1
-        assert Flaw.objects.first().title == "second"
+        assert Flaw.objects.first().title == "kernel: some other description"
 
     def test_multi_affect_tracker(self):
         affect1 = AffectFactory()
@@ -323,7 +323,7 @@ class TestFlaw:
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
-            title="title",
+            title=f"{good_cve_id} kernel: some description",
             description="description",
             impact=FlawImpact.CRITICAL,
             statement="statement",
@@ -354,7 +354,7 @@ class TestFlaw:
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
-            title="title",
+            title="CVE-1970-12345 kernel: some description",
             description="description",
             impact=FlawImpact.CRITICAL,
             statement="statement",
@@ -384,7 +384,7 @@ class TestFlaw:
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
-            title="title",
+            title=f"{good_cve_id} kernel: some description",
             description="description",
             impact=FlawImpact.CRITICAL,
             statement="statement",
@@ -394,11 +394,11 @@ class TestFlaw:
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
 
-        assert not Flaw.objects.fts_search("title")
+        assert not Flaw.objects.fts_search(f"{good_cve_id} kernel: some description")
 
         flaw.save()
 
-        assert Flaw.objects.fts_search("title")
+        assert Flaw.objects.fts_search(f"{good_cve_id} kernel: some description")
 
 
 class TestFlawValidators:
@@ -1377,3 +1377,33 @@ class TestFlawValidators:
                 affect.save()
         else:
             assert affect.save() is None
+
+    @pytest.mark.parametrize(
+        "is_embargoed,title,should_raise",
+        [
+            (True, "EMBARGOED CVE-2022-1234 kernel: some description", False),
+            (
+                True,
+                "EMBARGOED CVE-2022-1234 CVE-2022-1234 ... kernel: some description",
+                False,
+            ),
+            (False, "CVE-2022-1234 kernel: some description", False),
+            (True, "EMBARGOED no-cve: some description", False),
+            (False, "no-cve: some description", False),
+            (False, "CVE-2022-1234 missing-colon with some description", True),
+            (False, "CVE-2022-1234 no-description: ", True),
+        ],
+    )
+    def test_validate_flaw_title(self, is_embargoed, title, should_raise):
+        """
+        Test that flaw has a valid title
+        """
+        flaw = FlawFactory.build(embargoed=is_embargoed, title=title)
+        if should_raise:
+            with pytest.raises(
+                ValidationError,
+                match="Title is.*missing",
+            ):
+                flaw.save()
+        else:
+            assert flaw.save() is None

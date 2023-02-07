@@ -95,7 +95,7 @@ class TestSearch:
         body = response.json()
         assert body["count"] == 1
 
-        flaw.title = "NOMORETITLE"
+        flaw.title = "CVE-2022-1234 kernel: NOTFOUND"
         assert flaw.save() is None
 
         response = auth_client.get(f"{test_api_uri}/flaws?search=title")
@@ -194,7 +194,7 @@ class TestSearch:
         assert body["count"] == 0
 
         FlawFactory(
-            title="title",
+            title="kernel: title",
             description="description",
             summary="summary",
             embargoed=False,

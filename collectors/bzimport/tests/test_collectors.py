@@ -33,7 +33,7 @@ pytestmark = pytest.mark.unit
 class TestBugzillaQuerier:
     def test_remove_testing(self):
         flaw1 = FlawFactory(
-            title="regular flaw", embargoed=False, meta_attr={"bz_id": "321"}
+            title="regular: flaw", embargoed=False, meta_attr={"bz_id": "321"}
         )
         flaw2 = FlawFactory(
             title="testing: flaw", embargoed=False, meta_attr={"bz_id": "123"}
