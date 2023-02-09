@@ -1,0 +1,84 @@
+name: Lint
+on: [push]
+jobs:
+  detect-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: pip install tox==3.24.4
+      - name: Check for secret lekeage
+        run: tox -e secrets
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: pip install tox==3.24.4
+      - name: Check that code is formatted with black
+        run: tox -e black
+  isort:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: pip install tox==3.24.4
+      - name: Check that imports are formatted with isort
+        run: tox -e isort
+  flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: pip install tox==3.24.4
+      - name: Lint codebase with flake8
+        run: tox -e flake8
+  bandit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: pip install tox==3.24.4
+      - name: Scan codebase for security issues
+        run: tox -e bandit
+  migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install required ubuntu packages
+        run: sudo apt install libkrb5-dev build-essential python3-dev libldap2-dev libsasl2-dev libssl-dev
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: pip install tox==3.24.4
+      - name: Ensure Django migrations have been generated
+        run: tox -e migrations
+  schema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install required ubuntu packages
+        run: sudo apt install libkrb5-dev build-essential python3-dev libldap2-dev libsasl2-dev libssl-dev
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: pip install tox==3.24.4
+      - name: Ensure the OpenAPI schema has been generated
+        run: tox -e schema

@@ -1,4 +1,4 @@
-name: PR workflow
+name: Meta checks
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
@@ -9,7 +9,7 @@ jobs:
     name: Linting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: Check existence of CHANGELOG entry
         uses: Zomzog/changelog-checker@v1.3.0
         with:

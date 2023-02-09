@@ -19,7 +19,7 @@ check-reg:
 .PHONY: check-venv
 check-venv:
 	@echo ">Checking local dev venv existence"
-	@[[ -d venv ]] || [[ -f .python-version ]] || { echo "venv not created! Read about make dev-env in DEVELOPMENT.md." ; exit 1 ; }
+	@([[ ! -z "${CI}" ]] && exit 0) || ([[ -d venv ]] || [[ -f .python-version ]] || { echo "venv not created! Read about make dev-env in DEVELOPMENT.md." ; exit 1 ; })
 
 
 #***********************************
@@ -30,7 +30,7 @@ check-venv:
 .PHONY: check-venv-active
 check-venv-active: check-venv
 	@echo ">Checking for active venv"
-	@[[ -z "${VIRTUAL_ENV}" ]] && { echo "venv is not active, if it is active your venv management system has not set the VIRTUAL_ENV environment variable" ; exit 1 ; } || true
+	@([[ ! -z "${CI}" ]] && exit 0) || ([[ ! -z "${VIRTUAL_ENV}" ]] || { echo "venv is not active, if it is active your venv management system has not set the VIRTUAL_ENV environment variable" ; exit 1 ; })
 
 
 #***********************************
