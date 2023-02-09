@@ -33,6 +33,74 @@ from .validators import CVE_RE_STR
 logger = logging.getLogger(__name__)
 
 
+def get_valid_http_methods(cls):
+    """
+    Removes blacklisted and unsafe HTTP methods from a view if necessary.
+
+    Blacklisted HTTP methods can be defined in the django settings, unsafe HTTP
+    methods will be removed if the app is running in read-only mode, by setting
+    the OSIDB_READONLY_MODE env variable to "1".
+
+    :param cls: The ViewSet class from which http_method_names are inherited
+    :return: A list of valid HTTP methods that a ViewSet will accept
+    """
+    base_methods = cls.http_method_names
+    unsafe_methods = (
+        "patch",
+        "post",
+        "put",
+        "delete",
+        "connect",
+        "trace",
+    )
+    valid_methods = []
+    for method in base_methods:
+        if method in settings.BLACKLISTED_HTTP_METHODS:
+            continue
+        if settings.READONLY_MODE and method in unsafe_methods:
+            continue
+        valid_methods.append(method)
+    return valid_methods
+
+
+###################
+# API VIEW MIXINS #
+###################
+
+
+class ModelViewSetMixin(ModelViewSet):
+    # general mixin class defining some common attributes and concepts
+    #
+    # TODO this is not a proper class doc string as it would generate
+    # a ton of unrelated API endpoint descriptions in OpenAPI schema
+
+    http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def perform_save(self, serializer, **kwargs) -> None:
+        """
+        common functionality to perform create and update
+        """
+        serializer.save(**kwargs)
+
+    def perform_create(self, serializer) -> None:
+        """
+        perform create by save
+        """
+        self.perform_save(serializer)
+
+    def perform_update(self, serializer) -> None:
+        """
+        perform update by save
+        """
+        self.perform_save(serializer)
+
+
+#############
+# API VIEWS #
+#############
+
+
 @api_view(["GET"])
 @permission_classes((AllowAny,))
 def healthy(request: Request) -> Response:
@@ -106,36 +174,6 @@ class ManifestView(APIView):
                 packages.append(entry)
 
         return Response({"packages": packages})
-
-
-def get_valid_http_methods(cls):
-    """
-    Removes blacklisted and unsafe HTTP methods from a view if necessary.
-
-    Blacklisted HTTP methods can be defined in the django settings, unsafe HTTP
-    methods will be removed if the app is running in read-only mode, by setting
-    the OSIDB_READONLY_MODE env variable to "1".
-
-    :param cls: The ViewSet class from which http_method_names are inherited
-    :return: A list of valid HTTP methods that a ViewSet will accept
-    """
-    base_methods = cls.http_method_names
-    unsafe_methods = (
-        "patch",
-        "post",
-        "put",
-        "delete",
-        "connect",
-        "trace",
-    )
-    valid_methods = []
-    for method in base_methods:
-        if method in settings.BLACKLISTED_HTTP_METHODS:
-            continue
-        if settings.READONLY_MODE and method in unsafe_methods:
-            continue
-        valid_methods.append(method)
-    return valid_methods
 
 
 # reused below among multiple CRUD methods
