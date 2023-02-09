@@ -443,7 +443,7 @@ class TestGenerateSRTNotes:
         """
         flaw = FlawFactory()
         FlawCommentFactory(flaw=flaw)
-        affect = AffectFactory(flaw=flaw)
+        affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         TrackerFactory(
             affects=[affect],
             external_system_id="PROJECT-1",
@@ -780,7 +780,7 @@ class TestGenerateGroups:
         """
         flaw = FlawFactory(embargoed=False)
         FlawCommentFactory(flaw=flaw)
-        affect = AffectFactory(flaw=flaw)
+        affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         TrackerFactory(affects=[affect], embargoed=flaw.is_embargoed)
         PsModuleFactory(
             name=affect.ps_module,
@@ -803,7 +803,7 @@ class TestGenerateGroups:
         """
         flaw = FlawFactory(embargoed=True)
         FlawCommentFactory(flaw=flaw)
-        affect = AffectFactory(flaw=flaw)
+        affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         TrackerFactory(affects=[affect], embargoed=flaw.is_embargoed)
         PsModuleFactory(
             name=affect.ps_module,
@@ -830,7 +830,7 @@ class TestGenerateGroups:
         """
         flaw = FlawFactory(embargoed=True)
         FlawCommentFactory(flaw=flaw)
-        affect = AffectFactory(flaw=flaw)
+        affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         TrackerFactory(affects=[affect], embargoed=flaw.is_embargoed)
         PsModuleFactory(
             name=affect.ps_module,
@@ -856,7 +856,7 @@ class TestGenerateGroups:
             embargoed=True, meta_attr={"groups": '["private", "qe_staff", "security"]'}
         )
         FlawCommentFactory(flaw=flaw)
-        affect = AffectFactory(flaw=flaw)
+        affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         TrackerFactory(affects=[affect], embargoed=flaw.is_embargoed)
         PsModuleFactory(
             name=affect.ps_module,
@@ -890,7 +890,7 @@ class TestGenerateGroups:
             embargoed=True, meta_attr={"groups": '["private", "qe_staff", "security"]'}
         )
         FlawCommentFactory(flaw=flaw)
-        affect1 = AffectFactory(flaw=flaw)
+        affect1 = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         TrackerFactory(affects=[affect1], embargoed=flaw.is_embargoed)
         PsModuleFactory(
             name=affect1.ps_module,
@@ -905,7 +905,9 @@ class TestGenerateGroups:
         # remove existing affect
         new_flaw.affects.first().delete()
         # and add a newly created affect
-        affect2 = AffectFactory(flaw=new_flaw)
+        affect2 = AffectFactory(
+            flaw=new_flaw, affectedness=Affect.AffectAffectedness.NEW
+        )
         TrackerFactory(affects=[affect2], embargoed=new_flaw.is_embargoed)
         PsModuleFactory(
             name=affect2.ps_module,
