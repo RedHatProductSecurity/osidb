@@ -22,7 +22,7 @@ PROPERTIES_MAP = {
         },
         "components": {
             "default": "default_component",
-            "override": "components_override",
+            "override": "component_overrides",
         },
     }
 }

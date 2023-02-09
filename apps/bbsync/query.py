@@ -4,6 +4,7 @@ from itertools import chain
 from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
 from osidb.models import Flaw, FlawImpact, PsModule
 
+from .cc import CCBuilder
 from .constants import DATE_FMT
 from .srtnotes import SRTNotesBuilder
 
@@ -56,12 +57,10 @@ class BugzillaQueryBuilder:
         self.generate_cc()
         self.generate_srt_notes()
         # TODO tracker links
-        # TODO prestage eligable date - deprecate
-        # TODO checklists
         # TODO fixed_in
         # TODO dupe_of
         # TODO cf_devel_whiteboard
-        # TODO ARRAY_FIELDS_ON_CREATE = ("depends_on", "blocks", "cc", "groups", "keywords")
+        # TODO ARRAY_FIELDS_ON_CREATE = ("depends_on", "blocks")
         # TODO auto-requires doc text on create
 
     def generate_base(self):
@@ -249,10 +248,17 @@ class BugzillaQueryBuilder:
         """
         generate query for CC list
         """
-        # TODO now just empty CC list on creation
-        # on update it is more complicated
+        cc_builder = CCBuilder(self.flaw, self.old_flaw)
+        add_cc, remove_cc = cc_builder.content
+
         if self.creation:
-            self._query["cc"] = []
+            self._query["cc"] = add_cc
+
+        else:
+            self._query["cc"] = {
+                "add": add_cc,
+                "remove": remove_cc,
+            }
 
     def generate_srt_notes(self):
         """
