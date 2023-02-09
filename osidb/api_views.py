@@ -403,15 +403,21 @@ class AffectView(ModelViewSet):
         acls = generate_acls(self.request.user.groups.all())
         serializer.save(acl_read=acls, acl_write=acls)
 
-
-class TrackerView(ModelViewSet):
+class TrackerView(ModelViewSetMixin):
     queryset = Tracker.objects.all()
     serializer_class = TrackerSerializer
     filterset_class = TrackerFilter
-    http_method_names = get_valid_http_methods(ModelViewSet)
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def perform_create(self, serializer):
-        # NOTE: this is incorrect, but will be fixed properly later
-        acls = generate_acls(self.request.user.groups.all())
-        serializer.save(acl_read=acls, acl_write=acls)
+    def perform_save(self, *args, **kwargs) -> None:
+        """
+        this is not yet implemented in OSIDB - no sync to backends
+        """
+        raise NotImplementedError(
+            "Tracker write operations are not yet supported in OSIDB"
+        )
+
+    def destroy(self, *args, **kwargs):
+        """
+        just redirect
+        """
+        self.perform_save()
