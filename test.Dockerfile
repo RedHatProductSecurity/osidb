@@ -1,4 +1,4 @@
-FROM quay.io/fedora/fedora:34
+FROM registry.access.redhat.com/ubi8/ubi:8.7
 
 LABEL summary="OSIDB testrunner" \
       maintainer="Product Security DevOps <prodsec-dev@redhat.com>"
@@ -28,9 +28,9 @@ RUN dnf --nodocs --setopt install_weak_deps=false -y install \
         make \
         openldap-devel \
         openssl-devel \
-        pip \
-        python3-devel \
-        python3-tox \
+        python39-devel \
+        python39-pip \
+        python39-wheel \
         redhat-rpm-config \
         which \
     && dnf --nodocs --setopt install_weak_deps=false -y upgrade --security \
