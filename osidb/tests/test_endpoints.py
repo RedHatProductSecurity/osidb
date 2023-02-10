@@ -1052,8 +1052,12 @@ class TestEndpoints(object):
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "acl_read": ["data-prodsec"],
+            "acl_write": ["data-prodsec"],
         }
-        response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        response = auth_client.post(
+            f"{test_api_uri}/flaws?bz_api_key=SECRET", flaw_data, format="json"
+        )
         assert response.status_code == 201
         body = response.json()
         created_uuid = body["uuid"]
@@ -1077,8 +1081,12 @@ class TestEndpoints(object):
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "acl_read": ["data-prodsec"],
+            "acl_write": ["data-prodsec"],
         }
-        response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        response = auth_client.post(
+            f"{test_api_uri}/flaws?bz_api_key=SECRET", flaw_data, format="json"
+        )
         assert response.status_code == 201
         body = response.json()
         created_uuid = body["uuid"]
@@ -1089,7 +1097,9 @@ class TestEndpoints(object):
 
         # let's try creating another one without cve_id to make sure the
         # unique=True constraint doesn't jump (I don't trust django)
-        response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        response = auth_client.post(
+            f"{test_api_uri}/flaws?bz_api_key=SECRET", flaw_data, format="json"
+        )
         assert response.status_code == 201
         body = response.json()
         new_uuid = body["uuid"]
@@ -1105,14 +1115,14 @@ class TestEndpoints(object):
         """
         Test that updating a Flaw by sending a PUT request works.
         """
-        flaw = FlawFactory()
+        flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
         original_body = response.json()
 
         response = auth_client.put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
+            f"{test_api_uri}/flaws/{flaw.uuid}?bz_api_key=SECRET",
             {
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
@@ -1122,9 +1132,10 @@ class TestEndpoints(object):
                 "state": flaw.state,
                 "resolution": flaw.resolution,
                 "impact": flaw.impact,
-                "acl_read": flaw.acl_read,
-                "acl_write": flaw.acl_write,
+                "acl_read": ["data-prodsec"],
+                "acl_write": ["data-prodsec"],
             },
+            format="json",
         )
         assert response.status_code == 200
         body = response.json()
@@ -1208,16 +1219,18 @@ class TestEndpoints(object):
         """
         Test the creation of Affect records via a REST API POST request.
         """
-        flaw = FlawFactory()
+        flaw = FlawFactory(embargoed=False)
         affect_data = {
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,
             "resolution": Affect.AffectResolution.NOVALUE,
             "ps_module": "rhacm-2",
             "ps_component": "curl",
+            "acl_read": ["data-prodsec"],
+            "acl_write": ["data-prodsec"],
         }
         response = auth_client.post(
-            f"{test_api_uri}/affects", affect_data, format="json"
+            f"{test_api_uri}/affects?bz_api_key=SECRET", affect_data, format="json"
         )
         assert response.status_code == 201
         body = response.json()
@@ -1236,9 +1249,11 @@ class TestEndpoints(object):
         response = auth_client.get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
         original_body = response.json()
+        original_body["acl_read"] = ["data-prodsec"]
+        original_body["acl_write"] = ["data-prodsec"]
 
         response = auth_client.put(
-            f"{test_api_uri}/affects/{affect.uuid}",
+            f"{test_api_uri}/affects/{affect.uuid}?bz_api_key=SECRET",
             {
                 **original_body,
                 "ps_module": f"different {affect.ps_module}",
@@ -1275,9 +1290,7 @@ class TestEndpoints(object):
             "resolution": "bar",
         }
         with pytest.raises(NotImplementedError) as e:
-            auth_client.post(
-                f"{test_api_uri}/trackers", tracker_data, format="json"
-            )
+            auth_client.post(f"{test_api_uri}/trackers", tracker_data, format="json")
         assert "Tracker write operations are not yet supported in OSIDB" in str(e)
 
         # TODO tacker write operations are not yet implemented
@@ -1337,3 +1350,236 @@ class TestEndpoints(object):
 
         # response = auth_client.get(tracker_url)
         # assert response.status_code == 404
+
+
+class TestEndpointValidations:
+    """
+    this set of test cases contains only the negative scenarios
+    the possitive once are already being tested in TestEndpoints
+    """
+
+    def test_flaw_create_no_bz_api_key(self, auth_client, test_api_uri):
+        """
+        test that creating a Flaw is rejected when no Bugzilla API key is provided
+        """
+        flaw_data = {
+            "cve_id": "CVE-2021-0666",
+            "cwe_id": "CWE-1",
+            "title": "Foo",
+            "type": "VULNERABILITY",
+            "state": "NEW",
+            "impact": "CRITICAL",
+            "description": "test",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "acl_read": ["data-prodsec"],
+            "acl_write": ["data-prodsec"],
+        }
+        response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        assert response.status_code == 400
+        assert (
+            response.context.dicts[1]["exception_value"]
+            == "Mandatory query parameter missing: bz_api_key"
+        )
+
+    def test_flaw_create_no_acl_read(self, auth_client, test_api_uri):
+        """
+        test that creating a Flaw is rejected when no read ACL is provided
+        """
+        flaw_data = {
+            "cve_id": "CVE-2021-0666",
+            "cwe_id": "CWE-1",
+            "title": "Foo",
+            "type": "VULNERABILITY",
+            "state": "NEW",
+            "impact": "CRITICAL",
+            "description": "test",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "acl_write": ["data-prodsec"],
+        }
+        response = auth_client.post(
+            f"{test_api_uri}/flaws?bz_api_key=SECRET", flaw_data, format="json"
+        )
+        assert response.status_code == 400
+        assert (
+            response.context.dicts[1]["exception_value"]
+            == "Mandatory data attribute missing: acl_read"
+        )
+
+    def test_flaw_create_no_acl_write(self, auth_client, test_api_uri):
+        """
+        test that creating a Flaw is rejected when no write ACL is provided
+        """
+        flaw_data = {
+            "cve_id": "CVE-2021-0666",
+            "cwe_id": "CWE-1",
+            "title": "Foo",
+            "type": "VULNERABILITY",
+            "state": "NEW",
+            "impact": "CRITICAL",
+            "description": "test",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "acl_read": ["data-prodsec"],
+        }
+        response = auth_client.post(
+            f"{test_api_uri}/flaws?bz_api_key=SECRET", flaw_data, format="json"
+        )
+        assert response.status_code == 400
+        assert (
+            response.context.dicts[1]["exception_value"]
+            == "Mandatory data attribute missing: acl_write"
+        )
+
+    def test_flaw_create_not_member(self, auth_client, test_api_uri):
+        """
+        test that creating a Flaw is rejected when the ACL contains a group the user is not a member of
+        """
+        flaw_data = {
+            "cve_id": "CVE-2021-0666",
+            "cwe_id": "CWE-1",
+            "title": "Foo",
+            "type": "VULNERABILITY",
+            "state": "NEW",
+            "impact": "CRITICAL",
+            "description": "test",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "acl_read": ["data-prodsec", "extra-group"],
+            "acl_write": ["data-prodsec"],
+        }
+        response = auth_client.post(
+            f"{test_api_uri}/flaws?bz_api_key=SECRET", flaw_data, format="json"
+        )
+        assert response.status_code == 400
+        assert (
+            response.context.dicts[1]["exception_value"]
+            == "Cannot provide access for the LDAP group without being a member: extra-group"
+        )
+
+    def test_flaw_update_no_bz_api_key(self, auth_client, test_api_uri):
+        """
+        test that updating a Flaw is rejected when no Bugzilla API key is provided
+        """
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw)
+        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+
+        response = auth_client.put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            {
+                "uuid": flaw.uuid,
+                "cve_id": flaw.cve_id,
+                "type": flaw.type,
+                "title": f"{flaw.title} appended test title",
+                "description": flaw.description,
+                "state": flaw.state,
+                "resolution": flaw.resolution,
+                "impact": flaw.impact,
+                "acl_read": ["data-prodsec"],
+                "acl_write": ["data-prodsec"],
+            },
+            format="json",
+        )
+        assert response.status_code == 400
+        assert (
+            response.context.dicts[1]["exception_value"]
+            == "Mandatory query parameter missing: bz_api_key"
+        )
+
+    def test_flaw_update_no_acl_read(self, auth_client, test_api_uri):
+        """
+        test that updating a Flaw is rejected when no read ACL is provided
+        """
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw)
+        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+
+        response = auth_client.put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            {
+                "uuid": flaw.uuid,
+                "cve_id": flaw.cve_id,
+                "type": flaw.type,
+                "title": f"{flaw.title} appended test title",
+                "description": flaw.description,
+                "state": flaw.state,
+                "resolution": flaw.resolution,
+                "impact": flaw.impact,
+                "acl_write": ["data-prodsec"],
+            },
+            format="json",
+        )
+        assert response.status_code == 400
+        assert (
+            response.context.dicts[1]["exception_value"]
+            == "Mandatory data attribute missing: acl_read"
+        )
+
+    def test_flaw_update_no_acl_write(self, auth_client, test_api_uri):
+        """
+        test that updating a Flaw is rejected when no write ACL is provided
+        """
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw)
+        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+
+        response = auth_client.put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            {
+                "uuid": flaw.uuid,
+                "cve_id": flaw.cve_id,
+                "type": flaw.type,
+                "title": f"{flaw.title} appended test title",
+                "description": flaw.description,
+                "state": flaw.state,
+                "resolution": flaw.resolution,
+                "impact": flaw.impact,
+                "acl_read": ["data-prodsec"],
+            },
+            format="json",
+        )
+        assert response.status_code == 400
+        assert (
+            response.context.dicts[1]["exception_value"]
+            == "Mandatory data attribute missing: acl_write"
+        )
+
+    def test_flaw_update_not_member(self, auth_client, test_api_uri):
+        """
+        test that updating a Flaw is rejected when the ACL contains a group the user is not a member of
+        """
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw)
+        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+
+        response = auth_client.put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            {
+                "uuid": flaw.uuid,
+                "cve_id": flaw.cve_id,
+                "type": flaw.type,
+                "title": f"{flaw.title} appended test title",
+                "description": flaw.description,
+                "state": flaw.state,
+                "resolution": flaw.resolution,
+                "impact": flaw.impact,
+                "acl_read": ["data-prodsec"],
+                "acl_write": ["data-prodsec", "extra-group"],
+            },
+            format="json",
+        )
+        assert response.status_code == 400
+        assert (
+            response.context.dicts[1]["exception_value"]
+            == "Cannot provide access for the LDAP group without being a member: extra-group"
+        )

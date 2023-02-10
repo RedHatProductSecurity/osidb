@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 
 import pkg_resources
 from django.conf import settings
+from django.core.exceptions import BadRequest
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
@@ -94,6 +95,123 @@ class ModelViewSetMixin(ModelViewSet):
         perform update by save
         """
         self.perform_save(serializer)
+
+
+class ValidateModelViewSetMixin(ModelViewSetMixin):
+    # mixin class defining mechanism of API validations
+    # which are unlike model validations tied to query itself
+    #
+    # TODO this is not a proper class doc string as it would generate
+    # a ton of unrelated API endpoint descriptions in OpenAPI schema
+
+    _mandatory_attrs = None
+    _mandatory_params = None
+
+    def _validate_mandatory_attrs(self):
+        """
+        validate that all mandatory data attributes were provided
+        """
+        if self._mandatory_attrs is None:
+            return
+
+        for attr in self._mandatory_attrs:
+            if self.request.data.get(attr) is None:
+                raise BadRequest(f"Mandatory data attribute missing: {attr}")
+
+    def _validate_mandatory_params(self):
+        """
+        validate that all mandatory query params were provided
+        """
+        if self._mandatory_params is None:
+            return
+
+        for param in self._mandatory_params:
+            if self.request.query_params.get(param) is None:
+                raise BadRequest(f"Mandatory query parameter missing: {param}")
+
+    def validate(self) -> None:
+        """
+        validate query
+        raises BadRequest
+        """
+        for validation_name in [
+            item for item in dir(self) if item.startswith("_validate_")
+        ]:
+            # run every defined validation
+            getattr(self, validation_name)()
+
+    def create(self, request, *args, **kwargs) -> Response:
+        """
+        create model instance if valid
+        """
+        self.validate()
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs) -> Response:
+        """
+        update model instance if valid
+        """
+        self.validate()
+        return super().update(request, *args, **kwargs)
+
+
+class ACLModelViewSet(ValidateModelViewSetMixin):
+    # model view class for entities with LDAP based ACLs
+    #
+    # TODO this is not a proper class doc string as it would generate
+    # a ton of unrelated API endpoint descriptions in OpenAPI schema
+
+    # ALCs are nothing we can be just guessing or setting to a default value but we
+    # want a complete information from the user on what visibility/access to set
+    _mandatory_attrs = ["acl_read", "acl_write"]
+
+    def _validate_acl_member(self):
+        """
+        validate that the current user is member of all LDAP groups (s)he provides
+        with the access so there is no access expansion beyond the user permissions
+        """
+        acl_read = self.request.data.get("acl_read")
+        acl_write = self.request.data.get("acl_write")
+
+        # existence check is out of scope
+        if not acl_read or not acl_write:
+            return
+
+        acls = [group.name for group in self.request.user.groups.all()]
+        for acl in acl_read + acl_write:
+            # this is a temporary safeguard with a very simple philosophy that one cannot
+            # give access to something (s)he does not have access to but possibly in the future
+            # we will want some more clever handling like ProdSec can grant anything etc.
+            if acl not in acls:
+                raise BadRequest(
+                    f"Cannot provide access for the LDAP group without being a member: {acl}"
+                )
+
+    def perform_save(self, serializer, **kwargs):
+        """
+        enrich the save parameters with the pre-processed ACLs
+        """
+        super().perform_save(
+            serializer,
+            # in the outer we use human-readable LDAP groups names but
+            # inside we use the ACL hashes which are actually stored in DB
+            acl_read=generate_acls(self.request.data["acl_read"]),
+            acl_write=generate_acls(self.request.data["acl_write"]),
+            **kwargs,
+        )
+
+
+class BugzillaModelViewSet(ACLModelViewSet):
+    # model view class for entities which Bugzilla is the authoritative source of
+    # because their handling has some specific common requirements or restrictions
+    #
+    # TODO this is not a proper class doc string as it would generate
+    # a ton of unrelated API endpoint descriptions in OpenAPI schema
+
+    # extend the mandatory parameters with the Bugzilla API key
+    # which is required to keep the Bugzilla audit log correct
+    # as the change is done by the user and not the service
+    _mandatory_params = ["bz_api_key"]
 
 
 #############
@@ -313,19 +431,42 @@ id_param = OpenApiParameter(
         responses=FlawSerializer,
         parameters=[id_param],
     ),
+    create=extend_schema(
+        responses=FlawSerializer,
+        parameters=[
+            OpenApiParameter(
+                "bz_api_key",
+                type={"type": "string"},
+                location=OpenApiParameter.QUERY,
+                required=True,
+                description=(
+                    "Bugzilla API key of the account performing the operation"
+                ),
+            ),
+        ],
+    ),
     update=extend_schema(
         responses=FlawSerializer,
-        parameters=[id_param],
+        parameters=[
+            id_param,
+            OpenApiParameter(
+                "bz_api_key",
+                type={"type": "string"},
+                location=OpenApiParameter.QUERY,
+                required=True,
+                description=(
+                    "Bugzilla API key of the account performing the operation"
+                ),
+            ),
+        ],
     ),
 )
-class FlawView(ModelViewSet):
+class FlawView(BugzillaModelViewSet):
     queryset = Flaw.objects.all()
     serializer_class = FlawSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = FlawFilter
     lookup_url_kwarg = "id"
-    http_method_names = get_valid_http_methods(ModelViewSet)
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_object(self):
         # from https://www.django-rest-framework.org/api-guide/generic-views/#methods
@@ -347,11 +488,6 @@ class FlawView(ModelViewSet):
         }
         response["Location"] = f"/api/{OSIDB_API_VERSION}/flaws/{response.data['uuid']}"
         return response
-
-    def perform_create(self, serializer):
-        # NOTE: this is incorrect, but will be fixed properly later
-        acls = generate_acls(self.request.user.groups.all())
-        serializer.save(acl_read=acls, acl_write=acls)
 
     def destroy(self, *args, **kwargs):
         # TODO in Bugzilla it is not possible to delete an already existing flaw
@@ -391,17 +527,41 @@ def whoami(request: Request) -> Response:
     return Response(UserSerializer(request.user).data)
 
 
-class AffectView(ModelViewSet):
+@extend_schema_view(
+    create=extend_schema(
+        responses=AffectSerializer,
+        parameters=[
+            OpenApiParameter(
+                "bz_api_key",
+                type={"type": "string"},
+                location=OpenApiParameter.QUERY,
+                required=True,
+                description=(
+                    "Bugzilla API key of the account performing the operation"
+                ),
+            ),
+        ],
+    ),
+    update=extend_schema(
+        responses=AffectSerializer,
+        parameters=[
+            OpenApiParameter(
+                "bz_api_key",
+                type={"type": "string"},
+                location=OpenApiParameter.QUERY,
+                required=True,
+                description=(
+                    "Bugzilla API key of the account performing the operation"
+                ),
+            ),
+        ],
+    ),
+)
+class AffectView(BugzillaModelViewSet):
     queryset = Affect.objects.all()
     serializer_class = AffectSerializer
     filterset_class = AffectFilter
-    http_method_names = get_valid_http_methods(ModelViewSet)
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def perform_create(self, serializer):
-        # NOTE: this is incorrect, but will be fixed properly later
-        acls = generate_acls(self.request.user.groups.all())
-        serializer.save(acl_read=acls, acl_write=acls)
 
 class TrackerView(ModelViewSetMixin):
     queryset = Tracker.objects.all()
@@ -418,6 +578,6 @@ class TrackerView(ModelViewSetMixin):
 
     def destroy(self, *args, **kwargs):
         """
-        just redirect
+        delete operation is temporarily restricted
         """
         self.perform_save()

@@ -701,6 +701,14 @@ paths:
           description: ''
     post:
       operationId: osidb_api_v1_affects_create
+      description: create model instance if valid
+      parameters:
+      - in: query
+        name: bz_api_key
+        schema:
+          type: string
+        description: Bugzilla API key of the account performing the operation
+        required: true
       tags:
       - osidb
       requestBody:
@@ -773,7 +781,14 @@ paths:
           description: ''
     put:
       operationId: osidb_api_v1_affects_update
+      description: update model instance if valid
       parameters:
+      - in: query
+        name: bz_api_key
+        schema:
+          type: string
+        description: Bugzilla API key of the account performing the operation
+        required: true
       - in: path
         name: uuid
         schema:
@@ -1172,6 +1187,14 @@ paths:
           description: ''
     post:
       operationId: osidb_api_v1_flaws_create
+      description: create model instance if valid
+      parameters:
+      - in: query
+        name: bz_api_key
+        schema:
+          type: string
+        description: Bugzilla API key of the account performing the operation
+        required: true
       tags:
       - osidb
       requestBody:
@@ -1291,7 +1314,14 @@ paths:
           description: ''
     put:
       operationId: osidb_api_v1_flaws_update
+      description: update model instance if valid
       parameters:
+      - in: query
+        name: bz_api_key
+        schema:
+          type: string
+        description: Bugzilla API key of the account performing the operation
+        required: true
       - in: path
         name: id
         schema:
@@ -1764,6 +1794,7 @@ paths:
           description: ''
     delete:
       operationId: osidb_api_v1_trackers_destroy
+      description: delete operation is temporarily restricted
       parameters:
       - in: path
         name: uuid
@@ -2095,6 +2126,10 @@ components:
               type: string
             resolution:
               type: string
+            acl_read:
+              type: string
+            acl_write:
+              type: string
           readOnly: true
         delegated_resolution:
           type: string
@@ -2395,6 +2430,10 @@ components:
             statement:
               type: string
             task_owner:
+              type: string
+            acl_read:
+              type: string
+            acl_write:
               type: string
           readOnly: true
         package_versions:

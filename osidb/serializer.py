@@ -339,8 +339,8 @@ class AffectSerializer(
         "ps_component",
         "ps_module",
         "resolution",
-        # Internal data
-        # "acl_labels",
+        "acl_read",
+        "acl_write",
     )
 
     trackers = serializers.SerializerMethodField()
@@ -468,8 +468,9 @@ class FlawSerializer(
         "source",
         "statement",
         "task_owner",
+        "acl_read",
+        "acl_write",
         # Internal data
-        # "acl_labels",
         # "bz_trace",
         # "bzimport_last_imported_dt",
         # "bzimport_last_job_uuid",
