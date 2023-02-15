@@ -713,7 +713,7 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
         """
         if self.is_embargoed and "EMBARGOED" not in self.title:
             raise ValidationError(
-                'Flaw title does not contains "EMBARGOED" despite being embargoed.'
+                'Flaw title does not contain "EMBARGOED" despite being embargoed.'
             )
 
     def _validate_embargoing_public_flaw(self):
@@ -829,6 +829,32 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
                 f"Module {affected.ps_module} of component "
                 f"{affected.ps_component} is affected by a flaw solved as NOTABUG.",
             )
+
+    def _validate_special_handling_modules(self):
+        """
+        Alerts in case flaw affects a special handling module
+        but miss summary or statement
+        """
+        if self.statement and self.summary:
+            return
+
+        affected_modules = self.affects.values_list("ps_module")
+        special_modules = PsModule.objects.filter(
+            special_handling_features__isnull=False, name__in=affected_modules
+        )
+        if special_modules.exists():
+            if not self.summary:
+                self.alert(
+                    "special_handling_flaw_missing_summary",
+                    f"Affected modules ({','.join(special_modules.values_list('name', flat=True))}) "
+                    "are marked as special handling but flaw does not contain summary.",
+                )
+            if not self.statement:
+                self.alert(
+                    "special_handling_flaw_missing_statement",
+                    f"Affected modules ({','.join(special_modules.values_list('name', flat=True))}) "
+                    "are marked as special handling but flaw does not contain statement.",
+                )
 
     @property
     def is_placeholder(self):
@@ -1237,6 +1263,31 @@ class Affect(
             raise ValidationError(
                 "wontreport can only be associated with low or moderate severity"
             )
+
+    def _validate_special_handling_modules(self):
+        """
+        Alerts in case flaw affects a special handling module
+        but miss summary or statement
+        """
+        if not self.flaw or self.flaw.statement and self.flaw.summary:
+            return
+
+        special_module = PsModule.objects.filter(
+            special_handling_features__isnull=False, name=self.ps_module
+        )
+        if special_module.exists():
+            if not self.flaw.summary:
+                self.flaw.alert(
+                    "special_handling_flaw_missing_summary",
+                    f"Affected module ({special_module.first().name}) "
+                    "are marked as special handling but flaw does not contain summary.",
+                )
+            if not self.flaw.statement:
+                self.flaw.alert(
+                    "special_handling_flaw_missing_statement",
+                    f"Affected module ({special_module.first().name}) "
+                    "are marked as special handling but flaw does not contain statement.",
+                )
 
 
 class TrackerManager(ACLMixinManager):

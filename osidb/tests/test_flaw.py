@@ -928,7 +928,7 @@ class TestFlawValidators:
             with pytest.raises(ValidationError) as e:
                 FlawFactory(embargoed=True, title=title)
             assert (
-                'Flaw title does not contains "EMBARGOED" despite being embargoed.'
+                'Flaw title does not contain "EMBARGOED" despite being embargoed.'
                 in str(e)
             )
         else:
@@ -1480,3 +1480,35 @@ class TestFlawValidators:
                 entity.save()
         else:
             assert entity.save() is None
+
+    def test_special_handling_modules(self):
+        """
+        Test that flaw affecting special handling modules raise
+        alerts if missing statement or summary
+        """
+        PsModuleFactory(
+            special_handling_features=["special-feature"], name="test-special-feature"
+        )
+
+        # Test that none of the models will raise alerts
+        flaw1 = FlawFactory(statement="statement", summary="summary")
+        AffectFactory(flaw=flaw1, ps_module="test-special-feature")
+        flaw1.save()
+
+        assert "special_handling_flaw_missing_summary" not in flaw1._alerts
+        assert "special_handling_flaw_missing_statement" not in flaw1._alerts
+
+        # Test from Flaw validation perspective
+        flaw1.summary = ""
+        flaw1.statement = ""
+        flaw1.save()
+
+        assert "special_handling_flaw_missing_summary" in flaw1._alerts
+        assert "special_handling_flaw_missing_statement" in flaw1._alerts
+
+        # Test from Affect validation perspective
+        flaw2 = FlawFactory(statement="", summary="")
+        AffectFactory(flaw=flaw2, ps_module="test-special-feature")
+
+        assert "special_handling_flaw_missing_summary" in flaw2._alerts
+        assert "special_handling_flaw_missing_statement" in flaw2._alerts
