@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement validation for affects marked as WONTFIX or NOTAFFECTED with open trackers (OSIDB-364)
 - Implement validation for affected special handled modules without summary or statement (OSIDB-328)
 - Implement validation for flaws with private source without ACK (OSIDB-339)
+- Implement validation for unknown component (OSIDB-355)
 
 ### Changed
 - Change logging of celery and django to filesystem (OSIDB-418)
