@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement validation for unknown component (OSIDB-355)
 - Implement temporary NVD collector (OSIDB-632)
 - Implement Exploits report data API endpoint (PSINSIGHTS-764)
+- Implement ACL validations (OSIDB-691)
 
 ### Changed
 - Change logging of celery and django to filesystem (OSIDB-418)

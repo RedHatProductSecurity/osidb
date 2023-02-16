@@ -2,11 +2,13 @@ import uuid
 from datetime import datetime
 
 import pytest
+from django.conf import settings
 from django.utils import timezone
 from freezegun import freeze_time
 
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.collectors import BugzillaQuerier, MetadataCollector
+from osidb.core import generate_acls
 from osidb.models import (
     Affect,
     CVEv5PackageVersions,
@@ -149,8 +151,13 @@ class TestBZImportCollector:
             type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT
         ).first()
         old_acls = doctext_meta.acl_read + doctext_meta.acl_write
-        doctext_meta.acl_read = [uuid.uuid4(), uuid.uuid4()]
-        doctext_meta.acl_write = [uuid.uuid4(), uuid.uuid4()]
+        # make metadata embargoed so we change to a valid ACL combination
+        doctext_meta.acl_read = [
+            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+        ]
+        doctext_meta.acl_write = [
+            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_WRITE_GROUP])
+        ]
         new_acls = doctext_meta.acl_read + doctext_meta.acl_write
         doctext_meta.save()
 

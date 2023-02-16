@@ -1,5 +1,6 @@
 import uuid
 from enum import Enum
+from functools import cached_property
 
 from django.conf import settings
 from django.contrib.postgres import fields
@@ -229,15 +230,189 @@ class ACLMixinManager(models.Manager):
 
 
 class ACLMixin(models.Model):
+    """
+    mixin for models requiring access controls
+    defining necessary attributes and validations
+    """
+
     objects = ACLMixinManager()
     acl_read = fields.ArrayField(models.UUIDField(), default=list)
     acl_write = fields.ArrayField(models.UUIDField(), default=list)
+
+    # to be able to meaningfully print the ACL related alerts
+    # we have to keep the mapping from the hashes to names
+    acl_group_map = {}
+
+    def __init__(self, *args, **kwargs):
+        """
+        init the ACLs and the group mapping
+        """
+        super().__init__(*args, **kwargs)
+        # requesting all the ACLs performs the init
+        # caching the ACLs and building the group map
+        self.acls_all
 
     @property
     def is_embargoed(self):
         return self.acl_read == [
             uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
         ]
+
+    def acl2group(self, acl):
+        """
+        transform back to human readable group name or
+        return the ACL to be printed itself if no group name
+        """
+        return self.acl_group_map.get(acl, acl)
+
+    def group2acl(self, group):
+        """
+        transform group name to ACL record
+        """
+        acl = uuid.UUID(generate_acls([group])[0])
+        # store for printing
+        self.acl_group_map[acl] = group
+        return acl
+
+    @cached_property
+    def acls_public_read(self):
+        """
+        get set of public read ACLs
+        """
+        return {self.group2acl(group) for group in settings.PUBLIC_READ_GROUPS}
+
+    @cached_property
+    def acls_public_write(self):
+        """
+        get set of public write ACLs
+        """
+        return {self.group2acl(settings.PUBLIC_WRITE_GROUP)}
+
+    @cached_property
+    def acls_embargo_read(self):
+        """
+        get set of embargo read ACLs
+        """
+        return {self.group2acl(settings.EMBARGO_READ_GROUP)}
+
+    @cached_property
+    def acls_embargo_write(self):
+        """
+        get set of embargo write ACLs
+        """
+        return {self.group2acl(settings.EMBARGO_WRITE_GROUP)}
+
+    @cached_property
+    def acls_read(self):
+        """
+        get set of read ACLs
+        """
+        return self.acls_public_read | self.acls_embargo_read
+
+    @cached_property
+    def acls_write(self):
+        """
+        get set of write ACLs
+        """
+        return self.acls_public_write | self.acls_embargo_write
+
+    @cached_property
+    def acls_public(self):
+        """
+        get set of public ACLs
+        """
+        return self.acls_public_read | self.acls_public_write
+
+    @cached_property
+    def acls_embargo(self):
+        """
+        get set of embargo ACLs
+        """
+        return self.acls_embargo_read | self.acls_embargo_write
+
+    @cached_property
+    def acls_all(self):
+        """
+        get set of all ACLs
+        """
+        return self.acls_read | self.acls_write
+
+    def _validate_acls_known(self):
+        """
+        check that all the ACLs are known
+        """
+        for acl in self.acl_read + self.acl_write:
+            if acl not in self.acls_all:
+                groups = ", ".join([self.acl2group(acl) for acl in self.acls_all])
+                raise ValidationError(
+                    # here the printing of the actual group is problematic
+                    # as it is already a hash so we at least print all known
+                    f"Unknown ACL group given - known are: {groups}"
+                )
+
+    def _validate_acl_read_meaningful(self):
+        """
+        validate that the read ACL is set meaninfully in a way that it contains read groups only
+        """
+        for acl in self.acl_read:
+            if acl not in self.acls_read:
+                raise ValidationError(
+                    f"Read ACL contains non-read ACL group: {self.acl2group(acl)}"
+                )
+
+    def _validate_acl_write_meaningful(self):
+        """
+        validate that the write ACL is set meaninfully in a way that it contains write groups only
+        """
+        for acl in self.acl_write:
+            if acl not in self.acls_write:
+                raise ValidationError(
+                    f"Write ACL contains non-write ACL group: {self.acl2group(acl)}"
+                )
+
+    def _validate_acl_expected(self):
+        """
+        validate that the ACLs corresponds to Bugzilla groups as there
+        is no other access granularity (CC lists are differnt concept)
+
+        it is either public or embargoed and nothing else
+        """
+        # we do not have to check the ACL emptyness
+        # as it is enforced by the model definition
+        # so Django throws ValidationError itself
+
+        if self.is_embargoed:
+            # here we do not have to check the read ACL as the definition
+            # of is_embargoed ensures it has the proper ACL groups
+            for acl in self.acl_write:
+                if acl not in self.acls_embargo:
+                    raise ValidationError(
+                        f"Unexpected ACL group in embargoed ACLs: {self.acl2group(acl)}"
+                    )
+
+        else:
+            for acl in self.acl_read + self.acl_write:
+                if acl not in self.acls_public:
+                    raise ValidationError(
+                        f"Unexpected ACL group in non-embargoed ACLs: {self.acl2group(acl)}"
+                    )
+
+    # in Bugzilla or Jira world there is no read|write granularity and
+    # we are still no authoritative source of data so we have to respect
+    # that the mapping from non-identical read|write is undefined
+    #
+    # however we do not have to additionally validate it as it is
+    # a conclusion of being non-empty with only known meaningful
+    # groups and both ACLs either public or embargoed
+
+    def _validate_acl_duplicite(self):
+        """
+        validate that the ACLs do not contain duplicite groups
+        """
+        if len(self.acl_read + self.acl_write) != len(
+            set(self.acl_read + self.acl_write)
+        ):
+            raise ValidationError("ACLs must not contain duplicit ACL groups")
 
     class Meta:
         abstract = True

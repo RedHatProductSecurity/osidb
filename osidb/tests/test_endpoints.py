@@ -1052,6 +1052,8 @@ class TestEndpoints(object):
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "acl_read": ["data-prodsec"],
+            "acl_write": ["data-prodsec-write"],
         }
         response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
         assert response.status_code == 201
@@ -1077,6 +1079,8 @@ class TestEndpoints(object):
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "acl_read": ["data-prodsec"],
+            "acl_write": ["data-prodsec-write"],
         }
         response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
         assert response.status_code == 201
@@ -1105,7 +1109,7 @@ class TestEndpoints(object):
         """
         Test that updating a Flaw by sending a PUT request works.
         """
-        flaw = FlawFactory()
+        flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
@@ -1122,8 +1126,8 @@ class TestEndpoints(object):
                 "state": flaw.state,
                 "resolution": flaw.resolution,
                 "impact": flaw.impact,
-                "acl_read": flaw.acl_read,
-                "acl_write": flaw.acl_write,
+                "acl_read": ["data-prodsec"],
+                "acl_write": ["data-prodsec-write"],
             },
         )
         assert response.status_code == 200
@@ -1210,6 +1214,8 @@ class TestEndpoints(object):
             "resolution": Affect.AffectResolution.NOVALUE,
             "ps_module": "rhacm-2",
             "ps_component": "curl",
+            "acl_read": ["data-prodsec"],
+            "acl_write": ["data-prodsec-write"],
         }
         response = auth_client.post(
             f"{test_api_uri}/affects", affect_data, format="json"
@@ -1231,6 +1237,8 @@ class TestEndpoints(object):
         response = auth_client.get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
         original_body = response.json()
+        original_body["acl_read"] = ["data-prodsec"]
+        original_body["acl_write"] = ["data-prodsec-write"]
 
         response = auth_client.put(
             f"{test_api_uri}/affects/{affect.uuid}",

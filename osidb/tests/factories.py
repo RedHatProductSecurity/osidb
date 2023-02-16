@@ -25,9 +25,13 @@ from osidb.models import (
     VersionStatus,
 )
 
-DATA_PRODSEC_ACL = uuid.uuid5(
+DATA_PRODSEC_ACL_READ = uuid.uuid5(
     uuid.NAMESPACE_URL,
     "https://osidb.prod.redhat.com/ns/acls#data-prodsec",
+)
+DATA_PRODSEC_ACL_WRITE = uuid.uuid5(
+    uuid.NAMESPACE_URL,
+    "https://osidb.prod.redhat.com/ns/acls#data-prodsec-write",
 )
 
 
@@ -178,8 +182,8 @@ class AffectFactory(factory.django.DjangoModelFactory):
 
     flaw = factory.SubFactory(FlawFactory)
 
-    acl_read = [DATA_PRODSEC_ACL]
-    acl_write = acl_read
+    acl_read = [DATA_PRODSEC_ACL_READ]
+    acl_write = [DATA_PRODSEC_ACL_WRITE]
     meta_attr = factory.Dict({"test": "1"})
 
     # @factory.post_generation
@@ -292,11 +296,11 @@ class FlawCommentFactory(factory.django.DjangoModelFactory):
     type = "BUGZILLA"
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     external_system_id = factory.sequence(lambda n: f"fake-external-id{n}")
-    acl_read = factory.List([DATA_PRODSEC_ACL])
+    acl_read = [DATA_PRODSEC_ACL_READ]
+    acl_write = [DATA_PRODSEC_ACL_WRITE]
 
     flaw = factory.SubFactory(FlawFactory)
 
-    acl_write = acl_read
     meta_attr = {
         "id": "1285930",
         "tags": "[]",
@@ -317,8 +321,8 @@ class FlawMetaFactory(factory.django.DjangoModelFactory):
 
     type = "REFERENCE"
     created_dt = factory.Faker("date_time", tzinfo=UTC)
-    acl_read = factory.List([DATA_PRODSEC_ACL])
-    acl_write = acl_read
+    acl_read = [DATA_PRODSEC_ACL_READ]
+    acl_write = [DATA_PRODSEC_ACL_WRITE]
     meta_attr = {
         "url": "http://nonexistenturl.example.com/1285930",
         "type": "external",
