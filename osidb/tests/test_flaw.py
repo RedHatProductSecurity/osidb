@@ -1512,3 +1512,16 @@ class TestFlawValidators:
 
         assert "special_handling_flaw_missing_summary" in flaw2._alerts
         assert "special_handling_flaw_missing_statement" in flaw2._alerts
+
+    def test_validate_private_source_no_ack(
+        self, private_source, public_source, both_source
+    ):
+        """
+        Test that flaw with private source without acknoledgments raises alert
+        """
+        flaw1 = FlawFactory(source=private_source, embargoed=True)
+        assert "private_source_no_ack" in flaw1._alerts
+        flaw2 = FlawFactory(source=both_source, embargoed=True)
+        assert "private_source_no_ack" in flaw2._alerts
+        flaw3 = FlawFactory(source=public_source, embargoed=False)
+        assert "private_source_no_ack" not in flaw3._alerts
