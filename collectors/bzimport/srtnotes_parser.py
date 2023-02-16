@@ -55,10 +55,9 @@ FLAW_ATTRIBUTES = [
     "mitigate",
     "classification",
     "jira_trackers",
-    "prestage_eligible_date",
 ]
 
-DATETIME_FIELDS = ["public", "reported", "prestage_eligible_date"]
+DATETIME_FIELDS = ["public", "reported"]
 DATE_FMT = "%Y%m%d"
 DATETIME_FMT = "%Y%m%d:%H%M"
 AFFECTS_STATES = ["new", "affected", "notaffected", "defer", "wontfix"]
@@ -173,7 +172,6 @@ def parse_cf_srtnotes(cf_srtnotes, return_warnings=False, revision=1):
         "mitigation": None,
         "acknowledgments": [],
         "acks_not_needed": None,
-        "prestage_eligible_date": None,
     }
     srtnotes.update(json.loads(cf_srtnotes))
 

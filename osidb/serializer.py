@@ -460,7 +460,6 @@ class FlawSerializer(
         "jira_trackers",
         "mitigate",
         "mitigation",
-        "prestage_eligible_date",
         "public",
         "references",
         "related_cves",
