@@ -426,8 +426,6 @@ class AffectSerializer(
         "ps_component",
         "ps_module",
         "resolution",
-        # Internal data
-        # "acl_labels",
     )
 
     trackers = serializers.SerializerMethodField()
