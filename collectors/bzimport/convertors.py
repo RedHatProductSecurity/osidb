@@ -4,6 +4,7 @@ transform Bugzilla flaw bug into OSIDB flaw model
 import json
 import logging
 import re
+import uuid
 from collections import defaultdict
 from functools import cached_property
 
@@ -150,13 +151,27 @@ class TrackerBugConvertor:
 
     @cached_property
     def acl_read(self):
-        """get read ACL based on read groups"""
-        return self._acl_read or generate_acls(self.groups_read)
+        """
+        get read ACL based on read groups
+
+        it is necessary to generete UUIDs and not just hashes
+        so the ACL validations may properly compare the result
+        """
+        return self._acl_read or [
+            uuid.UUID(acl) for acl in generate_acls(self.groups_read)
+        ]
 
     @cached_property
     def acl_write(self):
-        """get write ACL based on write groups"""
-        return self._acl_write or generate_acls(self.groups_write)
+        """
+        get write ACL based on write groups
+
+        it is necessary to generete UUIDs and not just hashes
+        so the ACL validations may properly compare the result
+        """
+        return self._acl_write or [
+            uuid.UUID(acl) for acl in generate_acls(self.groups_write)
+        ]
 
     def _gen_tracker_object(self, affect) -> Tracker:
         # there maybe already existing tracker from the previous sync
@@ -527,13 +542,23 @@ class FlawBugConvertor:
 
     @cached_property
     def acl_read(self):
-        """get read ACL based on read groups"""
-        return generate_acls(self.groups_read)
+        """
+        get read ACL based on read groups
+
+        it is necessary to generete UUIDs and not just hashes
+        so the ACL validations may properly compare the result
+        """
+        return [uuid.UUID(acl) for acl in generate_acls(self.groups_read)]
 
     @cached_property
     def acl_write(self):
-        """get write ACL based on write groups"""
-        return generate_acls(self.groups_write)
+        """
+        get write ACL based on write groups
+
+        it is necessary to generete UUIDs and not just hashes
+        so the ACL validations may properly compare the result
+        """
+        return [uuid.UUID(acl) for acl in generate_acls(self.groups_write)]
 
     @property
     def alias(self):
