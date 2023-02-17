@@ -16,7 +16,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, ViewSet
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .core import generate_acls
@@ -108,18 +108,21 @@ class ManifestView(APIView):
         return Response({"packages": packages})
 
 
-def get_valid_http_methods(cls):
+def get_valid_http_methods(cls: ViewSet, excluded: list[str] = None) -> list[str]:
     """
     Removes blacklisted and unsafe HTTP methods from a view if necessary.
+    Optionally also removes given excluded methods.
 
     Blacklisted HTTP methods can be defined in the django settings, unsafe HTTP
     methods will be removed if the app is running in read-only mode, by setting
     the OSIDB_READONLY_MODE env variable to "1".
 
     :param cls: The ViewSet class from which http_method_names are inherited
+    :param excluded: A list of exlicitly excluded HTTP methods.
     :return: A list of valid HTTP methods that a ViewSet will accept
     """
     base_methods = cls.http_method_names
+    excluded_methods = [] if excluded is None else excluded
     unsafe_methods = (
         "patch",
         "post",
@@ -130,6 +133,8 @@ def get_valid_http_methods(cls):
     )
     valid_methods = []
     for method in base_methods:
+        if method in excluded_methods:
+            continue
         if method in settings.BLACKLISTED_HTTP_METHODS:
             continue
         if settings.READONLY_MODE and method in unsafe_methods:
@@ -286,7 +291,9 @@ class FlawView(ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = FlawFilter
     lookup_url_kwarg = "id"
-    http_method_names = get_valid_http_methods(ModelViewSet)
+    # there is neigher a way to really delete a flaw in Bugzilla
+    # nor a defined procedure to make a flaw being considered deleted
+    http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_object(self):
@@ -358,14 +365,11 @@ class AffectView(ModelViewSet):
         serializer.save(acl_read=acls, acl_write=acls)
 
 
-class TrackerView(ModelViewSet):
+# until we implement tracker write operations
+# we have to consider them as read-only
+class TrackerView(ReadOnlyModelViewSet):
     queryset = Tracker.objects.all()
     serializer_class = TrackerSerializer
     filterset_class = TrackerFilter
-    http_method_names = get_valid_http_methods(ModelViewSet)
+    http_method_names = get_valid_http_methods(ReadOnlyModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def perform_create(self, serializer):
-        # NOTE: this is incorrect, but will be fixed properly later
-        acls = generate_acls(self.request.user.groups.all())
-        serializer.save(acl_read=acls, acl_write=acls)
