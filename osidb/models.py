@@ -20,6 +20,7 @@ from polymorphic.models import PolymorphicModel
 from psqlextra.fields import HStoreField
 
 from apps.bbsync.constants import RHSCL_BTS_KEY
+from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
@@ -444,7 +445,14 @@ class FlawManager(ACLMixinManager):
         # If search has no results, this will now return an empty queryset
 
 
-class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixin):
+class Flaw(
+    ACLMixin,
+    AlertMixin,
+    BugzillaSyncMixin,
+    NullStrFieldsMixin,
+    TrackingMixin,
+    WorkflowModel,
+):
     """Model flaw"""
 
     class FlawState(models.TextChoices):
@@ -948,6 +956,26 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
         # TODO we have no tracker resolution for now
         return False
 
+    def bzsync(self, *args, bz_api_key, **kwargs):
+        """
+        Bugzilla sync of the Flaw instance
+        """
+        # imports here to prevent cycles
+        from apps.bbsync.save import BugzillaSaver
+        from collectors.bzimport.collectors import FlawCollector
+
+        # sync to Bugzilla
+        bs = BugzillaSaver(self, bz_api_key)
+        self = bs.save()
+        # save in case a new Bugzilla ID was obtained
+        # so the flaw is later matched in BZ import
+        # and do not care for validations here
+        kwargs["raise_validation_error"] = False
+        self.save(*args, **kwargs)
+        # fetch from Bugzilla
+        fc = FlawCollector()
+        fc.sync_flaw(self.bz_id)
+
 
 class AffectManager(ACLMixinManager):
     """affect manager"""
@@ -987,7 +1015,12 @@ class AffectManager(ACLMixinManager):
 
 
 class Affect(
-    TrackingMixin, AffectExploitExtensionMixin, AlertMixin, NullStrFieldsMixin, ACLMixin
+    ACLMixin,
+    AlertMixin,
+    AffectExploitExtensionMixin,
+    BugzillaSyncMixin,
+    NullStrFieldsMixin,
+    TrackingMixin,
 ):
     """affect model definition"""
 
@@ -1411,6 +1444,13 @@ class Affect(
         check and return whether the given affect has unknown PS module
         """
         return not PsModule.objects.filter(name=self.ps_module).exists()
+
+    def bzsync(self, *args, bz_api_key, **kwargs):
+        """
+        Bugzilla sync of the Affect instance
+        """
+        # Affect needs to be synced through flaw
+        self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
 
 
 class TrackerManager(ACLMixinManager):
