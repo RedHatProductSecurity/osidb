@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
 from rest_framework import serializers
 
+from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.osim.serializers import WorkflowModelSerializer
 
 from .core import generate_acls
@@ -401,8 +402,44 @@ class CommentSerializer(TrackingMixinSerializer):
         ] + TrackingMixinSerializer.Meta.fields
 
 
+class BugzillaSyncMixinSerializer(serializers.ModelSerializer):
+    """
+    serializer mixin class implementing special handling of the models
+    which need to perform Bugzilla sync as part of the save procedure
+    """
+
+    bz_api_key = serializers.CharField(allow_null=False, required=True, write_only=True)
+
+    def create(self, validated_data):
+        """
+        perform the ordinary instance create
+        with providing BZ API key while saving
+        """
+        bz_api_key = validated_data.pop("bz_api_key")
+        instance = self.Meta.model(**validated_data)
+        instance.save(bz_api_key=bz_api_key)
+        return instance
+
+    def update(self, instance, validated_data):
+        """
+        perform the ordinary instance update
+        with providing BZ API key while saving
+        """
+        bz_api_key = validated_data.pop("bz_api_key")
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save(bz_api_key=bz_api_key)
+        return instance
+
+    class Meta:
+        model = BugzillaSyncMixin
+        fields = ["bz_api_key"]
+        abstract = True
+
+
 class AffectSerializer(
     ACLMixinSerializer,
+    BugzillaSyncMixinSerializer,
     TrackingMixinSerializer,
     IncludeExcludeFieldsMixin,
     IncludeMetaAttrMixin,
@@ -477,6 +514,7 @@ class AffectSerializer(
                 "delegated_resolution",
             ]
             + ACLMixinSerializer.Meta.fields
+            + BugzillaSyncMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
         )
 
@@ -515,6 +553,7 @@ class FlawAffectsTrackersField(serializers.Field):
 @extend_schema_serializer(deprecate_fields=["mitigated_by"])
 class FlawSerializer(
     ACLMixinSerializer,
+    BugzillaSyncMixinSerializer,
     TrackingMixinSerializer,
     WorkflowModelSerializer,
     IncludeExcludeFieldsMixin,
@@ -660,6 +699,7 @@ class FlawSerializer(
                 "package_versions",
             ]
             + ACLMixinSerializer.Meta.fields
+            + BugzillaSyncMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
             + WorkflowModelSerializer.Meta.fields
         )

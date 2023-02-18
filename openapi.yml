@@ -2042,6 +2042,9 @@ components:
           readOnly: true
           required: true
           type: boolean
+        bz_api_key:
+          type: string
+          writeOnly: true
         created_dt:
           type: string
           format: date-time
@@ -2051,6 +2054,7 @@ components:
           format: date-time
           readOnly: true
       required:
+      - bz_api_key
       - created_dt
       - delegated_resolution
       - embargoed
@@ -2396,6 +2400,9 @@ components:
           readOnly: true
           required: true
           type: boolean
+        bz_api_key:
+          type: string
+          writeOnly: true
         created_dt:
           type: string
           format: date-time
@@ -2421,6 +2428,7 @@ components:
           readOnly: true
       required:
       - affects
+      - bz_api_key
       - classification
       - comments
       - created_dt

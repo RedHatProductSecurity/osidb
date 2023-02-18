@@ -1057,6 +1057,7 @@ class TestEndpoints(object):
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
+            "bz_api_key": "SECRET",
         }
         response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
         assert response.status_code == 201
@@ -1083,6 +1084,7 @@ class TestEndpoints(object):
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
+            "bz_api_key": "SECRET",
         }
         response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
         assert response.status_code == 201
@@ -1129,6 +1131,7 @@ class TestEndpoints(object):
                 "resolution": flaw.resolution,
                 "impact": flaw.impact,
                 "embargoed": False,
+                "bz_api_key": "SECRET",
             },
             format="json",
         )
@@ -1217,6 +1220,7 @@ class TestEndpoints(object):
             "ps_module": "rhacm-2",
             "ps_component": "curl",
             "embargoed": False,
+            "bz_api_key": "SECRET",
         }
         response = auth_client.post(
             f"{test_api_uri}/affects", affect_data, format="json"
@@ -1245,6 +1249,7 @@ class TestEndpoints(object):
             {
                 **original_body,
                 "ps_module": f"different {affect.ps_module}",
+                "bz_api_key": "SECRET",
             },
             format="json",
         )
@@ -1352,6 +1357,7 @@ class TestEndpointsACLs:
             "unembargo_dt": None if embargoed else "2000-1-1T22:03:26.065Z",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": embargoed,
+            "bz_api_key": "SECRET",
         }
         response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
         assert response.status_code == 201
@@ -1394,6 +1400,7 @@ class TestEndpointsACLs:
                 "title": f"{flaw.title} appended test title",
                 "description": flaw.description,
                 "embargoed": embargoed,
+                "bz_api_key": "SECRET",
             },
             format="json",
         )
@@ -1427,6 +1434,7 @@ class TestEndpointsACLs:
                     "title": flaw.title.replace("EMBARGOED", "").strip(),
                     "description": flaw.description,
                     "embargoed": False,
+                    "bz_api_key": "SECRET",
                 },
                 format="json",
             )
@@ -1435,3 +1443,25 @@ class TestEndpointsACLs:
         body = response.json()
         assert body["embargoed"] is False
         assert Flaw.objects.first().embargoed is False
+
+
+class TestEndpointsBZAPIKey:
+    """
+    Bugzilla API key specific tests
+    """
+
+    def test_flaw_create_no_bz_api_key(self, auth_client, test_api_uri):
+        """
+        test that creating a Flaw is rejected when no Bugzilla API key is provided
+        """
+        flaw_data = {
+            "title": "Foo",
+            "description": "test",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "embargoed": False,
+        }
+        response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        assert response.status_code == 400
+        assert '"bz_api_key":["This field is required."]' in str(response.content)
