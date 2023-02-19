@@ -367,6 +367,35 @@ class ACLMixinSerializer(serializers.ModelSerializer):
         validated_data = self.embargoed2acls(validated_data)
         return super().update(instance, validated_data)
 
+    def validate(self, data):
+        """
+        validate that the current user is member of all LDAP groups (s)he provides
+        with the access so there is no access expansion beyond the user permissions
+        """
+        data = super().validate(data)
+
+        # get the resulting ACLs from the embargo status
+        embargoed = self.context["request"].data.get("embargoed")
+        acl_read = (
+            settings.EMBARGO_READ_GROUP if embargoed else settings.PUBLIC_READ_GROUPS
+        )
+        acl_write = (
+            settings.EMBARGO_WRITE_GROUP if embargoed else settings.PUBLIC_WRITE_GROUP
+        )
+        acl_read, acl_write = ensure_list(acl_read), ensure_list(acl_write)
+
+        acls = [group.name for group in self.context["request"].user.groups.all()]
+        for acl in acl_read + acl_write:
+            # this is a temporary safeguard with a very simple philosophy that one cannot
+            # give access to something (s)he does not have access to but possibly in the future
+            # we will want some more clever handling like ProdSec can grant anything etc.
+            if acl not in acls:
+                raise serializers.ValidationError(
+                    f"Cannot provide access for the LDAP group without being a member: {acl}"
+                )
+
+        return data
+
 
 class MetaSerializer(ACLMixinSerializer, TrackingMixinSerializer):
     """FlawMeta serializer"""
