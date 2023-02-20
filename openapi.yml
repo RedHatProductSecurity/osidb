@@ -2380,8 +2380,6 @@ components:
               type: string
             mitigation:
               type: string
-            prestage_eligible_date:
-              type: string
             public:
               type: string
             references:

@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix errata created and updated timestamps (OSIDB-453)
 - Restrict write operations on placeholder flaws (OSIDB-388)
 - Avoid recreating flaws on CVE ID changes whenever possible (OSIDB-392)
+- Remove unsused data prestage_eligible_date from schemas (OSIDB-695)
 
 ## [2.3.4] - 2022-12-15
 ### Changed

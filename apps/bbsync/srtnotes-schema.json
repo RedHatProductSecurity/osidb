@@ -92,11 +92,6 @@
     "acks_not_needed": {
       "type": ["boolean", "null"],
       "description": "Determine whether an acknowledgment is needed for the flaw or not"
-    },
-    "prestage_eligible_date": {
-      "type": ["string", "null"],
-      "description": "A UTC ISO 8601 formated Date or Datetime of when Flaw and mainly their Trackers can be prestaged in CPaaS environment",
-      "pattern": "^\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}:\\d{2}Z)?$"
     }
   },
   "definitions": {
