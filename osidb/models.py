@@ -856,6 +856,29 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
                     "are marked as special handling but flaw does not contain statement.",
                 )
 
+    def _validate_private_source_no_ack(self):
+        """
+        Checks that flaws with private sources have ACK.
+        """
+        if (source := FlawSource(self.source)) and source.is_private():
+            if self.meta.filter(type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT).exists():
+                return
+
+            if source.is_public():
+                alert_text = (
+                    f"Flaw source of type {source} can be public or private, "
+                    "ensure that it is public since the Flaw has no acknowledgments."
+                )
+            else:
+                alert_text = (
+                    f"Flaw has no acknoledgments but source of type {source} is private, "
+                    "include them in acknowledgments."
+                )
+            self.alert(
+                "private_source_no_ack",
+                alert_text,
+            )
+
     @property
     def is_placeholder(self):
         """
