@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple
 
 from osidb.models import Affect, Flaw, PsContact, PsModule, PsUpdateStream
 
-from .constants import RHSCL_BTS_KEY, USER_BLACKLIST
+from .constants import USER_BLACKLIST
 from .exceptions import ProductDataError
 from .models import BugzillaComponent
 
@@ -381,7 +381,7 @@ class CCBuilder:
 
         for affect in affects:
             # exclude unknown PS modules
-            if self.is_unknown(affect):
+            if affect.is_unknown:
                 logger.error(
                     f"Affect {affect.uuid} contains unknown PS module: {affect.ps_module}"
                 )
@@ -389,12 +389,12 @@ class CCBuilder:
 
             # exclude community products
             # which was requested to reduce the spam to the communities
-            if self.is_community(affect):
+            if affect.is_community:
                 continue
 
             # for some reason in SFM2 we ignore affects set as not affected or not to be fixed
             # only for embargoed flaws so to keep the functional parity we continue with it
-            if self.flaw.embargoed and self.is_notaffected(affect):
+            if self.flaw.embargoed and affect.is_notaffected:
                 continue
 
             cc_list.update(self.affect2cc(affect))
@@ -406,38 +406,7 @@ class CCBuilder:
         process an affect and return the corresponding list of CCs
         """
         affect_cc_builder_class = (
-            RHSCLAffectCCBuilder if self.is_rhscl(affect) else AffectCCBuilder
+            RHSCLAffectCCBuilder if affect.is_rhscl else AffectCCBuilder
         )
         affect_cc_builder = affect_cc_builder_class(affect, self.flaw.embargoed)
         return affect_cc_builder.cc
-
-    def is_community(self, affect: Affect) -> bool:
-        """
-        check and return whether the given affect is community one
-        """
-        return PsModule.objects.filter(
-            name=affect.ps_module, ps_product__business_unit="Community"
-        ).exists()
-
-    def is_notaffected(self, affect: Affect) -> bool:
-        """
-        check and return whether the given affect is set as not affected or not to be fixed
-        """
-        return (
-            affect.affectedness == Affect.AffectFix.NOTAFFECTED
-            or affect.resolution == Affect.AffectResolution.WONTFIX
-        )
-
-    def is_rhscl(self, affect: Affect) -> bool:
-        """
-        check and return whether the given affect is RHSCL one
-        """
-        return PsModule.objects.filter(
-            name=affect.ps_module, bts_key=RHSCL_BTS_KEY
-        ).exists()
-
-    def is_unknown(self, affect: Affect) -> bool:
-        """
-        check and return whether the given affect has unknown PS module
-        """
-        return not PsModule.objects.filter(name=affect.ps_module).exists()
