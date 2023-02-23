@@ -10,6 +10,8 @@ from django.db.models.signals import (
 )
 from rest_framework.test import APIClient
 
+from osidb.constants import OSIDB_API_VERSION
+
 
 def strip_private_bz_comments(body):
     body = json.loads(body)
@@ -102,6 +104,21 @@ def ldap_test_username():
 @pytest.fixture
 def ldap_test_password():
     return "password"
+
+
+@pytest.fixture
+def test_scheme_host():
+    return "http://osidb-service:8000/osidb"
+
+
+@pytest.fixture
+def api_version():
+    return OSIDB_API_VERSION
+
+
+@pytest.fixture
+def test_api_uri(test_scheme_host, api_version):
+    return f"{test_scheme_host}/api/{api_version}"
 
 
 @pytest.fixture
