@@ -1141,10 +1141,9 @@ class TestEndpoints(object):
         assert response.status_code == 200
 
         response = auth_client.delete(f"{test_api_uri}/flaws/{flaw.uuid}")
-        assert response.status_code == 204
-
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
-        assert response.status_code == 404
+        # this HTTP method is not allowed until we leave Bugzilla and
+        # define the conditions under which a flaw can be deleted
+        assert response.status_code == 405
 
     def test_list_flaws_tracker_ids(self, auth_client, test_api_uri):
         """
@@ -1273,15 +1272,9 @@ class TestEndpoints(object):
         response = auth_client.post(
             f"{test_api_uri}/trackers", tracker_data, format="json"
         )
-        assert response.status_code == 201
-        body = response.json()
-        created_uuid = body["uuid"]
-
-        response = auth_client.get(f"{test_api_uri}/trackers/{created_uuid}")
-        assert response.status_code == 200
-        body = response.json()
-        assert body["status"] == "foo"
-        assert body["resolution"] == "bar"
+        # this HTTP method is not allowed until we integrate
+        # with the authoritative sources of the tracker data
+        assert response.status_code == 405
 
     def test_tracker_update(self, auth_client, test_api_uri):
         """
@@ -1300,9 +1293,9 @@ class TestEndpoints(object):
             },
             format="json",
         )
-        assert response.status_code == 200
-        body = response.json()
-        assert original_body["resolution"] != body["resolution"]
+        # this HTTP method is not allowed until we integrate
+        # with the authoritative sources of the tracker data
+        assert response.status_code == 405
 
     def test_tracker_delete(self, auth_client, test_api_uri):
         """
@@ -1314,7 +1307,6 @@ class TestEndpoints(object):
         assert response.status_code == 200
 
         response = auth_client.delete(tracker_url)
-        assert response.status_code == 204
-
-        response = auth_client.get(tracker_url)
-        assert response.status_code == 404
+        # this HTTP method is not allowed until we integrate
+        # with the authoritative sources of the tracker data
+        assert response.status_code == 405

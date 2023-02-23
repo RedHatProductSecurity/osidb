@@ -1334,37 +1334,6 @@ paths:
                     version:
                       type: string
           description: ''
-    delete:
-      operationId: osidb_api_v1_flaws_destroy
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        description: A string representing either the internal OSIDB UUID of the Flaw
-          resource or the CVE number corresponding to a Flaw
-        required: true
-      tags:
-      - osidb
-      security:
-      - OsidbTokenAuthentication: []
-      responses:
-        '204':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
   /osidb/api/v1/manifest:
     get:
       operationId: osidb_api_v1_manifest_retrieve
@@ -1645,43 +1614,6 @@ paths:
                     version:
                       type: string
           description: ''
-    post:
-      operationId: osidb_api_v1_trackers_create
-      tags:
-      - osidb
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Tracker'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Tracker'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Tracker'
-        required: true
-      security:
-      - OsidbTokenAuthentication: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                allOf:
-                - $ref: '#/components/schemas/Tracker'
-                - type: object
-                  properties:
-                    dt:
-                      type: string
-                      format: date-time
-                    env:
-                      type: string
-                    revision:
-                      type: string
-                    version:
-                      type: string
-          description: ''
   /osidb/api/v1/trackers/{uuid}:
     get:
       operationId: osidb_api_v1_trackers_retrieve
@@ -1716,82 +1648,6 @@ paths:
                       type: string
                     version:
                       type: string
-          description: ''
-    put:
-      operationId: osidb_api_v1_trackers_update
-      parameters:
-      - in: path
-        name: uuid
-        schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this Tracker.
-        required: true
-      tags:
-      - osidb
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Tracker'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Tracker'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Tracker'
-        required: true
-      security:
-      - OsidbTokenAuthentication: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                allOf:
-                - $ref: '#/components/schemas/Tracker'
-                - type: object
-                  properties:
-                    dt:
-                      type: string
-                      format: date-time
-                    env:
-                      type: string
-                    revision:
-                      type: string
-                    version:
-                      type: string
-          description: ''
-    delete:
-      operationId: osidb_api_v1_trackers_destroy
-      parameters:
-      - in: path
-        name: uuid
-        schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this Tracker.
-        required: true
-      tags:
-      - osidb
-      security:
-      - OsidbTokenAuthentication: []
-      responses:
-        '204':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
           description: ''
   /osidb/healthy:
     get:
