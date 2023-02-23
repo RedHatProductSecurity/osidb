@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "collectors.exploits_cisa",
     "collectors.exploits_exploitdb",
     "collectors.exploits_metasploit",
+    "collectors.nvd",
 ]
 
 MIDDLEWARE = [
@@ -221,6 +222,7 @@ LOGGING = {
                 "collectors.exploits_metasploit",
                 "collectors.framework",
                 "collectors.jiraffe",
+                "collectors.nvd",
                 "collectors.product_definitions",
             ]
         },
