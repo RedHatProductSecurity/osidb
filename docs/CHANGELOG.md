@@ -19,7 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement validation for affects with exceptional combination of affectedness and resolution (OSIDB-361)
 - Implement validation for affects marked as WONTFIX or NOTAFFECTED with open trackers (OSIDB-364)
 - Implement validation for affected special handled modules without summary or statement (OSIDB-328)
-- Add Exploits report data API endpoint (PSINSIGHTS-764)
+- Implement validation for flaws with private source without ACK (OSIDB-339)
+- Implement validation for unknown component (OSIDB-355)
+- Implement temporary NVD collector (OSIDB-632)
+- Implement Exploits report data API endpoint (PSINSIGHTS-764)
 
 ### Changed
 - Change logging of celery and django to filesystem (OSIDB-418)
@@ -29,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix errata created and updated timestamps (OSIDB-453)
 - Restrict write operations on placeholder flaws (OSIDB-388)
 - Avoid recreating flaws on CVE ID changes whenever possible (OSIDB-392)
+- Remove unsused data prestage_eligible_date from schemas (OSIDB-695)
+- Revise the allowed API view HTTP methods on models
+  restricting flaw deletion and all tracker write methods (OSIDB-748)
 
 ## [2.3.4] - 2022-12-15
 ### Changed

@@ -2,6 +2,9 @@ from datetime import timedelta
 from typing import Set, Union
 
 import pytest
+from django.utils import timezone
+from django.utils.timezone import datetime
+from freezegun import freeze_time
 
 from osidb.filters import FlawFilter
 
@@ -165,35 +168,32 @@ class TestEndpoints(object):
         body = response.json()
         assert body["count"] == 0
 
-    # TODO the time stamps are not being set temporarily so this is
-    # disabled until it is implemented + also some other tests below
-    #
-    # def test_list_flaws_changed_before_and_after(
-    #     self,
-    #     auth_client,
-    #     test_api_uri,
-    #     datetime_with_tz,
-    # ):
-    #     """retrieve list of flaws from endpoint"""
-    #     response = auth_client.get(f"{test_api_uri}/flaws")
-    #     assert response.status_code == 200
-    #     body = response.json()
-    #     assert body["count"] == 0
+    def test_list_flaws_changed_before_and_after(
+        self,
+        auth_client,
+        test_api_uri,
+        datetime_with_tz,
+    ):
+        """retrieve list of flaws from endpoint"""
+        response = auth_client.get(f"{test_api_uri}/flaws")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
 
-    #     FlawFactory(created_dt=datetime_with_tz)
+        FlawFactory(created_dt=datetime_with_tz)
 
-    #     past_str = f"{datetime_with_tz - timedelta(days=1)}"
-    #     future_str = f"{datetime_with_tz + timedelta(days=1)}"
-    #     past_str = past_str.replace("+00:00", "Z")
-    #     future_str = future_str.replace("+00:00", "Z")
-    #     response = auth_client.get(
-    #         f"{test_api_uri}/flaws?changed_after={past_str}&changed_before={future_str}"
-    #     )
-    #     assert response.status_code == 200
-    #     body = response.json()
-    #     assert (
-    #         body["count"] == 1
-    #     )  # One Flaw that was changed after a past date AND before a future date
+        past_str = f"{datetime_with_tz - timedelta(days=1)}"
+        future_str = f"{datetime_with_tz + timedelta(days=1)}"
+        past_str = past_str.replace("+00:00", "Z")
+        future_str = future_str.replace("+00:00", "Z")
+        response = auth_client.get(
+            f"{test_api_uri}/flaws?changed_after={past_str}&changed_before={future_str}"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert (
+            body["count"] == 1
+        )  # One Flaw that was changed after a past date AND before a future date
 
     def test_list_flaws_filters(self, auth_client, test_api_uri):
         """retrieve list of flaws from endpoint"""
@@ -218,161 +218,175 @@ class TestEndpoints(object):
             else:
                 raise Exception("Unexpected response code - must be 200 or 400")
 
-    # @freeze_time(datetime(2021, 11, 23))
-    # def test_changed_after_from_tracker(self, auth_client, test_api_uri):
-    #     affect = AffectFactory()
-    #     tracker = TrackerFactory(affects=(affect,))
-    #     future_dt = datetime(2021, 11, 27)
+    @freeze_time(datetime(2021, 11, 23))
+    def test_changed_after_from_tracker(self, auth_client, test_api_uri):
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+        )
+        tracker = TrackerFactory(affects=(affect,), embargoed=affect.flaw.embargoed)
+        future_dt = datetime(2021, 11, 27)
 
-    #     # first check that we cannot get anything by querying any flaws changed after future_dt
-    #     response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
-    #     assert response.status_code == 200
-    #     body = response.json()
-    #     assert body["count"] == 0
+        # first check that we cannot get anything by querying any flaws changed after future_dt
+        response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
 
-    #     # now let's update the tracker during future_dt and verify that the filter picked up the
-    #     # change in the corresponding flaw
-    #     with freeze_time(future_dt):
-    #         tracker.external_system_id = "foo"
-    #         tracker.save()
-    #     assert tracker.updated_dt == future_dt.astimezone(
-    #         timezone.get_current_timezone()
-    #     )
+        # now let's update the tracker during future_dt and verify that the filter picked up the
+        # change in the corresponding flaw
+        with freeze_time(future_dt):
+            tracker.external_system_id = "foo"
+            tracker.save()
+        assert tracker.updated_dt == future_dt.astimezone(
+            timezone.get_current_timezone()
+        )
 
-    #     # we should get a result now
-    #     response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
-    #     assert response.status_code == 200
-    #     body = response.json()
-    #     assert body["count"] == 1
-    #     assert body["results"][0]["uuid"] == str(tracker.affects.first().flaw.uuid)
+        # we should get a result now
+        response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"][0]["uuid"] == str(tracker.affects.first().flaw.uuid)
 
-    # @freeze_time(datetime(2021, 11, 23))
-    # def test_changed_after_from_affect(self, auth_client, test_api_uri):
-    #     affect = AffectFactory()
-    #     future_dt = datetime(2021, 11, 27)
+    @freeze_time(datetime(2021, 11, 23))
+    def test_changed_after_from_affect(self, auth_client, test_api_uri):
+        affect = AffectFactory()
+        future_dt = datetime(2021, 11, 27)
 
-    #     response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
-    #     assert response.status_code == 200
-    #     body = response.json()
-    #     assert body["count"] == 0
+        response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
 
-    #     with freeze_time(future_dt):
-    #         affect.ps_component = "foo"
-    #         affect.save()
-    #     assert affect.updated_dt == future_dt.astimezone(
-    #         timezone.get_current_timezone()
-    #     )
+        with freeze_time(future_dt):
+            affect.ps_component = "foo"
+            affect.save()
+        assert affect.updated_dt == future_dt.astimezone(
+            timezone.get_current_timezone()
+        )
 
-    #     response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
-    #     assert response.status_code == 200
-    #     body = response.json()
-    #     assert body["count"] == 1
-    #     assert body["results"][0]["uuid"] == str(affect.flaw.uuid)
+        response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"][0]["uuid"] == str(affect.flaw.uuid)
 
-    # @freeze_time(datetime(2021, 11, 23))
-    # def test_changed_after_from_multi_affect(self, auth_client, test_api_uri):
-    #     flaw = FlawFactory()
-    #     affect1 = AffectFactory(flaw=flaw)
-    #     affect2 = AffectFactory(flaw=flaw)
-    #     future_dt = datetime(2021, 11, 27)
+    @freeze_time(datetime(2021, 11, 23))
+    def test_changed_after_from_multi_affect(self, auth_client, test_api_uri):
+        flaw = FlawFactory()
+        affect1 = AffectFactory(flaw=flaw)
+        affect2 = AffectFactory(flaw=flaw)
+        future_dt = datetime(2021, 11, 27)
 
-    #     response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
-    #     assert response.status_code == 200
-    #     body = response.json()
-    #     assert body["count"] == 0
+        response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
 
-    #     for affect in [affect1, affect2]:
-    #         with freeze_time(future_dt):
-    #             affect.ps_component = "foo"
-    #             affect.save()
-    #         assert affect.updated_dt == future_dt.astimezone(
-    #             timezone.get_current_timezone()
-    #         )
+        for affect in [affect1, affect2]:
+            with freeze_time(future_dt):
+                affect.ps_component = "foo"
+                affect.save()
+            assert affect.updated_dt == future_dt.astimezone(
+                timezone.get_current_timezone()
+            )
 
-    #     response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
-    #     assert response.status_code == 200
-    #     body = response.json()
-    #     assert body["count"] == 1
-    #     assert body["results"][0]["uuid"] == str(affect.flaw.uuid)
+        response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"][0]["uuid"] == str(affect.flaw.uuid)
 
-    # @freeze_time(datetime(2021, 11, 23))
-    # def test_changed_before_from_tracker(self, auth_client, test_api_uri):
-    #     affect = AffectFactory()
-    #     tracker = TrackerFactory(affects=(affect,))
-    #     past_dt = datetime(2019, 11, 27)
+    @freeze_time(datetime(2021, 11, 23))
+    def test_changed_before_from_tracker(self, auth_client, test_api_uri):
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+        )
+        tracker = TrackerFactory(affects=(affect,), embargoed=affect.flaw.embargoed)
+        past_dt = datetime(2019, 11, 27)
 
-    #     # first check that we cannot get anything by querying any flaws changed after future_dt
-    #     response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
-    #     assert response.status_code == 200
-    #     body = response.json()
-    #     assert body["count"] == 0
+        # first check that we cannot get anything by querying any flaws changed after future_dt
+        response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
 
-    #     # now let's update the tracker during future_dt and verify that the filter picked up the
-    #     # change in the corresponding flaw
-    #     with freeze_time(past_dt):
-    #         tracker.external_system_id = "foo"
-    #         tracker.save()
-    #     assert tracker.updated_dt == past_dt.astimezone(timezone.get_current_timezone())
+        # now let's update the tracker during future_dt and verify that the filter picked up the
+        # change in the corresponding flaw
+        with freeze_time(past_dt):
+            tracker.external_system_id = "foo"
+            tracker.save()
+        assert tracker.updated_dt == past_dt.astimezone(timezone.get_current_timezone())
 
-    #     # we should get a result now
-    #     response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
-    #     assert response.status_code == 200
-    #     body = response.json()
-    #     assert body["count"] == 1
-    #     assert body["results"][0]["uuid"] == str(tracker.affects.first().flaw.uuid)
+        # we should get a result now
+        response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"][0]["uuid"] == str(tracker.affects.first().flaw.uuid)
 
-    # @freeze_time(datetime(2021, 11, 23))
-    # def test_changed_before_from_affect(self, auth_client, test_api_uri):
-    #     affect = AffectFactory()
-    #     past_dt = datetime(2019, 11, 27)
+    @freeze_time(datetime(2021, 11, 23))
+    def test_changed_before_from_affect(self, auth_client, test_api_uri):
+        affect = AffectFactory()
+        past_dt = datetime(2019, 11, 27)
 
-    #     response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
-    #     assert response.status_code == 200
-    #     body = response.json()
-    #     assert body["count"] == 0
+        response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
 
-    #     with freeze_time(past_dt):
-    #         affect.ps_component = "foo"
-    #         affect.save()
-    #     assert affect.updated_dt == past_dt.astimezone(timezone.get_current_timezone())
+        with freeze_time(past_dt):
+            affect.ps_component = "foo"
+            affect.save()
+        assert affect.updated_dt == past_dt.astimezone(timezone.get_current_timezone())
 
-    #     response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
-    #     assert response.status_code == 200
-    #     body = response.json()
-    #     assert body["count"] == 1
-    #     assert body["results"][0]["uuid"] == str(affect.flaw.uuid)
+        response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"][0]["uuid"] == str(affect.flaw.uuid)
 
-    # @freeze_time(datetime(2021, 11, 23))
-    # def test_changed_before_from_multi_tracker(self, auth_client, test_api_uri):
-    #     flaw = FlawFactory()
-    #     affect1 = AffectFactory(flaw=flaw)
-    #     affect2 = AffectFactory(flaw=flaw)
-    #     tracker1 = TrackerFactory(affects=(affect1,))
-    #     tracker2 = TrackerFactory(affects=(affect2,))
-    #     past_dt = datetime(2019, 11, 27)
+    @freeze_time(datetime(2021, 11, 23))
+    def test_changed_before_from_multi_tracker(self, auth_client, test_api_uri):
+        flaw = FlawFactory()
+        affect1 = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+        )
+        affect2 = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+        )
+        tracker1 = TrackerFactory(affects=(affect1,), embargoed=flaw.embargoed)
+        tracker2 = TrackerFactory(affects=(affect2,), embargoed=flaw.embargoed)
+        past_dt = datetime(2019, 11, 27)
 
-    #     # first check that we cannot get anything by querying any flaws changed after future_dt
-    #     response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
-    #     assert response.status_code == 200
-    #     body = response.json()
-    #     assert body["count"] == 0
+        # first check that we cannot get anything by querying any flaws changed after future_dt
+        response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
 
-    #     # now let's update the tracker during future_dt and verify that the filter picked up the
-    #     # change in the corresponding flaw
-    #     for tracker in [tracker1, tracker2]:
-    #         with freeze_time(past_dt):
-    #             tracker.resolution = "foo"
-    #             tracker.save()
-    #         assert tracker.updated_dt == past_dt.astimezone(
-    #             timezone.get_current_timezone()
-    #         )
+        # now let's update the tracker during future_dt and verify that the filter picked up the
+        # change in the corresponding flaw
+        for tracker in [tracker1, tracker2]:
+            with freeze_time(past_dt):
+                tracker.resolution = "foo"
+                tracker.save()
+            assert tracker.updated_dt == past_dt.astimezone(
+                timezone.get_current_timezone()
+            )
 
-    #     # we should get a result now
-    #     response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
-    #     assert response.status_code == 200
-    #     body = response.json()
-    #     assert body["count"] == 1
-    #     assert body["results"][0]["uuid"] == str(tracker.affects.first().flaw.uuid)
+        # we should get a result now
+        response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"][0]["uuid"] == str(tracker.affects.first().flaw.uuid)
 
     def test_list_flaws_filter_by_bz_id(self, auth_client, test_api_uri):
         """retrieve list of flaws from endpoint"""
@@ -1127,10 +1141,9 @@ class TestEndpoints(object):
         assert response.status_code == 200
 
         response = auth_client.delete(f"{test_api_uri}/flaws/{flaw.uuid}")
-        assert response.status_code == 204
-
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
-        assert response.status_code == 404
+        # this HTTP method is not allowed until we leave Bugzilla and
+        # define the conditions under which a flaw can be deleted
+        assert response.status_code == 405
 
     def test_list_flaws_tracker_ids(self, auth_client, test_api_uri):
         """
@@ -1259,15 +1272,9 @@ class TestEndpoints(object):
         response = auth_client.post(
             f"{test_api_uri}/trackers", tracker_data, format="json"
         )
-        assert response.status_code == 201
-        body = response.json()
-        created_uuid = body["uuid"]
-
-        response = auth_client.get(f"{test_api_uri}/trackers/{created_uuid}")
-        assert response.status_code == 200
-        body = response.json()
-        assert body["status"] == "foo"
-        assert body["resolution"] == "bar"
+        # this HTTP method is not allowed until we integrate
+        # with the authoritative sources of the tracker data
+        assert response.status_code == 405
 
     def test_tracker_update(self, auth_client, test_api_uri):
         """
@@ -1286,9 +1293,9 @@ class TestEndpoints(object):
             },
             format="json",
         )
-        assert response.status_code == 200
-        body = response.json()
-        assert original_body["resolution"] != body["resolution"]
+        # this HTTP method is not allowed until we integrate
+        # with the authoritative sources of the tracker data
+        assert response.status_code == 405
 
     def test_tracker_delete(self, auth_client, test_api_uri):
         """
@@ -1300,7 +1307,6 @@ class TestEndpoints(object):
         assert response.status_code == 200
 
         response = auth_client.delete(tracker_url)
-        assert response.status_code == 204
-
-        response = auth_client.get(tracker_url)
-        assert response.status_code == 404
+        # this HTTP method is not allowed until we integrate
+        # with the authoritative sources of the tracker data
+        assert response.status_code == 405

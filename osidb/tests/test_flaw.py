@@ -6,6 +6,8 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
+from apps.bbsync.constants import RHSCL_BTS_KEY
+from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 from osidb.constants import BZ_ID_SENTINEL
 from osidb.core import generate_acls
@@ -1182,16 +1184,16 @@ class TestFlawValidators:
         assert should_raise == bool("notabug_affect_ps_component" in flaw._alerts)
 
     @pytest.mark.parametrize(
-        "ps_module,ps_component,alerts",
+        "is_rhscl,ps_component,alerts",
         [
-            ("rhscl-module", "valid-component", []),
-            ("rhscl-module", "source-to-image", []),
-            ("not-rhscl-module", "valid-component", []),
-            ("not-rhscl-module", "valid", []),
-            ("not-rhscl-module", "invalid-component", []),
-            ("not-rhscl-module", "source-to-image", []),
+            (True, "valid-component", []),
+            (True, "source-to-image", []),
+            (False, "valid-component", []),
+            (False, "valid", []),
+            (False, "invalid-component", []),
+            (False, "source-to-image", []),
             (
-                "rhscl-module",
+                True,
                 "valid",
                 [
                     "flaw_affects_rhscl_collection_only",
@@ -1199,19 +1201,20 @@ class TestFlawValidators:
                 ],
             ),
             (
-                "rhscl-module",
+                True,
                 "invalid-component",
                 ["flaw_affects_rhscl_invalid_collection"],
             ),
         ],
     )
     def test_flaw_affects_rhscl_invalid_collection(
-        self, ps_module, ps_component, alerts
+        self, is_rhscl, ps_component, alerts
     ):
         VALID_COLLECTIONS = ["valid"]
-        module_obj = PsModuleFactory(name=ps_module)
+        bts_key = "Not a RHSCL" if not is_rhscl else RHSCL_BTS_KEY
+        module_obj = PsModuleFactory(name="test-module", bts_key=bts_key)
         PsUpdateStreamFactory(collections=VALID_COLLECTIONS, ps_module=module_obj)
-        affect = AffectFactory(ps_module=ps_module, ps_component=ps_component)
+        affect = AffectFactory(ps_module="test-module", ps_component=ps_component)
         if alerts:
             assert set(alerts).issubset(affect._alerts)
 
@@ -1512,3 +1515,57 @@ class TestFlawValidators:
 
         assert "special_handling_flaw_missing_summary" in flaw2._alerts
         assert "special_handling_flaw_missing_statement" in flaw2._alerts
+
+    def test_validate_private_source_no_ack(
+        self, private_source, public_source, both_source
+    ):
+        """
+        Test that flaw with private source without acknoledgments raises alert
+        """
+        flaw1 = FlawFactory(source=private_source, embargoed=True)
+        assert "private_source_no_ack" in flaw1._alerts
+        flaw2 = FlawFactory(source=both_source, embargoed=True)
+        assert "private_source_no_ack" in flaw2._alerts
+        flaw3 = FlawFactory(source=public_source, embargoed=False)
+        assert "private_source_no_ack" not in flaw3._alerts
+
+    @pytest.mark.parametrize(
+        "is_same_product_name, should_raise",
+        [
+            (False, True),
+            (True, False),
+        ],
+    )
+    @pytest.mark.parametrize(
+        "ps_component,is_rhscl",
+        [
+            ("test-module", False),
+            ("rhscl-custom-collection-test-module", True),
+        ],
+    )
+    def test_validate_unknown_component(
+        self, is_same_product_name, should_raise, ps_component, is_rhscl
+    ):
+        """
+        Test that a flaw affecting a component not tracked in Bugzilla raises
+        alert if its not an override set in Product Definitions.
+        """
+        bts_key = "Not a RHSCL" if not is_rhscl else RHSCL_BTS_KEY
+        ps_module = PsModuleFactory(
+            name="test-ps-module",
+            bts_name="bugzilla",
+            bts_key=bts_key,
+            default_component="",
+        )
+        PsUpdateStreamFactory(
+            ps_module=ps_module, collections=["rhscl-custom-collection"]
+        )
+        product_name = (
+            ps_module.bts_key if is_same_product_name else "other-test-module"
+        )
+        bz_product = BugzillaProduct(name=product_name)
+        bz_product.save()
+        BugzillaComponent(name="test-module", product=bz_product).save()
+        affect = AffectFactory(ps_module="test-ps-module", ps_component=ps_component)
+
+        assert should_raise == bool("flaw_affects_unknown_component" in affect._alerts)

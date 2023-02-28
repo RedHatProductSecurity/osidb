@@ -19,6 +19,8 @@ from django_deprecate_fields import deprecate_field
 from polymorphic.models import PolymorphicModel
 from psqlextra.fields import HStoreField
 
+from apps.bbsync.constants import RHSCL_BTS_KEY
+from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.osim.workflow import WorkflowModel
@@ -856,6 +858,29 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
                     "are marked as special handling but flaw does not contain statement.",
                 )
 
+    def _validate_private_source_no_ack(self):
+        """
+        Checks that flaws with private sources have ACK.
+        """
+        if (source := FlawSource(self.source)) and source.is_private():
+            if self.meta.filter(type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT).exists():
+                return
+
+            if source.is_public():
+                alert_text = (
+                    f"Flaw source of type {source} can be public or private, "
+                    "ensure that it is public since the Flaw has no acknowledgments."
+                )
+            else:
+                alert_text = (
+                    f"Flaw has no acknoledgments but source of type {source} is private, "
+                    "include them in acknowledgments."
+                )
+            self.alert(
+                "private_source_no_ack",
+                alert_text,
+            )
+
     @property
     def is_placeholder(self):
         """
@@ -1075,7 +1100,7 @@ class Affect(
         """
         bz_id = self.flaw.meta_attr.get("bz_id")
         if bz_id and int(bz_id) <= BZ_ID_SENTINEL:
-            if not PsModule.objects.filter(name=self.ps_module).exists():
+            if self.is_unknown:
                 self.alert(
                     "old_flaw_affect_ps_module",
                     f"{self.ps_module} is not a valid ps_module "
@@ -1093,7 +1118,7 @@ class Affect(
         """
         bz_id = self.flaw.meta_attr.get("bz_id")
         if bz_id and int(bz_id) > BZ_ID_SENTINEL:
-            if not PsModule.objects.filter(name=self.ps_module).exists():
+            if self.is_unknown:
                 raise ValidationError(
                     f"{self.ps_module} is not a valid ps_module "
                     f"for flaw with bz_id {bz_id}."
@@ -1118,10 +1143,7 @@ class Affect(
         """
         Check that all RHSCL components in flaw's affects start with a valid collection.
         """
-        if (
-            not self.ps_module.startswith("rhscl")
-            or self.ps_component in COMPONENTS_WITHOUT_COLLECTION
-        ):
+        if not self.is_rhscl or self.ps_component in COMPONENTS_WITHOUT_COLLECTION:
             return
 
         streams = PsUpdateStream.objects.filter(ps_module__name=self.ps_module)
@@ -1206,34 +1228,61 @@ class Affect(
                 "WONTFIX but has open tracker(s).",
             )
 
-    @property
-    def delegated_resolution(self):
-        """affect delegated resolution based on resolutions of related trackers"""
-        if not (
-            self.affectedness == Affect.AffectAffectedness.AFFECTED
-            and self.resolution == Affect.AffectResolution.DELEGATED
-        ):
-            return None
+    def _validate_unknown_component(self):
+        """
+        Alerts that a flaw affects a component not tracked in Bugzilla.
+        Alternatively, the PSComponent should have an override set in Product Definitions.
+        The used PSComponent is either misspelled or the override is missing.
+        """
 
-        trackers = self.trackers.all()
-        if not trackers:
-            return Affect.AffectFix.AFFECTED
+        if not self.ps_component:
+            return
 
-        statuses = [tracker.fix_state for tracker in trackers]
-        for status in (
-            Affect.AffectFix.NOTAFFECTED,
-            Affect.AffectFix.AFFECTED,
-            Affect.AffectFix.WONTFIX,
-            Affect.AffectFix.OOSS,
-            Affect.AffectFix.DEFER,
-        ):
-            if status in statuses:
-                return status
+        ps_module = PsModule.objects.filter(name=self.ps_module).first()
+        if not ps_module:
+            # unknown PSModule; should be checked in other function
+            return
 
-        # We don't know. Maybe none of the trackers have a valid resolution; default to "Affected".
-        logger.error("How did we get here??? %s, %s", trackers, statuses)
+        if ps_module.default_component:
+            # PSModule has a default component set; assume all as valid
+            return
 
-        return Affect.AffectFix.AFFECTED
+        if self.is_rhscl:
+            cc_affect = RHSCLAffectCCBuilder(affect=self, embargoed=self.is_embargoed)
+            _, component = cc_affect.collection_component()
+        else:
+            cc_affect = AffectCCBuilder(affect=self, embargoed=self.is_embargoed)
+            component = cc_affect.ps2bz_component()
+
+        if not cc_affect.is_bugzilla:
+            # only Bugzilla BTS is supported
+            return
+
+        if ps_module.component_overrides and component in ps_module.component_overrides:
+            # PSComponent is being overridden for BTS; assume its correct
+            return
+
+        if not BugzillaComponent.objects.filter(name=component).exists():
+            # Components for BTS key does not exist; maybe cache is not populated yet.
+            # Instead of raising warning for all flaw bugs when metadata are not
+            # cache, we will stay quiet.
+            return
+
+        bts_component = BugzillaComponent.objects.filter(
+            name=component, product__name=ps_module.bts_key
+        )
+        if not bts_component.exists():
+            alert_text = (
+                'Component "{}" for {} did not match BTS component (in {}) '
+                "nor component from Product Definitions"
+            )
+            alert_text = alert_text.format(
+                component, self.ps_module, ps_module.bts_name
+            )
+            self.alert(
+                "flaw_affects_unknown_component",
+                alert_text,
+            )
 
     def _validate_wontreport_products(self):
         """
@@ -1288,6 +1337,70 @@ class Affect(
                     f"Affected module ({special_module.first().name}) "
                     "are marked as special handling but flaw does not contain statement.",
                 )
+
+    @property
+    def delegated_resolution(self):
+        """affect delegated resolution based on resolutions of related trackers"""
+        if not (
+            self.affectedness == Affect.AffectAffectedness.AFFECTED
+            and self.resolution == Affect.AffectResolution.DELEGATED
+        ):
+            return None
+
+        trackers = self.trackers.all()
+        if not trackers:
+            return Affect.AffectFix.AFFECTED
+
+        statuses = [tracker.fix_state for tracker in trackers]
+        for status in (
+            Affect.AffectFix.NOTAFFECTED,
+            Affect.AffectFix.AFFECTED,
+            Affect.AffectFix.WONTFIX,
+            Affect.AffectFix.OOSS,
+            Affect.AffectFix.DEFER,
+        ):
+            if status in statuses:
+                return status
+
+        # We don't know. Maybe none of the trackers have a valid resolution; default to "Affected".
+        logger.error("How did we get here??? %s, %s", trackers, statuses)
+
+        return Affect.AffectFix.AFFECTED
+
+    @property
+    def is_community(self) -> bool:
+        """
+        check and return whether the given affect is community one
+        """
+        return PsModule.objects.filter(
+            name=self.ps_module, ps_product__business_unit="Community"
+        ).exists()
+
+    @property
+    def is_notaffected(self) -> bool:
+        """
+        check and return whether the given affect is set as not affected or not to be fixed
+        """
+        return (
+            self.affectedness == Affect.AffectFix.NOTAFFECTED
+            or self.resolution == Affect.AffectResolution.WONTFIX
+        )
+
+    @property
+    def is_rhscl(self) -> bool:
+        """
+        check and return whether the given affect is RHSCL one
+        """
+        return PsModule.objects.filter(
+            name=self.ps_module, bts_key=RHSCL_BTS_KEY
+        ).exists()
+
+    @property
+    def is_unknown(self) -> bool:
+        """
+        check and return whether the given affect has unknown PS module
+        """
+        return not PsModule.objects.filter(name=self.ps_module).exists()
 
 
 class TrackerManager(ACLMixinManager):
@@ -1894,6 +2007,8 @@ class Profile(models.Model):
     def __str__(self):
         return self.username
 
+
+from apps.bbsync.cc import AffectCCBuilder, RHSCLAffectCCBuilder  # noqa: E402
 
 from .constants import (  # noqa: E402
     AFFECTEDNESS_VALID_RESOLUTIONS,
