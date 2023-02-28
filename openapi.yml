@@ -378,6 +378,46 @@ paths:
                     version:
                       type: string
           description: ''
+  /exploits/api/v1/flaw_data:
+    get:
+      operationId: exploits_api_v1_flaw_data_list
+      description: Flaw, affect, and tracker data for Exploits
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - exploits
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedFlawReportDataList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /exploits/api/v1/report/date/{date}:
     get:
       operationId: exploits_api_v1_report_date_retrieve
@@ -528,6 +568,46 @@ paths:
                     type: string
                   version:
                     type: string
+          description: ''
+  /exploits/api/v1/report_data:
+    get:
+      operationId: exploits_api_v1_report_data_list
+      description: Export only the data required to generate the exploits report
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - exploits
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedExploitOnlyReportDataList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
           description: ''
   /exploits/api/v1/status:
     get:
@@ -1897,7 +1977,7 @@ components:
           - $ref: '#/components/schemas/BlankEnum'
         resolution:
           oneOf:
-          - $ref: '#/components/schemas/AffectResolutionEnum'
+          - $ref: '#/components/schemas/Resolution3acEnum'
           - $ref: '#/components/schemas/BlankEnum'
         ps_module:
           type: string
@@ -1973,15 +2053,30 @@ components:
       - trackers
       - updated_dt
       - uuid
-    AffectResolutionEnum:
-      enum:
-      - FIX
-      - DEFER
-      - WONTFIX
-      - OOSS
-      - DELEGATED
-      - WONTREPORT
-      type: string
+    AffectReportData:
+      type: object
+      properties:
+        ps_module:
+          type: string
+          maxLength: 100
+        ps_component:
+          type: string
+          maxLength: 255
+        affectedness:
+          oneOf:
+          - $ref: '#/components/schemas/AffectednessEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        resolution:
+          oneOf:
+          - $ref: '#/components/schemas/Resolution3acEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        trackers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrackerReportData'
+      required:
+      - ps_component
+      - ps_module
     AffectTypeEnum:
       enum:
       - DEFAULT
@@ -2096,6 +2191,39 @@ components:
       - created_dt
       - et_id
       - updated_dt
+    ExploitOnlyReportData:
+      type: object
+      properties:
+        cve:
+          type: string
+          maxLength: 50
+        date:
+          type: string
+          format: date
+          nullable: true
+        source:
+          $ref: '#/components/schemas/ExploitOnlyReportDataSourceEnum'
+        reference:
+          type: string
+          maxLength: 512
+        maturity_preliminary:
+          allOf:
+          - $ref: '#/components/schemas/MaturityPreliminaryEnum'
+          minimum: -2147483648
+          maximum: 2147483647
+        flaw:
+          type: boolean
+      required:
+      - cve
+      - flaw
+      - maturity_preliminary
+      - source
+    ExploitOnlyReportDataSourceEnum:
+      enum:
+      - CISA
+      - Metasploit
+      - Exploit-DB
+      type: string
     Flaw:
       type: object
       description: serialize flaw model
@@ -2113,7 +2241,7 @@ components:
           $ref: '#/components/schemas/StateEnum'
         resolution:
           oneOf:
-          - $ref: '#/components/schemas/FlawResolutionEnum'
+          - $ref: '#/components/schemas/Resolution01fEnum'
           - $ref: '#/components/schemas/BlankEnum'
         impact:
           oneOf:
@@ -2144,7 +2272,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/SourceEnum'
+          - $ref: '#/components/schemas/FlawSourceEnum'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
@@ -2294,177 +2422,24 @@ components:
       - trackers
       - updated_dt
       - uuid
-    FlawResolutionEnum:
-      enum:
-      - DUPLICATE
-      - WONTFIX
-      - NOTABUG
-      - ERRATA
-      - CANTFIX
-      - DEFERRED
-      - CURRENTRELEASE
-      - UPSTREAM
-      - RAWHIDE
-      - INSUFFICIENT_DATA
-      - NEXTRELEASE
-      - WORKSFORME
-      - EOL
-      type: string
-    FlawTypeEnum:
-      enum:
-      - VULNERABILITY
-      - WEAKNESS
-      type: string
-    ImpactEnum:
-      enum:
-      - LOW
-      - MODERATE
-      - IMPORTANT
-      - CRITICAL
-      type: string
-    Meta:
-      type: object
-      description: FlawMeta serializer
-      properties:
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
-        type:
-          $ref: '#/components/schemas/MetaTypeEnum'
-        meta_attr:
-          type: object
-          additionalProperties:
-            type: string
-            nullable: true
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
-        updated_dt:
-          type: string
-          format: date-time
-          readOnly: true
-      required:
-      - created_dt
-      - type
-      - updated_dt
-      - uuid
-    MetaTypeEnum:
-      enum:
-      - ERRATA
-      - REFERENCE
-      - ACKNOWLEDGMENT
-      - EXPLOIT
-      - MAJOR_INCIDENT
-      - MAJOR_INCIDENT_LITE
-      - REQUIRES_DOC_TEXT
-      - NIST_CVSS_VALIDATION
-      - NEED_INFO
-      - CHECKLIST
-      - NVD_CVSS
-      type: string
-    PaginatedAffectList:
+    FlawReportData:
       type: object
       properties:
-        count:
-          type: integer
-          example: 123
-        next:
+        cve_id:
           type: string
           nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
-        results:
+          maxLength: 500
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        resolution:
+          oneOf:
+          - $ref: '#/components/schemas/Resolution01fEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        affects:
           type: array
           items:
-            $ref: '#/components/schemas/Affect'
-    PaginatedEPSSList:
-      type: object
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/EPSS'
-    PaginatedFlawList:
-      type: object
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/Flaw'
-    PaginatedSupportedProductsList:
-      type: object
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/SupportedProducts'
-    PaginatedTrackerList:
-      type: object
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/Tracker'
-    SourceEnum:
+            $ref: '#/components/schemas/AffectReportData'
+    FlawSourceEnum:
       enum:
       - ADOBE
       - APPLE
@@ -2553,6 +2528,232 @@ components:
       - XEN
       - XPDF
       type: string
+    FlawTypeEnum:
+      enum:
+      - VULNERABILITY
+      - WEAKNESS
+      type: string
+    ImpactEnum:
+      enum:
+      - LOW
+      - MODERATE
+      - IMPORTANT
+      - CRITICAL
+      type: string
+    MaturityPreliminaryEnum:
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      type: integer
+    Meta:
+      type: object
+      description: FlawMeta serializer
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/MetaTypeEnum'
+        meta_attr:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_dt
+      - type
+      - updated_dt
+      - uuid
+    MetaTypeEnum:
+      enum:
+      - ERRATA
+      - REFERENCE
+      - ACKNOWLEDGMENT
+      - EXPLOIT
+      - MAJOR_INCIDENT
+      - MAJOR_INCIDENT_LITE
+      - REQUIRES_DOC_TEXT
+      - NIST_CVSS_VALIDATION
+      - NEED_INFO
+      - CHECKLIST
+      - NVD_CVSS
+      type: string
+    PaginatedAffectList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Affect'
+    PaginatedEPSSList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EPSS'
+    PaginatedExploitOnlyReportDataList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExploitOnlyReportData'
+    PaginatedFlawList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Flaw'
+    PaginatedFlawReportDataList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawReportData'
+    PaginatedSupportedProductsList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportedProducts'
+    PaginatedTrackerList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tracker'
+    Resolution01fEnum:
+      enum:
+      - DUPLICATE
+      - WONTFIX
+      - NOTABUG
+      - ERRATA
+      - CANTFIX
+      - DEFERRED
+      - CURRENTRELEASE
+      - UPSTREAM
+      - RAWHIDE
+      - INSUFFICIENT_DATA
+      - NEXTRELEASE
+      - WORKSFORME
+      - EOL
+      type: string
+    Resolution3acEnum:
+      enum:
+      - FIX
+      - DEFER
+      - WONTFIX
+      - OOSS
+      - DELEGATED
+      - WONTREPORT
+      type: string
     StateEnum:
       enum:
       - ASSIGNED
@@ -2628,7 +2829,7 @@ components:
           format: uuid
           readOnly: true
         type:
-          $ref: '#/components/schemas/TrackerTypeEnum'
+          $ref: '#/components/schemas/Type0d0Enum'
         external_system_id:
           type: string
           maxLength: 100
@@ -2685,7 +2886,25 @@ components:
       - type
       - updated_dt
       - uuid
-    TrackerTypeEnum:
+    TrackerReportData:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/Type0d0Enum'
+        external_system_id:
+          type: string
+          maxLength: 100
+        status:
+          type: string
+          maxLength: 100
+        resolution:
+          type: string
+          maxLength: 100
+      required:
+      - external_system_id
+      - status
+      - type
+    Type0d0Enum:
       enum:
       - JIRA
       - BUGZILLA
