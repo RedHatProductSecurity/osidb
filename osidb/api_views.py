@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 
 import pkg_resources
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
@@ -352,6 +353,21 @@ class AffectView(ModelViewSet):
     filterset_class = AffectFilter
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def perform_destroy(self, instance):
+        """
+        override the default behavior to proxy the delete to Bugzilla
+        """
+        flaw = instance.flaw
+        instance.delete()
+
+        # serialize Bugzilla API key and check it was provided
+        serializer = self.get_serializer(data=self.request.data)
+        bz_api_key = serializer.initial_data.get("bz_api_key")
+        if bz_api_key is None:
+            raise ValidationError({"bz_api_key": "Field is required"})
+
+        flaw.save(bz_api_key=bz_api_key)
 
 
 # until we implement tracker write operations

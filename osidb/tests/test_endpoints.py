@@ -1262,12 +1262,17 @@ class TestEndpoints(object):
         """
         Test the deletion of Affect records via a REST API DELETE request.
         """
-        affect = AffectFactory()
+        flaw = FlawFactory()
+        # an extra affect needs to be created as otherwise
+        # we would endup with an invalid affect-less flaw
+        AffectFactory(flaw=flaw)
+        affect = AffectFactory(flaw=flaw)
+
         affect_url = f"{test_api_uri}/affects/{affect.uuid}"
         response = auth_client.get(affect_url)
         assert response.status_code == 200
 
-        response = auth_client.delete(affect_url)
+        response = auth_client.delete(affect_url, data={"bz_api_key": "SECRET"})
         assert response.status_code == 204
 
         response = auth_client.get(affect_url)
