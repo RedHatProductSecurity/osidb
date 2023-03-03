@@ -2035,6 +2035,13 @@ components:
         delegated_resolution:
           type: string
           readOnly: true
+        embargoed:
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+          readOnly: true
+          required: true
+          type: boolean
         created_dt:
           type: string
           format: date-time
@@ -2046,6 +2053,7 @@ components:
       required:
       - created_dt
       - delegated_resolution
+      - embargoed
       - flaw
       - meta_attr
       - ps_component
@@ -2263,9 +2271,6 @@ components:
         cwe_id:
           type: string
           maxLength: 50
-        embargoed:
-          type: boolean
-          readOnly: true
         unembargo_dt:
           type: string
           format: date-time
@@ -2384,6 +2389,13 @@ components:
           items:
             $ref: '#/components/schemas/CVEv5PackageVersions'
           readOnly: true
+        embargoed:
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+          readOnly: true
+          required: true
+          type: boolean
         created_dt:
           type: string
           format: date-time
@@ -2562,6 +2574,13 @@ components:
           additionalProperties:
             type: string
             nullable: true
+        embargoed:
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+          readOnly: true
+          required: true
+          type: boolean
         created_dt:
           type: string
           format: date-time
@@ -2572,6 +2591,7 @@ components:
           readOnly: true
       required:
       - created_dt
+      - embargoed
       - type
       - updated_dt
       - uuid
