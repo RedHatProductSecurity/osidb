@@ -3,7 +3,7 @@ from typing import Tuple
 import requests
 from requests_gssapi import HTTPSPNEGOAuth
 
-from osidb.helpers import get_model_fields
+from osidb.helpers import ensure_list, get_model_fields
 from osidb.models import PsContact, PsModule, PsProduct, PsUpdateStream
 
 from .constants import (
@@ -95,13 +95,6 @@ def sync_ps_update_streams(data: dict):
         PsUpdateStream.objects.update_or_create(
             name=stream_name, defaults=filtered_stream_data
         )
-
-
-def ensure_list(item):
-    """
-    helper to ensure that the item is list
-    """
-    return item if isinstance(item, list) else [item]
 
 
 def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
