@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install required ubuntu packages
-        run: sudo apt install libkrb5-dev build-essential python3-dev libldap2-dev libsasl2-dev libssl-dev
+        run: sudo apt update && sudo apt install libkrb5-dev build-essential python3-dev libldap2-dev libsasl2-dev libssl-dev
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install required ubuntu packages
-        run: sudo apt install libkrb5-dev build-essential python3-dev libldap2-dev libsasl2-dev libssl-dev
+        run: sudo apt update && sudo apt install libkrb5-dev build-essential python3-dev libldap2-dev libsasl2-dev libssl-dev
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
