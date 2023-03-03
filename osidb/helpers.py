@@ -14,6 +14,13 @@ from django.db import models
 from .exceptions import OSIDBException
 
 
+def ensure_list(item):
+    """
+    helper to ensure that the item is list
+    """
+    return item if isinstance(item, list) else [item]
+
+
 def get_env(
     key: str,
     default: Union[None, str] = None,

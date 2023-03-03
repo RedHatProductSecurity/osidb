@@ -1,13 +1,17 @@
+import uuid
 from datetime import timedelta
 from typing import Set, Union
 
 import pytest
+from django.conf import settings
 from django.utils import timezone
 from django.utils.timezone import datetime
 from freezegun import freeze_time
 
 from osidb.filters import FlawFilter
 
+from ..core import generate_acls
+from ..helpers import ensure_list
 from ..models import Affect, Flaw, FlawMeta, Tracker
 from .factories import (
     AffectFactory,
@@ -1052,6 +1056,7 @@ class TestEndpoints(object):
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "embargoed": False,
         }
         response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
         assert response.status_code == 201
@@ -1077,6 +1082,7 @@ class TestEndpoints(object):
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "embargoed": False,
         }
         response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
         assert response.status_code == 201
@@ -1105,7 +1111,7 @@ class TestEndpoints(object):
         """
         Test that updating a Flaw by sending a PUT request works.
         """
-        flaw = FlawFactory()
+        flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
@@ -1122,9 +1128,9 @@ class TestEndpoints(object):
                 "state": flaw.state,
                 "resolution": flaw.resolution,
                 "impact": flaw.impact,
-                "acl_read": flaw.acl_read,
-                "acl_write": flaw.acl_write,
+                "embargoed": False,
             },
+            format="json",
         )
         assert response.status_code == 200
         body = response.json()
@@ -1210,6 +1216,7 @@ class TestEndpoints(object):
             "resolution": Affect.AffectResolution.NOVALUE,
             "ps_module": "rhacm-2",
             "ps_component": "curl",
+            "embargoed": False,
         }
         response = auth_client.post(
             f"{test_api_uri}/affects", affect_data, format="json"
@@ -1231,6 +1238,7 @@ class TestEndpoints(object):
         response = auth_client.get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
         original_body = response.json()
+        original_body["embargoed"] = False
 
         response = auth_client.put(
             f"{test_api_uri}/affects/{affect.uuid}",
@@ -1310,3 +1318,119 @@ class TestEndpoints(object):
         # this HTTP method is not allowed until we integrate
         # with the authoritative sources of the tracker data
         assert response.status_code == 405
+
+
+class TestEndpointsACLs:
+    """
+    ACL specific tests
+    """
+
+    def hash_acl(self, acl):
+        """
+        shortcut to get ACL from the group(s)
+        """
+        return [uuid.UUID(ac) for ac in generate_acls(ensure_list(acl))]
+
+    @pytest.mark.parametrize(
+        "embargoed,acl_read,acl_write",
+        [
+            (False, settings.PUBLIC_READ_GROUPS, settings.PUBLIC_WRITE_GROUP),
+            (True, settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP),
+        ],
+    )
+    def test_flaw_create(
+        self, auth_client, test_api_uri, embargoed, acl_read, acl_write
+    ):
+        """
+        test proper embargo status and ACLs when creating a flaw by sending a POST request
+        """
+        flaw_data = {
+            "title": "EMBARGOED Foo" if embargoed else "Foo",
+            "description": "test",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "unembargo_dt": None if embargoed else "2000-1-1T22:03:26.065Z",
+            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "embargoed": embargoed,
+        }
+        response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        assert response.status_code == 201
+        body = response.json()
+        created_uuid = body["uuid"]
+
+        flaw = Flaw.objects.first()
+        assert flaw.acl_read == self.hash_acl(acl_read)
+        assert flaw.acl_write == self.hash_acl(acl_write)
+
+        response = auth_client.get(f"{test_api_uri}/flaws/{created_uuid}")
+        assert response.status_code == 200
+        assert response.json()["embargoed"] == embargoed
+
+    @pytest.mark.parametrize(
+        "embargoed,acl_read,acl_write",
+        [
+            (False, settings.PUBLIC_READ_GROUPS, settings.PUBLIC_WRITE_GROUP),
+            (True, settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP),
+        ],
+    )
+    def test_flaw_update(
+        self, auth_client, test_api_uri, embargoed, acl_read, acl_write
+    ):
+        """
+        test proper embargo status and ACLs when updating a flaw by sending a PUT request
+        while the embargo status and ACLs itself are not being changed
+        """
+        flaw = FlawFactory(embargoed=embargoed)
+        AffectFactory(flaw=flaw)
+
+        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        original_body = response.json()
+        assert original_body["embargoed"] == embargoed
+
+        response = auth_client.put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            {
+                "title": f"{flaw.title} appended test title",
+                "description": flaw.description,
+                "embargoed": embargoed,
+            },
+            format="json",
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert original_body["title"] != body["title"]
+        assert "appended test title" in body["title"]
+        assert original_body["embargoed"] == body["embargoed"]
+
+        flaw = Flaw.objects.first()
+        assert flaw.acl_read == self.hash_acl(acl_read)
+        assert flaw.acl_write == self.hash_acl(acl_write)
+
+    @freeze_time(datetime(2021, 11, 23, tzinfo=timezone.get_current_timezone()))
+    def test_flaw_unembargo(self, auth_client, test_api_uri):
+        """
+        test proper embargo status and ACLs when unembargoing a flaw by sending a PUT request
+        """
+        future_dt = datetime(2021, 11, 27, tzinfo=timezone.get_current_timezone())
+        flaw = FlawFactory(
+            embargoed=True,
+            unembargo_dt=future_dt,
+        )
+        AffectFactory(flaw=flaw)
+
+        # the unembargo must happen after the unembargo moment passed
+        with freeze_time(future_dt):
+            response = auth_client.put(
+                f"{test_api_uri}/flaws/{flaw.uuid}",
+                {
+                    "title": flaw.title.replace("EMBARGOED", "").strip(),
+                    "description": flaw.description,
+                    "embargoed": False,
+                },
+                format="json",
+            )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["embargoed"] is False
+        assert Flaw.objects.first().embargoed is False

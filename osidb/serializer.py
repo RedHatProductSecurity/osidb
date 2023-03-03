@@ -3,16 +3,21 @@
 """
 
 import logging
+import uuid
 from collections import defaultdict
 from typing import Dict, List, Tuple
 
+from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
 from rest_framework import serializers
 
 from apps.osim.serializers import WorkflowModelSerializer
 
-from .mixins import TrackingMixin
+from .core import generate_acls
+from .helpers import ensure_list
+from .mixins import ACLMixin, TrackingMixin
 from .models import (
     Affect,
     CVEv5PackageVersions,
@@ -287,18 +292,97 @@ class TrackerSerializer(
         ] + TrackingMixinSerializer.Meta.fields
 
 
-class MetaSerializer(TrackingMixinSerializer):
+class ACLMixinSerializer(serializers.ModelSerializer):
+    """
+    ACLMixin class serializer
+    translates embargoed boolean to ACLs
+    """
+
+    embargoed = serializers.SerializerMethodField()
+
+    @extend_schema_field(
+        {
+            "description": (
+                "The embargoed boolean attribute is technically read-only as it just indirectly "
+                "modifies the ACLs but is mandatory as it controls the access to the resource."
+            ),
+            # TODO the read-only does not work this way
+            "readOnly": False,
+            "required": True,
+            "type": "boolean",
+        }
+    )
+    def get_embargoed(self, obj):
+        """
+        get embargoed status from ACLMixin
+        """
+        return obj.is_embargoed
+
+    class Meta:
+        abstract = True
+        fields = ["embargoed"]
+        model = ACLMixin
+
+    def hash_acl(self, acl):
+        """
+        convert ACL names to hashed UUIDs
+        """
+        return [uuid.UUID(ac) for ac in generate_acls(acl)]
+
+    def get_acls(self, embargoed):
+        """
+        generate ACLs based on embargo status
+        """
+        acl_read = (
+            settings.EMBARGO_READ_GROUP if embargoed else settings.PUBLIC_READ_GROUPS
+        )
+        acl_write = (
+            settings.EMBARGO_WRITE_GROUP if embargoed else settings.PUBLIC_WRITE_GROUP
+        )
+        acl_read, acl_write = ensure_list(acl_read), ensure_list(acl_write)
+        return self.hash_acl(acl_read), self.hash_acl(acl_write)
+
+    def embargoed2acls(self, validated_data):
+        """
+        process validated data converting embargoed status into the ACLs
+        """
+        embargoed = self.context["request"].data.get("embargoed")
+        # the serializer nativaly considers embargoed as read-only
+        # so we have to explicitely make it required on write
+        if embargoed is None:
+            raise ValidationError({"embargoed": "Field is required"})
+
+        acl_read, acl_write = self.get_acls(embargoed)
+        validated_data["acl_read"] = acl_read
+        validated_data["acl_write"] = acl_write
+
+        return validated_data
+
+    def create(self, validated_data):
+        validated_data = self.embargoed2acls(validated_data)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data = self.embargoed2acls(validated_data)
+        return super().update(instance, validated_data)
+
+
+class MetaSerializer(ACLMixinSerializer, TrackingMixinSerializer):
     """FlawMeta serializer"""
 
     class Meta:
         """filter fields"""
 
         model = FlawMeta
-        fields = [
-            "uuid",
-            "type",
-            "meta_attr",
-        ] + TrackingMixinSerializer.Meta.fields
+        fields = (
+            [
+                "uuid",
+                "type",
+                "meta_attr",
+            ]
+            + ACLMixinSerializer.Meta.fields
+            + TrackingMixinSerializer.Meta.fields
+        )
 
 
 class CommentSerializer(TrackingMixinSerializer):
@@ -318,7 +402,10 @@ class CommentSerializer(TrackingMixinSerializer):
 
 
 class AffectSerializer(
-    TrackingMixinSerializer, IncludeExcludeFieldsMixin, IncludeMetaAttrMixin
+    ACLMixinSerializer,
+    TrackingMixinSerializer,
+    IncludeExcludeFieldsMixin,
+    IncludeMetaAttrMixin,
 ):
     """Affect serializer"""
 
@@ -373,23 +460,27 @@ class AffectSerializer(
         """filter fields"""
 
         model = Affect
-        fields = [
-            "uuid",
-            "flaw",
-            "type",
-            "affectedness",
-            "resolution",
-            "ps_module",
-            "ps_component",
-            "impact",
-            "cvss2",
-            "cvss2_score",
-            "cvss3",
-            "cvss3_score",
-            "trackers",
-            "meta_attr",
-            "delegated_resolution",
-        ] + TrackingMixinSerializer.Meta.fields
+        fields = (
+            [
+                "uuid",
+                "flaw",
+                "type",
+                "affectedness",
+                "resolution",
+                "ps_module",
+                "ps_component",
+                "impact",
+                "cvss2",
+                "cvss2_score",
+                "cvss3",
+                "cvss3_score",
+                "trackers",
+                "meta_attr",
+                "delegated_resolution",
+            ]
+            + ACLMixinSerializer.Meta.fields
+            + TrackingMixinSerializer.Meta.fields
+        )
 
 
 class CVEv5VersionsSerializer(serializers.ModelSerializer):
@@ -425,6 +516,7 @@ class FlawAffectsTrackersField(serializers.Field):
 
 @extend_schema_serializer(deprecate_fields=["mitigated_by"])
 class FlawSerializer(
+    ACLMixinSerializer,
     TrackingMixinSerializer,
     WorkflowModelSerializer,
     IncludeExcludeFieldsMixin,
@@ -481,7 +573,6 @@ class FlawSerializer(
     affects = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
     package_versions = CVEv5PackageVersionsSerializer(many=True, read_only=True)
-    embargoed = serializers.BooleanField(read_only=True)
 
     meta = serializers.SerializerMethodField()
     meta_attr = serializers.SerializerMethodField()
@@ -535,9 +626,6 @@ class FlawSerializer(
         serializer = MetaSerializer(instance=meta, many=True)
         return serializer.data
 
-    def create(self, validated_data):
-        return Flaw.objects.create(**validated_data)
-
     class Meta:
         """filter fields"""
 
@@ -556,7 +644,6 @@ class FlawSerializer(
                 "summary",
                 "statement",
                 "cwe_id",
-                "embargoed",
                 "unembargo_dt",
                 "source",
                 "reported_dt",
@@ -574,6 +661,7 @@ class FlawSerializer(
                 "meta_attr",
                 "package_versions",
             ]
+            + ACLMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
             + WorkflowModelSerializer.Meta.fields
         )

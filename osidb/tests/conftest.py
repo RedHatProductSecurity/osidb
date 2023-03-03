@@ -90,13 +90,33 @@ def embargo_read_group():
 
 
 @pytest.fixture
-def public_groups(public_read_group):
+def public_read_groups(public_read_group):
     return [uuid.UUID(acl) for acl in public_read_group]
 
 
 @pytest.fixture
-def embargoed_groups(embargo_read_group):
+def embargoed_read_groups(embargo_read_group):
     return [uuid.UUID(acl) for acl in embargo_read_group]
+
+
+@pytest.fixture
+def public_write_group():
+    return generate_acls([settings.PUBLIC_WRITE_GROUP])
+
+
+@pytest.fixture
+def embargo_write_group():
+    return generate_acls([settings.EMBARGO_WRITE_GROUP])
+
+
+@pytest.fixture
+def public_write_groups(public_write_group):
+    return [uuid.UUID(acl) for acl in public_write_group]
+
+
+@pytest.fixture
+def embargoed_write_groups(embargo_write_group):
+    return [uuid.UUID(acl) for acl in embargo_write_group]
 
 
 @pytest.fixture

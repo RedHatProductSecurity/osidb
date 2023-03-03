@@ -41,15 +41,26 @@ def tzdatetime(*args):
 
 
 class TestFlaw:
-    def test_create(self, datetime_with_tz, good_cve_id):
-        """test raw flaw creation"""
-
-        acls = [
+    @property
+    def acl_read(self):
+        return [
             uuid.uuid5(
                 uuid.NAMESPACE_URL,
                 "https://osidb.prod.redhat.com/ns/acls#data-prodsec",
             )
         ]
+
+    @property
+    def acl_write(self):
+        return [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                "https://osidb.prod.redhat.com/ns/acls#data-prodsec-write",
+            )
+        ]
+
+    def test_create(self, datetime_with_tz, good_cve_id):
+        """test raw flaw creation"""
         meta_attr = {}
         meta_attr["test"] = 1
         vuln_1 = FlawFactory.build(
@@ -65,8 +76,8 @@ class TestFlaw:
             statement="statement",
             resolution=FlawResolution.NOVALUE,
             is_major_incident=True,
-            acl_read=acls,
-            acl_write=acls,
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             # META
             meta_attr=meta_attr,
@@ -91,8 +102,8 @@ class TestFlaw:
             affectedness=Affect.AffectAffectedness.NEW,
             resolution=Affect.AffectResolution.NOVALUE,
             impact=Affect.AffectImpact.NOVALUE,
-            acl_read=acls,
-            acl_write=acls,
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
         )
         affect2.save()
         tracker1 = TrackerFactory(
@@ -123,8 +134,8 @@ class TestFlaw:
                 "creation_time": "2006-03-30T11:56:45Z",
             },
             type=FlawComment.FlawCommentType.BUGZILLA,
-            acl_read=acls,
-            acl_write=acls,
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
         )
         comment2.save()
         all_comments = vuln_1.comments.all()
@@ -140,8 +151,8 @@ class TestFlaw:
                 "url": "http://nonexistenturl.example.com/99999",
                 "type": "external",
             },
-            acl_read=acls,
-            acl_write=acls,
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
         )
         meta2.save()
         all_meta = vuln_1.meta.all()
@@ -162,8 +173,8 @@ class TestFlaw:
             impact=FlawImpact.CRITICAL,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
-            acl_read=acls,
-            acl_write=acls,
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
         assert vuln_2.validate() is None
@@ -172,12 +183,6 @@ class TestFlaw:
         # assert vuln_2.delete()
 
     def test_create_flaw_method(self):
-        acls = [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                "https://osidb.prod.redhat.com/ns/acls#data-prodsec",
-            )
-        ]
         Flaw.objects.all().delete()
         flaw1 = Flaw.objects.create_flaw(
             bz_id="12345",
@@ -185,8 +190,8 @@ class TestFlaw:
             title="first",
             unembargo_dt=tzdatetime(2000, 1, 1),
             description="description",
-            acl_read=acls,
-            acl_write=acls,
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
             reported_dt=timezone.now(),
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
@@ -199,8 +204,8 @@ class TestFlaw:
             bz_id="12345",
             title="second",
             description="description",
-            acl_read=acls,
-            acl_write=acls,
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
             reported_dt=timezone.now(),
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         ).save()
@@ -290,8 +295,8 @@ class TestFlaw:
             flaw=flaw,
             _type=FlawMeta.FlawMetaType.MAJOR_INCIDENT,
             meta={},
-            acl_read=[uuid.uuid4()],
-            acl_write=[uuid.uuid4()],
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
         )
         meta.save()
         old_updated_dt = meta.updated_dt
@@ -310,13 +315,6 @@ class TestFlaw:
 
     def test_objects_create_flaw(self, datetime_with_tz, good_cve_id):
         """test creating with manager .create_flow()"""
-
-        acls = [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                "https://osidb.prod.redhat.com/ns/acls#data-prodsec",
-            )
-        ]
         meta_attr = {}
         meta_attr["test"] = 1
         vuln_1 = Flaw(
@@ -332,8 +330,8 @@ class TestFlaw:
             impact=FlawImpact.CRITICAL,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
-            acl_read=acls,
-            acl_write=acls,
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             # META
             meta_attr=meta_attr,
@@ -343,13 +341,6 @@ class TestFlaw:
 
     def test_flaw_queryset(self, datetime_with_tz):
         """retrieve flaw manager queryset"""
-        acls = [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                "https://osidb.prod.redhat.com/ns/acls#data-prodsec",
-            )
-        ]
-
         flaw = Flaw(
             cve_id="CVE-1970-12345",
             cwe_id="CWE-1",
@@ -363,8 +354,8 @@ class TestFlaw:
             impact=FlawImpact.CRITICAL,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
-            acl_read=acls,
-            acl_write=acls,
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
         assert Flaw.objects.get_queryset().count() == 0
@@ -373,13 +364,6 @@ class TestFlaw:
 
     def test_fts_search(self, datetime_with_tz, good_cve_id):
         """check fts search is working"""
-        acls = [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                "https://osidb.prod.redhat.com/ns/acls#data-prodsec",
-            )
-        ]
-
         flaw = Flaw(
             cve_id=good_cve_id,
             cwe_id="CWE-1",
@@ -393,8 +377,8 @@ class TestFlaw:
             impact=FlawImpact.CRITICAL,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
-            acl_read=acls,
-            acl_write=acls,
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
 
@@ -943,6 +927,9 @@ class TestFlawValidators:
             flaw.title = "EMBARGOED foo bar baz"
             flaw.acl_read = [
                 uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+            ]
+            flaw.acl_write = [
+                uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_WRITE_GROUP])
             ]
             flaw.unembargo_dt = tzdatetime(2022, 1, 1)
             flaw.save()

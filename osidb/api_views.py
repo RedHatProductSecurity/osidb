@@ -19,7 +19,6 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, ViewSet
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
-from .core import generate_acls
 from .filters import AffectFilter, FlawFilter, TrackerFilter
 from .models import Affect, Flaw, Tracker
 from .serializer import (
@@ -317,11 +316,6 @@ class FlawView(ModelViewSet):
         response["Location"] = f"/api/{OSIDB_API_VERSION}/flaws/{response.data['uuid']}"
         return response
 
-    def perform_create(self, serializer):
-        # NOTE: this is incorrect, but will be fixed properly later
-        acls = generate_acls(self.request.user.groups.all())
-        serializer.save(acl_read=acls, acl_write=acls)
-
 
 @extend_schema(
     responses={
@@ -358,11 +352,6 @@ class AffectView(ModelViewSet):
     filterset_class = AffectFilter
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def perform_create(self, serializer):
-        # NOTE: this is incorrect, but will be fixed properly later
-        acls = generate_acls(self.request.user.groups.all())
-        serializer.save(acl_read=acls, acl_write=acls)
 
 
 # until we implement tracker write operations

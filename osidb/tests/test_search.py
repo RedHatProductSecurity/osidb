@@ -58,10 +58,16 @@ class TestSearch:
         body = response.json()
         assert body["count"] == 0
 
-        acls = [
+        acl_read = [
             uuid.uuid5(
                 uuid.NAMESPACE_URL,
                 "https://osidb.prod.redhat.com/ns/acls#data-prodsec",
+            )
+        ]
+        acl_write = [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                "https://osidb.prod.redhat.com/ns/acls#data-prodsec-write",
             )
         ]
         meta_attr = {"test": 1}
@@ -80,8 +86,8 @@ class TestSearch:
             summary="SUMMARY",
             statement="STATEMENT",
             resolution=FlawResolution.NOVALUE,
-            acl_read=acls,
-            acl_write=acls,
+            acl_read=acl_read,
+            acl_write=acl_write,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             # META
             meta_attr=meta_attr,
