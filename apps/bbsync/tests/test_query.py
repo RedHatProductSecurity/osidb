@@ -389,9 +389,10 @@ class TestGenerateSRTNotes:
         """
         test generating of SRT notes impact attribute
         """
-        flaw = FlawFactory(
+        flaw = FlawFactory.build(
             impact=osidb_impact, meta_attr={"original_srtnotes": srtnotes}
         )
+        flaw.save(raise_validation_error=False)
         FlawCommentFactory(flaw=flaw)
         AffectFactory(flaw=flaw)
 

@@ -190,6 +190,7 @@ class TestFlaw:
             title="first",
             unembargo_dt=tzdatetime(2000, 1, 1),
             description="description",
+            impact=FlawImpact.LOW,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             reported_dt=timezone.now(),
@@ -204,6 +205,7 @@ class TestFlaw:
             bz_id="12345",
             title="second",
             description="description",
+            impact=FlawImpact.LOW,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             reported_dt=timezone.now(),
@@ -1018,6 +1020,13 @@ class TestFlawValidators:
         with pytest.raises(ValidationError) as e:
             flaw2.save()
         assert "Flaw does not contain any affects." in str(e)
+
+    def test_no_impact(self):
+        """
+        test that flaw cannot have an empty impact
+        """
+        with pytest.raises(ValidationError, match="Impact value is required"):
+            FlawFactory(impact=None)
 
     @pytest.mark.parametrize(
         "start_impact,new_impact,tracker_statuses,should_raise",

@@ -46,7 +46,9 @@ class FlawFactory(factory.django.DjangoModelFactory):
     reported_dt = factory.Faker("date_time", tzinfo=UTC)
     state = factory.Faker("random_element", elements=list(Flaw.FlawState))
     resolution = factory.Faker("random_element", elements=list(FlawResolution))
-    impact = factory.Faker("random_element", elements=list(FlawImpact))
+    impact = factory.Faker(
+        "random_element", elements=list(set(FlawImpact) - {FlawImpact.NOVALUE})
+    )
     description = factory.LazyAttribute(lambda c: f"Description for {c.cve_id}")
     title = factory.Maybe(
         "embargoed",
