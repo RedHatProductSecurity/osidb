@@ -770,6 +770,16 @@ class Flaw(WorkflowModel, TrackingMixin, NullStrFieldsMixin, AlertMixin, ACLMixi
         if not Affect.objects.filter(flaw=self).exists():
             raise ValidationError("Flaw does not contain any affects.")
 
+    def _validate_nonempty_impact(self):
+        """
+        check that the impact is not empty
+
+        we cannot enforce this by model definition
+        as the old flaws may have no impact
+        """
+        if not self.impact:
+            raise ValidationError("Impact value is required.")
+
     def _validate_unsupported_impact_change(self):
         """
         Check that an update of a flaw with open trackers does not change between
