@@ -98,7 +98,7 @@ class BugzillaQueryBuilder:
         generate query for flaw description on create
         """
         if self.creation:
-            self._query["description"] = self.flaw.comments.first().text
+            self._query["description"] = self.flaw.description
             self._query["comment_is_private"] = False
             # TODO
             # self._query["comment_is_private"] = True if ... else False

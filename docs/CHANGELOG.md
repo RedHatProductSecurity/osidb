@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement Exploits report data API endpoint (PSINSIGHTS-764)
 - Implement ACL validations (OSIDB-691)
 - Implement non-empty impact validation (OSIDB-758)
+- Integrate Bugzilla backwards sync into the flaw and affect save (OSIDB-240)
+- Introduce Bugzilla API key as a serializer attribute (OSIDB-368)
 
 ### Changed
 - Change logging of celery and django to filesystem (OSIDB-418)

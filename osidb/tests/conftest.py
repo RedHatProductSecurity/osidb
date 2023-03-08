@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 import pytest
 from django.conf import settings
 
-from osidb.constants import OSIDB_API_VERSION
 from osidb.core import generate_acls
 from osidb.helpers import get_env
 from osidb.models import FlawSource
@@ -38,21 +37,6 @@ def test_ps_module():
 @pytest.fixture
 def root_url():
     return "http://osdib-service:8000"
-
-
-@pytest.fixture
-def test_scheme_host():
-    return "http://osidb-service:8000/osidb"
-
-
-@pytest.fixture
-def api_version():
-    return OSIDB_API_VERSION
-
-
-@pytest.fixture
-def test_api_uri(test_scheme_host, api_version):
-    return f"{test_scheme_host}/api/{api_version}"
 
 
 @pytest.fixture

@@ -17,6 +17,9 @@ RHSCL_BTS_KEY = "Red Hat Software Collections"
 # JSON schema for SRT notes flaw metadata
 SRTNOTES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "./srtnotes-schema.json")
 
+# switch to enable or disable BBSync
+SYNC_TO_BZ = get_env("BBSYNC_SYNC_TO_BZ", default="False", is_bool=True)
+
 # in SFM2 there are Bugzilla bot accounts and invalid users being filtered out from the CC lists
 # however the list of the corresponding emails is being pulled from VDB by the old vdbqb library
 # and we definitelly do not want such a dependence in OSIDB so I am adding the list statically

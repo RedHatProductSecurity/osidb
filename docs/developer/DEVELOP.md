@@ -35,6 +35,10 @@ PIP_INDEX_URL="https://foo.bar"
 
 # URL from which to pull Red Hat internal certificates (optional)
 RH_CERT_URL="https://foo.bar"
+
+# enable Bugzilla backwards sync to propagate writes to Bugzilla
+# otherwise all the writes are performed only locally in OSIDB
+BBSYNC_SYNC_TO_BZ=1
 ```
 
 The `.env` file is loaded automatically by podman-compose. It is also loaded as environment variables in a few Makefile targets (run `grep -rF '.env ' mk/` to see which ones).

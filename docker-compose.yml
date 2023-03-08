@@ -75,6 +75,7 @@ services:
         ET_URL: ${ET_URL}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
         DASHBOARD_URL: ${DASHBOARD_URL}
+        BBSYNC_SYNC_TO_BZ: ${BBSYNC_SYNC_TO_BZ}
       command: ./scripts/setup-osidb-service.sh
       volumes:
         - ${PWD}:/opt/app-root/src:z
