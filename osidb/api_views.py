@@ -3,6 +3,7 @@ implement osidb rest api views
 """
 
 import logging
+from typing import Type
 from urllib.parse import urljoin
 
 import pkg_resources
@@ -17,7 +18,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, ViewSet
+from rest_framework.viewsets import (
+    ModelViewSet,
+    ReadOnlyModelViewSet,
+    ViewSet,
+    ViewSetMixin,
+)
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import AffectFilter, FlawFilter, TrackerFilter
@@ -155,45 +161,82 @@ id_param = OpenApiParameter(
 )
 
 
+include_fields_param = OpenApiParameter(
+    "include_fields",
+    type={"type": "array", "items": {"type": "string"}},
+    location=OpenApiParameter.QUERY,
+    description=(
+        "Include only specified fields in the response. "
+        "Multiple values may be separated by commas. Dot notation "
+        "can be used to filter on related model fields. "
+        "Example: `include_fields=field,related_model_field.field`"
+    ),
+)
+
+
+exclude_fields_param = OpenApiParameter(
+    "exclude_fields",
+    type={"type": "array", "items": {"type": "string"}},
+    location=OpenApiParameter.QUERY,
+    description=(
+        "Exclude specified fields from the response. "
+        "Multiple values may be separated by commas. Dot notation "
+        "can be used to filter on related model fields. "
+        "Example: `exclude_fields=field,related_model_field.field`"
+    ),
+)
+
+include_meta_attr = OpenApiParameter(
+    "include_meta_attr",
+    type={"type": "array", "items": {"type": "string"}},
+    location=OpenApiParameter.QUERY,
+    description=(
+        "Specify which keys from meta_attr field should be retrieved, "
+        "multiple values may be separated by commas. "
+        "Dot notation can be used to specify meta_attr keys on related models. "
+        "Example: `include_meta_attr=key,related_model.key`"
+        "Use wildcards eg. `include_meta_attr=*,related_model.*` "
+        "for retrieving all the keys from meta_attr. "
+        "Omit this parameter to not include meta_attr fields at all. "
+    ),
+)
+
+
+def include_meta_attr_extend_schema_view(cls: Type[ViewSetMixin]) -> Type[ViewSetMixin]:
+    """
+    Decorator which adds `include_meta_attr` query parameter description into the schema
+    for `list` and `retrieve` methods
+    """
+    return (
+        extend_schema_view(
+            list=extend_schema(parameters=[include_meta_attr]),
+            retrieve=extend_schema(parameters=[include_meta_attr]),
+        )
+    )(cls)
+
+
+def include_exclude_fields_extend_schema_view(
+    cls: Type[ViewSetMixin],
+) -> Type[ViewSetMixin]:
+    """
+    Decorator which adds `include_fields` and `exclude_fields` query parameters description
+    into the schema for `list` and `retrieve` methods
+    """
+    return (
+        extend_schema_view(
+            list=extend_schema(parameters=[include_fields_param, exclude_fields_param]),
+            retrieve=extend_schema(
+                parameters=[include_fields_param, exclude_fields_param]
+            ),
+        )
+    )(cls)
+
+
+@include_meta_attr_extend_schema_view
+@include_exclude_fields_extend_schema_view
 @extend_schema_view(
     list=extend_schema(
         parameters=[
-            OpenApiParameter(
-                "include_fields",
-                type={"type": "array", "items": {"type": "string"}},
-                location=OpenApiParameter.QUERY,
-                description=(
-                    "Include only specified fields in the response. "
-                    "Multiple values may be separated by commas. Dot notation "
-                    "can be used to filter on related model fields. "
-                    "Example: `include_fields=uuid,affects.uuid,affects.trackers.uuid`"
-                ),
-            ),
-            OpenApiParameter(
-                "exclude_fields",
-                type={"type": "array", "items": {"type": "string"}},
-                location=OpenApiParameter.QUERY,
-                description=(
-                    "Exclude specified fields from the response. "
-                    "Multiple values may be separated by commas. Dot notation "
-                    "can be used to filter on related model fields. "
-                    "Example: `exclude_fields=uuid,affects.uuid,affects.trackers.uuid`"
-                ),
-            ),
-            OpenApiParameter(
-                "include_meta_attr",
-                type={"type": "array", "items": {"type": "string"}},
-                location=OpenApiParameter.QUERY,
-                description=(
-                    "Specify which keys from meta_attr field should be retrieved, "
-                    "multiple values may be separated by commas. "
-                    "Dot notation can be used to specify meta_attr keys on related models. "
-                    "Example: `include_meta_attr=bz_id,affects.ps_module,affects.trackers.bz_id`"
-                    "Use wildcards eg. `include_meta_attr=*,affects.*,affects.trackers.*` "
-                    "for retrieving all the keys from meta_attr. "
-                    "Omit this parameter to not include meta_attr fields at all. "
-                ),
-            ),
             OpenApiParameter(
                 "flaw_meta_type",
                 type={"type": "array", "items": {"type": "string"}},
@@ -218,42 +261,6 @@ id_param = OpenApiParameter(
     retrieve=extend_schema(
         responses=FlawSerializer,
         parameters=[
-            OpenApiParameter(
-                "include_fields",
-                type={"type": "array", "items": {"type": "string"}},
-                location=OpenApiParameter.QUERY,
-                description=(
-                    "Include only specified fields in the response. "
-                    "Multiple values may be separated by commas. Dot notation "
-                    "can be used to filter on related model fields. "
-                    "Example: `include_fields=uuid,affects.uuid,affects.trackers.uuid`"
-                ),
-            ),
-            OpenApiParameter(
-                "exclude_fields",
-                type={"type": "array", "items": {"type": "string"}},
-                location=OpenApiParameter.QUERY,
-                description=(
-                    "Exclude specified fields from the response. "
-                    "Multiple values may be separated by commas. Dot notation "
-                    "can be used to filter on related model fields. "
-                    "Example: `exclude_fields=uuid,affects.uuid,affects.trackers.uuid`"
-                ),
-            ),
-            OpenApiParameter(
-                "include_meta_attr",
-                type={"type": "array", "items": {"type": "string"}},
-                location=OpenApiParameter.QUERY,
-                description=(
-                    "Specify which keys from meta_attr field should be retrieved, "
-                    "multiple values may be separated by commas. "
-                    "Dot notation can be used to specify meta_attr keys on related models. "
-                    "Example: `include_meta_attr=bz_id,affects.ps_module,affects.trackers.bz_id`"
-                    "Use wildcards eg. `include_meta_attr=*,affects.*,affects.trackers.*` "
-                    "for retrieving all the keys from meta_attr. "
-                    "Omit this parameter to not include meta_attr fields at all. "
-                ),
-            ),
             OpenApiParameter(
                 "flaw_meta_type",
                 type={"type": "array", "items": {"type": "string"}},
@@ -347,6 +354,8 @@ def whoami(request: Request) -> Response:
     return Response(UserSerializer(request.user).data)
 
 
+@include_meta_attr_extend_schema_view
+@include_exclude_fields_extend_schema_view
 class AffectView(ModelViewSet):
     queryset = Affect.objects.all()
     serializer_class = AffectSerializer
@@ -372,6 +381,8 @@ class AffectView(ModelViewSet):
 
 # until we implement tracker write operations
 # we have to consider them as read-only
+@include_meta_attr_extend_schema_view
+@include_exclude_fields_extend_schema_view
 class TrackerView(ReadOnlyModelViewSet):
     queryset = Tracker.objects.all()
     serializer_class = TrackerSerializer
