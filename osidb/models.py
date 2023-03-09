@@ -626,6 +626,16 @@ class Flaw(
                 f"NVD {nvd_cvss3_score}:{nvd_severity}",
             )
 
+    def _validate_nonempty_source(self):
+        """
+        checks that the source is not empty
+
+        we cannot enforce this by model definition
+        as the old flaws may have no source
+        """
+        if not self.source:
+            raise ValidationError("Source value is required.")
+
     def _validate_embargoed_source(self):
         """
         Checks that the source is private if the Flaw is embargoed.
