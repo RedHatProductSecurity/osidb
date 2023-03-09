@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.bbsync.mixins import BugzillaSyncMixin
@@ -579,7 +579,6 @@ class FlawAffectsTrackersField(serializers.Field):
         return list(trackers)
 
 
-@extend_schema_serializer(deprecate_fields=["mitigated_by"])
 class FlawSerializer(
     ACLMixinSerializer,
     BugzillaSyncMixinSerializer,
@@ -713,7 +712,6 @@ class FlawSerializer(
                 "unembargo_dt",
                 "source",
                 "reported_dt",
-                "mitigated_by",
                 "cvss2",
                 "cvss2_score",
                 "nvd_cvss2",

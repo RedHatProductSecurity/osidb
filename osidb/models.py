@@ -15,7 +15,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django_deprecate_fields import deprecate_field
 from polymorphic.models import PolymorphicModel
 from psqlextra.fields import HStoreField
 
@@ -300,13 +299,6 @@ class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
         RELEASE_PENDING = "RELEASE_PENDING"
         VERIFIED = "VERIFIED"
 
-    class FlawMitigate(models.TextChoices):
-        """allowable mitigated_by"""
-
-        SELINUX = "SELINUX"
-        FORTIFY = "FORTIFY"
-        GRSEC = "GRSEC"
-
     class FlawHistoryResolution(models.TextChoices):
         """allowable resolution"""
 
@@ -368,11 +360,6 @@ class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
     # reported date, from srtnotes "reported"
     reported_dt = models.DateTimeField(
         null=True, blank=True, validators=[no_future_date]
-    )
-
-    # , from srtnotes "mitigate"
-    mitigated_by = deprecate_field(
-        models.CharField(choices=FlawMitigate.choices, max_length=10, blank=True)
     )
 
     # , from srtnotes "cvss2"
@@ -468,12 +455,6 @@ class Flaw(
         RELEASE_PENDING = "RELEASE_PENDING"
         VERIFIED = "VERIFIED"
 
-    class FlawMitigate(models.TextChoices):
-        """allowable mitigate"""
-
-        SELINUX = "SELINUX"
-        FORTIFY = "FORTIFY"
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -533,13 +514,6 @@ class Flaw(
     # reported date, from srtnotes "reported"
     reported_dt = models.DateTimeField(
         null=True, blank=True, validators=[no_future_date]
-    )
-
-    # , from srtnotes "mitigate"
-    mitigated_by = deprecate_field(
-        models.CharField(choices=FlawMitigate.choices, max_length=10, blank=True),
-        # required to keep backwards compatibility
-        return_instead="",
     )
 
     # , from srtnotes "cvss2"
