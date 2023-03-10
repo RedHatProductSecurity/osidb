@@ -27,7 +27,12 @@ def get(path, return_json=True, session=None, **request_kwargs):
     if session:
         response = session.get(url, **request_kwargs)
     else:
-        response = requests.get(url, auth=HTTPSPNEGOAuth(), **request_kwargs)
+        response = requests.get(
+            url,
+            auth=HTTPSPNEGOAuth(),
+            timeout=settings.DEFAULT_REQUEST_TIMEOUT,
+            **request_kwargs,
+        )
     response.raise_for_status()
     return response.json() if return_json else response
 

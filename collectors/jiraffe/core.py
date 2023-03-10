@@ -4,6 +4,7 @@ from typing import Any, Union
 from uuid import UUID
 
 import requests
+from django.conf import settings
 from jira import JIRA, Issue
 
 from osidb.models import Affect, Tracker
@@ -52,7 +53,10 @@ def get_jira_modules() -> dict:
     """
     # TODO: need a proper/generic solution that provides product definitions in a reliable
     # and efficient way, as it stands this will never be updated in long-running OSIDB instances
-    response = requests.get(PRODUCT_DEFINITIONS_URL)
+    response = requests.get(
+        PRODUCT_DEFINITIONS_URL,
+        timeout=settings.DEFAULT_REQUEST_TIMEOUT,
+    )
     if not response.ok:
         return {}
     data = response.json()
