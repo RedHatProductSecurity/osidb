@@ -91,7 +91,7 @@ class TestGenerateSRTNotes:
         """
         test generating of SRT acknowledgments attribute array
         """
-        flaw = FlawFactory()
+        flaw = FlawFactory(source=FlawSource.CUSTOMER)
         FlawCommentFactory(flaw=flaw)
         FlawMetaFactory(flaw=flaw, type=FlawMeta.FlawMetaType.REFERENCE)  # not an ack
         FlawMetaFactory(
@@ -612,11 +612,12 @@ class TestGenerateSRTNotes:
         """
         test generating of SRT notes source attribute
         """
-        flaw = FlawFactory(
+        flaw = FlawFactory.build(
             embargoed=False,
             meta_attr={"original_srtnotes": srtnotes},
             source=osidb_source,
         )
+        flaw.save(raise_validation_error=False)
         FlawCommentFactory(flaw=flaw)
         AffectFactory(flaw=flaw)
 

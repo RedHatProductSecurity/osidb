@@ -25,12 +25,13 @@ def get_env(
     key: str,
     default: Union[None, str] = None,
     is_bool: bool = False,
+    is_int: bool = False,
     is_json: bool = False,
 ) -> Any:
     """get environment variable"""
-    if is_bool and is_json:
+    if (is_bool and is_int) or (is_bool and is_json) or (is_int and is_json):
         raise OSIDBException(
-            "Expected environment variable type cannot be both Boolean and JSON at the same time"
+            "Expected environment variable cannot be of multiple types at the same time"
         )
 
     value = getenv(key, default)
@@ -42,6 +43,8 @@ def get_env(
 
     if is_bool:
         value = bool(strtobool(value))
+    if is_int:
+        value = int(value)
     if is_json:
         value = json.loads(value)
 

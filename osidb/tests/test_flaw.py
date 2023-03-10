@@ -73,6 +73,7 @@ class TestFlaw:
             title="title",
             description="description",
             impact=FlawImpact.CRITICAL,
+            source=FlawSource.INTERNET,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
             is_major_incident=True,
@@ -171,6 +172,7 @@ class TestFlaw:
             title="title",
             description="description",
             impact=FlawImpact.CRITICAL,
+            source=FlawSource.INTERNET,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
             acl_read=self.acl_read,
@@ -191,6 +193,7 @@ class TestFlaw:
             unembargo_dt=tzdatetime(2000, 1, 1),
             description="description",
             impact=FlawImpact.LOW,
+            source=FlawSource.INTERNET,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             reported_dt=timezone.now(),
@@ -206,6 +209,7 @@ class TestFlaw:
             title="second",
             description="description",
             impact=FlawImpact.LOW,
+            source=FlawSource.INTERNET,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             reported_dt=timezone.now(),
@@ -330,6 +334,7 @@ class TestFlaw:
             title="title",
             description="description",
             impact=FlawImpact.CRITICAL,
+            source=FlawSource.INTERNET,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
             acl_read=self.acl_read,
@@ -354,6 +359,7 @@ class TestFlaw:
             title="title",
             description="description",
             impact=FlawImpact.CRITICAL,
+            source=FlawSource.INTERNET,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
             acl_read=self.acl_read,
@@ -377,6 +383,7 @@ class TestFlaw:
             title="title",
             description="description",
             impact=FlawImpact.CRITICAL,
+            source=FlawSource.INTERNET,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
             acl_read=self.acl_read,
@@ -667,6 +674,13 @@ class TestFlawValidators:
         assert Flaw.objects.count() == 1
         assert "rh_nvd_cvss_severity_diff" not in flaw._alerts
 
+    def test_no_source(self):
+        """
+        test that flaw cannot have an empty source
+        """
+        with pytest.raises(ValidationError, match="Source value is required"):
+            FlawFactory(source=None)
+
     @pytest.mark.parametrize(
         "source",
         [FlawSource.INTERNET, FlawSource.TWITTER],
@@ -927,6 +941,7 @@ class TestFlawValidators:
         flaw = FlawFactory(embargoed=False)
         with pytest.raises(ValidationError, match="Embargoing a public flaw is futile"):
             flaw.title = "EMBARGOED foo bar baz"
+            flaw.source = FlawSource.CUSTOMER
             flaw.acl_read = [
                 uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
             ]

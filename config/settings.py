@@ -257,3 +257,8 @@ ERRATA_TOOL_XMLRPC_BASE_URL = f"{ERRATA_TOOL_SERVER}/errata/errata_service"
 
 # Execute once a day by default
 CISA_COLLECTOR_CRONTAB = crontab(minute=0, hour=1)
+
+# default requests.get timeout aims to be generous but finite
+DEFAULT_REQUEST_TIMEOUT = get_env(
+    "OSIDB_DEFAULT_REQUEST_TIMEOUT", default="30", is_int=True
+)

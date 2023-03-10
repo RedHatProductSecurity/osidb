@@ -8,6 +8,7 @@ import io
 import requests
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
@@ -25,7 +26,7 @@ EPSS_URL = "https://epss.cyentia.com/epss_scores-current.csv.gz"
 
 
 def download():
-    response = requests.get(EPSS_URL)
+    response = requests.get(EPSS_URL, timeout=settings.DEFAULT_REQUEST_TIMEOUT)
     compressed_file = io.BytesIO(response.content)
     return compressed_file
 

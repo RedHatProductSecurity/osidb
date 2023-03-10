@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import requests
+from django.conf import settings
 from requests_gssapi import HTTPSPNEGOAuth
 
 from osidb.helpers import ensure_list, get_model_fields
@@ -33,6 +34,7 @@ def fetch_product_definitions(url=PRODUCT_DEFINITIONS_URL):
         url=url,
         params={"job": "build"},
         auth=HTTPSPNEGOAuth(),
+        timeout=settings.DEFAULT_REQUEST_TIMEOUT,
     )
     response.raise_for_status()
     return response.json()

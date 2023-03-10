@@ -2,7 +2,7 @@ import uuid
 
 import pytest
 
-from osidb.models import Flaw, FlawImpact, FlawResolution, FlawType
+from osidb.models import Flaw, FlawImpact, FlawResolution, FlawSource, FlawType
 
 from .factories import AffectFactory, FlawFactory
 
@@ -83,6 +83,7 @@ class TestSearch:
             title="CVE-2022-1234 kernel: TITLE",
             description="DESCRIPTION",
             impact=FlawImpact.CRITICAL,
+            source=FlawSource.INTERNET,
             summary="SUMMARY",
             statement="STATEMENT",
             resolution=FlawResolution.NOVALUE,
