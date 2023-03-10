@@ -41,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Revise the allowed API view HTTP methods on models
   restricting flaw deletion and all tracker write methods (OSIDB-748)
 
+### Removed
+- Remove deprecated mitigated_by field (OSIDB-753)
+
 ## [2.3.4] - 2022-12-15
 ### Changed
 - Make sure the unacked PS update stream is always linked to PS module (OSIDB-637)
