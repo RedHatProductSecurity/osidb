@@ -9,7 +9,9 @@ from os import getenv
 from typing import Any, List, Type, Union
 
 from celery._state import get_current_task
+from django.conf import settings
 from django.db import models
+from rest_framework.viewsets import ViewSet
 
 from .exceptions import OSIDBException
 
@@ -88,3 +90,38 @@ class TaskFormatter(logging.Formatter):
             record.__dict__.setdefault("task_name", record.__dict__.get("name"))
             record.__dict__.setdefault("task_id", "")
         return super().format(record)
+
+
+def get_valid_http_methods(cls: ViewSet, excluded: list[str] = None) -> list[str]:
+    """
+    Removes blacklisted and unsafe HTTP methods from a view if necessary.
+    Optionally also removes given excluded methods.
+
+    Blacklisted HTTP methods can be defined in the django settings, unsafe HTTP
+    methods will be removed if the app is running in read-only mode, by setting
+    the OSIDB_READONLY_MODE env variable to "1".
+
+    :param cls: The ViewSet class from which http_method_names are inherited
+    :param excluded: A list of exlicitly excluded HTTP methods.
+    :return: A list of valid HTTP methods that a ViewSet will accept
+    """
+    base_methods = cls.http_method_names
+    excluded_methods = [] if excluded is None else excluded
+    unsafe_methods = (
+        "patch",
+        "post",
+        "put",
+        "delete",
+        "connect",
+        "trace",
+    )
+    valid_methods = []
+    for method in base_methods:
+        if method in excluded_methods:
+            continue
+        if method in settings.BLACKLISTED_HTTP_METHODS:
+            continue
+        if settings.READONLY_MODE and method in unsafe_methods:
+            continue
+        valid_methods.append(method)
+    return valid_methods

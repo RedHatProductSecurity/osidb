@@ -2,9 +2,9 @@ import pytest
 from django.test.utils import isolate_apps
 from rest_framework.viewsets import ModelViewSet
 
-from osidb.api_views import get_valid_http_methods
 from osidb.core import set_user_acls
 from osidb.exceptions import OSIDBException
+from osidb.helpers import get_valid_http_methods
 from osidb.models import FlawMeta
 from osidb.tests.factories import AffectFactory, FlawFactory, FlawMetaFactory
 from osidb.tests.models import TestAlertModel, TestAlertModelBasic
