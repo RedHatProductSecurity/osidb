@@ -78,6 +78,10 @@ class IncludeExcludeFieldsMixin(serializers.ModelSerializer):
 
     Filtering on nested serializer:
         include_fields=affects.uuid,affects.trackers
+
+    NOTE: when this serializer is used for API view that view also needs to be
+    decorated with either `extend_schema_view` decorator describing the parameters
+    manually or use shortcut `include_exclude_fields_extend_schema_view` decorator
     """
 
     def __init__(self, *args, **kwargs):
@@ -155,6 +159,10 @@ class IncludeMetaAttrMixin(serializers.ModelSerializer):
 
     Filtering on nested serializer:
         include_meta_attr=affects.components,affects.trackers.bz_id
+
+    NOTE: when this serializer is used for API view that view also needs to be
+    decorated with either `extend_schema_view` decorator describing the parameters
+    manually or use shortcut `include_meta_attr_extend_schema_view` decorator
     """
 
     def __init__(self, *args, **kwargs):

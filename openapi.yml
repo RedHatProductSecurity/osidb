@@ -698,6 +698,15 @@ paths:
           - NEW
           - NOTAFFECTED
       - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
         name: flaw
         schema:
           type: string
@@ -712,6 +721,27 @@ paths:
           - IMPORTANT
           - LOW
           - MODERATE
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: include_meta_attr
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Specify which keys from meta_attr field should be retrieved,
+          multiple values may be separated by commas. Dot notation can be used to
+          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
+          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
+          keys from meta_attr. Omit this parameter to not include meta_attr fields
+          at all. '
       - name: limit
         required: false
         in: query
@@ -820,6 +850,36 @@ paths:
     get:
       operationId: osidb_api_v1_affects_retrieve
       parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: include_meta_attr
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Specify which keys from meta_attr field should be retrieved,
+          multiple values may be separated by commas. Dot notation can be used to
+          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
+          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
+          keys from meta_attr. Omit this parameter to not include meta_attr fields
+          at all. '
       - in: path
         name: uuid
         schema:
@@ -997,7 +1057,7 @@ paths:
             type: string
         description: 'Exclude specified fields from the response. Multiple values
           may be separated by commas. Dot notation can be used to filter on related
-          model fields. Example: `exclude_fields=uuid,affects.uuid,affects.trackers.uuid`'
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
       - in: query
         name: flaw_meta_type
         schema:
@@ -1024,7 +1084,7 @@ paths:
             type: string
         description: 'Include only specified fields in the response. Multiple values
           may be separated by commas. Dot notation can be used to filter on related
-          model fields. Example: `include_fields=uuid,affects.uuid,affects.trackers.uuid`'
+          model fields. Example: `include_fields=field,related_model_field.field`'
       - in: query
         name: include_meta_attr
         schema:
@@ -1033,10 +1093,10 @@ paths:
             type: string
         description: 'Specify which keys from meta_attr field should be retrieved,
           multiple values may be separated by commas. Dot notation can be used to
-          specify meta_attr keys on related models. Example: `include_meta_attr=bz_id,affects.ps_module,affects.trackers.bz_id`Use
-          wildcards eg. `include_meta_attr=*,affects.*,affects.trackers.*` for retrieving
-          all the keys from meta_attr. Omit this parameter to not include meta_attr
-          fields at all. '
+          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
+          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
+          keys from meta_attr. Omit this parameter to not include meta_attr fields
+          at all. '
       - name: limit
         required: false
         in: query
@@ -1299,7 +1359,7 @@ paths:
             type: string
         description: 'Exclude specified fields from the response. Multiple values
           may be separated by commas. Dot notation can be used to filter on related
-          model fields. Example: `exclude_fields=uuid,affects.uuid,affects.trackers.uuid`'
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
       - in: query
         name: flaw_meta_type
         schema:
@@ -1323,7 +1383,7 @@ paths:
             type: string
         description: 'Include only specified fields in the response. Multiple values
           may be separated by commas. Dot notation can be used to filter on related
-          model fields. Example: `include_fields=uuid,affects.uuid,affects.trackers.uuid`'
+          model fields. Example: `include_fields=field,related_model_field.field`'
       - in: query
         name: include_meta_attr
         schema:
@@ -1332,10 +1392,10 @@ paths:
             type: string
         description: 'Specify which keys from meta_attr field should be retrieved,
           multiple values may be separated by commas. Dot notation can be used to
-          specify meta_attr keys on related models. Example: `include_meta_attr=bz_id,affects.ps_module,affects.trackers.bz_id`Use
-          wildcards eg. `include_meta_attr=*,affects.*,affects.trackers.*` for retrieving
-          all the keys from meta_attr. Omit this parameter to not include meta_attr
-          fields at all. '
+          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
+          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
+          keys from meta_attr. Omit this parameter to not include meta_attr fields
+          at all. '
       - in: query
         name: tracker_ids
         schema:
@@ -1631,9 +1691,39 @@ paths:
       operationId: osidb_api_v1_trackers_list
       parameters:
       - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
         name: external_system_id
         schema:
           type: string
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: include_meta_attr
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Specify which keys from meta_attr field should be retrieved,
+          multiple values may be separated by commas. Dot notation can be used to
+          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
+          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
+          keys from meta_attr. Omit this parameter to not include meta_attr fields
+          at all. '
       - name: limit
         required: false
         in: query
@@ -1698,6 +1788,36 @@ paths:
     get:
       operationId: osidb_api_v1_trackers_retrieve
       parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: include_meta_attr
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Specify which keys from meta_attr field should be retrieved,
+          multiple values may be separated by commas. Dot notation can be used to
+          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
+          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
+          keys from meta_attr. Omit this parameter to not include meta_attr fields
+          at all. '
       - in: path
         name: uuid
         schema:
