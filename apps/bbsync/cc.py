@@ -355,7 +355,7 @@ class CCBuilder:
             add_cc = all_cc
             remove_cc = []
 
-        elif self.old_flaw.embargoed and not self.flaw.embargoed:
+        elif self.old_flaw.embargoed and not self.flaw.is_embargoed:
             # on unembargo we add and remove all but do not add
             # already existing CCs because they are already there
             add_cc = [cc for cc in all_cc if cc not in self.old_cc]
@@ -394,7 +394,7 @@ class CCBuilder:
 
             # for some reason in SFM2 we ignore affects set as not affected or not to be fixed
             # only for embargoed flaws so to keep the functional parity we continue with it
-            if self.flaw.embargoed and affect.is_notaffected:
+            if self.flaw.is_embargoed and affect.is_notaffected:
                 continue
 
             cc_list.update(self.affect2cc(affect))
@@ -408,5 +408,5 @@ class CCBuilder:
         affect_cc_builder_class = (
             RHSCLAffectCCBuilder if affect.is_rhscl else AffectCCBuilder
         )
-        affect_cc_builder = affect_cc_builder_class(affect, self.flaw.embargoed)
+        affect_cc_builder = affect_cc_builder_class(affect, self.flaw.is_embargoed)
         return affect_cc_builder.cc

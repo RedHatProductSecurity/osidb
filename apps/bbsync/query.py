@@ -202,7 +202,7 @@ class BugzillaQueryBuilder:
         """
         groups = []
 
-        if self.flaw.embargoed:
+        if self.flaw.is_embargoed:
             # get names of all affected PS modules
             # we care for affects with trackers only
             module_names = [
@@ -236,7 +236,7 @@ class BugzillaQueryBuilder:
         """
         generate query for Bugzilla deadline
         """
-        if self.flaw.embargoed:
+        if self.flaw.is_embargoed:
             if self.flaw.unembargo_dt:
                 self._query["deadline"] = self.flaw.unembargo_dt.strftime(DATE_FMT)
 

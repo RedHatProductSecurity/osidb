@@ -870,7 +870,7 @@ class TestGenerateGroups:
         )
 
         new_flaw = Flaw.objects.first()
-        new_flaw.embargoed = False
+        new_flaw.acl_read = []  # make it whatever but embargoed
 
         bbq = BugzillaQueryBuilder(new_flaw, old_flaw=flaw)
         query = bbq.query
