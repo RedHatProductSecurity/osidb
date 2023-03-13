@@ -434,7 +434,6 @@ class FlawManager(ACLMixinManager):
 
 class Flaw(
     ACLMixin,
-    AlertMixin,
     BugzillaSyncMixin,
     NullStrFieldsMixin,
     TrackingMixin,
@@ -1000,7 +999,6 @@ class AffectManager(ACLMixinManager):
 
 class Affect(
     ACLMixin,
-    AlertMixin,
     AffectExploitExtensionMixin,
     BugzillaSyncMixin,
     NullStrFieldsMixin,
@@ -1433,6 +1431,7 @@ class Affect(
         """
         Bugzilla sync of the Affect instance
         """
+        self.save()
         # Affect needs to be synced through flaw
         self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
 
