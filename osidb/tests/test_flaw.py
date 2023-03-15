@@ -172,6 +172,7 @@ class TestFlaw:
             title="title",
             description="description",
             impact=FlawImpact.CRITICAL,
+            component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
@@ -193,6 +194,7 @@ class TestFlaw:
             unembargo_dt=tzdatetime(2000, 1, 1),
             description="description",
             impact=FlawImpact.LOW,
+            component="curl",
             source=FlawSource.INTERNET,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
@@ -334,6 +336,7 @@ class TestFlaw:
             title="title",
             description="description",
             impact=FlawImpact.CRITICAL,
+            component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
@@ -359,6 +362,7 @@ class TestFlaw:
             title="title",
             description="description",
             impact=FlawImpact.CRITICAL,
+            component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
@@ -383,6 +387,7 @@ class TestFlaw:
             title="title",
             description="description",
             impact=FlawImpact.CRITICAL,
+            component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
@@ -1042,6 +1047,13 @@ class TestFlawValidators:
         """
         with pytest.raises(ValidationError, match="Impact value is required"):
             FlawFactory(impact=None)
+
+    def test_no_component(self):
+        """
+        test that flaw cannot have an empty component
+        """
+        with pytest.raises(ValidationError, match="Component value is required"):
+            FlawFactory(component=None)
 
     @pytest.mark.parametrize(
         "start_impact,new_impact,tracker_statuses,should_raise",

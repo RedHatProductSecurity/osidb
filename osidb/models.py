@@ -488,6 +488,10 @@ class Flaw(
     # flaw severity, from srtnotes "impact"
     impact = models.CharField(choices=FlawImpact.choices, max_length=20, blank=True)
 
+    # flaw component was originally a part of the Bugzilla sumary
+    # so the value may depend on how successfully it was parsed
+    component = models.CharField(max_length=100, blank=True)
+
     # from BZ summary
     title = models.TextField()
 
@@ -773,6 +777,16 @@ class Flaw(
         """
         if not self.impact:
             raise ValidationError("Impact value is required.")
+
+    def _validate_nonempty_component(self):
+        """
+        check that the component is not empty
+
+        we cannot enforce this by model definition
+        as the old flaws may have no component
+        """
+        if not self.component:
+            raise ValidationError("Component value is required.")
 
     def _validate_unsupported_impact_change(self):
         """

@@ -1053,6 +1053,7 @@ class TestEndpoints(object):
             "type": "VULNERABILITY",
             "state": "NEW",
             "impact": "CRITICAL",
+            "component": "curl",
             "source": "INTERNET",
             "description": "test",
             "reported_dt": "2022-11-22T15:55:22.830Z",
@@ -1069,6 +1070,7 @@ class TestEndpoints(object):
         response = auth_client.get(f"{test_api_uri}/flaws/{created_uuid}")
         assert response.status_code == 200
         assert response.json()["cve_id"] == "CVE-2021-0666"
+        assert response.json()["component"] == "curl"
 
     def test_flaw_draft_create(self, auth_client, test_api_uri):
         """
@@ -1081,6 +1083,7 @@ class TestEndpoints(object):
             "type": "VULNERABILITY",
             "state": "NEW",
             "impact": "CRITICAL",
+            "component": "curl",
             "source": "INTERNET",
             "description": "test",
             "reported_dt": "2022-11-22T15:55:22.830Z",
@@ -1367,6 +1370,7 @@ class TestEndpointsACLs:
             "title": "EMBARGOED Foo" if embargoed else "Foo",
             "description": "test",
             "impact": "LOW",
+            "component": "curl",
             "source": "DEBIAN",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": None if embargoed else "2000-1-1T22:03:26.065Z",

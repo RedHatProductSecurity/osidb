@@ -60,6 +60,7 @@ class TestEmbargo(object):
             state="NEW",
             resolution="",
             impact="LOW",
+            component="kernel",
             source=source,
             title=title,
             description="test",

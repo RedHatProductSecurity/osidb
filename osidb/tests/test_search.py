@@ -83,6 +83,7 @@ class TestSearch:
             title="CVE-2022-1234 kernel: TITLE",
             description="DESCRIPTION",
             impact=FlawImpact.CRITICAL,
+            component="kernel",
             source=FlawSource.INTERNET,
             summary="SUMMARY",
             statement="STATEMENT",
