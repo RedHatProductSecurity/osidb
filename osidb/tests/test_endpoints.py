@@ -1367,7 +1367,7 @@ class TestEndpointsACLs:
         User.objects.get(username="testuser").groups.add(group)
 
         flaw_data = {
-            "title": "EMBARGOED Foo" if embargoed else "Foo",
+            "title": "Foo",
             "description": "test",
             "impact": "LOW",
             "component": "curl",

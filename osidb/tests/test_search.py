@@ -80,7 +80,7 @@ class TestSearch:
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
             type=FlawType.VULNERABILITY,
-            title="CVE-2022-1234 kernel: TITLE",
+            title="TITLE",
             description="DESCRIPTION",
             impact=FlawImpact.CRITICAL,
             component="kernel",

@@ -453,7 +453,7 @@ class TestFlawBugConvertor:
             "id": "123",
             "last_change_time": "2001-01-01T12:12:12Z",
             "status": "CLOSED",
-            "summary": "text",
+            "summary": "kernel: text",
             "cf_srtnotes": cls.get_flaw_srtnotes(),
         }
 

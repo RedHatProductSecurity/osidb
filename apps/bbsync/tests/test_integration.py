@@ -60,7 +60,9 @@ class TestBBSyncIntegration:
 
         response = auth_client.get(f"{test_api_uri}/flaws/{created_uuid}")
         assert response.status_code == 200
-        assert response.json()["cve_id"] == "CVE-2021-0777"
+        assert response.json()["cve_id"] == "CVE-2021-0773"
+        assert response.json()["title"] == "Foo"
+        assert response.json()["component"] == "curl"
         assert response.json()["mitigation"] == "mitigation"
 
     @pytest.mark.vcr

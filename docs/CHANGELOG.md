@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove unsused data prestage_eligible_date from schemas (OSIDB-695)
 - Revise the allowed API view HTTP methods on models
   restricting flaw deletion and all tracker write methods (OSIDB-748)
+- Rework the mapping from Bugzilla sumary to OSIDB title and vice versa (OSIDB-694)
 
 ### Removed
 - Remove deprecated mitigated_by field (OSIDB-753)

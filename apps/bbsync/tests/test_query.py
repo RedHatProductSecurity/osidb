@@ -20,6 +20,118 @@ from osidb.tests.factories import (
 pytestmark = pytest.mark.unit
 
 
+class TestGenerateBasics:
+    @pytest.mark.parametrize(
+        "component,cve_id,embargoed,title,summary",
+        [
+            (
+                "fat",
+                None,
+                False,
+                "hamster",
+                "fat: hamster",
+            ),
+            (
+                "fat",
+                None,
+                True,
+                "hamster",
+                "EMBARGOED fat: hamster",
+            ),
+            (
+                "fat",
+                "CVE-2000-12345",
+                True,
+                "hamster",
+                "EMBARGOED CVE-2000-12345 fat: hamster",
+            ),
+            (
+                "fat",
+                "CVE-2000-12345",
+                False,
+                "hamster",
+                "CVE-2000-12345 fat: hamster",
+            ),
+        ],
+    )
+    def test_generate_summary(self, component, cve_id, embargoed, title, summary):
+        """
+        test generating of summary
+        """
+        flaw = FlawFactory(
+            component=component,
+            cve_id=cve_id,
+            embargoed=embargoed,
+            title=title,
+        )
+
+        bbq = BugzillaQueryBuilder(flaw)
+        assert bbq.query["summary"] == summary
+
+    @pytest.mark.parametrize(
+        "cve_id1,cve_id2,embargoed,summary",
+        [
+            (
+                "CVE-1000-12345",
+                "CVE-2000-12345",
+                False,
+                "CVE-1000-12345 CVE-2000-12345 space: cucumber",
+            ),
+            (
+                "CVE-2000-12345",
+                "CVE-1000-12345",
+                False,
+                "CVE-1000-12345 CVE-2000-12345 space: cucumber",
+            ),
+            (
+                "CVE-1000-12345",
+                "CVE-2000-1234",
+                False,
+                "CVE-1000-12345 CVE-2000-1234 space: cucumber",
+            ),
+            (
+                "CVE-2000-12345",
+                "CVE-2000-1234",
+                False,
+                "CVE-2000-1234 CVE-2000-12345 space: cucumber",
+            ),
+            (
+                "CVE-2000-99999",
+                "CVE-2000-123456",
+                False,
+                "CVE-2000-99999 CVE-2000-123456 space: cucumber",
+            ),
+            (
+                "CVE-1000-12345",
+                "CVE-2000-12345",
+                True,
+                "EMBARGOED CVE-1000-12345 CVE-2000-12345 space: cucumber",
+            ),
+        ],
+    )
+    def test_generate_summary_multi_cve(self, cve_id1, cve_id2, embargoed, summary):
+        """
+        test generating of summary for multi-CVE Bugzilla flaw
+        """
+        component = "space"
+        title = "cucumber"
+        FlawFactory(
+            component=component,
+            cve_id=cve_id1,
+            embargoed=embargoed,
+            title=title,
+        )
+        flaw = FlawFactory(
+            component=component,
+            cve_id=cve_id2,
+            embargoed=embargoed,
+            title=title,
+        )
+
+        bbq = BugzillaQueryBuilder(flaw)
+        assert bbq.query["summary"] == summary
+
+
 class TestGenerateSRTNotes:
     @freeze_time(timezone.datetime(2022, 11, 25))
     def test_restore_original(self):

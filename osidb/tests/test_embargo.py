@@ -38,7 +38,6 @@ class TestEmbargo(object):
         if embargoed:
             read_groups = embargoed_read_groups
             write_groups = embargoed_write_groups
-            title = "EMBARGOED CVE-2022-1234 kernel: some description"
             source = "REDHAT"
             unembargo_dt = timezone.datetime(
                 2022, 12, 26, tzinfo=timezone.get_current_timezone()
@@ -46,7 +45,6 @@ class TestEmbargo(object):
         else:
             read_groups = public_read_groups
             write_groups = public_write_groups
-            title = "CVE-2022-1234 kernel: some description"
             source = "INTERNET"
             unembargo_dt = timezone.datetime(
                 2022, 11, 24, tzinfo=timezone.get_current_timezone()
@@ -62,7 +60,7 @@ class TestEmbargo(object):
             impact="LOW",
             component="kernel",
             source=source,
-            title=title,
+            title="some description",
             description="test",
             reported_dt=timezone.now(),
             unembargo_dt=unembargo_dt,

@@ -106,13 +106,13 @@ interactions:
       message: OK
 - request:
     body: '{"product": "Security Response", "component": "vulnerability", "op_sys":
-      "Linux", "platform": "All", "version": "unspecified", "summary": "Foo", "cf_release_notes":
-      "", "status": "NEW", "severity": "low", "priority": "low", "description": "test",
-      "comment_is_private": false, "alias": ["CVE-2021-0777"], "keywords": ["Security"],
-      "flags": [], "groups": [], "cc": [], "cf_srtnotes": "{\"public\": \"2000-01-01T22:03:26Z\",
-      \"reported\": \"2022-11-22T15:55:22Z\", \"impact\": \"low\", \"source\": \"internet\",
-      \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\", \"mitigation\":
-      \"mitigation\"}"}'
+      "Linux", "platform": "All", "version": "unspecified", "cf_release_notes": "",
+      "status": "NEW", "severity": "low", "priority": "low", "summary": " curl: Foo",
+      "description": "test", "comment_is_private": false, "alias": ["CVE-2021-0773"],
+      "keywords": ["Security"], "flags": [], "groups": [], "cc": [], "cf_srtnotes":
+      "{\"public\": \"2000-01-01T22:03:26Z\", \"reported\": \"2022-11-22T15:55:22Z\",
+      \"impact\": \"low\", \"source\": \"internet\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
+      \"mitigation\": \"mitigation\"}"}'
     headers:
       Accept:
       - '*/*'
@@ -130,7 +130,7 @@ interactions:
     uri: https://bugzilla.redhat.com/rest/bug
   response:
     body:
-      string: '{"id": 2009355}'
+      string: '{"id": 2009341}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -285,38 +285,38 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2009355
+    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2009341
   response:
     body:
-      string: '{"offset": 0, "total_matches": 1, "bugs": [{"cf_doc_type": "If docs
-        needed, set a value", "cf_fixed_in": "", "last_change_time": "2023-03-15T15:14:49Z",
-        "creator": "jobselko@redhat.com", "flags": [], "blocks": [], "alias": ["CVE-2021-0777"],
-        "external_bugs": [], "op_sys": "Linux", "cf_last_closed": null, "cf_devel_whiteboard":
-        "", "remaining_time": 0, "cf_cust_facing": "---", "resolution": "", "qa_contact":
-        "", "assigned_to_detail": {"insider": false, "id": 29451, "partner": false,
-        "email": "nobody@redhat.com", "name": "nobody@redhat.com", "active": true,
-        "real_name": "Nobody"}, "cf_srtnotes": "{\"public\": \"2000-01-01T22:03:26Z\",
-        \"reported\": \"2022-11-22T15:55:22Z\", \"impact\": \"low\", \"source\": \"internet\",
-        \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\", \"mitigation\":
-        \"mitigation\"}", "cf_clone_of": null, "is_cc_accessible": true, "deadline":
-        null, "creator_detail": {"partner": false, "name": "jobselko@redhat.com",
-        "email": "jobselko@redhat.com", "real_name": "Jitka Obselkova", "active":
-        true, "insider": true, "id": 425662}, "cf_build_id": "", "target_milestone":
-        "---", "is_open": true, "priority": "low", "severity": "low", "cf_pm_score":
-        "0", "estimated_time": 0, "comments": [{"text": "test", "time": "2023-03-15T15:14:49Z",
-        "is_private": false, "tags": [], "attachment_id": null, "creation_time": "2023-03-15T15:14:49Z",
-        "count": 0, "bug_id": 2009355, "id": 15538833, "creator_id": 425662, "creator":
-        "jobselko@redhat.com"}], "cf_internal_whiteboard": "", "cc": [], "id": 2009355,
-        "dupe_of": null, "actual_time": 0, "cf_conditional_nak": [], "groups": [],
-        "summary": "Foo", "target_release": ["---"], "platform": "All", "creation_time":
-        "2023-03-15T15:14:49Z", "whiteboard": "", "tags": [], "cf_qe_conditional_nak":
-        [], "cf_release_notes": "", "description": "test", "keywords": ["Security"],
-        "url": "", "cc_detail": [], "sub_components": {}, "classification": "Other",
-        "depends_on": [], "is_creator_accessible": true, "product": "Security Response",
-        "cf_environment": "", "assigned_to": "nobody@redhat.com", "cf_qa_whiteboard":
-        "", "docs_contact": "", "is_confirmed": true, "version": ["unspecified"],
-        "cf_pgm_internal": "", "status": "NEW", "component": ["vulnerability"]}],
-        "limit": "20"}'
+      string: '{"limit": "20", "total_matches": 1, "offset": 0, "bugs": [{"id": 2009341,
+        "cc": [], "actual_time": 0, "dupe_of": null, "target_release": ["---"], "platform":
+        "All", "summary": "curl: Foo", "cf_conditional_nak": [], "groups": [], "whiteboard":
+        "", "creation_time": "2023-03-15T09:54:52Z", "tags": [], "cf_release_notes":
+        "", "cf_qe_conditional_nak": [], "keywords": ["Security"], "description":
+        "test", "cc_detail": [], "url": "", "depends_on": [], "classification": "Other",
+        "is_creator_accessible": true, "sub_components": {}, "product": "Security
+        Response", "cf_environment": "", "docs_contact": "", "is_confirmed": true,
+        "assigned_to": "nobody@redhat.com", "cf_qa_whiteboard": "", "status": "NEW",
+        "component": ["vulnerability"], "version": ["unspecified"], "cf_pgm_internal":
+        "", "cf_doc_type": "If docs needed, set a value", "flags": [], "creator":
+        "osoukup@redhat.com", "last_change_time": "2023-03-15T09:54:52Z", "cf_fixed_in":
+        "", "alias": ["CVE-2021-0773"], "blocks": [], "op_sys": "Linux", "external_bugs":
+        [], "cf_last_closed": null, "cf_devel_whiteboard": "", "remaining_time": 0,
+        "resolution": "", "qa_contact": "", "cf_cust_facing": "---", "cf_srtnotes":
+        "{\"public\": \"2000-01-01T22:03:26Z\", \"reported\": \"2022-11-22T15:55:22Z\",
+        \"impact\": \"low\", \"source\": \"internet\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
+        \"mitigation\": \"mitigation\"}",
+        "assigned_to_detail": {"active": true, "real_name": "Nobody", "partner": false,
+        "name": "nobody@redhat.com", "email": "nobody@redhat.com", "insider": false,
+        "id": 29451}, "cf_clone_of": null, "is_cc_accessible": true, "deadline": null,
+        "target_milestone": "---", "cf_build_id": "", "creator_detail": {"partner":
+        false, "name": "osoukup@redhat.com", "email": "osoukup@redhat.com", "real_name":
+        "Ondrej Soukup", "active": true, "insider": true, "id": 412888}, "is_open":
+        true, "cf_pm_score": "0", "severity": "low", "priority": "low", "comments":
+        [{"attachment_id": null, "creation_time": "2023-03-15T09:54:52Z", "text":
+        "test", "time": "2023-03-15T09:54:52Z", "is_private": false, "tags": [], "bug_id":
+        2009341, "id": 15538744, "creator": "osoukup@redhat.com", "creator_id": 412888,
+        "count": 0}], "cf_internal_whiteboard": "", "estimated_time": 0}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -367,37 +367,38 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2009355
+    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2009341
   response:
     body:
-      string: '{"total_matches": 1, "offset": 0, "limit": "20", "bugs": [{"cf_cust_facing":
-        "---", "cf_conditional_nak": [], "status": "NEW", "url": "", "priority": "low",
-        "is_cc_accessible": true, "cf_qa_whiteboard": "", "whiteboard": "", "component":
-        ["vulnerability"], "keywords": ["Security"], "is_confirmed": true, "cf_devel_whiteboard":
-        "", "last_change_time": "2023-03-15T15:14:49Z", "dupe_of": null, "cf_last_closed":
-        null, "target_milestone": "---", "op_sys": "Linux", "flags": [], "cf_build_id":
-        "", "is_open": true, "depends_on": [], "resolution": "", "creator": "jobselko@redhat.com",
-        "creation_time": "2023-03-15T15:14:49Z", "assigned_to_detail": {"name": "nobody@redhat.com",
-        "partner": false, "email": "nobody@redhat.com", "real_name": "Nobody", "insider":
-        false, "id": 29451, "active": true}, "estimated_time": 0, "remaining_time":
-        0, "platform": "All", "id": 2009355, "description": "test", "cf_qe_conditional_nak":
-        [], "cf_internal_whiteboard": "", "assigned_to": "nobody@redhat.com", "deadline":
-        null, "cf_pgm_internal": "", "product": "Security Response", "alias": ["CVE-2021-0777"],
-        "summary": "Foo", "cc_detail": [], "blocks": [], "cf_srtnotes": "{\"public\":
-        \"2000-01-01T22:03:26Z\", \"reported\": \"2022-11-22T15:55:22Z\", \"impact\":
-        \"low\", \"source\": \"internet\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
-        \"mitigation\": \"mitigation\"}", "cc": [], "cf_clone_of": null, "creator_detail":
-        {"insider": true, "real_name": "Jitka Obselkova", "email": "jobselko@redhat.com",
-        "partner": false, "name": "jobselko@redhat.com", "active": true, "id": 425662},
-        "cf_release_notes": "", "qa_contact": "", "comments": [{"creator_id": 425662,
-        "attachment_id": null, "creation_time": "2023-03-15T15:14:49Z", "creator":
-        "jobselko@redhat.com", "text": "test", "id": 15538833, "bug_id": 2009355,
-        "time": "2023-03-15T15:14:49Z", "count": 0, "tags": [], "is_private": false}],
-        "actual_time": 0, "version": ["unspecified"], "cf_environment": "", "cf_fixed_in":
-        "", "classification": "Other", "is_creator_accessible": true, "docs_contact":
-        "", "sub_components": {}, "severity": "low", "groups": [], "cf_doc_type":
-        "If docs needed, set a value", "cf_pm_score": "0", "target_release": ["---"],
-        "external_bugs": [], "tags": []}]}'
+      string: '{"bugs": [{"is_creator_accessible": true, "docs_contact": "", "classification":
+        "Other", "version": ["unspecified"], "cf_fixed_in": "", "cf_environment":
+        "", "cf_doc_type": "If docs needed, set a value", "target_release": ["---"],
+        "cf_pm_score": "0", "tags": [], "external_bugs": [], "groups": [], "severity":
+        "low", "sub_components": {}, "cf_clone_of": null, "blocks": [], "cf_srtnotes":
+        "{\"public\": \"2000-01-01T22:03:26Z\", \"reported\": \"2022-11-22T15:55:22Z\",
+        \"impact\": \"low\", \"source\": \"internet\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
+        \"mitigation\": \"mitigation\"}",
+        "cc": [], "cc_detail": [], "summary": "curl: Foo", "actual_time": 0, "qa_contact":
+        "", "comments": [{"time": "2023-03-15T09:54:52Z", "tags": [], "is_private":
+        false, "count": 0, "id": 15538744, "bug_id": 2009341, "creation_time": "2023-03-15T09:54:52Z",
+        "creator": "osoukup@redhat.com", "attachment_id": null, "text": "test", "creator_id":
+        412888}], "creator_detail": {"active": true, "id": 412888, "insider": true,
+        "email": "osoukup@redhat.com", "real_name": "Ondrej Soukup", "partner": false,
+        "name": "osoukup@redhat.com"}, "cf_release_notes": "", "assigned_to_detail":
+        {"id": 29451, "active": true, "name": "nobody@redhat.com", "partner": false,
+        "email": "nobody@redhat.com", "real_name": "Nobody", "insider": false}, "estimated_time":
+        0, "remaining_time": 0, "depends_on": [], "resolution": "", "creation_time":
+        "2023-03-15T09:54:52Z", "creator": "osoukup@redhat.com", "is_open": true,
+        "cf_build_id": "", "alias": ["CVE-2021-0773"], "deadline": null, "assigned_to":
+        "nobody@redhat.com", "product": "Security Response", "cf_pgm_internal": "",
+        "cf_qe_conditional_nak": [], "id": 2009341, "cf_internal_whiteboard": "",
+        "description": "test", "platform": "All", "component": ["vulnerability"],
+        "keywords": ["Security"], "whiteboard": "", "is_cc_accessible": true, "priority":
+        "low", "cf_qa_whiteboard": "", "cf_cust_facing": "---", "cf_conditional_nak":
+        [], "status": "NEW", "url": "", "flags": [], "op_sys": "Linux", "dupe_of":
+        null, "cf_last_closed": null, "target_milestone": "---", "cf_devel_whiteboard":
+        "", "is_confirmed": true, "last_change_time": "2023-03-15T09:54:52Z"}], "offset":
+        0, "limit": "20", "total_matches": 1}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -448,13 +449,13 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/bug/2009355/comment
+    uri: https://bugzilla.redhat.com/rest/bug/2009341/comment
   response:
     body:
-      string: '{"comments": {}, "bugs": {"2009355": {"comments": [{"count": 0, "id":
-        15538833, "bug_id": 2009355, "creator_id": 425662, "creator": "jobselko@redhat.com",
-        "text": "test", "is_private": false, "tags": [], "time": "2023-03-15T15:14:49Z",
-        "attachment_id": null, "creation_time": "2023-03-15T15:14:49Z"}]}}}'
+      string: '{"comments": {}, "bugs": {"2009341": {"comments": [{"tags": [], "creator_id":
+        412888, "time": "2023-02-23T18:21:48Z", "creator": "osoukup@redhat.com", "text":
+        "test", "creation_time": "2023-02-23T18:21:48Z", "id": 15532000, "bug_id":
+        2009341, "count": 0, "is_private": false, "attachment_id": null}]}}}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
