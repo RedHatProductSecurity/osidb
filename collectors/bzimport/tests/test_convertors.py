@@ -436,7 +436,8 @@ class TestFlawSaver:
 
 
 class TestFlawBugConvertor:
-    def get_flaw_bug(self):
+    @classmethod
+    def get_flaw_bug(cls):
         """
         minimal Bugzilla flaw data getter
         """
@@ -453,16 +454,18 @@ class TestFlawBugConvertor:
             "last_change_time": "2001-01-01T12:12:12Z",
             "status": "CLOSED",
             "summary": "text",
-            "cf_srtnotes": self.get_flaw_srtnotes(),
+            "cf_srtnotes": cls.get_flaw_srtnotes(),
         }
 
-    def get_flaw_history(self):
+    @classmethod
+    def get_flaw_history(cls):
         """
         minimal Bugzilla flaw data getter
         """
         return {"bugs": [{"history": []}]}
 
-    def get_flaw_srtnotes(self):
+    @classmethod
+    def get_flaw_srtnotes(cls):
         """
         minimal Bugzilla flaw SRT notes getter
         """
@@ -958,3 +961,156 @@ class TestFlawBugConvertor:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.is_major_incident is True
+
+
+class TestFlawBugConvertorFixedIn:
+    def init_models(self, fixed_in):
+        """
+        init Django models with provided version
+        by performing the conversion from Bugzilla data
+        """
+        flaw_bug = TestFlawBugConvertor.get_flaw_bug()
+        flaw_bug["fixed_in"] = fixed_in
+
+        fbc = FlawBugConvertor(
+            flaw_bug,
+            [],
+            TestFlawBugConvertor.get_flaw_history(),
+            None,
+            [],
+            [],
+            {},
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        flaw.save()
+
+    def test_find_package_multi(self):
+        self.init_models("django 3.2.5, django 3.1.13")
+
+        package_versions = CVEv5PackageVersions.objects.all()
+        assert package_versions.count() == 1
+
+        package_version = package_versions.first()
+        assert package_version.package == "django"
+
+        cvev5versions = package_version.versions.all()
+        assert cvev5versions.count() == 2
+
+        versions = [c5v.version for c5v in cvev5versions]
+        assert "3.1.13" in versions
+        assert "3.2.5" in versions
+
+    def test_find_package_single(self):
+        self.init_models("django 3.2.5")
+
+        package_versions = CVEv5PackageVersions.objects.all()
+        assert package_versions.count() == 1
+
+        package_version = package_versions.first()
+        assert package_version.package == "django"
+
+        cvev5versions = package_version.versions.all()
+        assert cvev5versions.count() == 1
+
+        versions = [c5v.version for c5v in cvev5versions]
+        assert "3.2.5" in versions
+
+    def test_find_package_single_dash(self):
+        self.init_models("django-3.2.5")
+
+        package_versions = CVEv5PackageVersions.objects.all()
+        assert package_versions.count() == 1
+
+        package_version = package_versions.first()
+        assert package_version.package == "django"
+
+        cvev5versions = package_version.versions.all()
+        assert cvev5versions.count() == 1
+
+        versions = [c5v.version for c5v in cvev5versions]
+        assert "3.2.5" in versions
+
+    def test_find_package_multi_dash(self):
+        self.init_models("python-pillow-2.8.0")
+
+        package_versions = CVEv5PackageVersions.objects.all()
+        assert package_versions.count() == 1
+
+        package_version = package_versions.first()
+        assert package_version.package == "python-pillow"
+
+        cvev5versions = package_version.versions.all()
+        assert cvev5versions.count() == 1
+
+        versions = [c5v.version for c5v in cvev5versions]
+        assert "2.8.0" in versions
+
+    def test_find_package_no_value(self):
+        self.init_models("")
+
+        assert not CVEv5PackageVersions.objects.count()
+
+    def test_find_package_null_value(self):
+        self.init_models(None)
+
+        assert not CVEv5PackageVersions.objects.count()
+
+    def test_find_package_with_golang(self):
+        self.init_models("github.com/gogo/protobuf 1.3.2")
+
+        package_versions = CVEv5PackageVersions.objects.all()
+        assert package_versions.count() == 1
+
+        package_version = package_versions.first()
+        assert package_version.package == "github.com/gogo/protobuf"
+
+        cvev5versions = package_version.versions.all()
+        assert cvev5versions.count() == 1
+
+        versions = [c5v.version for c5v in cvev5versions]
+        assert "1.3.2" in versions
+
+    def test_parse_fixed_in_multi_package(self):
+        self.init_models("a 1, b 1")
+
+        package_versions = CVEv5PackageVersions.objects.all()
+        assert package_versions.count() == 2
+
+        package_version1 = package_versions.filter(package="a").first()
+        package_version2 = package_versions.filter(package="b").first()
+        assert package_version1
+        assert package_version2
+
+        cvev5versions1 = package_version1.versions.all()
+        cvev5versions2 = package_version2.versions.all()
+        assert cvev5versions1.count() == 1
+        assert cvev5versions2.count() == 1
+
+        versions1 = [c5v.version for c5v in cvev5versions1]
+        versions2 = [c5v.version for c5v in cvev5versions2]
+        assert "1" in versions1
+        assert "1" in versions2
+
+    def test_parse_fixed_in_multi_package_dash(self):
+        self.init_models("a-1, b 1")
+
+        package_versions = CVEv5PackageVersions.objects.all()
+        assert package_versions.count() == 2
+
+        package_version1 = package_versions.filter(package="a").first()
+        package_version2 = package_versions.filter(package="b").first()
+        assert package_version1
+        assert package_version2
+
+        cvev5versions1 = package_version1.versions.all()
+        cvev5versions2 = package_version2.versions.all()
+        assert cvev5versions1.count() == 1
+        assert cvev5versions2.count() == 1
+
+        versions1 = [c5v.version for c5v in cvev5versions1]
+        versions2 = [c5v.version for c5v in cvev5versions2]
+        assert "1" in versions1
+        assert "1" in versions2
