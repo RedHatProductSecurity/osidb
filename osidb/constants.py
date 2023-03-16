@@ -20,6 +20,9 @@ OSIDB_VIEW_META_ATTR = False
 TZ_OFFSET = 0  # GMT
 TZINFO = timezone(timedelta(hours=TZ_OFFSET))
 
+# the default datetime format
+DATETIME_FMT = "%Y-%m-%dT%H:%M:%SZ"
+
 ENABLE_EMBARGO_PROCESS: bool = get_env(
     "OSIDB_EMBARGO_PROCESS", default="False", is_bool=True
 )

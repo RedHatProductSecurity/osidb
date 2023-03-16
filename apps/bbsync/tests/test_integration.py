@@ -99,8 +99,9 @@ class TestBBSyncIntegration:
             "cve_id": "CVE-2021-0773",
             "title": "Bar",
             "description": "test",
-            "reported_dt": "2022-11-22T15:55:22.830Z",
-            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "reported_dt": flaw.reported_dt,
+            "unembargo_dt": flaw.unembargo_dt,
+            "updated_dt": flaw.updated_dt,
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
@@ -194,6 +195,7 @@ class TestBBSyncIntegration:
             "ps_component": "kernel",
             "resolution": "WONTFIX",
             "embargoed": False,
+            "updated_dt": affect.updated_dt,
         }
         response = auth_client.put(
             f"{test_api_uri}/affects/{affect.uuid}",
@@ -286,28 +288,26 @@ class TestBBSyncIntegration:
         corresponds to multiple flaws in OSIDB
         """
         flaw1 = FlawFactory(
+            bz_id="2009119",
             cve_id="CVE-2022-0313",
             title="Foo",
             description="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
+            updated_dt="2023-03-31T16:41:41Z",
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            meta_attr={
-                "bz_id": "2009119",
-            },
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
         flaw2 = FlawFactory(
+            bz_id="2009119",
             cve_id="CVE-2022-0314",
             title="Foo",
             description="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
+            updated_dt="2023-03-31T16:41:41Z",
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            meta_attr={
-                "bz_id": "2009119",
-            },
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -329,8 +329,9 @@ class TestBBSyncIntegration:
             "cve_id": "CVE-2022-0313",
             "title": "Bar",  # new title
             "description": "test",
-            "reported_dt": "2022-11-22T15:55:22.830Z",
-            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "reported_dt": flaw1.reported_dt,
+            "unembargo_dt": flaw1.unembargo_dt,
+            "updated_dt": flaw1.updated_dt,
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
@@ -353,28 +354,26 @@ class TestBBSyncIntegration:
         corresponds to multiple flaws in OSIDB
         """
         flaw1 = FlawFactory(
+            bz_id="2009119",
             cve_id="CVE-2022-0313",
             title="Foo",
             description="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
+            updated_dt="2023-03-31T16:41:41Z",
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            meta_attr={
-                "bz_id": "2009119",
-            },
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
         flaw2 = FlawFactory(
+            bz_id="2009119",
             cve_id="CVE-2022-0314",
             title="Foo",
             description="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
+            updated_dt="2023-03-31T16:41:41Z",
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            meta_attr={
-                "bz_id": "2009119",
-            },
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -396,8 +395,9 @@ class TestBBSyncIntegration:
             "cve_id": None,  # attemt to remove CVE ID
             "title": "Foo",
             "description": "test",
-            "reported_dt": "2022-11-22T15:55:22.830Z",
-            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "reported_dt": flaw1.reported_dt,
+            "unembargo_dt": flaw1.unembargo_dt,
+            "updated_dt": flaw1.updated_dt,
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }

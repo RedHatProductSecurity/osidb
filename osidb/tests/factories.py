@@ -44,6 +44,7 @@ class FlawFactory(factory.django.DjangoModelFactory):
     type = factory.Faker("random_element", elements=list(FlawType))
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     reported_dt = factory.Faker("date_time", tzinfo=UTC)
+    updated_dt = factory.Faker("date_time", tzinfo=UTC)
     impact = factory.Faker(
         "random_element", elements=list(set(FlawImpact) - {FlawImpact.NOVALUE})
     )

@@ -52,7 +52,9 @@ class TrackingMixin(models.Model):
                 )
 
             # auto-set updated_dt as now on any change
-            self.updated_dt = timezone.now()
+            # cut off the microseconds to allow mid-air
+            # collision comparison as API works in seconds
+            self.updated_dt = timezone.now().replace(microsecond=0)
 
         super().save(*args, **kwargs)
 

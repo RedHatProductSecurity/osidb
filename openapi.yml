@@ -817,13 +817,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Affect'
+              $ref: '#/components/schemas/AffectPost'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Affect'
+              $ref: '#/components/schemas/AffectPost'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Affect'
+              $ref: '#/components/schemas/AffectPost'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -1285,13 +1285,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Flaw'
+              $ref: '#/components/schemas/FlawPost'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Flaw'
+              $ref: '#/components/schemas/FlawPost'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Flaw'
+              $ref: '#/components/schemas/FlawPost'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -2057,7 +2057,7 @@ components:
           format: uuid
           nullable: true
         type:
-          $ref: '#/components/schemas/AffectTypeEnum'
+          $ref: '#/components/schemas/Type5b2Enum'
         affectedness:
           oneOf:
           - $ref: '#/components/schemas/AffectednessEnum'
@@ -2134,7 +2134,8 @@ components:
         updated_dt:
           type: string
           format: date-time
-          readOnly: true
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
       required:
       - created_dt
       - delegated_resolution
@@ -2145,6 +2146,103 @@ components:
       - ps_module
       - trackers
       - updated_dt
+      - uuid
+    AffectPost:
+      type: object
+      description: Affect serializer
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        flaw:
+          type: string
+          format: uuid
+          nullable: true
+        type:
+          $ref: '#/components/schemas/Type5b2Enum'
+        affectedness:
+          oneOf:
+          - $ref: '#/components/schemas/AffectednessEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        resolution:
+          oneOf:
+          - $ref: '#/components/schemas/ResolutionEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        ps_module:
+          type: string
+          maxLength: 100
+        ps_component:
+          type: string
+          maxLength: 255
+        impact:
+          oneOf:
+          - $ref: '#/components/schemas/ImpactEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        cvss2:
+          type: string
+          maxLength: 100
+        cvss2_score:
+          type: number
+          format: float
+          nullable: true
+        cvss3:
+          type: string
+          maxLength: 100
+        cvss3_score:
+          type: number
+          format: float
+          nullable: true
+        trackers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tracker'
+          readOnly: true
+        meta_attr:
+          type: object
+          properties:
+            affectedness:
+              type: string
+            component:
+              type: string
+            cvss2:
+              type: string
+            cvss3:
+              type: string
+            impact:
+              type: string
+            module_name:
+              type: string
+            module_stream:
+              type: string
+            ps_component:
+              type: string
+            ps_module:
+              type: string
+            resolution:
+              type: string
+          readOnly: true
+        delegated_resolution:
+          type: string
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_dt
+      - delegated_resolution
+      - embargoed
+      - flaw
+      - meta_attr
+      - ps_component
+      - ps_module
+      - trackers
       - uuid
     AffectReportData:
       type: object
@@ -2170,10 +2268,6 @@ components:
       required:
       - ps_component
       - ps_module
-    AffectTypeEnum:
-      enum:
-      - DEFAULT
-      type: string
     AffectednessEnum:
       enum:
       - NEW
@@ -2239,7 +2333,8 @@ components:
         updated_dt:
           type: string
           format: date-time
-          readOnly: true
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
       required:
       - created_dt
       - external_system_id
@@ -2278,7 +2373,8 @@ components:
         updated_dt:
           type: string
           format: date-time
-          readOnly: true
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
       required:
       - advisory_name
       - created_dt
@@ -2326,7 +2422,7 @@ components:
           format: uuid
           readOnly: true
         type:
-          $ref: '#/components/schemas/FlawTypeEnum'
+          $ref: '#/components/schemas/Type824Enum'
         cve_id:
           type: string
           nullable: true
@@ -2367,7 +2463,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/FlawSourceEnum'
+          - $ref: '#/components/schemas/Source666Enum'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
@@ -2493,7 +2589,8 @@ components:
         updated_dt:
           type: string
           format: date-time
-          readOnly: true
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
         classification:
           type: object
           properties:
@@ -2525,6 +2622,209 @@ components:
       - trackers
       - updated_dt
       - uuid
+    FlawPost:
+      type: object
+      description: serialize flaw model
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/Type824Enum'
+        cve_id:
+          type: string
+          nullable: true
+        state:
+          type: string
+          readOnly: true
+          deprecated: true
+        resolution:
+          type: string
+          readOnly: true
+          deprecated: true
+        impact:
+          oneOf:
+          - $ref: '#/components/schemas/ImpactEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        component:
+          type: string
+          maxLength: 100
+        title:
+          type: string
+        trackers:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        description:
+          type: string
+        summary:
+          type: string
+        statement:
+          type: string
+        cwe_id:
+          type: string
+          maxLength: 255
+        unembargo_dt:
+          type: string
+          format: date-time
+          nullable: true
+        source:
+          oneOf:
+          - $ref: '#/components/schemas/Source666Enum'
+          - $ref: '#/components/schemas/BlankEnum'
+        reported_dt:
+          type: string
+          format: date-time
+          nullable: true
+        mitigation:
+          type: string
+        cvss2:
+          type: string
+          maxLength: 100
+        cvss2_score:
+          type: number
+          format: float
+          nullable: true
+        nvd_cvss2:
+          type: string
+          maxLength: 100
+        cvss3:
+          type: string
+          maxLength: 100
+        cvss3_score:
+          type: number
+          format: float
+          nullable: true
+        nvd_cvss3:
+          type: string
+          maxLength: 100
+        is_major_incident:
+          type: boolean
+        affects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Affect'
+          readOnly: true
+        meta:
+          type: array
+          items:
+            $ref: '#/components/schemas/Meta'
+          readOnly: true
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+          readOnly: true
+        meta_attr:
+          type: object
+          properties:
+            acknowledgments:
+              type: string
+            acks_not_needed:
+              type: string
+            affects:
+              type: string
+            alias:
+              type: string
+            bz_datascore:
+              type: string
+            bz_id:
+              type: string
+            checklists:
+              type: string
+            classification:
+              type: string
+            cvss2:
+              type: string
+            cvss2_score:
+              type: string
+            cvss2_vector:
+              type: string
+            cvss3:
+              type: string
+            cvss3_comment:
+              type: string
+            cvss3_score:
+              type: string
+            cvss3_vector:
+              type: string
+            cwe:
+              type: string
+            depends_on:
+              type: string
+            impact:
+              type: string
+            jira_trackers:
+              type: string
+            mitigate:
+              type: string
+            mitigation:
+              type: string
+            public:
+              type: string
+            references:
+              type: string
+            related_cves:
+              type: string
+            reported:
+              type: string
+            resolution:
+              type: string
+            source:
+              type: string
+            state:
+              type: string
+            statement:
+              type: string
+            task_owner:
+              type: string
+          readOnly: true
+        package_versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/CVEv5PackageVersions'
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        classification:
+          type: object
+          properties:
+            workflow:
+              type: string
+            state:
+              type: string
+              enum:
+              - DRAFT
+              - NEW
+              - ANALYSIS
+              - REVIEW
+              - FIX
+              - DONE
+          readOnly: true
+      required:
+      - affects
+      - classification
+      - comments
+      - created_dt
+      - description
+      - embargoed
+      - meta
+      - meta_attr
+      - package_versions
+      - resolution
+      - state
+      - title
+      - trackers
+      - uuid
     FlawReportData:
       type: object
       properties:
@@ -2545,100 +2845,6 @@ components:
       required:
       - resolution
       - state
-    FlawSourceEnum:
-      enum:
-      - ADOBE
-      - APPLE
-      - ASF
-      - BIND
-      - BK
-      - BUGTRAQ
-      - BUGZILLA
-      - CERT
-      - CERTIFI
-      - CORELABS
-      - CUSTOMER
-      - CVE
-      - DAILYDAVE
-      - DEBIAN
-      - DISTROS
-      - FEDORA
-      - FETCHMAIL
-      - FREEDESKTOP
-      - FREERADIUS
-      - FRSIRT
-      - FULLDISCLOSURE
-      - GAIM
-      - GENTOO
-      - GENTOOBZ
-      - GIT
-      - GNOME
-      - GNUPG
-      - GOOGLE
-      - HP
-      - HW_VENDOR
-      - IBM
-      - IDEFENSE
-      - INTERNET
-      - ISC
-      - ISEC
-      - IT
-      - JBOSS
-      - JPCERT
-      - KERNELBUGZILLA
-      - KERNELSEC
-      - LKML
-      - LWN
-      - MACROMEDIA
-      - MAGEIA
-      - MAILINGLIST
-      - MILW0RM
-      - MIT
-      - MITRE
-      - MOZILLA
-      - MUTTDEV
-      - NETDEV
-      - NISCC
-      - OCERT
-      - OPENOFFICE
-      - OPENSSL
-      - OPENSUSE
-      - ORACLE
-      - OSS
-      - OSSSECURITY
-      - PHP
-      - PIDGIN
-      - POSTGRESQL
-      - PRESS
-      - REAL
-      - REDHAT
-      - RESEARCHER
-      - RT
-      - SAMBA
-      - SECALERT
-      - SECUNIA
-      - SECURITYFOCUS
-      - SKO
-      - SQUID
-      - SQUIRRELMAIL
-      - SUN
-      - SUNSOLVE
-      - SUSE
-      - TWITTER
-      - UBUNTU
-      - UPSTREAM
-      - VENDORSEC
-      - VULNWATCH
-      - WIRESHARK
-      - XCHAT
-      - XEN
-      - XPDF
-      type: string
-    FlawTypeEnum:
-      enum:
-      - VULNERABILITY
-      - WEAKNESS
-      type: string
     ImpactEnum:
       enum:
       - LOW
@@ -2680,7 +2886,8 @@ components:
         updated_dt:
           type: string
           format: date-time
-          readOnly: true
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
       required:
       - created_dt
       - embargoed
@@ -2850,6 +3057,95 @@ components:
       - DELEGATED
       - WONTREPORT
       type: string
+    Source666Enum:
+      enum:
+      - ADOBE
+      - APPLE
+      - ASF
+      - BIND
+      - BK
+      - BUGTRAQ
+      - BUGZILLA
+      - CERT
+      - CERTIFI
+      - CORELABS
+      - CUSTOMER
+      - CVE
+      - DAILYDAVE
+      - DEBIAN
+      - DISTROS
+      - FEDORA
+      - FETCHMAIL
+      - FREEDESKTOP
+      - FREERADIUS
+      - FRSIRT
+      - FULLDISCLOSURE
+      - GAIM
+      - GENTOO
+      - GENTOOBZ
+      - GIT
+      - GNOME
+      - GNUPG
+      - GOOGLE
+      - HP
+      - HW_VENDOR
+      - IBM
+      - IDEFENSE
+      - INTERNET
+      - ISC
+      - ISEC
+      - IT
+      - JBOSS
+      - JPCERT
+      - KERNELBUGZILLA
+      - KERNELSEC
+      - LKML
+      - LWN
+      - MACROMEDIA
+      - MAGEIA
+      - MAILINGLIST
+      - MILW0RM
+      - MIT
+      - MITRE
+      - MOZILLA
+      - MUTTDEV
+      - NETDEV
+      - NISCC
+      - OCERT
+      - OPENOFFICE
+      - OPENSSL
+      - OPENSUSE
+      - ORACLE
+      - OSS
+      - OSSSECURITY
+      - PHP
+      - PIDGIN
+      - POSTGRESQL
+      - PRESS
+      - REAL
+      - REDHAT
+      - RESEARCHER
+      - RT
+      - SAMBA
+      - SECALERT
+      - SECUNIA
+      - SECURITYFOCUS
+      - SKO
+      - SQUID
+      - SQUIRRELMAIL
+      - SUN
+      - SUNSOLVE
+      - SUSE
+      - TWITTER
+      - UBUNTU
+      - UPSTREAM
+      - VENDORSEC
+      - VULNWATCH
+      - WIRESHARK
+      - XCHAT
+      - XEN
+      - XPDF
+      type: string
     StatusEnum:
       enum:
       - AFFECTED
@@ -2960,7 +3256,8 @@ components:
         updated_dt:
           type: string
           format: date-time
-          readOnly: true
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
       required:
       - created_dt
       - errata
@@ -2992,6 +3289,15 @@ components:
       enum:
       - JIRA
       - BUGZILLA
+      type: string
+    Type5b2Enum:
+      enum:
+      - DEFAULT
+      type: string
+    Type824Enum:
+      enum:
+      - VULNERABILITY
+      - WEAKNESS
       type: string
   securitySchemes:
     KerberosAuthentication:
