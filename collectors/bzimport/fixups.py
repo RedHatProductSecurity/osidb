@@ -176,6 +176,7 @@ class FlawFixer:
 
         self.fix_unembargo_dt()
         self.fix_impact()
+        self.fix_mitigation()
         self.fix_statement()
         self.fix_reported_dt()
         self.fix_source()
@@ -235,6 +236,10 @@ class FlawFixer:
         else:
             self.errors.append("impact has NOVALUE")
             self.flaw_obj.impact = FlawImpact.NOVALUE
+
+    def fix_mitigation(self) -> None:
+        """mitigation fixup"""
+        self.flaw_obj.mitigation = self.srtnotes.get("mitigation")
 
     def fix_statement(self) -> None:
         """statement fixup"""

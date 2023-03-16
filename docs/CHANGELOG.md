@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Integrate Bugzilla backwards sync into the flaw and affect save (OSIDB-240)
 - Introduce Bugzilla API key as a serializer attribute (OSIDB-368)
 - Implement non-empty source validation (OSIDB-759)
+- Introduce mitigation field into Flaw and update SRT notes generator (OSIDB-584)
 
 ### Changed
 - Change logging of celery and django to filesystem (OSIDB-418)

@@ -1370,6 +1370,7 @@ class TestEndpointsACLs:
             "source": "DEBIAN",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": None if embargoed else "2000-1-1T22:03:26.065Z",
+            "mitigation": "mitigation",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": embargoed,
             "bz_api_key": "SECRET",
@@ -1386,6 +1387,7 @@ class TestEndpointsACLs:
         response = auth_client.get(f"{test_api_uri}/flaws/{created_uuid}")
         assert response.status_code == 200
         assert response.json()["embargoed"] == embargoed
+        assert response.json()["mitigation"] == "mitigation"
 
     @pytest.mark.parametrize(
         "embargoed,acl_read,acl_write",
