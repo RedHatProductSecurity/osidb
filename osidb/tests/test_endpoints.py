@@ -161,7 +161,7 @@ class TestEndpoints(object):
         body = response.json()
         assert body["count"] == 0
 
-        FlawFactory(created_dt=datetime_with_tz)
+        FlawFactory(updated_dt=datetime_with_tz)
 
         past_str = f"{datetime_with_tz - timedelta(days=1)}"  # Set to past date, API should return 0 results
         assert past_str.endswith("+00:00")
@@ -186,7 +186,7 @@ class TestEndpoints(object):
         body = response.json()
         assert body["count"] == 0
 
-        FlawFactory(created_dt=datetime_with_tz)
+        FlawFactory(updated_dt=datetime_with_tz)
 
         past_str = f"{datetime_with_tz - timedelta(days=1)}"
         future_str = f"{datetime_with_tz + timedelta(days=1)}"
@@ -306,11 +306,18 @@ class TestEndpoints(object):
 
     @freeze_time(datetime(2021, 11, 23))
     def test_changed_before_from_tracker(self, auth_client, test_api_uri):
+        flaw = FlawFactory(updated_dt=datetime(2021, 11, 23))
         affect = AffectFactory(
+            flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
+            updated_dt=datetime(2021, 11, 23),
         )
-        tracker = TrackerFactory(affects=(affect,), embargoed=affect.flaw.embargoed)
+        tracker = TrackerFactory(
+            affects=(affect,),
+            embargoed=affect.flaw.embargoed,
+            updated_dt=datetime(2021, 11, 23),
+        )
         past_dt = datetime(2019, 11, 27)
 
         # first check that we cannot get anything by querying any flaws changed after future_dt
@@ -335,7 +342,8 @@ class TestEndpoints(object):
 
     @freeze_time(datetime(2021, 11, 23))
     def test_changed_before_from_affect(self, auth_client, test_api_uri):
-        affect = AffectFactory()
+        flaw = FlawFactory(updated_dt=datetime(2021, 11, 23))
+        affect = AffectFactory(flaw=flaw, updated_dt=datetime(2021, 11, 23))
         past_dt = datetime(2019, 11, 27)
 
         response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
@@ -356,19 +364,29 @@ class TestEndpoints(object):
 
     @freeze_time(datetime(2021, 11, 23))
     def test_changed_before_from_multi_tracker(self, auth_client, test_api_uri):
-        flaw = FlawFactory()
+        flaw = FlawFactory(updated_dt=datetime(2021, 11, 23))
         affect1 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
+            updated_dt=datetime(2021, 11, 23),
         )
         affect2 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
+            updated_dt=datetime(2021, 11, 23),
         )
-        tracker1 = TrackerFactory(affects=(affect1,), embargoed=flaw.embargoed)
-        tracker2 = TrackerFactory(affects=(affect2,), embargoed=flaw.embargoed)
+        tracker1 = TrackerFactory(
+            affects=(affect1,),
+            embargoed=flaw.embargoed,
+            updated_dt=datetime(2021, 11, 23),
+        )
+        tracker2 = TrackerFactory(
+            affects=(affect2,),
+            embargoed=flaw.embargoed,
+            updated_dt=datetime(2021, 11, 23),
+        )
         past_dt = datetime(2019, 11, 27)
 
         # first check that we cannot get anything by querying any flaws changed after future_dt
