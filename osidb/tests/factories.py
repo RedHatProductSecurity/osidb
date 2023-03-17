@@ -131,6 +131,9 @@ class FlawFactory(factory.django.DjangoModelFactory):
         instance creation
         with saving to DB
         """
+        # turn of automatic timestamps
+        # so we can explicitly assign them
+        kwargs["auto_timestamps"] = False
         # embargoed is not a real model attribute but annotation so it is read-only
         # but we want preserve it as writable factory attribute as it is easier to work with
         # than with ACLs so we need to remove it for the flaw creation and emulate annotation
@@ -200,29 +203,25 @@ class AffectFactory(factory.django.DjangoModelFactory):
     ps_component = factory.sequence(lambda n: f"ps-component-{n}")
     impact = factory.Faker("random_element", elements=list(Affect.AffectImpact))
 
+    created_dt = factory.Faker("date_time", tzinfo=UTC)
+    updated_dt = factory.Faker("date_time", tzinfo=UTC)
+
     flaw = factory.SubFactory(FlawFactory)
 
     acl_read = [DATA_PRODSEC_ACL_READ]
     acl_write = [DATA_PRODSEC_ACL_WRITE]
     meta_attr = factory.Dict({"test": "1"})
 
-    # @factory.post_generation
-    # def trackers(self, create, extracted, **kwargs):
-    #     # https://factoryboy.readthedocs.io/en/latest/recipes.html#simple-many-to-many-relationship
-    #     if not create:
-    #         # Simple build, do nothing.
-    #         return
-    #
-    #     if extracted:
-    #         # A list of trackers were passed in, use them
-    #         for tracker in extracted:
-    #             self.trackers.add(tracker)
-    #     else:
-    #         # Nothing was passed, create random trackers
-    #         for tracker in TrackerFactory.create_batch(
-    #             size=randint(0, 1), cve_id=self.cve_id
-    #         ):
-    #             self.trackers.add(tracker)
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        """
+        instance creation
+        with saving to DB
+        """
+        # turn of automatic timestamps
+        # so we can explicitly assign them
+        kwargs["auto_timestamps"] = False
+        return super()._create(model_class, *args, **kwargs)
 
 
 class TrackerFactory(factory.django.DjangoModelFactory):
@@ -286,6 +285,9 @@ class TrackerFactory(factory.django.DjangoModelFactory):
         instance creation
         with saving to DB
         """
+        # turn of automatic timestamps
+        # so we can explicitly assign them
+        kwargs["auto_timestamps"] = False
         # embargoed is not a real model attribute but annotation so it is read-only
         # but we want preserve it as writable factory attribute as it is easier to work with
         # than with ACLs so we need to remove it for the tracker creation and emulate annotation
@@ -315,6 +317,7 @@ class FlawCommentFactory(factory.django.DjangoModelFactory):
 
     type = "BUGZILLA"
     created_dt = factory.Faker("date_time", tzinfo=UTC)
+    updated_dt = factory.Faker("date_time", tzinfo=UTC)
     external_system_id = factory.sequence(lambda n: f"fake-external-id{n}")
     acl_read = [DATA_PRODSEC_ACL_READ]
     acl_write = [DATA_PRODSEC_ACL_WRITE]
@@ -341,6 +344,7 @@ class FlawMetaFactory(factory.django.DjangoModelFactory):
 
     type = "REFERENCE"
     created_dt = factory.Faker("date_time", tzinfo=UTC)
+    updated_dt = factory.Faker("date_time", tzinfo=UTC)
     acl_read = [DATA_PRODSEC_ACL_READ]
     acl_write = [DATA_PRODSEC_ACL_WRITE]
     meta_attr = {

@@ -59,6 +59,32 @@ class TrackingMixin(models.Model):
         super().save(*args, **kwargs)
 
 
+class TrackingMixinManager(models.Manager):
+    """
+    TrackingMixin companion changing the QuerySet accordingly
+    """
+
+    def get_or_create(self, defaults=None, **kwargs):
+        """
+        filter out auto_timestamps from the defaults
+        """
+        defaults.pop("auto_timestamps", None)
+        return super().get_or_create(defaults, **kwargs)
+
+    def create(self, **kwargs):
+        """
+        rewrite the default create taking the auto_timestamps
+        into account as some instances are build this way
+
+        specifically the factories would otherwise not work
+        """
+        auto_timestamps = kwargs.pop("auto_timestamps", None)
+        obj = self.model(**kwargs)
+        self._for_write = True
+        obj.save(auto_timestamps=auto_timestamps, force_insert=True, using=self.db)
+        return obj
+
+
 class NullStrFieldsMixin(models.Model):
     """
     Mixin which implements replacing the None (null) values of

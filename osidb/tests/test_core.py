@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 from django.test.utils import isolate_apps
 from rest_framework.viewsets import ModelViewSet
@@ -29,6 +31,21 @@ class TestCore(object):
         AffectFactory(flaw=flaw1)
         assert flaw1.save() is None
         assert "test" in flaw1.meta_attr
+
+    def test_flaw_factory_dt(self):
+        """
+        test that the tracking timestamps are being set by the factories
+        """
+        flaw = FlawFactory(
+            created_dt="2022-03-13T12:54:13Z",
+            updated_dt="2023-03-13T12:54:13Z",
+        )
+        assert flaw.created_dt == datetime(
+            2022, 3, 13, 12, 54, 13, tzinfo=flaw.created_dt.tzinfo
+        )
+        assert flaw.updated_dt == datetime(
+            2023, 3, 13, 12, 54, 13, tzinfo=flaw.updated_dt.tzinfo
+        )
 
     def test_flaw_exceptions(self):
         with pytest.raises(OSIDBException):

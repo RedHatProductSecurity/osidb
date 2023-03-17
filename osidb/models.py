@@ -33,6 +33,7 @@ from .mixins import (
     AlertMixin,
     NullStrFieldsMixin,
     TrackingMixin,
+    TrackingMixinManager,
     ValidateMixin,
 )
 from .validators import (
@@ -395,7 +396,7 @@ class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
     objects = FlawHistoryManager()
 
 
-class FlawManager(ACLMixinManager):
+class FlawManager(ACLMixinManager, TrackingMixinManager):
     """flaw manager"""
 
     @staticmethod
@@ -958,7 +959,7 @@ class Flaw(
         fc.sync_flaw(self.bz_id)
 
 
-class AffectManager(ACLMixinManager):
+class AffectManager(ACLMixinManager, TrackingMixinManager):
     """affect manager"""
 
     @staticmethod
@@ -1419,7 +1420,7 @@ class Affect(
         self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
 
 
-class TrackerManager(ACLMixinManager):
+class TrackerManager(ACLMixinManager, TrackingMixinManager):
     """tracker manager"""
 
     @staticmethod
@@ -1563,7 +1564,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         return self.status.upper() == "CLOSED"
 
 
-class ErratumManager(models.Manager):
+class ErratumManager(TrackingMixinManager):
     """
     erratum manager
     """
@@ -1610,7 +1611,7 @@ class Erratum(TrackingMixin):
         return str(self.advisory_name)
 
 
-class FlawMetaManager(ACLMixinManager):
+class FlawMetaManager(ACLMixinManager, TrackingMixinManager):
     """flawmeta manager"""
 
     @staticmethod
@@ -1718,7 +1719,7 @@ class FlawMeta(AlertMixin, TrackingMixin, ACLMixin):
                 )
 
 
-class FlawCommentManager(ACLMixinManager):
+class FlawCommentManager(ACLMixinManager, TrackingMixinManager):
     """flawcomment manager"""
 
     @staticmethod
