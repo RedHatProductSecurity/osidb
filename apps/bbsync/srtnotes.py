@@ -79,11 +79,7 @@ class SRTNotesBuilder:
         # we need to implement their SRT notes generator afterwards and probably modify
         # the existing CVSS into SRT notes generation too
         self.generate_string("cwe_id", "cwe")
-        # TODO mitigation field is not yet supported in OSIDB
-        # this requirement is tracked in when OSIDB-584 and when fulfilled
-        # we need to implement its proper SRT notes generator too while
-        # it should probably be enough to just uncomment the next line
-        # self.generate_string("mitigation", "mitigation")
+        self.generate_string("mitigation", "mitigation")
         self.generate_string("statement", "statement")
 
     def generate_acknowledgments(self):

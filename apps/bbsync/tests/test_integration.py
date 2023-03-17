@@ -40,13 +40,14 @@ class TestBBSyncIntegration:
         test creating a flaw with Bugzilla two-way sync
         """
         flaw_data = {
-            "cve_id": "CVE-2021-0773",
+            "cve_id": "CVE-2021-0777",
             "title": "Foo",
             "description": "test",
             "impact": "LOW",
             "source": "INTERNET",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "mitigation": "mitigation",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
             "bz_api_key": "SECRET",
@@ -58,7 +59,8 @@ class TestBBSyncIntegration:
 
         response = auth_client.get(f"{test_api_uri}/flaws/{created_uuid}")
         assert response.status_code == 200
-        assert response.json()["cve_id"] == "CVE-2021-0773"
+        assert response.json()["cve_id"] == "CVE-2021-0777"
+        assert response.json()["mitigation"] == "mitigation"
 
     @pytest.mark.vcr
     def test_flaw_update(self, auth_client, test_api_uri):

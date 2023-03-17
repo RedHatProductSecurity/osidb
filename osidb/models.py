@@ -515,6 +515,9 @@ class Flaw(
         null=True, blank=True, validators=[no_future_date]
     )
 
+    # mitigation to apply if the final fix is not available, from srtnotes "mitigation"
+    mitigation = models.TextField(blank=True)
+
     # , from srtnotes "cvss2"
     cvss2 = models.CharField(max_length=100, blank=True, validators=[validate_cvss2])
     cvss2_score = models.FloatField(null=True, blank=True)
