@@ -17,6 +17,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.views import APIView
 from rest_framework.viewsets import (
     ModelViewSet,
@@ -363,19 +364,20 @@ class AffectView(ModelViewSet):
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def perform_destroy(self, instance):
+    def destroy(self, request, *args, **kwargs):
+        bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
+        if not bz_api_key:
+            raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
+        instance = self.get_object()
+        self.perform_destroy(instance, bz_api_key=bz_api_key)
+        return Response(status=HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance, bz_api_key):
         """
         override the default behavior to proxy the delete to Bugzilla
         """
         flaw = instance.flaw
         instance.delete()
-
-        # serialize Bugzilla API key and check it was provided
-        serializer = self.get_serializer(data=self.request.data)
-        bz_api_key = serializer.initial_data.get("bz_api_key")
-        if bz_api_key is None:
-            raise ValidationError({"bz_api_key": "Field is required"})
-
         flaw.save(bz_api_key=bz_api_key)
 
 

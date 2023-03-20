@@ -9,7 +9,6 @@ from typing import Dict, List, Tuple
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -301,31 +300,54 @@ class TrackerSerializer(
         ] + TrackingMixinSerializer.Meta.fields
 
 
+class EmbargoedField(serializers.BooleanField):
+    """The embargoed boolean attribute is technically read-only as it just indirectly
+    modifies the ACLs but is mandatory as it controls the access to the resource."""
+
+    def to_representation(self, value):
+        return value.is_embargoed
+
+    def run_validation(self, data):
+        # Run base Boolean field validation, ACL validation and then
+        # raise SkipField to not include this field in validated data
+        # since we don't have `embargoed` field to write in
+        super().run_validation(data)
+        self.validate_acl(data)
+        raise serializers.SkipField()
+
+    def validate_acl(self, embargoed):
+        acl_read = (
+            settings.EMBARGO_READ_GROUP if embargoed else settings.PUBLIC_READ_GROUPS
+        )
+        acl_write = (
+            settings.EMBARGO_WRITE_GROUP if embargoed else settings.PUBLIC_WRITE_GROUP
+        )
+        acl_read, acl_write = ensure_list(acl_read), ensure_list(acl_write)
+
+        acls = [group.name for group in self.context["request"].user.groups.all()]
+        for acl in acl_read + acl_write:
+            # this is a temporary safeguard with a very simple philosophy that one cannot
+            # give access to something (s)he does not have access to but possibly in the future
+            # we will want some more clever handling like ProdSec can grant anything etc.
+            if acl not in acls:
+                raise serializers.ValidationError(
+                    f"Cannot provide access for the LDAP group without being a member: {acl}"
+                )
+
+
 class ACLMixinSerializer(serializers.ModelSerializer):
     """
     ACLMixin class serializer
     translates embargoed boolean to ACLs
     """
 
-    embargoed = serializers.SerializerMethodField()
-
-    @extend_schema_field(
-        {
-            "description": (
-                "The embargoed boolean attribute is technically read-only as it just indirectly "
-                "modifies the ACLs but is mandatory as it controls the access to the resource."
-            ),
-            # TODO the read-only does not work this way
-            "readOnly": False,
-            "required": True,
-            "type": "boolean",
-        }
+    embargoed = EmbargoedField(
+        source="*",
+        help_text=(
+            "The embargoed boolean attribute is technically read-only as it just indirectly "
+            "modifies the ACLs but is mandatory as it controls the access to the resource."
+        ),
     )
-    def get_embargoed(self, obj):
-        """
-        get embargoed status from ACLMixin
-        """
-        return obj.is_embargoed
 
     class Meta:
         abstract = True
@@ -355,11 +377,8 @@ class ACLMixinSerializer(serializers.ModelSerializer):
         """
         process validated data converting embargoed status into the ACLs
         """
+        # Already validated in EmbargoedField
         embargoed = self.context["request"].data.get("embargoed")
-        # the serializer nativaly considers embargoed as read-only
-        # so we have to explicitely make it required on write
-        if embargoed is None:
-            raise ValidationError({"embargoed": "Field is required"})
 
         acl_read, acl_write = self.get_acls(embargoed)
         validated_data["acl_read"] = acl_read
@@ -374,35 +393,6 @@ class ACLMixinSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         validated_data = self.embargoed2acls(validated_data)
         return super().update(instance, validated_data)
-
-    def validate(self, data):
-        """
-        validate that the current user is member of all LDAP groups (s)he provides
-        with the access so there is no access expansion beyond the user permissions
-        """
-        data = super().validate(data)
-
-        # get the resulting ACLs from the embargo status
-        embargoed = self.context["request"].data.get("embargoed")
-        acl_read = (
-            settings.EMBARGO_READ_GROUP if embargoed else settings.PUBLIC_READ_GROUPS
-        )
-        acl_write = (
-            settings.EMBARGO_WRITE_GROUP if embargoed else settings.PUBLIC_WRITE_GROUP
-        )
-        acl_read, acl_write = ensure_list(acl_read), ensure_list(acl_write)
-
-        acls = [group.name for group in self.context["request"].user.groups.all()]
-        for acl in acl_read + acl_write:
-            # this is a temporary safeguard with a very simple philosophy that one cannot
-            # give access to something (s)he does not have access to but possibly in the future
-            # we will want some more clever handling like ProdSec can grant anything etc.
-            if acl not in acls:
-                raise serializers.ValidationError(
-                    f"Cannot provide access for the LDAP group without being a member: {acl}"
-                )
-
-        return data
 
 
 class MetaSerializer(ACLMixinSerializer, TrackingMixinSerializer):
@@ -445,16 +435,24 @@ class BugzillaSyncMixinSerializer(serializers.ModelSerializer):
     which need to perform Bugzilla sync as part of the save procedure
     """
 
-    bz_api_key = serializers.CharField(allow_null=False, required=True, write_only=True)
+    def __get_bz_api_key(self):
+        bz_api_key = self.context["request"].META.get("HTTP_BUGZILLA_API_KEY")
+        if not bz_api_key:
+            raise serializers.ValidationError(
+                {"Bugzilla-Api-Key": "This HTTP header is required."}
+            )
+        return bz_api_key
 
     def create(self, validated_data):
         """
         perform the ordinary instance create
         with providing BZ API key while saving
         """
-        bz_api_key = validated_data.pop("bz_api_key")
+        # NOTE: This won't work for many-to-many fields as
+        # some logic from original .create() was overwritten
+
         instance = self.Meta.model(**validated_data)
-        instance.save(bz_api_key=bz_api_key)
+        instance.save(bz_api_key=self.__get_bz_api_key())
         return instance
 
     def update(self, instance, validated_data):
@@ -462,15 +460,15 @@ class BugzillaSyncMixinSerializer(serializers.ModelSerializer):
         perform the ordinary instance update
         with providing BZ API key while saving
         """
-        bz_api_key = validated_data.pop("bz_api_key")
+        # NOTE: This won't work for many-to-many fields as
+        # some logic from original .create() was overwritten
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        instance.save(bz_api_key=bz_api_key)
+        instance.save(bz_api_key=self.__get_bz_api_key())
         return instance
 
     class Meta:
         model = BugzillaSyncMixin
-        fields = ["bz_api_key"]
         abstract = True
 
 
@@ -551,7 +549,6 @@ class AffectSerializer(
                 "delegated_resolution",
             ]
             + ACLMixinSerializer.Meta.fields
-            + BugzillaSyncMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
         )
 
@@ -734,7 +731,6 @@ class FlawSerializer(
                 "package_versions",
             ]
             + ACLMixinSerializer.Meta.fields
-            + BugzillaSyncMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
             + WorkflowModelSerializer.Meta.fields
         )
