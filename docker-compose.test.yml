@@ -42,7 +42,9 @@ services:
 # #####################
       environment:
         BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
+        BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
         JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
+        JIRA_URL: ${JIRA_URL}
         ET_URL: ${ET_URL}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
         DASHBOARD_URL: ${DASHBOARD_URL}

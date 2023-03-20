@@ -14,9 +14,15 @@ Create a file named `.env`:
 # Bugzilla REST API key
 BZIMPORT_BZ_API_KEY=####################
 
+# Bugzilla URL (optional, defaults to RedHat production Bugzilla)
+BZIMPORT_BZ_URL="https://foo.bar"
+
 # Enable auto syncing of Jira trackers
 JIRAFFE_AUTO_SYNC=True
 JIRA_AUTH_TOKEN=####################
+
+# Jira URL (optional, defaults to RedHat production Jira)
+JIRA_URL="https://foo.bar"
 
 # Export the default local postgresql password
 OSIDB_DB_PASSWORD=passw0rd
