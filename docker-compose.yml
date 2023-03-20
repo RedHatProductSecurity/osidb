@@ -74,10 +74,14 @@ services:
         BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
         JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
         JIRA_URL: ${JIRA_URL}
+        JIRA_TASKMAN_URL: ${JIRA_TASKMAN_URL}
+        JIRA_TASKMAN_TOKEN: ${JIRA_TASKMAN_TOKEN}
+        JIRA_TASKMAN_PROJECT_KEY: ${JIRA_TASKMAN_PROJECT_KEY}
         ET_URL: ${ET_URL}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
         DASHBOARD_URL: ${DASHBOARD_URL}
         BBSYNC_SYNC_TO_BZ: ${BBSYNC_SYNC_TO_BZ}
+        HTTPS_PROXY: ${HTTPS_PROXY}
       command: ./scripts/setup-osidb-service.sh
       volumes:
         - ${PWD}:/opt/app-root/src:z

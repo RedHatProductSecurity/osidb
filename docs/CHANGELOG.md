@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduce mitigation field into Flaw and update SRT notes generator (OSIDB-584)
 - Introduce flaw component attribute
 - Implement validation for allowed flaw sources (OSIDB-73)
+- Implement task management module (Taskman) to keep and update task workflow in Jira (OSIDB-228, OSIDB-684, OSIDB-685, OSIDB-754)
 
 ### Changed
 - Rework the mapping from Bugzilla sumary to OSIDB title and vice versa (OSIDB-694)
