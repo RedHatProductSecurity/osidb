@@ -6,7 +6,7 @@ import factory.fuzzy
 from django.conf import settings
 from pytz import UTC
 
-from osidb.constants import AFFECTEDNESS_VALID_RESOLUTIONS
+from osidb.constants import AFFECTEDNESS_VALID_RESOLUTIONS, DATETIME_FMT
 from osidb.models import (
     Affect,
     CVEv5PackageVersions,
@@ -123,7 +123,16 @@ class FlawFactory(factory.django.DjangoModelFactory):
             )
         ]
     )
-    meta_attr = factory.Dict({"test": "1"})
+    # valid flaw is expected to have certain meta attributes present
+    meta_attr = factory.LazyAttribute(
+        lambda c: {
+            "bz_id": getattr(c, "bz_id", "12345"),
+            "last_change_time": c.updated_dt
+            if isinstance(c.updated_dt, str)
+            else c.updated_dt.strftime(DATETIME_FMT),
+            "test": "1",
+        }
+    )
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
@@ -134,6 +143,9 @@ class FlawFactory(factory.django.DjangoModelFactory):
         # turn of automatic timestamps
         # so we can explicitly assign them
         kwargs["auto_timestamps"] = False
+        # bz_id is not a real model attribute
+        # it is just a shortcut to set it in the meta_attr
+        kwargs.pop("bz_id", None)
         # embargoed is not a real model attribute but annotation so it is read-only
         # but we want preserve it as writable factory attribute as it is easier to work with
         # than with ACLs so we need to remove it for the flaw creation and emulate annotation

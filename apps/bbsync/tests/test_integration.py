@@ -76,15 +76,13 @@ class TestBBSyncIntegration:
         test updating a flaw with Bugzilla two-way sync
         """
         flaw = FlawFactory(
+            bz_id="2008346",
             cve_id="CVE-2021-0773",
             title="Foo",
             description="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            meta_attr={
-                "bz_id": "2008346",
-            },
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -123,15 +121,13 @@ class TestBBSyncIntegration:
         test creating a flaw affect with Bugzilla two-way sync
         """
         flaw = FlawFactory(
+            bz_id="2008346",
             cve_id="CVE-2021-0773",
             title="Foo",
             description="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            meta_attr={
-                "bz_id": "2008346",
-            },
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -168,15 +164,13 @@ class TestBBSyncIntegration:
         test updating a flaw affect with Bugzilla two-way sync
         """
         flaw = FlawFactory(
+            bz_id="2008346",
             cve_id="CVE-2021-0773",
             title="Foo",
             description="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            meta_attr={
-                "bz_id": "2008346",
-            },
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -218,15 +212,13 @@ class TestBBSyncIntegration:
         test deleting a flaw affect with Bugzilla two-way sync
         """
         flaw = FlawFactory(
+            bz_id="2008346",
             cve_id="CVE-2021-0773",
             title="Foo",
             description="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            meta_attr={
-                "bz_id": "2008346",
-            },
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
