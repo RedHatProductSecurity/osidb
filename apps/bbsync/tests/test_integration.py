@@ -82,6 +82,7 @@ class TestBBSyncIntegration:
             description="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
+            updated_dt="2023-03-13T12:54:13Z",
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
@@ -127,6 +128,7 @@ class TestBBSyncIntegration:
             description="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
+            updated_dt="2023-03-17T11:24:14Z",
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
@@ -170,6 +172,7 @@ class TestBBSyncIntegration:
             description="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
+            updated_dt="2023-03-17T15:33:54Z",
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
@@ -181,6 +184,7 @@ class TestBBSyncIntegration:
             ps_component="kernel",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
+            updated_dt="2023-03-17T15:33:54Z",
         )
 
         affect_data = {
@@ -218,6 +222,7 @@ class TestBBSyncIntegration:
             description="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
+            updated_dt="2023-03-17T15:38:53Z",
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
