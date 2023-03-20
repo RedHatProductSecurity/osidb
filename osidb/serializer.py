@@ -9,7 +9,6 @@ from typing import Dict, List, Tuple
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -436,16 +435,24 @@ class BugzillaSyncMixinSerializer(serializers.ModelSerializer):
     which need to perform Bugzilla sync as part of the save procedure
     """
 
-    bz_api_key = serializers.CharField(allow_null=False, required=True, write_only=True)
+    def __get_bz_api_key(self):
+        bz_api_key = self.context["request"].META.get("HTTP_BUGZILLA_API_KEY")
+        if not bz_api_key:
+            raise serializers.ValidationError(
+                {"Bugzilla-Api-Key": "This HTTP header is required."}
+            )
+        return bz_api_key
 
     def create(self, validated_data):
         """
         perform the ordinary instance create
         with providing BZ API key while saving
         """
-        bz_api_key = validated_data.pop("bz_api_key")
+        # NOTE: This won't work for many-to-many fields as
+        # some logic from original .create() was overwritten
+
         instance = self.Meta.model(**validated_data)
-        instance.save(bz_api_key=bz_api_key)
+        instance.save(bz_api_key=self.__get_bz_api_key())
         return instance
 
     def update(self, instance, validated_data):
@@ -453,15 +460,16 @@ class BugzillaSyncMixinSerializer(serializers.ModelSerializer):
         perform the ordinary instance update
         with providing BZ API key while saving
         """
-        bz_api_key = validated_data.pop("bz_api_key")
+        # NOTE: This won't work for many-to-many fields as
+        # some logic from original .create() was overwritten
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        instance.save(bz_api_key=bz_api_key)
+        instance.save(bz_api_key=self.__get_bz_api_key())
         return instance
 
     class Meta:
         model = BugzillaSyncMixin
-        fields = ["bz_api_key"]
+        fields = []
         abstract = True
 
 
