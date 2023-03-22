@@ -717,6 +717,7 @@ class FlawSerializer(
                 "unembargo_dt",
                 "source",
                 "reported_dt",
+                "mitigation",
                 "cvss2",
                 "cvss2_score",
                 "nvd_cvss2",
