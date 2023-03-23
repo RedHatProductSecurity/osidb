@@ -2,7 +2,8 @@ import uuid
 
 import pytest
 
-from osidb.models import Affect
+from apps.bbsync.exceptions import UnsaveableFlawError
+from osidb.models import Affect, Flaw
 from osidb.tests.factories import AffectFactory, FlawFactory, PsModuleFactory
 
 pytestmark = pytest.mark.integration
@@ -275,3 +276,135 @@ class TestBBSyncIntegration:
         )
         assert response.status_code == 400
         assert "CVSSv3 score is missing" in str(response.content)
+
+    @pytest.mark.vcr
+    def test_flaw_update_multi_cve(self, auth_client, test_api_uri):
+        """
+        test that flaw with multiple CVE IDs can be updated
+
+        note that this single flaw in Bugzilla actually
+        corresponds to multiple flaws in OSIDB
+        """
+        flaw1 = FlawFactory(
+            cve_id="CVE-2022-0313",
+            title="Foo",
+            description="test",
+            reported_dt="2022-11-22T15:55:22.830Z",
+            unembargo_dt="2000-1-1T22:03:26.065Z",
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            meta_attr={
+                "bz_id": "2009119",
+            },
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
+        )
+        flaw2 = FlawFactory(
+            cve_id="CVE-2022-0314",
+            title="Foo",
+            description="test",
+            reported_dt="2022-11-22T15:55:22.830Z",
+            unembargo_dt="2000-1-1T22:03:26.065Z",
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            meta_attr={
+                "bz_id": "2009119",
+            },
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
+        )
+        PsModuleFactory(name="rhel-8")
+        AffectFactory(
+            flaw=flaw1,
+            ps_module="rhel-8",
+            ps_component="kernel",
+        )
+        AffectFactory(
+            flaw=flaw2,
+            ps_module="rhel-8",
+            ps_component="kernel",
+        )
+
+        # note that both flaws share BZ ID
+        # but here we modify flaw1 only
+        flaw_data = {
+            "cve_id": "CVE-2022-0313",
+            "title": "Bar",  # new title
+            "description": "test",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "embargoed": False,
+        }
+        response = auth_client.put(
+            f"{test_api_uri}/flaws/{flaw1.uuid}",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        # both OSIDB flaws should be impacted by the modification
+        assert Flaw.objects.get(cve_id="CVE-2022-0313").title == "Bar"
+        assert Flaw.objects.get(cve_id="CVE-2022-0314").title == "Bar"
+
+    def test_flaw_update_multi_cve_restricted(self, auth_client, test_api_uri):
+        """
+        test that CVE ID cannot be removed from a multi-CVE flaw
+
+        note that this single flaw in Bugzilla actually
+        corresponds to multiple flaws in OSIDB
+        """
+        flaw1 = FlawFactory(
+            cve_id="CVE-2022-0313",
+            title="Foo",
+            description="test",
+            reported_dt="2022-11-22T15:55:22.830Z",
+            unembargo_dt="2000-1-1T22:03:26.065Z",
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            meta_attr={
+                "bz_id": "2009119",
+            },
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
+        )
+        flaw2 = FlawFactory(
+            cve_id="CVE-2022-0314",
+            title="Foo",
+            description="test",
+            reported_dt="2022-11-22T15:55:22.830Z",
+            unembargo_dt="2000-1-1T22:03:26.065Z",
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            meta_attr={
+                "bz_id": "2009119",
+            },
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
+        )
+        PsModuleFactory(name="rhel-8")
+        AffectFactory(
+            flaw=flaw1,
+            ps_module="rhel-8",
+            ps_component="kernel",
+        )
+        AffectFactory(
+            flaw=flaw2,
+            ps_module="rhel-8",
+            ps_component="kernel",
+        )
+
+        # note that both flaws share BZ ID
+        # but here we modify flaw1 only
+        flaw_data = {
+            "cve_id": None,  # attemt to remove CVE ID
+            "title": "Foo",
+            "description": "test",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "embargoed": False,
+        }
+        with pytest.raises(UnsaveableFlawError, match="Unable to remove a CVE ID"):
+            auth_client.put(
+                f"{test_api_uri}/flaws/{flaw1.uuid}",
+                flaw_data,
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+            )

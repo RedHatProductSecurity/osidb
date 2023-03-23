@@ -42,11 +42,16 @@ class BugzillaSaver(BugzillaConnector):
         """
         update flaw in Bugzilla
         """
-        # TODO flaws with multiple CVEs are non-trivial to update
-        # and save back to Bugzilla so let us restrict this for now
-        if Flaw.objects.filter(meta_attr__bz_id=self.flaw.bz_id).count() > 1:
+        # TODO flaws with multiple CVEs introduce a paradox behavior
+        # when modifying a flaw the way that the CVE ID is removed as
+        # in OSIDB it basically results in a flaw removal
+        # so let us restrict it for now - should be rare
+        if (
+            Flaw.objects.filter(meta_attr__bz_id=self.flaw.bz_id).count() > 1
+            and not self.flaw.cve_id
+        ):
             raise UnsaveableFlawError(
-                "Unable to save a flaw with multiple CVEs to Bugzilla "
+                "Unable to remove a CVE ID from a flaw with multiple CVEs "
                 "due to an ambigous N to 1 OSIDB to Buzilla flaw mapping"
             )
 
