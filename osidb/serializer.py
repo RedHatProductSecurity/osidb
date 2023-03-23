@@ -708,6 +708,7 @@ class FlawSerializer(
                 "state",
                 "resolution",
                 "impact",
+                "component",
                 "title",
                 "trackers",
                 "description",

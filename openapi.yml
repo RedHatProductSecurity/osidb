@@ -2373,6 +2373,9 @@ components:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        component:
+          type: string
+          maxLength: 100
         title:
           type: string
         trackers:

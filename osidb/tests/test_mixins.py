@@ -195,6 +195,7 @@ class TestTrackingMixin:
             cwe_id="CWE-1",
             description="description",
             impact=FlawImpact.LOW,
+            component="curl",
             source=FlawSource.INTERNET,
             acl_read=acl_read,
             acl_write=acl_write,

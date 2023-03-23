@@ -187,11 +187,45 @@ class FlawFixer:
         return self.flaw_obj, self.errors
 
     def fix_title(self) -> None:
-        """title fixup"""
-        if "summary" in self.flaw_json:
-            self.flaw_obj.title = self.flaw_json["summary"]
-        else:
+        """
+        title fixup
+
+        we strip the summary prefixes without checking them
+        and then try to get and store the component
+        """
+        if "summary" not in self.flaw_json:
             self.errors.append("no summary")
+            return
+
+        title = self.flaw_json["summary"]
+
+        # try to strip EMBARGOED
+        title = re.sub(r"^EMBARGOED\s*", "", title)
+        # try to strip CVE IDs possibly followed by three dots
+        title = re.sub(r"^(CVE-[0-9]{4}-[0-9]+\s*)+\.*\s*", "", title)
+
+        # strip component name followed by colon
+        component_regex = r"^\s*([^\s]+\s+)*([^\s]+):"
+        component_match = re.match(component_regex, title)
+        component = ""
+        if component_match:
+            component = component_match.group(2)
+            title = re.sub(component_regex, "", title)
+        else:
+            self.errors.append("no component")
+
+        # store flaw component
+        self.flaw_obj.component = component
+
+        # strip any whitespace
+        title = title.strip()
+
+        # if left with an empty string a meaningful title is missing
+        if not title:
+            self.errors.append("no title")
+
+        # store flaw title
+        self.flaw_obj.title = title
 
     def fix_state(self) -> None:
         """state fixup"""

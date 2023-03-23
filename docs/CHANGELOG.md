@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Introduce mitigation field into Flaw and update SRT notes generator (OSIDB-584)
+- Introduce flaw component attribute
+
+### Changed
+- Rework the mapping from Bugzilla sumary to OSIDB title and vice versa (OSIDB-694)
 
 ## [3.0.0] - 2023-03-21
 ### Added

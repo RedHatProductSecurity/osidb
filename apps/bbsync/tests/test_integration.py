@@ -44,6 +44,7 @@ class TestBBSyncIntegration:
             "title": "Foo",
             "description": "test",
             "impact": "LOW",
+            "component": "curl",
             "source": "INTERNET",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
@@ -63,7 +64,9 @@ class TestBBSyncIntegration:
 
         response = auth_client.get(f"{test_api_uri}/flaws/{created_uuid}")
         assert response.status_code == 200
-        assert response.json()["cve_id"] == "CVE-2021-0777"
+        assert response.json()["cve_id"] == "CVE-2021-0773"
+        assert response.json()["title"] == "Foo"
+        assert response.json()["component"] == "curl"
         assert response.json()["mitigation"] == "mitigation"
 
     @pytest.mark.vcr
