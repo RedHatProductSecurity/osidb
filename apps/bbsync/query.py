@@ -1,4 +1,5 @@
 import json
+import re
 from itertools import chain
 
 from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
@@ -47,6 +48,7 @@ class BugzillaQueryBuilder:
         """
         self.generate_base()
         self.generate_unconditional()
+        self.generate_summary()
         self.generate_description()
         self.generate_resolution()
         self.generate_alias()
@@ -87,11 +89,42 @@ class BugzillaQueryBuilder:
         """
         generate query attributes not requiring conditional processing
         """
-        self._query["summary"] = self.flaw.title  # TODO handle prefixes
         self._query["cf_release_notes"] = self.flaw.summary
         self._query["status"] = self.flaw.state
         self._query["severity"] = self.IMPACT_TO_SEVERITY_PRIORITY[self.flaw.impact]
         self._query["priority"] = self.IMPACT_TO_SEVERITY_PRIORITY[self.flaw.impact]
+
+    def generate_summary(self):
+        """
+        generate query for flaw summary based on
+        embargoed status | CVE IDs | component | title
+        """
+
+        def cve_id_comparator(cve_id):
+            """
+            comparator to sort CVE IDs
+            """
+            digits = re.sub(r"[^0-9]", "", cve_id)
+            # stress the value of the year above the rest
+            return int(digits[:4]) ** 2 + int(digits[4:])
+
+        embargoed = "EMBARGOED " if self.flaw.is_embargoed else ""
+        cve_ids = (
+            " ".join(
+                sorted(
+                    [
+                        f.cve_id
+                        for f in Flaw.objects.filter(meta_attr__bz_id=self.flaw.bz_id)
+                    ],
+                    key=cve_id_comparator,
+                )
+            )
+            + " "
+            if self.flaw.cve_id
+            else ""
+        )
+        component = self.flaw.component + ": " if self.flaw.component else ""
+        self._query["summary"] = embargoed + cve_ids + component + self.flaw.title
 
     def generate_description(self):
         """

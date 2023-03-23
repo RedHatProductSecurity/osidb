@@ -48,16 +48,6 @@ def bz_tracker_id():
 
 
 @pytest.fixture
-def affect_incorrect_module():
-    return "rhel-6.3"
-
-
-@pytest.fixture
-def affect_correct_module():
-    return "rhel-6"
-
-
-@pytest.fixture
 def flaw_collector():
     return FlawCollector()
 

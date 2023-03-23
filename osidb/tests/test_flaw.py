@@ -172,6 +172,7 @@ class TestFlaw:
             title="title",
             description="description",
             impact=FlawImpact.CRITICAL,
+            component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
@@ -193,6 +194,7 @@ class TestFlaw:
             unembargo_dt=tzdatetime(2000, 1, 1),
             description="description",
             impact=FlawImpact.LOW,
+            component="curl",
             source=FlawSource.INTERNET,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
@@ -334,6 +336,7 @@ class TestFlaw:
             title="title",
             description="description",
             impact=FlawImpact.CRITICAL,
+            component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
@@ -359,6 +362,7 @@ class TestFlaw:
             title="title",
             description="description",
             impact=FlawImpact.CRITICAL,
+            component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
@@ -383,6 +387,7 @@ class TestFlaw:
             title="title",
             description="description",
             impact=FlawImpact.CRITICAL,
+            component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
             resolution=FlawResolution.NOVALUE,
@@ -901,41 +906,6 @@ class TestFlawValidators:
         else:
             assert flaw1.save() is None
 
-    @pytest.mark.parametrize(
-        "title,should_raise",
-        [
-            ("CVE-2022-1234 kernel: some description", False),
-            ("EMBARGOED CVE-2022-1234 kernel: some description", True),
-        ],
-    )
-    def test_validate_public_flaw_title(self, title, should_raise):
-        """test that public flaws only accepts a valid title without the "EMBARGOED" word"""
-        if should_raise:
-            with pytest.raises(ValidationError) as e:
-                FlawFactory(embargoed=False, title=title)
-            assert 'Flaw title contains "EMBARGOED" despite being public.' in str(e)
-        else:
-            assert FlawFactory(embargoed=False, title=title)
-
-    @pytest.mark.parametrize(
-        "title,should_raise",
-        [
-            ("EMBARGOED CVE-2022-1234 kernel: some description", False),
-            ("CVE-2022-1234 kernel: some description", True),
-        ],
-    )
-    def test_validate_embargoed_flaw_title(self, title, should_raise):
-        """test that embargoed flaws only accepts a valid title containing the "EMBARGOED" word"""
-        if should_raise:
-            with pytest.raises(ValidationError) as e:
-                FlawFactory(embargoed=True, title=title)
-            assert (
-                'Flaw title does not contain "EMBARGOED" despite being embargoed.'
-                in str(e)
-            )
-        else:
-            assert FlawFactory(embargoed=True, title=title)
-
     @freeze_time(tzdatetime(2021, 11, 23))
     def test_validate_embargoing_public_flaw(self):
         flaw = FlawFactory(embargoed=False)
@@ -1042,6 +1012,13 @@ class TestFlawValidators:
         """
         with pytest.raises(ValidationError, match="Impact value is required"):
             FlawFactory(impact=None)
+
+    def test_no_component(self):
+        """
+        test that flaw cannot have an empty component
+        """
+        with pytest.raises(ValidationError, match="Component value is required"):
+            FlawFactory(component=None)
 
     @pytest.mark.parametrize(
         "start_impact,new_impact,tracker_statuses,should_raise",

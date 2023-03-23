@@ -50,6 +50,8 @@ class FlawFactory(factory.django.DjangoModelFactory):
     impact = factory.Faker(
         "random_element", elements=list(set(FlawImpact) - {FlawImpact.NOVALUE})
     )
+    # max_nb_chars is the approximate length of generated text
+    component = factory.Faker("text", max_nb_chars=50)
     description = factory.LazyAttribute(lambda c: f"Description for {c.cve_id}")
     title = factory.Maybe(
         "embargoed",

@@ -488,6 +488,10 @@ class Flaw(
     # flaw severity, from srtnotes "impact"
     impact = models.CharField(choices=FlawImpact.choices, max_length=20, blank=True)
 
+    # flaw component was originally a part of the Bugzilla sumary
+    # so the value may depend on how successfully it was parsed
+    component = models.CharField(max_length=100, blank=True)
+
     # from BZ summary
     title = models.TextField()
 
@@ -694,24 +698,6 @@ class Flaw(
         # users from reviewing in the first place, in which case we don't
         # need to perform this validation
 
-    def _validate_public_flaw_title(self):
-        """
-        Check that the flaw's title does not contain the word "EMBARGOED" if the flaw is public.
-        """
-        if not self.is_embargoed and "EMBARGOED" in self.title:
-            raise ValidationError(
-                'Flaw title contains "EMBARGOED" despite being public.'
-            )
-
-    def _validate_embargoed_flaw_title(self):
-        """
-        Check that the flaw's title does contain the word "EMBARGOED" if the flaw is embargoed.
-        """
-        if self.is_embargoed and "EMBARGOED" not in self.title:
-            raise ValidationError(
-                'Flaw title does not contain "EMBARGOED" despite being embargoed.'
-            )
-
     def _validate_embargoing_public_flaw(self):
         """
         Check whether a currently public flaw is being embargoed.
@@ -773,6 +759,16 @@ class Flaw(
         """
         if not self.impact:
             raise ValidationError("Impact value is required.")
+
+    def _validate_nonempty_component(self):
+        """
+        check that the component is not empty
+
+        we cannot enforce this by model definition
+        as the old flaws may have no component
+        """
+        if not self.component:
+            raise ValidationError("Component value is required.")
 
     def _validate_unsupported_impact_change(self):
         """

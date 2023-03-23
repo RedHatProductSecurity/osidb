@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduce Bugzilla API key as a serializer attribute (OSIDB-368)
 - Implement non-empty source validation (OSIDB-759)
 - Introduce mitigation field into Flaw and update SRT notes generator (OSIDB-584)
+- Introduce flaw component attribute
 
 ### Changed
 - Change logging of celery and django to filesystem (OSIDB-418)
@@ -41,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove unsused data prestage_eligible_date from schemas (OSIDB-695)
 - Revise the allowed API view HTTP methods on models
   restricting flaw deletion and all tracker write methods (OSIDB-748)
+- Rework the mapping from Bugzilla sumary to OSIDB title and vice versa (OSIDB-694)
 
 ### Removed
 - Remove deprecated mitigated_by field (OSIDB-753)
