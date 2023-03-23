@@ -51,9 +51,13 @@ class TestBBSyncIntegration:
             "mitigation": "mitigation",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
-            "bz_api_key": "SECRET",
         }
-        response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        response = auth_client.post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
         assert response.status_code == 201
         body = response.json()
         created_uuid = body["uuid"]
@@ -98,10 +102,12 @@ class TestBBSyncIntegration:
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
-            "bz_api_key": "SECRET",
         }
         response = auth_client.put(
-            f"{test_api_uri}/flaws/{flaw.uuid}", flaw_data, format="json"
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
         )
         assert response.status_code == 200
 
@@ -136,10 +142,12 @@ class TestBBSyncIntegration:
             "affectedness": "AFFECTED",
             "resolution": "FIX",
             "embargoed": False,
-            "bz_api_key": "SECRET",
         }
         response = auth_client.post(
-            f"{test_api_uri}/affects", affect_data, format="json"
+            f"{test_api_uri}/affects",
+            affect_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
         )
         assert response.status_code == 201
         body = response.json()
@@ -185,10 +193,12 @@ class TestBBSyncIntegration:
             "ps_component": "kernel",
             "resolution": "WONTFIX",
             "embargoed": False,
-            "bz_api_key": "SECRET",
         }
         response = auth_client.put(
-            f"{test_api_uri}/affects/{affect.uuid}", affect_data, format="json"
+            f"{test_api_uri}/affects/{affect.uuid}",
+            affect_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
         )
         assert response.status_code == 200
 
@@ -232,10 +242,10 @@ class TestBBSyncIntegration:
             ps_component="openssl",
         )
 
-        data = {"bz_api_key": "SECRET"}
-
         response = auth_client.delete(
-            f"{test_api_uri}/affects/{affect.uuid}", data, format="json"
+            f"{test_api_uri}/affects/{affect.uuid}",
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
         )
         assert response.status_code == 204
 
@@ -256,8 +266,12 @@ class TestBBSyncIntegration:
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "embargoed": False,
-            "bz_api_key": "SECRET",
         }
-        response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        response = auth_client.post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
         assert response.status_code == 400
         assert "CVSSv3 score is missing" in str(response.content)

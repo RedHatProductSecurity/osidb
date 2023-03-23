@@ -71,7 +71,9 @@ services:
         OSIDB_DEBUG: ${OSIDB_DEBUG}
         DJANGO_SETTINGS_MODULE: "config.settings_local"
         BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
+        BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
         JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
+        JIRA_URL: ${JIRA_URL}
         ET_URL: ${ET_URL}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
         DASHBOARD_URL: ${DASHBOARD_URL}
@@ -129,7 +131,9 @@ services:
         DJANGO_SETTINGS_MODULE: "config.settings_local"
         OSIDB_DEBUG: ${OSIDB_DEBUG}
         BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
+        BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
         JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
+        JIRA_URL: ${JIRA_URL}
         JIRAFFE_AUTO_SYNC: ${JIRAFFE_AUTO_SYNC}
         ET_URL: ${ET_URL}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
@@ -155,7 +159,9 @@ services:
         DJANGO_SETTINGS_MODULE: "config.settings_local"
         OSIDB_DEBUG: ${OSIDB_DEBUG}
         BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
+        BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
         JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
+        JIRA_URL: ${JIRA_URL}
         JIRAFFE_AUTO_SYNC: ${JIRAFFE_AUTO_SYNC}
         ET_URL: ${ET_URL}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
@@ -181,7 +187,9 @@ services:
         DJANGO_SETTINGS_MODULE: "config.settings_local"
         OSIDB_DEBUG: ${OSIDB_DEBUG}
         BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
+        BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
         JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
+        JIRA_URL: ${JIRA_URL}
         ET_URL: ${ET_URL}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
         DASHBOARD_URL: ${DASHBOARD_URL}

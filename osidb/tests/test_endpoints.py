@@ -1060,9 +1060,13 @@ class TestEndpoints(object):
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
-            "bz_api_key": "SECRET",
         }
-        response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        response = auth_client.post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
         assert response.status_code == 201
         body = response.json()
         created_uuid = body["uuid"]
@@ -1090,9 +1094,13 @@ class TestEndpoints(object):
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
-            "bz_api_key": "SECRET",
         }
-        response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        response = auth_client.post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
         assert response.status_code == 201
         body = response.json()
         created_uuid = body["uuid"]
@@ -1103,7 +1111,12 @@ class TestEndpoints(object):
 
         # let's try creating another one without cve_id to make sure the
         # unique=True constraint doesn't jump (I don't trust django)
-        response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        response = auth_client.post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
         assert response.status_code == 201
         body = response.json()
         new_uuid = body["uuid"]
@@ -1138,9 +1151,9 @@ class TestEndpoints(object):
                 "impact": flaw.impact,
                 "source": flaw.source,
                 "embargoed": False,
-                "bz_api_key": "SECRET",
             },
             format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
         )
         assert response.status_code == 200
         body = response.json()
@@ -1227,10 +1240,12 @@ class TestEndpoints(object):
             "ps_module": "rhacm-2",
             "ps_component": "curl",
             "embargoed": False,
-            "bz_api_key": "SECRET",
         }
         response = auth_client.post(
-            f"{test_api_uri}/affects", affect_data, format="json"
+            f"{test_api_uri}/affects",
+            affect_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
         )
         assert response.status_code == 201
         body = response.json()
@@ -1256,9 +1271,9 @@ class TestEndpoints(object):
             {
                 **original_body,
                 "ps_module": f"different {affect.ps_module}",
-                "bz_api_key": "SECRET",
             },
             format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
         )
         assert response.status_code == 200
         body = response.json()
@@ -1278,7 +1293,7 @@ class TestEndpoints(object):
         response = auth_client.get(affect_url)
         assert response.status_code == 200
 
-        response = auth_client.delete(affect_url, data={"bz_api_key": "SECRET"})
+        response = auth_client.delete(affect_url, HTTP_BUGZILLA_API_KEY="SECRET")
         assert response.status_code == 204
 
         response = auth_client.get(affect_url)
@@ -1377,9 +1392,13 @@ class TestEndpointsACLs:
             "mitigation": "mitigation",
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": embargoed,
-            "bz_api_key": "SECRET",
         }
-        response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        response = auth_client.post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
         assert response.status_code == 201
         body = response.json()
         created_uuid = body["uuid"]
@@ -1426,9 +1445,9 @@ class TestEndpointsACLs:
                 "title": f"{flaw.title} appended test title",
                 "description": flaw.description,
                 "embargoed": embargoed,
-                "bz_api_key": "SECRET",
             },
             format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
         )
         assert response.status_code == 200
         body = response.json()
@@ -1460,9 +1479,9 @@ class TestEndpointsACLs:
                     "title": flaw.title.replace("EMBARGOED", "").strip(),
                     "description": flaw.description,
                     "embargoed": False,
-                    "bz_api_key": "SECRET",
                 },
                 format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
             )
 
         assert response.status_code == 200
@@ -1546,7 +1565,9 @@ class TestEndpointsBZAPIKey:
         }
         response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
         assert response.status_code == 400
-        assert '"bz_api_key":["This field is required."]' in str(response.content)
+        assert '"Bugzilla-Api-Key":"This HTTP header is required."' in str(
+            response.content
+        )
 
     def test_flaw_update_no_bz_api_key(self, auth_client, test_api_uri):
         """
@@ -1567,4 +1588,6 @@ class TestEndpointsBZAPIKey:
             format="json",
         )
         assert response.status_code == 400
-        assert '"bz_api_key":["This field is required."]' in str(response.content)
+        assert '"Bugzilla-Api-Key":"This HTTP header is required."' in str(
+            response.content
+        )
