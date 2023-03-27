@@ -682,6 +682,8 @@ class FlawBugConvertor:
         meta_attr["keywords"] = json.dumps(self.flaw_bug.get("keywords", []))
         # store the original SRT notes string as meta attributes tamper the JSON
         meta_attr["original_srtnotes"] = self.flaw_bug["cf_srtnotes"]
+        meta_attr["status"] = self.flaw_bug["status"]
+        meta_attr["resolution"] = self.flaw_bug["resolution"]
         return meta_attr
 
     def get_nvd_cvss2(self, cve_id):

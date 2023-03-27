@@ -1115,25 +1115,6 @@ paths:
           type: string
           format: date-time
       - in: query
-        name: resolution
-        schema:
-          type: string
-          enum:
-          - ''
-          - CANTFIX
-          - CURRENTRELEASE
-          - DEFERRED
-          - DUPLICATE
-          - EOL
-          - ERRATA
-          - INSUFFICIENT_DATA
-          - NEXTRELEASE
-          - NOTABUG
-          - RAWHIDE
-          - UPSTREAM
-          - WONTFIX
-          - WORKSFORME
-      - in: query
         name: search
         schema:
           type: string
@@ -1229,20 +1210,6 @@ paths:
           - XCHAT
           - XEN
           - XPDF
-      - in: query
-        name: state
-        schema:
-          type: string
-          enum:
-          - ASSIGNED
-          - CLOSED
-          - MODIFIED
-          - NEW
-          - ON_DEV
-          - ON_QA
-          - POST
-          - RELEASE_PENDING
-          - VERIFIED
       - in: query
         name: statement
         schema:
@@ -2097,7 +2064,7 @@ components:
           - $ref: '#/components/schemas/BlankEnum'
         resolution:
           oneOf:
-          - $ref: '#/components/schemas/Resolution3acEnum'
+          - $ref: '#/components/schemas/ResolutionEnum'
           - $ref: '#/components/schemas/BlankEnum'
         ps_module:
           type: string
@@ -2194,7 +2161,7 @@ components:
           - $ref: '#/components/schemas/BlankEnum'
         resolution:
           oneOf:
-          - $ref: '#/components/schemas/Resolution3acEnum'
+          - $ref: '#/components/schemas/ResolutionEnum'
           - $ref: '#/components/schemas/BlankEnum'
         trackers:
           type: array
@@ -2364,11 +2331,13 @@ components:
           type: string
           nullable: true
         state:
-          $ref: '#/components/schemas/StateEnum'
+          type: string
+          readOnly: true
+          deprecated: true
         resolution:
-          oneOf:
-          - $ref: '#/components/schemas/Resolution01fEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          type: string
+          readOnly: true
+          deprecated: true
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -2496,7 +2465,11 @@ components:
               type: string
             reported:
               type: string
+            resolution:
+              type: string
             source:
+              type: string
+            state:
               type: string
             statement:
               type: string
@@ -2546,6 +2519,8 @@ components:
       - meta
       - meta_attr
       - package_versions
+      - resolution
+      - state
       - title
       - trackers
       - updated_dt
@@ -2558,15 +2533,18 @@ components:
           nullable: true
           maxLength: 500
         state:
-          $ref: '#/components/schemas/StateEnum'
+          type: string
+          readOnly: true
         resolution:
-          oneOf:
-          - $ref: '#/components/schemas/Resolution01fEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          type: string
+          readOnly: true
         affects:
           type: array
           items:
             $ref: '#/components/schemas/AffectReportData'
+      required:
+      - resolution
+      - state
     FlawSourceEnum:
       enum:
       - ADOBE
@@ -2863,23 +2841,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Tracker'
-    Resolution01fEnum:
-      enum:
-      - DUPLICATE
-      - WONTFIX
-      - NOTABUG
-      - ERRATA
-      - CANTFIX
-      - DEFERRED
-      - CURRENTRELEASE
-      - UPSTREAM
-      - RAWHIDE
-      - INSUFFICIENT_DATA
-      - NEXTRELEASE
-      - WORKSFORME
-      - EOL
-      type: string
-    Resolution3acEnum:
+    ResolutionEnum:
       enum:
       - FIX
       - DEFER
@@ -2887,18 +2849,6 @@ components:
       - OOSS
       - DELEGATED
       - WONTREPORT
-      type: string
-    StateEnum:
-      enum:
-      - ASSIGNED
-      - CLOSED
-      - MODIFIED
-      - NEW
-      - ON_DEV
-      - ON_QA
-      - POST
-      - RELEASE_PENDING
-      - VERIFIED
       type: string
     StatusEnum:
       enum:

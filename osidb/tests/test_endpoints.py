@@ -1146,8 +1146,6 @@ class TestEndpoints(object):
                 "type": flaw.type,
                 "title": f"{flaw.title} appended test title",
                 "description": flaw.description,
-                "state": flaw.state,
-                "resolution": flaw.resolution,
                 "impact": flaw.impact,
                 "source": flaw.source,
                 "embargoed": False,
