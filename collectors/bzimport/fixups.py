@@ -6,7 +6,7 @@ from typing import Any, List, Tuple
 
 from django.utils.timezone import make_aware
 
-from osidb.models import Affect, Flaw, FlawImpact, FlawResolution, FlawSource
+from osidb.models import Affect, Flaw, FlawImpact, FlawSource
 
 
 class AffectFixer:
@@ -163,8 +163,6 @@ class FlawFixer:
         plus also return the list of errors
         """
         self.fix_title()
-        self.fix_state()
-        self.fix_resolution()
         self.fix_description()
         self.fix_summary()
 
@@ -226,20 +224,6 @@ class FlawFixer:
 
         # store flaw title
         self.flaw_obj.title = title
-
-    def fix_state(self) -> None:
-        """state fixup"""
-        if "status" in self.flaw_json:
-            self.flaw_obj.state = self.flaw_json["status"]
-        else:
-            self.errors.append("no status")
-
-    def fix_resolution(self) -> None:
-        """resolution fixup"""
-        if self.flaw_json.get("resolution"):
-            self.flaw_obj.resolution = self.flaw_json["resolution"].upper()
-        else:
-            self.flaw_obj.resolution = FlawResolution.NOVALUE
 
     def fix_description(self) -> None:
         """description fixup"""

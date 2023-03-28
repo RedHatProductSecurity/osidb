@@ -17,7 +17,6 @@ from osidb.models import (
     FlawComment,
     FlawImpact,
     FlawMeta,
-    FlawResolution,
     FlawSource,
     FlawType,
     Tracker,
@@ -65,7 +64,6 @@ class TestFlaw:
         meta_attr["test"] = 1
         vuln_1 = FlawFactory.build(
             cve_id=good_cve_id,
-            state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
@@ -75,7 +73,6 @@ class TestFlaw:
             impact=FlawImpact.CRITICAL,
             source=FlawSource.INTERNET,
             statement="statement",
-            resolution=FlawResolution.NOVALUE,
             is_major_incident=True,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
@@ -164,7 +161,6 @@ class TestFlaw:
         vuln_2 = Flaw(
             cve_id="CVE-1970-12345",
             cwe_id="CWE-1",
-            state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
@@ -175,7 +171,6 @@ class TestFlaw:
             component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
-            resolution=FlawResolution.NOVALUE,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
@@ -328,7 +323,6 @@ class TestFlaw:
         vuln_1 = Flaw(
             cve_id=good_cve_id,
             cwe_id="CWE-1",
-            state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
@@ -339,7 +333,6 @@ class TestFlaw:
             component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
-            resolution=FlawResolution.NOVALUE,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
@@ -354,7 +347,6 @@ class TestFlaw:
         flaw = Flaw(
             cve_id="CVE-1970-12345",
             cwe_id="CWE-1",
-            state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
@@ -365,7 +357,6 @@ class TestFlaw:
             component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
-            resolution=FlawResolution.NOVALUE,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
@@ -379,7 +370,6 @@ class TestFlaw:
         flaw = Flaw(
             cve_id=good_cve_id,
             cwe_id="CWE-1",
-            state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
@@ -390,7 +380,6 @@ class TestFlaw:
             component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
-            resolution=FlawResolution.NOVALUE,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
@@ -473,9 +462,7 @@ class TestFlawValidators:
             FlawFactory(reported_dt=future_dt)
             # no exception should be raised now
 
-    @pytest.mark.parametrize(
-        "attr_name", ["impact", "resolution", "state", "state", "type"]
-    )
+    @pytest.mark.parametrize("attr_name", ["impact", "type"])
     def test_validate_choice(self, attr_name):
         """test choice validation"""
         with pytest.raises(ValidationError) as e:
@@ -1085,91 +1072,6 @@ class TestFlawValidators:
         flaw.save()
 
         assert should_raise == bool("unsupported_impact_change" in flaw._alerts)
-
-    @pytest.mark.parametrize(
-        "state,resolution,affectedness,affect_resolution,should_raise",
-        [
-            (
-                Flaw.FlawState.CLOSED,
-                FlawResolution.NOTABUG,
-                Affect.AffectAffectedness.AFFECTED,
-                Affect.AffectResolution.WONTFIX,
-                True,
-            ),
-            (
-                Flaw.FlawState.NEW,
-                FlawResolution.NOTABUG,
-                Affect.AffectAffectedness.AFFECTED,
-                Affect.AffectResolution.WONTFIX,
-                False,
-            ),
-            (
-                Flaw.FlawState.CLOSED,
-                FlawResolution.NEXTRELEASE,
-                Affect.AffectAffectedness.AFFECTED,
-                Affect.AffectResolution.WONTFIX,
-                False,
-            ),
-            (
-                Flaw.FlawState.CLOSED,
-                FlawResolution.NOTABUG,
-                Affect.AffectAffectedness.NOTAFFECTED,
-                Affect.AffectResolution.NOVALUE,
-                False,
-            ),
-        ],
-    )
-    def test_validate_affect_in_notabug_flaw(
-        self, state, resolution, affectedness, affect_resolution, should_raise
-    ):
-        flaw = FlawFactory(resolution=resolution, state=state)
-        AffectFactory(
-            flaw=flaw, affectedness=affectedness, resolution=affect_resolution
-        )
-
-        assert should_raise == bool("notabug_affect_ps_component" in flaw._alerts)
-
-    @pytest.mark.parametrize(
-        "state,resolution,affectedness,affect_resolution,should_raise",
-        [
-            (
-                Flaw.FlawState.CLOSED,
-                FlawResolution.NOTABUG,
-                Affect.AffectAffectedness.AFFECTED,
-                Affect.AffectResolution.WONTFIX,
-                True,
-            ),
-            (
-                Flaw.FlawState.NEW,
-                FlawResolution.NOTABUG,
-                Affect.AffectAffectedness.AFFECTED,
-                Affect.AffectResolution.WONTFIX,
-                False,
-            ),
-            (
-                Flaw.FlawState.CLOSED,
-                FlawResolution.NEXTRELEASE,
-                Affect.AffectAffectedness.AFFECTED,
-                Affect.AffectResolution.WONTFIX,
-                False,
-            ),
-            (
-                Flaw.FlawState.CLOSED,
-                FlawResolution.NOTABUG,
-                Affect.AffectAffectedness.NOTAFFECTED,
-                Affect.AffectResolution.NOVALUE,
-                False,
-            ),
-        ],
-    )
-    def test_validate_notabug_flaw_affected(
-        self, state, resolution, affectedness, affect_resolution, should_raise
-    ):
-        affect = AffectFactory(affectedness=affectedness, resolution=affect_resolution)
-        flaw = FlawFactory(resolution=resolution, state=state)
-        flaw.affects.add(affect)
-        flaw.save()
-        assert should_raise == bool("notabug_affect_ps_component" in flaw._alerts)
 
     @pytest.mark.parametrize(
         "is_rhscl,ps_component,alerts",

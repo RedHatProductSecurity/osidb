@@ -2,7 +2,7 @@ import uuid
 
 import pytest
 
-from osidb.models import Flaw, FlawImpact, FlawResolution, FlawSource, FlawType
+from osidb.models import Flaw, FlawImpact, FlawSource, FlawType
 
 from .factories import AffectFactory, FlawFactory
 
@@ -75,7 +75,6 @@ class TestSearch:
         flaw = Flaw(
             cve_id=good_cve_id,
             cwe_id="CWE-1",
-            state=Flaw.FlawState.NEW,
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
@@ -87,7 +86,6 @@ class TestSearch:
             source=FlawSource.INTERNET,
             summary="SUMMARY",
             statement="STATEMENT",
-            resolution=FlawResolution.NOVALUE,
             acl_read=acl_read,
             acl_write=acl_write,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",

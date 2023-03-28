@@ -15,7 +15,6 @@ from osidb.models import (
     FlawComment,
     FlawImpact,
     FlawMeta,
-    FlawResolution,
     FlawSource,
     FlawType,
     PsContact,
@@ -45,8 +44,6 @@ class FlawFactory(factory.django.DjangoModelFactory):
     type = factory.Faker("random_element", elements=list(FlawType))
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     reported_dt = factory.Faker("date_time", tzinfo=UTC)
-    state = factory.Faker("random_element", elements=list(Flaw.FlawState))
-    resolution = factory.Faker("random_element", elements=list(FlawResolution))
     impact = factory.Faker(
         "random_element", elements=list(set(FlawImpact) - {FlawImpact.NOVALUE})
     )

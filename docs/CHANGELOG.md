@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Rework the mapping from Bugzilla sumary to OSIDB title and vice versa (OSIDB-694)
 - Allow updates of flaws with multiple CVE IDs in Bugzilla (OSIDB-382)
+- Deprecate "state" and "resolution" in Flaw (OSIDB-73)
+
+### Removed
+- Remove "state" and "resolution" from FlawHistory (OSIDB-73)
 
 ## [3.0.0] - 2023-03-21
 ### Added

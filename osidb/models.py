@@ -15,6 +15,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django_deprecate_fields import deprecate_field
 from polymorphic.models import PolymorphicModel
 from psqlextra.fields import HStoreField
 
@@ -286,28 +287,6 @@ class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
     # this model is unused so we don't care that it's a CharField with null=True
     pgh_label = models.CharField(max_length=100, null=True)  # noqa: DJ01
 
-    class FlawHistoryState(models.TextChoices):
-        """allowable Bugzilla states"""
-
-        ASSIGNED = "ASSIGNED"
-        CLOSED = "CLOSED"
-        MODIFIED = "MODIFIED"
-        NEW = "NEW"
-        ON_DEV = "ON_DEV"
-        ON_QA = "ON_QA"
-        POST = "POST"
-        RELEASE_PENDING = "RELEASE_PENDING"
-        VERIFIED = "VERIFIED"
-
-    class FlawHistoryResolution(models.TextChoices):
-        """allowable resolution"""
-
-        NOVALUE = ""
-        FIX = "FIX"
-        DEFER = "DEFER"
-        WONTFIX = "WONTFIX"
-        OOSS = "OOSS"
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -317,19 +296,6 @@ class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
     # vulnerability or weakness
     type = models.CharField(
         choices=FlawType.choices, default=FlawType.VULNERABILITY, max_length=20
-    )
-
-    # flaw state, from BZ status
-    state = models.CharField(
-        choices=FlawHistoryState.choices, default=FlawHistoryState.NEW, max_length=100
-    )
-
-    # resolution
-    resolution = models.CharField(
-        choices=FlawResolution.choices,
-        default=FlawResolution.NOVALUE,
-        max_length=100,
-        blank=True,
     )
 
     # flaw severity, from srtnotes "impact"
@@ -473,16 +439,24 @@ class Flaw(
     )
 
     # flaw state, from BZ status
-    state = models.CharField(
-        choices=FlawState.choices, default=FlawState.NEW, max_length=100
+    state = deprecate_field(
+        models.CharField(
+            choices=FlawState.choices, default=FlawState.NEW, max_length=100
+        ),
+        # required to keep backwards compatibility
+        return_instead=FlawState.NEW,
     )
 
     # resolution
-    resolution = models.CharField(
-        choices=FlawResolution.choices,
-        default=FlawResolution.NOVALUE,
-        max_length=100,
-        blank=True,
+    resolution = deprecate_field(
+        models.CharField(
+            choices=FlawResolution.choices,
+            default=FlawResolution.NOVALUE,
+            max_length=100,
+            blank=True,
+        ),
+        # required to keep backwards compatibility
+        return_instead=FlawResolution.NOVALUE,
     )
 
     # flaw severity, from srtnotes "impact"
@@ -812,26 +786,6 @@ class Flaw(
                 "OSIDB does not support write operations on placeholder flaws"
             )
 
-    def _validate_notabug_flaw_affected(self):
-        """
-        Alerts in case flaw is closed as NOTABUG but has affected components
-        """
-        if (
-            self.state != Flaw.FlawState.CLOSED
-            or self.resolution != FlawResolution.NOTABUG
-        ):
-            return
-
-        affected = self.affects.filter(
-            affectedness=Affect.AffectAffectedness.AFFECTED
-        ).first()
-        if affected:
-            self.alert(
-                "notabug_affect_ps_component",
-                f"Module {affected.ps_module} of component "
-                f"{affected.ps_component} is affected by a flaw solved as NOTABUG.",
-            )
-
     def _validate_special_handling_modules(self):
         """
         Alerts in case flaw affects a special handling module
@@ -1147,21 +1101,6 @@ class Affect(
                     f"{self.ps_module} is not a valid ps_module "
                     f"for flaw with bz_id {bz_id}."
                 )
-
-    def _validate_affect_in_notabug_flaw(self):
-        """
-        Alerts in case a component is affected by a flaw closed as NOTABUG
-        """
-        if (
-            self.affectedness == Affect.AffectAffectedness.AFFECTED
-            and self.flaw.resolution == FlawResolution.NOTABUG
-            and self.flaw.state == Flaw.FlawState.CLOSED
-        ):
-            self.flaw.alert(
-                "notabug_affect_ps_component",
-                f"Module {self.ps_module} of component "
-                f"{self.ps_component} is affected by a flaw solved as NOTABUG.",
-            )
 
     def _validate_sofware_collection(self):
         """

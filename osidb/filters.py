@@ -87,8 +87,6 @@ class FlawFilter(FilterSet):
             "type",
             "created_dt",
             "updated_dt",
-            "state",
-            "resolution",
             "impact",
             "cwe_id",
             "embargoed",

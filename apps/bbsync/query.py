@@ -50,7 +50,6 @@ class BugzillaQueryBuilder:
         self.generate_unconditional()
         self.generate_summary()
         self.generate_description()
-        self.generate_resolution()
         self.generate_alias()
         self.generate_keywords()
         self.generate_flags()
@@ -90,7 +89,6 @@ class BugzillaQueryBuilder:
         generate query attributes not requiring conditional processing
         """
         self._query["cf_release_notes"] = self.flaw.summary
-        self._query["status"] = self.flaw.state
         self._query["severity"] = self.IMPACT_TO_SEVERITY_PRIORITY[self.flaw.impact]
         self._query["priority"] = self.IMPACT_TO_SEVERITY_PRIORITY[self.flaw.impact]
 
@@ -135,14 +133,6 @@ class BugzillaQueryBuilder:
             self._query["comment_is_private"] = False
             # TODO
             # self._query["comment_is_private"] = True if ... else False
-
-    def generate_resolution(self):
-        """
-        generate resolution query
-        if status is CLOSED
-        """
-        if self.flaw.state == Flaw.FlawState.CLOSED:
-            self._query["resolution"] = self.flaw.resolution
 
     def generate_alias(self):
         """
