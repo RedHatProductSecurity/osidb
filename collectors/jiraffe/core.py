@@ -16,26 +16,29 @@ from .constants import JIRA_SERVER, JIRA_TOKEN, PRODUCT_DEFINITIONS_URL
 class JiraQuerier:
     """Jira query handler"""
 
+    def __init__(self) -> None:
+        self._jira_server = JIRA_SERVER
+        self._jira_token = JIRA_TOKEN
+
     ###################
     # JIRA CONNECTION #
     ###################
-
     @staticmethod
     @cache
-    def _get_jira_connection() -> JIRA:
+    def _get_jira_connection(server, token) -> JIRA:
         """
         Returns the JIRA connection object on which to perform queries to the JIRA API.
         """
         options = {
-            "server": JIRA_SERVER,
+            "server": server,
             # avoid the JIRA lib auto-updating
             "check_update": False,
         }
-        return JIRA(options, token_auth=JIRA_TOKEN, get_server_info=False)
+        return JIRA(options, token_auth=token, get_server_info=False)
 
     @property
     def jira_conn(self) -> JIRA:
-        return self._get_jira_connection()
+        return self._get_jira_connection(self._jira_server, self._jira_token)
 
     ########################
     # SINGLE ISSUE QUERIES #
