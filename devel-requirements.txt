@@ -738,9 +738,9 @@ urllib3==1.26.7 \
     #   -c requirements.txt
     #   kubernetes
     #   requests
-vcrpy==4.1.1 \
-    --hash=sha256:12c3fcdae7b88ecf11fc0d3e6d77586549d4575a2ceee18e82eee75c1f626162 \
-    --hash=sha256:57095bf22fc0a2d99ee9674cdafebed0f3ba763018582450706f7d3a74fff599
+vcrpy==4.2.1 \
+    --hash=sha256:7cd3e81a2c492e01c281f180bcc2a86b520b173d2b656cb5d89d99475423e013 \
+    --hash=sha256:efac3e2e0b2af7686f83a266518180af7a048619b2f696e7bad9520f5e2eac09
     # via
     #   -r devel-requirements.in
     #   pytest-recording
