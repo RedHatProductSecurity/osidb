@@ -1419,6 +1419,14 @@ class TestFlawValidators:
         flaw3 = FlawFactory(source=public_source, embargoed=False)
         assert "private_source_no_ack" not in flaw3._alerts
 
+    def test_validate_allowed_source(self):
+        """
+        Test that a disallowed (historical) flaw source raises an exception.
+        """
+        error_msg = r"The flaw has a disallowed \(historical\) source."
+        with pytest.raises(ValidationError, match=error_msg):
+            FlawFactory(source=FlawSource.ASF)
+
     @pytest.mark.parametrize(
         "is_same_product_name, should_raise",
         [

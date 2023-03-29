@@ -89,9 +89,6 @@ class FlawFactory(factory.django.DjangoModelFactory):
             elements=[
                 FlawSource.GIT,
                 FlawSource.INTERNET,
-                FlawSource.MITRE,
-                FlawSource.PRESS,
-                FlawSource.XCHAT,
             ],
         ),
     )

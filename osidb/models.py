@@ -279,6 +279,44 @@ class FlawSource(models.TextChoices):
             self.UBUNTU,
         }
 
+    def is_allowed(self):
+        """
+        Returns True if the source is allowed (not historical), False otherwise.
+        """
+        return self in [
+            self.ADOBE,
+            self.APPLE,
+            self.BUGTRAQ,
+            self.CERT,
+            self.CUSTOMER,
+            self.CVE,
+            self.DEBIAN,
+            self.DISTROS,
+            self.FULL_DISCLOSURE,
+            self.GENTOO,
+            self.GIT,
+            self.GOOGLE,
+            self.HW_VENDOR,
+            self.INTERNET,
+            self.LKML,
+            self.MAGEIA,
+            self.MOZILLA,
+            self.OPENSSL,
+            self.ORACLE,
+            self.OSS_SECURITY,
+            self.REDHAT,
+            self.RESEARCHER,
+            self.SECUNIA,
+            self.SKO,
+            self.SUN,
+            self.SUSE,
+            self.TWITTER,
+            self.UBUNTU,
+            self.UPSTREAM,
+            self.VENDOR_SEC,
+            self.XEN,
+        ]
+
 
 class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
     """match existing history table for flaws"""
@@ -834,6 +872,13 @@ class Flaw(
                 "private_source_no_ack",
                 alert_text,
             )
+
+    def _validate_allowed_source(self):
+        """
+        Checks that the flaw source is allowed (not historical).
+        """
+        if self.source and not FlawSource(self.source).is_allowed():
+            raise ValidationError("The flaw has a disallowed (historical) source.")
 
     @property
     def is_placeholder(self):
