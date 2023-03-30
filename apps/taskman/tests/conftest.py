@@ -1,4 +1,5 @@
 import pytest
+from taskman.constants import TASKMAN_API_VERSION
 
 
 @pytest.fixture(autouse=True)
@@ -22,3 +23,18 @@ def enable_db_access_for_all_tests(db):
 @pytest.fixture
 def user_token():
     return "USER_JIRA_TOKEN"
+
+
+@pytest.fixture
+def test_scheme_host():
+    return "http://osidb-service:8000/taskman"
+
+
+@pytest.fixture
+def api_version():
+    return TASKMAN_API_VERSION
+
+
+@pytest.fixture
+def test_api_uri(test_scheme_host, api_version):
+    return f"{test_scheme_host}/api/{api_version}"

@@ -76,7 +76,7 @@ class TestTaskmanService(object):
         response2 = taskman.get_task_by_flaw(flaw.uuid)
 
         response3 = taskman.update_task_status(response2.data["key"], TaskStatus.CLOSED)
-        assert response3.status_code == 200
+        assert response3.status_code == 204
 
         response4 = taskman.get_task(response2.data["key"])
         assert response4.status_code == 200
@@ -135,12 +135,12 @@ class TestTaskmanService(object):
         response4 = taskman.add_task_into_group(
             issue_key=response1.data["key"], group_key=response3.data["key"]
         )
-        assert response4.status_code == 200
+        assert response4.status_code == 204
 
         response5 = taskman.add_task_into_group(
             issue_key=response2.data["key"], group_key=response3.data["key"]
         )
-        assert response5.status_code == 200
+        assert response5.status_code == 204
 
         response6 = taskman.search_task_by_group(response3.data["key"])
         assert response6.data["total"] == 2

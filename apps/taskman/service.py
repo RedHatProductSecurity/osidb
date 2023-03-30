@@ -17,9 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class TaskStatus(models.TextChoices):
-    # TODO rewrite after creating new schema in Jira (OSIDB-682),
-    # currently its using the default schema OJA-WFS-010
     """allowable workflow states"""
+
     NEW = "New"
     IN_PROGRESS = "In Progress"
     REFINEMENT = "Refinement"
@@ -112,7 +111,7 @@ class JiraTaskmanQuerier(JiraQuerier):
         """Transition a task to a new state"""
         try:
             self.jira_conn.transition_issue(issue=issue_key, transition=status)
-            return Response(data={}, status=200)
+            return Response(data={}, status=204)
         except JIRAError as e:
             return Response(data=e.response.json(), status=e.status_code)
 
@@ -142,7 +141,7 @@ class JiraTaskmanQuerier(JiraQuerier):
             }
             issue = self.jira_conn.issue(id=issue_key)
             issue.update(data)
-            return Response(data=issue.raw, status=200)
+            return Response(data=issue.raw, status=204)
         except JIRAError as e:
             return Response(data=e.response.json(), status=e.status_code)
 
