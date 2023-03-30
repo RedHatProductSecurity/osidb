@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rework the mapping from Bugzilla sumary to OSIDB title and vice versa (OSIDB-694)
 - Allow updates of flaws with multiple CVE IDs in Bugzilla (OSIDB-382)
 - Deprecate "state" and "resolution" in Flaw (OSIDB-73)
+- Increase the maximum length of "cwe_id" field in Flaw to 255 (OSIDB-73)
 
 ### Removed
 - Remove "state" and "resolution" from FlawHistory (OSIDB-73)

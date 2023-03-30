@@ -2360,7 +2360,7 @@ components:
           type: string
         cwe_id:
           type: string
-          maxLength: 50
+          maxLength: 255
         unembargo_dt:
           type: string
           format: date-time

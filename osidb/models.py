@@ -518,7 +518,7 @@ class Flaw(
     statement = models.TextField(blank=True)
 
     # contains a single cwe-id or cwe relationships, from srtnotes "cwe"
-    cwe_id = models.CharField(blank=True, max_length=50, validators=[validate_cwe_id])
+    cwe_id = models.CharField(blank=True, max_length=255, validators=[validate_cwe_id])
 
     # date when embargo is to be lifted, from srtnotes "public"
     unembargo_dt = models.DateTimeField(null=True, blank=True)
