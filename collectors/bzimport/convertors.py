@@ -932,7 +932,7 @@ class FlawBugConvertor:
     FLAGS_META = {
         "hightouch": FlawMeta.FlawMetaType.MAJOR_INCIDENT,
         "hightouch-lite": FlawMeta.FlawMetaType.MAJOR_INCIDENT_LITE,
-        "requires_doc_text": FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+        "requires_doc_text": FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
         "nist_cvss_validation": FlawMeta.FlawMetaType.NIST_CVSS_VALIDATION,
         "needinfo": FlawMeta.FlawMetaType.NEED_INFO,
     }

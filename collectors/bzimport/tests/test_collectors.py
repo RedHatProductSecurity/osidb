@@ -129,7 +129,7 @@ class TestBZImportCollector:
 
     @pytest.mark.vcr
     def test_flawmeta_acl_change(
-        self, flaw_collector, bz_bug_requires_doc_text, monkeypatch
+        self, flaw_collector, bz_bug_requires_summary, monkeypatch
     ):
         """
         Test that FlawMetas are correctly updated.
@@ -142,13 +142,13 @@ class TestBZImportCollector:
             # in this test **all** the PsModules found in this particular flaw's
             # affects, which is a lot of work
             m.setattr(Affect, "_validate_ps_module_new_flaw", lambda s: None)
-            flaw_collector.sync_flaw(bz_bug_requires_doc_text)
+            flaw_collector.sync_flaw(bz_bug_requires_summary)
 
         assert Flaw.objects.count() != 0
         assert FlawMeta.objects.count() != 0
 
         doctext_meta = FlawMeta.objects.filter(
-            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT
+            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY
         ).first()
         old_acls = doctext_meta.acl_read + doctext_meta.acl_write
         # make metadata embargoed so we change to a valid ACL combination
@@ -167,9 +167,9 @@ class TestBZImportCollector:
         with monkeypatch.context() as m:
             # see explanation above
             m.setattr(Affect, "_validate_ps_module_new_flaw", lambda s: None)
-            flaw_collector.sync_flaw(bz_bug_requires_doc_text)
+            flaw_collector.sync_flaw(bz_bug_requires_summary)
         doctext_meta = FlawMeta.objects.filter(
-            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT
+            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY
         ).first()
         new_acls = doctext_meta.acl_read + doctext_meta.acl_write
 

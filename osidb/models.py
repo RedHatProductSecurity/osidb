@@ -692,7 +692,7 @@ class Flaw(
         """
         Check that a flaw that is a major incident has a summary
         """
-        req = self.meta.filter(type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT).last()
+        req = self.meta.filter(type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY).last()
         if not self.is_major_incident or (req and req.meta_attr.get("status") == "-"):
             return
 
@@ -1642,7 +1642,7 @@ class FlawMeta(AlertMixin, TrackingMixin, ACLMixin):
         EXPLOIT = "EXPLOIT"
         MAJOR_INCIDENT = "MAJOR_INCIDENT"
         MAJOR_INCIDENT_LITE = "MAJOR_INCIDENT_LITE"
-        REQUIRES_DOC_TEXT = "REQUIRES_DOC_TEXT"
+        REQUIRES_SUMMARY = "REQUIRES_SUMMARY"
         NIST_CVSS_VALIDATION = "NIST_CVSS_VALIDATION"
         NEED_INFO = "NEED_INFO"
         CHECKLIST = "CHECKLIST"
