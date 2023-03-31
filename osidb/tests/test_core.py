@@ -23,7 +23,7 @@ class TestCore(object):
         flaw1.save(raise_validation_error=False)
         FlawMetaFactory(
             flaw=flaw1,
-            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
             meta_attr={"status": "+"},
         )
         AffectFactory(flaw=flaw1)
