@@ -58,5 +58,5 @@ def bz_tracker_collector():
 
 
 @pytest.fixture
-def bz_bug_requires_doc_text():
+def bz_bug_requires_summary():
     return "2086753"

@@ -2695,7 +2695,7 @@ components:
       - EXPLOIT
       - MAJOR_INCIDENT
       - MAJOR_INCIDENT_LITE
-      - REQUIRES_DOC_TEXT
+      - REQUIRES_SUMMARY
       - NIST_CVSS_VALIDATION
       - NEED_INFO
       - CHECKLIST

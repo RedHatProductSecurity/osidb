@@ -200,7 +200,7 @@ class TestCheck:
             AffectFactory(flaw=flaw)
             FlawMetaFactory(
                 flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
                 meta_attr={"status": "-"},
             )
         flaw.save()
@@ -233,7 +233,7 @@ class TestCheck:
             AffectFactory(flaw=flaw)
             FlawMetaFactory(
                 flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
                 meta_attr={"status": "-"},
             )
         flaw.save()
@@ -261,7 +261,7 @@ class TestCheck:
             AffectFactory(flaw=flaw)
             FlawMetaFactory(
                 flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
                 meta_attr={"status": "-"},
             )
         flaw.save()
@@ -291,7 +291,7 @@ class TestCheck:
             AffectFactory(flaw=flaw)
             FlawMetaFactory(
                 flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
                 meta_attr={"status": "-"},
             )
         flaw.save()
@@ -340,7 +340,7 @@ class TestState:
             AffectFactory(flaw=flaw)
             FlawMetaFactory(
                 flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
                 meta_attr={"status": "-"},
             )
         flaw.save()
@@ -386,7 +386,7 @@ class TestState:
             AffectFactory(flaw=flaw)
             FlawMetaFactory(
                 flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
                 meta_attr={"status": "-"},
             )
         flaw.save()
@@ -441,7 +441,7 @@ class TestWorkflow:
             AffectFactory(flaw=flaw)
             FlawMetaFactory(
                 flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
                 meta_attr={"status": "-"},
             )
         flaw.save()
@@ -490,7 +490,7 @@ class TestWorkflow:
             AffectFactory(flaw=flaw)
             FlawMetaFactory(
                 flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
                 meta_attr={"status": "-"},
             )
         flaw.save()
@@ -542,7 +542,7 @@ class TestWorkflow:
             AffectFactory(flaw=flaw)
             FlawMetaFactory(
                 flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
                 meta_attr={"status": "-"},
             )
         flaw.save()
@@ -751,7 +751,7 @@ class TestWorkflowFramework:
             AffectFactory(flaw=flaw)
             FlawMetaFactory(
                 flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
                 meta_attr={"status": "-"},
             )
         flaw.save()
@@ -853,7 +853,7 @@ class TestFlaw:
         AffectFactory(flaw=flaw)
         FlawMetaFactory(
             flaw=flaw,
-            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
             meta_attr={"status": "-"},
         )
 

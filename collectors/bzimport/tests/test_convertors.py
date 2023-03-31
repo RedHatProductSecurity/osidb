@@ -931,7 +931,7 @@ class TestFlawBugConvertor:
         flaw_bug = self.get_flaw_bug()
         flaw_bug["flags"] = [
             {
-                "name": "requires_doc_text",
+                "name": "requires_summary",
                 "status": "+",
             },
             {

@@ -83,7 +83,7 @@ class TestFlaw:
         vuln_1.save(raise_validation_error=False)
         FlawMetaFactory(
             flaw=vuln_1,
-            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
             meta_attr={"status": "+"},
         )
         assert vuln_1.is_major_incident
@@ -884,7 +884,7 @@ class TestFlawValidators:
         if req:
             FlawMetaFactory(
                 flaw=flaw1,
-                type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
                 meta_attr={"status": req},
             )
         if should_raise:
@@ -1062,7 +1062,7 @@ class TestFlawValidators:
         flaw.save(raise_validation_error=False)
         FlawMetaFactory(
             flaw=flaw,
-            type=FlawMeta.FlawMetaType.REQUIRES_DOC_TEXT,
+            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
             meta_attr={"status": "-"},
         )
         affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
