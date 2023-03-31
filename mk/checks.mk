@@ -4,12 +4,13 @@
 
 
 #***********************************
-### Check podman registry login
+### Check podman registries login
 #***********************************
 .PHONY: check-reg
 check-reg:
-	@echo ">Checking podman registry login"
+	@echo ">Checking podman registries login"
 	@$(podman) login --get-login registry.redhat.io > /dev/null
+	@$(podman) login --get-login quay.io > /dev/null
 
 
 #***********************************

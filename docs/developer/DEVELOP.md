@@ -74,6 +74,13 @@ Username: yourusername
 Password: ************
 ```
 
+Log in to **quay.io** using [Quay](quay.io) credentials
+```
+> podman login quay.io
+Username: yourusername
+Password: ************
+```
+
 Optional: Log in to **docker.io** for higher image pull limit
 ```
 > podman login docker.io
