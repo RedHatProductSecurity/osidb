@@ -8,6 +8,7 @@ from django.contrib.auth.models import Group, User
 from django.utils import timezone
 from django.utils.timezone import datetime
 from freezegun import freeze_time
+from rest_framework.exceptions import ValidationError
 
 from osidb.filters import FlawFilter
 
@@ -1542,6 +1543,85 @@ class TestEndpointsACLs:
             "Cannot provide access for the LDAP group without being a member: data-prodsec-write"
             in str(response.content)
         )
+
+
+class TestEndpointsAtomicity:
+    """
+    API atomicity specific tests
+    """
+
+    def test_atomic_api(self, auth_client, monkeypatch, test_api_uri):
+        """
+        test that the API requests are atomic
+
+        this test attempts to delete an affect via a REST API DELETE request
+        as it consits of first deleting the affect and then saving a related
+        flaw where the flaw save is mocked to fail and we test that the
+        affect delete is not commited to the DB - rolled back on failure
+        """
+        flaw = FlawFactory()
+        # an extra affect needs to be created as otherwise
+        # we would endup with an invalid affect-less flaw
+        AffectFactory(flaw=flaw)
+        affect = AffectFactory(flaw=flaw)
+
+        assert Affect.objects.count() == 2
+
+        with monkeypatch.context() as m:
+
+            def failure_factory(*args, **kwargs):
+                # rest_framework.exceptions.ValidationError
+                # is handle by the APIView and translated to Bad Request
+                # so we do not end up with an uncaught exception
+                raise ValidationError({})
+
+            # make the Flaw.save to fail randomly
+            m.setattr(Flaw, "save", failure_factory)
+
+            response = auth_client.delete(
+                f"{test_api_uri}/affects/{affect.uuid}", HTTP_BUGZILLA_API_KEY="SECRET"
+            )
+            assert response.status_code == 400
+
+        # check that no affect was deleted
+        assert Affect.objects.count() == 2
+
+    def test_nonatomic_api(self, auth_client, monkeypatch, test_api_uri):
+        """
+        test that the API requests are not atomic when the settings option is disabled
+        """
+        flaw = FlawFactory()
+        # an extra affect needs to be created as otherwise
+        # we would endup with an invalid affect-less flaw
+        AffectFactory(flaw=flaw)
+        affect = AffectFactory(flaw=flaw)
+
+        assert Affect.objects.count() == 2
+
+        with monkeypatch.context() as m:
+
+            def failure_factory(*args, **kwargs):
+                # rest_framework.exceptions.ValidationError
+                # is handle by the APIView and translated to Bad Request
+                # so we do not end up with an uncaught exception
+                raise ValidationError({})
+
+            # make the Flaw.save to fail randomly
+            m.setattr(Flaw, "save", failure_factory)
+
+            # turn of the atomicity option
+            db_settings = settings.DATABASES
+            db_settings["default"]["ATOMIC_REQUESTS"] = False
+            m.setattr(settings, "DATABASES", db_settings)
+
+            response = auth_client.delete(
+                f"{test_api_uri}/affects/{affect.uuid}", HTTP_BUGZILLA_API_KEY="SECRET"
+            )
+            assert response.status_code == 400
+
+        # check that the affect was deleted
+        # even though the HTTP request failed
+        assert Affect.objects.count() == 1
 
 
 class TestEndpointsBZAPIKey:

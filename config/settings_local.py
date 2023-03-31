@@ -64,6 +64,7 @@ DATABASES = {
         "HOST": "osidb-data",
         "PORT": "5432",
         "ENGINE": "psqlextra.backend",
+        "ATOMIC_REQUESTS": True,  # perform HTTP requests as atomic transactions
         "OPTIONS": {
             "sslmode": "require",
             # prevent libpq from automatically trying to connect to the db via GSSAPI
