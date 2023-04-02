@@ -5,6 +5,7 @@
 import logging
 import uuid
 from collections import defaultdict
+from distutils.util import strtobool
 from typing import Dict, List, Tuple
 
 from django.conf import settings
@@ -328,7 +329,7 @@ class EmbargoedField(serializers.BooleanField):
         # Run base Boolean field validation, ACL validation and then
         # raise SkipField to not include this field in validated data
         # since we don't have `embargoed` field to write in
-        super().run_validation(data)
+        data = super().run_validation(data)
         self.validate_acl(data)
         raise serializers.SkipField()
 
@@ -396,6 +397,8 @@ class ACLMixinSerializer(serializers.ModelSerializer):
         """
         # Already validated in EmbargoedField
         embargoed = self.context["request"].data.get("embargoed")
+        if isinstance(embargoed, str):
+            embargoed = bool(strtobool(embargoed))
 
         acl_read, acl_write = self.get_acls(embargoed)
         validated_data["acl_read"] = acl_read
