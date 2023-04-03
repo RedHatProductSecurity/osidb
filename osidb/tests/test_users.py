@@ -1,9 +1,9 @@
-import os
-
 import pytest
 from bugzilla import Bugzilla
 from django.contrib.auth.models import User
 from jira import JIRA
+
+from osidb.helpers import get_env
 
 pytestmark = pytest.mark.unit
 
@@ -28,10 +28,10 @@ class TestUsers:
         assert new_user.profile.jira_user_id == "atorresj@redhat.com"
 
         # verify that the user info can be fetched from bugzilla / jira
-        bz_token = os.getenv("BZIMPORT_BZ_API_KEY")
-        bz_url = os.getenv("BZIMPORT_BZ_URL", "https://bugzilla.redhat.com")
-        jira_token = os.getenv("JIRA_AUTH_TOKEN")
-        jira_url = os.getenv("JIRA_URL", "https://issues.redhat.com")
+        bz_token = get_env("BZIMPORT_BZ_API_KEY")
+        bz_url = get_env("BZIMPORT_BZ_URL", "https://bugzilla.redhat.com")
+        jira_token = get_env("JIRA_AUTH_TOKEN")
+        jira_url = get_env("JIRA_URL", "https://issues.redhat.com")
         bz_api = Bugzilla(bz_url, api_key=bz_token, force_rest=True)
         jira_api = JIRA(
             {
