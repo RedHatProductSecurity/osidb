@@ -1347,7 +1347,7 @@ class TestEndpoints(object):
         assert response.status_code == 200
 
         response = auth_client.delete(affect_url, HTTP_BUGZILLA_API_KEY="SECRET")
-        assert response.status_code == 204
+        assert response.status_code == 200
 
         response = auth_client.get(affect_url)
         assert response.status_code == 404

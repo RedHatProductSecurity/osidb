@@ -17,7 +17,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.status import HTTP_204_NO_CONTENT
+from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from rest_framework.viewsets import (
     ModelViewSet,
@@ -380,7 +380,7 @@ class AffectView(ModelViewSet):
             raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
         instance = self.get_object()
         self.perform_destroy(instance, bz_api_key=bz_api_key)
-        return Response(status=HTTP_204_NO_CONTENT)
+        return Response(status=HTTP_200_OK)
 
     def perform_destroy(self, instance, bz_api_key):
         """
