@@ -212,7 +212,7 @@ class UpdatedDateTimeField(serializers.DateTimeField):
         """
         skip updated timestamp validation on create
         """
-        if self.context["request"].stream.method == "POST":
+        if self.context["request"].method == "POST":
             return (True, None)
         return super().validate_empty_values(data)
 
