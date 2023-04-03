@@ -16,7 +16,7 @@ interactions:
     uri: https://bugzilla.redhat.com/rest/version
   response:
     body:
-      string: '{"version": "5.0.4.rh83"}'
+      string: '{"version": "5.0.4.rh84"}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -33,7 +33,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 01 Mar 2023 10:23:24 GMT
+      - Fri, 17 Mar 2023 11:24:12 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -45,9 +45,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.d4403617.1677666204.a1583bd
+      - 0.be045368.1679052252.12ae6269
       x-rh-edge-request-id:
-      - a1583bd
+      - 12ae6269
     status:
       code: 200
       message: OK
@@ -68,8 +68,8 @@ interactions:
     uri: https://bugzilla.redhat.com/rest/user?ids=1
   response:
     body:
-      string: '{"users": [{"id": 1, "can_login": true, "name": "aander07@packetmaster.com",
-        "email": "aander07@packetmaster.com", "real_name": "Need Real Name"}]}'
+      string: '{"users": [{"can_login": true, "id": 1, "real_name": "Need Real Name",
+        "name": "aander07@packetmaster.com", "email": "aander07@packetmaster.com"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -86,7 +86,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 01 Mar 2023 10:23:25 GMT
+      - Fri, 17 Mar 2023 11:24:12 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -98,21 +98,75 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.d4403617.1677666205.a1583d0
+      - 0.be045368.1679052252.12ae64b5
       x-rh-edge-request-id:
-      - a1583d0
+      - 12ae64b5
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2008346&include_fields=id&include_fields=last_change_time
+  response:
+    body:
+      string: '{"total_matches": 1, "offset": 0, "limit": "20", "bugs": [{"id": 2008346,
+        "last_change_time": "2023-03-13T12:54:13Z"}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '109'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 17 Mar 2023 11:24:13 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.be045368.1679052253.12ae685d
+      x-rh-edge-request-id:
+      - 12ae685d
     status:
       code: 200
       message: OK
 - request:
     body: '{"product": "Security Response", "component": "vulnerability", "op_sys":
       "Linux", "platform": "All", "version": "unspecified", "summary": "Bar", "cf_release_notes":
-      "", "status": "NEW", "severity": "unspecified", "priority": "unspecified", "keywords":
+      "foo", "status": "NEW", "severity": "medium", "priority": "medium", "keywords":
       {"add": ["Security"]}, "flags": [], "groups": {"add": [], "remove": []}, "cc":
       {"add": [], "remove": []}, "cf_srtnotes": "{\"affects\": [{\"ps_module\": \"rhel-8\",
       \"ps_component\": \"kernel\", \"affectedness\": \"affected\", \"resolution\":
-      \"fix\", \"impact\": null, \"cvss2\": null, \"cvss3\": null}], \"public\": \"2000-01-01T22:03:26Z\",
-      \"reported\": \"2022-11-22T15:55:22Z\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
+      \"fix\", \"impact\": \"critical\", \"cvss2\": null, \"cvss3\": null}], \"public\":
+      \"2000-01-01T22:03:26Z\", \"reported\": \"2022-11-22T15:55:22Z\", \"impact\":
+      \"moderate\", \"source\": \"xchat\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
       \"cwe\": \"CWE-1\", \"statement\": \"Statement for CVE-2021-0773\"}", "ids":
       ["2008346"]}'
     headers:
@@ -123,7 +177,7 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '790'
+      - '840'
       Content-Type:
       - application/json
       User-Agent:
@@ -132,20 +186,22 @@ interactions:
     uri: https://bugzilla.redhat.com/rest/bug/2008346
   response:
     body:
-      string: '{"bugs": [{"alias": ["CVE-2021-0773"], "changes": {"priority": {"removed":
-        "low", "added": "unspecified"}, "status": {"added": "NEW", "removed": "MODIFIED"},
-        "severity": {"added": "unspecified", "removed": "low"}, "cf_srtnotes": {"added":
+      string: '{"bugs": [{"alias": ["CVE-2021-0773"], "changes": {"cf_srtnotes": {"removed":
         "{\"affects\": [{\"ps_module\": \"rhel-8\", \"ps_component\": \"kernel\",
-        \"affectedness\": \"affected\", \"resolution\": \"fix\", \"impact\": null,
+        \"affectedness\": \"new\", \"resolution\": null, \"impact\": \"moderate\",
         \"cvss2\": null, \"cvss3\": null}], \"public\": \"2000-01-01T22:03:26Z\",
-        \"reported\": \"2022-11-22T15:55:22Z\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
-        \"cwe\": \"CWE-1\", \"statement\": \"Statement for CVE-2021-0773\"}", "removed":
-        "{\"affects\": [{\"ps_module\": \"rhel-8\", \"ps_component\": \"kernel\",
-        \"affectedness\": \"notaffected\", \"resolution\": null, \"impact\": \"critical\",
-        \"cvss2\": null, \"cvss3\": null}], \"public\": \"2000-01-01T22:03:26Z\",
-        \"reported\": \"2022-11-22T15:55:22Z\", \"impact\": \"low\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
-        \"cwe\": \"CWE-1\", \"statement\": \"Statement for CVE-2021-0773\"}"}}, "last_change_time":
-        "2023-03-01T10:23:26Z", "id": 2008346}]}'
+        \"reported\": \"2022-11-22T15:55:22Z\", \"impact\": \"critical\", \"cvss3\":
+        \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\", \"statement\": \"Statement
+        for CVE-2021-0773\"}", "added": "{\"affects\": [{\"ps_module\": \"rhel-8\",
+        \"ps_component\": \"kernel\", \"affectedness\": \"affected\", \"resolution\":
+        \"fix\", \"impact\": \"critical\", \"cvss2\": null, \"cvss3\": null}], \"public\":
+        \"2000-01-01T22:03:26Z\", \"reported\": \"2022-11-22T15:55:22Z\", \"impact\":
+        \"moderate\", \"source\": \"xchat\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
+        \"cwe\": \"CWE-1\", \"statement\": \"Statement for CVE-2021-0773\"}"}, "summary":
+        {"added": "Bar", "removed": "New Foo"}, "status": {"added": "NEW", "removed":
+        "POST"}, "severity": {"removed": "urgent", "added": "medium"}, "priority":
+        {"removed": "urgent", "added": "medium"}}, "id": 2008346, "last_change_time":
+        "2023-03-17T11:24:14Z"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -160,7 +216,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 01 Mar 2023 10:23:26 GMT
+      - Fri, 17 Mar 2023 11:24:14 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       Vary:
@@ -172,13 +228,13 @@ interactions:
       X-xss-protection:
       - 1; mode=block
       content-length:
-      - '1110'
+      - '1182'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.d4403617.1677666206.a158494
+      - 0.be045368.1679052254.12ae7186
       x-rh-edge-request-id:
-      - a158494
+      - 12ae7186
     status:
       code: 200
       message: OK
@@ -199,7 +255,7 @@ interactions:
     uri: https://bugzilla.redhat.com/rest/version
   response:
     body:
-      string: '{"version": "5.0.4.rh83"}'
+      string: '{"version": "5.0.4.rh84"}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -216,7 +272,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 01 Mar 2023 10:23:27 GMT
+      - Fri, 17 Mar 2023 11:24:14 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -228,9 +284,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.d4403617.1677666207.a15895b
+      - 0.2e045368.1679052254.43669563
       x-rh-edge-request-id:
-      - a15895b
+      - '43669563'
     status:
       code: 200
       message: OK
@@ -251,8 +307,8 @@ interactions:
     uri: https://bugzilla.redhat.com/rest/user?ids=1
   response:
     body:
-      string: '{"users": [{"real_name": "Need Real Name", "name": "aander07@packetmaster.com",
-        "can_login": true, "email": "aander07@packetmaster.com", "id": 1}]}'
+      string: '{"users": [{"id": 1, "email": "aander07@packetmaster.com", "real_name":
+        "Need Real Name", "can_login": true, "name": "aander07@packetmaster.com"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -269,7 +325,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 01 Mar 2023 10:23:27 GMT
+      - Fri, 17 Mar 2023 11:24:15 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -281,9 +337,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.d4403617.1677666207.a1589c8
+      - 0.2e045368.1679052255.43669bb6
       x-rh-edge-request-id:
-      - a1589c8
+      - 43669bb6
     status:
       code: 200
       message: OK
@@ -304,36 +360,40 @@ interactions:
     uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2008346
   response:
     body:
-      string: '{"bugs": [{"cc_detail": [], "cc": [], "cf_pgm_internal": "", "is_cc_accessible":
-        true, "is_open": true, "severity": "unspecified", "cf_last_closed": null,
-        "last_change_time": "2023-03-01T10:23:26Z", "platform": "All", "description":
-        "test", "cf_environment": "", "cf_fixed_in": "", "cf_doc_type": "If docs needed,
-        set a value", "comments": [{"is_private": false, "creator": "osoukup@redhat.com",
-        "tags": [], "attachment_id": null, "creator_id": 412888, "creation_time":
-        "2023-02-23T18:21:48Z", "id": 15532000, "count": 0, "bug_id": 2008346, "text":
-        "test", "time": "2023-02-23T18:21:48Z"}], "cf_qe_conditional_nak": [], "actual_time":
-        0, "tags": [], "cf_build_id": "", "cf_qa_whiteboard": "", "cf_srtnotes": "{\"affects\":
-        [{\"ps_module\": \"rhel-8\", \"ps_component\": \"kernel\", \"affectedness\":
-        \"affected\", \"resolution\": \"fix\", \"impact\": null, \"cvss2\": null,
-        \"cvss3\": null}], \"public\": \"2000-01-01T22:03:26Z\", \"reported\": \"2022-11-22T15:55:22Z\",
-        \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\", \"cwe\":
-        \"CWE-1\", \"statement\": \"Statement for CVE-2021-0773\"}", "version": ["unspecified"],
-        "cf_devel_whiteboard": "", "cf_clone_of": null, "sub_components": {}, "creator_detail":
-        {"insider": true, "id": 412888, "email": "osoukup@redhat.com", "real_name":
-        "Ondrej Soukup", "active": true, "name": "osoukup@redhat.com", "partner":
-        false}, "classification": "Other", "status": "NEW", "product": "Security Response",
-        "cf_conditional_nak": [], "estimated_time": 0, "deadline": null, "resolution":
-        "", "keywords": ["Security"], "component": ["vulnerability"], "cf_cust_facing":
-        "---", "cf_pm_score": "0", "blocks": [], "summary": "Bar", "alias": ["CVE-2021-0773"],
-        "remaining_time": 0, "groups": [], "cf_release_notes": "", "assigned_to_detail":
-        {"id": 29451, "insider": false, "active": true, "email": "nobody@redhat.com",
-        "real_name": "Nobody", "partner": false, "name": "nobody@redhat.com"}, "creation_time":
-        "2023-02-23T18:21:48Z", "priority": "unspecified", "flags": [], "is_creator_accessible":
-        true, "whiteboard": "", "is_confirmed": true, "target_release": ["---"], "op_sys":
-        "Linux", "creator": "osoukup@redhat.com", "cf_internal_whiteboard": "", "url":
-        "", "depends_on": [], "assigned_to": "nobody@redhat.com", "qa_contact": "",
-        "id": 2008346, "dupe_of": null, "docs_contact": "", "external_bugs": [], "target_milestone":
-        "---"}], "offset": 0, "total_matches": 1, "limit": "20"}'
+      string: '{"limit": "20", "offset": 0, "total_matches": 1, "bugs": [{"groups":
+        [], "cf_conditional_nak": [], "target_release": ["---"], "summary": "Bar",
+        "platform": "All", "dupe_of": null, "actual_time": 0, "id": 2008346, "cc":
+        [], "tags": [], "creation_time": "2023-02-23T18:21:48Z", "whiteboard": "",
+        "sub_components": {}, "classification": "Other", "depends_on": [], "is_creator_accessible":
+        true, "url": "", "cc_detail": [], "keywords": ["Security"], "description":
+        "test", "cf_qe_conditional_nak": [], "cf_release_notes": "foo", "status":
+        "NEW", "version": ["unspecified"], "cf_pgm_internal": "", "component": ["vulnerability"],
+        "cf_qa_whiteboard": "", "assigned_to": "nobody@redhat.com", "docs_contact":
+        "", "is_confirmed": true, "cf_environment": "", "product": "Security Response",
+        "external_bugs": [], "op_sys": "Linux", "blocks": [2009119], "alias": ["CVE-2021-0773"],
+        "last_change_time": "2023-03-17T11:24:14Z", "cf_fixed_in": "", "creator":
+        "osoukup@redhat.com", "flags": [{"modification_date": "2023-03-01T11:07:08Z",
+        "is_active": 1, "creation_date": "2023-03-01T11:07:08Z", "id": 5204549, "setter":
+        "bugzilla@redhat.com", "name": "requires_doc_text", "status": "+", "type_id":
+        415}], "cf_doc_type": "If docs needed, set a value", "resolution": "", "qa_contact":
+        "", "cf_cust_facing": "---", "remaining_time": 0, "cf_devel_whiteboard": "",
+        "cf_last_closed": null, "deadline": null, "is_cc_accessible": true, "cf_clone_of":
+        null, "assigned_to_detail": {"real_name": "Nobody", "active": true, "email":
+        "nobody@redhat.com", "name": "nobody@redhat.com", "partner": false, "id":
+        29451, "insider": false}, "cf_srtnotes": "{\"affects\": [{\"ps_module\": \"rhel-8\",
+        \"ps_component\": \"kernel\", \"affectedness\": \"affected\", \"resolution\":
+        \"fix\", \"impact\": \"critical\", \"cvss2\": null, \"cvss3\": null}], \"public\":
+        \"2000-01-01T22:03:26Z\", \"reported\": \"2022-11-22T15:55:22Z\", \"impact\":
+        \"moderate\", \"source\": \"xchat\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
+        \"cwe\": \"CWE-1\", \"statement\": \"Statement for CVE-2021-0773\"}", "estimated_time":
+        0, "cf_internal_whiteboard": "", "comments": [{"creator": "osoukup@redhat.com",
+        "creator_id": 412888, "id": 15532000, "bug_id": 2008346, "count": 0, "creation_time":
+        "2023-02-23T18:21:48Z", "attachment_id": null, "is_private": false, "tags":
+        [], "time": "2023-02-23T18:21:48Z", "text": "test"}], "severity": "medium",
+        "priority": "medium", "cf_pm_score": "0", "is_open": true, "creator_detail":
+        {"real_name": "Ondrej Soukup", "active": true, "email": "osoukup@redhat.com",
+        "name": "osoukup@redhat.com", "partner": false, "id": 412888, "insider": true},
+        "cf_build_id": "", "target_milestone": "---"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -348,7 +408,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 01 Mar 2023 10:23:28 GMT
+      - Fri, 17 Mar 2023 11:24:16 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       Vary:
@@ -360,13 +420,13 @@ interactions:
       X-xss-protection:
       - 1; mode=block
       content-length:
-      - '2248'
+      - '2500'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.d4403617.1677666208.a158afc
+      - 0.2e045368.1679052256.4366a5b7
       x-rh-edge-request-id:
-      - a158afc
+      - 4366a5b7
     status:
       code: 200
       message: OK
@@ -387,36 +447,40 @@ interactions:
     uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2008346
   response:
     body:
-      string: '{"bugs": [{"creation_time": "2023-02-23T18:21:48Z", "flags": [], "priority":
-        "unspecified", "is_creator_accessible": true, "cf_release_notes": "", "assigned_to_detail":
-        {"real_name": "Nobody", "email": "nobody@redhat.com", "active": true, "name":
-        "nobody@redhat.com", "partner": false, "insider": false, "id": 29451}, "groups":
-        [], "remaining_time": 0, "alias": ["CVE-2021-0773"], "summary": "Bar", "cf_cust_facing":
-        "---", "component": ["vulnerability"], "cf_pm_score": "0", "blocks": [], "resolution":
-        "", "keywords": ["Security"], "deadline": null, "target_milestone": "---",
-        "docs_contact": "", "external_bugs": [], "qa_contact": "", "assigned_to":
-        "nobody@redhat.com", "id": 2008346, "dupe_of": null, "url": "", "depends_on":
-        [], "cf_internal_whiteboard": "", "creator": "osoukup@redhat.com", "target_release":
-        ["---"], "op_sys": "Linux", "is_confirmed": true, "whiteboard": "", "cf_doc_type":
-        "If docs needed, set a value", "comments": [{"tags": [], "creator": "osoukup@redhat.com",
-        "is_private": false, "text": "test", "time": "2023-02-23T18:21:48Z", "id":
-        15532000, "count": 0, "bug_id": 2008346, "attachment_id": null, "creator_id":
-        412888, "creation_time": "2023-02-23T18:21:48Z"}], "actual_time": 0, "cf_qe_conditional_nak":
-        [], "cf_environment": "", "cf_fixed_in": "", "description": "test", "platform":
-        "All", "cf_last_closed": null, "last_change_time": "2023-03-01T10:23:26Z",
-        "is_open": true, "severity": "unspecified", "cf_pgm_internal": "", "is_cc_accessible":
-        true, "cc_detail": [], "cc": [], "product": "Security Response", "cf_conditional_nak":
-        [], "estimated_time": 0, "creator_detail": {"active": true, "email": "osoukup@redhat.com",
-        "real_name": "Ondrej Soukup", "partner": false, "name": "osoukup@redhat.com",
-        "id": 412888, "insider": true}, "sub_components": {}, "classification": "Other",
-        "status": "NEW", "cf_devel_whiteboard": "", "version": ["unspecified"], "cf_clone_of":
-        null, "cf_qa_whiteboard": "", "cf_srtnotes": "{\"affects\": [{\"ps_module\":
-        \"rhel-8\", \"ps_component\": \"kernel\", \"affectedness\": \"affected\",
-        \"resolution\": \"fix\", \"impact\": null, \"cvss2\": null, \"cvss3\": null}],
-        \"public\": \"2000-01-01T22:03:26Z\", \"reported\": \"2022-11-22T15:55:22Z\",
-        \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\", \"cwe\":
-        \"CWE-1\", \"statement\": \"Statement for CVE-2021-0773\"}", "cf_build_id":
-        "", "tags": []}], "limit": "20", "total_matches": 1, "offset": 0}'
+      string: '{"limit": "20", "offset": 0, "total_matches": 1, "bugs": [{"cf_devel_whiteboard":
+        "", "cf_last_closed": null, "resolution": "", "cf_cust_facing": "---", "qa_contact":
+        "", "remaining_time": 0, "flags": [{"name": "requires_doc_text", "status":
+        "+", "type_id": 415, "modification_date": "2023-03-01T11:07:08Z", "is_active":
+        1, "creation_date": "2023-03-01T11:07:08Z", "setter": "bugzilla@redhat.com",
+        "id": 5204549}], "last_change_time": "2023-03-17T11:24:14Z", "cf_fixed_in":
+        "", "creator": "osoukup@redhat.com", "cf_doc_type": "If docs needed, set a
+        value", "op_sys": "Linux", "external_bugs": [], "alias": ["CVE-2021-0773"],
+        "blocks": [2009119], "is_open": true, "target_milestone": "---", "cf_build_id":
+        "", "creator_detail": {"id": 412888, "insider": true, "name": "osoukup@redhat.com",
+        "email": "osoukup@redhat.com", "partner": false, "active": true, "real_name":
+        "Ondrej Soukup"}, "cf_internal_whiteboard": "", "comments": [{"creator": "osoukup@redhat.com",
+        "creator_id": 412888, "bug_id": 2008346, "id": 15532000, "count": 0, "creation_time":
+        "2023-02-23T18:21:48Z", "attachment_id": null, "time": "2023-02-23T18:21:48Z",
+        "is_private": false, "tags": [], "text": "test"}], "estimated_time": 0, "cf_pm_score":
+        "0", "priority": "medium", "severity": "medium", "cf_clone_of": null, "cf_srtnotes":
+        "{\"affects\": [{\"ps_module\": \"rhel-8\", \"ps_component\": \"kernel\",
+        \"affectedness\": \"affected\", \"resolution\": \"fix\", \"impact\": \"critical\",
+        \"cvss2\": null, \"cvss3\": null}], \"public\": \"2000-01-01T22:03:26Z\",
+        \"reported\": \"2022-11-22T15:55:22Z\", \"impact\": \"moderate\", \"source\":
+        \"xchat\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
+        \"cwe\": \"CWE-1\", \"statement\": \"Statement for CVE-2021-0773\"}", "assigned_to_detail":
+        {"active": true, "real_name": "Nobody", "email": "nobody@redhat.com", "name":
+        "nobody@redhat.com", "partner": false, "id": 29451, "insider": false}, "deadline":
+        null, "is_cc_accessible": true, "whiteboard": "", "creation_time": "2023-02-23T18:21:48Z",
+        "tags": [], "actual_time": 0, "dupe_of": null, "id": 2008346, "cc": [], "target_release":
+        ["---"], "summary": "Bar", "platform": "All", "groups": [], "cf_conditional_nak":
+        [], "product": "Security Response", "cf_environment": "", "cf_pgm_internal":
+        "", "status": "NEW", "version": ["unspecified"], "component": ["vulnerability"],
+        "is_confirmed": true, "docs_contact": "", "cf_qa_whiteboard": "", "assigned_to":
+        "nobody@redhat.com", "description": "test", "keywords": ["Security"], "cf_release_notes":
+        "foo", "cf_qe_conditional_nak": [], "is_creator_accessible": true, "depends_on":
+        [], "classification": "Other", "sub_components": {}, "cc_detail": [], "url":
+        ""}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -431,7 +495,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 01 Mar 2023 10:23:29 GMT
+      - Fri, 17 Mar 2023 11:24:16 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       Vary:
@@ -443,13 +507,13 @@ interactions:
       X-xss-protection:
       - 1; mode=block
       content-length:
-      - '2248'
+      - '2500'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.d4403617.1677666209.a158ccc
+      - 0.2e045368.1679052256.4366bbc9
       x-rh-edge-request-id:
-      - a158ccc
+      - 4366bbc9
     status:
       code: 200
       message: OK
@@ -470,10 +534,10 @@ interactions:
     uri: https://bugzilla.redhat.com/rest/bug/2008346/comment
   response:
     body:
-      string: '{"bugs": {"2008346": {"comments": [{"attachment_id": null, "is_private":
-        false, "count": 0, "time": "2023-02-23T18:21:48Z", "creator": "osoukup@redhat.com",
-        "bug_id": 2008346, "id": 15532000, "creation_time": "2023-02-23T18:21:48Z",
-        "text": "test", "creator_id": 412888, "tags": []}]}}, "comments": {}}'
+      string: '{"comments": {}, "bugs": {"2008346": {"comments": [{"count": 0, "is_private":
+        false, "tags": [], "time": "2023-02-23T18:21:48Z", "bug_id": 2008346, "id":
+        15532000, "text": "test", "attachment_id": null, "creation_time": "2023-02-23T18:21:48Z",
+        "creator": "osoukup@redhat.com", "creator_id": 412888}]}}}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -490,7 +554,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 01 Mar 2023 10:23:29 GMT
+      - Fri, 17 Mar 2023 11:24:17 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -502,9 +566,64 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.d4403617.1677666209.a158f30
+      - 0.2e045368.1679052257.4366d26e
       x-rh-edge-request-id:
-      - a158f30
+      - 4366d26e
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2009119&include_fields=assigned_to&include_fields=id&include_fields=product
+  response:
+    body:
+      string: '{"limit": "20", "total_matches": 1, "offset": 0, "bugs": [{"assigned_to":
+        "nobody@redhat.com", "assigned_to_detail": {"active": true, "real_name": "Nobody",
+        "partner": false, "email": "nobody@redhat.com", "name": "nobody@redhat.com",
+        "insider": false, "id": 29451}, "id": 2009119, "product": "Security Response"}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '287'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 17 Mar 2023 11:24:17 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.2e045368.1679052257.4366dfbb
+      x-rh-edge-request-id:
+      - 4366dfbb
     status:
       code: 200
       message: OK

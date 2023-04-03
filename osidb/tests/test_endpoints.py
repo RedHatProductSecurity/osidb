@@ -161,7 +161,7 @@ class TestEndpoints(object):
         body = response.json()
         assert body["count"] == 0
 
-        FlawFactory(created_dt=datetime_with_tz)
+        FlawFactory(updated_dt=datetime_with_tz)
 
         past_str = f"{datetime_with_tz - timedelta(days=1)}"  # Set to past date, API should return 0 results
         assert past_str.endswith("+00:00")
@@ -186,7 +186,7 @@ class TestEndpoints(object):
         body = response.json()
         assert body["count"] == 0
 
-        FlawFactory(created_dt=datetime_with_tz)
+        FlawFactory(updated_dt=datetime_with_tz)
 
         past_str = f"{datetime_with_tz - timedelta(days=1)}"
         future_str = f"{datetime_with_tz + timedelta(days=1)}"
@@ -306,11 +306,18 @@ class TestEndpoints(object):
 
     @freeze_time(datetime(2021, 11, 23))
     def test_changed_before_from_tracker(self, auth_client, test_api_uri):
+        flaw = FlawFactory(updated_dt=datetime(2021, 11, 23))
         affect = AffectFactory(
+            flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
+            updated_dt=datetime(2021, 11, 23),
         )
-        tracker = TrackerFactory(affects=(affect,), embargoed=affect.flaw.embargoed)
+        tracker = TrackerFactory(
+            affects=(affect,),
+            embargoed=affect.flaw.embargoed,
+            updated_dt=datetime(2021, 11, 23),
+        )
         past_dt = datetime(2019, 11, 27)
 
         # first check that we cannot get anything by querying any flaws changed after future_dt
@@ -335,7 +342,8 @@ class TestEndpoints(object):
 
     @freeze_time(datetime(2021, 11, 23))
     def test_changed_before_from_affect(self, auth_client, test_api_uri):
-        affect = AffectFactory()
+        flaw = FlawFactory(updated_dt=datetime(2021, 11, 23))
+        affect = AffectFactory(flaw=flaw, updated_dt=datetime(2021, 11, 23))
         past_dt = datetime(2019, 11, 27)
 
         response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
@@ -356,19 +364,29 @@ class TestEndpoints(object):
 
     @freeze_time(datetime(2021, 11, 23))
     def test_changed_before_from_multi_tracker(self, auth_client, test_api_uri):
-        flaw = FlawFactory()
+        flaw = FlawFactory(updated_dt=datetime(2021, 11, 23))
         affect1 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
+            updated_dt=datetime(2021, 11, 23),
         )
         affect2 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
+            updated_dt=datetime(2021, 11, 23),
         )
-        tracker1 = TrackerFactory(affects=(affect1,), embargoed=flaw.embargoed)
-        tracker2 = TrackerFactory(affects=(affect2,), embargoed=flaw.embargoed)
+        tracker1 = TrackerFactory(
+            affects=(affect1,),
+            embargoed=flaw.embargoed,
+            updated_dt=datetime(2021, 11, 23),
+        )
+        tracker2 = TrackerFactory(
+            affects=(affect2,),
+            embargoed=flaw.embargoed,
+            updated_dt=datetime(2021, 11, 23),
+        )
         past_dt = datetime(2019, 11, 27)
 
         # first check that we cannot get anything by querying any flaws changed after future_dt
@@ -1150,6 +1168,7 @@ class TestEndpoints(object):
                 "impact": flaw.impact,
                 "source": flaw.source,
                 "embargoed": False,
+                "updated_dt": flaw.updated_dt,
             },
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
@@ -1159,6 +1178,41 @@ class TestEndpoints(object):
         assert original_body["title"] != body["title"]
         assert "appended test title" in body["title"]
         assert original_body["description"] == body["description"]
+
+    def test_flaw_update_collision(self, auth_client, test_api_uri):
+        """
+        test that updating a flaw while sending an outdated updated_dt
+        timestamp is correctly recognized as mid-air collision and rejected
+        """
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw)
+
+        response = auth_client.put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            {
+                "uuid": flaw.uuid,
+                "cve_id": flaw.cve_id,
+                "type": flaw.type,
+                "title": f"{flaw.title} appended test title",
+                "description": flaw.description,
+                "state": flaw.state,
+                "resolution": flaw.resolution,
+                "impact": flaw.impact,
+                "source": flaw.source,
+                "embargoed": flaw.embargoed,
+                "updated_dt": flaw.updated_dt - timedelta(days=1),  # outdated timestamp
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+
+        assert response.status_code == 400
+        context = response.context.flatten()
+        assert "exception_value" in context
+        assert context["exception_value"] == (
+            "Received model contains non-refreshed and outdated data! "
+            "It has been probably edited by someone else in the meantime"
+        )
 
     def test_flaw_delete(self, auth_client, test_api_uri):
         """
@@ -1444,6 +1498,7 @@ class TestEndpointsACLs:
                 "title": f"{flaw.title} appended test title",
                 "description": flaw.description,
                 "embargoed": embargoed,
+                "updated_dt": flaw.updated_dt,
             },
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
@@ -1478,6 +1533,7 @@ class TestEndpointsACLs:
                     "title": flaw.title.replace("EMBARGOED", "").strip(),
                     "description": flaw.description,
                     "embargoed": False,
+                    "updated_dt": flaw.updated_dt,
                 },
                 format="json",
                 HTTP_BUGZILLA_API_KEY="SECRET",
@@ -1534,6 +1590,7 @@ class TestEndpointsACLs:
                 "title": f"{flaw.title} appended test title",
                 "description": flaw.description,
                 "embargoed": False,
+                "updated_dt": flaw.updated_dt,
                 "bz_api_key": "SECRET",
             },
             format="json",
@@ -1662,6 +1719,7 @@ class TestEndpointsBZAPIKey:
                 "title": f"{flaw.title} appended test title",
                 "description": flaw.description,
                 "embargoed": False,
+                "updated_dt": flaw.updated_dt,
             },
             format="json",
         )

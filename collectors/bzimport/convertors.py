@@ -674,6 +674,7 @@ class FlawBugConvertor:
         meta_attr["alias"] = self.alias
         meta_attr["depends_on"] = self.depends_on
         meta_attr["related_cves"] = [c for c in self.cve_ids if c != cve_id]
+        meta_attr["last_change_time"] = self.flaw_bug["last_change_time"]
         meta_attr["last_imported_dt"] = timezone.now()
         meta_attr["acl_labels"] = self.groups
         meta_attr["task_owner"] = self.task_owner

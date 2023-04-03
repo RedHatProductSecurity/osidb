@@ -52,9 +52,37 @@ class TrackingMixin(models.Model):
                 )
 
             # auto-set updated_dt as now on any change
-            self.updated_dt = timezone.now()
+            # cut off the microseconds to allow mid-air
+            # collision comparison as API works in seconds
+            self.updated_dt = timezone.now().replace(microsecond=0)
 
         super().save(*args, **kwargs)
+
+
+class TrackingMixinManager(models.Manager):
+    """
+    TrackingMixin companion changing the QuerySet accordingly
+    """
+
+    def get_or_create(self, defaults=None, **kwargs):
+        """
+        filter out auto_timestamps from the defaults
+        """
+        defaults.pop("auto_timestamps", None)
+        return super().get_or_create(defaults, **kwargs)
+
+    def create(self, **kwargs):
+        """
+        rewrite the default create taking the auto_timestamps
+        into account as some instances are build this way
+
+        specifically the factories would otherwise not work
+        """
+        auto_timestamps = kwargs.pop("auto_timestamps", None)
+        obj = self.model(**kwargs)
+        self._for_write = True
+        obj.save(auto_timestamps=auto_timestamps, force_insert=True, using=self.db)
+        return obj
 
 
 class NullStrFieldsMixin(models.Model):

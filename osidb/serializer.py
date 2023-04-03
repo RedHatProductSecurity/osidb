@@ -9,6 +9,7 @@ from typing import Dict, List, Tuple
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.exceptions import BadRequest
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
 from rest_framework import serializers
 
@@ -16,6 +17,7 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.osim.serializers import WorkflowModelSerializer
 
 from .core import generate_acls
+from .exceptions import DataInconsistencyException
 from .helpers import ensure_list
 from .mixins import ACLMixin, TrackingMixin
 from .models import (
@@ -204,11 +206,26 @@ class IncludeMetaAttrMixin(serializers.ModelSerializer):
             }
 
 
+class UpdatedDateTimeField(serializers.DateTimeField):
+    def validate_empty_values(self, data):
+        """
+        skip updated timestamp validation on create
+        """
+        if self.context["request"].stream.method == "POST":
+            return (True, None)
+        return super().validate_empty_values(data)
+
+
 class TrackingMixinSerializer(serializers.ModelSerializer):
     """TrackingMixin class serializer"""
 
     created_dt = serializers.DateTimeField(read_only=True)
-    updated_dt = serializers.DateTimeField(read_only=True)
+    updated_dt = UpdatedDateTimeField(
+        help_text=(
+            "The updated_dt timestamp attribute is mandatory "
+            "on update as it is used to detect mit-air collisions."
+        ),
+    )
 
     class Meta:
         model = TrackingMixin
@@ -462,9 +479,19 @@ class BugzillaSyncMixinSerializer(serializers.ModelSerializer):
         """
         # NOTE: This won't work for many-to-many fields as
         # some logic from original .create() was overwritten
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        instance.save(bz_api_key=self.__get_bz_api_key())
+
+        try:
+            instance.save(bz_api_key=self.__get_bz_api_key())
+        except DataInconsistencyException as e:
+            # translate internal exception into Django serializable
+            raise BadRequest(
+                "Received model contains non-refreshed and outdated data! "
+                "It has been probably edited by someone else in the meantime"
+            ) from e
+
         return instance
 
     class Meta:
@@ -551,6 +578,13 @@ class AffectSerializer(
             + ACLMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
         )
+
+
+@extend_schema_serializer(exclude_fields=["updated_dt"])
+class AffectPostSerializer(AffectSerializer):
+    # extra serializer for POST request as there is no last update
+    # timestamp but we need to make the field mandatory otherwise
+    pass
 
 
 class CVEv5VersionsSerializer(serializers.ModelSerializer):
@@ -739,6 +773,13 @@ class FlawSerializer(
             + TrackingMixinSerializer.Meta.fields
             + WorkflowModelSerializer.Meta.fields
         )
+
+
+@extend_schema_serializer(exclude_fields=["updated_dt"])
+class FlawPostSerializer(FlawSerializer):
+    # extra serializer for POST request as there is no last update
+    # timestamp but we need to make the field mandatory otherwise
+    pass
 
 
 class ProfileSerializer(serializers.ModelSerializer):

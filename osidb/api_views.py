@@ -30,7 +30,9 @@ from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import AffectFilter, FlawFilter, TrackerFilter
 from .models import Affect, Flaw, Tracker
 from .serializer import (
+    AffectPostSerializer,
     AffectSerializer,
+    FlawPostSerializer,
     FlawSerializer,
     TrackerSerializer,
     UserSerializer,
@@ -284,6 +286,9 @@ def include_exclude_fields_extend_schema_view(
             id_param,
         ],
     ),
+    create=extend_schema(
+        request=FlawPostSerializer,
+    ),
     destroy=extend_schema(
         responses=FlawSerializer,
         parameters=[id_param],
@@ -357,6 +362,11 @@ def whoami(request: Request) -> Response:
 
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
+@extend_schema_view(
+    create=extend_schema(
+        request=AffectPostSerializer,
+    ),
+)
 class AffectView(ModelViewSet):
     queryset = Affect.objects.all()
     serializer_class = AffectSerializer
