@@ -23,7 +23,39 @@ class CharInFilter(BaseInFilter, CharFilter):
     pass
 
 
-class FlawFilter(FilterSet):
+class DistinctFilterSet(FilterSet):
+    """
+    Custom FilterSet which enforces the distinct for field names that starts
+    with specified prefixes so filtering on related models would not cause
+    duplicates results.
+
+    Each subclassed FilterSet should define its own `DISTINCT_FIELDS_PREFIXES`
+    tuple
+
+    NOTE: django-filters provides ways how to override the behavior of the
+    default filters however only in a way `all or nothing` and doing a
+    distinct is only needed for filtering on related models.
+
+    NOTE: Overriding also does not currently work for the choice fields
+    according to this issue https://github.com/carltongibson/django-filter/issues/1475
+    and thus this custom filter would be needed nevertheless
+
+    """
+
+    DISTINCT_FIELDS_PREFIXES = ()
+
+    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+        super().__init__(data, queryset, request=request, prefix=prefix)
+
+        # Set distinct filter option to true for every field
+        # with any of specified prefixes
+        if self.DISTINCT_FIELDS_PREFIXES:
+            for filter_ in self.filters.values():
+                if filter_.field_name.startswith(self.DISTINCT_FIELDS_PREFIXES):
+                    filter_.distinct = True
+
+
+class FlawFilter(DistinctFilterSet):
     """
     Class that filters queries to FlawList view / API endpoint based on Flaw fields (currently only supports updated_dt)
     """
@@ -106,7 +138,7 @@ class FlawFilter(FilterSet):
     # This would cause a circular import, so instead we define there + import here and set the property
 
 
-class AffectFilter(FilterSet):
+class AffectFilter(DistinctFilterSet):
     class Meta:
         model = Affect
         fields = [
@@ -121,7 +153,7 @@ class AffectFilter(FilterSet):
         ]
 
 
-class TrackerFilter(FilterSet):
+class TrackerFilter(DistinctFilterSet):
     class Meta:
         model = Tracker
         fields = [
