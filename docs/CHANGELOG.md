@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement validation for allowed flaw sources (OSIDB-73)
 - Implement task management module (Taskman) to keep and update task workflow in Jira (OSIDB-228, OSIDB-684, OSIDB-685, OSIDB-754)
 - Expose task management module (Taskman) REST API (OSIDB-811)
+- More granular filtering for Flaw, Affect and Tracker API endpoints (OSIDB-667)
+- Ordering (ascending/descending) for Flaw, Affect and Tracker API endpoints (OSIDB-668)
 
 ### Changed
 - Rework the mapping from Bugzilla sumary to OSIDB title and vice versa (OSIDB-694)
