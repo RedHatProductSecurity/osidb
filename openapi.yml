@@ -2042,6 +2042,445 @@ paths:
                   version:
                     type: string
           description: ''
+  /taskman/api/v1/group:
+    post:
+      operationId: taskman_api_v1_group_create
+      description: Create a new group of tasks
+      parameters:
+      - in: header
+        name: JiraAuthentication
+        schema:
+          type: string
+        description: User generated token for Jira authentication.
+        required: true
+      - in: query
+        name: description
+        schema:
+          type: string
+      - in: query
+        name: name
+        schema:
+          type: string
+        required: true
+      tags:
+      - taskman
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/JiraIssue'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /taskman/api/v1/group/{group_key}:
+    get:
+      operationId: taskman_api_v1_group_retrieve
+      description: Get a list of tasks from a group
+      parameters:
+      - in: header
+        name: JiraAuthentication
+        schema:
+          type: string
+        description: User generated token for Jira authentication.
+        required: true
+      - in: path
+        name: group_key
+        schema:
+          type: string
+        required: true
+      tags:
+      - taskman
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/JiraIssueQueryResult'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: taskman_api_v1_group_update
+      description: Add a task into a group
+      parameters:
+      - in: header
+        name: JiraAuthentication
+        schema:
+          type: string
+        description: User generated token for Jira authentication.
+        required: true
+      - in: path
+        name: group_key
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: task_key
+        schema:
+          type: string
+        required: true
+      tags:
+      - taskman
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+  /taskman/api/v1/task/{task_key}:
+    get:
+      operationId: taskman_api_v1_task_retrieve
+      description: Get a task from Jira given a task key
+      parameters:
+      - in: header
+        name: JiraAuthentication
+        schema:
+          type: string
+        description: User generated token for Jira authentication.
+        required: true
+      - in: path
+        name: task_key
+        schema:
+          type: string
+        required: true
+      tags:
+      - taskman
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/JiraIssue'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /taskman/api/v1/task/{task_key}/comment:
+    post:
+      operationId: taskman_api_v1_task_comment_create
+      description: Create a new comment in a task
+      parameters:
+      - in: header
+        name: JiraAuthentication
+        schema:
+          type: string
+        description: User generated token for Jira authentication.
+        required: true
+      - in: query
+        name: content
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: task_key
+        schema:
+          type: string
+        required: true
+      tags:
+      - taskman
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/JiraComment'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /taskman/api/v1/task/{task_key}/comment/{comment_id}:
+    put:
+      operationId: taskman_api_v1_task_comment_update
+      description: Edit a comment in a task
+      parameters:
+      - in: header
+        name: JiraAuthentication
+        schema:
+          type: string
+        description: User generated token for Jira authentication.
+        required: true
+      - in: path
+        name: comment_id
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: content
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: task_key
+        schema:
+          type: string
+        required: true
+      tags:
+      - taskman
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/JiraComment'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /taskman/api/v1/task/{task_key}/status:
+    put:
+      operationId: taskman_api_v1_task_status_update
+      description: Change a task workflow status
+      parameters:
+      - in: header
+        name: JiraAuthentication
+        schema:
+          type: string
+        description: User generated token for Jira authentication.
+        required: true
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - Closed
+          - In Progress
+          - New
+          - Refinement
+        required: true
+      - in: path
+        name: task_key
+        schema:
+          type: string
+        required: true
+      tags:
+      - taskman
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+  /taskman/api/v1/task/flaw/{flaw_uuid}:
+    get:
+      operationId: taskman_api_v1_task_flaw_retrieve
+      description: Get a task from Jira given a Flaw uuid
+      parameters:
+      - in: header
+        name: JiraAuthentication
+        schema:
+          type: string
+        description: User generated token for Jira authentication.
+        required: true
+      - in: path
+        name: flaw_uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - taskman
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/JiraIssue'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: taskman_api_v1_task_flaw_create
+      description: Create a task in Jira from a Flaw
+      parameters:
+      - in: header
+        name: JiraAuthentication
+        schema:
+          type: string
+        description: User generated token for Jira authentication.
+        required: true
+      - in: path
+        name: flaw_uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - taskman
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+    put:
+      operationId: taskman_api_v1_task_flaw_update
+      description: Update a task in Jira from a Flaw
+      parameters:
+      - in: header
+        name: JiraAuthentication
+        schema:
+          type: string
+        description: User generated token for Jira authentication.
+        required: true
+      - in: path
+        name: flaw_uuid
+        schema:
+          type: string
+        required: true
+      tags:
+      - taskman
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+  /taskman/healthy:
+    get:
+      operationId: taskman_healthy_retrieve
+      description: unauthenticated health check API endpoint
+      tags:
+      - taskman
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
 components:
   schemas:
     Affect:
@@ -2852,6 +3291,102 @@ components:
       - IMPORTANT
       - CRITICAL
       type: string
+    JiraComment:
+      type: object
+      properties:
+        id:
+          type: integer
+        author:
+          $ref: '#/components/schemas/JiraUser'
+        body:
+          type: string
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+      required:
+      - author
+      - body
+      - created
+      - id
+      - updated
+    JiraIssue:
+      type: object
+      properties:
+        id:
+          type: integer
+        key:
+          type: string
+        name:
+          type: string
+        fields:
+          $ref: '#/components/schemas/JiraIssueFields'
+      required:
+      - fields
+      - id
+      - key
+      - name
+    JiraIssueFields:
+      type: object
+      properties:
+        issuetype:
+          $ref: '#/components/schemas/JiraIssueType'
+        summary:
+          type: string
+        description:
+          type: string
+        assignee:
+          $ref: '#/components/schemas/JiraUser'
+        customfield_12311140:
+          type: string
+          description: Task group key
+      required:
+      - assignee
+      - customfield_12311140
+      - description
+      - issuetype
+      - summary
+    JiraIssueQueryResult:
+      type: object
+      properties:
+        total:
+          type: integer
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/JiraIssue'
+      required:
+      - issues
+      - total
+    JiraIssueType:
+      type: object
+      description: Jira issue type, can be a Task, Story or Epic.
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
+    JiraUser:
+      type: object
+      properties:
+        name:
+          type: string
+        key:
+          type: string
+        emailAddress:
+          type: string
+        displayName:
+          type: string
+      required:
+      - displayName
+      - emailAddress
+      - key
+      - name
     MaturityPreliminaryEnum:
       enum:
       - 0

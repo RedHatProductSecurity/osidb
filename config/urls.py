@@ -27,6 +27,8 @@ urlpatterns = [
     path("exploits/", include("apps.exploits.urls")),
     # OSIM
     path("osim/", include("apps.osim.urls")),
+    # Task Manager
+    path("taskman/", include("apps.taskman.urls")),
     # collectors
     path("collectors/", include("collectors.framework.urls")),
     # data
