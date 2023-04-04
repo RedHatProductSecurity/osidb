@@ -10,6 +10,7 @@ from django_filters.rest_framework import (
     DateTimeFilter,
     FilterSet,
     NumberFilter,
+    OrderingFilter,
 )
 
 from .models import Affect, Flaw, Tracker, search_helper
@@ -193,6 +194,8 @@ class FlawFilter(DistinctFilterSet):
             + DATE_LOOKUP_EXPRS,
         }
 
+    order = OrderingFilter(fields=Meta.fields.keys())
+
     search_helper = staticmethod(search_helper)
     # Set the class method to be the same as the imported method (and make it static, to avoid breaking on a self param)
     # This ugly hack is needed to reuse code. django-filter requires the method to be defined as part of this class
@@ -277,6 +280,8 @@ class AffectFilter(DistinctFilterSet):
             + DATE_LOOKUP_EXPRS,
         }
 
+    order = OrderingFilter(fields=Meta.fields.keys())
+
 
 class TrackerFilter(DistinctFilterSet):
 
@@ -360,3 +365,5 @@ class TrackerFilter(DistinctFilterSet):
             "affects__flaw__component": ["exact"],
             "affects__flaw__is_major_incident": ["exact"],
         }
+
+    order = OrderingFilter(fields=Meta.fields.keys())
