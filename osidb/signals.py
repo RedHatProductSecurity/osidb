@@ -1,5 +1,4 @@
 import logging
-import os
 
 from bugzilla import Bugzilla
 from django.contrib.auth.models import User
@@ -7,14 +6,15 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from jira import JIRA
 
+from osidb.helpers import get_env
 from osidb.models import Profile
 
 logger = logging.getLogger(__name__)
 
 
 def get_bz_user_id(email: str) -> str:
-    api_key = os.getenv("BZIMPORT_BZ_API_KEY")
-    bz_url = os.getenv("BZIMPORT_BZ_URL", "https://bugzilla.redhat.com")
+    api_key = get_env("BZIMPORT_BZ_API_KEY")
+    bz_url = get_env("BZIMPORT_BZ_URL", "https://bugzilla.redhat.com")
     try:
         bz_api = Bugzilla(
             bz_url,
@@ -34,8 +34,8 @@ def get_bz_user_id(email: str) -> str:
 
 
 def get_jira_user_id(email: str) -> str:
-    auth_token = os.getenv("JIRA_AUTH_TOKEN")
-    jira_url = os.getenv("JIRA_URL", "https://issues.redhat.com")
+    auth_token = get_env("JIRA_AUTH_TOKEN")
+    jira_url = get_env("JIRA_URL", "https://issues.redhat.com")
     try:
         jira_api = JIRA(
             {
