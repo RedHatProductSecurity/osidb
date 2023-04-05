@@ -31,9 +31,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 12 Apr 2023 12:14:54 GMT
+      - Tue, 11 Apr 2023 13:39:48 GMT
       Expires:
-      - Wed, 12 Apr 2023 12:14:54 GMT
+      - Tue, 11 Apr 2023 13:39:48 GMT
       Pragma:
       - no-cache
       Vary:
@@ -48,9 +48,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 734x256737x1
+      - 819x225885x1
       x-asessionid:
-      - u25tnt
+      - a7a31s
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -58,9 +58,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.644e4e68.1681301694.60d1fefb
+      - 0.cf392b17.1681220388.16924a93
       x-rh-edge-request-id:
-      - 60d1fefb
+      - 16924a93
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -210,9 +210,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 12 Apr 2023 12:14:54 GMT
+      - Tue, 11 Apr 2023 13:39:48 GMT
       Expires:
-      - Wed, 12 Apr 2023 12:14:54 GMT
+      - Tue, 11 Apr 2023 13:39:48 GMT
       Pragma:
       - no-cache
       Vary:
@@ -227,9 +227,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 734x256738x1
+      - 819x225886x1
       x-asessionid:
-      - 1obdhnk
+      - ot8h8
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -237,9 +237,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.644e4e68.1681301694.60d1ff43
+      - 0.cf392b17.1681220388.16924b58
       x-rh-edge-request-id:
-      - 60d1ff43
+      - 16924b58
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -317,9 +317,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 12 Apr 2023 12:14:54 GMT
+      - Tue, 11 Apr 2023 13:39:48 GMT
       Expires:
-      - Wed, 12 Apr 2023 12:14:54 GMT
+      - Tue, 11 Apr 2023 13:39:48 GMT
       Pragma:
       - no-cache
       Vary:
@@ -334,9 +334,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 734x256739x1
+      - 819x225888x2
       x-asessionid:
-      - z5280d
+      - 19nbkla
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -344,9 +344,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.644e4e68.1681301694.60d2008f
+      - 0.cf392b17.1681220388.16924d69
       x-rh-edge-request-id:
-      - 60d2008f
+      - 16924d69
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -379,7 +379,7 @@ interactions:
     uri: https://squid.corp.redhat.com:3128/rest/api/2/issue
   response:
     body:
-      string: '{"id": "14942939", "key": "OSIM-237", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14942939"}'
+      string: '{"id": "14942897", "key": "OSIM-226", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14942897"}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -390,9 +390,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 12 Apr 2023 12:14:54 GMT
+      - Tue, 11 Apr 2023 13:39:49 GMT
       Expires:
-      - Wed, 12 Apr 2023 12:14:54 GMT
+      - Tue, 11 Apr 2023 13:39:49 GMT
       Pragma:
       - no-cache
       Vary:
@@ -407,9 +407,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 734x256740x1
+      - 819x225889x1
       x-asessionid:
-      - 1t02a41
+      - 12d9ixp
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -417,9 +417,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.644e4e68.1681301694.60d20171
+      - 0.cf392b17.1681220389.16925029
       x-rh-edge-request-id:
-      - 60d20171
+      - '16925029'
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -445,12 +445,12 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/OSIM-237
+    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/OSIM-226
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "14942939", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14942939",
-        "key": "OSIM-237", "fields": {"customfield_12322440": null, "issuetype": {"self":
+        "id": "14942897", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14942897",
+        "key": "OSIM-226", "fields": {"customfield_12322440": null, "issuetype": {"self":
         "https://issues.stage.redhat.com/rest/api/2/issuetype/17", "id": "17", "description":
         "Created by Jira Software - do not edit or delete. Issue type for a user story.",
         "iconUrl": "https://issues.stage.redhat.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
@@ -464,19 +464,19 @@ interactions:
         "32x32": "https://issues.stage.redhat.com/secure/projectavatar?size=medium&pid=12336420&avatarId=12560"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@3f7d4887[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4cf87644[overall=PullRequestOverallBean{stateCount=0,
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@4a1e3d3a[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@41da0be3[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@70b5d0a6[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@7f70d2a2[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@63882d58[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@a575a1e[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@54399b12[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@2d25a6f5[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@f65ace4[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@3fd290bc[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@272b6d5f[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@27396541[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@10489e0c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@15c0af5[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2d4d6174[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@224bb42f[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@76a7f694[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@17cd5117[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@514dd45b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@2ed8e891[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6782b888[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@1aba0886[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":true}}",
         "resolutiondate": null, "workratio": -1, "customfield_12317379": null, "customfield_12316840":
         null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
         null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-237/watchers", "watchCount":
-        1, "isWatching": true}, "created": "2023-04-12T12:14:54.621+0000", "customfield_12321240":
+        "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-226/watchers", "watchCount":
+        1, "isWatching": true}, "created": "2023-04-11T13:39:48.722+0000", "customfield_12321240":
         null, "customfield_12313140": null, "priority": {"self": "https://issues.stage.redhat.com/rest/api/2/priority/10300",
         "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/trivial.svg",
         "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:99cce9ba-829d-4933-b4c1-44533d819e77"],
@@ -485,7 +485,7 @@ interactions:
         {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27705",
         "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
         null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
-        null, "updated": "2023-04-12T12:14:54.621+0000", "customfield_12313942": null,
+        null, "updated": "2023-04-11T13:39:48.722+0000", "customfield_12313942": null,
         "customfield_12313941": null, "status": {"self": "https://issues.stage.redhat.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
         very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.stage.redhat.com/images/icons/statuses/generic.png",
@@ -520,10 +520,10 @@ interactions:
         "0.0", "duedate": null, "customfield_12313240": null, "customfield_12311140":
         null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
         "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt": 0}, "votes":
-        {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-237/votes",
+        {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-226/votes",
         "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
         "total": 0, "worklogs": []}, "customfield_12319743": null, "customfield_12310213":
-        null, "archivedby": null, "customfield_12311940": "1|za0yd0:"}}'
+        null, "archivedby": null, "customfield_12311940": "1|za0y50:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -534,9 +534,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 12 Apr 2023 12:14:55 GMT
+      - Tue, 11 Apr 2023 13:39:49 GMT
       Expires:
-      - Wed, 12 Apr 2023 12:14:55 GMT
+      - Tue, 11 Apr 2023 13:39:49 GMT
       Pragma:
       - no-cache
       Vary:
@@ -551,9 +551,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 734x256741x1
+      - 819x225892x2
       x-asessionid:
-      - 9j7inq
+      - 1k2v4m1
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -561,9 +561,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.644e4e68.1681301695.60d20737
+      - 0.cf392b17.1681220389.16925b65
       x-rh-edge-request-id:
-      - 60d20737
+      - 16925b65
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -591,11 +591,11 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: POST
-    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/OSIM-237/comment
+    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/OSIM-226/comment
   response:
     body:
-      string: '{"self": "https://issues.stage.redhat.com/rest/api/2/issue/14942939/comment/21279949",
-        "id": "21279949", "author": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+      string: '{"self": "https://issues.stage.redhat.com/rest/api/2/issue/14942897/comment/21277139",
+        "id": "21277139", "author": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
         "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
         "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
         "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
@@ -609,7 +609,7 @@ interactions:
         "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
         "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
         "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "created":
-        "2023-04-12T12:14:55.143+0000", "updated": "2023-04-12T12:14:55.143+0000"}'
+        "2023-04-11T13:39:49.696+0000", "updated": "2023-04-11T13:39:49.696+0000"}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -620,11 +620,11 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 12 Apr 2023 12:14:55 GMT
+      - Tue, 11 Apr 2023 13:39:50 GMT
       Expires:
-      - Wed, 12 Apr 2023 12:14:55 GMT
+      - Tue, 11 Apr 2023 13:39:50 GMT
       Location:
-      - https://issues.stage.redhat.com/rest/api/2/issue/14942939/comment/21279949
+      - https://issues.stage.redhat.com/rest/api/2/issue/14942897/comment/21277139
       Pragma:
       - no-cache
       Vary:
@@ -639,9 +639,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 734x256742x1
+      - 819x225893x1
       x-asessionid:
-      - 3qvxzk
+      - abbf8v
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -649,9 +649,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.644e4e68.1681301695.60d20900
+      - 0.cf392b17.1681220390.1692604e
       x-rh-edge-request-id:
-      - 60d20900
+      - 1692604e
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -677,11 +677,11 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/OSIM-237/comment/21279949
+    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/OSIM-226/comment/21277139
   response:
     body:
-      string: '{"self": "https://issues.stage.redhat.com/rest/api/2/issue/14942939/comment/21279949",
-        "id": "21279949", "author": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+      string: '{"self": "https://issues.stage.redhat.com/rest/api/2/issue/14942897/comment/21277139",
+        "id": "21277139", "author": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
         "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
         "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
         "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
@@ -695,7 +695,7 @@ interactions:
         "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
         "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
         "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "created":
-        "2023-04-12T12:14:55.143+0000", "updated": "2023-04-12T12:14:55.143+0000"}'
+        "2023-04-11T13:39:49.696+0000", "updated": "2023-04-11T13:39:49.696+0000"}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -706,9 +706,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 12 Apr 2023 12:14:55 GMT
+      - Tue, 11 Apr 2023 13:39:50 GMT
       Expires:
-      - Wed, 12 Apr 2023 12:14:55 GMT
+      - Tue, 11 Apr 2023 13:39:50 GMT
       Pragma:
       - no-cache
       Vary:
@@ -723,9 +723,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 734x256743x1
+      - 819x225898x1
       x-asessionid:
-      - 14mzo5k
+      - 7qwolg
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -733,9 +733,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.644e4e68.1681301695.60d20e52
+      - 0.cf392b17.1681220390.169269f2
       x-rh-edge-request-id:
-      - 60d20e52
+      - 169269f2
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -763,11 +763,11 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: PUT
-    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/14942939/comment/21279949
+    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/14942897/comment/21277139
   response:
     body:
-      string: '{"self": "https://issues.stage.redhat.com/rest/api/2/issue/14942939/comment/21279949",
-        "id": "21279949", "author": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+      string: '{"self": "https://issues.stage.redhat.com/rest/api/2/issue/14942897/comment/21277139",
+        "id": "21277139", "author": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
         "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
         "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
         "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
@@ -781,7 +781,7 @@ interactions:
         "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
         "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
         "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "created":
-        "2023-04-12T12:14:55.143+0000", "updated": "2023-04-12T12:14:55.600+0000"}'
+        "2023-04-11T13:39:49.696+0000", "updated": "2023-04-11T13:39:50.353+0000"}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -792,11 +792,11 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 12 Apr 2023 12:14:55 GMT
+      - Tue, 11 Apr 2023 13:39:50 GMT
       Expires:
-      - Wed, 12 Apr 2023 12:14:55 GMT
+      - Tue, 11 Apr 2023 13:39:50 GMT
       Location:
-      - https://issues.stage.redhat.com/rest/api/2/issue/14942939/comment/21279949
+      - https://issues.stage.redhat.com/rest/api/2/issue/14942897/comment/21277139
       Pragma:
       - no-cache
       Vary:
@@ -811,9 +811,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 734x256744x1
+      - 819x225899x1
       x-asessionid:
-      - puk6m1
+      - 1i8n08a
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -821,9 +821,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.644e4e68.1681301695.60d20fd6
+      - 0.cf392b17.1681220390.16926b02
       x-rh-edge-request-id:
-      - 60d20fd6
+      - 16926b02
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -849,11 +849,11 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/14942939/comment/21279949
+    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/14942897/comment/21277139
   response:
     body:
-      string: '{"self": "https://issues.stage.redhat.com/rest/api/2/issue/14942939/comment/21279949",
-        "id": "21279949", "author": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+      string: '{"self": "https://issues.stage.redhat.com/rest/api/2/issue/14942897/comment/21277139",
+        "id": "21277139", "author": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
         "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
         "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
         "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
@@ -867,7 +867,7 @@ interactions:
         "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
         "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
         "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "created":
-        "2023-04-12T12:14:55.143+0000", "updated": "2023-04-12T12:14:55.600+0000"}'
+        "2023-04-11T13:39:49.696+0000", "updated": "2023-04-11T13:39:50.353+0000"}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -878,9 +878,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 12 Apr 2023 12:14:56 GMT
+      - Tue, 11 Apr 2023 13:39:50 GMT
       Expires:
-      - Wed, 12 Apr 2023 12:14:56 GMT
+      - Tue, 11 Apr 2023 13:39:50 GMT
       Pragma:
       - no-cache
       Vary:
@@ -895,9 +895,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 734x256745x1
+      - 819x225900x1
       x-asessionid:
-      - 1ks3dj2
+      - hery8m
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -905,9 +905,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.644e4e68.1681301696.60d21466
+      - 0.cf392b17.1681220390.16927329
       x-rh-edge-request-id:
-      - 60d21466
+      - '16927329'
       x-seraph-loginreason:
       - OK
       x-xss-protection:

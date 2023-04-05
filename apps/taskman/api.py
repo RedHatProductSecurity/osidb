@@ -23,7 +23,7 @@ from .serializer import (
     TaskGroupSerializer,
     TaskKeySerializer,
 )
-from .service import JiraTaskmanQuerier, TaskStatus
+from .service import JiraTaskmanQuerier, TaskResolution, TaskStatus
 
 logger = logging.getLogger(__name__)
 
@@ -209,7 +209,22 @@ class task_status(GenericAPIView):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                name="status", required=True, type=str, enum=TaskStatus.values
+                name="status",
+                required=True,
+                type=str,
+                enum=TaskStatus.values,
+            ),
+            OpenApiParameter(
+                name="resolution",
+                type=str,
+                enum=TaskResolution.values,
+                description="Resolution of a CLOSED task.",
+            ),
+            OpenApiParameter(
+                name="reason",
+                type=str,
+                enum=TaskStatus.values,
+                description="Reason of status change. Mandatory for rejecting a task.",
             ),
         ],
         description="Change a task workflow status",
@@ -218,9 +233,14 @@ class task_status(GenericAPIView):
     def put(self, request, task_key):
         serializer = StatusSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return JiraTaskmanQuerier(
-            token=request.headers.get("JiraAuthentication")
-        ).update_task_status(
+        jira_conn = JiraTaskmanQuerier(token=request.headers.get("JiraAuthentication"))
+        if "reason" in serializer:
+            jira_conn.create_comment(
+                issue_key=task_key,
+                body=serializer.reason,
+            )
+
+        return jira_conn.update_task_status(
             issue_key=task_key, status=serializer.validated_data["status"]
         )
 
