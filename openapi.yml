@@ -698,6 +698,108 @@ paths:
           - NEW
           - NOTAFFECTED
       - in: query
+        name: created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: cvss2
+        schema:
+          type: string
+      - in: query
+        name: cvss2_score
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss2_score__gt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss2_score__gte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss2_score__lt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss2_score__lte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss3
+        schema:
+          type: string
+      - in: query
+        name: cvss3_score
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss3_score__gt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss3_score__gte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss3_score__lt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss3_score__lte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: embargoed
+        schema:
+          type: boolean
+      - in: query
         name: exclude_fields
         schema:
           type: array
@@ -707,7 +809,327 @@ paths:
           may be separated by commas. Dot notation can be used to filter on related
           model fields. Example: `exclude_fields=field,related_model_field.field`'
       - in: query
-        name: flaw
+        name: flaw__component
+        schema:
+          type: string
+      - in: query
+        name: flaw__created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: flaw__created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: flaw__created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: flaw__created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__cve_id
+        schema:
+          type: string
+      - in: query
+        name: flaw__cvss2
+        schema:
+          type: string
+      - in: query
+        name: flaw__cvss2_score
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: flaw__cvss2_score__gt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: flaw__cvss2_score__gte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: flaw__cvss2_score__lt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: flaw__cvss2_score__lte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: flaw__cvss3
+        schema:
+          type: string
+      - in: query
+        name: flaw__cvss3_score
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: flaw__cvss3_score__gt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: flaw__cvss3_score__gte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: flaw__cvss3_score__lt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: flaw__cvss3_score__lte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: flaw__cwe_id
+        schema:
+          type: string
+      - in: query
+        name: flaw__embargoed
+        schema:
+          type: boolean
+      - in: query
+        name: flaw__impact
+        schema:
+          type: string
+          enum:
+          - ''
+          - CRITICAL
+          - IMPORTANT
+          - LOW
+          - MODERATE
+      - in: query
+        name: flaw__is_major_incident
+        schema:
+          type: boolean
+      - in: query
+        name: flaw__nvd_cvss2
+        schema:
+          type: string
+      - in: query
+        name: flaw__nvd_cvss3
+        schema:
+          type: string
+      - in: query
+        name: flaw__reported_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__reported_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: flaw__reported_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: flaw__reported_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: flaw__reported_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__reported_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__reported_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__reported_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__source
+        schema:
+          type: string
+          enum:
+          - ''
+          - ADOBE
+          - APPLE
+          - ASF
+          - BIND
+          - BK
+          - BUGTRAQ
+          - BUGZILLA
+          - CERT
+          - CERTIFI
+          - CORELABS
+          - CUSTOMER
+          - CVE
+          - DAILYDAVE
+          - DEBIAN
+          - DISTROS
+          - FEDORA
+          - FETCHMAIL
+          - FREEDESKTOP
+          - FREERADIUS
+          - FRSIRT
+          - FULLDISCLOSURE
+          - GAIM
+          - GENTOO
+          - GENTOOBZ
+          - GIT
+          - GNOME
+          - GNUPG
+          - GOOGLE
+          - HP
+          - HW_VENDOR
+          - IBM
+          - IDEFENSE
+          - INTERNET
+          - ISC
+          - ISEC
+          - IT
+          - JBOSS
+          - JPCERT
+          - KERNELBUGZILLA
+          - KERNELSEC
+          - LKML
+          - LWN
+          - MACROMEDIA
+          - MAGEIA
+          - MAILINGLIST
+          - MILW0RM
+          - MIT
+          - MITRE
+          - MOZILLA
+          - MUTTDEV
+          - NETDEV
+          - NISCC
+          - OCERT
+          - OPENOFFICE
+          - OPENSSL
+          - OPENSUSE
+          - ORACLE
+          - OSS
+          - OSSSECURITY
+          - PHP
+          - PIDGIN
+          - POSTGRESQL
+          - PRESS
+          - REAL
+          - REDHAT
+          - RESEARCHER
+          - RT
+          - SAMBA
+          - SECALERT
+          - SECUNIA
+          - SECURITYFOCUS
+          - SKO
+          - SQUID
+          - SQUIRRELMAIL
+          - SUN
+          - SUNSOLVE
+          - SUSE
+          - TWITTER
+          - UBUNTU
+          - UPSTREAM
+          - VENDORSEC
+          - VULNWATCH
+          - WIRESHARK
+          - XCHAT
+          - XEN
+          - XPDF
+      - in: query
+        name: flaw__type
+        schema:
+          type: string
+          enum:
+          - VULNERABILITY
+          - WEAKNESS
+      - in: query
+        name: flaw__unembargo_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: flaw__updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: flaw__updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: flaw__updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw__uuid
         schema:
           type: string
           format: uuid
@@ -755,6 +1177,94 @@ paths:
         schema:
           type: integer
       - in: query
+        name: order
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - -affectedness
+            - -created_dt
+            - -cvss2
+            - -cvss2_score
+            - -cvss3
+            - -cvss3_score
+            - -flaw__component
+            - -flaw__created_dt
+            - -flaw__cve_id
+            - -flaw__cvss2
+            - -flaw__cvss2_score
+            - -flaw__cvss3
+            - -flaw__cvss3_score
+            - -flaw__cwe_id
+            - -flaw__impact
+            - -flaw__is_major_incident
+            - -flaw__nvd_cvss2
+            - -flaw__nvd_cvss3
+            - -flaw__reported_dt
+            - -flaw__source
+            - -flaw__type
+            - -flaw__unembargo_dt
+            - -flaw__updated_dt
+            - -flaw__uuid
+            - -impact
+            - -ps_component
+            - -ps_module
+            - -resolution
+            - -trackers__created_dt
+            - -trackers__external_system_id
+            - -trackers__ps_update_stream
+            - -trackers__resolution
+            - -trackers__status
+            - -trackers__type
+            - -trackers__updated_dt
+            - -trackers__uuid
+            - -type
+            - -updated_dt
+            - -uuid
+            - affectedness
+            - created_dt
+            - cvss2
+            - cvss2_score
+            - cvss3
+            - cvss3_score
+            - flaw__component
+            - flaw__created_dt
+            - flaw__cve_id
+            - flaw__cvss2
+            - flaw__cvss2_score
+            - flaw__cvss3
+            - flaw__cvss3_score
+            - flaw__cwe_id
+            - flaw__impact
+            - flaw__is_major_incident
+            - flaw__nvd_cvss2
+            - flaw__nvd_cvss3
+            - flaw__reported_dt
+            - flaw__source
+            - flaw__type
+            - flaw__unembargo_dt
+            - flaw__updated_dt
+            - flaw__uuid
+            - impact
+            - ps_component
+            - ps_module
+            - resolution
+            - trackers__created_dt
+            - trackers__external_system_id
+            - trackers__ps_update_stream
+            - trackers__resolution
+            - trackers__status
+            - trackers__type
+            - trackers__updated_dt
+            - trackers__uuid
+            - type
+            - updated_dt
+            - uuid
+        description: Ordering
+        explode: false
+        style: form
+      - in: query
         name: ps_component
         schema:
           type: string
@@ -775,11 +1285,163 @@ paths:
           - WONTFIX
           - WONTREPORT
       - in: query
+        name: trackers__created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: trackers__created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: trackers__created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: trackers__created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: trackers__created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: trackers__created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: trackers__created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: trackers__created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: trackers__embargoed
+        schema:
+          type: boolean
+      - in: query
+        name: trackers__external_system_id
+        schema:
+          type: string
+      - in: query
+        name: trackers__ps_update_stream
+        schema:
+          type: string
+      - in: query
+        name: trackers__resolution
+        schema:
+          type: string
+      - in: query
+        name: trackers__status
+        schema:
+          type: string
+      - in: query
+        name: trackers__type
+        schema:
+          type: string
+          enum:
+          - BUGZILLA
+          - JIRA
+      - in: query
+        name: trackers__updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: trackers__updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: trackers__updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: trackers__updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: trackers__updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: trackers__updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: trackers__updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: trackers__updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: trackers__uuid
+        schema:
+          type: string
+          format: uuid
+      - in: query
         name: type
         schema:
           type: string
           enum:
           - DEFAULT
+      - in: query
+        name: updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lte
+        schema:
+          type: string
+          format: date-time
       - in: query
         name: uuid
         schema:
@@ -992,6 +1654,310 @@ paths:
       operationId: osidb_api_v1_flaws_list
       parameters:
       - in: query
+        name: affects__affectedness
+        schema:
+          type: string
+          enum:
+          - ''
+          - AFFECTED
+          - NEW
+          - NOTAFFECTED
+      - in: query
+        name: affects__created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__cvss2
+        schema:
+          type: string
+      - in: query
+        name: affects__cvss2_score
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss2_score__gt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss2_score__gte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss2_score__lt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss2_score__lte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss3
+        schema:
+          type: string
+      - in: query
+        name: affects__cvss3_score
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss3_score__gt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss3_score__gte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss3_score__lt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss3_score__lte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__embargoed
+        schema:
+          type: boolean
+      - in: query
+        name: affects__impact
+        schema:
+          type: string
+          enum:
+          - ''
+          - CRITICAL
+          - IMPORTANT
+          - LOW
+          - MODERATE
+      - in: query
+        name: affects__ps_component
+        schema:
+          type: string
+      - in: query
+        name: affects__ps_module
+        schema:
+          type: string
+      - in: query
+        name: affects__resolution
+        schema:
+          type: string
+          enum:
+          - ''
+          - DEFER
+          - DELEGATED
+          - FIX
+          - OOSS
+          - WONTFIX
+          - WONTREPORT
+      - in: query
+        name: affects__trackers__created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__embargoed
+        schema:
+          type: boolean
+      - in: query
+        name: affects__trackers__external_system_id
+        schema:
+          type: string
+      - in: query
+        name: affects__trackers__ps_update_stream
+        schema:
+          type: string
+      - in: query
+        name: affects__trackers__resolution
+        schema:
+          type: string
+      - in: query
+        name: affects__trackers__status
+        schema:
+          type: string
+      - in: query
+        name: affects__trackers__type
+        schema:
+          type: string
+          enum:
+          - BUGZILLA
+          - JIRA
+      - in: query
+        name: affects__trackers__updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__uuid
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: affects__type
+        schema:
+          type: string
+          enum:
+          - DEFAULT
+      - in: query
+        name: affects__updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__uuid
+        schema:
+          type: string
+          format: uuid
+      - in: query
         name: bz_id
         schema:
           type: number
@@ -1006,7 +1972,46 @@ paths:
           type: string
           format: date-time
       - in: query
+        name: component
+        schema:
+          type: string
+      - in: query
         name: created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lte
         schema:
           type: string
           format: date-time
@@ -1029,11 +2034,51 @@ paths:
           type: number
           format: float
       - in: query
+        name: cvss2_score__gt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss2_score__gte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss2_score__lt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss2_score__lte
+        schema:
+          type: number
+          format: float
+      - in: query
         name: cvss3
         schema:
           type: string
       - in: query
         name: cvss3_score
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss3_score__gt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss3_score__gte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss3_score__lt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss3_score__lte
         schema:
           type: number
           format: float
@@ -1097,12 +2142,24 @@ paths:
           wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
           keys from meta_attr. Omit this parameter to not include meta_attr fields
           at all. '
+      - in: query
+        name: is_major_incident
+        schema:
+          type: boolean
       - name: limit
         required: false
         in: query
         description: Number of results to return per page.
         schema:
           type: integer
+      - in: query
+        name: nvd_cvss2
+        schema:
+          type: string
+      - in: query
+        name: nvd_cvss3
+        schema:
+          type: string
       - name: offset
         required: false
         in: query
@@ -1110,7 +2167,130 @@ paths:
         schema:
           type: integer
       - in: query
+        name: order
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - -affects__affectedness
+            - -affects__created_dt
+            - -affects__cvss2
+            - -affects__cvss2_score
+            - -affects__cvss3
+            - -affects__cvss3_score
+            - -affects__impact
+            - -affects__ps_component
+            - -affects__ps_module
+            - -affects__resolution
+            - -affects__trackers__created_dt
+            - -affects__trackers__external_system_id
+            - -affects__trackers__ps_update_stream
+            - -affects__trackers__resolution
+            - -affects__trackers__status
+            - -affects__trackers__type
+            - -affects__trackers__updated_dt
+            - -affects__trackers__uuid
+            - -affects__type
+            - -affects__updated_dt
+            - -affects__uuid
+            - -component
+            - -created_dt
+            - -cve_id
+            - -cvss2
+            - -cvss2_score
+            - -cvss3
+            - -cvss3_score
+            - -cwe_id
+            - -impact
+            - -is_major_incident
+            - -nvd_cvss2
+            - -nvd_cvss3
+            - -reported_dt
+            - -source
+            - -type
+            - -unembargo_dt
+            - -updated_dt
+            - -uuid
+            - affects__affectedness
+            - affects__created_dt
+            - affects__cvss2
+            - affects__cvss2_score
+            - affects__cvss3
+            - affects__cvss3_score
+            - affects__impact
+            - affects__ps_component
+            - affects__ps_module
+            - affects__resolution
+            - affects__trackers__created_dt
+            - affects__trackers__external_system_id
+            - affects__trackers__ps_update_stream
+            - affects__trackers__resolution
+            - affects__trackers__status
+            - affects__trackers__type
+            - affects__trackers__updated_dt
+            - affects__trackers__uuid
+            - affects__type
+            - affects__updated_dt
+            - affects__uuid
+            - component
+            - created_dt
+            - cve_id
+            - cvss2
+            - cvss2_score
+            - cvss3
+            - cvss3_score
+            - cwe_id
+            - impact
+            - is_major_incident
+            - nvd_cvss2
+            - nvd_cvss3
+            - reported_dt
+            - source
+            - type
+            - unembargo_dt
+            - updated_dt
+            - uuid
+        description: Ordering
+        explode: false
+        style: form
+      - in: query
         name: reported_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: reported_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: reported_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: reported_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: reported_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: reported_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: reported_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: reported_dt__lte
         schema:
           type: string
           format: date-time
@@ -1245,6 +2425,41 @@ paths:
           format: date-time
       - in: query
         name: updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lte
         schema:
           type: string
           format: date-time
@@ -1658,6 +2873,567 @@ paths:
       operationId: osidb_api_v1_trackers_list
       parameters:
       - in: query
+        name: affects__affectedness
+        schema:
+          type: string
+          enum:
+          - ''
+          - AFFECTED
+          - NEW
+          - NOTAFFECTED
+      - in: query
+        name: affects__created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__cvss2
+        schema:
+          type: string
+      - in: query
+        name: affects__cvss2_score
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss2_score__gt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss2_score__gte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss2_score__lt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss2_score__lte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss3
+        schema:
+          type: string
+      - in: query
+        name: affects__cvss3_score
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss3_score__gt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss3_score__gte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss3_score__lt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__cvss3_score__lte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__embargoed
+        schema:
+          type: boolean
+      - in: query
+        name: affects__flaw__component
+        schema:
+          type: string
+      - in: query
+        name: affects__flaw__created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__flaw__created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__flaw__created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__flaw__created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__cve_id
+        schema:
+          type: string
+      - in: query
+        name: affects__flaw__cvss2
+        schema:
+          type: string
+      - in: query
+        name: affects__flaw__cvss2_score
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__flaw__cvss2_score__gt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__flaw__cvss2_score__gte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__flaw__cvss2_score__lt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__flaw__cvss2_score__lte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__flaw__cvss3
+        schema:
+          type: string
+      - in: query
+        name: affects__flaw__cvss3_score
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__flaw__cvss3_score__gt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__flaw__cvss3_score__gte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__flaw__cvss3_score__lt
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__flaw__cvss3_score__lte
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: affects__flaw__cwe_id
+        schema:
+          type: string
+      - in: query
+        name: affects__flaw__embargoed
+        schema:
+          type: boolean
+      - in: query
+        name: affects__flaw__impact
+        schema:
+          type: string
+          enum:
+          - ''
+          - CRITICAL
+          - IMPORTANT
+          - LOW
+          - MODERATE
+      - in: query
+        name: affects__flaw__is_major_incident
+        schema:
+          type: boolean
+      - in: query
+        name: affects__flaw__nvd_cvss2
+        schema:
+          type: string
+      - in: query
+        name: affects__flaw__nvd_cvss3
+        schema:
+          type: string
+      - in: query
+        name: affects__flaw__reported_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__reported_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__flaw__reported_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__flaw__reported_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__flaw__reported_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__reported_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__reported_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__reported_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__source
+        schema:
+          type: string
+          enum:
+          - ''
+          - ADOBE
+          - APPLE
+          - ASF
+          - BIND
+          - BK
+          - BUGTRAQ
+          - BUGZILLA
+          - CERT
+          - CERTIFI
+          - CORELABS
+          - CUSTOMER
+          - CVE
+          - DAILYDAVE
+          - DEBIAN
+          - DISTROS
+          - FEDORA
+          - FETCHMAIL
+          - FREEDESKTOP
+          - FREERADIUS
+          - FRSIRT
+          - FULLDISCLOSURE
+          - GAIM
+          - GENTOO
+          - GENTOOBZ
+          - GIT
+          - GNOME
+          - GNUPG
+          - GOOGLE
+          - HP
+          - HW_VENDOR
+          - IBM
+          - IDEFENSE
+          - INTERNET
+          - ISC
+          - ISEC
+          - IT
+          - JBOSS
+          - JPCERT
+          - KERNELBUGZILLA
+          - KERNELSEC
+          - LKML
+          - LWN
+          - MACROMEDIA
+          - MAGEIA
+          - MAILINGLIST
+          - MILW0RM
+          - MIT
+          - MITRE
+          - MOZILLA
+          - MUTTDEV
+          - NETDEV
+          - NISCC
+          - OCERT
+          - OPENOFFICE
+          - OPENSSL
+          - OPENSUSE
+          - ORACLE
+          - OSS
+          - OSSSECURITY
+          - PHP
+          - PIDGIN
+          - POSTGRESQL
+          - PRESS
+          - REAL
+          - REDHAT
+          - RESEARCHER
+          - RT
+          - SAMBA
+          - SECALERT
+          - SECUNIA
+          - SECURITYFOCUS
+          - SKO
+          - SQUID
+          - SQUIRRELMAIL
+          - SUN
+          - SUNSOLVE
+          - SUSE
+          - TWITTER
+          - UBUNTU
+          - UPSTREAM
+          - VENDORSEC
+          - VULNWATCH
+          - WIRESHARK
+          - XCHAT
+          - XEN
+          - XPDF
+      - in: query
+        name: affects__flaw__type
+        schema:
+          type: string
+          enum:
+          - VULNERABILITY
+          - WEAKNESS
+      - in: query
+        name: affects__flaw__unembargo_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__flaw__updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__flaw__updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__flaw__updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__flaw__uuid
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: affects__impact
+        schema:
+          type: string
+          enum:
+          - ''
+          - CRITICAL
+          - IMPORTANT
+          - LOW
+          - MODERATE
+      - in: query
+        name: affects__ps_component
+        schema:
+          type: string
+      - in: query
+        name: affects__ps_module
+        schema:
+          type: string
+      - in: query
+        name: affects__resolution
+        schema:
+          type: string
+          enum:
+          - ''
+          - DEFER
+          - DELEGATED
+          - FIX
+          - OOSS
+          - WONTFIX
+          - WONTREPORT
+      - in: query
+        name: affects__type
+        schema:
+          type: string
+          enum:
+          - DEFAULT
+      - in: query
+        name: affects__updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__uuid
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: embargoed
+        schema:
+          type: boolean
+      - in: query
         name: exclude_fields
         schema:
           type: array
@@ -1704,6 +3480,94 @@ paths:
         schema:
           type: integer
       - in: query
+        name: order
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - -affects__affectedness
+            - -affects__created_dt
+            - -affects__cvss2
+            - -affects__cvss2_score
+            - -affects__cvss3
+            - -affects__cvss3_score
+            - -affects__flaw__component
+            - -affects__flaw__created_dt
+            - -affects__flaw__cve_id
+            - -affects__flaw__cvss2
+            - -affects__flaw__cvss2_score
+            - -affects__flaw__cvss3
+            - -affects__flaw__cvss3_score
+            - -affects__flaw__cwe_id
+            - -affects__flaw__impact
+            - -affects__flaw__is_major_incident
+            - -affects__flaw__nvd_cvss2
+            - -affects__flaw__nvd_cvss3
+            - -affects__flaw__reported_dt
+            - -affects__flaw__source
+            - -affects__flaw__type
+            - -affects__flaw__unembargo_dt
+            - -affects__flaw__updated_dt
+            - -affects__flaw__uuid
+            - -affects__impact
+            - -affects__ps_component
+            - -affects__ps_module
+            - -affects__resolution
+            - -affects__type
+            - -affects__updated_dt
+            - -affects__uuid
+            - -created_dt
+            - -external_system_id
+            - -ps_update_stream
+            - -resolution
+            - -status
+            - -type
+            - -updated_dt
+            - -uuid
+            - affects__affectedness
+            - affects__created_dt
+            - affects__cvss2
+            - affects__cvss2_score
+            - affects__cvss3
+            - affects__cvss3_score
+            - affects__flaw__component
+            - affects__flaw__created_dt
+            - affects__flaw__cve_id
+            - affects__flaw__cvss2
+            - affects__flaw__cvss2_score
+            - affects__flaw__cvss3
+            - affects__flaw__cvss3_score
+            - affects__flaw__cwe_id
+            - affects__flaw__impact
+            - affects__flaw__is_major_incident
+            - affects__flaw__nvd_cvss2
+            - affects__flaw__nvd_cvss3
+            - affects__flaw__reported_dt
+            - affects__flaw__source
+            - affects__flaw__type
+            - affects__flaw__unembargo_dt
+            - affects__flaw__updated_dt
+            - affects__flaw__uuid
+            - affects__impact
+            - affects__ps_component
+            - affects__ps_module
+            - affects__resolution
+            - affects__type
+            - affects__updated_dt
+            - affects__uuid
+            - created_dt
+            - external_system_id
+            - ps_update_stream
+            - resolution
+            - status
+            - type
+            - updated_dt
+            - uuid
+        description: Ordering
+        explode: false
+        style: form
+      - in: query
         name: ps_update_stream
         schema:
           type: string
@@ -1722,6 +3586,46 @@ paths:
           enum:
           - BUGZILLA
           - JIRA
+      - in: query
+        name: updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lte
+        schema:
+          type: string
+          format: date-time
       - in: query
         name: uuid
         schema:
