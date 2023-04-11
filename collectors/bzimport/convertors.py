@@ -462,7 +462,6 @@ class FlawBugConvertor:
     _task_bug = None
     _tracker_bugs = None
     _tracker_jiras = None
-    _nvd_cvss = None
 
     def __init__(
         self,
@@ -472,7 +471,6 @@ class FlawBugConvertor:
         task_bug,
         tracker_bugs,
         tracker_jiras,
-        nvd_cvss,
     ):
         """init source data"""
         self._flaw_bug = flaw_bug
@@ -481,7 +479,6 @@ class FlawBugConvertor:
         self._task_bug = task_bug
         self._tracker_bugs = tracker_bugs
         self._tracker_jiras = tracker_jiras
-        self._nvd_cvss = nvd_cvss
         # set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
         # celery workers should be able to read/write any information in order to fulfill their jobs
         set_user_acls(
@@ -687,16 +684,6 @@ class FlawBugConvertor:
         meta_attr["resolution"] = self.flaw_bug["resolution"]
         return meta_attr
 
-    def get_nvd_cvss2(self, cve_id):
-        """get NVD CVSS2"""
-        if cve_id in self._nvd_cvss and "cvss2" in self._nvd_cvss[cve_id]:
-            return self._nvd_cvss[cve_id]["cvss2"]
-
-    def get_nvd_cvss3(self, cve_id):
-        """get NVD CVSS3"""
-        if cve_id in self._nvd_cvss and "cvss3" in self._nvd_cvss[cve_id]:
-            return self._nvd_cvss[cve_id]["cvss3"]
-
     ##############################
     # TRACKER RELATED PROPERTIES #
     ##############################
@@ -809,8 +796,6 @@ class FlawBugConvertor:
             cve_id=cve_id,
             type=FlawType.VULNERABILITY,
             meta_attr=self.get_meta_attr(cve_id),
-            nvd_cvss2=self.get_nvd_cvss2(cve_id),
-            nvd_cvss3=self.get_nvd_cvss3(cve_id),
             created_dt=self.flaw_bug["creation_time"],
             updated_dt=self.flaw_bug["last_change_time"],
             acl_read=self.acl_read,

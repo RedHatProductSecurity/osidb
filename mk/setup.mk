@@ -21,7 +21,6 @@ clean:
 	rm -rf osidbcov
 	rm -rf mypyreport
 	rm -rf src/prodsec
-	rm -rf bzimport_requests_cache.sqlite
 	rm -rf venv
 	rm -f etc/pg/local-server.*
 

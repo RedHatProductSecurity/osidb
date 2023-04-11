@@ -337,7 +337,6 @@ class TestTrackingMixin:
             task_bug=None,
             tracker_bugs=[],
             tracker_jiras=[],
-            nvd_cvss={},
         )
 
     @freeze_time(tzdatetime(2022, 12, 24))

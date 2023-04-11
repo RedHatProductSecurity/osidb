@@ -513,7 +513,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -535,7 +534,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert len(flaws) == 1
@@ -583,7 +581,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -611,7 +608,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -634,7 +630,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -662,7 +657,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -686,7 +680,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -713,7 +706,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -737,7 +729,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -760,7 +751,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -787,7 +777,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -811,7 +800,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -838,7 +826,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -860,7 +847,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -887,7 +873,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -910,7 +895,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -951,7 +935,6 @@ class TestFlawBugConvertor:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -980,7 +963,6 @@ class TestFlawBugConvertorFixedIn:
             None,
             [],
             [],
-            {},
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
