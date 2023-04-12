@@ -3,7 +3,6 @@
 """
 import pytest
 
-from apps.taskman.constants import HTTPS_PROXY
 from apps.taskman.service import TaskStatus
 from osidb.tests.factories import AffectFactory, FlawFactory
 
@@ -12,7 +11,7 @@ pytestmark = pytest.mark.integration
 
 class TestIntegration(object):
     @pytest.mark.vcr
-    def test_task(self, monkeypatch, user_token, auth_client, test_api_uri):
+    def test_task(self, user_token, auth_client, test_api_uri):
         """
         Test CRUD operations using REST APIs for task management.
 
@@ -22,8 +21,6 @@ class TestIntegration(object):
         GET -> /task/<str:task_key>
         PUT -> /task/<str:task_key>/status
         """
-        monkeypatch.setenv("HTTPS_PROXY", HTTPS_PROXY)
-
         # remove randomness from flaw
         flaw = FlawFactory(uuid="0a9d00d7-b846-4840-abe5-becda57f0a14", embargoed=False)
         AffectFactory(flaw=flaw)
@@ -103,15 +100,13 @@ class TestIntegration(object):
         assert "customfield_12311140" in issue3["fields"]
 
     @pytest.mark.vcr
-    def test_comment(self, monkeypatch, user_token, auth_client, test_api_uri):
+    def test_comment(self, user_token, auth_client, test_api_uri):
         """
         Test CRUD operations using REST APIs for comment management.
 
         POST -> /task/<str:task_key>/comment
         PUT -> /task/<str:task_key>/comment/<str:comment_id>
         """
-        monkeypatch.setenv("HTTPS_PROXY", HTTPS_PROXY)
-
         # remove randomness from flaw
         flaw = FlawFactory(uuid="98c0c5fd-b2fc-46cb-adf4-5de2bdce2737", embargoed=False)
 
@@ -145,7 +140,7 @@ class TestIntegration(object):
         assert response3.json()["body"] == new_comment_content
 
     @pytest.mark.vcr
-    def test_group(self, monkeypatch, user_token, auth_client, test_api_uri):
+    def test_group(self, user_token, auth_client, test_api_uri):
         """
         Test CRUD operations using REST APIs for group of tasks management.
 
@@ -153,7 +148,6 @@ class TestIntegration(object):
         PUT -> /group/<str:group_key>
         GET -> /group/<str:group_key>
         """
-        monkeypatch.setenv("HTTPS_PROXY", HTTPS_PROXY)
         headers = {"HTTP_JiraAuthentication": user_token}
         response1 = auth_client.post(
             f"{test_api_uri}/group",

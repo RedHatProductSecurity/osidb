@@ -1,5 +1,5 @@
 import pytest
-from taskman.constants import TASKMAN_API_VERSION
+from taskman.constants import HTTPS_TASKMAN_PROXY, TASKMAN_API_VERSION
 
 
 @pytest.fixture(autouse=True)
@@ -18,6 +18,12 @@ def use_debug(settings):
 @pytest.fixture(autouse=True)
 def enable_db_access_for_all_tests(db):
     pass
+
+
+@pytest.fixture(autouse=True)
+def enable_proxy_for_stage_environment(monkeypatch):
+    if HTTPS_TASKMAN_PROXY:
+        monkeypatch.setenv("HTTPS_PROXY", HTTPS_TASKMAN_PROXY)
 
 
 @pytest.fixture

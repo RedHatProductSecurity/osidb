@@ -24,11 +24,11 @@ JIRA_AUTH_TOKEN=####################
 # Jira URL (optional, defaults to RedHat production Jira)
 JIRA_URL="https://foo.bar"
 
-# Task management Jira URL (optional, defaults to Red Hat stage Jira)
+# Task management Jira URL
 JIRA_TASKMAN_URL="https://foo.bar"
 
-# Task management Jira URL (optional, defaults to Red Hat stage Jira project)
-JIRA_TASKMAN_PROJECT_KEY=MY_PROJECT_KEY
+# Project key used for task management
+JIRA_TASKMAN_PROJECT_KEY="OSIM"
 
 # Export the default local postgresql password
 OSIDB_DB_PASSWORD=passw0rd
@@ -52,9 +52,9 @@ RH_CERT_URL="https://foo.bar"
 # otherwise all the writes are performed only locally in OSIDB
 BBSYNC_SYNC_TO_BZ=1
 
-# Enable https proxy (optional)
-# This variable is only required when using taskman to access Red Hat's stage environment
-HTTPS_PROXY="http://foo.bar"
+#Run taskman tests behind a proxy (optional)
+#This variable is only necessary if rewriting the taskman cassettes locally and using the Stage Red Hat JIRA instance, which requires a proxy to be accessed.
+HTTPS_TASKMAN_PROXY="http://foo.bar"
 ```
 
 The `.env` file is loaded automatically by podman-compose. It is also loaded as environment variables in a few Makefile targets (run `grep -rF '.env ' mk/` to see which ones).
