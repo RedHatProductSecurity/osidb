@@ -5,13 +5,11 @@ import json
 from typing import Union
 
 import bugzilla
-import requests_cache
 from bugzilla.base import Bugzilla
 from celery.utils.log import get_task_logger
 from dateutil.relativedelta import relativedelta
 from django.db import transaction
 from django.utils import timezone
-from requests_gssapi import HTTPKerberosAuth
 
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.convertors import FlawBugConvertor, TrackerBugConvertor
@@ -20,14 +18,7 @@ from collectors.framework.models import Collector
 from collectors.jiraffe.core import JiraQuerier
 from osidb.models import Flaw, PsModule, Tracker
 
-from .constants import (
-    ANALYSIS_TASK_PRODUCT,
-    BZ_API_KEY,
-    BZ_DT_FMT,
-    BZ_URL,
-    NVD_CVSS_URL,
-    ROOT_CA_PATH,
-)
+from .constants import ANALYSIS_TASK_PRODUCT, BZ_API_KEY, BZ_DT_FMT, BZ_URL
 from .exceptions import RecoverableBZImportException
 
 logger = get_task_logger(__name__)
@@ -251,43 +242,6 @@ class BugzillaQuerier(BugzillaConnector):
         return products[0] if products else None
 
 
-# TODO
-# this is a very dummy solution which works but
-# should be eventually turned into a collector
-class NVDQuerier:
-    """NVD query handler"""
-
-    _nvd_cvss = None
-    _timestamp = None
-
-    @staticmethod
-    def get_nvd_cvss() -> dict:
-        """returns a dict with all NVD CVSS"""
-        session = requests_cache.CachedSession("bzimport_requests_cache")
-        response = session.get(
-            NVD_CVSS_URL,
-            verify=ROOT_CA_PATH,
-            auth=HTTPKerberosAuth(),
-        )
-        if not response.ok:
-            return {}
-        return response.json()
-
-    @classmethod
-    def nvd_cvss(cls) -> dict:
-        """
-        cached NVD CVSS getter
-        recached every hour
-        """
-        if cls._nvd_cvss is None or (
-            timezone.now() - cls._timestamp
-        ) > timezone.timedelta(hours=1):
-            cls._nvd_cvss = cls.get_nvd_cvss()
-            cls._timestamp = timezone.now()
-
-        return cls._nvd_cvss
-
-
 class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
     """Bugzilla flaw collector"""
 
@@ -448,7 +402,6 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
             flaw_comments = self.get_bug_comments(flaw_id)
             flaw_history = self.get_bug_history(flaw_id)
             flaw_task = self.get_flaw_task(flaw_data)
-            nvd_cvss = NVDQuerier.nvd_cvss()
         except Exception as e:
             # fetching the data is prone to transient failures which are recoverable
             # while the permanent issues are not expected at this stage of flaw sync
@@ -469,7 +422,6 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
             flaw_task,
             flaw_bz_trackers,
             flaw_jira_trackers,
-            nvd_cvss,
         )
         flaws = fbc.flaws
         # TODO store errors

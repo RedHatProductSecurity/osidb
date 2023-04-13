@@ -16,11 +16,6 @@ BZ_ENABLE_IMPORT_EMBARGOED = get_env(
     "BZIMPORT_ENABLE_IMPORT_EMBARGOED", default="True", is_bool=True
 )
 
-ROOT_CA_PATH = get_env("ROOT_CA_PATH")
-
-# nvd cvss url
-NVD_CVSS_URL = get_env("DASHBOARD_URL", "") + "/rest/api/latest/nvd_cvss"
-
 # Bugzilla product for analysis tasks
 ANALYSIS_TASK_PRODUCT = "Security Response"
 

@@ -24,6 +24,7 @@ jira
 jsonschema
 kerberos
 markdown
+nvdlib
 packageurl-python
 psycopg2
 pyjwt==2.4.0
