@@ -8,7 +8,6 @@
 
 import pytest
 
-from apps.taskman.constants import HTTPS_PROXY
 from apps.taskman.service import JiraTaskmanQuerier, TaskStatus
 from osidb.tests.factories import AffectFactory, FlawFactory
 
@@ -17,12 +16,10 @@ pytestmark = pytest.mark.unit
 
 class TestTaskmanService(object):
     @pytest.mark.vcr
-    def test_create_or_update_task(self, monkeypatch, user_token):
+    def test_create_or_update_task(self, user_token):
         """
         Test that service is able to create, get and sync a task from Jira
         """
-        monkeypatch.setenv("HTTPS_PROXY", HTTPS_PROXY)
-
         # Remove randomness to reuse VCR every possible time
         flaw = FlawFactory(embargoed=False, uuid="9d9b3b14-0c44-4030-883c-8610f7e2879b")
         AffectFactory(flaw=flaw)
@@ -60,12 +57,10 @@ class TestTaskmanService(object):
         assert response8.data["fields"]["summary"] == new_title
 
     @pytest.mark.vcr
-    def test_update_task_status(self, monkeypatch, user_token):
+    def test_update_task_status(self, user_token):
         """
         Test that service is able to update task workflow status from Jira
         """
-        monkeypatch.setenv("HTTPS_PROXY", HTTPS_PROXY)
-
         # Remove randomness to reuse VCR every possible time
         flaw = FlawFactory(embargoed=False, uuid="4823d62a-a59f-49f4-8d79-be9f7d792dfa")
         taskman = JiraTaskmanQuerier(token=user_token)
@@ -83,12 +78,10 @@ class TestTaskmanService(object):
         assert response4.data["fields"]["status"]["name"] == TaskStatus.CLOSED
 
     @pytest.mark.vcr
-    def test_comments(self, monkeypatch, user_token):
+    def test_comments(self, user_token):
         """
         Test that service is able to create and update a comment from Jira
         """
-        monkeypatch.setenv("HTTPS_PROXY", HTTPS_PROXY)
-
         # Remove randomness to reuse VCR every possible time
         flaw = FlawFactory(embargoed=False, uuid="99cce9ba-829d-4933-b4c1-44533d819e77")
         taskman = JiraTaskmanQuerier(token=user_token)
@@ -107,12 +100,10 @@ class TestTaskmanService(object):
         assert response3.status_code == 200
 
     @pytest.mark.vcr
-    def test_groups(self, monkeypatch, user_token):
+    def test_groups(self, user_token):
         """
         Test that service is able to create and update a group (epic) from Jira
         """
-        monkeypatch.setenv("HTTPS_PROXY", HTTPS_PROXY)
-
         # Remove randomness to reuse VCR every possible time
         flaw1 = FlawFactory(
             embargoed=False, uuid="f49b20b2-b9ba-47d7-bf17-b7685f484f51"
