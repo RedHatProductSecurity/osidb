@@ -178,3 +178,28 @@ class JiraTaskmanQuerier(JiraQuerier):
             )
         except JIRAError as e:
             return Response(data=e.response.json(), status=e.status_code)
+
+    def assign_task(self, task_key: str, assignee: str) -> Response:
+        """set Jira task assignee"""
+        try:
+            self.jira_conn.assign_issue(task_key, assignee)
+            return Response(
+                data={},
+                status=204,
+            )
+        except JIRAError as e:
+            return Response(data=e.response.json(), status=e.status_code)
+
+    def search_tasks_by_assignee(self, assignee: str) -> Response:
+        """search Jira task by its assignee"""
+        user_query = f'assignee="{assignee}"' if assignee else "assignee is EMPTY"
+        jql_query = f'PROJECT={JIRA_TASKMAN_PROJECT_KEY} \
+                AND {user_query} \
+                AND type="Story"'
+        try:
+            return Response(
+                data=self.jira_conn.search_issues(jql_query, json_result=True),
+                status=200,
+            )
+        except JIRAError as e:
+            return Response(data=e.response.json(), status=e.status_code)

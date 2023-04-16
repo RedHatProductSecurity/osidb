@@ -40,6 +40,8 @@ class TestIntegration(object):
         assert "summary" in issue["fields"]
         assert "description" in issue["fields"]
         assert "assignee" in issue["fields"]
+        assert "creator" in issue["fields"]
+        assert "reporter" in issue["fields"]
         assert "customfield_12311140" in issue["fields"]
 
         flaw.title = f"{flaw.title} modified"
@@ -99,6 +101,15 @@ class TestIntegration(object):
         assert "assignee" in issue3["fields"]
         assert "customfield_12311140" in issue3["fields"]
 
+        # Test serializer failing cases
+        response7 = auth_client.put(
+            f"{test_api_uri}/task/{issue['key']}/status",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response7.status_code == 400
+
     @pytest.mark.vcr
     def test_comment(self, user_token, auth_client, test_api_uri):
         """
@@ -138,6 +149,22 @@ class TestIntegration(object):
         )
         assert response3.status_code == 200
         assert response3.json()["body"] == new_comment_content
+
+        # Test serializer failing cases
+        response4 = auth_client.post(
+            f"{test_api_uri}/task/{issue['key']}/comment",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response4.status_code == 400
+        response5 = auth_client.put(
+            f"{test_api_uri}/task/{issue['key']}/comment/{response2.json()['id']}",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response5.status_code == 400
 
     @pytest.mark.vcr
     def test_group(self, user_token, auth_client, test_api_uri):
@@ -207,3 +234,79 @@ class TestIntegration(object):
         )
         assert response6.status_code == 200
         assert response6.json()["total"] == 2
+
+        # Test serializer failing cases
+        response7 = auth_client.post(
+            f"{test_api_uri}/group",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response7.status_code == 400
+        response8 = auth_client.put(
+            f"{test_api_uri}/group/{response1.json()['key']}",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response8.status_code == 400
+
+    @pytest.mark.vcr
+    def test_assignment(self, user_token, auth_client, test_api_uri):
+        """
+        Test CRUD operations using REST APIs for task assignment.
+
+        PUT -> /task/assignee/<str:user>
+        GET -> /task/assignee/<str:user>
+        """
+        # remove randomness from flaw
+        flaw1 = FlawFactory(
+            uuid="5a1a57e0-5b32-40e0-bc6d-c47995692ff1", embargoed=False
+        )
+
+        headers = {"HTTP_JiraAuthentication": user_token}
+        response1 = auth_client.post(
+            f"{test_api_uri}/task/flaw/{flaw1.uuid}",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response1.status_code == 201
+        issue1 = response1.json()
+
+        user = issue1["fields"]["creator"]["name"]
+
+        response2 = auth_client.get(
+            f"{test_api_uri}/task/unassigned/",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response2.status_code == 200
+        assert response2.json()["total"] == 1
+
+        response3 = auth_client.put(
+            f"{test_api_uri}/task/assignee/{user}",
+            data={"task_key": issue1["key"]},
+            format="json",
+            **headers,
+        )
+        assert response3.status_code == 204
+
+        response4 = auth_client.get(
+            f"{test_api_uri}/task/assignee/{user}",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response4.status_code == 200
+        assert response4.json()["total"] == 1
+
+        # Test serializer failing cases
+        response5 = auth_client.put(
+            f"{test_api_uri}/task/assignee/{user}",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response5.status_code == 400

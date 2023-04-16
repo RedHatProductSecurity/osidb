@@ -141,3 +141,30 @@ class TestTaskmanService(object):
 
         response6 = taskman.search_task_by_group(response3.data["key"])
         assert response6.data["total"] == 2
+
+    @pytest.mark.vcr
+    def test_task_ownership(self, user_token):
+        """
+        Test that service is able to assign owners to a task and query by its owner
+        """
+
+        # Remove randomness to reuse VCR every possible time
+        flaw1 = FlawFactory(
+            embargoed=False, uuid="ef810d00-8415-453a-89f6-96a1c72fd2f7"
+        )
+        flaw2 = FlawFactory(
+            embargoed=False, uuid="60e979cf-7d85-4687-b04f-9252d31e4778"
+        )
+        taskman = JiraTaskmanQuerier(token=user_token)
+
+        response1 = taskman.create_or_update_task(flaw=flaw1)
+        assert response1.status_code == 201
+        response2 = taskman.create_or_update_task(flaw=flaw2)
+        assert response2.status_code == 201
+
+        assignee = response1.data["fields"]["reporter"]["name"]
+        taskman.assign_task(response1.data["key"], assignee)
+        taskman.assign_task(response2.data["key"], assignee)
+
+        response3 = taskman.search_tasks_by_assignee(assignee=assignee)
+        assert response3.data["total"] == 2

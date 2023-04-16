@@ -223,3 +223,44 @@ class task_status(GenericAPIView):
         ).update_task_status(
             issue_key=task_key, status=serializer.validated_data["status"]
         )
+
+
+@jira_token_description
+class task_assignee(GenericAPIView):
+    @extend_schema(
+        responses=JiraIssueQueryResultSerializer,
+    )
+    def get(self, request, user):
+        """Get a list of tasks from a user"""
+        return JiraTaskmanQuerier(
+            token=request.headers.get("JiraAuthentication")
+        ).search_tasks_by_assignee(user)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name="task_key", required=True, type=str),
+        ],
+        description="Assign a task to a user",
+        responses={204: OpenApiResponse(description="Modified.")},
+    )
+    def put(self, request, user):
+        """Assign a user for a task"""
+        serializer = TaskKeySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        issue_key = serializer.validated_data["task_key"]
+
+        return JiraTaskmanQuerier(
+            token=request.headers.get("JiraAuthentication")
+        ).assign_task(task_key=issue_key, assignee=user)
+
+
+@jira_token_description
+class task_unassigneed(GenericAPIView):
+    @extend_schema(
+        responses=JiraIssueQueryResultSerializer,
+    )
+    def get(self, request):
+        """Get a list of tasks without an user assigned"""
+        return JiraTaskmanQuerier(
+            token=request.headers.get("JiraAuthentication")
+        ).search_tasks_by_assignee(None)
