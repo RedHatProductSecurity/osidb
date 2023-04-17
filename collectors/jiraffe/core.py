@@ -16,9 +16,8 @@ from .constants import JIRA_SERVER, JIRA_TOKEN, PRODUCT_DEFINITIONS_URL
 class JiraQuerier:
     """Jira query handler"""
 
-    def __init__(self) -> None:
-        self._jira_server = JIRA_SERVER
-        self._jira_token = JIRA_TOKEN
+    _jira_server = JIRA_SERVER
+    _jira_token = JIRA_TOKEN
 
     ###################
     # JIRA CONNECTION #

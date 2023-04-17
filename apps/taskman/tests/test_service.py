@@ -16,6 +16,12 @@ pytestmark = pytest.mark.unit
 
 
 class TestTaskmanService(object):
+    def test_jira_connection(self, user_token):
+        """
+        Test that taskman is able to instantiate a Jira connection object
+        """
+        assert JiraTaskmanQuerier(token=user_token).jira_conn
+
     @pytest.mark.vcr
     def test_create_or_update_task(self, monkeypatch, user_token):
         """
