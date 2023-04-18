@@ -42,7 +42,84 @@ from .fixups import AffectFixer, FlawFixer
 logger = logging.getLogger(__name__)
 
 
-class TrackerBugConvertor:
+class BugzillaGroupsConvertorMixin:
+    """
+    shared functionality to convert Bugzilla groups to ACLs
+    """
+
+    @property
+    def bz_id(self):
+        """
+        required property to be defined in the child classes
+        """
+        raise NotImplementedError
+
+    @property
+    def bug(self):
+        """
+        generic shortcut to be specified in the child classes
+        """
+        raise NotImplementedError
+
+    @property
+    def groups(self):
+        """
+        appropriate overall LDAP groups
+        """
+        return self.groups_read + self.groups_write
+
+    @property
+    def groups_read(self):
+        """
+        appropriate read LDAP groups
+        """
+        if "security" not in self.bug.get("groups", []):
+            return settings.PUBLIC_READ_GROUPS
+
+        if not BZ_ENABLE_IMPORT_EMBARGOED:
+            raise self.FlawBugConvertorException(
+                f"Bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
+            )
+
+        return [settings.EMBARGO_READ_GROUP]
+
+    @property
+    def groups_write(self):
+        """
+        appropriate write LDAP groups
+        """
+        if "security" not in self.bug.get("groups", []):
+            return [settings.PUBLIC_WRITE_GROUP]
+
+        if not BZ_ENABLE_IMPORT_EMBARGOED:
+            raise self.FlawBugConvertorException(
+                f"Bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
+            )
+
+        return [settings.EMBARGO_WRITE_GROUP]
+
+    @cached_property
+    def acl_read(self):
+        """
+        get read ACL based on read groups
+
+        it is necessary to generete UUIDs and not just hashes
+        so the ACL validations may properly compare the result
+        """
+        return [uuid.UUID(acl) for acl in generate_acls(self.groups_read)]
+
+    @cached_property
+    def acl_write(self):
+        """
+        get write ACL based on write groups
+
+        it is necessary to generete UUIDs and not just hashes
+        so the ACL validations may properly compare the result
+        """
+        return [uuid.UUID(acl) for acl in generate_acls(self.groups_write)]
+
+
+class TrackerBugConvertor(BugzillaGroupsConvertorMixin):
     """
     Bugzilla tracker bug to OSIDB tracker convertor.
 
@@ -69,6 +146,18 @@ class TrackerBugConvertor:
                 settings.EMBARGO_WRITE_GROUP,
             ]
         )
+
+    @property
+    def bz_id(self):
+        """Bugzilla ID"""
+        return self.tracker_bug["id"]
+
+    @property
+    def bug(self):
+        """
+        generic bug used in mixin context means tracker bug here
+        """
+        return self.tracker_bug
 
     def _normalize(self) -> dict:
         if self.type == Tracker.TrackerType.BUGZILLA:
@@ -118,52 +207,6 @@ class TrackerBugConvertor:
             if self._raw.fields.updated
             else self._raw.fields.created,
         }
-
-    @property
-    def groups_read(self):
-        """appropriate read LDAP groups"""
-        if "security" not in self.tracker_bug.get("groups", []):
-            return settings.PUBLIC_READ_GROUPS
-
-        if not BZ_ENABLE_IMPORT_EMBARGOED:
-            raise self.FlawBugConvertorException(
-                f"Flaw bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
-            )
-
-        return [settings.EMBARGO_READ_GROUP]
-
-    @property
-    def groups_write(self):
-        """appropriate write LDAP groups"""
-        if "security" not in self.tracker_bug.get("groups", []):
-            return [settings.PUBLIC_WRITE_GROUP]
-
-        if not BZ_ENABLE_IMPORT_EMBARGOED:
-            raise self.FlawBugConvertorException(
-                f"Flaw bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
-            )
-
-        return [settings.EMBARGO_WRITE_GROUP]
-
-    @cached_property
-    def acl_read(self):
-        """
-        get read ACL based on read groups
-
-        it is necessary to generete UUIDs and not just hashes
-        so the ACL validations may properly compare the result
-        """
-        return [uuid.UUID(acl) for acl in generate_acls(self.groups_read)]
-
-    @cached_property
-    def acl_write(self):
-        """
-        get write ACL based on write groups
-
-        it is necessary to generete UUIDs and not just hashes
-        so the ACL validations may properly compare the result
-        """
-        return [uuid.UUID(acl) for acl in generate_acls(self.groups_write)]
 
     def _gen_tracker_object(self, affect) -> Tracker:
         # there maybe already existing tracker from the previous sync
@@ -395,7 +438,7 @@ class FlawSaver:
             )
 
 
-class FlawBugConvertor:
+class FlawBugConvertor(BugzillaGroupsConvertorMixin):
     """
     Bugzilla flaw bug to OSIDB flaw model convertor
     this class is to performs the transformation only
@@ -483,6 +526,13 @@ class FlawBugConvertor:
         )
 
     @property
+    def bug(self):
+        """
+        generic bug used in mixin context means flaw bug here
+        """
+        return self.flaw_bug
+
+    @property
     def flaw_bug(self):
         """check and get flaw bug"""
         if self._flaw_bug is None:
@@ -529,26 +579,6 @@ class FlawBugConvertor:
 
     # shared accross multiple evenual CVEs
 
-    @cached_property
-    def acl_read(self):
-        """
-        get read ACL based on read groups
-
-        it is necessary to generete UUIDs and not just hashes
-        so the ACL validations may properly compare the result
-        """
-        return [uuid.UUID(acl) for acl in generate_acls(self.groups_read)]
-
-    @cached_property
-    def acl_write(self):
-        """
-        get write ACL based on write groups
-
-        it is necessary to generete UUIDs and not just hashes
-        so the ACL validations may properly compare the result
-        """
-        return [uuid.UUID(acl) for acl in generate_acls(self.groups_write)]
-
     @property
     def alias(self):
         """Bugzilla alias array"""
@@ -566,37 +596,6 @@ class FlawBugConvertor:
             return []
 
         return [flag for flag in self.flaw_bug["flags"] if isinstance(flag, dict)]
-
-    @property
-    def groups(self):
-        """appropriate overall LDAP groups"""
-        return self.groups_read + self.groups_write
-
-    @property
-    def groups_read(self):
-        """appropriate read LDAP groups"""
-        if "security" not in self.flaw_bug.get("groups", []):
-            return settings.PUBLIC_READ_GROUPS
-
-        if not BZ_ENABLE_IMPORT_EMBARGOED:
-            raise self.FlawBugConvertorException(
-                f"Flaw bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
-            )
-
-        return [settings.EMBARGO_READ_GROUP]
-
-    @property
-    def groups_write(self):
-        """appropriate write LDAP groups"""
-        if "security" not in self.flaw_bug.get("groups", []):
-            return [settings.PUBLIC_WRITE_GROUP]
-
-        if not BZ_ENABLE_IMPORT_EMBARGOED:
-            raise self.FlawBugConvertorException(
-                f"Flaw bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
-            )
-
-        return [settings.EMBARGO_WRITE_GROUP]
 
     @cached_property
     def package_versions(self):
