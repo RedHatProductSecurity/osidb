@@ -54,13 +54,9 @@ class TrackerBugConvertor:
         self,
         tracker_bug,
         _type: Tracker.TrackerType,
-        acl_read: list[str] = None,
-        acl_write: list[str] = None,
     ):
         self._raw = tracker_bug
         self.type = _type
-        self._acl_read = acl_read
-        self._acl_write = acl_write
         # important that this is last as it might require other fields on self
         self.tracker_bug = self._normalize()
         # set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
@@ -157,9 +153,7 @@ class TrackerBugConvertor:
         it is necessary to generete UUIDs and not just hashes
         so the ACL validations may properly compare the result
         """
-        return self._acl_read or [
-            uuid.UUID(acl) for acl in generate_acls(self.groups_read)
-        ]
+        return [uuid.UUID(acl) for acl in generate_acls(self.groups_read)]
 
     @cached_property
     def acl_write(self):
@@ -169,9 +163,7 @@ class TrackerBugConvertor:
         it is necessary to generete UUIDs and not just hashes
         so the ACL validations may properly compare the result
         """
-        return self._acl_write or [
-            uuid.UUID(acl) for acl in generate_acls(self.groups_write)
-        ]
+        return [uuid.UUID(acl) for acl in generate_acls(self.groups_write)]
 
     def _gen_tracker_object(self, affect) -> Tracker:
         # there maybe already existing tracker from the previous sync
@@ -695,9 +687,7 @@ class FlawBugConvertor:
         with product definitions context
         """
         return [
-            TrackerBugConvertor(
-                tracker, Tracker.TrackerType.BUGZILLA, self.acl_read, self.acl_write
-            )
+            TrackerBugConvertor(tracker, Tracker.TrackerType.BUGZILLA)
             for tracker in self.tracker_bugs
         ]
 
@@ -716,9 +706,7 @@ class FlawBugConvertor:
         with product definitions context
         """
         return [
-            TrackerBugConvertor(
-                tracker, Tracker.TrackerType.JIRA, self.acl_read, self.acl_write
-            )
+            TrackerBugConvertor(tracker, Tracker.TrackerType.JIRA)
             for tracker in self.tracker_jiras
         ]
 
