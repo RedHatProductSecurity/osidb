@@ -35,7 +35,6 @@ test:
       LDAP_ADMIN_PASSWORD: adminpassword
       ET_URL: $ET_URL
       PRODUCT_DEF_URL: $PRODUCT_DEF_URL
-      DASHBOARD_URL: $DASHBOARD_URL
   artifacts:
     expire_in: 1 week
     reports:
