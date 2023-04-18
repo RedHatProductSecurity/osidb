@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.utils.timezone import make_aware
 
 from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
-from collectors.jiraffe.core import get_field_attr
+from collectors.jiraffe.convertors import TrackerConvertor, TrackerIssueConvertor
 from osidb.core import generate_acls, set_user_acls
 from osidb.mixins import AlertMixin, TrackingMixin
 from osidb.models import (
@@ -119,52 +119,36 @@ class BugzillaGroupsConvertorMixin:
         return [uuid.UUID(acl) for acl in generate_acls(self.groups_write)]
 
 
-class TrackerBugConvertor(BugzillaGroupsConvertorMixin):
+class TrackerBugConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
     """
     Bugzilla tracker bug to OSIDB tracker convertor.
-
-    This class transforms raw data from a unified raw format into proper Tracker
-    model records and saves them into the database.
     """
 
-    def __init__(
-        self,
-        tracker_bug,
-        _type: Tracker.TrackerType,
-    ):
-        self._raw = tracker_bug
-        self.type = _type
-        # important that this is last as it might require other fields on self
-        self.tracker_bug = self._normalize()
-        # set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
-        # celery workers should be able to read/write any information in order to fulfill their jobs
-        set_user_acls(
-            settings.PUBLIC_READ_GROUPS
-            + [
-                settings.PUBLIC_WRITE_GROUP,
-                settings.EMBARGO_READ_GROUP,
-                settings.EMBARGO_WRITE_GROUP,
-            ]
-        )
+    @property
+    def type(self):
+        """
+        concrete tracker specification
+        """
+        return Tracker.TrackerType.BUGZILLA
 
     @property
     def bz_id(self):
-        """Bugzilla ID"""
-        return self.tracker_bug["id"]
+        """
+        Bugzilla ID
+        """
+        return self.tracker_data["id"]
 
     @property
     def bug(self):
         """
-        generic bug used in mixin context means tracker bug here
+        generic bug used in mixin context means tracker data here
         """
-        return self.tracker_bug
+        return self.tracker_data
 
     def _normalize(self) -> dict:
-        if self.type == Tracker.TrackerType.BUGZILLA:
-            return self._normalize_from_bz()
-        return self._normalize_from_jira()
-
-    def _normalize_from_bz(self) -> dict:
+        """
+        raw data normalization
+        """
         ps_module, ps_component = tracker_summary2module_component(self._raw["summary"])
 
         return {
@@ -181,53 +165,6 @@ class TrackerBugConvertor(BugzillaGroupsConvertorMixin):
             "created_dt": self._raw["creation_time"],
             "updated_dt": self._raw["last_change_time"],
         }
-
-    def _normalize_from_jira(self) -> dict:
-        ps_module, ps_component = tracker_summary2module_component(
-            self._raw.fields.summary
-        )
-
-        return {
-            "external_system_id": self._raw.key,
-            "owner": get_field_attr(self._raw, "assignee", "displayName"),
-            # QE Assignee corresponds to customfield_12316243
-            # in RH Jira which is a field of schema type user
-            "qe_owner": get_field_attr(
-                self._raw, "customfield_12316243", "displayName"
-            ),
-            "ps_module": ps_module,
-            "ps_component": ps_component,
-            "ps_update_stream": tracker_parse_update_stream_component(
-                self._raw.fields.summary
-            )[0],
-            "status": get_field_attr(self._raw, "status", "name"),
-            "resolution": get_field_attr(self._raw, "resolution", "name"),
-            "created_dt": self._raw.fields.created,
-            "updated_dt": self._raw.fields.updated
-            if self._raw.fields.updated
-            else self._raw.fields.created,
-        }
-
-    def _gen_tracker_object(self, affect) -> Tracker:
-        # there maybe already existing tracker from the previous sync
-        # if this is the periodic update however also when the flaw bug
-        # has multiple CVEs the resulting flaws will share the trackers
-        return Tracker.objects.create_tracker(
-            affect=affect,
-            _type=self.type,
-            external_system_id=self.tracker_bug["external_system_id"],
-            status=self.tracker_bug["status"],
-            resolution=self.tracker_bug["resolution"],
-            ps_update_stream=self.tracker_bug["ps_update_stream"],
-            meta_attr=self.tracker_bug,
-            created_dt=self.tracker_bug["created_dt"],
-            updated_dt=self.tracker_bug["updated_dt"],
-            acl_read=self.acl_read,
-            acl_write=self.acl_write,
-        )
-
-    def convert(self, affect=None) -> Tracker:
-        return self._gen_tracker_object(affect)
 
 
 class FlawSaver:
@@ -685,10 +622,7 @@ class FlawBugConvertor(BugzillaGroupsConvertorMixin):
         Bugzilla trackers
         with product definitions context
         """
-        return [
-            TrackerBugConvertor(tracker, Tracker.TrackerType.BUGZILLA)
-            for tracker in self.tracker_bugs
-        ]
+        return [TrackerBugConvertor(tracker) for tracker in self.tracker_bugs]
 
     @property
     def depends_on(self):
@@ -704,10 +638,7 @@ class FlawBugConvertor(BugzillaGroupsConvertorMixin):
         Jira trackers
         with product definitions context
         """
-        return [
-            TrackerBugConvertor(tracker, Tracker.TrackerType.JIRA)
-            for tracker in self.tracker_jiras
-        ]
+        return [TrackerIssueConvertor(tracker) for tracker in self.tracker_jiras]
 
     ########################
     # DJANGO MODEL GETTERS #

@@ -17,7 +17,7 @@ from collectors.bzimport.convertors import FlawBugConvertor, TrackerBugConvertor
 from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
 from collectors.framework.models import Collector
 from collectors.jiraffe.core import JiraQuerier
-from osidb.models import Flaw, PsModule, Tracker
+from osidb.models import Flaw, PsModule
 
 from .constants import (
     ANALYSIS_TASK_PRODUCT,
@@ -599,8 +599,8 @@ class BzTrackerCollector(Collector, BugzillaQuerier):
         #   that the tracker would not be deleted but corrected and/or set to a
         #   specific state/resolution, but if it truly is deleted then it's currently
         #   not handled.
-        TrackerBugConvertor(tracker_data, Tracker.TrackerType.BUGZILLA).convert().save(
-            auto_timestamps=False
+        TrackerBugConvertor(tracker_data).convert().save(
+            auto_timestamps=False, raise_validation_error=False
         )
 
     def collect(self):
