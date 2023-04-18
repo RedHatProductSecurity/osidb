@@ -1,20 +1,18 @@
-import json
 from functools import cache
-from typing import Any, Union
-from uuid import UUID
+from typing import List, Tuple
 
-import requests
-from django.conf import settings
+from django.utils import timezone
 from jira import JIRA, Issue
+from jira.exceptions import JIRAError
 
-from osidb.models import Affect, Tracker
-
-from ..utils import tracker_parse_update_stream_component
-from .constants import JIRA_SERVER, JIRA_TOKEN, PRODUCT_DEFINITIONS_URL
+from .constants import JIRA_DT_FMT, JIRA_SERVER, JIRA_TOKEN
+from .exceptions import NonRecoverableJiraffeException
 
 
-class JiraQuerier:
-    """Jira query handler"""
+class JiraConnector:
+    """
+    Jira connection handler
+    """
 
     _jira_server = JIRA_SERVER
     _jira_token = JIRA_TOKEN
@@ -24,7 +22,7 @@ class JiraQuerier:
     ###################
     @staticmethod
     @cache
-    def _get_jira_connection(server, token) -> JIRA:
+    def _get_jira_connection(server: str, token: str) -> JIRA:
         """
         Returns the JIRA connection object on which to perform queries to the JIRA API.
         """
@@ -39,125 +37,120 @@ class JiraQuerier:
     def jira_conn(self) -> JIRA:
         return self._get_jira_connection(self._jira_server, self._jira_token)
 
+
+class JiraQuerier(JiraConnector):
+    """
+    Jira query handler
+    """
+
+    ###########
+    # HELPERS #
+    ###########
+
+    def datetime2jira_str(self, timestamp: timezone.datetime, inc: bool = False) -> str:
+        """
+        transform timestamp to expected Jira query string
+
+        note that Jira query does not allow seconds granularity so we have to cut the seconds off
+        which brings an interesting issue of dealing with the period borders and we have to extend
+        them to the closest minute with respect to whether it is the opening or closing of the period
+
+        param inc
+            False cut off the seconds
+            True cut off the seconds and add one minute
+        """
+        if inc:
+            # add one minute to the timestamp for closing border
+            timestamp = timestamp + timezone.timedelta(minutes=1)
+
+        # we cut off the seconds by the format
+        return timestamp.strftime(JIRA_DT_FMT)
+
+    ###################
+    # QUERY EXECUTORS #
+    ###################
+
+    def create_query(self, query_list: List[Tuple[str, str, str]]) -> str:
+        """
+        create a query string from the query tuple-list
+
+        where an item is supposed to be one query condition
+        in the form (name, operator, value) and we also
+        assume that the items are in conjuction form
+        """
+        query_items = []
+        for name, operator, value in query_list:
+            query_items.append(f'{name}{operator}"{value}"')
+        return " AND ".join(query_items)
+
+    def run_query(self, query_list: List[Tuple[str, str, str]]) -> List[Issue]:
+        """
+        get Jira issues performing the given query
+        """
+        return self.jira_conn.search_issues(
+            self.create_query(query_list), maxResults=False
+        )
+
+    ###################
+    # QUERY MODIFIERS #
+    ###################
+
+    def query_trackers(
+        self, query_list: List[Tuple[str, str, str]]
+    ) -> List[Tuple[str, str, str]]:
+        """
+        update query dictionary to query trackers
+        """
+        query_list.append(("labels", "=", "SecurityTracking"))
+        query_list.append(("type", "=", "Bug"))
+        return query_list
+
+    def query_updated(
+        self,
+        query_list: List[Tuple[str, str, str]],
+        updated_after: timezone.datetime,
+        updated_before: timezone.datetime,
+    ) -> List[Tuple[str, str, str]]:
+        """
+        update query dictionary to query for updates in the given period
+        """
+        query_list.append(("updated", ">=", self.datetime2jira_str(updated_after)))
+        query_list.append(
+            ("updated", "<=", self.datetime2jira_str(updated_before, inc=True))
+        )
+        return query_list
+
     ########################
     # SINGLE ISSUE QUERIES #
     ########################
 
-    def get_issue(self, jira_id):
-        """get Jira issue"""
-        return self.jira_conn.issue(jira_id)
+    def get_issue(self, jira_id: str) -> Issue:
+        """
+        get Jira issue specified by Jira ID
+        """
+        try:
+            return self.jira_conn.issue(jira_id)
+        except JIRAError as e:
+            if "Issue Does Not Exist" in str(e):
+                # restricted access cannot be distinguished
+                # from non-existance based on the response
+                raise NonRecoverableJiraffeException(
+                    "Issue access is restricted or it does not exist"
+                )
+            # re-raise otherwise
+            raise e
 
+    #######################
+    # MULTI ISSUE QUERIES #
+    #######################
 
-@cache
-def get_jira_modules() -> dict:
-    """
-    Returns a dict with all ps_modules/ps_components tracked in JIRA.
-    """
-    # TODO: need a proper/generic solution that provides product definitions in a reliable
-    # and efficient way, as it stands this will never be updated in long-running OSIDB instances
-    response = requests.get(
-        PRODUCT_DEFINITIONS_URL,
-        timeout=settings.DEFAULT_REQUEST_TIMEOUT,
-    )
-    if not response.ok:
-        return {}
-    data = response.json()
-    modules = data["ps_modules"]
-    return {
-        key: value for key, value in modules.items() if value["bts"]["name"] == "jboss"
-    }
-
-
-def find_jira_trackers(affect: Affect) -> list[Issue]:
-    """
-    Finds JIRA trackers pertaining to a given affect.
-    """
-    jira_modules = get_jira_modules()
-    module = jira_modules.get(affect.ps_module)
-    if module is None:
-        return []
-
-    conn = JiraQuerier().jira_conn
-    jira_project = module["bts"]["key"]
-    jql_query = f'PROJECT={jira_project} \
-                AND labels="{affect.flaw and affect.flaw.cve_id}" \
-                AND labels="pscomponent:{affect.ps_component}" \
-                AND labels="SecurityTracking" \
-                AND type="Bug"'
-    return conn.search_issues(jql_query, maxResults=False)
-
-
-def get_field_attr(issue, field, attr):
-    """field value getter helper"""
-    if hasattr(issue.fields, field):
-        if hasattr(getattr(issue.fields, field), attr):
-            return getattr(getattr(issue.fields, field), attr)
-
-    return None
-
-
-def upsert_trackers(affect: Affect) -> None:
-    """
-    Creates or updates an affect's trackers.
-    """
-    issues = find_jira_trackers(affect)
-    for issue in issues:
-        tracker = Tracker.objects.create_tracker(
-            affect=affect,
-            external_system_id=issue.key,
-            _type=Tracker.TrackerType.JIRA,
-            status=get_field_attr(issue, "status", "name"),
-            resolution=get_field_attr(issue, "resolution", "name"),
-            ps_update_stream=tracker_parse_update_stream_component(
-                issue.fields.summary
-            )[0],
-            acl_read=affect.acl_read,
-            acl_write=affect.acl_write,
-            # since JIRA status:resolution is wild west keep the raw values as metadata
-            # we may reconsider this after OJA value scheme standardization
-            meta_attr={
-                # raw retrieves the value as a python dict, which is json-serializable
-                # NOTE: this would be less of a headache if we used a JSONField instead
-                # WARNING: defensive programming here, it is possible that the value of a
-                # field is not always a Field object, it can be None
-                "owner": get_field_attr(issue, "assignee", "displayName"),
-                # QE Assignee corresponds to customfield_12316243
-                # in RH Jira which is a field of schema type user
-                "qe_owner": get_field_attr(
-                    issue, "customfield_12316243", "displayName"
-                ),
-                "ps_module": affect.ps_module,
-                "ps_component": affect.ps_component,
-                "status": json.dumps(issue.fields.status and issue.fields.status.raw),
-                "resolution": json.dumps(
-                    issue.fields.resolution and issue.fields.resolution.raw
-                ),
-            },
-        )
-        # eventual save inside create_tracker would override the timestamps
-        # so we have to set them here and both ensure save and turn off auto-timestamps
-        # this might be refactored but as separate task as it changes the affect linking
-        tracker.created_dt = issue.fields.created
-        tracker.updated_dt = issue.fields.updated or issue.fields.created
-        tracker.save(auto_timestamps=False)
-
-
-def get_affects_to_sync(interval: str) -> Union[tuple[UUID], tuple[Any]]:
-    """
-    Fetches uuids for Affects that may need a state/resolution sync
-    """
-    conn = JiraQuerier().jira_conn
-    jql_query = f'labels="SecurityTracking" \
-                AND type="Bug" \
-                AND updated >= "-{interval}"'
-    issues = conn.search_issues(jql_query, maxResults=False)
-
-    affect_uuids_to_sync = set()
-    for issue in issues:
-        # kinda redundant to filter by key AND type but better safe than sorry ?
-        trackers = Tracker.objects.filter(
-            external_system_id=issue.key, type=Tracker.TrackerType.JIRA
-        )
-        for tracker in trackers:
-            affect_uuids_to_sync |= set(affect.uuid for affect in tracker.affects.all())
-    return tuple(affect_uuids_to_sync)
+    def get_tracker_period(
+        self, updated_after: timezone.datetime, updated_before: timezone.datetime
+    ) -> List[Issue]:
+        """
+        get list of trackers updated during the given period
+        """
+        query_list = []
+        query_list = self.query_trackers(query_list)
+        query_list = self.query_updated(query_list, updated_after, updated_before)
+        return self.run_query(query_list)
