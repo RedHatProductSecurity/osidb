@@ -33,6 +33,8 @@ class JiraIssueFieldsSerializer(serializers.Serializer):
     summary = serializers.CharField()
     description = serializers.CharField()
     assignee = JiraUserSerializer()
+    reporter = JiraUserSerializer()
+    creator = JiraUserSerializer()
     customfield_12311140 = serializers.CharField(help_text="Task group key")
 
 

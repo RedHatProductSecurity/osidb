@@ -4248,6 +4248,86 @@ paths:
                   version:
                     type: string
           description: ''
+  /taskman/api/v1/task/assignee/{user}:
+    get:
+      operationId: taskman_api_v1_task_assignee_retrieve
+      description: Get a list of tasks from a user
+      parameters:
+      - in: header
+        name: JiraAuthentication
+        schema:
+          type: string
+        description: User generated token for Jira authentication.
+        required: true
+      - in: path
+        name: user
+        schema:
+          type: string
+        required: true
+      tags:
+      - taskman
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/JiraIssueQueryResult'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: taskman_api_v1_task_assignee_update
+      description: Assign a task to a user
+      parameters:
+      - in: header
+        name: JiraAuthentication
+        schema:
+          type: string
+        description: User generated token for Jira authentication.
+        required: true
+      - in: query
+        name: task_key
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: user
+        schema:
+          type: string
+        required: true
+      tags:
+      - taskman
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
   /taskman/api/v1/task/flaw/{flaw_uuid}:
     get:
       operationId: taskman_api_v1_task_flaw_retrieve
@@ -4358,6 +4438,40 @@ paths:
                     type: string
                   version:
                     type: string
+          description: ''
+  /taskman/api/v1/task/unassigned/:
+    get:
+      operationId: taskman_api_v1_task_unassigned_retrieve
+      description: Get a list of tasks without an user assigned
+      parameters:
+      - in: header
+        name: JiraAuthentication
+        schema:
+          type: string
+        description: User generated token for Jira authentication.
+        required: true
+      tags:
+      - taskman
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/JiraIssueQueryResult'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
           description: ''
   /taskman/healthy:
     get:
@@ -5243,14 +5357,20 @@ components:
           type: string
         assignee:
           $ref: '#/components/schemas/JiraUser'
+        reporter:
+          $ref: '#/components/schemas/JiraUser'
+        creator:
+          $ref: '#/components/schemas/JiraUser'
         customfield_12311140:
           type: string
           description: Task group key
       required:
       - assignee
+      - creator
       - customfield_12311140
       - description
       - issuetype
+      - reporter
       - summary
     JiraIssueQueryResult:
       type: object
