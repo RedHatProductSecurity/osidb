@@ -1,0 +1,224 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*.*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.26.0
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://issues.redhat.com/rest/api/2/issue/ENTMQ-755
+  response:
+    body:
+      string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+        "id": "12548499", "self": "https://issues.redhat.com/rest/api/2/issue/12548499",
+        "key": "ENTMQ-755", "fields": {"customfield_12322244": null, "fixVersions":
+        [{"self": "https://issues.redhat.com/rest/api/2/version/12323365", "id": "12323365",
+        "description": "7.1 release", "name": "7.1.0.fuse-046", "archived": false,
+        "released": true, "releaseDate": "2012-12-21"}], "resolution": {"self": "https://issues.redhat.com/rest/api/2/resolution/1",
+        "id": "1", "description": "This issue is closed, and complete.", "name": "Done"},
+        "customfield_12312840": null, "customfield_12312442": null, "customfield_12314740":
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@17c10abd[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@709bc7bc[overall=PullRequestOverallBean{stateCount=0,
+        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@15283085[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@3ba0a3bb[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@72152978[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@629a1f93[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@36e2b75d[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@8e17741[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5364d1cc[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@61303ab4[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@424b3190[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@41931de7[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
+        "customfield_12312848": null, "customfield_12315950": null, "customfield_12310940":
+        null, "lastViewed": "2023-04-21T08:02:12.196+0000", "customfield_12313140":
+        null, "priority": {"self": "https://issues.redhat.com/rest/api/2/priority/3",
+        "iconUrl": "https://issues.redhat.com/images/icons/priorities/major.svg",
+        "name": "Major", "id": "3"}, "labels": ["CVE-2014-3120", "Security", "SecurityTracking",
+        "component:elasticsearch"], "customfield_12311640": null, "customfield_12311244":
+        null, "customfield_12311245": null, "customfield_12311641": null, "customfield_12311242":
+        null, "aggregatetimeoriginalestimate": null, "timeestimate": null, "versions":
+        [{"self": "https://issues.redhat.com/rest/api/2/version/12323365", "id": "12323365",
+        "description": "7.1 release", "name": "7.1.0.fuse-046", "archived": false,
+        "released": true, "releaseDate": "2012-12-21"}], "customfield_12311241": null,
+        "customfield_12310031": null, "issuelinks": [], "assignee": {"self": "https://issues.redhat.com/rest/api/2/user?username=acunning%40redhat.com",
+        "name": "acunning@redhat.com", "key": "aileenc", "emailAddress": "acunning@redhat.com",
+        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=32"},
+        "displayName": "Aileen Cunningham", "active": true, "timeZone": "UTC"}, "customfield_12313942":
+        null, "customfield_12313941": null, "status": {"self": "https://issues.redhat.com/rest/api/2/status/6",
+        "description": "The issue is closed. See the resolution for context regarding
+        why (for example Done, Abandoned, Duplicate, etc)", "iconUrl": "https://issues.redhat.com/images/icons/statuses/closed.png",
+        "name": "Closed", "id": "6", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/3",
+        "id": 3, "key": "done", "colorName": "success", "name": "Done"}}, "components":
+        [], "customfield_12310080": null, "customfield_12314040": null, "customfield_12320844":
+        null, "archiveddate": null, "customfield_12320842": null, "customfield_12310120":
+        null, "customfield_12310243": null, "aggregatetimeestimate": null, "customfield_12317313":
+        null, "creator": {"self": "https://issues.redhat.com/rest/api/2/user?username=chess.hazlett",
+        "name": "chess.hazlett", "key": "chazlett", "emailAddress": "chazlett@redhat.com",
+        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=32"},
+        "displayName": "Chess Hazlett", "active": true, "timeZone": "UTC"}, "subtasks":
+        [], "customfield_12321140": null, "customfield_12310091": null, "customfield_12310090":
+        null, "reporter": {"self": "https://issues.redhat.com/rest/api/2/user?username=chess.hazlett",
+        "name": "chess.hazlett", "key": "chazlett", "emailAddress": "chazlett@redhat.com",
+        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=32"},
+        "displayName": "Chess Hazlett", "active": true, "timeZone": "UTC"}, "customfield_12320850":
+        null, "customfield_12310092": null, "aggregateprogress": {"progress": 0, "total":
+        0}, "customfield_12310010": null, "customfield_12315542": null, "customfield_12313240":
+        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
+        "votes": {"self": "https://issues.redhat.com/rest/api/2/issue/ENTMQ-755/votes",
+        "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
+        "total": 0, "worklogs": []}, "customfield_12319743": null, "archivedby": null,
+        "issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/1",
+        "id": "1", "description": "A problem which impairs or prevents the functions
+        of the product.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        "name": "Bug", "subtask": false, "avatarId": 13263}, "customfield_12318341":
+        null, "timespent": null, "customfield_12320940": null, "project": {"self":
+        "https://issues.redhat.com/rest/api/2/project/12314575", "id": "12314575",
+        "key": "ENTMQ", "name": "JBoss A-MQ", "projectTypeKey": "software", "avatarUrls":
+        {"48x48": "https://issues.redhat.com/secure/projectavatar?pid=12314575&avatarId=10011",
+        "24x24": "https://issues.redhat.com/secure/projectavatar?size=small&pid=12314575&avatarId=10011",
+        "16x16": "https://issues.redhat.com/secure/projectavatar?size=xsmall&pid=12314575&avatarId=10011",
+        "32x32": "https://issues.redhat.com/secure/projectavatar?size=medium&pid=12314575&avatarId=10011"},
+        "projectCategory": {"self": "https://issues.redhat.com/rest/api/2/projectCategory/10130",
+        "id": "10130", "description": "Active projects migrated from Fusesource issue
+        tracker", "name": "Fuse"}}, "customfield_12320944": null, "aggregatetimespent":
+        null, "customfield_12310220": null, "customfield_12310183": null, "resolutiondate":
+        "2014-09-10T01:43:37.000+0000", "workratio": -1, "customfield_12317379": null,
+        "customfield_12316840": null, "customfield_12316841": null, "customfield_12319040":
+        null, "watches": {"self": "https://issues.redhat.com/rest/api/2/issue/ENTMQ-755/watchers",
+        "watchCount": 3, "isWatching": false}, "created": "2014-08-04T15:07:19.000+0000",
+        "customfield_12321240": null, "customfield_12320947": null, "customfield_12320946":
+        null, "updated": "2014-09-10T01:43:37.000+0000", "customfield_12311840": null,
+        "customfield_12316142": null, "timeoriginalestimate": null, "description":
+        "https://bugzilla.redhat.com/show_bug.cgi?id=1124252", "timetracking": {},
+        "customfield_12310440": null, "security": {"self": "https://issues.redhat.com/rest/api/2/securitylevel/11697",
+        "id": "11697", "description": "Red Hat Employee and Contractors only", "name":
+        "Red Hat Employee"}, "customfield_12312340": null, "attachment": [], "customfield_12316542":
+        null, "customfield_12316543": null, "customfield_12316544": null, "customfield_12310840":
+        "9223372036854775807", "summary": "CVE-2014-3120 elasticsearch: remote code
+        execution flaw via dynamic scripting [amq-7.1]", "customfield_12310211": null,
+        "customfield_12313441": "", "customfield_12315740": null, "customfield_12313440":
+        "0.0", "duedate": null, "customfield_12311140": null, "comment": {"comments":
+        [{"self": "https://issues.redhat.com/rest/api/2/issue/12548499/comment/12999689",
+        "id": "12999689", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=dfj_jira",
+        "name": "dfj_jira", "key": "dfj", "emailAddress": "djorm@redhat.com", "avatarUrls":
+        {"48x48": "https://www.gravatar.com/avatar/57a50b7afda86587ff149bde634f232d?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/57a50b7afda86587ff149bde634f232d?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/57a50b7afda86587ff149bde634f232d?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/57a50b7afda86587ff149bde634f232d?d=mm&s=32"},
+        "displayName": "David Jorm", "active": false, "timeZone": "UTC"}, "body":
+        "It has been reported that CVE-2014-3120 is being actively exploited in the
+        wild to spread a botnet. For more information, please see the following knowledge
+        solution:\n\nhttps://access.redhat.com/solutions/1189133\n\nWe need to ship
+        patches across all affected products as a critical priority. I have tested
+        and confirmed that this issue is exploitable on Fuse products.", "updateAuthor":
+        {"self": "https://issues.redhat.com/rest/api/2/user?username=dfj_jira", "name":
+        "dfj_jira", "key": "dfj", "emailAddress": "djorm@redhat.com", "avatarUrls":
+        {"48x48": "https://www.gravatar.com/avatar/57a50b7afda86587ff149bde634f232d?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/57a50b7afda86587ff149bde634f232d?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/57a50b7afda86587ff149bde634f232d?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/57a50b7afda86587ff149bde634f232d?d=mm&s=32"},
+        "displayName": "David Jorm", "active": false, "timeZone": "UTC"}, "created":
+        "2014-09-08T00:49:03.000+0000", "updated": "2014-09-08T00:49:03.000+0000"},
+        {"self": "https://issues.redhat.com/rest/api/2/issue/12548499/comment/13000639",
+        "id": "13000639", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=e-tool",
+        "name": "e-tool", "key": "e-tool", "emailAddress": "errata-owner+e-tool@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=e-tool&avatarId=33138",
+        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=e-tool&avatarId=33138",
+        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=e-tool&avatarId=33138",
+        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=e-tool&avatarId=33138"},
+        "displayName": "Errata Tool", "active": true, "timeZone": "UTC"}, "body":
+        "This issue has been added to advisory RHSA-2014:18746 by David Jorm (djorm@redhat.com)",
+        "updateAuthor": {"self": "https://issues.redhat.com/rest/api/2/user?username=e-tool",
+        "name": "e-tool", "key": "e-tool", "emailAddress": "errata-owner+e-tool@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=e-tool&avatarId=33138",
+        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=e-tool&avatarId=33138",
+        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=e-tool&avatarId=33138",
+        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=e-tool&avatarId=33138"},
+        "displayName": "Errata Tool", "active": true, "timeZone": "UTC"}, "created":
+        "2014-09-10T01:18:58.000+0000", "updated": "2014-09-10T01:18:58.000+0000",
+        "visibility": {"type": "group", "value": "JBoss Employee"}}, {"self": "https://issues.redhat.com/rest/api/2/issue/12548499/comment/13000647",
+        "id": "13000647", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=e-tool",
+        "name": "e-tool", "key": "e-tool", "emailAddress": "errata-owner+e-tool@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=e-tool&avatarId=33138",
+        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=e-tool&avatarId=33138",
+        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=e-tool&avatarId=33138",
+        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=e-tool&avatarId=33138"},
+        "displayName": "Errata Tool", "active": true, "timeZone": "UTC"}, "body":
+        "Since the problem described in this issue should be resolved in a recent
+        advisory, it has been closed.\n\nFor information on the advisory, and where
+        to find the updated files, follow the link below.\n\nIf the solution does
+        not work for you, open a new bug report.\nhttp://rhn.redhat.com/errata/RHSA-2014-1171.html",
+        "updateAuthor": {"self": "https://issues.redhat.com/rest/api/2/user?username=e-tool",
+        "name": "e-tool", "key": "e-tool", "emailAddress": "errata-owner+e-tool@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=e-tool&avatarId=33138",
+        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=e-tool&avatarId=33138",
+        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=e-tool&avatarId=33138",
+        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=e-tool&avatarId=33138"},
+        "displayName": "Errata Tool", "active": true, "timeZone": "UTC"}, "created":
+        "2014-09-10T01:43:37.000+0000", "updated": "2014-09-10T01:43:37.000+0000"}],
+        "maxResults": 3, "total": 3, "startAt": 0}, "customfield_12310213": null,
+        "customfield_12311940": "1|hz4zfj:"}}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - sandbox
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Fri, 21 Apr 2023 09:34:28 GMT
+      Expires:
+      - Fri, 21 Apr 2023 09:34:28 GMT
+      Pragma:
+      - no-cache
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      content-length:
+      - '14837'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-prod-0
+      x-arequestid:
+      - 574x20329186x2
+      x-asessionid:
+      - 1g4ki10
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.ca403617.1682069668.12c3a283
+      x-rh-edge-request-id:
+      - 12c3a283
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1
