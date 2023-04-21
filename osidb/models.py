@@ -1104,7 +1104,10 @@ class Affect(
             "uuid",
         )
         verbose_name = "Affect"
-        indexes = TrackingMixin.Meta.indexes
+        indexes = TrackingMixin.Meta.indexes + [
+            models.Index(fields=["flaw", "ps_module"]),
+            models.Index(fields=["flaw", "ps_component"]),
+        ]
 
     # objects = AffectManager()
     objects = AffectManager.from_queryset(AffectQuerySetExploitExtension)()
