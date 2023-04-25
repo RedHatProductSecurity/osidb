@@ -9,7 +9,7 @@ from django.db import models
 from jira.exceptions import JIRAError
 from rest_framework.response import Response
 
-from collectors.jiraffe.core import JiraConnector
+from collectors.jiraffe.core import JiraQuerier
 from osidb.models import Affect, Flaw
 
 from .constants import JIRA_TASKMAN_PROJECT_KEY, JIRA_TASKMAN_URL
@@ -102,8 +102,11 @@ class JiraTaskmanQuerier(JiraQuerier):
                     }
                 }
                 url = f"{self.jira_conn._get_url('issue')}/{task['key']}"
-                r = self.jira_conn._session.put(url, json.dumps(data))
-                return Response(status=r.status_code)
+                self.jira_conn._session.put(url, json.dumps(data))
+                return Response(
+                    data=self.jira_conn.issue(task["key"]).raw,
+                    status=200,
+                )
             else:
                 data = {
                     "fields": {
@@ -142,7 +145,7 @@ class JiraTaskmanQuerier(JiraQuerier):
                 if len(uuid_labels) == 0:
                     return Response(
                         data="Task was found but does not contains label with flaw uuid.",
-                        status=500,
+                        status=409,
                     )
                 flaw_uuid = uuid_labels[0].split(":")[1]
                 flaw = Flaw.objects.get(uuid=flaw_uuid)
@@ -197,7 +200,7 @@ class JiraTaskmanQuerier(JiraQuerier):
             }
             issue = self.jira_conn.issue(id=issue_key)
             issue.update(data)
-            return Response(data=issue.raw, status=204)
+            return Response(data=issue.raw, status=200)
         except JIRAError as e:
             return Response(data=e.response.json(), status=e.status_code)
 
@@ -239,9 +242,10 @@ class JiraTaskmanQuerier(JiraQuerier):
         """set Jira task assignee"""
         try:
             self.jira_conn.assign_issue(task_key, assignee)
+
             return Response(
-                data={},
-                status=204,
+                data=self.jira_conn.issue(task_key).raw,
+                status=200,
             )
         except JIRAError as e:
             return Response(data=e.response.json(), status=e.status_code)

@@ -58,7 +58,7 @@ class TestTaskmanService(object):
         assert response6.data["existing_task"]["fields"]["summary"] == old_title
 
         response7 = taskman.create_or_update_task(flaw=flaw, fail_if_exists=False)
-        assert response7.status_code == 204
+        assert response7.status_code == 200
 
         response8 = taskman.get_task_by_flaw(flaw.uuid)
         assert response8.data["fields"]["summary"] == new_title
@@ -81,12 +81,12 @@ class TestTaskmanService(object):
         response3 = taskman.update_task_status(
             response2.data["key"], TaskStatus.IN_PROGRESS
         )
-        assert response3.status_code == 204
+        assert response3.status_code == 200
 
         response3 = taskman.update_task_status(
             response2.data["key"], TaskStatus.CLOSED, TaskResolution.DONE
         )
-        assert response3.status_code == 204
+        assert response3.status_code == 200
 
         response4 = taskman.get_task(response2.data["key"])
         assert response4.status_code == 200
@@ -141,12 +141,12 @@ class TestTaskmanService(object):
         response4 = taskman.add_task_into_group(
             issue_key=response1.data["key"], group_key=response3.data["key"]
         )
-        assert response4.status_code == 204
+        assert response4.status_code == 200
 
         response5 = taskman.add_task_into_group(
             issue_key=response2.data["key"], group_key=response3.data["key"]
         )
-        assert response5.status_code == 204
+        assert response5.status_code == 200
 
         response6 = taskman.search_task_by_group(response3.data["key"])
         assert response6.data["total"] == 2

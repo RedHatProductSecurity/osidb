@@ -158,7 +158,7 @@ class task_group(GenericAPIView):
             OpenApiParameter(name="task_key", required=True, type=str),
         ],
         description="Add a task into a group",
-        responses={204: OpenApiResponse(description="Modified.")},
+        responses={200: OpenApiResponse(description="Modified.")},
     )
     def put(self, request, group_key):
         serializer = TaskKeySerializer(data=request.data)
@@ -194,7 +194,7 @@ class task_flaw(GenericAPIView):
 
     @extend_schema(
         description="Update a task in Jira from a Flaw",
-        responses={204: OpenApiResponse(description="Modified.")},
+        responses={200: OpenApiResponse(description="Modified.")},
     )
     def put(self, request, flaw_uuid):
         """Update a task in Jira from a Flaw"""
@@ -228,7 +228,7 @@ class task_status(GenericAPIView):
             ),
         ],
         description="Change a task workflow status",
-        responses={204: OpenApiResponse(description="Modified.")},
+        responses={200: OpenApiResponse(description="Modified.")},
     )
     def put(self, request, task_key):
         serializer = StatusSerializer(data=request.data)
@@ -261,7 +261,7 @@ class task_assignee(GenericAPIView):
             OpenApiParameter(name="task_key", required=True, type=str),
         ],
         description="Assign a task to a user",
-        responses={204: OpenApiResponse(description="Modified.")},
+        responses={200: OpenApiResponse(description="Modified.")},
     )
     def put(self, request, user):
         """Assign a user for a task"""

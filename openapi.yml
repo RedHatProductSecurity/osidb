@@ -4053,7 +4053,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '204':
+        '200':
           content:
             application/json:
               schema:
@@ -4258,7 +4258,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '204':
+        '200':
           content:
             application/json:
               schema:
@@ -4338,7 +4338,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '204':
+        '200':
           content:
             application/json:
               schema:
@@ -4449,7 +4449,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '204':
+        '200':
           content:
             application/json:
               schema:

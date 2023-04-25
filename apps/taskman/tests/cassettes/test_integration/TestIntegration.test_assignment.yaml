@@ -140,7 +140,9 @@ interactions:
         Failure Flag\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316841]\",\"Sync
         Failure Flag\"],\"schema\":{\"type\":\"array\",\"items\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:labels\",\"customId\":12316841}},{\"id\":\"customfield_12316842\",\"name\":\"Sync
         Failure Message\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316842]\",\"Sync
-        Failure Message\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12316842}},{\"id\":\"customfield_12316843\",\"name\":\"Whiteboard\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316843]\",\"Whiteboard\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12316843}},{\"id\":\"customfield_12316844\",\"name\":\"Subcomponent\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316844]\",\"Subcomponent\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12316844}},{\"id\":\"customfield_12310071\",\"name\":\"Patch
+        Failure Message\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12316842}},{\"id\":\"customfield_12316843\",\"name\":\"Whiteboard\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316843]\",\"Whiteboard\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12316843}},{\"id\":\"customfield_12316844\",\"name\":\"Subcomponent\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316844]\",\"Subcomponent\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12316844}},{\"id\":\"customfield_12323140\",\"name\":\"Red
+        Hat Partners\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323140]\",\"Red
+        Hat Partners\"],\"schema\":{\"type\":\"array\",\"items\":\"group\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multigrouppicker\",\"customId\":12323140}},{\"id\":\"customfield_12310071\",\"name\":\"Patch
         Repository Link\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310071]\",\"Patch
         Repository Link\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:url\",\"customId\":12310071}},{\"id\":\"customfield_12310070\",\"name\":\"Patch
         Instructions\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310070]\",\"Patch
@@ -893,16 +895,16 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Tue, 18 Apr 2023 22:12:43 GMT
+      - Tue, 25 Apr 2023 00:56:14 GMT
       Expires:
-      - Tue, 18 Apr 2023 22:12:43 GMT
+      - Tue, 25 Apr 2023 00:56:14 GMT
       Pragma:
       - no-cache
       Vary:
       - User-Agent
       - Accept-Encoding
       content-length:
-      - '162204'
+      - '162516'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -910,9 +912,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 1332x51962x1
+      - 56x58664x1
       x-asessionid:
-      - 19hgkc6
+      - n9q6i6
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -920,9 +922,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a6912f17.1681855963.2e750246
+      - 0.8a78ce17.1682384174.23147987
       x-rh-edge-request-id:
-      - 2e750246
+      - '23147987'
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -948,7 +950,7 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/api/2/search?jql=PROJECT%3DOSIM+++++++++++++++++AND+labels%3D%22flawuuid%3A5a1a57e0-5b32-40e0-bc6d-c47995692ff1%22+++++++++++++++++AND+type%3D%22Story%22&maxResults=50&startAt=0&validateQuery=True
+    uri: https://squid.corp.redhat.com:3128/rest/api/2/search?jql=PROJECT%3DOSIM+++++++++++++++++AND+labels%3D%22flawuuid%3Abbb87fd5-5935-4df0-a39c-ca7f13cfd99e%22+++++++++++++++++AND+type%3D%22Story%22&maxResults=50&startAt=0&validateQuery=True
   response:
     body:
       string: '{"startAt": 0, "maxResults": 50, "total": 0, "issues": []}'
@@ -962,9 +964,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Tue, 18 Apr 2023 22:12:43 GMT
+      - Tue, 25 Apr 2023 00:56:14 GMT
       Expires:
-      - Tue, 18 Apr 2023 22:12:43 GMT
+      - Tue, 25 Apr 2023 00:56:14 GMT
       Pragma:
       - no-cache
       Vary:
@@ -979,9 +981,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 1332x51963x1
+      - 56x58665x1
       x-asessionid:
-      - x7xvzk
+      - k4x969
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -989,9 +991,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a6912f17.1681855963.2e7502d9
+      - 0.8a78ce17.1682384174.23147a3a
       x-rh-edge-request-id:
-      - 2e7502d9
+      - 23147a3a
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1141,9 +1143,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Tue, 18 Apr 2023 22:12:43 GMT
+      - Tue, 25 Apr 2023 00:56:14 GMT
       Expires:
-      - Tue, 18 Apr 2023 22:12:43 GMT
+      - Tue, 25 Apr 2023 00:56:14 GMT
       Pragma:
       - no-cache
       Vary:
@@ -1158,9 +1160,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 1332x51964x1
+      - 56x58666x1
       x-asessionid:
-      - t0gu1a
+      - 6nb6iw
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1168,9 +1170,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a6912f17.1681855963.2e750390
+      - 0.8a78ce17.1682384174.23147bda
       x-rh-edge-request-id:
-      - 2e750390
+      - 23147bda
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1232,7 +1234,6 @@ interactions:
         "Administrators": "https://issues.stage.redhat.com/rest/api/2/project/12336420/role/10002",
         "Approver": "https://issues.stage.redhat.com/rest/api/2/project/12336420/role/10840",
         "Viewers": "https://issues.stage.redhat.com/rest/api/2/project/12336420/role/10440",
-        "Red Hat Partner": "https://issues.stage.redhat.com/rest/api/2/project/12336420/role/11140",
         "Users": "https://issues.stage.redhat.com/rest/api/2/project/12336420/role/10000"},
         "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/projectavatar?pid=12336420&avatarId=12560",
         "24x24": "https://issues.stage.redhat.com/secure/projectavatar?size=small&pid=12336420&avatarId=12560",
@@ -1249,16 +1250,16 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Tue, 18 Apr 2023 22:12:44 GMT
+      - Tue, 25 Apr 2023 00:56:14 GMT
       Expires:
-      - Tue, 18 Apr 2023 22:12:44 GMT
+      - Tue, 25 Apr 2023 00:56:14 GMT
       Pragma:
       - no-cache
       Vary:
       - User-Agent
       - Accept-Encoding
       content-length:
-      - '3903'
+      - '3812'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -1266,9 +1267,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 1332x51965x1
+      - 56x58667x1
       x-asessionid:
-      - pot48q
+      - 1jx4t45
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1276,9 +1277,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a6912f17.1681855964.2e750429
+      - 0.8a78ce17.1682384174.23147cd6
       x-rh-edge-request-id:
-      - 2e750429
+      - 23147cd6
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1289,7 +1290,7 @@ interactions:
 - request:
     body: '{"fields": {"issuetype": {"id": "17"}, "project": {"id": "12336420"}, "summary":
       "CVE-2020-0000 kernel: some description", "description": "Description for CVE-2020-0000",
-      "labels": ["flawuuid:5a1a57e0-5b32-40e0-bc6d-c47995692ff1"]}}'
+      "labels": ["flawuuid:bbb87fd5-5935-4df0-a39c-ca7f13cfd99e"]}}'
     headers:
       Accept:
       - application/json,*.*;q=0.9
@@ -1311,7 +1312,7 @@ interactions:
     uri: https://squid.corp.redhat.com:3128/rest/api/2/issue
   response:
     body:
-      string: '{"id": "14943751", "key": "OSIM-263", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14943751"}'
+      string: '{"id": "14944260", "key": "OSIM-280", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14944260"}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -1322,9 +1323,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Tue, 18 Apr 2023 22:12:44 GMT
+      - Tue, 25 Apr 2023 00:56:15 GMT
       Expires:
-      - Tue, 18 Apr 2023 22:12:44 GMT
+      - Tue, 25 Apr 2023 00:56:15 GMT
       Pragma:
       - no-cache
       Vary:
@@ -1339,9 +1340,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 1332x51966x1
+      - 56x58668x1
       x-asessionid:
-      - 1pzxsuk
+      - 8hly27
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1349,9 +1350,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a6912f17.1681855964.2e7504ae
+      - 0.8a78ce17.1682384175.23147d50
       x-rh-edge-request-id:
-      - 2e7504ae
+      - 23147d50
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1377,12 +1378,12 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/OSIM-263
+    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/OSIM-280
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "14943751", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14943751",
-        "key": "OSIM-263", "fields": {"customfield_12322440": null, "issuetype": {"self":
+        "id": "14944260", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14944260",
+        "key": "OSIM-280", "fields": {"customfield_12322440": null, "issuetype": {"self":
         "https://issues.stage.redhat.com/rest/api/2/issuetype/17", "id": "17", "description":
         "Created by Jira Software - do not edit or delete. Issue type for a user story.",
         "iconUrl": "https://issues.stage.redhat.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
@@ -1396,28 +1397,28 @@ interactions:
         "32x32": "https://issues.stage.redhat.com/secure/projectavatar?size=medium&pid=12336420&avatarId=12560"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@6e4d6d0[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@461a0f45[overall=PullRequestOverallBean{stateCount=0,
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@81c7fb9[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@45ab1217[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1ea062ce[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@8562678[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@66e2ec11[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@4b114f2e[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@56baf290[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@6fe66bd9[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1e959050[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@5fbcc493[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5e939386[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@2f7832e[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@43985064[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@5e3ec9aa[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6395db86[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@5ba40d5f[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5a3e6d3f[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@72659c4b[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3fe1206a[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@44541c3c[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6d2ad61c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@33739836[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":true}}",
         "resolutiondate": null, "workratio": -1, "customfield_12317379": null, "customfield_12316840":
         null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
         null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-263/watchers", "watchCount":
-        1, "isWatching": true}, "created": "2023-04-18T22:12:44.111+0000", "customfield_12321240":
+        "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-280/watchers", "watchCount":
+        1, "isWatching": true}, "created": "2023-04-25T00:56:15.013+0000", "customfield_12321240":
         null, "customfield_12313140": null, "priority": {"self": "https://issues.stage.redhat.com/rest/api/2/priority/10300",
         "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/trivial.svg",
-        "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:5a1a57e0-5b32-40e0-bc6d-c47995692ff1"],
+        "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:bbb87fd5-5935-4df0-a39c-ca7f13cfd99e"],
         "customfield_12320947": [{"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27705",
         "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
         null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
-        null, "updated": "2023-04-18T22:12:44.111+0000", "customfield_12313942": null,
+        null, "updated": "2023-04-25T00:56:15.013+0000", "customfield_12313942": null,
         "customfield_12313941": null, "status": {"self": "https://issues.stage.redhat.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
         very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.stage.redhat.com/images/icons/statuses/generic.png",
@@ -1452,10 +1453,10 @@ interactions:
         "0.0", "duedate": null, "customfield_12313240": null, "customfield_12311140":
         null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
         "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt": 0}, "votes":
-        {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-263/votes",
+        {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-280/votes",
         "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
         "total": 0, "worklogs": []}, "customfield_12319743": null, "customfield_12310213":
-        null, "archivedby": null, "customfield_12311940": "1|za108s:"}}'
+        null, "archivedby": null, "customfield_12311940": "1|za1124:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -1466,16 +1467,16 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Tue, 18 Apr 2023 22:12:44 GMT
+      - Tue, 25 Apr 2023 00:56:15 GMT
       Expires:
-      - Tue, 18 Apr 2023 22:12:44 GMT
+      - Tue, 25 Apr 2023 00:56:15 GMT
       Pragma:
       - no-cache
       Vary:
       - User-Agent
       - Accept-Encoding
       content-length:
-      - '8632'
+      - '8634'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -1483,9 +1484,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 1332x51967x1
+      - 56x58669x1
       x-asessionid:
-      - 1tp4a36
+      - 1mf3tyd
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1493,9 +1494,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a6912f17.1681855964.2e75082e
+      - 0.8a78ce17.1682384175.231480e5
       x-rh-edge-request-id:
-      - 2e75082e
+      - 231480e5
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1524,10 +1525,10 @@ interactions:
     uri: https://squid.corp.redhat.com:3128/rest/api/2/search?jql=PROJECT%3DOSIM+++++++++++++++++AND+assignee+is+EMPTY+++++++++++++++++AND+type%3D%22Story%22&maxResults=50&startAt=0&validateQuery=True
   response:
     body:
-      string: '{"expand": "names,schema", "startAt": 0, "maxResults": 50, "total":
-        1, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "14943751", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14943751",
-        "key": "OSIM-263", "fields": {"customfield_12322440": null, "issuetype": {"self":
+      string: '{"expand": "schema,names", "startAt": 0, "maxResults": 50, "total":
+        8, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "14944260", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14944260",
+        "key": "OSIM-280", "fields": {"customfield_12322440": null, "issuetype": {"self":
         "https://issues.stage.redhat.com/rest/api/2/issuetype/17", "id": "17", "description":
         "Created by Jira Software - do not edit or delete. Issue type for a user story.",
         "iconUrl": "https://issues.stage.redhat.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
@@ -1541,28 +1542,28 @@ interactions:
         "32x32": "https://issues.stage.redhat.com/secure/projectavatar?size=medium&pid=12336420&avatarId=12560"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@142507a3[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7241d0a7[overall=PullRequestOverallBean{stateCount=0,
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@658236b2[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2e40441[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@49586da1[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@356048c5[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@400edf2a[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@5641faed[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5cfeb0e1[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@6b6ffddb[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5d2e9813[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@46197c9[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2db1461c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@39a4e754[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4709f546[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@656d27ea[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2c4842e6[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@4cf3a67e[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@44d8c963[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@4886f465[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@26b7c0e1[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@77a6421f[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@75370e59[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@aedf946[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":true}}",
         "resolutiondate": null, "workratio": -1, "customfield_12317379": null, "customfield_12316840":
         null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
         null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-263/watchers", "watchCount":
-        1, "isWatching": true}, "created": "2023-04-18T22:12:44.000+0000", "customfield_12321240":
+        "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-280/watchers", "watchCount":
+        1, "isWatching": true}, "created": "2023-04-25T00:56:15.000+0000", "customfield_12321240":
         null, "customfield_12313140": null, "priority": {"self": "https://issues.stage.redhat.com/rest/api/2/priority/10300",
         "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/trivial.svg",
-        "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:5a1a57e0-5b32-40e0-bc6d-c47995692ff1"],
+        "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:bbb87fd5-5935-4df0-a39c-ca7f13cfd99e"],
         "customfield_12320947": [{"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27705",
         "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
         null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
-        null, "updated": "2023-04-18T22:12:44.000+0000", "customfield_12313942": null,
+        null, "updated": "2023-04-25T00:56:15.000+0000", "customfield_12313942": null,
         "customfield_12313941": null, "status": {"self": "https://issues.stage.redhat.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
         very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.stage.redhat.com/images/icons/statuses/generic.png",
@@ -1595,9 +1596,515 @@ interactions:
         "", "customfield_12315542": null, "customfield_12315740": null, "customfield_12313440":
         "0.0", "duedate": null, "customfield_12313240": null, "customfield_12311140":
         null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
-        "votes": {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-263/votes",
+        "votes": {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-280/votes",
         "votes": 0, "hasVoted": false}, "customfield_12319743": null, "customfield_12310213":
-        null, "customfield_12311940": "1|za108s:"}}]}'
+        null, "customfield_12311940": "1|za1124:"}}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "14944259", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14944259",
+        "key": "OSIM-279", "fields": {"customfield_12322440": null, "issuetype": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/issuetype/17", "id": "17", "description":
+        "Created by Jira Software - do not edit or delete. Issue type for a user story.",
+        "iconUrl": "https://issues.stage.redhat.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12322441":
+        null, "customfield_12322244": null, "customfield_12318341": null, "timespent":
+        null, "customfield_12320940": null, "project": {"self": "https://issues.stage.redhat.com/rest/api/2/project/12336420",
+        "id": "12336420", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
+        "software", "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/projectavatar?pid=12336420&avatarId=12560",
+        "24x24": "https://issues.stage.redhat.com/secure/projectavatar?size=small&pid=12336420&avatarId=12560",
+        "16x16": "https://issues.stage.redhat.com/secure/projectavatar?size=xsmall&pid=12336420&avatarId=12560",
+        "32x32": "https://issues.stage.redhat.com/secure/projectavatar?size=medium&pid=12336420&avatarId=12560"}},
+        "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
+        "resolution": null, "customfield_12310220": null, "customfield_12314740":
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@77edc8dd[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@18e1a5ad[overall=PullRequestOverallBean{stateCount=0,
+        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7cfae5e2[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@6923eb1d[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@77d09192[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@512b908c[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7a55babe[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@c58ddea[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7f7791f2[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@72d5d160[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@250205ce[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@6fff2b09[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
+        "resolutiondate": null, "workratio": -1, "customfield_12317379": null, "customfield_12316840":
+        null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
+        null, "customfield_12319040": null, "lastViewed": "2023-04-25T00:50:09.347+0000",
+        "watches": {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-279/watchers",
+        "watchCount": 1, "isWatching": true}, "created": "2023-04-25T00:49:44.000+0000",
+        "customfield_12321240": null, "customfield_12313140": null, "priority": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/priority/10300", "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/trivial.svg",
+        "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:9f003d1c-90f7-418f-9b28-9ebf001e126c"],
+        "customfield_12320947": [{"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27714",
+        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27705",
+        "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
+        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
+        null, "updated": "2023-04-25T00:49:44.000+0000", "customfield_12313942": null,
+        "customfield_12313941": null, "status": {"self": "https://issues.stage.redhat.com/rest/api/2/status/10016",
+        "description": "Initial creation status. Implies nothing yet and should be
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.stage.redhat.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.stage.redhat.com/rest/api/2/statuscategory/2",
+        "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
+        [], "timeoriginalestimate": null, "description": "Description for CVE-2020-0000",
+        "customfield_12314040": null, "customfield_12320844": null, "customfield_12320842":
+        null, "customfield_12310243": null, "aggregatetimeestimate": null, "customfield_12316542":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14655",
+        "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14657",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12317313":
+        null, "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
+        "summary": "CVE-2020-0000 kernel: some description", "creator": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "subtasks":
+        [], "customfield_12321140": null, "customfield_12320850": null, "reporter":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12310211": null, "customfield_12313441":
+        "", "customfield_12315542": null, "customfield_12315740": null, "customfield_12313440":
+        "0.0", "duedate": null, "customfield_12313240": null, "customfield_12311140":
+        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
+        "votes": {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-279/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "customfield_12310213":
+        null, "customfield_12311940": "1|za111w:"}}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "14944258", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14944258",
+        "key": "OSIM-278", "fields": {"customfield_12322440": null, "issuetype": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/issuetype/17", "id": "17", "description":
+        "Created by Jira Software - do not edit or delete. Issue type for a user story.",
+        "iconUrl": "https://issues.stage.redhat.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12322441":
+        null, "customfield_12322244": null, "customfield_12318341": null, "timespent":
+        null, "customfield_12320940": null, "project": {"self": "https://issues.stage.redhat.com/rest/api/2/project/12336420",
+        "id": "12336420", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
+        "software", "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/projectavatar?pid=12336420&avatarId=12560",
+        "24x24": "https://issues.stage.redhat.com/secure/projectavatar?size=small&pid=12336420&avatarId=12560",
+        "16x16": "https://issues.stage.redhat.com/secure/projectavatar?size=xsmall&pid=12336420&avatarId=12560",
+        "32x32": "https://issues.stage.redhat.com/secure/projectavatar?size=medium&pid=12336420&avatarId=12560"}},
+        "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
+        "resolution": null, "customfield_12310220": null, "customfield_12314740":
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@3c03e6e6[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4c257277[overall=PullRequestOverallBean{stateCount=0,
+        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@711ad45[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@60c0d11a[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2c7446ed[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@3a3bf975[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@30ca00f2[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@56e45ff0[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@582928ef[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@3d3c82ce[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5d11c80b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@29fe0786[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":true}}",
+        "resolutiondate": null, "workratio": -1, "customfield_12317379": null, "customfield_12316840":
+        null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
+        null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-278/watchers", "watchCount":
+        1, "isWatching": true}, "created": "2023-04-25T00:47:47.000+0000", "customfield_12321240":
+        null, "customfield_12313140": null, "priority": {"self": "https://issues.stage.redhat.com/rest/api/2/priority/10300",
+        "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/trivial.svg",
+        "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:9579e61b-7186-4978-877d-cc681a921bee"],
+        "customfield_12320947": [{"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27714",
+        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27705",
+        "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
+        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
+        null, "updated": "2023-04-25T00:47:47.000+0000", "customfield_12313942": null,
+        "customfield_12313941": null, "status": {"self": "https://issues.stage.redhat.com/rest/api/2/status/10016",
+        "description": "Initial creation status. Implies nothing yet and should be
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.stage.redhat.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.stage.redhat.com/rest/api/2/statuscategory/2",
+        "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
+        [], "timeoriginalestimate": null, "description": "Description for CVE-2020-0000",
+        "customfield_12314040": null, "customfield_12320844": null, "customfield_12320842":
+        null, "customfield_12310243": null, "aggregatetimeestimate": null, "customfield_12316542":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14655",
+        "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14657",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12317313":
+        null, "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
+        "summary": "CVE-2020-0000 kernel: some description", "creator": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "subtasks":
+        [], "customfield_12321140": null, "customfield_12320850": null, "reporter":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12310211": null, "customfield_12313441":
+        "", "customfield_12315542": null, "customfield_12315740": null, "customfield_12313440":
+        "0.0", "duedate": null, "customfield_12313240": null, "customfield_12311140":
+        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
+        "votes": {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-278/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "customfield_12310213":
+        null, "customfield_12311940": "1|za111o:"}}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "14944320", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14944320",
+        "key": "OSIM-277", "fields": {"customfield_12322440": null, "issuetype": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/issuetype/17", "id": "17", "description":
+        "Created by Jira Software - do not edit or delete. Issue type for a user story.",
+        "iconUrl": "https://issues.stage.redhat.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12322441":
+        null, "customfield_12322244": null, "customfield_12318341": null, "timespent":
+        null, "customfield_12320940": null, "project": {"self": "https://issues.stage.redhat.com/rest/api/2/project/12336420",
+        "id": "12336420", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
+        "software", "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/projectavatar?pid=12336420&avatarId=12560",
+        "24x24": "https://issues.stage.redhat.com/secure/projectavatar?size=small&pid=12336420&avatarId=12560",
+        "16x16": "https://issues.stage.redhat.com/secure/projectavatar?size=xsmall&pid=12336420&avatarId=12560",
+        "32x32": "https://issues.stage.redhat.com/secure/projectavatar?size=medium&pid=12336420&avatarId=12560"}},
+        "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
+        "resolution": null, "customfield_12310220": null, "customfield_12314740":
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@a7dfe40[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@24645c73[overall=PullRequestOverallBean{stateCount=0,
+        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2920d7dc[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@2f21914f[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2d80dd49[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@342c1a75[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1b9db51b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@3895f4ce[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@13d41c00[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@477f43bd[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@31bc0324[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@2698b259[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
+        "resolutiondate": null, "workratio": -1, "customfield_12317379": null, "customfield_12316840":
+        null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
+        null, "customfield_12319040": null, "lastViewed": "2023-04-25T00:46:39.626+0000",
+        "watches": {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-277/watchers",
+        "watchCount": 1, "isWatching": true}, "created": "2023-04-25T00:45:01.000+0000",
+        "customfield_12321240": null, "customfield_12313140": null, "priority": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/priority/10300", "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/trivial.svg",
+        "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:5a1a57e0-5b32-40e0-bc6d-c47995692ff1"],
+        "customfield_12320947": [{"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27714",
+        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27705",
+        "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
+        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
+        null, "updated": "2023-04-25T00:45:01.000+0000", "customfield_12313942": null,
+        "customfield_12313941": null, "status": {"self": "https://issues.stage.redhat.com/rest/api/2/status/10016",
+        "description": "Initial creation status. Implies nothing yet and should be
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.stage.redhat.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.stage.redhat.com/rest/api/2/statuscategory/2",
+        "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
+        [], "timeoriginalestimate": null, "description": "Description for CVE-2020-0004",
+        "customfield_12314040": null, "customfield_12320844": null, "customfield_12320842":
+        null, "customfield_12310243": null, "aggregatetimeestimate": null, "customfield_12316542":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14655",
+        "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14657",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12317313":
+        null, "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
+        "summary": "CVE-2020-0004 kernel: some description", "creator": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "subtasks":
+        [], "customfield_12321140": null, "customfield_12320850": null, "reporter":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12310211": null, "customfield_12313441":
+        "", "customfield_12315542": null, "customfield_12315740": null, "customfield_12313440":
+        "0.0", "duedate": null, "customfield_12313240": null, "customfield_12311140":
+        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
+        "votes": {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-277/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "customfield_12310213":
+        null, "customfield_12311940": "1|za111g:"}}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "14944319", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14944319",
+        "key": "OSIM-276", "fields": {"customfield_12322440": null, "issuetype": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/issuetype/17", "id": "17", "description":
+        "Created by Jira Software - do not edit or delete. Issue type for a user story.",
+        "iconUrl": "https://issues.stage.redhat.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12322441":
+        null, "customfield_12322244": null, "customfield_12318341": null, "timespent":
+        null, "customfield_12320940": null, "project": {"self": "https://issues.stage.redhat.com/rest/api/2/project/12336420",
+        "id": "12336420", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
+        "software", "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/projectavatar?pid=12336420&avatarId=12560",
+        "24x24": "https://issues.stage.redhat.com/secure/projectavatar?size=small&pid=12336420&avatarId=12560",
+        "16x16": "https://issues.stage.redhat.com/secure/projectavatar?size=xsmall&pid=12336420&avatarId=12560",
+        "32x32": "https://issues.stage.redhat.com/secure/projectavatar?size=medium&pid=12336420&avatarId=12560"}},
+        "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
+        "resolution": null, "customfield_12310220": null, "customfield_12314740":
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@348558db[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@475d2ec3[overall=PullRequestOverallBean{stateCount=0,
+        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@123035db[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@3cb52a68[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5169c770[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@325f174f[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@21527232[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@34a1fa1a[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2bece9b9[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@614366e4[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@53324b1c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@68780a4a[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":true}}",
+        "resolutiondate": null, "workratio": -1, "customfield_12317379": null, "customfield_12316840":
+        null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
+        null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-276/watchers", "watchCount":
+        1, "isWatching": true}, "created": "2023-04-25T00:44:55.000+0000", "customfield_12321240":
+        null, "customfield_12313140": null, "priority": {"self": "https://issues.stage.redhat.com/rest/api/2/priority/10300",
+        "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/trivial.svg",
+        "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:faaeaab0-e470-4a45-94ab-28dc06044161"],
+        "customfield_12320947": [{"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27714",
+        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27705",
+        "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
+        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
+        null, "updated": "2023-04-25T00:44:59.000+0000", "customfield_12313942": null,
+        "customfield_12313941": null, "status": {"self": "https://issues.stage.redhat.com/rest/api/2/status/10016",
+        "description": "Initial creation status. Implies nothing yet and should be
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.stage.redhat.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.stage.redhat.com/rest/api/2/statuscategory/2",
+        "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
+        [], "timeoriginalestimate": null, "description": "Description for CVE-2020-0003",
+        "customfield_12314040": null, "customfield_12320844": null, "customfield_12320842":
+        null, "customfield_12310243": null, "aggregatetimeestimate": null, "customfield_12316542":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14655",
+        "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14657",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12317313":
+        null, "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
+        "summary": "CVE-2020-0003 kernel: some description", "creator": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "subtasks":
+        [], "customfield_12321140": null, "customfield_12320850": null, "reporter":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12310211": null, "customfield_12313441":
+        "", "customfield_12315542": null, "customfield_12315740": null, "customfield_12313440":
+        "0.0", "duedate": null, "customfield_12313240": null, "customfield_12311140":
+        "OSIM-274", "customfield_12319742": null, "progress": {"progress": 0, "total":
+        0}, "votes": {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-276/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "customfield_12310213":
+        null, "customfield_12311940": "1|za1118:"}}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "14944318", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14944318",
+        "key": "OSIM-275", "fields": {"customfield_12322440": null, "issuetype": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/issuetype/17", "id": "17", "description":
+        "Created by Jira Software - do not edit or delete. Issue type for a user story.",
+        "iconUrl": "https://issues.stage.redhat.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12322441":
+        null, "customfield_12322244": null, "customfield_12318341": null, "timespent":
+        null, "customfield_12320940": null, "project": {"self": "https://issues.stage.redhat.com/rest/api/2/project/12336420",
+        "id": "12336420", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
+        "software", "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/projectavatar?pid=12336420&avatarId=12560",
+        "24x24": "https://issues.stage.redhat.com/secure/projectavatar?size=small&pid=12336420&avatarId=12560",
+        "16x16": "https://issues.stage.redhat.com/secure/projectavatar?size=xsmall&pid=12336420&avatarId=12560",
+        "32x32": "https://issues.stage.redhat.com/secure/projectavatar?size=medium&pid=12336420&avatarId=12560"}},
+        "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
+        "resolution": null, "customfield_12310220": null, "customfield_12314740":
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@2419eeff[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5399fc74[overall=PullRequestOverallBean{stateCount=0,
+        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@74046418[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@68e25cb0[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@34cc1821[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@2322e02e[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@74d174f6[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@eaca100[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5af5bde4[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@6e620504[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@11ebaafa[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@7a24ad66[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":true}}",
+        "resolutiondate": null, "workratio": -1, "customfield_12317379": null, "customfield_12316840":
+        null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
+        null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-275/watchers", "watchCount":
+        1, "isWatching": true}, "created": "2023-04-25T00:44:53.000+0000", "customfield_12321240":
+        null, "customfield_12313140": null, "priority": {"self": "https://issues.stage.redhat.com/rest/api/2/priority/10300",
+        "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/trivial.svg",
+        "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:08b02ba4-d80e-4b3c-9a08-b86229f5f83c"],
+        "customfield_12320947": [{"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27714",
+        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27705",
+        "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
+        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
+        null, "updated": "2023-04-25T00:44:57.000+0000", "customfield_12313942": null,
+        "customfield_12313941": null, "status": {"self": "https://issues.stage.redhat.com/rest/api/2/status/10016",
+        "description": "Initial creation status. Implies nothing yet and should be
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.stage.redhat.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.stage.redhat.com/rest/api/2/statuscategory/2",
+        "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
+        [], "timeoriginalestimate": null, "description": "Description for CVE-2020-0002",
+        "customfield_12314040": null, "customfield_12320844": null, "customfield_12320842":
+        null, "customfield_12310243": null, "aggregatetimeestimate": null, "customfield_12316542":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14655",
+        "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14657",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12317313":
+        null, "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
+        "summary": "CVE-2020-0002 kernel: some description", "creator": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "subtasks":
+        [], "customfield_12321140": null, "customfield_12320850": null, "reporter":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12310211": null, "customfield_12313441":
+        "", "customfield_12315542": null, "customfield_12315740": null, "customfield_12313440":
+        "0.0", "duedate": null, "customfield_12313240": null, "customfield_12311140":
+        "OSIM-274", "customfield_12319742": null, "progress": {"progress": 0, "total":
+        0}, "votes": {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-275/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "customfield_12310213":
+        null, "customfield_12311940": "1|za1110:"}}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "14944316", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14944316",
+        "key": "OSIM-273", "fields": {"customfield_12322440": null, "issuetype": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/issuetype/17", "id": "17", "description":
+        "Created by Jira Software - do not edit or delete. Issue type for a user story.",
+        "iconUrl": "https://issues.stage.redhat.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12322441":
+        null, "customfield_12322244": null, "customfield_12318341": null, "timespent":
+        null, "customfield_12320940": null, "project": {"self": "https://issues.stage.redhat.com/rest/api/2/project/12336420",
+        "id": "12336420", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
+        "software", "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/projectavatar?pid=12336420&avatarId=12560",
+        "24x24": "https://issues.stage.redhat.com/secure/projectavatar?size=small&pid=12336420&avatarId=12560",
+        "16x16": "https://issues.stage.redhat.com/secure/projectavatar?size=xsmall&pid=12336420&avatarId=12560",
+        "32x32": "https://issues.stage.redhat.com/secure/projectavatar?size=medium&pid=12336420&avatarId=12560"}},
+        "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
+        "resolution": null, "customfield_12310220": null, "customfield_12314740":
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@1a5c6275[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@24b9f022[overall=PullRequestOverallBean{stateCount=0,
+        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@598cb306[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@32df60f5[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5a6d0f09[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@2bb379a8[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@179beb5b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@5e8af995[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6c2db00a[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@5ce3fa1e[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@14ea13ea[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@1d2506b3[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":true}}",
+        "resolutiondate": null, "workratio": -1, "customfield_12317379": null, "customfield_12316840":
+        null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
+        null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-273/watchers", "watchCount":
+        1, "isWatching": true}, "created": "2023-04-25T00:44:48.000+0000", "customfield_12321240":
+        null, "customfield_12313140": null, "priority": {"self": "https://issues.stage.redhat.com/rest/api/2/priority/10300",
+        "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/trivial.svg",
+        "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:98c0c5fd-b2fc-46cb-adf4-5de2bdce2737"],
+        "customfield_12320947": [{"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27714",
+        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27705",
+        "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
+        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
+        null, "updated": "2023-04-25T00:44:50.000+0000", "customfield_12313942": null,
+        "customfield_12313941": null, "status": {"self": "https://issues.stage.redhat.com/rest/api/2/status/10016",
+        "description": "Initial creation status. Implies nothing yet and should be
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.stage.redhat.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.stage.redhat.com/rest/api/2/statuscategory/2",
+        "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
+        [], "timeoriginalestimate": null, "description": "Description for CVE-2020-0001",
+        "customfield_12314040": null, "customfield_12320844": null, "customfield_12320842":
+        null, "customfield_12310243": null, "aggregatetimeestimate": null, "customfield_12316542":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14655",
+        "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14657",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12317313":
+        null, "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
+        "summary": "CVE-2020-0001 kernel: some description", "creator": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "subtasks":
+        [], "customfield_12321140": null, "customfield_12320850": null, "reporter":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12310211": null, "customfield_12313441":
+        "", "customfield_12315542": null, "customfield_12315740": null, "customfield_12313440":
+        "0.0", "duedate": null, "customfield_12313240": null, "customfield_12311140":
+        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
+        "votes": {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-273/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "customfield_12310213":
+        null, "customfield_12311940": "1|za110k:"}}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "14944315", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14944315",
+        "key": "OSIM-272", "fields": {"customfield_12322440": null, "issuetype": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/issuetype/17", "id": "17", "description":
+        "Created by Jira Software - do not edit or delete. Issue type for a user story.",
+        "iconUrl": "https://issues.stage.redhat.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12322441":
+        null, "customfield_12322244": null, "customfield_12318341": null, "timespent":
+        null, "customfield_12320940": null, "project": {"self": "https://issues.stage.redhat.com/rest/api/2/project/12336420",
+        "id": "12336420", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
+        "software", "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/projectavatar?pid=12336420&avatarId=12560",
+        "24x24": "https://issues.stage.redhat.com/secure/projectavatar?size=small&pid=12336420&avatarId=12560",
+        "16x16": "https://issues.stage.redhat.com/secure/projectavatar?size=xsmall&pid=12336420&avatarId=12560",
+        "32x32": "https://issues.stage.redhat.com/secure/projectavatar?size=medium&pid=12336420&avatarId=12560"}},
+        "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
+        "resolution": {"self": "https://issues.stage.redhat.com/rest/api/2/resolution/1",
+        "id": "1", "description": "This issue is closed, and complete.", "name": "Done"},
+        "customfield_12310220": null, "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@8f0b0d5[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@49fc57f1[overall=PullRequestOverallBean{stateCount=0,
+        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@43e6e167[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@680e6535[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4e27c5fb[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@6cab3c98[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@18b205b3[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@38efc5d[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7376f9ca[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@460c44c0[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4e9b4e2f[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@3a033fb5[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":true}}",
+        "resolutiondate": "2023-04-25T00:44:46.000+0000", "workratio": -1, "customfield_12317379":
+        null, "customfield_12316840": null, "customfield_12315950": null, "customfield_12316841":
+        null, "customfield_12310940": null, "customfield_12319040": null, "lastViewed":
+        null, "watches": {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-272/watchers",
+        "watchCount": 1, "isWatching": true}, "created": "2023-04-25T00:44:41.000+0000",
+        "customfield_12321240": null, "customfield_12313140": null, "priority": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/priority/10300", "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/trivial.svg",
+        "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:a56760bc-868b-4797-8026-e8c7b5d889b9"],
+        "customfield_12320947": [{"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27714",
+        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27705",
+        "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
+        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
+        null, "updated": "2023-04-25T00:44:46.000+0000", "customfield_12313942": null,
+        "customfield_12313941": null, "status": {"self": "https://issues.stage.redhat.com/rest/api/2/status/6",
+        "description": "The issue is closed. See the resolution for context regarding
+        why (for example Done, Abandoned, Duplicate, etc)", "iconUrl": "https://issues.stage.redhat.com/images/icons/statuses/closed.png",
+        "name": "Closed", "id": "6", "statusCategory": {"self": "https://issues.stage.redhat.com/rest/api/2/statuscategory/3",
+        "id": 3, "key": "done", "colorName": "success", "name": "Done"}}, "components":
+        [], "timeoriginalestimate": null, "description": "Description for CVE-2020-0000",
+        "customfield_12314040": null, "customfield_12320844": null, "customfield_12320842":
+        null, "customfield_12310243": null, "aggregatetimeestimate": null, "customfield_12316542":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14655",
+        "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14657",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12317313":
+        null, "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
+        "summary": "CVE-2020-0000 kernel: some description modified", "creator": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "subtasks":
+        [], "customfield_12321140": null, "customfield_12320850": null, "reporter":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12310211": null, "customfield_12313441":
+        "", "customfield_12315542": null, "customfield_12315740": null, "customfield_12313440":
+        "0.0", "duedate": null, "customfield_12313240": null, "customfield_12311140":
+        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
+        "votes": {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-272/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "customfield_12310213":
+        null, "customfield_12311940": "1|za110c:"}}]}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -1608,16 +2115,16 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Tue, 18 Apr 2023 22:12:44 GMT
+      - Tue, 25 Apr 2023 00:56:15 GMT
       Expires:
-      - Tue, 18 Apr 2023 22:12:44 GMT
+      - Tue, 25 Apr 2023 00:56:15 GMT
       Pragma:
       - no-cache
       Vary:
       - User-Agent
       - Accept-Encoding
       content-length:
-      - '8497'
+      - '67694'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -1625,9 +2132,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 1332x51968x1
+      - 56x58670x1
       x-asessionid:
-      - 8b0e32
+      - 5e7b3y
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1635,9 +2142,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a6912f17.1681855964.2e7508fc
+      - 0.8a78ce17.1682384175.2314828a
       x-rh-edge-request-id:
-      - 2e7508fc
+      - 2314828a
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1678,9 +2185,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Tue, 18 Apr 2023 22:12:44 GMT
+      - Tue, 25 Apr 2023 00:56:16 GMT
       Expires:
-      - Tue, 18 Apr 2023 22:12:44 GMT
+      - Tue, 25 Apr 2023 00:56:16 GMT
       Pragma:
       - no-cache
       Vary:
@@ -1695,9 +2202,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 1332x51969x1
+      - 56x58671x1
       x-asessionid:
-      - 1btuf1h
+      - tz7js4
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1705,9 +2212,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a6912f17.1681855964.2e750ab9
+      - 0.8a78ce17.1682384176.2314850e
       x-rh-edge-request-id:
-      - 2e750ab9
+      - 2314850e
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1735,7 +2242,7 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: PUT
-    uri: https://squid.corp.redhat.com:3128/rest/api/latest/issue/OSIM-263/assignee
+    uri: https://squid.corp.redhat.com:3128/rest/api/latest/issue/OSIM-280/assignee
   response:
     body:
       string: ''
@@ -1749,9 +2256,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Tue, 18 Apr 2023 22:12:45 GMT
+      - Tue, 25 Apr 2023 00:56:16 GMT
       Expires:
-      - Tue, 18 Apr 2023 22:12:45 GMT
+      - Tue, 25 Apr 2023 00:56:16 GMT
       Pragma:
       - no-cache
       referrer-policy:
@@ -1761,9 +2268,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 1332x51970x1
+      - 56x58672x1
       x-asessionid:
-      - 7tq659
+      - 5scn6n
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1771,9 +2278,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a6912f17.1681855965.2e750bb4
+      - 0.8a78ce17.1682384176.2314860e
       x-rh-edge-request-id:
-      - 2e750bb4
+      - 2314860e
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1799,13 +2306,12 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/api/2/search?jql=PROJECT%3DOSIM+++++++++++++++++AND+assignee%3D%22concosta%40redhat.com%22+++++++++++++++++AND+type%3D%22Story%22&maxResults=50&startAt=0&validateQuery=True
+    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/OSIM-280
   response:
     body:
-      string: '{"expand": "names,schema", "startAt": 0, "maxResults": 50, "total":
-        1, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "14943751", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14943751",
-        "key": "OSIM-263", "fields": {"customfield_12322440": null, "issuetype": {"self":
+      string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+        "id": "14944260", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14944260",
+        "key": "OSIM-280", "fields": {"customfield_12322440": null, "issuetype": {"self":
         "https://issues.stage.redhat.com/rest/api/2/issuetype/17", "id": "17", "description":
         "Created by Jira Software - do not edit or delete. Issue type for a user story.",
         "iconUrl": "https://issues.stage.redhat.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
@@ -1819,22 +2325,22 @@ interactions:
         "32x32": "https://issues.stage.redhat.com/secure/projectavatar?size=medium&pid=12336420&avatarId=12560"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@95a73de[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6c5ef66a[overall=PullRequestOverallBean{stateCount=0,
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@c1c9965[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3d27463c[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@719f90f5[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@6a69c50a[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7059fac7[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@55eb7186[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@58fe5bf6[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@7c1b8476[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@43abd6f0[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@4dc2e842[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@67493be7[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@47513b4c[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@249b2b0[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@5d81263[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@601c7381[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@3c7f4921[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@736cb02c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@36e2ff28[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@35e1120e[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@739163d2[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@656a505c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@44d0f866[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":true}}",
         "resolutiondate": null, "workratio": -1, "customfield_12317379": null, "customfield_12316840":
         null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
         null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-263/watchers", "watchCount":
-        1, "isWatching": true}, "created": "2023-04-18T22:12:44.000+0000", "customfield_12321240":
+        "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-280/watchers", "watchCount":
+        1, "isWatching": true}, "created": "2023-04-25T00:56:15.013+0000", "customfield_12321240":
         null, "customfield_12313140": null, "priority": {"self": "https://issues.stage.redhat.com/rest/api/2/priority/10300",
         "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/trivial.svg",
-        "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:5a1a57e0-5b32-40e0-bc6d-c47995692ff1"],
+        "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:bbb87fd5-5935-4df0-a39c-ca7f13cfd99e"],
         "customfield_12320947": [{"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27705",
@@ -1847,7 +2353,159 @@ interactions:
         "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
         "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
         "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "updated":
-        "2023-04-18T22:12:44.000+0000", "customfield_12313942": null, "customfield_12313941":
+        "2023-04-25T00:56:16.122+0000", "customfield_12313942": null, "customfield_12313941":
+        null, "status": {"self": "https://issues.stage.redhat.com/rest/api/2/status/10016",
+        "description": "Initial creation status. Implies nothing yet and should be
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.stage.redhat.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.stage.redhat.com/rest/api/2/statuscategory/2",
+        "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
+        [], "timeoriginalestimate": null, "description": "Description for CVE-2020-0000",
+        "customfield_12314040": null, "customfield_12320844": null, "timetracking":
+        {}, "customfield_12320842": null, "archiveddate": null, "customfield_12310243":
+        null, "attachment": [], "aggregatetimeestimate": null, "customfield_12316542":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14655",
+        "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/14657",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12317313":
+        null, "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
+        "summary": "CVE-2020-0000 kernel: some description", "creator": {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "subtasks":
+        [], "customfield_12321140": null, "customfield_12320850": null, "reporter":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12310211": null, "customfield_12313441":
+        "", "customfield_12315542": null, "customfield_12315740": null, "customfield_12313440":
+        "0.0", "duedate": null, "customfield_12313240": null, "customfield_12311140":
+        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
+        "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt": 0}, "votes":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-280/votes",
+        "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
+        "total": 0, "worklogs": []}, "customfield_12319743": null, "customfield_12310213":
+        null, "archivedby": null, "customfield_12311940": "1|za1124:"}}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - sandbox
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Tue, 25 Apr 2023 00:56:16 GMT
+      Expires:
+      - Tue, 25 Apr 2023 00:56:16 GMT
+      Pragma:
+      - no-cache
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      content-length:
+      - '9315'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-dc-stg-1
+      x-arequestid:
+      - 56x58673x1
+      x-asessionid:
+      - 1odnyly
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.8a78ce17.1682384176.231488bf
+      x-rh-edge-request-id:
+      - 231488bf
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*.*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.26.0
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://squid.corp.redhat.com:3128/rest/api/2/search?jql=PROJECT%3DOSIM+++++++++++++++++AND+assignee%3D%22concosta%40redhat.com%22+++++++++++++++++AND+type%3D%22Story%22&maxResults=50&startAt=0&validateQuery=True
+  response:
+    body:
+      string: '{"expand": "names,schema", "startAt": 0, "maxResults": 50, "total":
+        1, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "14944260", "self": "https://issues.stage.redhat.com/rest/api/2/issue/14944260",
+        "key": "OSIM-280", "fields": {"customfield_12322440": null, "issuetype": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/issuetype/17", "id": "17", "description":
+        "Created by Jira Software - do not edit or delete. Issue type for a user story.",
+        "iconUrl": "https://issues.stage.redhat.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12322441":
+        null, "customfield_12322244": null, "customfield_12318341": null, "timespent":
+        null, "customfield_12320940": null, "project": {"self": "https://issues.stage.redhat.com/rest/api/2/project/12336420",
+        "id": "12336420", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
+        "software", "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/projectavatar?pid=12336420&avatarId=12560",
+        "24x24": "https://issues.stage.redhat.com/secure/projectavatar?size=small&pid=12336420&avatarId=12560",
+        "16x16": "https://issues.stage.redhat.com/secure/projectavatar?size=xsmall&pid=12336420&avatarId=12560",
+        "32x32": "https://issues.stage.redhat.com/secure/projectavatar?size=medium&pid=12336420&avatarId=12560"}},
+        "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
+        "resolution": null, "customfield_12310220": null, "customfield_12314740":
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@7fc234b2[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@38c5505f[overall=PullRequestOverallBean{stateCount=0,
+        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4e0c200b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@5c59c63d[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3e7d241[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@cd5f02f[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@23f695c6[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@310cc7ab[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@cc46e11[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@2fb3a32e[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@38fc4bbb[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@6f9af290[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":true}}",
+        "resolutiondate": null, "workratio": -1, "customfield_12317379": null, "customfield_12316840":
+        null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
+        null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
+        "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-280/watchers", "watchCount":
+        1, "isWatching": true}, "created": "2023-04-25T00:56:15.000+0000", "customfield_12321240":
+        null, "customfield_12313140": null, "priority": {"self": "https://issues.stage.redhat.com/rest/api/2/priority/10300",
+        "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/trivial.svg",
+        "name": "Undefined", "id": "10300"}, "labels": ["flawuuid:bbb87fd5-5935-4df0-a39c-ca7f13cfd99e"],
+        "customfield_12320947": [{"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27714",
+        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/27705",
+        "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
+        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
+        {"self": "https://issues.stage.redhat.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://issues.stage.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://issues.stage.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://issues.stage.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "GMT"}, "updated":
+        "2023-04-25T00:56:16.000+0000", "customfield_12313942": null, "customfield_12313941":
         null, "status": {"self": "https://issues.stage.redhat.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
         very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.stage.redhat.com/images/icons/statuses/generic.png",
@@ -1880,9 +2538,9 @@ interactions:
         "", "customfield_12315542": null, "customfield_12315740": null, "customfield_12313440":
         "0.0", "duedate": null, "customfield_12313240": null, "customfield_12311140":
         null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
-        "votes": {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-263/votes",
+        "votes": {"self": "https://issues.stage.redhat.com/rest/api/2/issue/OSIM-280/votes",
         "votes": 0, "hasVoted": false}, "customfield_12319743": null, "customfield_12310213":
-        null, "customfield_12311940": "1|za108s:"}}]}'
+        null, "customfield_12311940": "1|za1124:"}}]}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -1893,16 +2551,16 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Tue, 18 Apr 2023 22:12:45 GMT
+      - Tue, 25 Apr 2023 00:56:16 GMT
       Expires:
-      - Tue, 18 Apr 2023 22:12:45 GMT
+      - Tue, 25 Apr 2023 00:56:16 GMT
       Pragma:
       - no-cache
       Vary:
       - User-Agent
       - Accept-Encoding
       content-length:
-      - '9180'
+      - '9178'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -1910,9 +2568,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-1
       x-arequestid:
-      - 1332x51971x1
+      - 56x58674x1
       x-asessionid:
-      - 1m2dyco
+      - gngo1i
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1920,9 +2578,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a6912f17.1681855965.2e750ec1
+      - 0.8a78ce17.1682384176.231489bf
       x-rh-edge-request-id:
-      - 2e750ec1
+      - 231489bf
       x-seraph-loginreason:
       - OK
       x-xss-protection:

@@ -61,7 +61,7 @@ class TestIntegration(object):
             format="json",
             **headers,
         )
-        assert response3.status_code == 204
+        assert response3.status_code == 200
 
         response4 = auth_client.get(
             f"{test_api_uri}/task/flaw/{flaw.uuid}",
@@ -84,7 +84,7 @@ class TestIntegration(object):
             format="json",
             **headers,
         )
-        assert response5.status_code == 204
+        assert response5.status_code == 200
 
         response6 = auth_client.get(
             f"{test_api_uri}/task/{issue['key']}",
@@ -235,7 +235,7 @@ class TestIntegration(object):
             format="json",
             **headers,
         )
-        assert response4.status_code == 204
+        assert response4.status_code == 200
 
         response5 = auth_client.put(
             f"{test_api_uri}/group/{response1.json()['key']}",
@@ -243,7 +243,7 @@ class TestIntegration(object):
             format="json",
             **headers,
         )
-        assert response5.status_code == 204
+        assert response5.status_code == 200
 
         response6 = auth_client.get(
             f"{test_api_uri}/group/{response1.json()['key']}",
@@ -278,9 +278,8 @@ class TestIntegration(object):
         GET -> /task/assignee/<str:user>
         """
         # remove randomness from flaw
-        flaw1 = FlawFactory(
-            uuid="5a1a57e0-5b32-40e0-bc6d-c47995692ff1", embargoed=False
-        )
+        flaw_uuid = "bbb87fd5-5935-4df0-a39c-ca7f13cfd99e"
+        flaw1 = FlawFactory(uuid=flaw_uuid, embargoed=False)
 
         headers = {"HTTP_JiraAuthentication": user_token}
         response1 = auth_client.post(
@@ -301,7 +300,15 @@ class TestIntegration(object):
             **headers,
         )
         assert response2.status_code == 200
-        assert response2.json()["total"] == 1
+        created_issue_found = False
+        for issue in response2.json()["issues"]:
+            created_issue_found = created_issue_found or any(
+                label
+                for label in issue["fields"]["labels"]
+                if label == f"flawuuid:{flaw_uuid}"
+            )
+
+        assert created_issue_found
 
         response3 = auth_client.put(
             f"{test_api_uri}/task/assignee/{user}",
@@ -309,7 +316,7 @@ class TestIntegration(object):
             format="json",
             **headers,
         )
-        assert response3.status_code == 204
+        assert response3.status_code == 200
 
         response4 = auth_client.get(
             f"{test_api_uri}/task/assignee/{user}",
