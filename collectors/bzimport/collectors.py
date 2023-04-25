@@ -242,57 +242,80 @@ class BugzillaQuerier(BugzillaConnector):
         return products[0] if products else None
 
 
+# TODO tzinfo should be set implicitly but my current
+# attempts do not work - leaving explicit for now
+TIMEZONE = timezone.get_current_timezone()
+
+
 class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
     """Bugzilla flaw collector"""
 
     # date before the first flaw was created
-    BEGINNING = timezone.datetime(2000, 1, 1, tzinfo=timezone.get_current_timezone())
+    BEGINNING = timezone.datetime(2000, 1, 1, tzinfo=TIMEZONE)
 
     # this should be considered the minimum amount of flaws to be synced
     # per collector run and not a hard limit per batch, as each batch will
     # most likely contain more than this, but not less unless it's the last run
     BATCH_SIZE = 100
 
+    # the list of Bugzilla flaw data migrations
+    # as they mean high numbers of flaw changes clustered
+    # into small time periods requiring special handling
+    MIGRATIONS = [
+        # there was a huge and very dense data migration between
+        # 2019-09-29 12:19:32 - 2019-09-29 15:37:58
+        # so we prevent very long query going by minute
+        {
+            "start": timezone.datetime(2019, 9, 29, 12, 19, tzinfo=TIMEZONE),
+            "end": timezone.datetime(2019, 9, 29, 15, 38, tzinfo=TIMEZONE),
+            "step": relativedelta(minutes=1),
+        },
+        # there was a huge data migration between
+        # 2021-02-16 17:08:37 - 2021-02-17 08:30:43
+        # so we prevent very large batches going by ten minutes
+        {
+            "start": timezone.datetime(2021, 2, 16, 17, 8, tzinfo=TIMEZONE),
+            "end": timezone.datetime(2021, 2, 17, 8, 30, tzinfo=TIMEZONE),
+            "step": relativedelta(minutes=10),
+        },
+        # there was a large data migration
+        # (probably followup of previous one) between
+        # 2021-02-23 13:37:22 - 2021-02-26 17:19:23
+        # so we prevent large batches going by an hour
+        {
+            "start": timezone.datetime(2021, 2, 23, 13, 37, tzinfo=TIMEZONE),
+            "end": timezone.datetime(2021, 2, 26, 17, 19, tzinfo=TIMEZONE),
+            "step": relativedelta(hours=1),
+        },
+    ]
+
     def end_period_heuristic(self, period_start):
         """
         very simple heuristic to optimize the batch period
         basically in the past there are a few flaws every year
         but recently there is a lot of them every week
-        and there was one problematic data migration
+        and there some problematic data migrations
         """
-        # TODO tzinfo here and on other places should be set implicitly
-        # but my current attempts do not work - leaving explicit for now
-        if period_start < timezone.datetime(
-            2010, 1, 1, tzinfo=timezone.get_current_timezone()
-        ):
+        if period_start < timezone.datetime(2010, 1, 1, tzinfo=TIMEZONE):
             return period_start + relativedelta(years=5)
 
-        if period_start < timezone.datetime(
-            2018, 1, 1, tzinfo=timezone.get_current_timezone()
-        ):
+        if period_start < timezone.datetime(2018, 1, 1, tzinfo=TIMEZONE):
             return period_start + relativedelta(years=1)
-
-        # there was a huge data migration between
-        # 2019-09-29 12:19:32 - 2019-09-29 15:37:58
-        # so we prevent very long query going by minute
-
-        MIGRATION_START = timezone.datetime(
-            2019, 9, 29, 12, 19, tzinfo=timezone.get_current_timezone()
-        )
-        MIGRATION_END = timezone.datetime(
-            2019, 9, 29, 15, 38, tzinfo=timezone.get_current_timezone()
-        )
-
-        if period_start < MIGRATION_START:
-            return MIGRATION_START
-
-        if period_start < MIGRATION_END:
-            return period_start + relativedelta(minutes=1)
 
         # then we have more regularly scattered data
         # and the possible future date is no problem
         # so we can use it for the periodic sync too
-        return period_start + relativedelta(months=1)
+        period_end = period_start + relativedelta(months=1)
+
+        # but we have to account for the periods of data migrations
+        for migration in self.MIGRATIONS:
+            if period_start < migration["start"] and period_end > migration["start"]:
+                return migration["start"]
+
+            if period_start >= migration["start"] and period_start < migration["end"]:
+                return period_start + migration["step"]
+
+        return period_end
 
     def get_batch(self):
         """get next batch of flaw IDs"""
