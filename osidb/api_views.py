@@ -299,7 +299,7 @@ def include_exclude_fields_extend_schema_view(
     ),
 )
 class FlawView(ModelViewSet):
-    queryset = Flaw.objects.all()
+    queryset = Flaw.objects.prefetch_related("affects", "affects__trackers").all()
     serializer_class = FlawSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = FlawFilter
