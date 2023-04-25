@@ -87,6 +87,31 @@ class TestBugzillaQuerier:
 
 
 class TestBZImportCollector:
+    def test_end_period_heuristic(self, flaw_collector):
+        """
+        test that the heuristic of getting the end of the currect
+        sync period correctly proceeds till the present time
+        """
+        period_start = flaw_collector.BEGINNING
+
+        while True:
+            period_end = flaw_collector.end_period_heuristic(period_start)
+            assert period_start < period_end
+
+            period_start = period_end
+            if period_start > timezone.now():
+                break
+
+    def test_end_period_heuristic_migrations(self, flaw_collector):
+        """
+        test that the heuristic of getting the end of the currect
+        sync period correctly accounts for the data migration periods
+        """
+        for migration in flaw_collector.MIGRATIONS:
+            assert migration["start"] + migration[
+                "step"
+            ] == flaw_collector.end_period_heuristic(migration["start"])
+
     @pytest.mark.vcr
     def test_get_batch(self, flaw_collector):
         first_batch = flaw_collector.get_batch()
