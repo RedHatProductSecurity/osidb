@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+- Introduce flaw ownership through task management system (OSIDB-69)
+
+### Changed
+
+### Removed
+
 ## [3.1.1] - 2023-04-17
 ### Changed
 - Fix Jira tracker collection bug (OSIDB-848)
@@ -18,7 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More granular filtering for Flaw, Affect and Tracker API endpoints (OSIDB-667)
 - Ordering (ascending/descending) for Flaw, Affect and Tracker API endpoints (OSIDB-668)
 - Implement proper NVD CVSS score collector (OSIDB-632)
-- Introduce flaw ownership through task management system (OSIDB-69)
 
 ### Changed
 - Rework the mapping from Bugzilla sumary to OSIDB title and vice versa (OSIDB-694)
