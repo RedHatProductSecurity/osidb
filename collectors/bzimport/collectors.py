@@ -11,6 +11,7 @@ from celery.utils.log import get_task_logger
 from dateutil.relativedelta import relativedelta
 from django.db import transaction
 from django.utils import timezone
+from joblib import Parallel, delayed
 from requests_gssapi import HTTPKerberosAuth
 
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
@@ -26,6 +27,7 @@ from .constants import (
     BZ_DT_FMT,
     BZ_URL,
     NVD_CVSS_URL,
+    PARALLEL_THREADS,
     ROOT_CA_PATH,
 )
 from .exceptions import RecoverableBZImportException
@@ -512,33 +514,20 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
         alternatively you can specify a batch as the parameter - list of Bugzilla IDs
         then all updated until and completeness sugar is skipped
         """
-        successes = []
-        failures = []
-
         # remember time before BZ query so we do not miss
         # anything starting the next batch from it
         start_dt = timezone.now()
 
         flaw_ids = [(i, i) for i in batch] if batch is not None else self.get_batch()
 
-        # TODO good candidate for parallelizing
-        for flaw_id, _ in flaw_ids:
-            logger.debug(f"Fetching flaw with Bugzilla ID {flaw_id}")
-
-            try:
-                self.sync_flaw(flaw_id)
-                successes.append(flaw_id)
-
-            except RecoverableBZImportException:
-                # when we encounter an exception which can be
-                # recovered by the rerun we fail the sync of
-                # the whole batch so it can be fully rerun
-                raise
-
-            except Exception as e:
-                logger.exception(f"Bugzilla flaw bug {flaw_id} import error: {str(e)}")
-                failures.append(flaw_id)
-                # TODO store error
+        # collect data in parallel
+        results = Parallel(n_jobs=PARALLEL_THREADS, prefer="threads")(
+            delayed(self.collect_flaw)(flaw_id) for flaw_id, _ in flaw_ids
+        )
+        # process the results
+        successes, failures = [success for success, _ in results if success], [
+            failure for _, failure in results if failure
+        ]
 
         # with specified batch we stop here
         if batch is not None:
@@ -561,6 +550,28 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
         msg += f" Unsuccessfully fetched: {', '.join(failures)}." if failures else ""
         msg += " Nothing new to fetch." if not flaw_ids else ""
         return msg
+
+    def collect_flaw(self, flaw_id):
+        """
+        collect flaw by the given ID
+        return the success,failure pair
+        """
+        logger.debug(f"Fetching flaw with Bugzilla ID {flaw_id}")
+
+        try:
+            self.sync_flaw(flaw_id)
+            return (flaw_id, None)
+
+        except RecoverableBZImportException:
+            # when we encounter an exception which can be
+            # recovered by the rerun we fail the sync of
+            # the whole batch so it can be fully rerun
+            raise
+
+        except Exception as e:
+            logger.exception(f"Bugzilla flaw bug {flaw_id} import error: {str(e)}")
+            return (None, flaw_id)
+            # TODO store error
 
 
 class BzTrackerCollector(Collector, BugzillaQuerier):

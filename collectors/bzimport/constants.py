@@ -15,6 +15,8 @@ BZ_URL: str = get_env("BZIMPORT_BZ_URL", default="https://bugzilla.redhat.com")
 BZ_ENABLE_IMPORT_EMBARGOED = get_env(
     "BZIMPORT_ENABLE_IMPORT_EMBARGOED", default="True", is_bool=True
 )
+# number of threads collecting in parallel
+PARALLEL_THREADS = get_env("BZIMPORT_PARALLEL_THREADS", default="8", is_int=True)
 
 ROOT_CA_PATH = get_env("ROOT_CA_PATH")
 
