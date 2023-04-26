@@ -21,6 +21,7 @@ gevent
 gunicorn
 inflection
 jira
+joblib
 jsonschema
 kerberos
 markdown
