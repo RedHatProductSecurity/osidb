@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [3.1.2] - 2023-04-27
+### Changed
+- General performance improvements
+
 ## [3.1.1] - 2023-04-17
 ### Changed
 - Fix Jira tracker collection bug (OSIDB-848)
