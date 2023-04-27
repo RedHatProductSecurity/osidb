@@ -337,6 +337,8 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
         },
     ]
 
+    _nvd_cvss = None
+
     def end_period_heuristic(self, period_start):
         """
         very simple heuristic to optimize the batch period
@@ -473,7 +475,7 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
             flaw_comments = self.get_bug_comments(flaw_id)
             flaw_history = self.get_bug_history(flaw_id)
             flaw_task = self.get_flaw_task(flaw_data)
-            nvd_cvss = NVDQuerier.nvd_cvss()
+            nvd_cvss = self._nvd_cvss or NVDQuerier.nvd_cvss()
         except Exception as e:
             # fetching the data is prone to transient failures which are recoverable
             # while the permanent issues are not expected at this stage of flaw sync
@@ -520,6 +522,8 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
 
         flaw_ids = [(i, i) for i in batch] if batch is not None else self.get_batch()
 
+        # pull this only once per collection instead of per thread
+        self._nvd_cvss = NVDQuerier.nvd_cvss()
         # collect data in parallel
         results = Parallel(n_jobs=PARALLEL_THREADS, prefer="threads")(
             delayed(self.collect_flaw)(flaw_id) for flaw_id, _ in flaw_ids
