@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.utils.timezone import make_aware
 
 from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
-from collectors.jiraffe.convertors import TrackerConvertor, TrackerIssueConvertor
+from collectors.jiraffe.convertors import JiraTrackerConvertor, TrackerConvertor
 from osidb.core import generate_acls, set_user_acls
 from osidb.mixins import AlertMixin, TrackingMixin
 from osidb.models import (
@@ -77,7 +77,7 @@ class BugzillaGroupsConvertorMixin:
             return settings.PUBLIC_READ_GROUPS
 
         if not BZ_ENABLE_IMPORT_EMBARGOED:
-            raise self.FlawBugConvertorException(
+            raise self.FlawConvertorException(
                 f"Bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
             )
 
@@ -92,7 +92,7 @@ class BugzillaGroupsConvertorMixin:
             return [settings.PUBLIC_WRITE_GROUP]
 
         if not BZ_ENABLE_IMPORT_EMBARGOED:
-            raise self.FlawBugConvertorException(
+            raise self.FlawConvertorException(
                 f"Bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
             )
 
@@ -119,7 +119,7 @@ class BugzillaGroupsConvertorMixin:
         return [uuid.UUID(acl) for acl in generate_acls(self.groups_write)]
 
 
-class TrackerBugConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
+class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
     """
     Bugzilla tracker bug to OSIDB tracker convertor.
     """
@@ -169,7 +169,7 @@ class TrackerBugConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
 
 class FlawSaver:
     """
-    FlawSaver is holder of the individual flaw parts provided by FlawBugConvertor
+    FlawSaver is holder of the individual flaw parts provided by FlawConvertor
     which knows how to correctly save them all as the resulting Django DB models
     it provides save method as an interface to perform the whole save operation
     """
@@ -375,7 +375,7 @@ class FlawSaver:
             )
 
 
-class FlawBugConvertor(BugzillaGroupsConvertorMixin):
+class FlawConvertor(BugzillaGroupsConvertorMixin):
     """
     Bugzilla flaw bug to OSIDB flaw model convertor
     this class is to performs the transformation only
@@ -383,7 +383,7 @@ class FlawBugConvertor(BugzillaGroupsConvertorMixin):
     and provides all the model pieces to be saved
     """
 
-    class FlawBugConvertorException(NonRecoverableBZImportException):
+    class FlawConvertorException(NonRecoverableBZImportException):
         """flaw bug to flaw model specific errors"""
 
     _flaws = None
@@ -473,21 +473,21 @@ class FlawBugConvertor(BugzillaGroupsConvertorMixin):
     def flaw_bug(self):
         """check and get flaw bug"""
         if self._flaw_bug is None:
-            raise self.FlawBugConvertorException("source data not set")
+            raise self.FlawConvertorException("source data not set")
         return self._flaw_bug
 
     @property
     def flaw_comments(self):
         """check and get flaw comments"""
         if self._flaw_comments is None:
-            raise self.FlawBugConvertorException("source data not set")
+            raise self.FlawConvertorException("source data not set")
         return self._flaw_comments
 
     @property
     def flaw_history(self):
         """check and get flaw history"""
         if self._flaw_history is None:
-            raise self.FlawBugConvertorException("source data not set")
+            raise self.FlawConvertorException("source data not set")
         return self._flaw_history
 
     @property
@@ -500,14 +500,14 @@ class FlawBugConvertor(BugzillaGroupsConvertorMixin):
     def tracker_bugs(self):
         """get list of tracker bugs"""
         if self._tracker_bugs is None:
-            raise self.FlawBugConvertorException("source data not set")
+            raise self.FlawConvertorException("source data not set")
         return self._tracker_bugs
 
     @property
     def tracker_jiras(self):
         """get list of tracker Jira issues"""
         if self._tracker_jiras is None:
-            raise self.FlawBugConvertorException("source data not set")
+            raise self.FlawConvertorException("source data not set")
         return self._tracker_jiras
 
     #########################
@@ -622,7 +622,7 @@ class FlawBugConvertor(BugzillaGroupsConvertorMixin):
         Bugzilla trackers
         with product definitions context
         """
-        return [TrackerBugConvertor(tracker) for tracker in self.tracker_bugs]
+        return [BugzillaTrackerConvertor(tracker) for tracker in self.tracker_bugs]
 
     @property
     def depends_on(self):
@@ -638,7 +638,7 @@ class FlawBugConvertor(BugzillaGroupsConvertorMixin):
         Jira trackers
         with product definitions context
         """
-        return [TrackerIssueConvertor(tracker) for tracker in self.tracker_jiras]
+        return [JiraTrackerConvertor(tracker) for tracker in self.tracker_jiras]
 
     ########################
     # DJANGO MODEL GETTERS #

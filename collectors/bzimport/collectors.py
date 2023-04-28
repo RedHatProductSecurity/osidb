@@ -13,7 +13,7 @@ from django.utils import timezone
 from joblib import Parallel, delayed
 
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
-from collectors.bzimport.convertors import FlawBugConvertor, TrackerBugConvertor
+from collectors.bzimport.convertors import BugzillaTrackerConvertor, FlawConvertor
 from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
 from collectors.framework.models import Collector
 from collectors.jiraffe.core import JiraQuerier
@@ -445,7 +445,7 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
         flaw_jira_trackers = self.get_flaw_jira_trackers(flaw_data)
 
         # 2) convert flaw data to Django models
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_data,
             flaw_comments,
             flaw_history,
@@ -531,7 +531,7 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
             # TODO store error
 
 
-class BzTrackerCollector(Collector, BugzillaQuerier):
+class BugzillaTrackerCollector(Collector, BugzillaQuerier):
 
     # version 0.0.1 of OSIDB was released on January 21st 2022
     BEGINNING = timezone.datetime(2022, 1, 21, tzinfo=timezone.get_current_timezone())
@@ -599,7 +599,7 @@ class BzTrackerCollector(Collector, BugzillaQuerier):
         #   that the tracker would not be deleted but corrected and/or set to a
         #   specific state/resolution, but if it truly is deleted then it's currently
         #   not handled.
-        TrackerBugConvertor(tracker_data).convert().save(
+        BugzillaTrackerConvertor(tracker_data).convert().save(
             auto_timestamps=False, raise_validation_error=False
         )
 

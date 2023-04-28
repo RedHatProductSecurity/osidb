@@ -201,7 +201,7 @@ class TestBZImportCollector:
         assert old_acls == new_acls
 
 
-class TestBzTrackerCollector:
+class TestBugzillaTrackerCollector:
     def test_jira_connection(self, flaw_collector):
         """Test that collector is able to instantiate a Jira connection object"""
         assert flaw_collector.jira_conn

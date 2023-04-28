@@ -9,7 +9,7 @@ from jira import Issue
 
 from collectors.framework.models import Collector
 
-from .convertors import TrackerIssueConvertor
+from .convertors import JiraTrackerConvertor
 from .core import JiraQuerier
 
 logger = get_task_logger(__name__)
@@ -59,7 +59,7 @@ class JiraTrackerCollector(Collector, JiraQuerier):
 
         # process data
         for tracker_data in batch_data:
-            tracker_convertor = TrackerIssueConvertor(tracker_data)
+            tracker_convertor = JiraTrackerConvertor(tracker_data)
             tracker = tracker_convertor.convert()
             # no automatic timestamps as those go from Jira
             # and no validation exceptions not to fail here

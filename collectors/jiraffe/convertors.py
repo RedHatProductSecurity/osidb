@@ -85,7 +85,7 @@ class TrackerConvertor:
         return self._gen_tracker_object(affect)
 
 
-class TrackerIssueConvertor(TrackerConvertor):
+class JiraTrackerConvertor(TrackerConvertor):
     """
     Jira tracker issue to OSIDB tracker convertor
     """

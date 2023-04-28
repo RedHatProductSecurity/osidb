@@ -1,6 +1,6 @@
 import pytest
 
-from collectors.jiraffe.convertors import TrackerIssueConvertor
+from collectors.jiraffe.convertors import JiraTrackerConvertor
 from collectors.jiraffe.core import JiraQuerier
 from osidb.models import Affect, Tracker
 from osidb.tests.factories import AffectFactory, FlawFactory
@@ -8,7 +8,7 @@ from osidb.tests.factories import AffectFactory, FlawFactory
 pytestmark = pytest.mark.unit
 
 
-class TestTrackerIssueConvertor:
+class TestJiraTrackerConvertor:
     """
     test that Jira issue to OSIDB tracker convertor works
     """
@@ -21,7 +21,7 @@ class TestTrackerIssueConvertor:
         test that the convertor works
         """
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
-        tracker_convertor = TrackerIssueConvertor(tracker_data)
+        tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker = tracker_convertor.convert()
 
         assert tracker.type == Tracker.TrackerType.JIRA
@@ -41,7 +41,7 @@ class TestTrackerIssueConvertor:
         """
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_data.fields.security = None  # set tu public
-        tracker_convertor = TrackerIssueConvertor(tracker_data)
+        tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker = tracker_convertor.convert()
 
         assert not tracker.is_embargoed
@@ -57,7 +57,7 @@ class TestTrackerIssueConvertor:
         )
 
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
-        tracker_convertor = TrackerIssueConvertor(tracker_data)
+        tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker = tracker_convertor.convert(affect=affect)
 
         assert tracker.affects.count() == 1
