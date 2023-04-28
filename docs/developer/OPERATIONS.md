@@ -32,6 +32,10 @@ and the changes to be released - see [Versioning](#Versioning).
 git diff $(git describe --tags --abbrev=0) openapi.yml
 ```
 
+When considering the release to be non-major, always ask another experienced developer
+to double check this. Special attention has to be payed to the core OSIDB service data
+entity API endpoints. Any removed lines are most probably breaking changes.
+
 Make sure you perform the following commands from the project root directory.
 
 ```bash
