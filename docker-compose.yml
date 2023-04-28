@@ -76,7 +76,6 @@ services:
         JIRA_URL: ${JIRA_URL}
         ET_URL: ${ET_URL}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
-        DASHBOARD_URL: ${DASHBOARD_URL}
         BBSYNC_SYNC_TO_BZ: ${BBSYNC_SYNC_TO_BZ}
         JIRA_TASKMAN_URL: ${JIRA_TASKMAN_URL}
         JIRA_TASKMAN_PROJECT_KEY: ${JIRA_TASKMAN_PROJECT_KEY}
@@ -137,10 +136,8 @@ services:
         BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
         JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
         JIRA_URL: ${JIRA_URL}
-        JIRAFFE_AUTO_SYNC: ${JIRAFFE_AUTO_SYNC}
         ET_URL: ${ET_URL}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
-        DASHBOARD_URL: ${DASHBOARD_URL}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
       # depends_on:
@@ -165,10 +162,8 @@ services:
         BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
         JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
         JIRA_URL: ${JIRA_URL}
-        JIRAFFE_AUTO_SYNC: ${JIRAFFE_AUTO_SYNC}
         ET_URL: ${ET_URL}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
-        DASHBOARD_URL: ${DASHBOARD_URL}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
       # depends_on:
@@ -195,7 +190,6 @@ services:
         JIRA_URL: ${JIRA_URL}
         ET_URL: ${ET_URL}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
-        DASHBOARD_URL: ${DASHBOARD_URL}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
       # depends_on:
@@ -220,7 +214,6 @@ services:
         OSIDB_DEBUG: ${OSIDB_DEBUG}
         ET_URL: ${ET_URL}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
-        DASHBOARD_URL: ${DASHBOARD_URL}
       depends_on: ["redis", "osidb-data"]
 
     redis:

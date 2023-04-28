@@ -1,6 +1,6 @@
 import pytest
 
-from collectors.bzimport.collectors import BzTrackerCollector, FlawCollector
+from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
 
 
 @pytest.fixture(autouse=True)
@@ -54,7 +54,7 @@ def flaw_collector():
 
 @pytest.fixture
 def bz_tracker_collector():
-    return BzTrackerCollector()
+    return BugzillaTrackerCollector()
 
 
 @pytest.fixture

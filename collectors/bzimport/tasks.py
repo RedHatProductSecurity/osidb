@@ -6,7 +6,7 @@ from celery.utils.log import get_task_logger
 
 from collectors.framework.models import collector
 
-from .collectors import BzTrackerCollector, FlawCollector, MetadataCollector
+from .collectors import BugzillaTrackerCollector, FlawCollector, MetadataCollector
 
 logger = get_task_logger(__name__)
 
@@ -23,7 +23,7 @@ def flaw_collector(collector_obj):
 
 
 @collector(
-    base=BzTrackerCollector,
+    base=BugzillaTrackerCollector,
     crontab=crontab(),
     depends_on=["collectors.bzimport.tasks.flaw_collector"],
 )

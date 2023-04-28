@@ -1,125 +1,65 @@
 import pytest
 from django.utils import timezone
-from freezegun import freeze_time
+from jira import Issue
 
-from osidb.models import Affect, Tracker
-
-from ..core import find_jira_trackers, upsert_trackers
+from collectors.jiraffe.core import JiraQuerier
+from collectors.jiraffe.exceptions import NonRecoverableJiraffeException
 
 pytestmark = pytest.mark.unit
 
 
-class TestJiraTrackerCollection(object):
-    @staticmethod
-    def _gen_affect(flaw, module, component):
-        affect = Affect.objects.create_affect(
-            flaw,
-            affectedness=Affect.AffectAffectedness.NEW,
-            resolution=Affect.AffectResolution.NOVALUE,
-            impact=Affect.AffectImpact.NOVALUE,
-            ps_module=module,
-            ps_component=component,
-            acl_read=flaw.acl_read,
-            acl_write=flaw.acl_write,
-        )
-        affect.save()
-        return affect
+class TestJiraQuerier:
+    """
+    test that Jira queries work
+    """
 
     @pytest.mark.vcr
-    def test_collect_from_affect(self, good_flaw, good_jira_trackers):
+    def test_get_issue(self):
         """
-        Test the collection of JIRA trackers from a given affect.
+        test that getting the given Jira issue works
         """
-        affect = self._gen_affect(good_flaw, "fis-2", "xmlrpc-common")
-        trackers = find_jira_trackers(affect)
-        assert trackers
-        assert len(trackers) == 1
-        assert trackers[0].key == good_jira_trackers[0]
+        tracker = JiraQuerier().get_issue("ENTESB-8726")
+
+        assert isinstance(tracker, Issue)
+        assert tracker.key == "ENTESB-8726"
 
     @pytest.mark.vcr
-    def test_collect_non_jira_tracker_from_affect(self, good_flaw, good_jira_trackers):
+    def test_get_issue_non_accessible(self):
         """
-        Test the collection of non-JIRA trackers from a given affect.
+        test getting a non-accessible Jira issue
         """
-        # fedora-all is tracked in Bugzilla, therefore it should not return any results
-        affect = self._gen_affect(good_flaw, "fedora-all", "springframework")
-        trackers = find_jira_trackers(affect)
-        assert not trackers
+        with pytest.raises(
+            NonRecoverableJiraffeException,
+            match="Issue access is restricted or it does not exist",
+        ):
+            JiraQuerier().get_issue("AA-863")
 
     @pytest.mark.vcr
-    @freeze_time(timezone.datetime(2020, 10, 10))
-    def test_tracker_creation_from_affect(self, good_flaw, good_jira_trackers):
+    def test_get_issue_non_existing(self):
         """
-        Test the creation of Tracker objects from Affect objects by querying the JIRA API.
+        test getting a non-exisiting Jira issue
         """
-        affect = self._gen_affect(good_flaw, "fis-2", "xmlrpc-common")
-        assert not affect.trackers.all()
-
-        upsert_trackers(affect)
-        tracker = affect.trackers.all().first()
-
-        assert tracker is not None
-        assert tracker.external_system_id in good_jira_trackers
-        assert tracker.status == "Closed"
-        assert tracker.resolution == "Done"
-        assert tracker.ps_update_stream == "fis-2.0"
-        assert tracker.meta_attr.get("status", False)
-        assert tracker.meta_attr.get("resolution", False)
-        assert tracker.meta_attr.get("owner", False) is None
-        assert tracker.meta_attr.get("qe_owner", False) is None
-        assert tracker.meta_attr.get("ps_module", False)
-        assert tracker.meta_attr.get("ps_component", False)
-        assert tracker.created_dt == timezone.datetime(
-            2018, 4, 24, 1, 2, 47, tzinfo=timezone.utc
-        )
-        assert tracker.updated_dt == timezone.datetime(
-            2018, 6, 5, 16, 2, 24, tzinfo=timezone.utc
-        )
+        with pytest.raises(
+            NonRecoverableJiraffeException,
+            match="Issue access is restricted or it does not exist",
+        ):
+            JiraQuerier().get_issue("TESTING-NONSENSE")
 
     @pytest.mark.vcr
-    @freeze_time(timezone.datetime(2020, 10, 10))
-    def test_tracker_update_from_affect(self, good_flaw, good_jira_trackers):
+    def test_get_tracker_period(self):
         """
-        Test updating an existing Tracker object from an Affect object by querying the JIRA API.
+        test that getting the Jira issues in the give period works
         """
-        affect = self._gen_affect(good_flaw, "fis-2", "xmlrpc-common")
-        tracker = Tracker.objects.create_tracker(
-            affect=affect,
-            _type=Tracker.TrackerType.JIRA,
-            external_system_id=good_jira_trackers[0],
-            status="random_status",
-            resolution="random_resolution",
-            acl_read=affect.acl_read,
-            acl_write=affect.acl_write,
-        )
-        tracker.save()
-        tracker.affects.add(affect)
+        from_dt = timezone.datetime(2014, 6, 16, 0, 0, 0, tzinfo=timezone.utc)
+        till_dt = timezone.datetime(2014, 9, 19, 0, 0, 0, tzinfo=timezone.utc)
+        trackers = JiraQuerier().get_tracker_period(from_dt, till_dt)
 
-        tracker = affect.trackers.all().first()
-        assert affect.trackers.count() == 1
-        assert not tracker.meta_attr
-        assert tracker.status == "random_status"
-        assert tracker.resolution == "random_resolution"
-        assert tracker.ps_update_stream == ""
-        assert tracker.created_dt == timezone.datetime(
-            2020, 10, 10, tzinfo=timezone.utc
-        )
-        assert tracker.updated_dt == timezone.datetime(
-            2020, 10, 10, tzinfo=timezone.utc
-        )
-
-        # Should update the previously created tracker, not create a new one
-        upsert_trackers(affect)
-
-        tracker = affect.trackers.all().first()
-        assert affect.trackers.count() == 1
-        assert tracker.meta_attr
-        assert tracker.status == "Closed"
-        assert tracker.resolution == "Done"
-        assert tracker.ps_update_stream == "fis-2.0"
-        assert tracker.created_dt == timezone.datetime(
-            2018, 4, 24, 1, 2, 47, tzinfo=timezone.utc
-        )
-        assert tracker.updated_dt == timezone.datetime(
-            2018, 6, 5, 16, 2, 24, tzinfo=timezone.utc
-        )
+        assert len(trackers) == 5
+        assert all(isinstance(tracker, Issue) for tracker in trackers)
+        assert sorted(tracker.key for tracker in trackers) == [
+            "ENTESB-1766",
+            "ENTESB-1767",
+            "ENTMQ-701",
+            "ENTMQ-754",
+            "ENTMQ-755",
+        ]

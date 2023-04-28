@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.utils.timezone import make_aware
 
 from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
-from collectors.jiraffe.core import get_field_attr
+from collectors.jiraffe.convertors import JiraTrackerConvertor, TrackerConvertor
 from osidb.core import generate_acls, set_user_acls
 from osidb.mixins import AlertMixin, TrackingMixin
 from osidb.models import (
@@ -42,44 +42,113 @@ from .fixups import AffectFixer, FlawFixer
 logger = logging.getLogger(__name__)
 
 
-class TrackerBugConvertor:
+class BugzillaGroupsConvertorMixin:
+    """
+    shared functionality to convert Bugzilla groups to ACLs
+    """
+
+    @property
+    def bz_id(self):
+        """
+        required property to be defined in the child classes
+        """
+        raise NotImplementedError
+
+    @property
+    def bug(self):
+        """
+        generic shortcut to be specified in the child classes
+        """
+        raise NotImplementedError
+
+    @property
+    def groups(self):
+        """
+        appropriate overall LDAP groups
+        """
+        return self.groups_read + self.groups_write
+
+    @property
+    def groups_read(self):
+        """
+        appropriate read LDAP groups
+        """
+        if "security" not in self.bug.get("groups", []):
+            return settings.PUBLIC_READ_GROUPS
+
+        if not BZ_ENABLE_IMPORT_EMBARGOED:
+            raise self.FlawConvertorException(
+                f"Bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
+            )
+
+        return [settings.EMBARGO_READ_GROUP]
+
+    @property
+    def groups_write(self):
+        """
+        appropriate write LDAP groups
+        """
+        if "security" not in self.bug.get("groups", []):
+            return [settings.PUBLIC_WRITE_GROUP]
+
+        if not BZ_ENABLE_IMPORT_EMBARGOED:
+            raise self.FlawConvertorException(
+                f"Bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
+            )
+
+        return [settings.EMBARGO_WRITE_GROUP]
+
+    @cached_property
+    def acl_read(self):
+        """
+        get read ACL based on read groups
+
+        it is necessary to generete UUIDs and not just hashes
+        so the ACL validations may properly compare the result
+        """
+        return [uuid.UUID(acl) for acl in generate_acls(self.groups_read)]
+
+    @cached_property
+    def acl_write(self):
+        """
+        get write ACL based on write groups
+
+        it is necessary to generete UUIDs and not just hashes
+        so the ACL validations may properly compare the result
+        """
+        return [uuid.UUID(acl) for acl in generate_acls(self.groups_write)]
+
+
+class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
     """
     Bugzilla tracker bug to OSIDB tracker convertor.
-
-    This class transforms raw data from a unified raw format into proper Tracker
-    model records and saves them into the database.
     """
 
-    def __init__(
-        self,
-        tracker_bug,
-        _type: Tracker.TrackerType,
-        acl_read: list[str] = None,
-        acl_write: list[str] = None,
-    ):
-        self._raw = tracker_bug
-        self.type = _type
-        self._acl_read = acl_read
-        self._acl_write = acl_write
-        # important that this is last as it might require other fields on self
-        self.tracker_bug = self._normalize()
-        # set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
-        # celery workers should be able to read/write any information in order to fulfill their jobs
-        set_user_acls(
-            settings.PUBLIC_READ_GROUPS
-            + [
-                settings.PUBLIC_WRITE_GROUP,
-                settings.EMBARGO_READ_GROUP,
-                settings.EMBARGO_WRITE_GROUP,
-            ]
-        )
+    @property
+    def type(self):
+        """
+        concrete tracker specification
+        """
+        return Tracker.TrackerType.BUGZILLA
+
+    @property
+    def bz_id(self):
+        """
+        Bugzilla ID
+        """
+        return self.tracker_data["id"]
+
+    @property
+    def bug(self):
+        """
+        generic bug used in mixin context means tracker data here
+        """
+        return self.tracker_data
 
     def _normalize(self) -> dict:
-        if self.type == Tracker.TrackerType.BUGZILLA:
-            return self._normalize_from_bz()
-        return self._normalize_from_jira()
-
-    def _normalize_from_bz(self) -> dict:
+        """
+        raw data normalization
+        """
         ps_module, ps_component = tracker_summary2module_component(self._raw["summary"])
 
         return {
@@ -97,107 +166,10 @@ class TrackerBugConvertor:
             "updated_dt": self._raw["last_change_time"],
         }
 
-    def _normalize_from_jira(self) -> dict:
-        ps_module, ps_component = tracker_summary2module_component(
-            self._raw.fields.summary
-        )
-
-        return {
-            "external_system_id": self._raw.key,
-            "owner": get_field_attr(self._raw, "assignee", "displayName"),
-            # QE Assignee corresponds to customfield_12316243
-            # in RH Jira which is a field of schema type user
-            "qe_owner": get_field_attr(
-                self._raw, "customfield_12316243", "displayName"
-            ),
-            "ps_module": ps_module,
-            "ps_component": ps_component,
-            "ps_update_stream": tracker_parse_update_stream_component(
-                self._raw.fields.summary
-            )[0],
-            "status": get_field_attr(self._raw, "status", "name"),
-            "resolution": get_field_attr(self._raw, "resolution", "name"),
-            "created_dt": self._raw.fields.created,
-            "updated_dt": self._raw.fields.updated
-            if self._raw.fields.updated
-            else self._raw.fields.created,
-        }
-
-    @property
-    def groups_read(self):
-        """appropriate read LDAP groups"""
-        if "security" not in self.tracker_bug.get("groups", []):
-            return settings.PUBLIC_READ_GROUPS
-
-        if not BZ_ENABLE_IMPORT_EMBARGOED:
-            raise self.FlawBugConvertorException(
-                f"Flaw bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
-            )
-
-        return [settings.EMBARGO_READ_GROUP]
-
-    @property
-    def groups_write(self):
-        """appropriate write LDAP groups"""
-        if "security" not in self.tracker_bug.get("groups", []):
-            return [settings.PUBLIC_WRITE_GROUP]
-
-        if not BZ_ENABLE_IMPORT_EMBARGOED:
-            raise self.FlawBugConvertorException(
-                f"Flaw bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
-            )
-
-        return [settings.EMBARGO_WRITE_GROUP]
-
-    @cached_property
-    def acl_read(self):
-        """
-        get read ACL based on read groups
-
-        it is necessary to generete UUIDs and not just hashes
-        so the ACL validations may properly compare the result
-        """
-        return self._acl_read or [
-            uuid.UUID(acl) for acl in generate_acls(self.groups_read)
-        ]
-
-    @cached_property
-    def acl_write(self):
-        """
-        get write ACL based on write groups
-
-        it is necessary to generete UUIDs and not just hashes
-        so the ACL validations may properly compare the result
-        """
-        return self._acl_write or [
-            uuid.UUID(acl) for acl in generate_acls(self.groups_write)
-        ]
-
-    def _gen_tracker_object(self, affect) -> Tracker:
-        # there maybe already existing tracker from the previous sync
-        # if this is the periodic update however also when the flaw bug
-        # has multiple CVEs the resulting flaws will share the trackers
-        return Tracker.objects.create_tracker(
-            affect=affect,
-            _type=self.type,
-            external_system_id=self.tracker_bug["external_system_id"],
-            status=self.tracker_bug["status"],
-            resolution=self.tracker_bug["resolution"],
-            ps_update_stream=self.tracker_bug["ps_update_stream"],
-            meta_attr=self.tracker_bug,
-            created_dt=self.tracker_bug["created_dt"],
-            updated_dt=self.tracker_bug["updated_dt"],
-            acl_read=self.acl_read,
-            acl_write=self.acl_write,
-        )
-
-    def convert(self, affect=None) -> Tracker:
-        return self._gen_tracker_object(affect)
-
 
 class FlawSaver:
     """
-    FlawSaver is holder of the individual flaw parts provided by FlawBugConvertor
+    FlawSaver is holder of the individual flaw parts provided by FlawConvertor
     which knows how to correctly save them all as the resulting Django DB models
     it provides save method as an interface to perform the whole save operation
     """
@@ -403,7 +375,7 @@ class FlawSaver:
             )
 
 
-class FlawBugConvertor:
+class FlawConvertor(BugzillaGroupsConvertorMixin):
     """
     Bugzilla flaw bug to OSIDB flaw model convertor
     this class is to performs the transformation only
@@ -411,7 +383,7 @@ class FlawBugConvertor:
     and provides all the model pieces to be saved
     """
 
-    class FlawBugConvertorException(NonRecoverableBZImportException):
+    class FlawConvertorException(NonRecoverableBZImportException):
         """flaw bug to flaw model specific errors"""
 
     _flaws = None
@@ -491,24 +463,31 @@ class FlawBugConvertor:
         )
 
     @property
+    def bug(self):
+        """
+        generic bug used in mixin context means flaw bug here
+        """
+        return self.flaw_bug
+
+    @property
     def flaw_bug(self):
         """check and get flaw bug"""
         if self._flaw_bug is None:
-            raise self.FlawBugConvertorException("source data not set")
+            raise self.FlawConvertorException("source data not set")
         return self._flaw_bug
 
     @property
     def flaw_comments(self):
         """check and get flaw comments"""
         if self._flaw_comments is None:
-            raise self.FlawBugConvertorException("source data not set")
+            raise self.FlawConvertorException("source data not set")
         return self._flaw_comments
 
     @property
     def flaw_history(self):
         """check and get flaw history"""
         if self._flaw_history is None:
-            raise self.FlawBugConvertorException("source data not set")
+            raise self.FlawConvertorException("source data not set")
         return self._flaw_history
 
     @property
@@ -521,14 +500,14 @@ class FlawBugConvertor:
     def tracker_bugs(self):
         """get list of tracker bugs"""
         if self._tracker_bugs is None:
-            raise self.FlawBugConvertorException("source data not set")
+            raise self.FlawConvertorException("source data not set")
         return self._tracker_bugs
 
     @property
     def tracker_jiras(self):
         """get list of tracker Jira issues"""
         if self._tracker_jiras is None:
-            raise self.FlawBugConvertorException("source data not set")
+            raise self.FlawConvertorException("source data not set")
         return self._tracker_jiras
 
     #########################
@@ -536,26 +515,6 @@ class FlawBugConvertor:
     #########################
 
     # shared accross multiple evenual CVEs
-
-    @cached_property
-    def acl_read(self):
-        """
-        get read ACL based on read groups
-
-        it is necessary to generete UUIDs and not just hashes
-        so the ACL validations may properly compare the result
-        """
-        return [uuid.UUID(acl) for acl in generate_acls(self.groups_read)]
-
-    @cached_property
-    def acl_write(self):
-        """
-        get write ACL based on write groups
-
-        it is necessary to generete UUIDs and not just hashes
-        so the ACL validations may properly compare the result
-        """
-        return [uuid.UUID(acl) for acl in generate_acls(self.groups_write)]
 
     @property
     def alias(self):
@@ -574,37 +533,6 @@ class FlawBugConvertor:
             return []
 
         return [flag for flag in self.flaw_bug["flags"] if isinstance(flag, dict)]
-
-    @property
-    def groups(self):
-        """appropriate overall LDAP groups"""
-        return self.groups_read + self.groups_write
-
-    @property
-    def groups_read(self):
-        """appropriate read LDAP groups"""
-        if "security" not in self.flaw_bug.get("groups", []):
-            return settings.PUBLIC_READ_GROUPS
-
-        if not BZ_ENABLE_IMPORT_EMBARGOED:
-            raise self.FlawBugConvertorException(
-                f"Flaw bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
-            )
-
-        return [settings.EMBARGO_READ_GROUP]
-
-    @property
-    def groups_write(self):
-        """appropriate write LDAP groups"""
-        if "security" not in self.flaw_bug.get("groups", []):
-            return [settings.PUBLIC_WRITE_GROUP]
-
-        if not BZ_ENABLE_IMPORT_EMBARGOED:
-            raise self.FlawBugConvertorException(
-                f"Flaw bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
-            )
-
-        return [settings.EMBARGO_WRITE_GROUP]
 
     @cached_property
     def package_versions(self):
@@ -694,12 +622,7 @@ class FlawBugConvertor:
         Bugzilla trackers
         with product definitions context
         """
-        return [
-            TrackerBugConvertor(
-                tracker, Tracker.TrackerType.BUGZILLA, self.acl_read, self.acl_write
-            )
-            for tracker in self.tracker_bugs
-        ]
+        return [BugzillaTrackerConvertor(tracker) for tracker in self.tracker_bugs]
 
     @property
     def depends_on(self):
@@ -715,12 +638,7 @@ class FlawBugConvertor:
         Jira trackers
         with product definitions context
         """
-        return [
-            TrackerBugConvertor(
-                tracker, Tracker.TrackerType.JIRA, self.acl_read, self.acl_write
-            )
-            for tracker in self.tracker_jiras
-        ]
+        return [JiraTrackerConvertor(tracker) for tracker in self.tracker_jiras]
 
     ########################
     # DJANGO MODEL GETTERS #

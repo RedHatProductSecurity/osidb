@@ -8,7 +8,7 @@ from django.db import models
 from jira.exceptions import JIRAError
 from rest_framework.response import Response
 
-from collectors.jiraffe.core import JiraQuerier
+from collectors.jiraffe.core import JiraConnector
 from osidb.models import Flaw
 
 from .constants import JIRA_TASKMAN_PROJECT_KEY, JIRA_TASKMAN_URL
@@ -25,7 +25,7 @@ class TaskStatus(models.TextChoices):
     CLOSED = "Closed"
 
 
-class JiraTaskmanQuerier(JiraQuerier):
+class JiraTaskmanQuerier(JiraConnector):
     """
     Jira query handler for task management.
     This class encapsulates calls for Jira doing validations

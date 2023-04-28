@@ -17,8 +17,7 @@ BZIMPORT_BZ_API_KEY=####################
 # Bugzilla URL (optional, defaults to RedHat production Bugzilla)
 BZIMPORT_BZ_URL="https://foo.bar"
 
-# Enable auto syncing of Jira trackers
-JIRAFFE_AUTO_SYNC=True
+# Jira REST API authentication token
 JIRA_AUTH_TOKEN=####################
 
 # Jira URL (optional, defaults to RedHat production Jira)
@@ -38,9 +37,6 @@ ET_URL="https://foo.bar"
 
 # Product definitions git URL
 PRODUCT_DEF_URL="https://foo.bar"
-
-# Dashboard URL
-DASHBOARD_URL="https://foo.bar"
 
 # Repository from which to pull pip packages (optional)
 PIP_INDEX_URL="https://foo.bar"

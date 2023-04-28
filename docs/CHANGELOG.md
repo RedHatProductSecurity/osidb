@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduce flaw ownership through task management system (OSIDB-69)
 
 ### Changed
+- Integrate Jira tracker collector with collector framework (OSIDB-576)
 
 ### Removed
 

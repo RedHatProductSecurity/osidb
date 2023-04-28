@@ -3,7 +3,7 @@ import uuid
 import pytest
 from django.utils import timezone
 
-from collectors.bzimport.convertors import FlawBugConvertor, FlawSaver
+from collectors.bzimport.convertors import FlawConvertor, FlawSaver
 from osidb.models import (
     Affect,
     CVEv5PackageVersions,
@@ -435,7 +435,7 @@ class TestFlawSaver:
         assert flaw.package_versions.count() == 0
 
 
-class TestFlawBugConvertor:
+class TestFlawConvertor:
     @classmethod
     def get_flaw_bug(cls):
         """
@@ -506,7 +506,7 @@ class TestFlawBugConvertor:
         """
         flaw_bug["cf_srtnotes"] = srtnotes
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -527,7 +527,7 @@ class TestFlawBugConvertor:
         # test that PS module was fixed
         assert affect.ps_module == "rhel-6"
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -574,7 +574,7 @@ class TestFlawBugConvertor:
         """
         flaw_bug["cf_srtnotes"] = srtnotes
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -601,7 +601,7 @@ class TestFlawBugConvertor:
         """
         flaw_bug = self.get_flaw_bug()
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -623,7 +623,7 @@ class TestFlawBugConvertor:
         flaw_bug["alias"] = ["CVE-2000-9999"]
         flaw_uuid = flaw.uuid
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -650,7 +650,7 @@ class TestFlawBugConvertor:
         flaw_bug = self.get_flaw_bug()
         flaw_bug["alias"] = ["CVE-2000-0001", "CVE-2000-0002"]
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -673,7 +673,7 @@ class TestFlawBugConvertor:
         # changing CVE - bug ID is unchanged
         flaw_bug["alias"] = ["CVE-2000-0001", "CVE-2000-9999"]
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -699,7 +699,7 @@ class TestFlawBugConvertor:
         flaw_bug = self.get_flaw_bug()
         flaw_bug["alias"] = ["CVE-2000-0001", "CVE-2000-0002"]
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -722,7 +722,7 @@ class TestFlawBugConvertor:
         # removing one of the CVEs
         flaw_bug["alias"] = ["CVE-2000-0001"]
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -744,7 +744,7 @@ class TestFlawBugConvertor:
         # removing all CVEs
         flaw_bug["alias"] = []
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -770,7 +770,7 @@ class TestFlawBugConvertor:
         flaw_bug = self.get_flaw_bug()
         flaw_bug["alias"] = ["CVE-2000-0001", "CVE-2000-0002", "CVE-2000-0003"]
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -793,7 +793,7 @@ class TestFlawBugConvertor:
         # removing two CVEs at once
         flaw_bug["alias"] = ["CVE-2000-0001"]
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -819,7 +819,7 @@ class TestFlawBugConvertor:
         flaw_bug = self.get_flaw_bug()
         flaw_bug["alias"] = ["non-CVE-alias"]
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -840,7 +840,7 @@ class TestFlawBugConvertor:
         # test that repeated sync preserves UUID
         flaw_uuid = flaw.uuid
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -866,7 +866,7 @@ class TestFlawBugConvertor:
         flaw_bug = self.get_flaw_bug()
         flaw_bug["alias"] = []
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -888,7 +888,7 @@ class TestFlawBugConvertor:
         # assign CVE to the flaw
         flaw_bug["alias"] = ["CVE-2000-0001"]
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -928,7 +928,7 @@ class TestFlawBugConvertor:
             },
         ]
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
             self.get_flaw_history(),
@@ -947,19 +947,19 @@ class TestFlawBugConvertor:
         assert flaw.is_major_incident is True
 
 
-class TestFlawBugConvertorFixedIn:
+class TestFlawConvertorFixedIn:
     def init_models(self, fixed_in):
         """
         init Django models with provided version
         by performing the conversion from Bugzilla data
         """
-        flaw_bug = TestFlawBugConvertor.get_flaw_bug()
+        flaw_bug = TestFlawConvertor.get_flaw_bug()
         flaw_bug["fixed_in"] = fixed_in
 
-        fbc = FlawBugConvertor(
+        fbc = FlawConvertor(
             flaw_bug,
             [],
-            TestFlawBugConvertor.get_flaw_history(),
+            TestFlawConvertor.get_flaw_history(),
             None,
             [],
             [],

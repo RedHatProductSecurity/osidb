@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
-from collectors.bzimport.convertors import FlawBugConvertor
+from collectors.bzimport.convertors import FlawConvertor
 from osidb.core import generate_acls
 from osidb.exceptions import DataInconsistencyException
 from osidb.models import Flaw, FlawImpact, FlawSource
@@ -330,7 +330,7 @@ class TestTrackingMixin:
 
     def get_flaw_bug_convertor(self):
         """shortcut to create minimal flaw bug convertor"""
-        return FlawBugConvertor(
+        return FlawConvertor(
             flaw_bug=self.get_flaw_bug(),
             flaw_comments=[],
             flaw_history={"bugs": [{"history": []}]},

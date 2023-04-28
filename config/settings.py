@@ -152,12 +152,7 @@ CELERY_TASK_ROUTES = (
         ("*", {"queue": "fast"}),  # default other tasks go to 'fast'
     ],
 )
-CELERY_BEAT_SCHEDULE = {
-    "jiraffe_sync": {
-        "task": "collectors.jiraffe.tasks.jiraffe_sync",
-        "schedule": crontab(minute="*/1"),
-    },
-}
+CELERY_BEAT_SCHEDULE = {}
 
 LOGGING = {
     "version": 1,

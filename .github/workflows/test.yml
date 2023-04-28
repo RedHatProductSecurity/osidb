@@ -49,7 +49,6 @@ jobs:
         env:
           ET_URL: ${{ secrets.ET_URL }}
           PRODUCT_DEF_URL: ${{ secrets.PRODUCT_DEF_URL }}
-          DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
           HTTPS_TASKMAN_PROXY: ${{ secrets.HTTPS_TASKMAN_PROXY }}
           JIRA_TASKMAN_URL: ${{ secrets.JIRA_TASKMAN_URL }}
           JIRA_TASKMAN_PROJECT_KEY: ${{ secrets.JIRA_TASKMAN_PROJECT_KEY }}
