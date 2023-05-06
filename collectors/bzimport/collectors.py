@@ -2,6 +2,7 @@
 Bugzilla collector
 """
 import json
+import time
 from typing import Union
 
 import bugzilla
@@ -555,7 +556,7 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
         msg += " Nothing new to fetch." if not flaw_ids else ""
         return msg
 
-    def collect_flaw(self, flaw_id):
+    def collect_flaw(self, flaw_id, total_retries=0):
         """
         collect flaw by the given ID
         return the success,failure pair
@@ -567,9 +568,14 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
             return (flaw_id, None)
 
         except RecoverableBZImportException:
-            # when we encounter an exception which can be
-            # recovered by the rerun we fail the sync of
-            # the whole batch so it can be fully rerun
+            # we will retry the same flaw with exponential backoff
+            # as these failures can simply be due to rate-limiting.
+            # NOTE: this is kinda hackish as we should be using celery's retry
+            # mechanism.
+            if total_retries < 5:
+                time.sleep(60 * (2**total_retries))
+                return self.collect_flaw(flaw_id, total_retries=total_retries + 1)
+            # otherwise we fail the whole batch so it can be fully rerun
             raise
 
         except Exception as e:
