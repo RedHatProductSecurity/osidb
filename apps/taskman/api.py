@@ -23,7 +23,7 @@ from .serializer import (
     TaskGroupSerializer,
     TaskKeySerializer,
 )
-from .service import JiraTaskmanQuerier, TaskStatus
+from .service import JiraTaskmanQuerier, TaskResolution, TaskStatus
 
 logger = logging.getLogger(__name__)
 
@@ -158,7 +158,7 @@ class task_group(GenericAPIView):
             OpenApiParameter(name="task_key", required=True, type=str),
         ],
         description="Add a task into a group",
-        responses={204: OpenApiResponse(description="Modified.")},
+        responses={200: OpenApiResponse(description="Modified.")},
     )
     def put(self, request, group_key):
         serializer = TaskKeySerializer(data=request.data)
@@ -194,7 +194,7 @@ class task_flaw(GenericAPIView):
 
     @extend_schema(
         description="Update a task in Jira from a Flaw",
-        responses={204: OpenApiResponse(description="Modified.")},
+        responses={200: OpenApiResponse(description="Modified.")},
     )
     def put(self, request, flaw_uuid):
         """Update a task in Jira from a Flaw"""
@@ -209,18 +209,38 @@ class task_status(GenericAPIView):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                name="status", required=True, type=str, enum=TaskStatus.values
+                name="status",
+                required=True,
+                type=str,
+                enum=TaskStatus.values,
+            ),
+            OpenApiParameter(
+                name="resolution",
+                type=str,
+                enum=TaskResolution.values,
+                description="Resolution of a CLOSED task.",
+            ),
+            OpenApiParameter(
+                name="reason",
+                type=str,
+                enum=TaskStatus.values,
+                description="Reason of status change. Mandatory for rejecting a task.",
             ),
         ],
         description="Change a task workflow status",
-        responses={204: OpenApiResponse(description="Modified.")},
+        responses={200: OpenApiResponse(description="Modified.")},
     )
     def put(self, request, task_key):
         serializer = StatusSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return JiraTaskmanQuerier(
-            token=request.headers.get("JiraAuthentication")
-        ).update_task_status(
+        jira_conn = JiraTaskmanQuerier(token=request.headers.get("JiraAuthentication"))
+        if "reason" in serializer:
+            jira_conn.create_comment(
+                issue_key=task_key,
+                body=serializer.reason,
+            )
+
+        return jira_conn.update_task_status(
             issue_key=task_key, status=serializer.validated_data["status"]
         )
 
@@ -241,7 +261,7 @@ class task_assignee(GenericAPIView):
             OpenApiParameter(name="task_key", required=True, type=str),
         ],
         description="Assign a task to a user",
-        responses={204: OpenApiResponse(description="Modified.")},
+        responses={200: OpenApiResponse(description="Modified.")},
     )
     def put(self, request, user):
         """Assign a user for a task"""

@@ -4053,7 +4053,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '204':
+        '200':
           content:
             application/json:
               schema:
@@ -4213,6 +4213,32 @@ paths:
         description: User generated token for Jira authentication.
         required: true
       - in: query
+        name: reason
+        schema:
+          type: string
+          enum:
+          - Closed
+          - In Progress
+          - New
+          - Refinement
+        description: Reason of status change. Mandatory for rejecting a task.
+      - in: query
+        name: resolution
+        schema:
+          type: string
+          enum:
+          - Can't Do
+          - Cannot Reproduce
+          - Done
+          - Done-Errata
+          - Duplicate
+          - MirrorOrphan
+          - Not a Bug
+          - Obsolete
+          - Test Pending
+          - Won't Do
+        description: Resolution of a CLOSED task.
+      - in: query
         name: status
         schema:
           type: string
@@ -4232,7 +4258,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '204':
+        '200':
           content:
             application/json:
               schema:
@@ -4312,7 +4338,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '204':
+        '200':
           content:
             application/json:
               schema:
@@ -4423,7 +4449,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '204':
+        '200':
           content:
             application/json:
               schema:

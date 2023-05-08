@@ -8,7 +8,8 @@
 
 import pytest
 
-from apps.taskman.service import JiraTaskmanQuerier, TaskStatus
+from apps.taskman.service import JiraTaskmanQuerier, TaskResolution, TaskStatus
+from osidb.models import Affect
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
@@ -57,7 +58,7 @@ class TestTaskmanService(object):
         assert response6.data["existing_task"]["fields"]["summary"] == old_title
 
         response7 = taskman.create_or_update_task(flaw=flaw, fail_if_exists=False)
-        assert response7.status_code == 204
+        assert response7.status_code == 200
 
         response8 = taskman.get_task_by_flaw(flaw.uuid)
         assert response8.data["fields"]["summary"] == new_title
@@ -68,16 +69,24 @@ class TestTaskmanService(object):
         Test that service is able to update task workflow status from Jira
         """
         # Remove randomness to reuse VCR every possible time
-        flaw = FlawFactory(embargoed=False, uuid="4823d62a-a59f-49f4-8d79-be9f7d792dfa")
+        flaw = FlawFactory(embargoed=False, uuid="fc23dcc1-30f1-4821-a16b-b637e79fd7fd")
+        AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         taskman = JiraTaskmanQuerier(token=user_token)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
-        assert response1.status_code == 204
+        assert response1.status_code == 201
 
         response2 = taskman.get_task_by_flaw(flaw.uuid)
 
-        response3 = taskman.update_task_status(response2.data["key"], TaskStatus.CLOSED)
-        assert response3.status_code == 204
+        response3 = taskman.update_task_status(
+            response2.data["key"], TaskStatus.IN_PROGRESS
+        )
+        assert response3.status_code == 200
+
+        response3 = taskman.update_task_status(
+            response2.data["key"], TaskStatus.CLOSED, TaskResolution.DONE
+        )
+        assert response3.status_code == 200
 
         response4 = taskman.get_task(response2.data["key"])
         assert response4.status_code == 200
@@ -132,12 +141,12 @@ class TestTaskmanService(object):
         response4 = taskman.add_task_into_group(
             issue_key=response1.data["key"], group_key=response3.data["key"]
         )
-        assert response4.status_code == 204
+        assert response4.status_code == 200
 
         response5 = taskman.add_task_into_group(
             issue_key=response2.data["key"], group_key=response3.data["key"]
         )
-        assert response5.status_code == 204
+        assert response5.status_code == 200
 
         response6 = taskman.search_task_by_group(response3.data["key"])
         assert response6.data["total"] == 2

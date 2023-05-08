@@ -3,13 +3,14 @@ Task Manager API endpoints
 """
 import json
 import logging
+from typing import Optional
 
 from django.db import models
 from jira.exceptions import JIRAError
 from rest_framework.response import Response
 
-from collectors.jiraffe.core import JiraConnector
-from osidb.models import Flaw
+from collectors.jiraffe.core import JiraQuerier
+from osidb.models import Affect, Flaw
 
 from .constants import JIRA_TASKMAN_PROJECT_KEY, JIRA_TASKMAN_URL
 
@@ -25,7 +26,26 @@ class TaskStatus(models.TextChoices):
     CLOSED = "Closed"
 
 
-class JiraTaskmanQuerier(JiraConnector):
+class TaskResolution(models.TextChoices):
+    """
+    allowable resolution for tasks in Jira
+    This uses the OJA naming convention, which uses "Won't Do" for rejected tasks
+    https://docs.engineering.redhat.com/display/PPE/TEST+COPY+Opinionated+Guidance%3A+Resolutions
+    """
+
+    DONE = "Done"
+    WONT_DO = "Won't Do"
+    CANNOT_REPRODUCE = "Cannot Reproduce"
+    CANT_DO = "Can't Do"
+    DUPLICATE = "Duplicate"
+    NOT_A_BUG = "Not a Bug"
+    DONE_ERRATA = "Done-Errata"
+    MIRROR_ORPHAN = "MirrorOrphan"
+    OBSOLETE = "Obsolete"
+    TEST_PENDING = "Test Pending"
+
+
+class JiraTaskmanQuerier(JiraQuerier):
     """
     Jira query handler for task management.
     This class encapsulates calls for Jira doing validations
@@ -81,10 +101,12 @@ class JiraTaskmanQuerier(JiraConnector):
                         "description": flaw.description,
                     }
                 }
-
                 url = f"{self.jira_conn._get_url('issue')}/{task['key']}"
-                r = self.jira_conn._session.put(url, json.dumps(data))
-                return Response(status=r.status_code)
+                self.jira_conn._session.put(url, json.dumps(data))
+                return Response(
+                    data=self.jira_conn.issue(task["key"]).raw,
+                    status=200,
+                )
             else:
                 data = {
                     "fields": {
@@ -107,11 +129,48 @@ class JiraTaskmanQuerier(JiraConnector):
         except JIRAError as e:
             return Response(data=e.response.json(), status=e.status_code)
 
-    def update_task_status(self, issue_key: str, status: TaskStatus) -> Response:
+    def update_task_status(
+        self,
+        issue_key: str,
+        status: TaskStatus,
+        resolution: Optional[TaskResolution] = None,
+    ) -> Response:
         """Transition a task to a new state"""
         try:
-            self.jira_conn.transition_issue(issue=issue_key, transition=status)
-            return Response(data={}, status=204)
+            if status == TaskStatus.CLOSED and resolution == TaskResolution.WONT_DO:
+                issue = self.jira_conn.issue(issue_key)
+                uuid_labels = [
+                    label for label in issue.fields.labels if "flawuuid:" in label
+                ]
+                if len(uuid_labels) == 0:
+                    return Response(
+                        data="Task was found but does not contains label with flaw uuid.",
+                        status=409,
+                    )
+                flaw_uuid = uuid_labels[0].split(":")[1]
+                flaw = Flaw.objects.get(uuid=flaw_uuid)
+                any_affected = flaw.affects.exclude(
+                    affectedness=Affect.AffectAffectedness.NOTAFFECTED
+                ).exists()
+
+                if any_affected:
+                    return Response(
+                        data="Trying to reject an affected Flaw. Please validate flaw's affects before rejecting the task.",
+                        status=409,
+                    )
+
+            if resolution:
+                self.jira_conn.transition_issue(
+                    issue=issue_key,
+                    transition=status,
+                    resolution={"name": resolution},
+                )
+            else:
+                self.jira_conn.transition_issue(
+                    issue=issue_key,
+                    transition=status,
+                )
+            return Response(data=self.jira_conn.issue(issue_key).raw, status=200)
         except JIRAError as e:
             return Response(data=e.response.json(), status=e.status_code)
 
@@ -141,7 +200,7 @@ class JiraTaskmanQuerier(JiraConnector):
             }
             issue = self.jira_conn.issue(id=issue_key)
             issue.update(data)
-            return Response(data=issue.raw, status=204)
+            return Response(data=issue.raw, status=200)
         except JIRAError as e:
             return Response(data=e.response.json(), status=e.status_code)
 
@@ -183,9 +242,10 @@ class JiraTaskmanQuerier(JiraConnector):
         """set Jira task assignee"""
         try:
             self.jira_conn.assign_issue(task_key, assignee)
+
             return Response(
-                data={},
-                status=204,
+                data=self.jira_conn.issue(task_key).raw,
+                status=200,
             )
         except JIRAError as e:
             return Response(data=e.response.json(), status=e.status_code)
