@@ -2,9 +2,22 @@ name: Meta checks
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
-    branches:
-      - master
 jobs:
+  openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: head
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+      - uses: actions/setup-go@v4
+      - name: Install oasdiff go package
+        run: go install github.com/tufin/oasdiff@v1.5.0
+      - name: Compare existing schema to new schema
+        run: oasdiff -fail-on-diff -check-breaking -base base/openapi.yml -revision head/openapi.yml
   changelog:
     runs-on: ubuntu-latest
     steps:
