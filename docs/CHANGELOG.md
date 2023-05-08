@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Integrate Jira tracker collector with collector framework (OSIDB-576)
+- This PR should not be merged - Introduce breaking API change in order to test tufin/oasdiff behaviour.
 
 ### Removed
 

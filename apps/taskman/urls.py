@@ -27,7 +27,8 @@ urlpatterns = [
     path(f"api/{TASKMAN_API_VERSION}/task/flaw/<str:flaw_uuid>", task_flaw.as_view()),
     path(f"api/{TASKMAN_API_VERSION}/task/<str:task_key>", task.as_view()),
     path(
-        f"api/{TASKMAN_API_VERSION}/task/assignee/<str:user>", task_assignee.as_view()
+        f"api/{TASKMAN_API_VERSION}/task/assigneeerror/<str:user>",
+        task_assignee.as_view(),
     ),
     path(f"api/{TASKMAN_API_VERSION}/task/unassigned/", task_unassigneed.as_view()),
     path(

@@ -4248,9 +4248,9 @@ paths:
                   version:
                     type: string
           description: ''
-  /taskman/api/v1/task/assignee/{user}:
+  /taskman/api/v1/task/assigneeerror/{user}:
     get:
-      operationId: taskman_api_v1_task_assignee_retrieve
+      operationId: taskman_api_v1_task_assigneeerror_retrieve
       description: Get a list of tasks from a user
       parameters:
       - in: header
@@ -4288,7 +4288,7 @@ paths:
                       type: string
           description: ''
     put:
-      operationId: taskman_api_v1_task_assignee_update
+      operationId: taskman_api_v1_task_assigneeerror_update
       description: Assign a task to a user
       parameters:
       - in: header
