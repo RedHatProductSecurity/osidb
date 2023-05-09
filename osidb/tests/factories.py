@@ -15,6 +15,7 @@ from osidb.models import (
     FlawComment,
     FlawImpact,
     FlawMeta,
+    FlawReference,
     FlawSource,
     FlawType,
     PsContact,
@@ -363,6 +364,23 @@ class FlawMetaFactory(factory.django.DjangoModelFactory):
         "url": "http://nonexistenturl.example.com/1285930",
         "type": "external",
     }
+
+    flaw = factory.SubFactory(FlawFactory)
+
+
+class FlawReferenceFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = FlawReference
+
+    type = FlawReference.FlawReferenceType.EXTERNAL
+    url = "https://httpd.apache.org/link123"
+    description = "link description"
+
+    created_dt = factory.Faker("date_time", tzinfo=UTC)
+    updated_dt = factory.Faker("date_time", tzinfo=UTC)
+
+    acl_read = [DATA_PRODSEC_ACL_READ]
+    acl_write = [DATA_PRODSEC_ACL_WRITE]
 
     flaw = factory.SubFactory(FlawFactory)
 
