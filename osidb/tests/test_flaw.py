@@ -17,6 +17,7 @@ from osidb.models import (
     FlawComment,
     FlawImpact,
     FlawMeta,
+    FlawReference,
     FlawSource,
     FlawType,
     Tracker,
@@ -26,6 +27,7 @@ from osidb.tests.factories import (
     FlawCommentFactory,
     FlawFactory,
     FlawMetaFactory,
+    FlawReferenceFactory,
     PsModuleFactory,
     PsProductFactory,
     PsUpdateStreamFactory,
@@ -157,6 +159,20 @@ class TestFlaw:
         assert len(all_meta) == 3
         assert meta1 in all_meta
         assert meta2 in all_meta
+
+        reference1 = FlawReferenceFactory(flaw=vuln_1)
+        reference2 = FlawReference.objects.create_flawreference(
+            vuln_1,
+            "https://www.openwall.com/link123",
+            type=FlawReference.FlawReferenceType.EXTERNAL,
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
+        )
+        reference2.save()
+        all_references = vuln_1.references.all()
+        assert len(all_references) == 2
+        assert reference1 in all_references
+        assert reference2 in all_references
 
         vuln_2 = Flaw(
             cve_id="CVE-1970-12345",
@@ -1426,6 +1442,68 @@ class TestFlawValidators:
         error_msg = r"The flaw has a disallowed \(historical\) source."
         with pytest.raises(ValidationError, match=error_msg):
             FlawFactory(source=FlawSource.ASF)
+
+    def test_validate_article_link(self):
+        """
+        Tests that an article link not starting with https://access.redhat.com/
+        raises an alert.
+        """
+        flawreference = FlawReferenceFactory(
+            type=FlawReference.FlawReferenceType.ARTICLE,
+            url="https://httpd.apache.org/link123",
+        )
+        assert "wrong_article_link" in flawreference._alerts
+
+        flawreference = FlawReferenceFactory(
+            type=FlawReference.FlawReferenceType.ARTICLE,
+            url="https://access.redhat.com/link123",
+        )
+        assert "wrong_article_link" not in flawreference._alerts
+
+    def test_validate_article_links_count_via_flawreferences(self):
+        """
+        Tests that creating a flaw reference of the article type for
+        a flaw which already has a flaw reference of this type raises an alert.
+        """
+        flaw = FlawFactory()
+
+        FlawReferenceFactory(
+            flaw=flaw,
+            type=FlawReference.FlawReferenceType.ARTICLE,
+            url="https://access.redhat.com/link123",
+        )
+
+        error_msg = "A flaw has 2 article links, but only 1 is allowed."
+        with pytest.raises(ValidationError, match=error_msg):
+            FlawReferenceFactory(
+                flaw=flaw,
+                type=FlawReference.FlawReferenceType.ARTICLE,
+                url="https://access.redhat.com/link456",
+            ).save()
+
+    def test_validate_article_links_count_via_flaw(self):
+        """
+        Tests that creating a flaw with two flaw references of the article
+        type raises an alert.
+        """
+        flaw = FlawFactory()
+        AffectFactory(flaw=flaw)
+
+        FlawReferenceFactory(
+            flaw=flaw,
+            type=FlawReference.FlawReferenceType.ARTICLE,
+            url="https://access.redhat.com/link123",
+        )
+
+        FlawReferenceFactory(
+            flaw=flaw,
+            type=FlawReference.FlawReferenceType.ARTICLE,
+            url="https://access.redhat.com/link456",
+        )
+
+        error_msg = "A flaw has 2 article links, but only 1 is allowed."
+        with pytest.raises(ValidationError, match=error_msg):
+            flaw.save()
 
     @pytest.mark.parametrize(
         "is_same_product_name, should_raise",

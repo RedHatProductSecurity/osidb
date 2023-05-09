@@ -881,6 +881,21 @@ class Flaw(
         if self.source and not FlawSource(self.source).is_allowed():
             raise ValidationError("The flaw has a disallowed (historical) source.")
 
+    def _validate_article_links_count_via_flaw(self):
+        """
+        Checks that a flaw has maximally one article link.
+        """
+        if self.references:
+            article_links = self.references.filter(
+                type=FlawReference.FlawReferenceType.ARTICLE
+            )
+
+            if article_links.count() > 1:
+                raise ValidationError(
+                    f"A flaw has {article_links.count()} article links, "
+                    f"but only 1 is allowed."
+                )
+
     @property
     def is_placeholder(self):
         """
@@ -1789,6 +1804,98 @@ class FlawComment(TrackingMixin, ACLMixin):
             "external_system_id",
             "created_dt",
         )
+
+
+class FlawReferenceManager(ACLMixinManager, TrackingMixinManager):
+    """flawreference manager"""
+
+    @staticmethod
+    def create_flawreference(flaw, url, **extra_fields):
+        """return a new flawreference or update an existing flawreference without saving"""
+        try:
+            flawreference = FlawReference.objects.get(flaw=flaw, url=url)
+            for attr, value in extra_fields.items():
+                setattr(flawreference, attr, value)
+            return flawreference
+
+        except ObjectDoesNotExist:
+            return FlawReference(flaw=flaw, url=url, **extra_fields)
+
+
+class FlawReference(TrackingMixin, ACLMixin, AlertMixin):
+    """Model representing flaw references"""
+
+    class FlawReferenceType(models.TextChoices):
+        """
+        Allowable references:
+
+        ARTICLE:
+            A link to a Security Bulletin or Knowledge Base Article specifically
+            discussing this flaw on the Customer Portal. It always begins with
+            "https://accesss.redhat.com/". It must be a Security Bulletin
+            for Major Incidents. More general articles like hardening should be
+            linked instead in EXTERNAL.
+
+        EXTERNAL:
+            URL links to other trustworthy sources of information about this
+            vulnerability. A link should not point to a missing resource.
+            Since these links are displayed on the CVE page of the flaw, we only
+            want to include respectable sources (such as upstream advisories,
+            analysis of security researches, etc.).
+        """
+
+        ARTICLE = "ARTICLE"
+        EXTERNAL = "EXTERNAL"
+
+    # internal primary key
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    type = models.CharField(
+        choices=FlawReferenceType.choices,
+        default=FlawReferenceType.EXTERNAL,
+        max_length=50,
+    )
+
+    url = models.URLField(max_length=2048)
+
+    description = models.TextField(blank=True)
+
+    # one flaw can have many references
+    flaw = models.ForeignKey(Flaw, on_delete=models.CASCADE, related_name="references")
+
+    objects = FlawReferenceManager()
+
+    class Meta:
+        """define meta"""
+
+        unique_together = ["flaw", "url"]
+
+    def _validate_article_link(self):
+        """
+        Checks that an article link begins with https://access.redhat.com/.
+        """
+        if self.type == self.FlawReferenceType.ARTICLE and not self.url.startswith(
+            "https://access.redhat.com/"
+        ):
+            self.alert(
+                "wrong_article_link",
+                f"An article link contains {self.url} "
+                f"and does not begin with https://access.redhat.com/.",
+            )
+
+    def _validate_article_links_count_via_flawreferences(self):
+        """
+        Checks that a flaw has maximally one article link.
+        """
+        article_links = self.flaw.references.filter(
+            type=FlawReference.FlawReferenceType.ARTICLE
+        )
+
+        if article_links.count() > 1:
+            raise ValidationError(
+                f"A flaw has {article_links.count()} article links, "
+                f"but only 1 is allowed."
+            )
 
 
 class VersionStatus(models.TextChoices):
