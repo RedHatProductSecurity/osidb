@@ -25,6 +25,7 @@ from osidb.models import (
     FlawComment,
     FlawHistory,
     FlawMeta,
+    FlawReference,
     FlawType,
     Tracker,
     VersionStatus,
@@ -181,6 +182,7 @@ class FlawSaver:
         comments,
         history,
         meta,
+        references,
         trackers,
         package_versions,
     ):
@@ -189,6 +191,7 @@ class FlawSaver:
         self.comments = comments
         self.history = history
         self.meta = meta
+        self.references = references
         self.trackers = trackers
         self.package_versions = package_versions
 
@@ -204,6 +207,7 @@ class FlawSaver:
             + self.comments
             + self.history
             + self.meta
+            + self.references
             + self.trackers
         )
 
@@ -297,6 +301,15 @@ class FlawSaver:
         for meta in to_delete:
             meta.delete()
 
+    def clean_references(self):
+        """clean obsoleted flaw references"""
+        old_references = set(self.flaw.references.all())
+        new_references = set(self.references)
+
+        to_delete = list(old_references - new_references)
+        for reference in to_delete:
+            reference.delete()
+
     def clean_trackers(self):
         """clean obsoleted affect-tracker links"""
         tracker_ids = [t.external_system_id for t in self.trackers]
@@ -356,6 +369,7 @@ class FlawSaver:
             # comments cannot be deleted in Bugzilla
             # history cannot be deleted in Bugzilla
             self.clean_meta()
+            self.clean_references()
             self.clean_trackers()
 
             self.link_trackers()
@@ -813,6 +827,34 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
             for item in items
         ]
 
+    def get_references(self, flaw):
+        """get a list of FlawReferences Django models"""
+        references = []
+
+        for reference_json in self.srtnotes.get("references", []):
+            _type = reference_json.get("type")
+            if _type == "vuln_response":
+                _type = "ARTICLE"
+            elif _type == "external":
+                _type = "EXTERNAL"
+
+            url = reference_json.get("url")
+            reference_json["acl_labels"] = self.groups
+
+            reference_obj = FlawReference.objects.create_flawreference(
+                flaw,
+                url,
+                type=_type,
+                meta_attr=reference_json,
+                acl_read=self.acl_read,
+                acl_write=self.acl_write,
+                created_dt=self.flaw_bug["creation_time"],
+                updated_dt=self.flaw_bug["last_change_time"],
+            )
+            references.append(reference_obj)
+
+        return references
+
     def get_trackers(self):
         """
         get list of Tracker objects.
@@ -913,6 +955,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     self.get_comments(flaw),
                     self.get_history(),
                     self.get_all_meta(flaw),
+                    self.get_references(flaw),
                     self.get_trackers(),
                     self.package_versions,
                 )
@@ -939,6 +982,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     self.get_comments(flaw),
                     self.get_history(),
                     self.get_all_meta(flaw),
+                    self.get_references(flaw),
                     self.get_trackers(),
                     self.package_versions,
                 )
@@ -969,6 +1013,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     self.get_comments(flaw),
                     self.get_history(),
                     self.get_all_meta(flaw),
+                    self.get_references(flaw),
                     self.get_trackers(),
                     self.package_versions,
                 )
