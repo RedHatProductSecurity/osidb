@@ -13,6 +13,7 @@ from osidb.models import (
     FlawHistory,
     FlawImpact,
     FlawMeta,
+    FlawReference,
     Tracker,
     VersionStatus,
 )
@@ -121,6 +122,22 @@ class TestFlawSaver:
             ),
         ]
 
+    def get_references(self, flaw):
+        """
+        minimal references getter
+        """
+        return [
+            FlawReference(
+                flaw=flaw,
+                url="https://httpd.apache.org/link123",
+                type=FlawReference.FlawReferenceType.EXTERNAL,
+                created_dt=timezone.now(),
+                updated_dt=timezone.now(),
+                acl_read=self.get_acls(),
+                acl_write=self.get_acls(),
+            )
+        ]
+
     def get_trackers(self, affect):
         """
         minimal trackers getter
@@ -163,6 +180,7 @@ class TestFlawSaver:
             self.get_comments(flaw),
             self.get_history(),
             self.get_meta(flaw),
+            self.get_references(flaw),
             self.get_trackers(affects[0]),
             self.get_package_versions(),
         ).save()
@@ -172,6 +190,7 @@ class TestFlawSaver:
         comment = FlawComment.objects.first()
         history = FlawHistory.objects.first()
         meta = FlawMeta.objects.first()
+        reference = FlawReference.objects.first()
         tracker = Tracker.objects.first()
         package_versions = CVEv5PackageVersions.objects.first()
         version = CVEv5Version.objects.first()
@@ -186,6 +205,7 @@ class TestFlawSaver:
         assert flaw.affects.first() == affect
         assert flaw.comments.first() == comment
         assert flaw.meta.first() == meta
+        assert flaw.references.first() == reference
         assert flaw.package_versions.first() == package_versions
 
         assert affect is not None
@@ -217,6 +237,14 @@ class TestFlawSaver:
         assert meta.acl_read == acls
         assert meta.acl_write == acls
         assert meta.flaw == flaw
+
+        assert reference is not None
+        assert reference.url == "https://httpd.apache.org/link123"
+        assert reference.type == "EXTERNAL"
+        assert reference.description == ""
+        assert reference.acl_read == acls
+        assert reference.acl_write == acls
+        assert reference.flaw == flaw
 
         assert tracker is not None
         assert tracker.type == Tracker.TrackerType.JIRA
@@ -253,6 +281,7 @@ class TestFlawSaver:
             [],
             [],
             [],
+            [],
             {},
         ).save()
 
@@ -267,6 +296,7 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
+            [],
             [],
             [],
             [],
@@ -295,6 +325,7 @@ class TestFlawSaver:
             [],
             self.get_meta(flaw),
             [],
+            [],
             {},
         ).save()
 
@@ -316,6 +347,7 @@ class TestFlawSaver:
                 self.get_meta(flaw)[1],
             ],
             [],
+            [],
             {},
         ).save()
 
@@ -327,6 +359,50 @@ class TestFlawSaver:
         assert flaw.meta.first() == self.get_meta(flaw)[1]
         assert flaw.meta.first().meta_attr["name"] == "Lone Wanderer"
 
+    def test_reference_removed(self):
+        """
+        test reference removal save
+        """
+        flaw = self.get_flaw()
+
+        FlawSaver(
+            flaw,
+            [],
+            [],
+            [],
+            [],
+            self.get_references(flaw),
+            [],
+            {},
+        ).save()
+
+        flaw = Flaw.objects.first()
+        reference = FlawReference.objects.first()
+
+        assert flaw is not None
+        assert reference is not None
+        assert flaw.references.count() == 1
+        assert flaw.references.first() == reference
+        assert reference.flaw == flaw
+
+        FlawSaver(
+            flaw,
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            {},
+        ).save()
+
+        flaw = Flaw.objects.first()
+        reference = FlawReference.objects.first()
+
+        assert flaw is not None
+        assert reference is None
+        assert flaw.references.count() == 0
+
     def test_trackers_removed(self):
         """
         test tracker removal save
@@ -337,6 +413,7 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             affects,
+            [],
             [],
             [],
             [],
@@ -362,6 +439,7 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             affects,
+            [],
             [],
             [],
             [],
@@ -397,6 +475,7 @@ class TestFlawSaver:
             [],
             [],
             [],
+            [],
             self.get_package_versions(),
         ).save()
 
@@ -417,6 +496,7 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
+            [],
             [],
             [],
             [],
