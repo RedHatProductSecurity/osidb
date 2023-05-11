@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [3.1.3] - 2023-05-08
+### Added
+- Retry mechanism for bzimport collector
+
 ## [3.1.2] - 2023-04-27
 ### Changed
 - General performance improvements
