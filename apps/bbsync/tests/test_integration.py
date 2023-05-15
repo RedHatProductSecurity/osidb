@@ -274,7 +274,7 @@ class TestBBSyncIntegration:
             HTTP_BUGZILLA_API_KEY="SECRET",
         )
         assert response.status_code == 400
-        assert "CVSSv3 score is missing" in str(response.content)
+        assert "Component value is required" in str(response.content)
 
     @pytest.mark.vcr
     def test_flaw_update_multi_cve(self, auth_client, test_api_uri):
