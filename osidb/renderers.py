@@ -9,6 +9,7 @@ from django.utils import timezone
 from rest_framework.renderers import JSONRenderer
 
 import osidb
+from osidb.helpers import get_env
 
 
 def calc_env(env_str):
@@ -26,17 +27,21 @@ class OsidbRenderer(JSONRenderer):
         if data is None:
             data = {}
         data["dt"] = timezone.now()
-        data["revision"] = (
-            subprocess.check_output(  # nosec
-                [
-                    "git",
-                    "rev-parse",
-                    "HEAD",
-                ]
+
+        if get_env("OSIDB_RESPONSE_INCLUDE_REV", is_bool=True, default="False"):
+            data["revision"] = (
+                subprocess.check_output(  # nosec
+                    [
+                        "git",
+                        "rev-parse",
+                        "HEAD",
+                    ]
+                )
+                .split()[0]
+                .decode()
             )
-            .split()[0]
-            .decode()
-        )
+        else:
+            data["revision"] = "unknown"
         data["version"] = osidb.__version__
         data["env"] = calc_env(os.getenv("DJANGO_SETTINGS_MODULE"))
         return super().render(data, accepted_media_type, renderer_context)
