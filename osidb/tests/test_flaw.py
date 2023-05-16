@@ -846,22 +846,17 @@ class TestFlawValidators:
             # no exception should be raised now
 
     @pytest.mark.parametrize(
-        "cvss3,should_raise",
+        "cvss3,should_alert",
         [
             ("3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N", False),
             (None, True),
         ],
     )
-    def test_validate_cvss3_model(self, cvss3, should_raise):
+    def test_validate_cvss3_model(self, cvss3, should_alert):
         """
-        Test that the ValidationError is not raised when the flaw has a CVSS3 string
+        Test that an alert is not raised when the flaw has a CVSS3 string
         """
-        if should_raise:
-            with pytest.raises(ValidationError) as e:
-                FlawFactory(cvss3=cvss3)
-            assert "CVSSv3 score is missing" in str(e)
-        else:
-            assert FlawFactory(cvss3=cvss3)
+        assert should_alert == ("cvss3_missing" in FlawFactory(cvss3=cvss3)._alerts)
 
     @pytest.mark.parametrize(
         "summary,is_major_incident,req,should_raise",

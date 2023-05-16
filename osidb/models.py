@@ -687,7 +687,10 @@ class Flaw(
         Check that a CVSSv3 string is present.
         """
         if not self.cvss3:
-            raise ValidationError("CVSSv3 score is missing")
+            self.alert(
+                "cvss3_missing",
+                "CVSSv3 score is missing",
+            )
 
     def _validate_summary_major_incident(self):
         """
