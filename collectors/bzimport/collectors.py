@@ -295,6 +295,15 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
             "end": timezone.datetime(2021, 2, 26, 17, 19, tzinfo=TIMEZONE),
             "step": relativedelta(hours=1),
         },
+        # migration of old style acks to SRT notes
+        # https://issues.redhat.com/browse/OSIDB-275
+        # 2023-05-11 12:19 UTC – 2023-05-13 02:03 UTC
+        # so we prevent large batches going by 5 hours
+        {
+            "start": timezone.datetime(2023, 5, 11, 12, 19, tzinfo=TIMEZONE),
+            "end": timezone.datetime(2023, 5, 13, 2, 3, tzinfo=TIMEZONE),
+            "step": relativedelta(hours=5),
+        },
     ]
 
     def end_period_heuristic(self, period_start):

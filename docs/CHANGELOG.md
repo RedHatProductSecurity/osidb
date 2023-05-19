@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Integrate Jira tracker collector with collector framework (OSIDB-576)
 - Make CVSSv3 score mandatory no more (OSIDB-901)
+- Make Bugzilla collector aware of migration of old style acks to SRT notes (OSIDB-904)
 
 ### Removed
 
