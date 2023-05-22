@@ -4,7 +4,7 @@ from typing import Set, Union
 
 import pytest
 from django.conf import settings
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 from django.utils import timezone
 from django.utils.timezone import datetime
 from freezegun import freeze_time
@@ -1422,16 +1422,11 @@ class TestEndpointsACLs:
         ],
     )
     def test_flaw_create(
-        self, auth_client, test_api_uri, embargoed, acl_read, acl_write
+        self, auth_client, embargo_access, test_api_uri, embargoed, acl_read, acl_write
     ):
         """
         test proper embargo status and ACLs when creating a flaw by sending a POST request
         """
-        # we have to provide embargo write access first
-        group = Group(name="data-topsecret-write")
-        group.save()
-        User.objects.get(username="testuser").groups.add(group)
-
         flaw_data = {
             "title": "Foo",
             "description": "test",
@@ -1471,17 +1466,12 @@ class TestEndpointsACLs:
         ],
     )
     def test_flaw_update(
-        self, auth_client, test_api_uri, embargoed, acl_read, acl_write
+        self, auth_client, embargo_access, test_api_uri, embargoed, acl_read, acl_write
     ):
         """
         test proper embargo status and ACLs when updating a flaw by sending a PUT request
         while the embargo status and ACLs itself are not being changed
         """
-        # we have to provide embargo write access first
-        group = Group(name="data-topsecret-write")
-        group.save()
-        User.objects.get(username="testuser").groups.add(group)
-
         flaw = FlawFactory(embargoed=embargoed)
         AffectFactory(flaw=flaw)
 
