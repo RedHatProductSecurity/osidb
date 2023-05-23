@@ -34,3 +34,20 @@ def sample_erratum_name():
 @pytest.fixture()
 def sample_search_time():
     return datetime(2022, 4, 21, 20, 12, 00, tzinfo=timezone.utc)
+
+
+@pytest.fixture(autouse=True)
+def pin_urls(monkeypatch) -> None:
+    """
+    the tests should be immune to what .evn you build the testrunner with
+    """
+    import collectors.errata.core as core
+
+    monkeypatch.setattr(
+        core, "ERRATA_TOOL_SERVER", "https://errata.stage.engineering.redhat.com"
+    )
+    monkeypatch.setattr(
+        core,
+        "ERRATA_TOOL_XMLRPC_BASE_URL",
+        "https://errata.stage.engineering.redhat.com/errata/errata_service",
+    )
