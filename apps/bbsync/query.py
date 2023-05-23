@@ -107,20 +107,21 @@ class BugzillaQueryBuilder:
             return int(digits[:4]) ** 2 + int(digits[4:])
 
         embargoed = "EMBARGOED " if self.flaw.is_embargoed else ""
-        cve_ids = (
-            " ".join(
-                sorted(
-                    [
-                        f.cve_id
-                        for f in Flaw.objects.filter(meta_attr__bz_id=self.flaw.bz_id)
-                    ],
-                    key=cve_id_comparator,
-                )
+
+        cve_ids = [
+            f.cve_id
+            for f in Flaw.objects.filter(meta_attr__bz_id=self.flaw.bz_id).exclude(
+                uuid=self.flaw.uuid
             )
-            + " "
-            if self.flaw.cve_id
-            else ""
-        )
+        ] + [
+            # add the current CVE ID from the new flaw
+            # in the case it differes from the old one in DB
+            self.flaw.cve_id
+        ]
+        cve_ids = [cve_id for cve_id in cve_ids if cve_id]  # filter out empty
+        cve_ids = " ".join(sorted(list(set(cve_ids)), key=cve_id_comparator))
+        cve_ids = cve_ids + " " if cve_ids else cve_ids
+
         component = self.flaw.component + ": " if self.flaw.component else ""
         self._query["summary"] = embargoed + cve_ids + component + self.flaw.title
 

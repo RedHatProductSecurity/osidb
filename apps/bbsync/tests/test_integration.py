@@ -117,6 +117,106 @@ class TestBBSyncIntegration:
         assert response.json()["title"] == "Bar"
 
     @pytest.mark.vcr
+    def test_flaw_update_add_cve(self, auth_client, test_api_uri):
+        """
+        test adding a CVE to an existing CVE-less flaw
+        """
+        flaw = FlawFactory(
+            bz_id="1995562",
+            cve_id="",
+            component="ssh",
+            title="I cannot ssh into Matrix",
+            description="test",
+            impact="MODERATE",
+            source="CUSTOMER",
+            reported_dt="2022-04-26T00:00:00Z",
+            unembargo_dt="2022-04-27T00:00:00Z",
+            updated_dt="2023-05-22T14:39:11Z",
+            embargoed=False,
+        )
+        PsModuleFactory(name="jbcs-1")
+        PsModuleFactory(name="rhel-8")
+        AffectFactory(
+            flaw=flaw,
+            ps_module="jbcs-1",
+            ps_component="ssh",
+        )
+        AffectFactory(
+            flaw=flaw,
+            ps_module="rhel-8",
+            ps_component="libssh",
+        )
+
+        flaw_data = {
+            "cve_id": "CVE-2000-3000",
+            "title": flaw.title,
+            "description": flaw.description,
+            "updated_dt": flaw.updated_dt,
+            "embargoed": False,
+        }
+        response = auth_client.put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+
+        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        assert response.json()["cve_id"] == "CVE-2000-3000"
+
+    @pytest.mark.vcr
+    def test_flaw_update_remove_cve(self, auth_client, test_api_uri):
+        """
+        test removing of a CVE from a flaw
+        """
+        flaw = FlawFactory(
+            bz_id="1995562",
+            cve_id="CVE-2000-3000",
+            component="ssh",
+            title="I cannot ssh into Matrix",
+            description="test",
+            impact="MODERATE",
+            source="CUSTOMER",
+            reported_dt="2022-04-26T00:00:00Z",
+            unembargo_dt="2022-04-27T00:00:00Z",
+            updated_dt="2023-05-22T14:42:14Z",
+            embargoed=False,
+        )
+        PsModuleFactory(name="jbcs-1")
+        PsModuleFactory(name="rhel-8")
+        AffectFactory(
+            flaw=flaw,
+            ps_module="jbcs-1",
+            ps_component="ssh",
+        )
+        AffectFactory(
+            flaw=flaw,
+            ps_module="rhel-8",
+            ps_component="libssh",
+        )
+
+        flaw_data = {
+            "cve_id": None,
+            "title": flaw.title,
+            "description": flaw.description,
+            "updated_dt": flaw.updated_dt,
+            "embargoed": False,
+        }
+        response = auth_client.put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+
+        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        assert response.json()["cve_id"] is None
+
+    @pytest.mark.vcr
     def test_affect_create(self, auth_client, test_api_uri):
         """
         test creating a flaw affect with Bugzilla two-way sync
