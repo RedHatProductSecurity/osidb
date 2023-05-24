@@ -1,5 +1,5 @@
 import pytest
-from taskman.constants import HTTPS_TASKMAN_PROXY, TASKMAN_API_VERSION
+from taskman.constants import TASKMAN_API_VERSION
 
 
 @pytest.fixture(autouse=True)
@@ -20,12 +20,6 @@ def enable_db_access_for_all_tests(db):
     pass
 
 
-@pytest.fixture(autouse=True)
-def enable_proxy_for_stage_environment(monkeypatch):
-    if HTTPS_TASKMAN_PROXY:
-        monkeypatch.setenv("HTTPS_PROXY", HTTPS_TASKMAN_PROXY)
-
-
 @pytest.fixture
 def user_token():
     return "USER_JIRA_TOKEN"
@@ -44,3 +38,12 @@ def api_version():
 @pytest.fixture
 def test_api_uri(test_scheme_host, api_version):
     return f"{test_scheme_host}/api/{api_version}"
+
+
+@pytest.fixture(autouse=True)
+def pin_urls(monkeypatch) -> None:
+    """
+    the tests should be immune to what .evn you build the testrunner with
+    """
+    monkeypatch.setenv("HTTPS_PROXY", "http://squid.corp.redhat.com:3128")
+    monkeypatch.setenv("JIRA_TASKMAN_URL", "https://issues.stage.redhat.com")

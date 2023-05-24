@@ -13,7 +13,12 @@ from osidb.models import Erratum, Tracker
 
 from ..bzimport.constants import BZ_ENABLE_IMPORT_EMBARGOED
 from ..utils import BACKOFF_KWARGS, fatal_code
-from .constants import PAGE_SIZE, RETRYABLE_ERRORS
+from .constants import (
+    ERRATA_TOOL_SERVER,
+    ERRATA_TOOL_XMLRPC_BASE_URL,
+    PAGE_SIZE,
+    RETRYABLE_ERRORS,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +28,7 @@ logger = logging.getLogger(__name__)
 )
 def get(path, return_json=True, session=None, **request_kwargs):
     """Get the response to a REST API call or raise an exception."""
-    url = urljoin(settings.ERRATA_TOOL_SERVER, path)
+    url = urljoin(ERRATA_TOOL_SERVER, path)
     if session:
         response = session.get(url, **request_kwargs)
     else:
@@ -162,7 +167,7 @@ def search(query):
     See ET's documentation /rdoc/ErrataService.html#method-i-get_advisory_list
     """
     query["per_page"] = PAGE_SIZE
-    server = ServerProxy(settings.ERRATA_TOOL_XMLRPC_BASE_URL)
+    server = ServerProxy(ERRATA_TOOL_XMLRPC_BASE_URL)
     i = 1
     while True:
         query["page"] = i
