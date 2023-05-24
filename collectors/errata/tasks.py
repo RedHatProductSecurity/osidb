@@ -3,12 +3,12 @@ Errata Tool collector
 """
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
-from django.conf import settings
 from django.utils import timezone
 
 from collectors.framework.models import collector
 from osidb.models import Erratum
 
+from .constants import ERRATA_TOOL_SERVER
 from .core import (
     get_all_errata,
     get_errata_to_sync,
@@ -32,7 +32,7 @@ logger = get_task_logger(__name__)
 def errata_collector(collector_obj) -> str:
     """Errata Tool collector"""
 
-    logger.info(f"Fetching Errata from '{settings.ERRATA_TOOL_SERVER}'")
+    logger.info(f"Fetching Errata from '{ERRATA_TOOL_SERVER}'")
     start_time = timezone.now()
     set_acls_for_et_collector()
 
