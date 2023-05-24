@@ -131,6 +131,40 @@ class TestGenerateBasics:
         bbq = BugzillaQueryBuilder(flaw)
         assert bbq.query["summary"] == summary
 
+    def test_generate_summary_added_cve(self):
+        """
+        test generating of summary when assigning a new CVE
+        OSIDB-902 reproducer
+        """
+        flaw = FlawFactory(
+            component="hammer",
+            cve_id="",
+            embargoed=False,
+            title="is too heavy",
+        )
+        old_flaw = Flaw.objects.first()
+        flaw.cve_id = "CVE-2000-1000"
+
+        bbq = BugzillaQueryBuilder(flaw, old_flaw)
+        assert bbq.query["summary"] == "CVE-2000-1000 hammer: is too heavy"
+
+    def test_generate_summary_removed_cve(self):
+        """
+        test generating of summary when removing a CVE
+        OSIDB-909 reproducer
+        """
+        flaw = FlawFactory(
+            component="hammer",
+            cve_id="CVE-2000-1000",
+            embargoed=False,
+            title="is too heavy",
+        )
+        old_flaw = Flaw.objects.first()
+        flaw.cve_id = ""
+
+        bbq = BugzillaQueryBuilder(flaw, old_flaw)
+        assert bbq.query["summary"] == "hammer: is too heavy"
+
 
 class TestGenerateSRTNotes:
     @freeze_time(timezone.datetime(2022, 11, 25))

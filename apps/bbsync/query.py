@@ -96,31 +96,49 @@ class BugzillaQueryBuilder:
         """
         generate query for flaw summary based on
         embargoed status | CVE IDs | component | title
+
+        EMBARGOED CVE-2000-12345 CVE-2020-9999 culr: stack overflow
+
+            * EMBARGOED prefix is conditional depending on embargoed status
+            * then follows sorted list of CVE IDs of all flaws with the same Bugzilla ID
+              which may be empty when no CVE ID was assigned
+            * then follows the component and collon
+            * then follows the title
+
         """
 
         def cve_id_comparator(cve_id):
             """
-            comparator to sort CVE IDs
+            comparator to sort CVE IDs by
+
+                1) the year
+                2) the sequence
             """
             digits = re.sub(r"[^0-9]", "", cve_id)
-            # stress the value of the year above the rest
+            # stress the value of the year above the sequence
             return int(digits[:4]) ** 2 + int(digits[4:])
 
         embargoed = "EMBARGOED " if self.flaw.is_embargoed else ""
-        cve_ids = (
-            " ".join(
-                sorted(
-                    [
-                        f.cve_id
-                        for f in Flaw.objects.filter(meta_attr__bz_id=self.flaw.bz_id)
-                    ],
-                    key=cve_id_comparator,
-                )
+
+        # 1) get all CVE IDs of flaws with the same Bugzilla ID
+        #    (this is to cover the cases of multi-CVE flaws)
+        #    except the one which is just being updated or created
+        #    as the DB instance may differ from this change
+        cve_ids = [
+            f.cve_id
+            for f in Flaw.objects.filter(meta_attr__bz_id=self.flaw.bz_id).exclude(
+                uuid=self.flaw.uuid
             )
-            + " "
-            if self.flaw.cve_id
-            else ""
-        )
+            # 2) add the CVE ID from the flaw being updated or created
+        ] + [self.flaw.cve_id]
+        # 3) filter out the empty CVE IDs
+        #    there can be one in case we are removing the CVE ID
+        cve_ids = [cve_id for cve_id in cve_ids if cve_id]
+        # 4) filter out eventual duplicates | sort by CVE ID | stringify
+        cve_ids = " ".join(sorted(list(set(cve_ids)), key=cve_id_comparator))
+        # 5) add trailing space delimiter in case of non-empty CVE IDs
+        cve_ids = cve_ids + " " if cve_ids else cve_ids
+
         component = self.flaw.component + ": " if self.flaw.component else ""
         self._query["summary"] = embargoed + cve_ids + component + self.flaw.title
 

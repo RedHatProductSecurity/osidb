@@ -4,7 +4,7 @@ from typing import Set, Union
 
 import pytest
 from django.conf import settings
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 from django.utils import timezone
 from django.utils.timezone import datetime
 from freezegun import freeze_time
@@ -1179,6 +1179,52 @@ class TestEndpoints(object):
         assert "appended test title" in body["title"]
         assert original_body["description"] == body["description"]
 
+    @pytest.mark.parametrize("embargoed", [True, False])
+    @pytest.mark.parametrize(
+        "old_cve_id,new_cve_id",
+        [
+            (None, "CVE-2020-12345"),
+            ("CVE-2020-12345", None),
+            ("CVE-2020-12345", "CVE-2020-54321"),
+        ],
+    )
+    def test_flaw_update_cve(
+        self,
+        auth_client,
+        embargo_access,
+        test_api_uri,
+        embargoed,
+        old_cve_id,
+        new_cve_id,
+    ):
+        """
+        Test that updating a Flaw CVE ID by sending a PUT request works.
+        """
+        flaw = FlawFactory(embargoed=embargoed, cve_id=old_cve_id)
+        AffectFactory(flaw=flaw)
+        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["embargoed"] == embargoed
+        assert body["cve_id"] == old_cve_id
+
+        response = auth_client.put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            {
+                "cve_id": new_cve_id,
+                "title": flaw.title,
+                "description": flaw.description,
+                "embargoed": embargoed,
+                "updated_dt": flaw.updated_dt,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["embargoed"] == embargoed
+        assert body["cve_id"] == new_cve_id
+
     def test_flaw_update_collision(self, auth_client, test_api_uri):
         """
         test that updating a flaw while sending an outdated updated_dt
@@ -1422,16 +1468,11 @@ class TestEndpointsACLs:
         ],
     )
     def test_flaw_create(
-        self, auth_client, test_api_uri, embargoed, acl_read, acl_write
+        self, auth_client, embargo_access, test_api_uri, embargoed, acl_read, acl_write
     ):
         """
         test proper embargo status and ACLs when creating a flaw by sending a POST request
         """
-        # we have to provide embargo write access first
-        group = Group(name="data-topsecret-write")
-        group.save()
-        User.objects.get(username="testuser").groups.add(group)
-
         flaw_data = {
             "title": "Foo",
             "description": "test",
@@ -1471,17 +1512,12 @@ class TestEndpointsACLs:
         ],
     )
     def test_flaw_update(
-        self, auth_client, test_api_uri, embargoed, acl_read, acl_write
+        self, auth_client, embargo_access, test_api_uri, embargoed, acl_read, acl_write
     ):
         """
         test proper embargo status and ACLs when updating a flaw by sending a PUT request
         while the embargo status and ACLs itself are not being changed
         """
-        # we have to provide embargo write access first
-        group = Group(name="data-topsecret-write")
-        group.save()
-        User.objects.get(username="testuser").groups.add(group)
-
         flaw = FlawFactory(embargoed=embargoed)
         AffectFactory(flaw=flaw)
 
