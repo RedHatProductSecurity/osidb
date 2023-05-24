@@ -112,6 +112,12 @@ class AffectFixer:
             if len(cvss2_data) == 2:
                 self.affect_obj.cvss2_score = cvss2_data[0]
                 self.affect_obj.cvss2 = self.affect_json["cvss2"]
+            else:
+                self.affect_obj.cvss2_score = None
+                self.affect_obj.cvss2 = cvss2_data
+        else:
+            self.affect_obj.cvss2_score = None
+            self.affect_obj.cvss2 = ""
 
     def fix_cvss3(self) -> None:
         """CVSS3 fixup"""
@@ -120,6 +126,12 @@ class AffectFixer:
             if len(cvss3_data) == 2:
                 self.affect_obj.cvss3_score = cvss3_data[0]
                 self.affect_obj.cvss3 = self.affect_json["cvss3"]
+            else:
+                self.affect_obj.cvss3_score = None
+                self.affect_obj.cvss3 = cvss3_data
+        else:
+            self.affect_obj.cvss3_score = None
+            self.affect_obj.cvss3 = ""
 
     def fix_ps_module(self) -> None:
         """PS module fixup"""
@@ -193,6 +205,8 @@ class FlawFixer:
         """
         if "summary" not in self.flaw_json:
             self.errors.append("no summary")
+            # here we do not have to default as the
+            # non-empty value is enforced by the model
             return
 
         title = self.flaw_json["summary"]
@@ -231,6 +245,8 @@ class FlawFixer:
             self.flaw_obj.description = self.flaw_json["description"]
         else:
             self.errors.append("no description")
+            # here we do not have to default as the
+            # non-empty value is enforced by the model
 
     def fix_summary(self) -> None:
         """summary fixup"""
@@ -238,6 +254,7 @@ class FlawFixer:
             self.flaw_obj.summary = self.flaw_json["cf_release_notes"]
         else:
             self.errors.append("no cf_release_notes")
+            self.flaw_obj.summary = ""
 
     def fix_unembargo_dt(self) -> None:
         """unembargo_dt fixup"""
@@ -245,6 +262,7 @@ class FlawFixer:
             self.flaw_obj.unembargo_dt = make_aware(self.srtnotes["public"])
         else:
             self.errors.append("has no unembargo_dt (public date)")
+            self.flaw_obj.unembargo_dt = None
 
     def fix_impact(self) -> None:
         """impact fixup"""
@@ -269,6 +287,7 @@ class FlawFixer:
             self.flaw_obj.reported_dt = make_aware(self.srtnotes["reported"])
         else:
             self.errors.append("has no reported_dt (reported)")
+            self.flaw_obj.reported_dt = None
 
     SOURCE_VALUE_MAP = {
         "vendorsec": FlawSource.VENDOR_SEC,
@@ -306,6 +325,12 @@ class FlawFixer:
             if len(cvss2_data) == 2:
                 self.flaw_obj.cvss2_score = cvss2_data[0]
                 self.flaw_obj.cvss2 = self.srtnotes["cvss2"]
+            else:
+                self.flaw_obj.cvss2_score = None
+                self.flaw_obj.cvss2 = cvss2_data
+        else:
+            self.flaw_obj.cvss2_score = None
+            self.flaw_obj.cvss2 = ""
 
     def fix_cvss3(self) -> None:
         """cvss3 fixup"""
@@ -314,3 +339,9 @@ class FlawFixer:
             if len(cvss3_data) == 2:
                 self.flaw_obj.cvss3_score = cvss3_data[0]
                 self.flaw_obj.cvss3 = self.srtnotes["cvss3"]
+            else:
+                self.flaw_obj.cvss3_score = None
+                self.flaw_obj.cvss3 = cvss3_data
+        else:
+            self.flaw_obj.cvss3_score = None
+            self.flaw_obj.cvss3 = ""
