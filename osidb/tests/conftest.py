@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 
 import pytest
 from django.conf import settings
-from django.contrib.auth.models import Group, User
 
 from osidb.core import generate_acls
 from osidb.helpers import get_env
@@ -137,13 +136,3 @@ def private_source():
 @pytest.fixture
 def both_source():
     return FlawSource.GENTOO
-
-
-@pytest.fixture
-def embargo_access():
-    """
-    provide embargo access to the testuser
-    """
-    group = Group(name="data-topsecret-write")
-    group.save()
-    User.objects.get(username="testuser").groups.add(group)
