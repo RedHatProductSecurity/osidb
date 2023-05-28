@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "apps.bbsync",
     "apps.exploits",
     "apps.osim",
+    "apps.trackers",
     "collectors.bzimport",
     "collectors.errata",
     "collectors.framework",
