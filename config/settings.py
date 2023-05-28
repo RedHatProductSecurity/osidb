@@ -198,6 +198,7 @@ LOGGING = {
                 "apps.bbsync",
                 "apps.exploits",
                 "apps.osim",
+                "apps.trackers",
             ]
         },
         # Collectors loggers
