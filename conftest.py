@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from django.contrib.auth.models import Group, User
 from django.db.models.signals import (
     m2m_changed,
     post_delete,
@@ -160,3 +161,13 @@ def mute_signals(request):
 
     # Called after a test has finished.
     request.addfinalizer(restore_signals)
+
+
+@pytest.fixture
+def embargo_access():
+    """
+    provide embargo access to the testuser
+    """
+    group = Group(name="data-topsecret-write")
+    group.save()
+    User.objects.get(username="testuser").groups.add(group)

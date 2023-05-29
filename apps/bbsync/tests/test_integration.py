@@ -1,6 +1,8 @@
 import uuid
 
 import pytest
+from django.utils import timezone
+from freezegun import freeze_time
 
 from apps.bbsync.exceptions import UnsaveableFlawError
 from osidb.models import Affect, Flaw
@@ -215,6 +217,65 @@ class TestBBSyncIntegration:
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
         assert response.json()["cve_id"] is None
+
+    @pytest.mark.vcr
+    @freeze_time(timezone.datetime(2023, 5, 26))
+    def test_flaw_update_remove_unembargo_dt(
+        self, auth_client, embargo_access, test_api_uri
+    ):
+        """
+        test removing unembargo_dt from an embargoed flaw
+        """
+        last_change_time = "2023-05-26T13:10:44Z"
+        flaw = FlawFactory.build(
+            cve_id="CVE-2022-0508",
+            cvss3="2.2/CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:L/I:N/A:N",
+            cwe_id="CWE-100",
+            component="shower",
+            description="the water is everywhere",
+            embargoed=True,
+            impact="IMPORTANT",
+            meta_attr={"bz_id": "2012106", "last_change_time": last_change_time},
+            mitigation="call a repairman",
+            reported_dt="2022-05-09T00:00:00Z",
+            source="CUSTOMER",
+            statement="I do not like this",
+            summary="something got wrong in my shower",
+            title="water overflow",
+            unembargo_dt="2022-06-16T00:00:00Z",
+            updated_dt=last_change_time,
+        )
+        flaw.save(raise_validation_error=False)
+        PsModuleFactory(component_cc={}, default_cc=[], name="rhel-9")
+        AffectFactory(
+            flaw=flaw,
+            ps_module="rhel-9",
+            ps_component="samba",
+            affectedness="AFFECTED",
+            resolution="FIX",
+            impact=None,
+            cvss2=None,
+            cvss3=None,
+        )
+
+        flaw_data = {
+            "description": flaw.description,
+            "embargoed": flaw.embargoed,
+            "title": flaw.title,
+            "unembargo_dt": None,
+            "updated_dt": flaw.updated_dt,
+        }
+        response = auth_client.put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+
+        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        assert response.json()["unembargo_dt"] is None
 
     @pytest.mark.vcr
     def test_affect_create(self, auth_client, test_api_uri):

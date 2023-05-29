@@ -1225,6 +1225,101 @@ class TestEndpoints(object):
         assert body["embargoed"] == embargoed
         assert body["cve_id"] == new_cve_id
 
+    @pytest.mark.parametrize(
+        "embargoed,old_date,new_date,alerts",
+        [
+            (
+                False,
+                datetime(2011, 1, 1, tzinfo=timezone.utc),
+                datetime(2012, 1, 1, tzinfo=timezone.utc),
+                False,
+            ),
+            (
+                False,
+                datetime(2021, 1, 1, tzinfo=timezone.utc),
+                datetime(2022, 1, 1, tzinfo=timezone.utc),
+                True,
+            ),
+            (
+                False,
+                datetime(2011, 1, 1, tzinfo=timezone.utc),
+                datetime(2022, 1, 1, tzinfo=timezone.utc),
+                True,
+            ),
+            (
+                False,
+                datetime(2021, 1, 1, tzinfo=timezone.utc),
+                datetime(2012, 1, 1, tzinfo=timezone.utc),
+                False,
+            ),
+            (
+                True,
+                datetime(2011, 1, 1, tzinfo=timezone.utc),
+                datetime(2012, 1, 1, tzinfo=timezone.utc),
+                True,
+            ),
+            (
+                True,
+                datetime(2021, 1, 1, tzinfo=timezone.utc),
+                datetime(2022, 1, 1, tzinfo=timezone.utc),
+                False,
+            ),
+            (
+                True,
+                datetime(2011, 1, 1, tzinfo=timezone.utc),
+                datetime(2022, 1, 1, tzinfo=timezone.utc),
+                False,
+            ),
+            (
+                True,
+                datetime(2021, 1, 1, tzinfo=timezone.utc),
+                datetime(2012, 1, 1, tzinfo=timezone.utc),
+                True,
+            ),
+        ],
+    )
+    @freeze_time(datetime(2020, 1, 1, tzinfo=timezone.utc))
+    def test_flaw_update_enembargo_dt(
+        self,
+        auth_client,
+        embargo_access,
+        test_api_uri,
+        embargoed,
+        old_date,
+        new_date,
+        alerts,
+    ):
+        """
+        test proper behavior while updating the unembargo_dt
+
+        the failure is expected in either a case when we assign a future public date to an
+        already public flaw or when we assign a past public date to a still embargoed flaw
+        and it should not matter what was the original public date before the change
+        """
+        flaw = FlawFactory.build(embargoed=embargoed, unembargo_dt=old_date)
+        flaw.save(raise_validation_error=False)
+        AffectFactory(flaw=flaw)
+
+        response = auth_client.put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            {
+                "title": flaw.title,
+                "description": flaw.description,
+                "embargoed": embargoed,
+                "unembargo_dt": new_date,
+                "updated_dt": flaw.updated_dt,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+
+        if alerts:
+            assert response.status_code == 400
+
+        else:
+            assert response.status_code == 200
+            assert Flaw.objects.first().unembargo_dt == new_date
+
     def test_flaw_update_collision(self, auth_client, test_api_uri):
         """
         test that updating a flaw while sending an outdated updated_dt

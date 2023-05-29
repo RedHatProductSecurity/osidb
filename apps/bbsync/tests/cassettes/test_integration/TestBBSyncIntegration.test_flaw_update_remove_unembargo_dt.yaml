@@ -1,0 +1,584 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/version
+  response:
+    body:
+      string: '{"version": "5.0.4.rh86"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '24'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 26 May 2023 13:18:24 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.9e477b5c.1685107104.29faeb9f
+      x-rh-edge-request-id:
+      - 29faeb9f
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/user?ids=1
+  response:
+    body:
+      string: '{"users": [{"email": "aander07@packetmaster.com", "real_name": "Need
+        Real Name", "name": "aander07@packetmaster.com", "can_login": true, "id":
+        1}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '137'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 26 May 2023 13:18:24 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.9e477b5c.1685107104.29faecae
+      x-rh-edge-request-id:
+      - 29faecae
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2012106&include_fields=id&include_fields=last_change_time
+  response:
+    body:
+      string: '{"total_matches": 1, "limit": "20", "bugs": [{"last_change_time": "2023-05-26T13:10:44Z",
+        "data_category": "Embargoed", "id": 2012106}], "offset": 0}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '137'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 26 May 2023 13:18:25 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.9e477b5c.1685107105.29faef3e
+      x-rh-edge-request-id:
+      - 29faef3e
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"product": "Security Response", "component": "vulnerability", "op_sys":
+      "Linux", "platform": "All", "version": "unspecified", "cf_release_notes": "something
+      got wrong in my shower", "severity": "high", "priority": "high", "summary":
+      "EMBARGOED CVE-2022-0508 shower: water overflow", "keywords": {"add": ["Security"]},
+      "flags": [], "groups": {"add": ["qe_staff", "security"], "remove": []}, "cc":
+      {"add": [], "remove": []}, "cf_srtnotes": "{\"affects\": [{\"ps_module\": \"rhel-9\",
+      \"ps_component\": \"samba\", \"affectedness\": \"affected\", \"resolution\":
+      \"fix\", \"impact\": null, \"cvss2\": null, \"cvss3\": null}], \"reported\":
+      \"2022-05-09T00:00:00Z\", \"impact\": \"important\", \"source\": \"customer\",
+      \"cvss3\": \"2.2/CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:L/I:N/A:N\", \"cwe\": \"CWE-100\",
+      \"mitigation\": \"call a repairman\", \"statement\": \"I do not like this\"}",
+      "ids": ["2012106"]}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '901'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: PUT
+    uri: https://bugzilla.redhat.com/rest/bug/2012106
+  response:
+    body:
+      string: '{"bugs": [{"last_change_time": "2023-05-26T13:18:26Z", "changes": {"cf_release_notes":
+        {"removed": "", "added": "something got wrong in my shower"}, "cf_srtnotes":
+        {"removed": "{\"affects\": [{\"ps_module\": \"rhel-9\", \"ps_component\":
+        \"samba\", \"affectedness\": \"affected\", \"resolution\": \"fix\", \"impact\":
+        null, \"cvss2\": null, \"cvss3\": null}], \"reported\": \"2022-05-09T00:00:00Z\",
+        \"impact\": \"important\", \"source\": \"customer\", \"cvss3\": \"2.2/CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:L/I:N/A:N\",
+        \"cwe\": \"CWE-100\", \"mitigation\": \"call a repairman\", \"statement\":
+        \"I do not like this\", \"public\": \"2022-06-16T00:00:00Z\"}", "added": "{\"affects\":
+        [{\"ps_module\": \"rhel-9\", \"ps_component\": \"samba\", \"affectedness\":
+        \"affected\", \"resolution\": \"fix\", \"impact\": null, \"cvss2\": null,
+        \"cvss3\": null}], \"reported\": \"2022-05-09T00:00:00Z\", \"impact\": \"important\",
+        \"source\": \"customer\", \"cvss3\": \"2.2/CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:L/I:N/A:N\",
+        \"cwe\": \"CWE-100\", \"mitigation\": \"call a repairman\", \"statement\":
+        \"I do not like this\"}"}}, "alias": ["CVE-2022-0508"], "id": 2012106}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 26 May 2023 13:18:26 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '1138'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.9e477b5c.1685107106.29faf4dc
+      x-rh-edge-request-id:
+      - 29faf4dc
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/version
+  response:
+    body:
+      string: '{"version": "5.0.4.rh86"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '24'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 26 May 2023 13:18:26 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.9e477b5c.1685107106.29fafefe
+      x-rh-edge-request-id:
+      - 29fafefe
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/user?ids=1
+  response:
+    body:
+      string: '{"users": [{"id": 1, "real_name": "Need Real Name", "can_login": true,
+        "name": "aander07@packetmaster.com", "email": "aander07@packetmaster.com"}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '137'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 26 May 2023 13:18:27 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.9e477b5c.1685107107.29fb0003
+      x-rh-edge-request-id:
+      - 29fb0003
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2012106
+  response:
+    body:
+      string: '{"bugs": [{"cf_release_notes": "something got wrong in my shower",
+        "blocks": [], "component": ["vulnerability"], "tags": [], "alias": ["CVE-2022-0508"],
+        "is_confirmed": true, "last_change_time": "2023-05-26T13:18:26Z", "version":
+        ["unspecified"], "qa_contact": "", "flags": [{"modification_date": "2023-05-10T12:58:20Z",
+        "creation_date": "2023-05-10T12:58:20Z", "id": 5217669, "name": "requires_doc_text",
+        "is_active": 1, "status": "+", "type_id": 415, "setter": "bugzilla@redhat.com"}],
+        "cc": ["security-response-team@redhat.com"], "comments": [{"creator": "osoukup@redhat.com",
+        "id": 15560485, "time": "2023-05-10T12:58:20Z", "count": 0, "bug_id": 2012106,
+        "tags": [], "creation_time": "2023-05-10T12:58:20Z", "is_private": false,
+        "creator_id": 412888, "text": "the watter is everywhere", "attachment_id":
+        null}], "id": 2012106, "target_release": ["---"], "cf_srtnotes": "{\"affects\":
+        [{\"ps_module\": \"rhel-9\", \"ps_component\": \"samba\", \"affectedness\":
+        \"affected\", \"resolution\": \"fix\", \"impact\": null, \"cvss2\": null,
+        \"cvss3\": null}], \"reported\": \"2022-05-09T00:00:00Z\", \"impact\": \"important\",
+        \"source\": \"customer\", \"cvss3\": \"2.2/CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:L/I:N/A:N\",
+        \"cwe\": \"CWE-100\", \"mitigation\": \"call a repairman\", \"statement\":
+        \"I do not like this\"}", "url": "", "classification": "Other", "cf_pgm_internal":
+        "", "actual_time": 0, "cf_build_id": "", "description": "the watter is everywhere",
+        "platform": "All", "creation_time": "2023-05-10T12:58:20Z", "cc_detail": [{"email":
+        "security-response-team@redhat.com", "partner": false, "real_name": "Red Hat
+        Product Security", "name": "security-response-team@redhat.com", "active":
+        false, "id": 164808, "insider": false}], "cf_fixed_in": "", "cf_pm_score":
+        "0", "is_creator_accessible": true, "groups": ["qe_staff", "security"], "whiteboard":
+        "", "external_bugs": [], "cf_cust_facing": "---", "cf_clone_of": null, "cf_conditional_nak":
+        [], "deadline": "2023-06-11", "op_sys": "Linux", "cf_doc_type": "If docs needed,
+        set a value", "is_cc_accessible": true, "cf_environment": "", "summary": "EMBARGOED
+        CVE-2022-0508 shower: water overflow", "priority": "high", "target_milestone":
+        "---", "sub_components": {}, "cf_internal_whiteboard": "", "cf_qa_whiteboard":
+        "", "creator": "osoukup@redhat.com", "depends_on": [], "status": "NEW", "creator_detail":
+        {"insider": true, "real_name": "Ondrej Soukup", "name": "osoukup@redhat.com",
+        "id": 412888, "active": true, "email": "osoukup@redhat.com", "partner": false},
+        "cf_qe_conditional_nak": [], "severity": "high", "remaining_time": 0, "assigned_to":
+        "nobody@redhat.com", "estimated_time": 0, "dupe_of": null, "docs_contact":
+        "", "product": "Security Response", "keywords": ["Security"], "assigned_to_detail":
+        {"insider": false, "active": true, "id": 29451, "name": "nobody@redhat.com",
+        "real_name": "Nobody", "partner": false, "email": "nobody@redhat.com"}, "cf_devel_whiteboard":
+        "", "cf_last_closed": null, "resolution": "", "data_category": "Embargoed",
+        "is_open": true}], "total_matches": 1, "offset": 0, "limit": "20"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 26 May 2023 13:18:28 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '2867'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.9e477b5c.1685107108.29fb04de
+      x-rh-edge-request-id:
+      - 29fb04de
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2012106
+  response:
+    body:
+      string: '{"total_matches": 1, "limit": "20", "offset": 0, "bugs": [{"cf_devel_whiteboard":
+        "", "assigned_to_detail": {"insider": false, "partner": false, "email": "nobody@redhat.com",
+        "active": true, "id": 29451, "name": "nobody@redhat.com", "real_name": "Nobody"},
+        "cf_last_closed": null, "resolution": "", "data_category": "Embargoed", "is_open":
+        true, "estimated_time": 0, "dupe_of": null, "docs_contact": "", "product":
+        "Security Response", "keywords": ["Security"], "creator": "osoukup@redhat.com",
+        "depends_on": [], "status": "NEW", "cf_qe_conditional_nak": [], "creator_detail":
+        {"id": 412888, "active": true, "real_name": "Ondrej Soukup", "name": "osoukup@redhat.com",
+        "partner": false, "email": "osoukup@redhat.com", "insider": true}, "remaining_time":
+        0, "severity": "high", "assigned_to": "nobody@redhat.com", "summary": "EMBARGOED
+        CVE-2022-0508 shower: water overflow", "priority": "high", "target_milestone":
+        "---", "cf_internal_whiteboard": "", "sub_components": {}, "cf_qa_whiteboard":
+        "", "cf_cust_facing": "---", "cf_clone_of": null, "cf_conditional_nak": [],
+        "deadline": "2023-06-11", "op_sys": "Linux", "is_cc_accessible": true, "cf_doc_type":
+        "If docs needed, set a value", "cf_environment": "", "description": "the watter
+        is everywhere", "platform": "All", "creation_time": "2023-05-10T12:58:20Z",
+        "cf_pm_score": "0", "cf_fixed_in": "", "cc_detail": [{"insider": false, "partner":
+        false, "email": "security-response-team@redhat.com", "active": false, "id":
+        164808, "real_name": "Red Hat Product Security", "name": "security-response-team@redhat.com"}],
+        "is_creator_accessible": true, "groups": ["qe_staff", "security"], "whiteboard":
+        "", "external_bugs": [], "comments": [{"creator": "osoukup@redhat.com", "id":
+        15560485, "time": "2023-05-10T12:58:20Z", "count": 0, "bug_id": 2012106, "creation_time":
+        "2023-05-10T12:58:20Z", "tags": [], "is_private": false, "creator_id": 412888,
+        "attachment_id": null, "text": "the watter is everywhere"}], "id": 2012106,
+        "target_release": ["---"], "cf_srtnotes": "{\"affects\": [{\"ps_module\":
+        \"rhel-9\", \"ps_component\": \"samba\", \"affectedness\": \"affected\", \"resolution\":
+        \"fix\", \"impact\": null, \"cvss2\": null, \"cvss3\": null}], \"reported\":
+        \"2022-05-09T00:00:00Z\", \"impact\": \"important\", \"source\": \"customer\",
+        \"cvss3\": \"2.2/CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:L/I:N/A:N\", \"cwe\":
+        \"CWE-100\", \"mitigation\": \"call a repairman\", \"statement\": \"I do not
+        like this\"}", "url": "", "classification": "Other", "cf_pgm_internal": "",
+        "actual_time": 0, "cf_build_id": "", "blocks": [], "cf_release_notes": "something
+        got wrong in my shower", "tags": [], "component": ["vulnerability"], "alias":
+        ["CVE-2022-0508"], "is_confirmed": true, "cc": ["security-response-team@redhat.com"],
+        "qa_contact": "", "last_change_time": "2023-05-26T13:18:26Z", "version": ["unspecified"],
+        "flags": [{"modification_date": "2023-05-10T12:58:20Z", "creation_date": "2023-05-10T12:58:20Z",
+        "id": 5217669, "name": "requires_doc_text", "type_id": 415, "status": "+",
+        "is_active": 1, "setter": "bugzilla@redhat.com"}]}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 26 May 2023 13:18:29 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '2867'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.9e477b5c.1685107109.29fb0bf0
+      x-rh-edge-request-id:
+      - 29fb0bf0
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug/2012106/comment
+  response:
+    body:
+      string: '{"bugs": {"2012106": {"comments": [{"tags": [], "id": 15560485, "time":
+        "2023-05-10T12:58:20Z", "creation_time": "2023-05-10T12:58:20Z", "is_private":
+        false, "text": "the watter is everywhere", "creator_id": 412888, "creator":
+        "osoukup@redhat.com", "attachment_id": null, "bug_id": 2012106, "count": 0}]}},
+        "comments": {}}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '296'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 26 May 2023 13:18:29 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.9e477b5c.1685107109.29fb1327
+      x-rh-edge-request-id:
+      - 29fb1327
+    status:
+      code: 200
+      message: OK
+version: 1
