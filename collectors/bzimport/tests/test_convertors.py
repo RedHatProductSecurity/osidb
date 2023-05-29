@@ -17,6 +17,7 @@ from osidb.models import (
     Tracker,
     VersionStatus,
 )
+from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
 
@@ -1025,6 +1026,91 @@ class TestFlawConvertor:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.is_major_incident is True
+
+    def test_attributes_removed_in_bugzilla(self):
+        """
+        test that the attribute removals in Bugzilla
+        will correctly result in empty values
+
+        OSIDB-910 reproducer (old non-empty values were not emptied)
+        """
+        flaw = FlawFactory(
+            bz_id="123",
+            cvss2="10.0/AV:N/AC:L/Au:N/C:C/I:C/A:C",
+            cvss2_score=10.0,
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            cvss3_score=3.7,
+            embargoed=False,
+            reported_dt="2000-01-01T01:01:01Z",
+            summary="test",
+            unembargo_dt="2000-01-01T01:01:01Z",
+        )
+        AffectFactory(
+            flaw=flaw,
+            ps_module="rhel-8",
+            ps_component="ssh",
+            cvss2="10.0/AV:N/AC:L/Au:N/C:C/I:C/A:C",
+            cvss2_score=10.0,
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            cvss3_score=3.7,
+        )
+
+        flaw_bug = self.get_flaw_bug()
+        # attributes removed or not available in Bugzilla
+        # - some situations are maybe hypothetical
+        #   but better safe than sorry
+        flaw_bug.pop("cf_release_notes")
+        # removing public and reported timestamps
+        # plus also all the CVSS stuff
+        flaw_bug[
+            "cf_srtnotes"
+        ] = """
+        {
+            "affects": [
+                {
+                    "ps_module": "rhel-8",
+                    "ps_component": "ssh",
+                    "affectedness": "affected",
+                    "resolution": "fix"
+                }
+            ],
+            "impact": "moderate",
+            "source": "customer"
+        }
+        """
+
+        fbc = FlawConvertor(
+            flaw_bug,
+            [],
+            None,
+            None,
+            [],
+            [],
+        )
+        flaws = fbc.bug2flaws()
+        assert "has no reported_dt (reported)" in fbc.errors
+        assert "no cf_release_notes" in fbc.errors
+        assert "has no unembargo_dt (public date)" in fbc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        flaw.save()
+
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.cvss2 == ""
+        assert flaw.cvss2_score is None
+        assert flaw.cvss3 == ""
+        assert flaw.cvss3_score is None
+        assert flaw.reported_dt is None
+        assert flaw.summary == ""
+        assert flaw.unembargo_dt is None
+
+        assert Affect.objects.count() == 1
+        affect = Affect.objects.first()
+        assert affect.cvss2 == ""
+        assert affect.cvss2_score is None
+        assert affect.cvss3 == ""
+        assert affect.cvss3_score is None
 
 
 class TestFlawConvertorFixedIn:
