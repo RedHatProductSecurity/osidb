@@ -7,8 +7,13 @@ from rest_framework.viewsets import ModelViewSet
 from osidb.api_views import get_valid_http_methods
 from osidb.core import set_user_acls
 from osidb.exceptions import OSIDBException
-from osidb.models import FlawMeta
-from osidb.tests.factories import AffectFactory, FlawFactory, FlawMetaFactory
+from osidb.models import FlawMeta, FlawReference
+from osidb.tests.factories import (
+    AffectFactory,
+    FlawFactory,
+    FlawMetaFactory,
+    FlawReferenceFactory,
+)
 from osidb.tests.models import TestAlertModel, TestAlertModelBasic
 
 pytestmark = pytest.mark.unit
@@ -27,6 +32,11 @@ class TestCore(object):
             flaw=flaw1,
             type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
             meta_attr={"status": "+"},
+        )
+        FlawReferenceFactory(
+            flaw=flaw1,
+            type=FlawReference.FlawReferenceType.ARTICLE,
+            url="https://access.redhat.com/link123",
         )
         AffectFactory(flaw=flaw1)
         assert flaw1.save() is None

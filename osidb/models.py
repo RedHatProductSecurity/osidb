@@ -714,6 +714,17 @@ class Flaw(
         # users from reviewing in the first place, in which case we don't
         # need to perform this validation
 
+    def _validate_major_incident_article(self):
+        """
+        Tests that a Flaw that is Major Incident has an article.
+        """
+        article = self.references.filter(type=FlawReference.FlawReferenceType.ARTICLE)
+
+        if self.is_major_incident and article.count() == 0:
+            raise ValidationError(
+                "A flaw marked as Major Incident does not have an article."
+            )
+
     def _validate_embargoing_public_flaw(self):
         """
         Check whether a currently public flaw is being embargoed.
