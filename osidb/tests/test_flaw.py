@@ -314,8 +314,8 @@ class TestFlaw:
             flaw=flaw,
             _type=FlawMeta.FlawMetaType.MAJOR_INCIDENT,
             meta={},
-            acl_read=self.acl_read,
-            acl_write=self.acl_write,
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
         )
         meta.save()
         old_updated_dt = meta.updated_dt
@@ -551,7 +551,7 @@ class TestFlawValidators:
         )
         assert FlawMeta.objects.count() == 2
         # test that it works with RelatedManager methods such as add()
-        flaw = FlawFactory()
+        flaw = FlawFactory(embargoed=flaw.embargoed)
         # see previous test for explanation on bulk=False
         flaw.meta.set([meta1, meta2], bulk=False)
         assert flaw.meta.count() == 2

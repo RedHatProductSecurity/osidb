@@ -184,7 +184,14 @@ class TestBZImportCollector:
             uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_WRITE_GROUP])
         ]
         new_acls = doctext_meta.acl_read + doctext_meta.acl_write
-        doctext_meta.save()
+
+        # in Bugzilla world it is not possible to have different Flaw and FlawMeta visibility
+        # but here we want to be in OSIDB world only so let us turn off this Bugzilla validation
+        with monkeypatch.context() as m:
+            m.setattr(
+                FlawMeta, "_validate_acl_identical_to_parent_flaw", lambda s: None
+            )
+            doctext_meta.save()
 
         assert old_acls != new_acls
 
