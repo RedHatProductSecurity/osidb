@@ -14,7 +14,7 @@ from osidb.filters import FlawFilter
 
 from ..core import generate_acls
 from ..helpers import ensure_list
-from ..models import Affect, Flaw, FlawMeta, Tracker
+from ..models import Affect, Flaw, FlawMeta, FlawReference, Tracker
 from .factories import (
     AffectFactory,
     CVEv5PackageVersionsFactory,
@@ -22,6 +22,7 @@ from .factories import (
     FlawCommentFactory,
     FlawFactory,
     FlawMetaFactory,
+    FlawReferenceFactory,
     TrackerFactory,
 )
 
@@ -99,6 +100,11 @@ class TestEndpoints(object):
             flaw=flaw1,
             type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
             meta_attr={"status": "+"},
+        )
+        FlawReferenceFactory(
+            flaw=flaw1,
+            type=FlawReference.FlawReferenceType.ARTICLE,
+            url="https://access.redhat.com/link123",
         )
         AffectFactory(flaw=flaw1)
         assert flaw1.save() is None
@@ -1046,6 +1052,11 @@ class TestEndpoints(object):
             flaw=flaw1,
             type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
             meta_attr={"status": "+"},
+        )
+        FlawReferenceFactory(
+            flaw=flaw1,
+            type=FlawReference.FlawReferenceType.ARTICLE,
+            url="https://access.redhat.com/link123",
         )
         AffectFactory(flaw=flaw1)
 

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Introduce flaw ownership through task management system (OSIDB-69)
 - Implement task rejection in Taskman (OSIDB-74)
+- Implement article validation for Major Incident flaw (OSIDB-655)
 
 ### Changed
 - Integrate Jira tracker collector with collector framework (OSIDB-576)

@@ -88,6 +88,11 @@ class TestFlaw:
             type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
             meta_attr={"status": "+"},
         )
+        FlawReferenceFactory(
+            flaw=vuln_1,
+            type=FlawReference.FlawReferenceType.ARTICLE,
+            url="https://access.redhat.com/link123",
+        )
         assert vuln_1.is_major_incident
 
         affect1 = AffectFactory(flaw=vuln_1)
@@ -170,7 +175,7 @@ class TestFlaw:
         )
         reference2.save()
         all_references = vuln_1.references.all()
-        assert len(all_references) == 2
+        assert len(all_references) == 3
         assert reference1 in all_references
         assert reference2 in all_references
 
@@ -891,6 +896,11 @@ class TestFlawValidators:
         )
         flaw1.save(raise_validation_error=False)
         AffectFactory(flaw=flaw1)
+        FlawReferenceFactory(
+            flaw=flaw1,
+            type=FlawReference.FlawReferenceType.ARTICLE,
+            url="https://access.redhat.com/link123",
+        )
 
         if req:
             FlawMetaFactory(
@@ -903,6 +913,44 @@ class TestFlawValidators:
                 flaw1.save()
         else:
             assert flaw1.save() is None
+
+    @pytest.mark.parametrize(
+        "_type,url,should_raise",
+        [
+            (
+                FlawReference.FlawReferenceType.EXTERNAL,
+                "https://httpd.apache.org/link123",
+                True,
+            ),
+            (
+                FlawReference.FlawReferenceType.ARTICLE,
+                "https://access.redhat.com/link123",
+                False,
+            ),
+        ],
+    )
+    def test_validate_major_incident_article(self, _type, url, should_raise):
+        flaw = FlawFactory.build(is_major_incident=True)
+        flaw.save(raise_validation_error=False)
+
+        AffectFactory(flaw=flaw)
+        FlawMetaFactory(
+            flaw=flaw,
+            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
+            meta_attr={"status": "+"},
+        )
+        FlawReferenceFactory(
+            flaw=flaw,
+            type=_type,
+            url=url,
+        )
+
+        if should_raise:
+            error_msg = r"A flaw marked as Major Incident does not have an article."
+            with pytest.raises(ValidationError, match=error_msg):
+                flaw.save()
+        else:
+            assert flaw.save() is None
 
     @freeze_time(tzdatetime(2021, 11, 23))
     def test_validate_embargoing_public_flaw(self):
@@ -1075,6 +1123,11 @@ class TestFlawValidators:
             flaw=flaw,
             type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
             meta_attr={"status": "-"},
+        )
+        FlawReferenceFactory(
+            flaw=flaw,
+            type=FlawReference.FlawReferenceType.ARTICLE,
+            url="https://access.redhat.com/link123",
         )
         affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         for status in tracker_statuses:
