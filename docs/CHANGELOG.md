@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make Bugzilla collector aware of migration of old style acks to SRT notes (OSIDB-904)
 - Fix BBSync flaw summary composition (OSIDB-902, OSIDB-909)
 - Fix Bugzilla import not reflecting some attribute removals (OSIDB-910)
+- Make flaw Bugzilla children entities respect flaw visibility (OSIDB-914)
 
 ### Removed
 
