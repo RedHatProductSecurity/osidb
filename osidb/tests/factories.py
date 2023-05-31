@@ -68,6 +68,11 @@ class FlawFactory(factory.django.DjangoModelFactory):
         yes_declaration="I'm a spooky CVE",
         no_declaration=factory.Faker("random_element", elements=["", "foo"]),
     )
+    mitigation = factory.Maybe(
+        "is_major_incident",
+        yes_declaration="CVE mitigation",
+        no_declaration=factory.Faker("random_element", elements=["", "foo"]),
+    )
     unembargo_dt = factory.Maybe(
         "embargoed",
         yes_declaration=factory.Faker("future_datetime", tzinfo=UTC),
