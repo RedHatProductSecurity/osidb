@@ -915,23 +915,64 @@ class TestFlawValidators:
             assert flaw1.save() is None
 
     @pytest.mark.parametrize(
-        "_type,url,should_raise",
+        "reference_type,reference_url,mitigation,statement,alert_name,should_alert",
         [
             (
                 FlawReference.FlawReferenceType.EXTERNAL,
                 "https://httpd.apache.org/link123",
+                "mitigation text",
+                "statement text",
+                "mi_article_missing",
                 True,
             ),
             (
                 FlawReference.FlawReferenceType.ARTICLE,
                 "https://access.redhat.com/link123",
+                "",
+                "statement text",
+                "mi_mitigation_missing",
+                True,
+            ),
+            (
+                FlawReference.FlawReferenceType.ARTICLE,
+                "https://access.redhat.com/link123",
+                "mitigation text",
+                "",
+                "mi_statement_missing",
+                True,
+            ),
+            # all good
+            (
+                FlawReference.FlawReferenceType.ARTICLE,
+                "https://access.redhat.com/link123",
+                "mitigation text",
+                "statement text",
+                None,
                 False,
             ),
         ],
     )
-    def test_validate_major_incident_article(self, _type, url, should_raise):
-        flaw = FlawFactory.build(is_major_incident=True)
+    def test_validate_major_incident_fields(
+        self,
+        reference_type,
+        reference_url,
+        mitigation,
+        statement,
+        alert_name,
+        should_alert,
+    ):
+        """
+        Tests that a Flaw that is Major Incident has all article reference, statement
+        and mitigation.
+        """
+        flaw = FlawFactory.build(
+            is_major_incident=True,
+            mitigation=mitigation,
+            statement=statement,
+            embargoed=False,
+        )
         flaw.save(raise_validation_error=False)
+        FlawReferenceFactory(flaw=flaw, type=reference_type, url=reference_url)
 
         AffectFactory(flaw=flaw)
         FlawMetaFactory(
@@ -939,18 +980,15 @@ class TestFlawValidators:
             type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
             meta_attr={"status": "+"},
         )
-        FlawReferenceFactory(
-            flaw=flaw,
-            type=_type,
-            url=url,
-        )
 
-        if should_raise:
-            error_msg = r"A flaw marked as Major Incident does not have an article."
-            with pytest.raises(ValidationError, match=error_msg):
-                flaw.save()
+        # Clean all alerts before a new validation
+        flaw._alerts = {}
+        flaw.save()
+
+        if should_alert:
+            assert alert_name in flaw._alerts
         else:
-            assert flaw.save() is None
+            assert flaw._alerts == {}
 
     @freeze_time(tzdatetime(2021, 11, 23))
     def test_validate_embargoing_public_flaw(self):

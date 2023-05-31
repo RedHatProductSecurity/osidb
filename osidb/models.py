@@ -721,8 +721,29 @@ class Flaw(
         article = self.references.filter(type=FlawReference.FlawReferenceType.ARTICLE)
 
         if self.is_major_incident and article.count() == 0:
-            raise ValidationError(
-                "A flaw marked as Major Incident does not have an article."
+            self.alert(
+                "mi_article_missing",
+                "A flaw marked as Major Incident does not have an article.",
+            )
+
+    def _validate_major_incident_mitigation(self):
+        """
+        Tests that a Flaw that is Major Incident has a mitigation.
+        """
+        if self.is_major_incident and self.mitigation == "":
+            self.alert(
+                "mi_mitigation_missing",
+                "A flaw marked as Major Incident does not have a mitigation.",
+            )
+
+    def _validate_major_incident_statement(self):
+        """
+        Tests that a Flaw that is Major Incident has a statement.
+        """
+        if self.is_major_incident and self.statement == "":
+            self.alert(
+                "mi_statement_missing",
+                "A flaw marked as Major Incident does not have a statement.",
             )
 
     def _validate_embargoing_public_flaw(self):
