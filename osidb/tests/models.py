@@ -6,6 +6,8 @@ class TestAlertModelBasic(AlertMixin):
 
 
 class TestAlertModel(AlertMixin):
-    def save(self, *args, **kwargs):
-        self.alert("my_alert", "This alert be danger")
-        super().save(*args, **kwargs)
+    def _validate_test(self):
+        """
+        Creates a new alert when validate() method runs.
+        """
+        self.alert("new_alert", "This is a new alert.")
