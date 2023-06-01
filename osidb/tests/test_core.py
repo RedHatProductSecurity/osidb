@@ -91,29 +91,24 @@ class TestModelDefinitions:
         assert m._alerts == {}
 
     @isolate_apps("tests")
-    def test_alert_inheritance(self):
+    def test_alert_deletion(self):
+        """
+        Tests that when calling validate() method, all existing alerts
+        are deleted, and new ones are created and stored.
+        """
         m = TestAlertModel()
-        m.save()
+        m.alert("original_alert", "This is an alert from the previous run.")
+        assert "original_alert" in m._alerts
 
+        # validate() is called inside save()
+        m.save()
+        assert "original_alert" not in m._alerts
         assert m._alerts == {
-            "my_alert": {
+            "new_alert": {
                 "type": "warning",
-                "description": "This alert be danger",
+                "description": "This is a new alert.",
                 "resolution_steps": "",
             }
-        }
-
-    @isolate_apps("tests")
-    def test_alert_create(self):
-        m = TestAlertModel()
-        m.alert("my_error", "This is an error", _type="error", resolution_steps="pray")
-        m.save()
-
-        assert len(m._alerts) == 2
-        assert m._alerts["my_error"] == {
-            "type": "error",
-            "description": "This is an error",
-            "resolution_steps": "pray",
         }
 
     @isolate_apps("tests")

@@ -981,8 +981,6 @@ class TestFlawValidators:
             meta_attr={"status": "+"},
         )
 
-        # Clean all alerts before a new validation
-        flaw._alerts = {}
         flaw.save()
 
         if should_alert:

@@ -203,6 +203,9 @@ class AlertMixin(ValidateMixin):
         # exclude meta attributes
         self.full_clean(exclude=["meta_attr"])
 
+        # clean all alerts before a new validation
+        self._alerts = {}
+
         # custom validations
         for validation_name in [
             item for item in dir(self) if item.startswith("_validate_")
