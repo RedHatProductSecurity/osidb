@@ -442,5 +442,20 @@ class ACLMixin(models.Model):
         ):
             raise ValidationError("ACLs must not contain duplicit ACL groups")
 
+    # additionally in Bugzilla all the flaw related entities are at the end
+    # stored as part of the flaw metadata so for the time being it does
+    # not make any sense to have a different visibility of them
+
+    def _validate_acl_identical_to_parent_flaw(self):
+        """
+        validate that the eventual parent flaw has the identical ACLs
+        """
+        if hasattr(self, "flaw"):
+            if not self.is_embargoed == self.flaw.is_embargoed:
+                raise ValidationError(
+                    "ACLs must correspond to the parrent flaw: "
+                    + ("embargoed" if self.flaw.is_embargoed else "public")
+                )
+
     class Meta:
         abstract = True

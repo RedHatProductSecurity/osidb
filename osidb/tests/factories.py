@@ -226,8 +226,10 @@ class AffectFactory(factory.django.DjangoModelFactory):
 
     flaw = factory.SubFactory(FlawFactory)
 
-    acl_read = [DATA_PRODSEC_ACL_READ]
-    acl_write = [DATA_PRODSEC_ACL_WRITE]
+    # let us inherit the parent flaw ACLs if not specified
+    acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
+    acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
+
     meta_attr = factory.Dict({"test": "1"})
 
     @classmethod
@@ -337,8 +339,10 @@ class FlawCommentFactory(factory.django.DjangoModelFactory):
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     updated_dt = factory.Faker("date_time", tzinfo=UTC)
     external_system_id = factory.sequence(lambda n: f"fake-external-id{n}")
-    acl_read = [DATA_PRODSEC_ACL_READ]
-    acl_write = [DATA_PRODSEC_ACL_WRITE]
+
+    # let us inherit the parent flaw ACLs if not specified
+    acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
+    acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
 
     flaw = factory.SubFactory(FlawFactory)
 
@@ -363,8 +367,11 @@ class FlawMetaFactory(factory.django.DjangoModelFactory):
     type = "REFERENCE"
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     updated_dt = factory.Faker("date_time", tzinfo=UTC)
-    acl_read = [DATA_PRODSEC_ACL_READ]
-    acl_write = [DATA_PRODSEC_ACL_WRITE]
+
+    # let us inherit the parent flaw ACLs if not specified
+    acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
+    acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
+
     meta_attr = {
         "url": "http://nonexistenturl.example.com/1285930",
         "type": "external",
@@ -384,8 +391,9 @@ class FlawReferenceFactory(factory.django.DjangoModelFactory):
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     updated_dt = factory.Faker("date_time", tzinfo=UTC)
 
-    acl_read = [DATA_PRODSEC_ACL_READ]
-    acl_write = [DATA_PRODSEC_ACL_WRITE]
+    # let us inherit the parent flaw ACLs if not specified
+    acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
+    acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
 
     flaw = factory.SubFactory(FlawFactory)
 
