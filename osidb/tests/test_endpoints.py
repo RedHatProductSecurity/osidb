@@ -1431,18 +1431,36 @@ class TestEndpoints(object):
         assert "data-prodsec" in res["groups"]
         assert res["profile"] is None
 
-    def test_affect_create(self, auth_client, test_api_uri):
+    @pytest.mark.parametrize(
+        "flaw_embargo,affect_embargo,fails",
+        [
+            (False, False, False),
+            (True, True, False),
+            (False, True, True),
+            (True, False, True),
+        ],
+    )
+    def test_affect_create(
+        self,
+        auth_client,
+        embargo_access,
+        test_api_uri,
+        flaw_embargo,
+        affect_embargo,
+        fails,
+    ):
         """
-        Test the creation of Affect records via a REST API POST request.
+        test the creation of Affect records via a REST API POST request
+        also with respect to the flaw and affect visibility (which should be equal in Buzilla world)
         """
-        flaw = FlawFactory()
+        flaw = FlawFactory(embargoed=flaw_embargo)
         affect_data = {
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,
             "resolution": Affect.AffectResolution.NOVALUE,
             "ps_module": "rhacm-2",
             "ps_component": "curl",
-            "embargoed": False,
+            "embargoed": affect_embargo,
         }
         response = auth_client.post(
             f"{test_api_uri}/affects",
@@ -1450,24 +1468,30 @@ class TestEndpoints(object):
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
         )
-        assert response.status_code == 201
-        body = response.json()
-        created_uuid = body["uuid"]
+        if fails:
+            assert response.status_code == 400
+            assert "ACLs must correspond to the parrent flaw:" in str(response.content)
 
-        response = auth_client.get(f"{test_api_uri}/affects/{created_uuid}")
-        assert response.status_code == 200
-        body = response.json()
-        assert body["ps_module"] == "rhacm-2"
+        else:
+            assert response.status_code == 201
+            body = response.json()
+            created_uuid = body["uuid"]
 
-    def test_affect_update(self, auth_client, test_api_uri):
+            response = auth_client.get(f"{test_api_uri}/affects/{created_uuid}")
+            assert response.status_code == 200
+            body = response.json()
+            assert body["ps_module"] == "rhacm-2"
+
+    @pytest.mark.parametrize("embargoed", [False, True])
+    def test_affect_update(self, auth_client, embargo_access, test_api_uri, embargoed):
         """
         Test the update of Affect records via a REST API PUT request.
         """
-        affect = AffectFactory()
+        flaw = FlawFactory(embargoed=embargoed)
+        affect = AffectFactory(flaw=flaw)
         response = auth_client.get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
         original_body = response.json()
-        original_body["embargoed"] = False
 
         response = auth_client.put(
             f"{test_api_uri}/affects/{affect.uuid}",
