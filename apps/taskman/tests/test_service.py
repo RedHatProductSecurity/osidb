@@ -1,9 +1,8 @@
 """
-    tests of Jira Task Manager service (Taskman)
-
-    This class uses VCR in order to not call real Jira endpoints
-    during regular tests, and it is recommendend to use Stage Jira instance for
-    generating new cassettes.
+Tests of Jira Task Manager service (Taskman)
+This class uses VCR in order to not call real Jira endpoints
+during regular tests, and it is recommendend to use Stage Jira
+instance for generating new cassettes.
 """
 
 import pytest

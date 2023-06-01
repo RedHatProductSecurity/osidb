@@ -64,11 +64,14 @@ class JiraTaskmanQuerier(JiraQuerier):
 
     def get_task_by_flaw(self, flaw_uuid: str) -> Response:
         """search Jira task given a flaw UUID"""
-        jql_query = f'PROJECT={JIRA_TASKMAN_PROJECT_KEY} \
-                AND labels="flawuuid:{flaw_uuid}" \
-                AND type="Story"'
         try:
-            issues = self.jira_conn.search_issues(jql_query)
+            issues = self.run_query(
+                [
+                    ("PROJECT", "=", JIRA_TASKMAN_PROJECT_KEY),
+                    ("labels", "=", f"flawuuid:{flaw_uuid}"),
+                    ("type", "=", "Story"),
+                ]
+            )
             if len(issues) == 0:
                 return Response(data=None, status=404)
             else:

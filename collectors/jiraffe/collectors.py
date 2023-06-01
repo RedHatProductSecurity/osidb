@@ -4,10 +4,15 @@ Jira collector
 from typing import List, Union
 
 from celery.utils.log import get_task_logger
+from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from jira import Issue
+from jira.exceptions import JIRAError
 
+from apps.trackers.models import JiraProjectFields
 from collectors.framework.models import Collector
+from osidb.models import PsModule
 
 from .convertors import JiraTrackerConvertor
 from .core import JiraQuerier
@@ -93,3 +98,73 @@ class JiraTrackerCollector(Collector, JiraQuerier):
 
         logger.info("Jira tracker sync was successful.")
         return msg
+
+
+class MetadataCollector(Collector, JiraQuerier):
+    """
+    Jira metadata collector
+    to collect data on Jira Project fields
+    """
+
+    def collect(self):
+        """
+        collector run handler
+        """
+        start_dt = timezone.now()
+        projects = (
+            PsModule.objects.exclude(
+                Q(bts_name="bugzilla")
+                | Q(active_ps_update_streams__isnull=True)
+                | Q(supported_until_dt__lt=start_dt)
+            )
+            .values_list("bts_key", flat=True)
+            .distinct()
+        )
+
+        project_fields = {}
+        for project in projects:
+            try:
+                res = self.jira_conn._get_json(
+                    f"issue/createmeta/{project}/issuetypes/1"
+                )
+                project_fields[project] = res["values"]
+            except JIRAError as e:
+                if e.status_code == 400:
+                    print(e.response)
+                    logger.error(
+                        f"Project {project} is not available in Jira, make sure product definition is up to date."
+                    )
+                else:
+                    logger.error(
+                        f"Jira error trying to fetch project {project}: {e.response}"
+                    )
+
+        self.update_metadata(project_fields)
+
+        self.store(updated_until_dt=start_dt)
+        logger.info(f"{self.name} is updated until {start_dt}")
+        return f"{self.name} is updated until {start_dt}: {len(project_fields)} Jira projects' metadata fetched"
+
+    @transaction.atomic
+    def update_metadata(self, project_fields):
+        """
+        remove old and store new Jira projects' metadata
+        inside an atomic transaction
+        """
+        JiraProjectFields.objects.all().delete()
+
+        for project_key, fields in project_fields.items():
+            for field in fields:
+                if "allowedValues" in field:
+                    allowed_values = [
+                        av.get("name", av.get("value")) for av in field["allowedValues"]
+                    ]
+                else:
+                    allowed_values = []
+                field = JiraProjectFields(
+                    project_key=project_key,
+                    field_id=field["fieldId"],
+                    field_name=field["name"],
+                    allowed_values=allowed_values,
+                )
+                field.save()

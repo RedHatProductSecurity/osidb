@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement article validation for Major Incident flaw (OSIDB-655)
 - Implement mitigation validation for Major Incident flaw (OSIDB-656)
 - Implement statement validation for Major Incident flaw (OSIDB-657)
+- Introduce new module for creating trackers in Jira (OSIDB-93)
 
 ### Changed
 - Integrate Jira tracker collector with collector framework (OSIDB-576)

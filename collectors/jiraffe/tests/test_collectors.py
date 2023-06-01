@@ -2,9 +2,17 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from collectors.jiraffe.collectors import JiraTrackerCollector
+from apps.trackers.models import JiraProjectFields
+from collectors.jiraffe.collectors import JiraTrackerCollector, MetadataCollector
+from collectors.jiraffe.constants import HTTPS_PROXY
 from osidb.models import Affect, Tracker
-from osidb.tests.factories import AffectFactory, FlawFactory, TrackerFactory
+from osidb.tests.factories import (
+    AffectFactory,
+    FlawFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
+    TrackerFactory,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -149,3 +157,30 @@ class TestJiraTrackerCollector:
         assert tracker.external_system_id == tracker_id
         assert tracker.affects.count() == 2
         assert all(tracker in affect.trackers.all() for affect in Affect.objects.all())
+
+
+class TestMetadataCollector:
+    @freeze_time(timezone.datetime(2015, 12, 12))
+    @pytest.mark.vcr
+    def test_collect(self, monkeypatch):
+        """
+        Test that collector is able to get metadata from Jira projects
+        """
+        if HTTPS_PROXY:
+            monkeypatch.setenv("HTTPS_PROXY", HTTPS_PROXY)
+
+        ps_module = PsModuleFactory(
+            bts_name="jira",
+            bts_key="OSIM",
+            supported_until_dt=timezone.datetime(2020, 12, 12),
+        )
+        PsUpdateStreamFactory(ps_module=ps_module)
+
+        osim_fields = JiraProjectFields.objects.filter(project_key="OSIM")
+        assert len(osim_fields) == 0
+
+        mc = MetadataCollector()
+        mc.collect()
+
+        osim_fields = JiraProjectFields.objects.filter(project_key="OSIM")
+        assert len(osim_fields) > 1
