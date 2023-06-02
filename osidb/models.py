@@ -1593,6 +1593,25 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 "WONTFIX but has open tracker(s).",
             )
 
+    def _validate_multi_flaw_tracker(self):
+        """
+        validate multi-flaw tracker
+        """
+        if self.affects.count() < 2:
+            return
+
+        first_affect = self.affects.first()
+        for affect in self.affects.exclude(uuid=first_affect.uuid):
+            if first_affect.ps_module != affect.ps_module:
+                raise ValidationError(
+                    "Tracker must be associated only with affects with the same PS module"
+                )
+
+            if first_affect.ps_component != affect.ps_component:
+                raise ValidationError(
+                    "Tracker must be associated only with affects with the same PS component"
+                )
+
     @property
     def bz_id(self):
         """
