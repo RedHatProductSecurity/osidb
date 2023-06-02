@@ -4,9 +4,11 @@ Tracker model related tests
 import pytest
 from django.core.exceptions import ValidationError
 
+from osidb.models import Affect, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
+    PsModuleFactory,
     TrackerFactory,
 )
 
@@ -67,3 +69,40 @@ class TestTrackerValidators:
             match="Tracker must be associated only with affects with the same PS component",
         ):
             TrackerFactory(affects=[affect1, affect2])
+
+    @pytest.mark.parametrize(
+        "bts,tracker_type,raises",
+        [
+            ("bugzilla", Tracker.TrackerType.BUGZILLA, False),
+            ("bugzilla", Tracker.TrackerType.JIRA, True),
+            ("jboss", Tracker.TrackerType.BUGZILLA, True),
+            ("jboss", Tracker.TrackerType.JIRA, False),
+        ],
+    )
+    def test_validate_tracker_bts_match(self, bts, tracker_type, raises):
+        """
+        test that the tracker type corresponds to its BTS
+        """
+        ps_module = PsModuleFactory(bts_name=bts)
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.NEW, ps_module=ps_module.name
+        )
+
+        if raises:
+            with pytest.raises(
+                ValidationError,
+                match="Tracker type and BTS mismatch:",
+            ):
+                TrackerFactory(
+                    acl_read=affect.acl_read,
+                    acl_write=affect.acl_write,
+                    affects=[affect],
+                    type=tracker_type,
+                )
+        else:
+            TrackerFactory(
+                acl_read=affect.acl_read,
+                acl_write=affect.acl_write,
+                affects=[affect],
+                type=tracker_type,
+            )

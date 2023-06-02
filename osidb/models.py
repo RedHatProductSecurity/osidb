@@ -1519,6 +1519,12 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         JIRA = "JIRA"
         BUGZILLA = "BUGZILLA"
 
+    # mapping to product definitions BTS naming
+    TYPE2BTS = {
+        TrackerType.BUGZILLA: "bugzilla",
+        TrackerType.JIRA: "jboss",
+    }
+
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -1611,6 +1617,23 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 raise ValidationError(
                     "Tracker must be associated only with affects with the same PS component"
                 )
+
+    def _validate_tracker_bts_match(self):
+        """
+        validate that the tracker type corresponds to the BTS
+        """
+        affect = self.affects.first()
+        if not affect:
+            return
+
+        ps_module = PsModule.objects.filter(name=affect.ps_module).first()
+        if not ps_module:
+            return
+
+        if self.TYPE2BTS[self.type] != ps_module.bts_name:
+            raise ValidationError(
+                f"Tracker type and BTS mismatch: {self.type} versus {ps_module.bts_name}"
+            )
 
     @property
     def bz_id(self):
