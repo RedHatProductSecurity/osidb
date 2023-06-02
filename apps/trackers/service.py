@@ -10,8 +10,8 @@ from rest_framework.response import Response
 from collectors.jiraffe.core import JiraQuerier
 from osidb.models import Affect, PsUpdateStream, Tracker
 
-from .bts_tracker import JiraTracker
 from .constants import JIRA_SERVER
+from .jira import JiraTracker
 
 logger = logging.getLogger(__name__)
 
