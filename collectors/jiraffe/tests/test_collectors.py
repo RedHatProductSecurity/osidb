@@ -4,7 +4,6 @@ from freezegun import freeze_time
 
 from apps.trackers.models import JiraProjectFields
 from collectors.jiraffe.collectors import JiraTrackerCollector, MetadataCollector
-from collectors.jiraffe.constants import HTTPS_PROXY
 from osidb.models import Affect, Tracker
 from osidb.tests.factories import (
     AffectFactory,
@@ -162,13 +161,10 @@ class TestJiraTrackerCollector:
 class TestMetadataCollector:
     @freeze_time(timezone.datetime(2015, 12, 12))
     @pytest.mark.vcr
-    def test_collect(self, monkeypatch):
+    def test_collect(self, pin_urls):
         """
         Test that collector is able to get metadata from Jira projects
         """
-        if HTTPS_PROXY:
-            monkeypatch.setenv("HTTPS_PROXY", HTTPS_PROXY)
-
         ps_module = PsModuleFactory(
             bts_name="jira",
             bts_key="OSIM",
