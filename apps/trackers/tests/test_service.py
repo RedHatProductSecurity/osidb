@@ -53,6 +53,7 @@ class TestJiraService(object):
         field.save()
         # Remove randomness to reuse VCR every possible time
         flaw1 = FlawFactory(
+            bz_id="123",
             cve_id="CVE-2999-2001",
             embargoed=False,
             uuid="0bd02877-e04c-4174-a436-cafb7b79f111",
@@ -62,6 +63,7 @@ class TestJiraService(object):
             flaw=flaw1, ps_module="foo-module", ps_component="fixed-ps-component-0"
         )
         flaw2 = FlawFactory(
+            bz_id="456",
             cve_id="CVE-2999-2002",
             embargoed=True,
             uuid="4c534902-c270-4302-97f5-878bece153f3",

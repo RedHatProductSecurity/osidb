@@ -59,7 +59,7 @@ class TestJiraTracker(object):
             }
         }
         regular_flaw = FlawFactory(
-            embargoed=False, cve_id="CVE-2999-1000", impact=FlawImpact.LOW
+            embargoed=False, bz_id="123", cve_id="CVE-2999-1000", impact=FlawImpact.LOW
         )
         regular_affect = AffectFactory(
             flaw=regular_flaw, ps_module="foo-module", ps_component="foo-component"
@@ -93,7 +93,10 @@ class TestJiraTracker(object):
         validate_minimum_key_value(minimum=expected2, evaluated=tracker2)
 
         embargoed_flaw = FlawFactory(
-            embargoed=True, cve_id="CVE-2999-1001", impact=FlawImpact.CRITICAL
+            embargoed=True,
+            bz_id="456",
+            cve_id="CVE-2999-1001",
+            impact=FlawImpact.CRITICAL,
         )
         embargoed_affect = AffectFactory(
             flaw=embargoed_flaw, ps_module="foo-module", ps_component="foo-component"

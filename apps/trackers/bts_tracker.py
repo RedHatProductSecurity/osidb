@@ -5,7 +5,7 @@ that will be persisted in the corresponding BTS
 import logging
 from typing import Any, Dict
 
-from apps.trackers.exceptions import NoPriorityAvailableError
+from apps.trackers.exceptions import NoPriorityAvailableError, UnsupportedTrackerError
 from apps.trackers.models import JiraProjectFields
 from osidb.models import Affect, Flaw, FlawImpact, PsModule, PsUpdateStream
 
@@ -46,6 +46,19 @@ class BTSTracker:
     """
 
     def __init__(self, flaw: Flaw, affect: Affect, stream: PsUpdateStream) -> None:
+        """
+        performs feasibility checks and initializes context
+        """
+        assert (
+            flaw and affect and stream
+        ), "parameters are mandatory and must be non-empty"
+
+        # we do not support tracker filing for the old multi-CVE flaws
+        if Flaw.objects.filter(meta_attr__bz_id=flaw.bz_id).count() > 1:
+            raise UnsupportedTrackerError(
+                "Creating trackers for flaws with multiple CVEs is not supported"
+            )
+
         self._flaw = flaw
         self._affect = affect
         self._ps_module = PsModule.objects.filter(name=affect.ps_module).first()
@@ -57,21 +70,20 @@ class BTSTracker:
         to create or update a new tracker in the corresponding BTS
         """
 
+    def _generate_summary(self) -> str:
+        """
+        Generates the summary of a tracker
+        """
+        # CVE ID might be not yet assigned
+        cve_id = self._flaw.cve_id + " " if self._flaw.cve_id else ""
+        return f"{cve_id}{self._affect.ps_component}: {self._flaw.title} [{self._stream.name}]"
+
 
 class JiraTracker(BTSTracker):
     """
     In-memory Tracker object used to generate text that is
     compliant with IR team processes for trackers using Jira
     """
-
-    def _generate_summary(self) -> str:
-        """
-        Generates the summary of a tracker
-        """
-        summary = f"{self._flaw.cve_id} {self._affect.ps_component}: {self._flaw.title}"
-        if self._stream:
-            summary += f" [{self._stream.name}]"
-        return summary
 
     def _generate_labels(self) -> list[str]:
         """
