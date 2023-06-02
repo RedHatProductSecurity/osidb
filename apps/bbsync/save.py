@@ -13,15 +13,23 @@ from .query import BugzillaQueryBuilder
 
 class BugzillaSaver(BugzillaQuerier):
     """
-    Bugzilla flaw bug save handler
-    flaw validity is assumed and not checked
+    Bugzilla bug save handler underlying model instance
+    the instance validity is assumed and not checked
     """
 
-    def __init__(self, flaw, bz_api_key):
+    @property
+    def model(self):
+        """
+        instance model class getter
+        needs to be defined in the subclasses
+        """
+        raise NotImplementedError
+
+    def __init__(self, instance, bz_api_key):
         """
         init stuff
         """
-        self.flaw = flaw
+        self.instance = instance
         # substitute the default service Bugzilla API key
         # so the resulting Bugzilla audit log corresponds
         # to the acutal user requesting the operation
@@ -31,41 +39,28 @@ class BugzillaSaver(BugzillaQuerier):
         """
         generic save serving as class entry point
         which calls create or update handler to continue
-        returns an updated flaw instance (without saving)
+        returns an updated instance (without saving)
         """
-        return self.create() if self.flaw.bz_id is None else self.update()
+        return self.create() if self.instance.bz_id is None else self.update()
 
     def create(self):
         """
-        create flaw in Bugilla
+        create a bug underlying the model instance in Bugilla
         """
-        bugzilla_query_builder = BugzillaQueryBuilder(self.flaw)
+        bugzilla_query_builder = BugzillaQueryBuilder(self.instance)
         response = self.bz_conn.createbug(bugzilla_query_builder.query)
-        self.flaw.meta_attr["bz_id"] = response.id
-        return self.flaw
+        self.instance.bz_id = response.id
+        return self.instance
 
     def update(self):
         """
-        update flaw in Bugzilla
+        update a bug underlying the model instance in Bugilla
         """
-        # TODO flaws with multiple CVEs introduce a paradox behavior
-        # when modifying a flaw the way that the CVE ID is removed as
-        # in OSIDB it basically results in a flaw removal
-        # so let us restrict it for now - should be rare
-        if (
-            Flaw.objects.filter(meta_attr__bz_id=self.flaw.bz_id).count() > 1
-            and not self.flaw.cve_id
-        ):
-            raise UnsaveableFlawError(
-                "Unable to remove a CVE ID from a flaw with multiple CVEs "
-                "due to an ambigous N to 1 OSIDB to Buzilla flaw mapping"
-            )
-
-        old_flaw = Flaw.objects.get(uuid=self.flaw.uuid)
-        bugzilla_query_builder = BugzillaQueryBuilder(self.flaw, old_flaw)
+        old_instance = self.model.objects.get(uuid=self.instance.uuid)
+        bugzilla_query_builder = BugzillaQueryBuilder(self.instance, old_instance)
         self.check_collisions()  # check for collisions right before the update
-        self.bz_conn.update_bugs([self.flaw.bz_id], bugzilla_query_builder.query)
-        return self.flaw
+        self.bz_conn.update_bugs([self.instance.bz_id], bugzilla_query_builder.query)
+        return self.instance
 
     def check_collisions(self):
         """
@@ -84,9 +79,9 @@ class BugzillaSaver(BugzillaQuerier):
         """
         return make_aware(
             datetime.strptime(
-                self.get_bug_data(self.flaw.bz_id, include_fields=["last_change_time"])[
-                    "last_change_time"
-                ],
+                self.get_bug_data(
+                    self.instance.bz_id, include_fields=["last_change_time"]
+                )["last_change_time"],
                 DATETIME_FMT,
             )
         )
@@ -97,5 +92,44 @@ class BugzillaSaver(BugzillaQuerier):
         retrive the stored last change timestamp from DB
         """
         return make_aware(
-            datetime.strptime(self.flaw.meta_attr["last_change_time"], DATETIME_FMT)
+            datetime.strptime(self.instance.meta_attr["last_change_time"], DATETIME_FMT)
         )
+
+
+class FlawBugzillaSaver(BugzillaSaver):
+    """
+    Bugzilla flaw bug save handler
+    """
+
+    @property
+    def flaw(self):
+        """
+        concrete name shortcut
+        """
+        return self.instance
+
+    @property
+    def model(self):
+        """
+        Flaw model class getter
+        """
+        return Flaw
+
+    def update(self):
+        """
+        update flaw in Bugzilla
+        """
+        # TODO flaws with multiple CVEs introduce a paradox behavior
+        # when modifying a flaw the way that the CVE ID is removed as
+        # in OSIDB it basically results in a flaw removal
+        # so let us restrict it for now - should be rare
+        if (
+            self.model.objects.filter(meta_attr__bz_id=self.flaw.bz_id).count() > 1
+            and not self.flaw.cve_id
+        ):
+            raise UnsaveableFlawError(
+                "Unable to remove a CVE ID from a flaw with multiple CVEs "
+                "due to an ambigous N to 1 OSIDB to Buzilla flaw mapping"
+            )
+
+        return super().update()

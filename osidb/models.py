@@ -942,7 +942,17 @@ class Flaw(
 
     @property
     def bz_id(self):
+        """
+        shortcut to get underlying Bugzilla bug ID
+        """
         return self.meta_attr.get("bz_id", None)
+
+    @bz_id.setter
+    def bz_id(self, value):
+        """
+        shortcut to set underlying Bugzilla bug ID
+        """
+        self.meta_attr["bz_id"] = value
 
     @property
     def api_url(self):
@@ -993,11 +1003,11 @@ class Flaw(
         Bugzilla sync of the Flaw instance
         """
         # imports here to prevent cycles
-        from apps.bbsync.save import BugzillaSaver
+        from apps.bbsync.save import FlawBugzillaSaver
         from collectors.bzimport.collectors import FlawCollector
 
         # sync to Bugzilla
-        bs = BugzillaSaver(self, bz_api_key)
+        bs = FlawBugzillaSaver(self, bz_api_key)
         self = bs.save()
         # save in case a new Bugzilla ID was obtained
         # so the flaw is later matched in BZ import
@@ -1582,6 +1592,24 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 f"Affect ({affect.uuid}) for {affect.ps_module}/{affect.ps_component} is marked as "
                 "WONTFIX but has open tracker(s).",
             )
+
+    @property
+    def bz_id(self):
+        """
+        shortcut to enable unified Bugzilla Flaw and Tracker handling when meaningful
+        """
+        # this should be always asserted or we failed
+        assert (
+            self.type == self.TrackerType.BUGZILLA
+        ), "Only Bugzilla trackers have Bugzilla IDs"
+        return self.external_system_id
+
+    @bz_id.setter
+    def bz_id(self, value):
+        """
+        shortcut to enable unified Bugzilla Flaw and Tracker handling when meaningful
+        """
+        self.external_system_id = value
 
     @property
     def fix_state(self):
