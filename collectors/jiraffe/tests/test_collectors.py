@@ -134,12 +134,19 @@ class TestJiraTrackerCollector:
         test collecting a known Jira issue specified by the given ID
         linked to an affect which should preserve the linking
         """
-        flaw = FlawFactory(embargoed=False)
+        flaw1 = FlawFactory(embargoed=False)
+        flaw2 = FlawFactory(embargoed=False)
         affect1 = AffectFactory(
-            affectedness=Affect.AffectAffectedness.AFFECTED, flaw=flaw
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            flaw=flaw1,
+            ps_module="module",
+            ps_component="component",
         )
         affect2 = AffectFactory(
-            affectedness=Affect.AffectAffectedness.AFFECTED, flaw=flaw
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            flaw=flaw2,
+            ps_module="module",
+            ps_component="component",
         )
         tracker_id = "ENTMQ-755"
         TrackerFactory(

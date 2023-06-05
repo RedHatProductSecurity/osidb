@@ -1047,7 +1047,13 @@ class TestFlawValidators:
 
         affects = []
         for embargoed_flaw in flaws_embargoed_status:
-            affects.append(AffectFactory(flaw__embargoed=embargoed_flaw))
+            affects.append(
+                AffectFactory(
+                    flaw__embargoed=embargoed_flaw,
+                    ps_module="module",
+                    ps_component="component",
+                )
+            )
 
         if should_raise:
             with pytest.raises(

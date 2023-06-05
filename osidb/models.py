@@ -942,7 +942,17 @@ class Flaw(
 
     @property
     def bz_id(self):
+        """
+        shortcut to get underlying Bugzilla bug ID
+        """
         return self.meta_attr.get("bz_id", None)
+
+    @bz_id.setter
+    def bz_id(self, value):
+        """
+        shortcut to set underlying Bugzilla bug ID
+        """
+        self.meta_attr["bz_id"] = value
 
     @property
     def api_url(self):
@@ -993,11 +1003,11 @@ class Flaw(
         Bugzilla sync of the Flaw instance
         """
         # imports here to prevent cycles
-        from apps.bbsync.save import BugzillaSaver
+        from apps.bbsync.save import FlawBugzillaSaver
         from collectors.bzimport.collectors import FlawCollector
 
         # sync to Bugzilla
-        bs = BugzillaSaver(self, bz_api_key)
+        bs = FlawBugzillaSaver(self, bz_api_key)
         self = bs.save()
         # save in case a new Bugzilla ID was obtained
         # so the flaw is later matched in BZ import
@@ -1509,6 +1519,12 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         JIRA = "JIRA"
         BUGZILLA = "BUGZILLA"
 
+    # mapping to product definitions BTS naming
+    TYPE2BTS = {
+        TrackerType.BUGZILLA: "bugzilla",
+        TrackerType.JIRA: "jboss",
+    }
+
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -1582,6 +1598,60 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 f"Affect ({affect.uuid}) for {affect.ps_module}/{affect.ps_component} is marked as "
                 "WONTFIX but has open tracker(s).",
             )
+
+    def _validate_multi_flaw_tracker(self):
+        """
+        validate multi-flaw tracker
+        """
+        if self.affects.count() < 2:
+            return
+
+        first_affect = self.affects.first()
+        for affect in self.affects.exclude(uuid=first_affect.uuid):
+            if first_affect.ps_module != affect.ps_module:
+                raise ValidationError(
+                    "Tracker must be associated only with affects with the same PS module"
+                )
+
+            if first_affect.ps_component != affect.ps_component:
+                raise ValidationError(
+                    "Tracker must be associated only with affects with the same PS component"
+                )
+
+    def _validate_tracker_bts_match(self):
+        """
+        validate that the tracker type corresponds to the BTS
+        """
+        affect = self.affects.first()
+        if not affect:
+            return
+
+        ps_module = PsModule.objects.filter(name=affect.ps_module).first()
+        if not ps_module:
+            return
+
+        if self.TYPE2BTS[self.type] != ps_module.bts_name:
+            raise ValidationError(
+                f"Tracker type and BTS mismatch: {self.type} versus {ps_module.bts_name}"
+            )
+
+    @property
+    def bz_id(self):
+        """
+        shortcut to enable unified Bugzilla Flaw and Tracker handling when meaningful
+        """
+        # this should be always asserted or we failed
+        assert (
+            self.type == self.TrackerType.BUGZILLA
+        ), "Only Bugzilla trackers have Bugzilla IDs"
+        return self.external_system_id
+
+    @bz_id.setter
+    def bz_id(self, value):
+        """
+        shortcut to enable unified Bugzilla Flaw and Tracker handling when meaningful
+        """
+        self.external_system_id = value
 
     @property
     def fix_state(self):
