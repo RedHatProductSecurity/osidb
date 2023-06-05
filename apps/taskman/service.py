@@ -10,7 +10,7 @@ from jira.exceptions import JIRAError
 from rest_framework.response import Response
 
 from collectors.jiraffe.core import JiraQuerier
-from osidb.models import Affect, Flaw
+from osidb.models import Affect, Flaw, PsProduct
 
 from .constants import JIRA_TASKMAN_PROJECT_KEY, JIRA_TASKMAN_URL
 
@@ -96,12 +96,26 @@ class JiraTaskmanQuerier(JiraQuerier):
             }
             return Response(data=res, status=409)
 
+        modules = flaw.affects.values_list("ps_module", flat=True).distinct()
+        products = PsProduct.objects.filter(ps_modules__name__in=modules)
+        labels = [f"flawuuid:{str(flaw.uuid)}", f"impact:{flaw.impact}"]
+        for product in products:
+            if product.team:
+                labels.append(f"team:{product.team}")
+        if flaw.is_major_incident:
+            labels.append("major_incident")
+        if not flaw.cve_id or flaw.cve_id in flaw.title:
+            summary = flaw.title
+        else:
+            summary = f"{flaw.cve_id} {flaw.title}"
+
         try:
             if task:
                 data = {
                     "fields": {
-                        "summary": flaw.title,
+                        "summary": summary,
                         "description": flaw.description,
+                        "labels": labels,
                     }
                 }
                 url = f"{self.jira_conn._get_url('issue')}/{task['key']}"
@@ -119,9 +133,9 @@ class JiraTaskmanQuerier(JiraQuerier):
                         "project": {
                             "id": self.jira_conn.project(JIRA_TASKMAN_PROJECT_KEY).id
                         },
-                        "summary": flaw.title,
+                        "summary": summary,
                         "description": flaw.description,
-                        "labels": [f"flawuuid:{str(flaw.uuid)}"],
+                        "labels": labels,
                     }
                 }
 
