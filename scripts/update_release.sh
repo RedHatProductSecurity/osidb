@@ -2,16 +2,6 @@
 # Update OSIDB version in all places
 #
 
-function check_and_set_version(){
-    if [[ `grep -E $1=\"[0-9]*\.[0-9]*\.[0-9]*\" $2 | wc -l` != 1 ]] ; then
-        echo "Didn't find 1 version in $2. Giving up."
-        exit 1
-    else
-        echo "Replacing version in $2."
-        sed -i 's/'$1'="[0-9]*\.[0-9]*\.[0-9]*"/'$1'="'$3'"/g' $2
-    fi
-}
-
 if [[ $1 =~ [0-9]*\.[0-9]*\.[0-9]* ]]; then 
     echo "Replacing version in osidb/__init__.py"
     sed -i 's/__version__ = "[0-9]*\.[0-9]*\.[0-9]*"/__version__ = "'$1'"/g' osidb/__init__.py
@@ -21,8 +11,6 @@ if [[ $1 =~ [0-9]*\.[0-9]*\.[0-9]* ]]; then
 
     echo "Replacing version in openapi.yml"
     ./scripts/schema-check.sh
-
-    check_and_set_version 'osidb_source_ref' '../osidb-ops/inventory/osidb' $1
 
     echo "Updating the CHANGELOG.md to $1"
     sed -i 's/^## Unreleased.*/## Unreleased\n\n## ['"$1"'] - '$(date '+%Y-%m-%d')'/' docs/CHANGELOG.md
