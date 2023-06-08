@@ -63,9 +63,11 @@ INSTALLED_APPS = [
     "collectors.exploits_exploitdb",
     "collectors.exploits_metasploit",
     "collectors.nvd",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -259,3 +261,5 @@ CISA_COLLECTOR_CRONTAB = crontab(minute=0, hour=1)
 DEFAULT_REQUEST_TIMEOUT = get_env(
     "OSIDB_DEFAULT_REQUEST_TIMEOUT", default="30", is_int=True
 )
+
+CORS_ALLOWED_ORIGINS = get_env("OSIDB_CORS_ALLOWED_ORIGINS", default="[]", is_json=True)
