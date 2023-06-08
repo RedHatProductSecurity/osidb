@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import requests
 from django.utils.timezone import make_aware
 
 from collectors.bzimport.collectors import BugzillaQuerier
@@ -59,7 +60,24 @@ class BugzillaSaver(BugzillaQuerier):
         old_instance = self.model.objects.get(uuid=self.instance.uuid)
         bugzilla_query_builder = BugzillaQueryBuilder(self.instance, old_instance)
         self.check_collisions()  # check for collisions right before the update
-        self.bz_conn.update_bugs([self.instance.bz_id], bugzilla_query_builder.query)
+        try:
+            self.bz_conn.update_bugs(
+                [self.instance.bz_id], bugzilla_query_builder.query
+            )
+        except requests.exceptions.HTTPError as e:
+            # this is a heuristic at best, we know that the data we submit to
+            # bugzilla has already been validated and are pretty sure that the
+            # error is not due to the request being malformed, but it could be.
+            # bugzilla returns a 400 error on concurrent updates even though
+            # this is not the client's fault, and the HTTPError bubbled up
+            # by requests / python-bugzilla doesn't contain the response
+            # embedded into it, so all we can do is a string comparison.
+            if "400" in str(e):
+                raise DataInconsistencyException(
+                    "Failed to write back to Bugzilla, this is likely due to a "
+                    "concurrent update which Bugzilla does not support, "
+                    "try again later."
+                ) from e
         return self.instance
 
     def check_collisions(self):
