@@ -4,6 +4,7 @@ cvss
 django
 django-auth-ldap
 django.contrib.postgres
+django-cors-headers
 django-db
 django-deprecate-fields
 django-extensions

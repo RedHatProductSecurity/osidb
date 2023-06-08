@@ -159,6 +159,7 @@ django==3.2.19 \
     # via
     #   -r requirements.in
     #   django-auth-ldap
+    #   django-cors-headers
     #   django-db
     #   django-deprecate-fields
     #   django-extensions
@@ -172,6 +173,10 @@ django==3.2.19 \
 django-auth-ldap==3.0.0 \
     --hash=sha256:19ee19034f344d9efd07ed88d3187e256ec33ae39d6a47222083b89f7d35c5f6 \
     --hash=sha256:1f2d5c562d9ba9a5e9a64099ae9798e1a63840a11afe4d1c4a9c74121f066eaa
+    # via -r requirements.in
+django-cors-headers==4.0.0 \
+    --hash=sha256:a971cd4c75b29974068cc36b5c595698822f1e0edd5f1b32ea42ea37326ad4aa \
+    --hash=sha256:e3cbd247a1a835da4cf71a70d4214378813ea7e08337778b82cb2c1bc19d28d6
     # via -r requirements.in
 django-db==0.0.7 \
     --hash=sha256:8639b6f78f04f34294cb465b308992a84297df41033519efd85b3a6b186b5296
