@@ -5,11 +5,13 @@ from typing import Set, Union
 import pytest
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import datetime
 from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
+from rest_framework.test import APIClient
 
 from osidb.filters import FlawFilter
 
@@ -1984,3 +1986,12 @@ class TestEndpointsBZAPIKey:
         assert '"Bugzilla-Api-Key":"This HTTP header is required."' in str(
             response.content
         )
+
+
+class TestCustomExceptionHandling:
+    @pytest.mark.urls("osidb.tests.urls")
+    def test_custom_exception_serialization(self):
+        url = reverse("test-view")
+        response = APIClient().get(url)
+        assert response.status_code == 409
+        assert response.json()["detail"] == "This was a big failure"
