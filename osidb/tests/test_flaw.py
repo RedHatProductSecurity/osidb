@@ -172,6 +172,7 @@ class TestFlaw:
             vuln_1,
             "https://www.openwall.com/link123",
             type=FlawReference.FlawReferenceType.EXTERNAL,
+            meta_attr={"foo": "bar"},
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
