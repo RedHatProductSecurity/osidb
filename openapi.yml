@@ -2529,6 +2529,285 @@ paths:
                     version:
                       type: string
           description: ''
+  /osidb/api/v1/flaws/{flaw_id}/references:
+    get:
+      operationId: osidb_api_v1_flaws_references_list
+      parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: include_meta_attr
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Specify which keys from meta_attr field should be retrieved,
+          multiple values may be separated by commas. Dot notation can be used to
+          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
+          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
+          keys from meta_attr. Omit this parameter to not include meta_attr fields
+          at all. '
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedFlawReferenceList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: osidb_api_v1_flaws_references_create
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawReferencePost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawReferencePost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawReferencePost'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawReference'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v1/flaws/{flaw_id}/references/{uuid}:
+    get:
+      operationId: osidb_api_v1_flaws_references_retrieve
+      parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: include_meta_attr
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Specify which keys from meta_attr field should be retrieved,
+          multiple values may be separated by commas. Dot notation can be used to
+          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
+          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
+          keys from meta_attr. Omit this parameter to not include meta_attr fields
+          at all. '
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this flaw reference.
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawReference'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: osidb_api_v1_flaws_references_update
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this flaw reference.
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawReference'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawReference'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawReference'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawReference'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    delete:
+      operationId: osidb_api_v1_flaws_references_destroy
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this flaw reference.
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
   /osidb/api/v1/flaws/{id}:
     get:
       operationId: osidb_api_v1_flaws_retrieve
@@ -5060,6 +5339,11 @@ components:
           items:
             $ref: '#/components/schemas/CVEv5PackageVersions'
           readOnly: true
+        references:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawReference'
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -5099,6 +5383,7 @@ components:
       - meta
       - meta_attr
       - package_versions
+      - references
       - resolution
       - state
       - title
@@ -5269,6 +5554,11 @@ components:
           items:
             $ref: '#/components/schemas/CVEv5PackageVersions'
           readOnly: true
+        references:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawReference'
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -5303,10 +5593,85 @@ components:
       - meta
       - meta_attr
       - package_versions
+      - references
       - resolution
       - state
       - title
       - trackers
+      - uuid
+    FlawReference:
+      type: object
+      description: FlawReference serializer
+      properties:
+        description:
+          type: string
+        flaw:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/Type154Enum'
+        url:
+          type: string
+          format: uri
+          maxLength: 2048
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - created_dt
+      - embargoed
+      - flaw
+      - updated_dt
+      - url
+      - uuid
+    FlawReferencePost:
+      type: object
+      description: FlawReference serializer
+      properties:
+        description:
+          type: string
+        flaw:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/Type154Enum'
+        url:
+          type: string
+          format: uri
+          maxLength: 2048
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_dt
+      - embargoed
+      - flaw
+      - url
       - uuid
     FlawReportData:
       type: object
@@ -5573,6 +5938,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Flaw'
+    PaginatedFlawReferenceList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawReference'
     PaginatedFlawReportDataList:
       type: object
       properties:
@@ -5874,6 +6259,11 @@ components:
       enum:
       - JIRA
       - BUGZILLA
+      type: string
+    Type154Enum:
+      enum:
+      - ARTICLE
+      - EXTERNAL
       type: string
     Type5b2Enum:
       enum:

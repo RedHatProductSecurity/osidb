@@ -7,6 +7,7 @@ from rest_framework import routers
 
 from .api_views import (
     AffectView,
+    FlawReferenceView,
     FlawView,
     ManifestView,
     StatusView,
@@ -18,6 +19,7 @@ from .constants import OSIDB_API_VERSION
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r"flaws", FlawView)
+router.register(r"flaws/(?P<flaw_id>[^/.]+)/references", FlawReferenceView)
 router.register(r"affects", AffectView)
 router.register(r"trackers", TrackerView)
 

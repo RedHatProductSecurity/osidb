@@ -1927,7 +1927,7 @@ class FlawReferenceManager(ACLMixinManager, TrackingMixinManager):
             return FlawReference(flaw=flaw, url=url, **extra_fields)
 
 
-class FlawReference(TrackingMixin, ACLMixin, AlertMixin):
+class FlawReference(ACLMixin, BugzillaSyncMixin, TrackingMixin):
     """Model representing flaw references"""
 
     class FlawReferenceType(models.TextChoices):
