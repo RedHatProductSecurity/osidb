@@ -29,6 +29,7 @@ from .models import (
     Flaw,
     FlawComment,
     FlawMeta,
+    FlawReference,
     Profile,
     Tracker,
 )
@@ -621,6 +622,32 @@ class FlawAffectsTrackersField(serializers.Field):
         return list(trackers)
 
 
+class FlawReferenceSerializer(
+    ACLMixinSerializer,
+    BugzillaSyncMixinSerializer,
+    IncludeExcludeFieldsMixin,
+    TrackingMixinSerializer,
+):
+    """FlawReference serializer"""
+
+    class Meta:
+        """filter fields"""
+
+        model = FlawReference
+        fields = (
+            ["description", "flaw", "type", "url", "uuid"]
+            + ACLMixinSerializer.Meta.fields
+            + TrackingMixinSerializer.Meta.fields
+        )
+
+
+@extend_schema_serializer(exclude_fields=["updated_dt"])
+class FlawReferencePostSerializer(FlawReferenceSerializer):
+    # extra serializer for POST request as there is no last update
+    # timestamp but we need to make the field mandatory otherwise
+    pass
+
+
 @extend_schema_serializer(deprecate_fields=["state", "resolution"])
 class FlawSerializer(
     ACLMixinSerializer,
@@ -682,6 +709,7 @@ class FlawSerializer(
     trackers = FlawAffectsTrackersField(source="*", read_only=True)
     affects = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
+    references = FlawReferenceSerializer(many=True, read_only=True)
     package_versions = CVEv5PackageVersionsSerializer(many=True, read_only=True)
 
     meta = serializers.SerializerMethodField()
@@ -771,6 +799,7 @@ class FlawSerializer(
                 "comments",
                 "meta_attr",
                 "package_versions",
+                "references",
             ]
             + ACLMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields

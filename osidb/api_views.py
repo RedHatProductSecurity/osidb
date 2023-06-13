@@ -28,11 +28,13 @@ from rest_framework.viewsets import (
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import AffectFilter, FlawFilter, TrackerFilter
-from .models import Affect, Flaw, Tracker
+from .models import Affect, Flaw, FlawReference, Tracker
 from .serializer import (
     AffectPostSerializer,
     AffectSerializer,
     FlawPostSerializer,
+    FlawReferencePostSerializer,
+    FlawReferenceSerializer,
     FlawSerializer,
     TrackerSerializer,
     UserSerializer,
@@ -329,6 +331,20 @@ class FlawView(ModelViewSet):
         }
         response["Location"] = f"/api/{OSIDB_API_VERSION}/flaws/{response.data['uuid']}"
         return response
+
+
+@include_meta_attr_extend_schema_view
+@include_exclude_fields_extend_schema_view
+@extend_schema_view(
+    create=extend_schema(
+        request=FlawReferencePostSerializer,
+    ),
+)
+class FlawReferenceView(ModelViewSet):
+    queryset = FlawReference.objects.all()
+    serializer_class = FlawReferenceSerializer
+    http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 @extend_schema(
