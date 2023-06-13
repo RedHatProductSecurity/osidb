@@ -1541,7 +1541,7 @@ class TestEndpoints(object):
         response = auth_client.get(affect_url)
         assert response.status_code == 404
 
-    def test_flawreference_create(self, auth_client, test_api_uri):
+    def test_flawreference_create(self, auth_client, embargo_access, test_api_uri):
         """
         Test the creation of FlawReference records via a REST API POST request.
         """
@@ -1552,7 +1552,7 @@ class TestEndpoints(object):
             "type": "EXTERNAL",
             "url": "https://httpd.apache.org/link123",
             "description": "link description",
-            "embargoed": False,
+            "embargoed": flaw.embargoed,
         }
 
         # Tests "POST" on flaws/{uuid}/references
@@ -1577,7 +1577,7 @@ class TestEndpoints(object):
         assert response.status_code == status.HTTP_200_OK
         assert response.data["uuid"] == reference_uuid
 
-    def test_flawreference_update(self, auth_client, test_api_uri):
+    def test_flawreference_update(self, auth_client, embargo_access, test_api_uri):
         """
         Test the update of FlawReference records via a REST API PUT request.
         """
@@ -1603,7 +1603,7 @@ class TestEndpoints(object):
         assert response.status_code == status.HTTP_200_OK
         assert response.data["url"] == "https://httpd.apache.org/link456"
 
-    def test_flawreference_delete(self, auth_client, test_api_uri):
+    def test_flawreference_delete(self, auth_client, embargo_access, test_api_uri):
         """
         Test the deletion of FlawReference records via a REST API DELETE request.
         """
@@ -1617,6 +1617,7 @@ class TestEndpoints(object):
         # Tests "DELETE" on flaws/{uuid}/references/{uuid}
         response = auth_client.delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
         assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert FlawReference.objects.count() == 0
 
     def test_tracker_create(self, auth_client, test_api_uri):
         """
