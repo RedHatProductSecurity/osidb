@@ -13,7 +13,7 @@ from django_filters.rest_framework import (
     OrderingFilter,
 )
 
-from .models import Affect, Flaw, Tracker, search_helper
+from .models import Affect, Flaw, FlawComment, Tracker, search_helper
 
 LT_GT_LOOKUP_EXPRS = ["lt", "gt"]
 LTE_GTE_LOOKUP_EXPRS = ["lte", "gte"]
@@ -367,3 +367,13 @@ class TrackerFilter(DistinctFilterSet):
         }
 
     order = OrderingFilter(fields=Meta.fields.keys())
+
+
+class FlawCommentFilter(FilterSet):
+    class Meta:
+        model = FlawComment
+        fields = {
+            "uuid": ["exact"],
+            "order": ["exact"],
+            "external_system_id": ["exact"],
+        }

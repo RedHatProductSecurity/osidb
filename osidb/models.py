@@ -11,7 +11,11 @@ from typing import Union
 from django.contrib.auth.models import User
 from django.contrib.postgres import fields
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import (
+    MultipleObjectsReturned,
+    ObjectDoesNotExist,
+    ValidationError,
+)
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -1845,15 +1849,34 @@ class FlawMeta(AlertMixin, TrackingMixin, ACLMixin):
 class FlawCommentManager(ACLMixinManager, TrackingMixinManager):
     """flawcomment manager"""
 
+    def pending(self):
+        """
+        Get new pending comments that are about to be submitted to bugzilla.
+        """
+        return super().get_queryset().filter(external_system_id="")
+
     @staticmethod
     def create_flawcomment(flaw, external_system_id, comment, **extra_fields):
         """return a new flawcomment or update an existing flawcomment without saving"""
         try:
             flawcomment = FlawComment.objects.get(
-                flaw=flaw, external_system_id=external_system_id
+                flaw=flaw,
+                external_system_id=external_system_id,
             )
             flawcomment.meta_attr = comment
             return flawcomment
+        except MultipleObjectsReturned:
+            # When sync is run multiple times concurrently, each thread may
+            # create a new instance for the same comment. On a followup sync
+            # we see this. Because FlawComments are ordered by uuid, always
+            # keeping the first instance deterministically keeps that one
+            # instance even if this is also run multiple times concurrently.
+
+            f = FlawComment.objects.filter(
+                flaw=flaw, external_system_id=external_system_id
+            )
+            # "Cannot use 'limit' or 'offset' with delete", so can't do f[1:].delete()
+            f.exclude(uuid=f.first().uuid).delete()
         except ObjectDoesNotExist:
             return FlawComment(
                 flaw=flaw,
@@ -1863,7 +1886,11 @@ class FlawCommentManager(ACLMixinManager, TrackingMixinManager):
             )
 
 
-class FlawComment(TrackingMixin, ACLMixin):
+class FlawComment(
+    ACLMixin,
+    BugzillaSyncMixin,
+    TrackingMixin,
+):
     """Model representing flaw comments"""
 
     class FlawCommentType(models.TextChoices):
@@ -1882,7 +1909,7 @@ class FlawComment(TrackingMixin, ACLMixin):
     )
 
     # external comment id
-    external_system_id = models.CharField(max_length=100)
+    external_system_id = models.CharField(max_length=100, blank=True)
 
     # explicitly define comment ordering, from BZ comment 'count'
     order = models.IntegerField(null=True)
@@ -1907,8 +1934,22 @@ class FlawComment(TrackingMixin, ACLMixin):
         ordering = (
             "order",
             "external_system_id",
+            "uuid",
             "created_dt",
         )
+
+    def bzsync(self, *args, bz_api_key=None, **kwargs):
+        """
+        Bugzilla sync of the FlawComment instance and of the related Flaw instance.
+        """
+
+        self.save()
+
+        # Comments need to be synced through flaw
+        # If external_system_id is blank, BugzillaSaver posts the new comment
+        # and FlawCollector loads the new comment and updates this FlawComment
+        # instance to match bugzilla.
+        self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
 
 
 class FlawReferenceManager(ACLMixinManager, TrackingMixinManager):

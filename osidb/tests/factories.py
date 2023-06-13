@@ -343,6 +343,8 @@ class FlawCommentFactory(factory.django.DjangoModelFactory):
     # let us inherit the parent flaw ACLs if not specified
     acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
     acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
+    order = factory.Sequence(lambda n: n)
+    text = "some comment text"
 
     flaw = factory.SubFactory(FlawFactory)
 

@@ -11,6 +11,7 @@ from typing import Dict, List, Tuple
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import BadRequest
+from django.db.models import Max
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
 from rest_framework import serializers
 
@@ -435,7 +436,7 @@ class MetaSerializer(ACLMixinSerializer, TrackingMixinSerializer):
 
 
 class CommentSerializer(TrackingMixinSerializer):
-    """FlawComment serializer"""
+    """FlawComment serializer for use by FlawSerializer"""
 
     class Meta:
         """filter fields"""
@@ -835,3 +836,54 @@ class UserSerializer(serializers.ModelSerializer):
             "groups",
             "profile",
         ]
+
+
+class FlawCommentSerializer(
+    CommentSerializer,
+    ACLMixinSerializer,
+    BugzillaSyncMixinSerializer,
+    IncludeExcludeFieldsMixin,
+    IncludeMetaAttrMixin,
+):
+    """FlawComment serializer for use by flaw_comments endpoint"""
+
+    def create(self, validated_data):
+        """
+        Create FlawComment instance by deserializing input.
+
+        Force empty external_system_id to force submitting and redownloading
+        the new comment through bugzilla. Force sequential order so that the
+        redownloaded comment continues to be the same instance (uuid).
+        """
+
+        flaw = validated_data["flaw"]
+        next_order = 1
+        if flaw.comments.exists():
+            next_order = 1 + flaw.comments.aggregate(Max("order"))["order__max"]
+        validated_data["order"] = next_order
+        return super().create(validated_data)
+
+    class Meta:
+        """filter fields"""
+
+        model = FlawComment
+        fields = (
+            [
+                "flaw",
+                "text",
+            ]
+            + CommentSerializer.Meta.fields
+            + ACLMixinSerializer.Meta.fields
+        )
+        read_only_fields = [
+            "external_system_id",
+        ]
+
+
+@extend_schema_serializer(exclude_fields=["external_system_id", "flaw", "order"])
+class FlawCommentPostSerializer(FlawCommentSerializer):
+    # Extra serializer for POST request because some fields are not
+    # submittable by the client and their submit values are hardwired
+    # in create().
+    # This class is just for schema generation, not for actual execution.
+    pass

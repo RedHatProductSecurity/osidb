@@ -17,7 +17,7 @@ from osidb.filters import FlawFilter
 
 from ..core import generate_acls
 from ..helpers import ensure_list
-from ..models import Affect, Flaw, FlawMeta, FlawReference, Tracker
+from ..models import Affect, Flaw, FlawComment, FlawMeta, FlawReference, Tracker
 from .factories import (
     AffectFactory,
     CVEv5PackageVersionsFactory,
@@ -1380,6 +1380,51 @@ class TestEndpoints(object):
             "Received model contains non-refreshed and outdated data! "
             "It has been probably edited by someone else in the meantime"
         )
+
+    def test_flaw_comment_create(self, auth_client, test_api_uri):
+        """
+        Test that adding a flaw comment by sending a POST request works.
+        """
+
+        def new_flaw():
+            flaw = FlawFactory(embargoed=False)
+            AffectFactory(flaw=flaw)
+            response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+            assert response.status_code == 200
+            assert not FlawComment._base_manager.filter(flaw=flaw).exists()
+            return flaw
+
+        def get_response(flaw, new_comment):
+            return auth_client.post(
+                f"{test_api_uri}/flaws/{flaw.uuid}/comments",
+                {
+                    "order": 1,
+                    "embargoed": False,
+                    "text": new_comment,
+                },
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+            )
+
+        flaw = new_flaw()
+        assert not FlawComment.objects.filter(flaw=flaw).exists()
+        response = get_response(flaw, "HELLO WORLD COMMENT")
+        assert response.status_code == 201
+
+        # NOTE: In this test, `SYNC_TO_BZ and bz_api_key is not None` is False in BugzillaSyncMixin.
+        #       Therefore Flaw.bzsync() is not called, BugzillaQueryBuilder doesn't process the new
+        #       pending FlawComment, and new comment is not re-fetched through FlawCollector, and
+        #       the temporary pending FlawComment instance isn't updated.
+        assert FlawComment.objects.filter(flaw=flaw).exists()
+        first_comment = FlawComment.objects.filter(flaw=flaw).first()
+        assert first_comment.text == "HELLO WORLD COMMENT"
+        # In a real-world non-test scenario, the new comment would not be pending anymore and the
+        # following assert would fail:
+        assert first_comment == FlawComment.objects.pending().filter(flaw=flaw).first()
+
+        # Behaves like an ordinary non-idempotent POST endpoint. You can just simply post comments.
+        response = get_response(flaw, "ANOTHER HELLO WORLD COMMENT")
+        assert response.status_code == 201
 
     def test_flaw_delete(self, auth_client, test_api_uri):
         """

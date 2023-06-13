@@ -7,7 +7,15 @@ from freezegun import freeze_time
 
 from apps.bbsync.exceptions import SRTNotesValidationError
 from apps.bbsync.query import BugzillaQueryBuilder, SRTNotesBuilder
-from osidb.models import Affect, Flaw, FlawImpact, FlawMeta, FlawSource, Tracker
+from osidb.models import (
+    Affect,
+    Flaw,
+    FlawComment,
+    FlawImpact,
+    FlawMeta,
+    FlawSource,
+    Tracker,
+)
 from osidb.tests.factories import (
     AffectFactory,
     FlawCommentFactory,
@@ -1072,3 +1080,26 @@ class TestGenerateGroups:
         groups = query.get("groups", [])
         assert ["secalert"] == groups.get("add", [])
         assert ["private"] == groups.get("remove", [])
+
+
+class TestGenerateComment:
+    def test_generate_comment(self):
+        """
+        test generating a new comment
+        """
+        flaw = FlawFactory()
+        assert FlawComment.objects.pending().count() == 0
+        FlawCommentFactory(
+            flaw=flaw,
+            text="Hello World",
+            external_system_id="",
+            created_dt=timezone.now(),
+            updated_dt=timezone.now(),
+        )
+        assert FlawComment.objects.pending().count() == 1
+
+        bbq = BugzillaQueryBuilder(flaw)
+        assert bbq.query["comment"] == {
+            "body": "Hello World",
+            "is_private": False,
+        }
