@@ -13,6 +13,7 @@ from osidb.tests.factories import (
     FlawCommentFactory,
     FlawFactory,
     FlawMetaFactory,
+    FlawReferenceFactory,
     PsModuleFactory,
     TrackerFactory,
 )
@@ -357,6 +358,29 @@ class TestGenerateSRTNotes:
         assert rhel8affect["impact"] is None
         assert rhel8affect["cvss2"] is None
         assert rhel8affect["cvss3"] is None
+
+    def test_generate_references(self):
+        """
+        test generating of SRT references attribute array
+        """
+        flaw = FlawFactory()
+        FlawReferenceFactory(
+            flaw=flaw,
+            type="EXTERNAL",
+            url="https://httpd.apache.org/link123",
+            description="link description",
+        )
+
+        bqb = BugzillaQueryBuilder(flaw)
+        cf_srtnotes = bqb.query.get("cf_srtnotes")
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+        references = cf_srtnotes_json.get("references", [])
+
+        assert len(references) == 1
+        reference = references[0]
+        assert reference["type"] == "EXTERNAL"
+        assert reference["url"] == "https://httpd.apache.org/link123"
+        assert reference["description"] == "link description"
 
     @pytest.mark.parametrize(
         "osidb_cvss2,osidb_cvss3,srtnotes,bz_cvss2_present,bz_cvss3_present,bz_cvss2,bz_cvss3",
