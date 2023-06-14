@@ -2002,6 +2002,14 @@ class FlawReference(ACLMixin, BugzillaSyncMixin, TrackingMixin):
                 f"but only 1 is allowed."
             )
 
+    def bzsync(self, *args, bz_api_key, **kwargs):
+        """
+        Bugzilla sync of the FlawReference instance
+        """
+        self.save()
+        # FlawReference needs to be synced through flaw
+        self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
+
 
 class VersionStatus(models.TextChoices):
     AFFECTED = "AFFECTED"
