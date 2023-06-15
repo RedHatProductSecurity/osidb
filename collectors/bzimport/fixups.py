@@ -213,6 +213,8 @@ class FlawFixer:
 
         # try to strip EMBARGOED
         title = re.sub(r"^EMBARGOED\s*", "", title)
+        # try to strip TRIAGE
+        title = re.sub(r"^TRIAGE(-|\s*)", "", title)
         # try to strip CVE IDs possibly followed by three dots
         title = re.sub(r"^(CVE-[0-9]{4}-[0-9]+\s*)+\.*\s*", "", title)
 

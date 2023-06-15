@@ -6,6 +6,7 @@ from osidb.models import PsUpdateStream
 TRACKER_COMPONENT_UPDATE_STREAM_RE = re.compile(
     r"^(?:\s*EMBARGOED\s+)?"  # Embargoed keyword
     r"(?:\[(?:CISA\s)?Major\sIncident\]\s+)?"  # Major Incident
+    r"(?:\s*TRIAGE)?(?:-|\s*)?"  # TRIAGE keyword or prefix
     r"(?:CVE-[0-9]+-[0-9]+,?\s*)*"  # list of CVEs
     r"(?:\.+\s+)?"  # dots, when too many CVEs are present
     r"(?P<component>.+?):\s"  # PSComponent (might contain spaces or rhel module)
