@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Implement a new FlawReference API (OSIDB-71)
 
+### Changed
+
+- Account for TRIAGE in the title/summary (OSIDB-999)
+
 ## [3.2.0] - 2023-06-05
 ### Added
 - Introduce flaw ownership through task management system (OSIDB-69)

@@ -46,6 +46,26 @@ class TestParseUpdateStreamComponent:
                 "stream",
                 "component",
             ),
+            (
+                "TRIAGE component: text [stream]",
+                "stream",
+                "component",
+            ),
+            (
+                "TRIAGE-CVE-2222-1111 component: text [stream]",
+                "stream",
+                "component",
+            ),
+            (
+                "EMBARGOED TRIAGE component: text [stream]",
+                "stream",
+                "component",
+            ),
+            (
+                "[CISA Major Incident] TRIAGECVE-2222-1111 component: another: text [stream]",
+                "stream",
+                "component",
+            ),
         ],
     )
     def test_correct(self, title, stream, component):
