@@ -1,6 +1,7 @@
 """
     osidb exceptions
 """
+from rest_framework import status
 
 
 class OSIDBException(Exception):
@@ -9,3 +10,5 @@ class OSIDBException(Exception):
 
 class DataInconsistencyException(OSIDBException):
     """Data Inconsistency Exception"""
+
+    http_code = status.HTTP_409_CONFLICT

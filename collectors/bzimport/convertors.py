@@ -698,6 +698,8 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
 
     def get_comments(self, flaw):
         """get FlawComment Django models"""
+        # Delete orphaned / temporary comments
+        FlawComment.objects.pending().filter(flaw=flaw).delete()
         return [
             FlawComment.objects.create_flawcomment(
                 flaw,

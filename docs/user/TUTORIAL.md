@@ -555,3 +555,147 @@ assert response.ok
 ```
 
 And that's it! Now we know all that we need to know to use the OSIDB REST API.
+
+
+## Fetching flaw comments
+
+### Fetching flaw comments for a specific flaw
+
+> Note: in this section we will use a made up uuid, you should use a uuid from the dataset you retrieved in the previous sections, otherwise the following examples will not work.
+
+With cURL
+
+```bash
+$ curl -H "Authorization: Bearer <access_token>" \
+       ${SERVICE_URL}/osidb/api/v1/flaws/2fe16efb-11cb-4cd2-b31b-d769ba821073/comments
+```
+
+With python
+
+```python
+import requests
+
+flaw_id = "2fe16efb-11cb-4cd2-b31b-d769ba821073"
+headers = {"Authorization": "Bearer <access_token>"}
+response = requests.get(f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments", headers=headers)
+assert response.ok
+```
+
+This should return all the comments for the flaw with the uuid we requested.
+
+Instead of uuid, you can also use the CVE number. For example:
+
+```python
+flaw_id = "CVE-2005-0001"
+```
+
+### Fetching details for a specific flaw comment
+
+#### Fetch using flaw and comment number
+
+Comment 0 is the flaw's description, normal comments start with `order=1`.
+
+With cURL
+
+```bash
+$ curl -H "Authorization: Bearer <access_token>" \
+       "${SERVICE_URL}/osidb/api/v1/flaws/2fe16efb-11cb-4cd2-b31b-d769ba821073/comments?order=3"
+```
+
+With python
+
+```python
+import requests
+
+flaw_id = "2fe16efb-11cb-4cd2-b31b-d769ba821073"
+order = 3
+headers = {"Authorization": "Bearer <access_token>"}
+response = requests.get(f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments?order={order}", headers=headers)
+assert response.ok
+```
+
+#### Fetch using flaw comment ID as tracked by Bugzilla
+
+Bugzilla assigns each comment a unique numerical ID. This is portable across OSIDB instances.
+
+With cURL
+
+```bash
+$ curl -H "Authorization: Bearer <access_token>" \
+       ${SERVICE_URL}/osidb/api/v1/flaws/CVE-2005-0001/comments?external_system_id=15567963
+```
+
+With python
+
+```python
+import requests
+
+flaw_id = "CVE-2005-0001"
+external_system_id = "15567963"
+headers = {"Authorization": "Bearer <access_token>"}
+response = requests.get(f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments?external_system_id={external_system_id}", headers=headers)
+assert response.ok
+```
+
+
+#### Fetch using flaw comment OSIDB-internal UUID
+
+OSIDB creates a unique uuid for each FlawComment. This is **not** portable across OSIDB instances.
+
+With cURL
+
+```bash
+$ curl -H "Authorization: Bearer <access_token>" \
+       ${SERVICE_URL}/osidb/api/v1/flaws/CVE-2005-0001/comments/acef1a6c-890b-4abb-85c1-d81e76cd7858
+```
+
+With python
+
+```python
+import requests
+
+flaw_id = "CVE-2005-0001"
+comment_id = "acef1a6c-890b-4abb-85c1-d81e76cd7858"
+headers = {"Authorization": "Bearer <access_token>"}
+response = requests.get(f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments/{comment_id}", headers=headers)
+assert response.ok
+```
+
+### Creating a flaw comment
+
+Please note that multiple comments created in parallel are not guaranteed to keep their OSIDB-internal `uuid`.
+
+With cURL
+
+```bash
+$ curl -H "Authorization: Bearer <access_token>" \
+       -H "Content-Type: application/json" \
+       -X POST
+       -d '{
+              "text": "A jacket was found.",
+              "embargoed": false
+       }'
+       ${SERVICE_URL}/osidb/api/v1/flaws/2fe16efb-11cb-4cd2-b31b-d769ba821073/comments
+```
+
+With python
+
+```python
+import requests
+
+flaw_id = "CVE-2005-0001"
+headers = {
+    "Authorization": "Bearer <access_token>",
+    "Content-Type": "application/json",
+}
+data = {
+    "text": "A jacket was found.",
+    "embargoed": False,
+}
+response = requests.post(f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments", headers=headers, json=data)
+assert response.ok
+```
+
+### Updating or deleting flaw comments
+
+Updating or deleting flaw comments is not supported in Bugzilla.

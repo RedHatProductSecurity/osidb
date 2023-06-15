@@ -3,7 +3,7 @@ import re
 from itertools import chain
 
 from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
-from osidb.models import Flaw, FlawImpact, PsModule
+from osidb.models import Flaw, FlawComment, FlawImpact, PsModule
 
 from .cc import CCBuilder
 from .constants import DATE_FMT
@@ -57,6 +57,7 @@ class BugzillaQueryBuilder:
         self.generate_deadline()
         self.generate_cc()
         self.generate_srt_notes()
+        self.generate_comment()
         # TODO tracker links
         # TODO fixed_in
         # TODO dupe_of
@@ -149,8 +150,6 @@ class BugzillaQueryBuilder:
         if self.creation:
             self._query["description"] = self.flaw.description
             self._query["comment_is_private"] = False
-            # TODO
-            # self._query["comment_is_private"] = True if ... else False
 
     def generate_alias(self):
         """
@@ -307,3 +306,12 @@ class BugzillaQueryBuilder:
         """
         srt_notes_builder = SRTNotesBuilder(self.flaw, self.old_flaw)
         self._query["cf_srtnotes"] = srt_notes_builder.content
+
+    def generate_comment(self):
+        pending_comments = FlawComment.objects.pending().filter(flaw=self.flaw)
+
+        if pending_comments.exists():
+            self._query["comment"] = {
+                "body": pending_comments.first().text,
+                "is_private": False,
+            }

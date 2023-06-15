@@ -247,6 +247,9 @@ SPECTACULAR_SETTINGS = {
         "drf_spectacular.hooks.postprocess_schema_enums",
         "osidb.hooks.response_metadata_postprocess_hook",
     ],
+    "ENUM_NAME_OVERRIDES": {
+        "FlawCommentType": "osidb.models.FlawComment.FlawCommentType",
+    },
 }
 
 # Execute once a day by default

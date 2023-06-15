@@ -141,6 +141,8 @@ class TestFlaw:
             type=FlawComment.FlawCommentType.BUGZILLA,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
+            text="some comment text",
+            order=0,
         )
         comment2.save()
         all_comments = vuln_1.comments.all()

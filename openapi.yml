@@ -2529,6 +2529,224 @@ paths:
                     version:
                       type: string
           description: ''
+  /osidb/api/v1/flaws/{flaw_id}/comments:
+    get:
+      operationId: osidb_api_v1_flaws_comments_list
+      description: List existing comments for a given flaw. Beware that freshly created
+        comments are not guaranteed to keep their original UUIDs, especially if multiple
+        comments are created simultaneously.
+      parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
+        name: external_system_id
+        schema:
+          type: string
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+        description: A string representing either the internal OSIDB UUID of the Flaw
+          resource or the CVE number corresponding to a Flaw
+        required: true
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: include_meta_attr
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Specify which keys from meta_attr field should be retrieved,
+          multiple values may be separated by commas. Dot notation can be used to
+          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
+          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
+          keys from meta_attr. Omit this parameter to not include meta_attr fields
+          at all. '
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: order
+        schema:
+          type: integer
+        description: Retrieve only FlawComment resource with the specified order number.
+          Regular flaw comments are numbered from 1 up.
+      - in: query
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedFlawCommentList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: osidb_api_v1_flaws_comments_create
+      description: Create a new comment for a given flaw. Beware that freshly created
+        comments are not guaranteed to keep their original UUIDs, especially if multiple
+        comments are created simultaneously.
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+        description: A string representing either the internal OSIDB UUID of the Flaw
+          resource or the CVE number corresponding to a Flaw
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawCommentPost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawCommentPost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawCommentPost'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawComment'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v1/flaws/{flaw_id}/comments/{comment_id}:
+    get:
+      operationId: osidb_api_v1_flaws_comments_retrieve
+      description: Retrieve a single existing comments for a given flaw. Beware that
+        freshly created comments are not guaranteed to keep their original UUIDs,
+        especially if multiple comments are created simultaneously.
+      parameters:
+      - in: path
+        name: comment_id
+        schema:
+          type: string
+        description: A string representing the internal OSIDB UUID of the FlawComment
+          resource.
+        required: true
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+        description: A string representing either the internal OSIDB UUID of the Flaw
+          resource or the CVE number corresponding to a Flaw
+        required: true
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: include_meta_attr
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Specify which keys from meta_attr field should be retrieved,
+          multiple values may be separated by commas. Dot notation can be used to
+          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
+          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
+          keys from meta_attr. Omit this parameter to not include meta_attr fields
+          at all. '
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawComment'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /osidb/api/v1/flaws/{flaw_id}/references:
     get:
       operationId: osidb_api_v1_flaws_references_list
@@ -5067,14 +5285,14 @@ components:
       - version
     Comment:
       type: object
-      description: FlawComment serializer
+      description: FlawComment serializer for use by FlawSerializer
       properties:
         uuid:
           type: string
           format: uuid
           readOnly: true
         type:
-          $ref: '#/components/schemas/CommentTypeEnum'
+          $ref: '#/components/schemas/FlawCommentType'
         external_system_id:
           type: string
           maxLength: 100
@@ -5099,13 +5317,8 @@ components:
             it is used to detect mit-air collisions.
       required:
       - created_dt
-      - external_system_id
       - updated_dt
       - uuid
-    CommentTypeEnum:
-      enum:
-      - BUGZILLA
-      type: string
     EPSS:
       type: object
       properties:
@@ -5390,6 +5603,92 @@ components:
       - trackers
       - updated_dt
       - uuid
+    FlawComment:
+      type: object
+      description: FlawComment serializer for use by flaw_comments endpoint
+      properties:
+        flaw:
+          type: string
+          format: uuid
+        text:
+          type: string
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/FlawCommentType'
+        external_system_id:
+          type: string
+          readOnly: true
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+      required:
+      - created_dt
+      - embargoed
+      - external_system_id
+      - flaw
+      - text
+      - updated_dt
+      - uuid
+    FlawCommentPost:
+      type: object
+      description: FlawComment serializer for use by flaw_comments endpoint
+      properties:
+        text:
+          type: string
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/FlawCommentType'
+        meta_attr:
+          type: object
+          additionalProperties:
+            type: string
+            nullable: true
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+      required:
+      - created_dt
+      - embargoed
+      - text
+      - updated_dt
+      - uuid
+    FlawCommentType:
+      enum:
+      - BUGZILLA
+      type: string
     FlawPost:
       type: object
       description: serialize flaw model
@@ -5918,6 +6217,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ExploitOnlyReportData'
+    PaginatedFlawCommentList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawComment'
     PaginatedFlawList:
       type: object
       properties:

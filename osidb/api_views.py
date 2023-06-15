@@ -27,11 +27,13 @@ from rest_framework.viewsets import (
 )
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
-from .filters import AffectFilter, FlawFilter, TrackerFilter
-from .models import Affect, Flaw, FlawReference, Tracker
+from .filters import AffectFilter, FlawCommentFilter, FlawFilter, TrackerFilter
+from .models import Affect, Flaw, FlawComment, FlawReference, Tracker
 from .serializer import (
     AffectPostSerializer,
     AffectSerializer,
+    FlawCommentPostSerializer,
+    FlawCommentSerializer,
     FlawPostSerializer,
     FlawReferencePostSerializer,
     FlawReferenceSerializer,
@@ -206,6 +208,16 @@ include_meta_attr = OpenApiParameter(
     ),
 )
 
+flaw_id = OpenApiParameter(
+    "flaw_id",
+    type=str,
+    location=OpenApiParameter.PATH,
+    description=(
+        "A string representing either the internal OSIDB UUID of the Flaw resource "
+        "or the CVE number corresponding to a Flaw"
+    ),
+)
+
 
 def include_meta_attr_extend_schema_view(cls: Type[ViewSetMixin]) -> Type[ViewSetMixin]:
     """
@@ -374,6 +386,90 @@ class FlawReferenceView(ModelViewSet):
 def whoami(request: Request) -> Response:
     """View that provides information about the currently logged-in user"""
     return Response(UserSerializer(request.user).data)
+
+
+@include_meta_attr_extend_schema_view
+@include_exclude_fields_extend_schema_view
+@extend_schema_view(
+    create=extend_schema(
+        description="Create a new comment for a given flaw. Beware that freshly created comments "
+        "are not guaranteed to keep their original UUIDs, especially if multiple "
+        "comments are created simultaneously.",
+        request=FlawCommentPostSerializer,
+        parameters=[
+            flaw_id,
+        ],
+    ),
+    list=extend_schema(
+        description="List existing comments for a given flaw. Beware that freshly created comments "
+        "are not guaranteed to keep their original UUIDs, especially if multiple "
+        "comments are created simultaneously.",
+        parameters=[
+            flaw_id,
+            OpenApiParameter(
+                "order",
+                type=int,
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "Retrieve only FlawComment resource with the specified order number. "
+                    "Regular flaw comments are numbered from 1 up."
+                ),
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        description="Retrieve a single existing comments for a given flaw. Beware that freshly "
+        "created comments are not guaranteed to keep their original UUIDs, especially "
+        "if multiple comments are created simultaneously.",
+        parameters=[
+            flaw_id,
+            OpenApiParameter(
+                "comment_id",
+                type=str,
+                location=OpenApiParameter.PATH,
+                description=(
+                    "A string representing the internal OSIDB UUID of the FlawComment resource."
+                ),
+            ),
+        ],
+    ),
+)
+class FlawCommentView(ModelViewSet):
+    serializer_class = FlawCommentSerializer
+    filterset_class = FlawCommentFilter
+    http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete", "put"])
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    lookup_url_kwarg = "comment_id"
+
+    def get_flaw(self):
+        """
+        Get flaw object instance.
+        Similar to FlawView.get_object().
+        """
+        pk = self.kwargs["flaw_id"]
+        if CVE_RE_STR.match(pk):
+            obj = get_object_or_404(Flaw, cve_id=pk)
+        else:
+            obj = get_object_or_404(Flaw, uuid=pk)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            # https://drf-yasg.readthedocs.io/en/stable/openapi.html
+            return FlawComment.objects.none()
+        flaw = self.get_flaw()
+        return FlawComment.objects.filter(flaw=flaw)
+
+    def get_serializer(self, *args, **kwargs):
+        if "data" in kwargs:
+            # Once upon a time, request.data used to be read-only, it seems.
+            data = kwargs["data"].copy()
+            # flaw is provided in URL, not in the request, so inject it for
+            # the serializer and its validation
+            data["flaw"] = str(self.get_flaw().uuid)
+            kwargs["data"] = data
+        return super().get_serializer(*args, **kwargs)
 
 
 @include_meta_attr_extend_schema_view

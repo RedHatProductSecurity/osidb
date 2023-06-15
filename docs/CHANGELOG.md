@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Implement a new FlawReference API (OSIDB-71)
+- Implement adding new flaw comments (OSIDB-81)
 
 ## [3.2.0] - 2023-06-05
 ### Added
