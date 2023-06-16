@@ -12,20 +12,20 @@ from .srtnotes import SRTNotesBuilder
 
 class BugzillaQueryBuilder:
     """
-    Bugzilla flaw bug query builder
-    to generate general flaw save query
+    Bugzilla bug query builder
+    containing shared funtionality
 
     https://bugzilla.redhat.com/docs/en/html/api/index.html
     """
 
-    def __init__(self, flaw, old_flaw=None):
+    def __init__(self, instance, old_instance=None):
         """
         init stuff
-        parametr old_flaw is optional as there is no old flaw on creation
+        parametr old_instance is optional as there is no old instance on creation
         and if not set we consider the query to be a create query
         """
-        self.flaw = flaw
-        self.old_flaw = old_flaw
+        self.instance = instance
+        self.old_instance = old_instance
         self._query = None
 
     @property
@@ -40,7 +40,54 @@ class BugzillaQueryBuilder:
 
     @property
     def creation(self):
-        return self.old_flaw is None
+        """
+        boolean property True on creation and False on update
+        """
+        return self.old_instance is None
+
+    def generate(self):
+        """
+        generate query
+        """
+        raise NotImplementedError
+
+    IMPACT_TO_SEVERITY_PRIORITY = {
+        Impact.CRITICAL: "urgent",
+        Impact.IMPORTANT: "high",
+        Impact.MODERATE: "medium",
+        Impact.LOW: "low",
+        Impact.NOVALUE: "unspecified",
+    }
+
+    def _lists2diffs(self, new_list, old_list):
+        """
+        take the new and the old list and return
+        the differences to be added and removed
+        """
+        to_add = list(set(new_list) - set(old_list))
+        to_remove = list(set(old_list) - set(new_list))
+        return to_add, to_remove
+
+
+class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
+    """
+    Bugzilla flaw bug query builder
+    to generate general flaw save query
+    """
+
+    @property
+    def flaw(self):
+        """
+        concrete name shortcut
+        """
+        return self.instance
+
+    @property
+    def old_flaw(self):
+        """
+        concrete name shortcut
+        """
+        return self.old_instance
 
     def generate(self):
         """
@@ -76,14 +123,6 @@ class BugzillaQueryBuilder:
             "platform": "All",
             "version": "unspecified",
         }
-
-    IMPACT_TO_SEVERITY_PRIORITY = {
-        Impact.CRITICAL: "urgent",
-        Impact.IMPORTANT: "high",
-        Impact.MODERATE: "medium",
-        Impact.LOW: "low",
-        Impact.NOVALUE: "unspecified",
-    }
 
     def generate_unconditional(self):
         """
@@ -215,15 +254,6 @@ class BugzillaQueryBuilder:
             ((set(groups) | set(self.EMBARGOED_GROUPS)) & set(self.ALLOWED_GROUPS))
             - {"redhat"}
         )
-
-    def _lists2diffs(self, new_list, old_list):
-        """
-        take the new and the old list and return
-        the differences to be added and removed
-        """
-        to_add = list(set(new_list) - set(old_list))
-        to_remove = list(set(old_list) - set(new_list))
-        return to_add, to_remove
 
     def generate_groups(self):
         """
