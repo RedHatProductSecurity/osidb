@@ -8,6 +8,7 @@ from pytz import UTC
 
 from osidb.constants import AFFECTEDNESS_VALID_RESOLUTIONS, DATETIME_FMT
 from osidb.models import (
+    CVSS,
     Affect,
     CVEv5PackageVersions,
     CVEv5Version,
@@ -509,3 +510,22 @@ class PsUpdateStreamFactory(factory.django.DjangoModelFactory):
     aus_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
     eus_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
     unacked_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
+
+
+class CVSSFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = CVSS
+
+    flaw = factory.SubFactory(FlawFactory)
+    affect = factory.SubFactory(AffectFactory)
+    vector = "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+    version = CVSS.CVSSVersion.VERSION3
+    issuer = CVSS.CVSSIssuer.REDHAT
+    comment = "CVSS RH comment"
+
+    created_dt = factory.Faker("date_time", tzinfo=UTC)
+    updated_dt = factory.Faker("date_time", tzinfo=UTC)
+
+    # let us inherit the parent flaw ACLs if not specified
+    acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
+    acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
