@@ -8,6 +8,7 @@ import uuid
 from decimal import Decimal
 from typing import Union
 
+from cvss import CVSS2, CVSS3, CVSSError
 from django.contrib.auth.models import User
 from django.contrib.postgres import fields
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
@@ -54,7 +55,8 @@ logger = logging.getLogger(__name__)
 def search_helper(
     queryset: models.QuerySet,
     field_names: Union[str, tuple],
-    field_value: str,  # Three positional args are expected by django-filters, keyword args can be added if needed
+    field_value: str,
+    # Three positional args are expected by django-filters, keyword args can be added if needed
 ):
     """
     Customize search filter and other logic for Postgres full-text search
@@ -1487,6 +1489,139 @@ class Affect(
         self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
 
 
+class CVSSManager(
+    ACLMixinManager,
+    TrackingMixinManager,
+):
+    """CVSS manager"""
+
+    @staticmethod
+    def create_cvss(flaw, affect, vector, issuer, version, **extra_fields):
+        """return a new CVSS or update an existing CVSS without saving"""
+
+        try:
+            cvss = CVSS.objects.get(
+                flaw=flaw,
+                affect=affect,
+                vector=vector,
+                issuer=issuer,
+                version=version,
+            )
+            return cvss
+
+        except ObjectDoesNotExist:
+            return CVSS(
+                flaw=flaw,
+                affect=affect,
+                vector=vector,
+                issuer=issuer,
+                version=version,
+                **extra_fields,
+            )
+
+
+class CVSS(
+    ACLMixin,
+    AlertMixin,
+    TrackingMixin,
+):
+    """Model CVSS"""
+
+    class Meta:
+        """define meta"""
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["flaw", "version", "issuer"], name="unique CVSS of a Flaw"
+            ),
+            models.UniqueConstraint(
+                fields=["affect", "version", "issuer"], name="unique CVSS of an Affect"
+            ),
+        ]
+
+    class CVSSVersion(models.TextChoices):
+        VERSION2 = "V2", "version 2"
+        VERSION3 = "V3", "version 3"
+
+    class CVSSIssuer(models.TextChoices):
+        REDHAT = "RH", "Red Hat"
+        NIST = "NIST", "NIST"
+
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    flaw = models.ForeignKey(
+        Flaw, on_delete=models.CASCADE, blank=True, related_name="cvss_scores"
+    )
+
+    affect = models.ForeignKey(
+        Affect,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="cvss_scores",
+    )
+
+    vector = models.CharField(max_length=100, blank=False)
+
+    version = models.CharField(
+        choices=CVSSVersion.choices,
+        default=CVSSVersion.VERSION3,
+        max_length=2,
+    )
+
+    issuer = models.CharField(choices=CVSSIssuer.choices, max_length=16)
+
+    comment = models.TextField(blank=True)
+
+    score = models.FloatField(default=0)
+
+    objects = CVSSManager()
+
+    def __str__(self):
+        return self.vector
+
+    def _version(self):
+        """
+        Get a correct CVSS handle from the cvss library and a string representation
+        of the corresponding CVSS version.
+        """
+        if self.version == self.CVSSVersion.VERSION2:
+            return CVSS2, "CVSS2"
+        return CVSS3, "CVSS3"
+
+    def save(self, *args, **kwargs):
+        """
+        Recalculate CVSS scores on each save call using the cvss library.
+        """
+        super().save(*args, **kwargs)
+
+        cvss_handle, _ = self._version()
+
+        # The vector is validated within the earlier save, thus following should work.
+        cvss_obj = cvss_handle(self.vector)
+        self.score = cvss_obj.scores()[0]
+
+    def _validate_cvss_string(self):
+        """
+        Use the cvss library to validate the CVSS vector string.
+        """
+        cvss_handle, cvss_version = self._version()
+
+        try:
+            _ = cvss_handle(self.vector)
+        except CVSSError as e:
+            raise ValidationError(f"Invalid CVSS: Malformed {cvss_version} string: {e}")
+
+    def _validate_cvss_comment(self):
+        """
+        For non-Red-Hat-issued CVSSs, the comment attribute should be blank.
+        """
+        if self.comment and self.issuer != self.CVSSIssuer.REDHAT:
+            raise ValidationError(
+                "CVSS comment can be set only for CVSSs issued by Red Hat."
+            )
+
+
 class TrackerManager(ACLMixinManager, TrackingMixinManager):
     """tracker manager"""
 
@@ -2110,7 +2245,6 @@ class PackageVersions(PolymorphicModel):
 
 
 class CVEv5PackageVersions(PackageVersions):
-
     # the name of the affected upstream package within collection_url
     # will be reported to Mitre as packageName
     # see https://gist.github.com/rsc/0b448f99e73bf745eeca1319d882efb2#product-objects
@@ -2126,7 +2260,6 @@ class CVEv5PackageVersions(PackageVersions):
 
 
 class PsProduct(models.Model):
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -2147,7 +2280,6 @@ class PsProduct(models.Model):
 
 
 class PsModule(NullStrFieldsMixin, ValidateMixin):
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -2200,7 +2332,6 @@ class PsModule(NullStrFieldsMixin, ValidateMixin):
 
 
 class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -2263,7 +2394,6 @@ class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
 
 
 class PsContact(NullStrFieldsMixin, ValidateMixin):
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
