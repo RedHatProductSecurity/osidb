@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0075_flawreference'),
+        ('osidb', '0076_flawreference_meta_attr'),
     ]
 
     operations = [
