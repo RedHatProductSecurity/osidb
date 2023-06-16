@@ -2009,6 +2009,9 @@ class FlawReference(ACLMixin, BugzillaSyncMixin, TrackingMixin):
     # one flaw can have many references
     flaw = models.ForeignKey(Flaw, on_delete=models.CASCADE, related_name="references")
 
+    # non operational meta data
+    meta_attr = HStoreField(default=dict)
+
     objects = FlawReferenceManager()
 
     class Meta:

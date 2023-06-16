@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement a new FlawReference API (OSIDB-71)
 - Implement adding new flaw comments (OSIDB-81)
 
+## [3.2.1] - 2023-06-12
+### Changed
+- Fix creation of references on flaw ingestion from Bugzilla
+
 ## [3.2.0] - 2023-06-05
 ### Added
 - Introduce flaw ownership through task management system (OSIDB-69)
@@ -26,8 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix BBSync flaw summary composition (OSIDB-902, OSIDB-909)
 - Fix Bugzilla import not reflecting some attribute removals (OSIDB-910)
 - Make flaw Bugzilla children entities respect flaw visibility (OSIDB-914)
-
-### Removed
 
 ## [3.1.4] - 2023-05-22
 ### Changed
