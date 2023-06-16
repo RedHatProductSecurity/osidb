@@ -8,6 +8,7 @@ import uuid
 from decimal import Decimal
 from typing import Union
 
+from cvss import CVSS2, CVSS3, CVSSError
 from django.contrib.auth.models import User
 from django.contrib.postgres import fields
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
@@ -1593,6 +1594,137 @@ class Affect(
         self.save()
         # Affect needs to be synced through flaw
         self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
+
+
+class FlawCVSSManager(ACLMixinManager, TrackingMixinManager):
+    @staticmethod
+    def create_cvss(flaw, issuer, version, **extra_fields):
+        """return a new CVSS or update an existing CVSS without saving"""
+
+        try:
+            cvss = FlawCVSS.objects.get(flaw=flaw, issuer=issuer, version=version)
+
+            for attr, value in extra_fields.items():
+                setattr(cvss, attr, value)
+            return cvss
+
+        except ObjectDoesNotExist:
+            return FlawCVSS(flaw=flaw, issuer=issuer, version=version, **extra_fields)
+
+
+class AffectCVSSManager(ACLMixinManager, TrackingMixinManager):
+    @staticmethod
+    def create_cvss(affect, issuer, version, **extra_fields):
+        """return a new CVSS or update an existing CVSS without saving"""
+
+        try:
+            cvss = AffectCVSS.objects.get(affect=affect, issuer=issuer, version=version)
+            for attr, value in extra_fields.items():
+                setattr(cvss, attr, value)
+            return cvss
+
+        except ObjectDoesNotExist:
+            return AffectCVSS(
+                affect=affect, issuer=issuer, version=version, **extra_fields
+            )
+
+
+class CVSS(
+    ACLMixin,
+    AlertMixin,
+    TrackingMixin,
+):
+    class CVSSVersion(models.TextChoices):
+        VERSION2 = "V2", "version 2"
+        VERSION3 = "V3", "version 3"
+
+    class CVSSIssuer(models.TextChoices):
+        REDHAT = "RH", "Red Hat"
+        NIST = "NIST", "NIST"
+
+    CVSS_HANDLES = {CVSSVersion.VERSION2: CVSS2, CVSSVersion.VERSION3: CVSS3}
+
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    vector = models.CharField(max_length=100, blank=False)
+
+    version = models.CharField(choices=CVSSVersion.choices, max_length=10)
+
+    issuer = models.CharField(choices=CVSSIssuer.choices, max_length=16)
+
+    comment = models.TextField(blank=True)
+
+    # populated by the pre_save signal
+    score = models.FloatField(default=0)
+
+    def __str__(self):
+        return f"{self.score}/{self.vector}"
+
+    @property
+    def full_version(self):
+        """Full name of the CVSS version."""
+        return f"CVSS{self.version[1:]}"
+
+    @property
+    def cvss_object(self):
+        """
+        CVSS object from CVSS library parsed from the vector.
+        """
+        cvss_handle = self.CVSS_HANDLES[self.version]
+        return cvss_handle(self.vector)
+
+    def _validate_cvss_string(self):
+        """
+        Use the cvss library to validate the CVSS vector string.
+        """
+        try:
+            self.cvss_object
+        except CVSSError as e:
+            raise ValidationError(
+                f"Invalid CVSS: Malformed {self.full_version} string: {e}"
+            )
+
+    def _validate_cvss_comment(self):
+        """
+        For non-Red-Hat-issued CVSSs, the comment attribute should be blank.
+        """
+        if self.comment and self.issuer != self.CVSSIssuer.REDHAT:
+            raise ValidationError(
+                "CVSS comment can be set only for CVSSs issued by Red Hat."
+            )
+
+    class Meta:
+        abstract = True
+
+
+class FlawCVSS(CVSS):
+    flaw = models.ForeignKey(
+        Flaw, on_delete=models.CASCADE, blank=True, related_name="cvss_scores"
+    )
+
+    objects = FlawCVSSManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["flaw", "version", "issuer"], name="unique CVSS of a Flaw"
+            ),
+        ]
+
+
+class AffectCVSS(CVSS):
+    affect = models.ForeignKey(
+        Affect, on_delete=models.CASCADE, blank=True, related_name="cvss_scores"
+    )
+
+    objects = AffectCVSSManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["affect", "version", "issuer"], name="unique CVSS of an Affect"
+            ),
+        ]
 
 
 class TrackerManager(ACLMixinManager, TrackingMixinManager):
