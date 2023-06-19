@@ -101,6 +101,21 @@ class TestFlawFixer:
                 "cheesecake",
                 "carbon",
             ),
+            (
+                "TRIAGE carbon: cheesecake",
+                "cheesecake",
+                "carbon",
+            ),
+            (
+                "TRIAGE-CVE-2000-12345 carbon: cheesecake",
+                "cheesecake",
+                "carbon",
+            ),
+            (
+                "EMBARGOED TRIAGE carbon: cheesecake",
+                "cheesecake",
+                "carbon",
+            ),
         ],
     )
     def test_fix_title(self, summary, title, component):
