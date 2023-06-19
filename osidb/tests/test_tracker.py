@@ -9,6 +9,7 @@ from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
     PsModuleFactory,
+    PsUpdateStreamFactory,
     TrackerFactory,
 )
 
@@ -55,6 +56,26 @@ class TestTracker:
 
         tracker = TrackerFactory(affects=[affect1, affect2], embargoed=flaw1.embargoed)
         assert tracker.aggregated_impact == expected_impact
+
+    def test_is_unacked(self):
+        """
+        test that (un)acked property works correctly
+        """
+        ps_module = PsModuleFactory()
+        acked_ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            unacked_to_ps_module=None,
+        )
+        unacked_ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            unacked_to_ps_module=ps_module,
+        )
+
+        acked_tracker = TrackerFactory(ps_update_stream=acked_ps_update_stream.name)
+        unacked_tracker = TrackerFactory(ps_update_stream=unacked_ps_update_stream.name)
+
+        assert acked_tracker.is_acked and not acked_tracker.is_unacked
+        assert not unacked_tracker.is_acked and unacked_tracker.is_unacked
 
 
 class TestTrackerValidators:

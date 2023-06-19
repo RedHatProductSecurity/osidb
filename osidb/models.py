@@ -1794,6 +1794,27 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     def is_closed(self):
         return self.status.upper() == "CLOSED"
 
+    @property
+    def is_acked(self):
+        """
+        tracker acked by ProdSec - filed against an acked stream
+        the default approach important and critical aggregated impact
+        """
+        return not self.is_unacked
+
+    @property
+    def is_unacked(self):
+        """
+        tracker not acked by ProdSec - filed against an unacked stream
+        the default approach low and moderate aggregated impact
+        """
+        return (
+            PsUpdateStream.objects.filter(
+                name=self.ps_update_stream, unacked_to_ps_module__isnull=False
+            ).first()
+            is not None
+        )
+
 
 class ErratumManager(TrackingMixinManager):
     """
