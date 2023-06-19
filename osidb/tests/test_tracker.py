@@ -15,6 +15,48 @@ from osidb.tests.factories import (
 pytestmark = pytest.mark.unit
 
 
+class TestTracker:
+    @pytest.mark.parametrize(
+        "flaw1_impact,flaw2_impact,affect1_impact,affect2_impact,expected_impact",
+        [
+            ("LOW", "MODERATE", "IMPORTANT", "CRITICAL", "CRITICAL"),
+            ("LOW", "IMPORTANT", "MODERATE", "MODERATE", "IMPORTANT"),
+            ("LOW", "LOW", "", "LOW", "LOW"),
+        ],
+    )
+    def test_aggregeted_impact(
+        self,
+        flaw1_impact,
+        flaw2_impact,
+        affect1_impact,
+        affect2_impact,
+        expected_impact,
+    ):
+        """
+        test that the aggregated impact is properly computed
+        """
+        flaw1 = FlawFactory(impact=flaw1_impact)
+        flaw2 = FlawFactory(embargoed=flaw1.embargoed, impact=flaw2_impact)
+
+        affect1 = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            flaw=flaw1,
+            impact=affect1_impact,
+            resolution=Affect.AffectResolution.FIX,
+        )
+        affect2 = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            flaw=flaw2,
+            impact=affect2_impact,
+            ps_module=affect1.ps_module,
+            ps_component=affect1.ps_component,
+            resolution=Affect.AffectResolution.FIX,
+        )
+
+        tracker = TrackerFactory(affects=[affect1, affect2], embargoed=flaw1.embargoed)
+        assert tracker.aggregated_impact == expected_impact
+
+
 class TestTrackerValidators:
     def test_validate_good(self):
         """

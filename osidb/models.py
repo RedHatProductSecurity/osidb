@@ -1733,6 +1733,17 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             )
 
     @property
+    def aggregated_impact(self):
+        """
+        this property simply gives the maximum impact of the related entities
+        """
+        return max(
+            Impact(impact)
+            for impact in [affect.impact for affect in self.affects.all()]
+            + [affect.flaw.impact for affect in self.affects.all()]
+        )
+
+    @property
     def bz_id(self):
         """
         shortcut to enable unified Bugzilla Flaw and Tracker handling when meaningful
