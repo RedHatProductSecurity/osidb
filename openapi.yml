@@ -1839,6 +1839,10 @@ paths:
         schema:
           type: boolean
       - in: query
+        name: affects__trackers__errata__advisory_name
+        schema:
+          type: string
+      - in: query
         name: affects__trackers__external_system_id
         schema:
           type: string
@@ -2184,6 +2188,7 @@ paths:
             - -affects__ps_module
             - -affects__resolution
             - -affects__trackers__created_dt
+            - -affects__trackers__errata__advisory_name
             - -affects__trackers__external_system_id
             - -affects__trackers__ps_update_stream
             - -affects__trackers__resolution
@@ -2223,6 +2228,7 @@ paths:
             - affects__ps_module
             - affects__resolution
             - affects__trackers__created_dt
+            - affects__trackers__errata__advisory_name
             - affects__trackers__external_system_id
             - affects__trackers__ps_update_stream
             - affects__trackers__resolution
