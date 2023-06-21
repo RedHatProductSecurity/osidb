@@ -63,6 +63,11 @@ class FlawFactory(factory.django.DjangoModelFactory):
     )
     statement = factory.LazyAttribute(lambda c: f"Statement for {c.cve_id}")
     embargoed = factory.Faker("random_element", elements=[False, True])
+    major_incident_state = factory.Maybe(
+        "is_major_incident",
+        yes_declaration=Flaw.FlawMajorIncident.APPROVED,
+        no_declaration=Flaw.FlawMajorIncident.NOVALUE,
+    )
     summary = factory.Maybe(
         "is_major_incident",
         yes_declaration="I'm a spooky CVE",
