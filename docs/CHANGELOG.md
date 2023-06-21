@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Implement a new FlawReference API (OSIDB-71)
 - Implement adding new flaw comments (OSIDB-81)
-- Added erratum advisory name to flaw filter (OSIDB-922)
+- Erratum advisory name to flaw filter (OSIDB-922)
 
 ## [3.2.1] - 2023-06-12
 ### Changed
