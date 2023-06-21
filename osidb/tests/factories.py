@@ -12,6 +12,7 @@ from osidb.models import (
     CVEv5PackageVersions,
     CVEv5Version,
     Flaw,
+    FlawAcknowledgment,
     FlawComment,
     FlawImpact,
     FlawMeta,
@@ -383,6 +384,24 @@ class FlawMetaFactory(factory.django.DjangoModelFactory):
         "url": "http://nonexistenturl.example.com/1285930",
         "type": "external",
     }
+
+    flaw = factory.SubFactory(FlawFactory)
+
+
+class FlawAcknowledgmentFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = FlawAcknowledgment
+
+    name = "John Doe"
+    affiliation = "Acme Corp."
+    from_upstream = False
+
+    created_dt = factory.Faker("date_time", tzinfo=UTC)
+    updated_dt = factory.Faker("date_time", tzinfo=UTC)
+
+    # let us inherit the parent flaw ACLs if not specified
+    acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
+    acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
 
     flaw = factory.SubFactory(FlawFactory)
 
