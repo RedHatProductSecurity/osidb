@@ -6,7 +6,7 @@ from typing import Any, List, Tuple
 
 from django.utils.timezone import make_aware
 
-from osidb.models import Affect, Flaw, FlawImpact, FlawSource
+from osidb.models import Affect, Flaw, FlawSource, Impact
 
 
 class AffectFixer:
@@ -100,10 +100,10 @@ class AffectFixer:
     def fix_impact(self) -> None:
         """impact fixup"""
         impact = self.affect_json.get("impact")
-        if impact and impact.upper() in Affect.AffectImpact:
+        if impact and impact.upper() in Impact:
             self.affect_obj.impact = impact.upper()
         else:
-            self.affect_obj.impact = Affect.AffectImpact.NOVALUE
+            self.affect_obj.impact = Impact.NOVALUE
 
     def fix_cvss2(self) -> None:
         """CVSS2 fixup"""
@@ -269,11 +269,11 @@ class FlawFixer:
     def fix_impact(self) -> None:
         """impact fixup"""
         impact = self.srtnotes.get("impact")
-        if impact and impact.upper() in FlawImpact:
+        if impact and impact.upper() in Impact:
             self.flaw_obj.impact = impact.upper()
         else:
             self.errors.append("impact has NOVALUE")
-            self.flaw_obj.impact = FlawImpact.NOVALUE
+            self.flaw_obj.impact = Impact.NOVALUE
 
     def fix_mitigation(self) -> None:
         """mitigation fixup"""

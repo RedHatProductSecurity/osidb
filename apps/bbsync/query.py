@@ -3,7 +3,7 @@ import re
 from itertools import chain
 
 from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
-from osidb.models import Flaw, FlawComment, FlawImpact, PsModule
+from osidb.models import Flaw, FlawComment, Impact, PsModule
 
 from .cc import CCBuilder
 from .constants import DATE_FMT
@@ -78,11 +78,11 @@ class BugzillaQueryBuilder:
         }
 
     IMPACT_TO_SEVERITY_PRIORITY = {
-        FlawImpact.CRITICAL: "urgent",
-        FlawImpact.IMPORTANT: "high",
-        FlawImpact.MODERATE: "medium",
-        FlawImpact.LOW: "low",
-        FlawImpact.NOVALUE: "unspecified",
+        Impact.CRITICAL: "urgent",
+        Impact.IMPORTANT: "high",
+        Impact.MODERATE: "medium",
+        Impact.LOW: "low",
+        Impact.NOVALUE: "unspecified",
     }
 
     def generate_unconditional(self):

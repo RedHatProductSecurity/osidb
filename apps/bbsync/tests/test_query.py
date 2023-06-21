@@ -11,9 +11,9 @@ from osidb.models import (
     Affect,
     Flaw,
     FlawComment,
-    FlawImpact,
     FlawMeta,
     FlawSource,
+    Impact,
     Tracker,
 )
 from osidb.tests.factories import (
@@ -208,7 +208,7 @@ class TestGenerateSRTNotes:
         """
         flaw = FlawFactory(
             embargoed=False,
-            impact=FlawImpact.MODERATE,
+            impact=Impact.MODERATE,
             source=FlawSource.CUSTOMER,
             reported_dt=timezone.datetime(2022, 11, 23, tzinfo=timezone.utc),
             unembargo_dt=timezone.datetime(2022, 11, 23, tzinfo=timezone.utc),
@@ -221,7 +221,7 @@ class TestGenerateSRTNotes:
             resolution=Affect.AffectResolution.FIX,
             ps_component="libssh",
             ps_module="fedora-all",
-            impact=Affect.AffectImpact.NOVALUE,
+            impact=Impact.NOVALUE,
             cvss2="",
             cvss3="",
         )
@@ -299,7 +299,7 @@ class TestGenerateSRTNotes:
             ps_component="ImageMagick",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
-            impact=Affect.AffectImpact.CRITICAL,
+            impact=Impact.CRITICAL,
             cvss2="10.0/AV:N/AC:L/Au:N/C:C/I:C/A:C",
             cvss3="",
         )
@@ -309,7 +309,7 @@ class TestGenerateSRTNotes:
             ps_component="kernel",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            impact=Affect.AffectImpact.MODERATE,
+            impact=Impact.MODERATE,
             cvss2="5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
             cvss3="7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
         )
@@ -319,7 +319,7 @@ class TestGenerateSRTNotes:
             ps_component="bash",
             affectedness=Affect.AffectAffectedness.NOTAFFECTED,
             resolution=Affect.AffectResolution.NOVALUE,
-            impact=Affect.AffectImpact.NOVALUE,
+            impact=Impact.NOVALUE,
             cvss2="",
             cvss3="",
         )
@@ -526,37 +526,37 @@ class TestGenerateSRTNotes:
         "osidb_impact,srtnotes,bz_present,bz_impact",
         [
             (
-                FlawImpact.LOW,
+                Impact.LOW,
                 """{"impact": "low"}""",
                 True,
                 "low",
             ),
             (
-                FlawImpact.MODERATE,
+                Impact.MODERATE,
                 """{"impact": "low"}""",
                 True,
                 "moderate",
             ),
             (
-                FlawImpact.IMPORTANT,
+                Impact.IMPORTANT,
                 "",
                 True,
                 "important",
             ),
             (
-                FlawImpact.CRITICAL,
+                Impact.CRITICAL,
                 "{}",
                 True,
                 "critical",
             ),
             (
-                FlawImpact.NOVALUE,
+                Impact.NOVALUE,
                 """{"impact": "critical"}""",
                 True,
                 "none",
             ),
             (
-                FlawImpact.NOVALUE,
+                Impact.NOVALUE,
                 "",
                 False,
                 None,
@@ -900,7 +900,7 @@ class TestGenerateSRTNotes:
         flaw = FlawFactory(
             cwe_id="CWE-123",
             embargoed=False,
-            impact=FlawImpact.IMPORTANT,
+            impact=Impact.IMPORTANT,
             meta_attr={"original_srtnotes": srtnotes},
             reported_dt=make_aware(timezone.datetime(2022, 9, 21)),
             source=FlawSource.CUSTOMER,
@@ -923,7 +923,7 @@ class TestGenerateSRTNotes:
             resolution=Affect.AffectResolution.FIX,
             ps_component="libssh",
             ps_module="fedora-all",
-            impact=Affect.AffectImpact.MODERATE,
+            impact=Impact.MODERATE,
             cvss2="5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )

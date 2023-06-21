@@ -12,7 +12,7 @@ from apps.trackers.jira import JiraTracker
 from apps.trackers.models import JiraProjectFields
 from apps.trackers.service import JiraTrackerQuerier
 from apps.trackers.tests.test_bts_tracker import validate_minimum_key_value
-from osidb.models import FlawImpact, Tracker
+from osidb.models import Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -57,7 +57,7 @@ class TestJiraService(object):
             cve_id="CVE-2999-2001",
             embargoed=False,
             uuid="0bd02877-e04c-4174-a436-cafb7b79f111",
-            impact=FlawImpact.MODERATE,
+            impact=Impact.MODERATE,
         )
         affect1 = AffectFactory(
             flaw=flaw1, ps_module="foo-module", ps_component="fixed-ps-component-0"
@@ -67,7 +67,7 @@ class TestJiraService(object):
             cve_id="CVE-2999-2002",
             embargoed=True,
             uuid="4c534902-c270-4302-97f5-878bece153f3",
-            impact=FlawImpact.CRITICAL,
+            impact=Impact.CRITICAL,
         )
         affect2 = AffectFactory(
             flaw=flaw2, ps_module="foo-module", ps_component="fixed-ps-component-1"

@@ -11,9 +11,9 @@ from osidb.models import (
     Flaw,
     FlawComment,
     FlawHistory,
-    FlawImpact,
     FlawMeta,
     FlawReference,
+    Impact,
     Tracker,
     VersionStatus,
 )
@@ -42,7 +42,7 @@ class TestFlawSaver:
             cve_id="CVE-2000-1234",
             title="title",
             description="description",
-            impact=FlawImpact.CRITICAL,
+            impact=Impact.CRITICAL,
             created_dt=timezone.now(),
             updated_dt=timezone.now(),
             acl_read=self.get_acls(),
@@ -89,7 +89,7 @@ class TestFlawSaver:
         return [
             FlawHistory(
                 cve_id="CVE-2000-1234",
-                impact=FlawImpact.IMPORTANT,
+                impact=Impact.IMPORTANT,
                 title="historical title",
                 description="historical description",
                 pgh_created_at=timezone.now(),
@@ -201,7 +201,7 @@ class TestFlawSaver:
         assert flaw.cve_id == "CVE-2000-1234"
         assert flaw.title == "title"
         assert flaw.description == "description"
-        assert flaw.impact == FlawImpact.CRITICAL
+        assert flaw.impact == Impact.CRITICAL
         assert flaw.acl_read == acls
         assert flaw.acl_write == acls
         assert flaw.affects.first() == affect
@@ -228,7 +228,7 @@ class TestFlawSaver:
 
         assert history is not None
         assert history.cve_id == "CVE-2000-1234"
-        assert history.impact == FlawImpact.IMPORTANT
+        assert history.impact == Impact.IMPORTANT
         assert history.title == "historical title"
         assert history.description == "historical description"
         assert history.acl_read == acls

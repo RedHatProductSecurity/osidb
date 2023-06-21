@@ -8,7 +8,7 @@ class BTSException(Exception):
 
 
 class NoPriorityAvailableError(BTSException):
-    """exception class for missing correct priority corresponding to FlawImpact"""
+    """exception class for missing correct priority corresponding to Impact"""
 
 
 class UnsupportedTrackerError(BTSException):
