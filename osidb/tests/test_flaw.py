@@ -434,6 +434,44 @@ class TestFlaw:
         assert Flaw.objects.fts_search("title")
 
 
+class TestImpact:
+    @pytest.mark.parametrize(
+        "first,second",
+        [
+            ("", "LOW"),
+            ("", "MODERATE"),
+            ("", "IMPORTANT"),
+            ("", "CRITICAL"),
+            ("LOW", "MODERATE"),
+            ("LOW", "IMPORTANT"),
+            ("LOW", "CRITICAL"),
+            ("MODERATE", "IMPORTANT"),
+            ("MODERATE", "CRITICAL"),
+            ("IMPORTANT", "CRITICAL"),
+        ],
+    )
+    def test_less(self, first, second):
+        """
+        test that the first is less than the second
+        """
+        assert Impact(first) < Impact(second)
+
+    @pytest.mark.parametrize(
+        "maximum,impacts",
+        [
+            ("LOW", ["", "", "LOW", "LOW"]),
+            ("MODERATE", ["MODERATE"]),
+            ("IMPORTANT", ["LOW", "MODERATE", "IMPORTANT"]),
+            ("CRITICAL", ["IMPORTANT", "CRITICAL", ""]),
+        ],
+    )
+    def test_max(self, maximum, impacts):
+        """
+        test that the maximum is correctly identified
+        """
+        assert Impact(maximum) == max(Impact(impact) for impact in impacts)
+
+
 class TestFlawValidators:
     def test_validate_good(self):
         """test that no validator complains about valid flaw"""

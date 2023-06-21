@@ -112,7 +112,72 @@ class FlawType(models.TextChoices):
     WEAKNESS = "WEAKNESS"
 
 
-class FlawImpact(models.TextChoices):
+class ComparableTextChoices(models.TextChoices):
+    """
+    extension of the models.TextChoices classes
+    making them comparable with the standard operators
+
+    the comparison order is defined simply by the
+    top-down order in which the choices are written
+    """
+
+    @classmethod
+    def get_choices(cls):
+        """
+        get processed choices
+        """
+        return [choice[0] for choice in cls.choices]
+
+    @property
+    def weight(self):
+        """
+        weight of the instance for the comparison
+        defined by the order of the definition of the choices
+        """
+        return self.get_choices().index(str(self))
+
+    def incomparable_with(self, other):
+        """
+        to ensure that that we are comparing the instances of the same type as
+        comparing different types (even two ComparableTextChoices) is undefined
+        """
+        return type(self) != type(other)
+
+    def __hash__(self):
+        return super().__hash__()
+
+    def __eq__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self.weight == other.weight
+
+    def __ne__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self.weight != other.weight
+
+    def __lt__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self.weight < other.weight
+
+    def __gt__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self.weight > other.weight
+
+    def __le__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self == other or self.__lt__(other)
+
+    def __ge__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self == other or self.__gt__(other)
+
+
+class Impact(ComparableTextChoices):
     """allowable impact"""
 
     NOVALUE = ""
