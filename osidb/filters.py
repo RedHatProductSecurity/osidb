@@ -192,6 +192,7 @@ class FlawFilter(DistinctFilterSet):
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
+            "affects__trackers__errata__advisory_name": ["exact"],
         }
 
     order = OrderingFilter(fields=Meta.fields.keys())
