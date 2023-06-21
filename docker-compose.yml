@@ -79,7 +79,8 @@ services:
         BBSYNC_SYNC_TO_BZ: ${BBSYNC_SYNC_TO_BZ}
         JIRA_TASKMAN_URL: ${JIRA_TASKMAN_URL}
         JIRA_TASKMAN_PROJECT_KEY: ${JIRA_TASKMAN_PROJECT_KEY}
-        HTTPS_TASKMAN_PROXY: ${HTTPS_TASKMAN_PROXY} 
+        HTTPS_TASKMAN_PROXY: ${HTTPS_TASKMAN_PROXY}
+        OSIDB_CORS_ALLOWED_ORIGINS: ${OSIDB_CORS_ALLOWED_ORIGINS}
       command: ./scripts/setup-osidb-service.sh
       volumes:
         - ${PWD}:/opt/app-root/src:z

@@ -48,9 +48,12 @@ RH_CERT_URL="https://foo.bar"
 # otherwise all the writes are performed only locally in OSIDB
 BBSYNC_SYNC_TO_BZ=1
 
-#Run taskman tests behind a proxy (optional)
-#This variable is only necessary if rewriting the taskman cassettes locally and using the Stage Red Hat JIRA instance, which requires a proxy to be accessed.
+# Run taskman tests behind a proxy (optional)
+# This variable is only necessary if rewriting the taskman cassettes locally and using the Stage Red Hat JIRA instance, which requires a proxy to be accessed.
 HTTPS_TASKMAN_PROXY="http://foo.bar"
+
+# OSIDB CORS URLs
+OSIDB_CORS_ALLOWED_ORIGINS='["http://localhost:8000", "http://127.0.0.1:8000", "http://0.0.0.0:8000"]'
 ```
 
 The `.env` file is loaded automatically by podman-compose. It is also loaded as environment variables in a few Makefile targets (run `grep -rF '.env ' mk/` to see which ones).
@@ -786,3 +789,19 @@ Sometimes, the secrets found by the tool can be false-positives, if you believe 
 Django signals are globally disabled via an autouse pytest fixture in the
 global `conftest.py` file, in order to enable them for a specific test
 you can mark your test with the `@pytest.mark.enable_signals` decorator.
+
+### Configuring CORS Rules for API Access
+
+In order to permit API access from different domains, Cross-Origin Resource
+Sharing (CORS) is configured using the corsheaders Django app.
+This is crucial for development scenarios where changes to CORS rules are
+necessary, and for operations to load in CORS URLs correctly.
+
+Ensure that the `OSIDB_CORS_ALLOWED_ORIGINS` environment variable is set
+correctly when deploying the application, for instance:
+
+The `OSIDB_CORS_ALLOWED_ORIGINS` environment variable should be set as a JSON
+array like so: `["http://example-ui1.com", "http://example-ui2.com"]`.
+
+This configuration allows developers to adjust CORS rules as needed and gives
+operations the information necessary for setting up the correct environment.
