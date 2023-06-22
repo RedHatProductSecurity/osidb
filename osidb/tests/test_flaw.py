@@ -14,6 +14,7 @@ from osidb.core import generate_acls
 from osidb.models import (
     Affect,
     Flaw,
+    FlawAcknowledgment,
     FlawComment,
     FlawImpact,
     FlawMeta,
@@ -24,6 +25,7 @@ from osidb.models import (
 )
 from osidb.tests.factories import (
     AffectFactory,
+    FlawAcknowledgmentFactory,
     FlawCommentFactory,
     FlawFactory,
     FlawMetaFactory,
@@ -73,7 +75,7 @@ class TestFlaw:
             title="title",
             description="description",
             impact=FlawImpact.CRITICAL,
-            source=FlawSource.INTERNET,
+            source=FlawSource.APPLE,
             statement="statement",
             is_major_incident=True,
             acl_read=self.acl_read,
@@ -181,6 +183,22 @@ class TestFlaw:
         assert len(all_references) == 3
         assert reference1 in all_references
         assert reference2 in all_references
+
+        acknowledgment1 = FlawAcknowledgmentFactory(flaw=vuln_1)
+        acknowledgment2 = FlawAcknowledgment.objects.create_flawacknowledgment(
+            vuln_1,
+            "name",
+            "company",
+            from_upstream=True,
+            meta_attr={"foo": "bar"},
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
+        )
+        acknowledgment2.save()
+        all_acknowledgments = vuln_1.acknowledgments.all()
+        assert len(all_acknowledgments) == 2
+        assert acknowledgment1 in all_acknowledgments
+        assert acknowledgment2 in all_acknowledgments
 
         vuln_2 = Flaw(
             cve_id="CVE-1970-12345",
@@ -1562,7 +1580,7 @@ class TestFlawValidators:
         self, private_source, public_source, both_source
     ):
         """
-        Test that flaw with private source without acknoledgments raises alert
+        Test that flaw with private source without acknowledgments raises alert
         """
         flaw1 = FlawFactory(source=private_source, embargoed=True)
         assert "private_source_no_ack" in flaw1._alerts
@@ -1640,6 +1658,16 @@ class TestFlawValidators:
         error_msg = "A flaw has 2 article links, but only 1 is allowed."
         with pytest.raises(ValidationError, match=error_msg):
             flaw.save()
+
+    def test_validate_public_source_no_ack(self, both_source):
+        """
+        Flaws with a public source can't have acknowledgments.
+        """
+        flaw = FlawFactory(source=both_source, embargoed=True)
+        assert FlawAcknowledgment.objects.count() == 0
+        flaw_ack = FlawAcknowledgmentFactory(flaw=flaw)
+        assert FlawAcknowledgment.objects.count() == 1
+        assert "public_source_no_ack" in flaw_ack._alerts
 
     @pytest.mark.parametrize(
         "is_same_product_name, should_raise",
