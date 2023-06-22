@@ -918,6 +918,49 @@ class TestFlawValidators:
             assert flaw1.save() is None
 
     @pytest.mark.parametrize(
+        "state,should_raise",
+        [
+            (Flaw.FlawMajorIncident.NOVALUE, False),
+            (Flaw.FlawMajorIncident.REQUESTED, False),
+            (Flaw.FlawMajorIncident.REJECTED, False),
+            (Flaw.FlawMajorIncident.APPROVED, False),
+            (Flaw.FlawMajorIncident.CISA_APPROVED, False),
+            (Flaw.FlawMajorIncident.INVALID, True),
+        ],
+    )
+    def test_validate_major_incident_state(self, state, should_raise):
+        """
+        Tests that a flaw has a valid Major Incident state.
+        """
+        flaw = FlawFactory.build(
+            is_major_incident=True,
+            major_incident_state=state,
+            mitigation="mitigation",
+            statement="statement",
+            embargoed=False,
+        )
+        flaw.save(raise_validation_error=False)
+
+        AffectFactory(flaw=flaw)
+        FlawReferenceFactory(
+            flaw=flaw,
+            type=FlawReference.FlawReferenceType.ARTICLE,
+            url="https://access.redhat.com/link123",
+        )
+        FlawMetaFactory(
+            flaw=flaw,
+            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
+            meta_attr={"status": "+"},
+        )
+
+        if should_raise:
+            error_msg = "A flaw does not have a valid Major Incident state."
+            with pytest.raises(ValidationError, match=error_msg):
+                flaw.save()
+        else:
+            assert flaw.save() is None
+
+    @pytest.mark.parametrize(
         "reference_type,reference_url,mitigation,statement,alert_name,should_alert",
         [
             (
@@ -965,8 +1008,8 @@ class TestFlawValidators:
         should_alert,
     ):
         """
-        Tests that a Flaw that is Major Incident has all article reference, statement
-        and mitigation.
+        Tests that a Flaw that is Major Incident has article reference, mitigation,
+        and statement correct.
         """
         flaw = FlawFactory.build(
             is_major_incident=True,

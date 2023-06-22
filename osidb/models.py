@@ -463,6 +463,34 @@ class Flaw(
         RELEASE_PENDING = "RELEASE_PENDING"
         VERIFIED = "VERIFIED"
 
+    class FlawMajorIncident(models.TextChoices):
+        """
+        Stores a Major Incident (MI) state.
+
+        Valid states are: NOVALUE, REQUESTED, REJECTED, APPROVED, CISA_APPROVED.
+
+        Valid states represent the following BZ combinations in the format
+        `<hightouch flag>|<hightouch-lite flag>`:
+
+            ( | ) no flags set (NOVALUE)
+            (?|?): can be either MI or MI CISA (REQUESTED)
+            (-|-): both MI and MI CISA are rejected (REJECTED)
+            (+| ) or (+|-): MI approved (APPROVED)
+            ( |+) or (-|+): MI CISA approved (CISA_APPROVED)
+
+        If a flaw is MI, its state must be either APPROVED or CISA_APPROVED.
+
+        If a state does not match any of BZ combinations, INVALID is set.
+        """
+
+        NOVALUE = ""
+        REQUESTED = "REQUESTED"
+        REJECTED = "REJECTED"
+        APPROVED = "APPROVED"
+        CISA_APPROVED = "CISA_APPROVED"
+
+        INVALID = "INVALID"
+
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -557,6 +585,10 @@ class Flaw(
 
     # should be set True if MAJOR_INCIDENT or MAJOR_INCIDENT_LITE FlawMeta exists, from BZ flagsq
     is_major_incident = models.BooleanField(default=False)
+
+    major_incident_state = models.CharField(
+        choices=FlawMajorIncident.choices, max_length=20, blank=True
+    )
 
     # non operational meta data
     meta_attr = HStoreField(default=dict)
@@ -695,6 +727,13 @@ class Flaw(
                 "cvss3_missing",
                 "CVSSv3 score is missing",
             )
+
+    def _validate_major_incident_state(self):
+        """
+        Checks that a flaw has a valid Major Incident state.
+        """
+        if self.major_incident_state == self.FlawMajorIncident.INVALID:
+            raise ValidationError("A flaw does not have a valid Major Incident state.")
 
     def _validate_summary_major_incident(self):
         """
