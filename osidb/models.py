@@ -2757,6 +2757,10 @@ class Profile(models.Model):
     bz_user_id = models.CharField(max_length=100, blank=True)
     jira_user_id = models.CharField(max_length=100, blank=True)
 
+    @property
+    def username(self):
+        return self.user.username
+
     def __str__(self):
         return self.username
 

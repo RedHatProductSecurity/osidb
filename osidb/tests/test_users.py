@@ -26,6 +26,8 @@ class TestUsers:
         assert new_user.profile
         assert new_user.profile.bz_user_id == "atorresj@redhat.com"
         assert new_user.profile.jira_user_id == "atorresj@redhat.com"
+        # test that profile serialization works
+        assert str(new_user.profile) == "foo"
 
         # verify that the user info can be fetched from bugzilla / jira
         bz_token = get_env("BZIMPORT_BZ_API_KEY")
