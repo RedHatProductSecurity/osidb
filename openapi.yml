@@ -5043,7 +5043,7 @@ components:
           format: uuid
           nullable: true
         type:
-          $ref: '#/components/schemas/Type5b2Enum'
+          $ref: '#/components/schemas/AffectType'
         affectedness:
           oneOf:
           - $ref: '#/components/schemas/AffectednessEnum'
@@ -5146,7 +5146,7 @@ components:
           format: uuid
           nullable: true
         type:
-          $ref: '#/components/schemas/Type5b2Enum'
+          $ref: '#/components/schemas/AffectType'
         affectedness:
           oneOf:
           - $ref: '#/components/schemas/AffectednessEnum'
@@ -5254,6 +5254,10 @@ components:
       required:
       - ps_component
       - ps_module
+    AffectType:
+      enum:
+      - DEFAULT
+      type: string
     AffectednessEnum:
       enum:
       - NEW
@@ -5403,7 +5407,7 @@ components:
           format: uuid
           readOnly: true
         type:
-          $ref: '#/components/schemas/Type824Enum'
+          $ref: '#/components/schemas/FlawType'
         cve_id:
           type: string
           nullable: true
@@ -5675,11 +5679,6 @@ components:
           type: string
           format: date-time
           readOnly: true
-        updated_dt:
-          type: string
-          format: date-time
-          description: The updated_dt timestamp attribute is mandatory on update as
-            it is used to detect mit-air collisions.
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -5689,11 +5688,24 @@ components:
       - created_dt
       - embargoed
       - text
-      - updated_dt
       - uuid
     FlawCommentType:
       enum:
       - BUGZILLA
+      type: string
+    FlawMetaType:
+      enum:
+      - ERRATA
+      - REFERENCE
+      - ACKNOWLEDGMENT
+      - EXPLOIT
+      - MAJOR_INCIDENT
+      - MAJOR_INCIDENT_LITE
+      - REQUIRES_SUMMARY
+      - NIST_CVSS_VALIDATION
+      - NEED_INFO
+      - CHECKLIST
+      - NVD_CVSS
       type: string
     FlawPost:
       type: object
@@ -5704,7 +5716,7 @@ components:
           format: uuid
           readOnly: true
         type:
-          $ref: '#/components/schemas/Type824Enum'
+          $ref: '#/components/schemas/FlawType'
         cve_id:
           type: string
           nullable: true
@@ -5914,7 +5926,7 @@ components:
           type: string
           format: uuid
         type:
-          $ref: '#/components/schemas/Type154Enum'
+          $ref: '#/components/schemas/FlawReferenceType'
         url:
           type: string
           format: uri
@@ -5954,7 +5966,7 @@ components:
           type: string
           format: uuid
         type:
-          $ref: '#/components/schemas/Type154Enum'
+          $ref: '#/components/schemas/FlawReferenceType'
         url:
           type: string
           format: uri
@@ -5978,6 +5990,11 @@ components:
       - flaw
       - url
       - uuid
+    FlawReferenceType:
+      enum:
+      - ARTICLE
+      - EXTERNAL
+      type: string
     FlawReportData:
       type: object
       properties:
@@ -5998,6 +6015,11 @@ components:
       required:
       - resolution
       - state
+    FlawType:
+      enum:
+      - VULNERABILITY
+      - WEAKNESS
+      type: string
     ImpactEnum:
       enum:
       - LOW
@@ -6123,7 +6145,7 @@ components:
           format: uuid
           readOnly: true
         type:
-          $ref: '#/components/schemas/MetaTypeEnum'
+          $ref: '#/components/schemas/FlawMetaType'
         meta_attr:
           type: object
           additionalProperties:
@@ -6149,20 +6171,6 @@ components:
       - type
       - updated_dt
       - uuid
-    MetaTypeEnum:
-      enum:
-      - ERRATA
-      - REFERENCE
-      - ACKNOWLEDGMENT
-      - EXPLOIT
-      - MAJOR_INCIDENT
-      - MAJOR_INCIDENT_LITE
-      - REQUIRES_SUMMARY
-      - NIST_CVSS_VALIDATION
-      - NEED_INFO
-      - CHECKLIST
-      - NVD_CVSS
-      type: string
     PaginatedAffectList:
       type: object
       properties:
@@ -6504,7 +6512,7 @@ components:
           format: uuid
           readOnly: true
         type:
-          $ref: '#/components/schemas/Type0d0Enum'
+          $ref: '#/components/schemas/TrackerType'
         external_system_id:
           type: string
           maxLength: 100
@@ -6566,7 +6574,7 @@ components:
       type: object
       properties:
         type:
-          $ref: '#/components/schemas/Type0d0Enum'
+          $ref: '#/components/schemas/TrackerType'
         external_system_id:
           type: string
           maxLength: 100
@@ -6580,24 +6588,10 @@ components:
       - external_system_id
       - status
       - type
-    Type0d0Enum:
+    TrackerType:
       enum:
       - JIRA
       - BUGZILLA
-      type: string
-    Type154Enum:
-      enum:
-      - ARTICLE
-      - EXTERNAL
-      type: string
-    Type5b2Enum:
-      enum:
-      - DEFAULT
-      type: string
-    Type824Enum:
-      enum:
-      - VULNERABILITY
-      - WEAKNESS
       type: string
   securitySchemes:
     KerberosAuthentication:
