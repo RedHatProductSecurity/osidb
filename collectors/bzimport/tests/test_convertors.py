@@ -9,6 +9,7 @@ from osidb.models import (
     CVEv5PackageVersions,
     CVEv5Version,
     Flaw,
+    FlawAcknowledgment,
     FlawComment,
     FlawHistory,
     FlawMeta,
@@ -124,6 +125,23 @@ class TestFlawSaver:
             ),
         ]
 
+    def get_acknowledgments(self, flaw, from_upstream=False, name="Jane Doe"):
+        """
+        minimal acknowledgments getter
+        """
+        return [
+            FlawAcknowledgment.objects.create_flawacknowledgment(
+                flaw=flaw,
+                name=name,
+                affiliation="XYZ Widget Company",
+                from_upstream=from_upstream,
+                created_dt=timezone.now(),
+                updated_dt=timezone.now(),
+                acl_read=self.get_acls(),
+                acl_write=self.get_acls(),
+            )
+        ]
+
     def get_references(self, flaw):
         """
         minimal references getter
@@ -182,6 +200,7 @@ class TestFlawSaver:
             self.get_comments(flaw),
             self.get_history(),
             self.get_meta(flaw),
+            self.get_acknowledgments(flaw),
             self.get_references(flaw),
             self.get_trackers(affects[0]),
             self.get_package_versions(),
@@ -192,6 +211,7 @@ class TestFlawSaver:
         comment = FlawComment.objects.first()
         history = FlawHistory.objects.first()
         meta = FlawMeta.objects.first()
+        acknowledgment = FlawAcknowledgment.objects.first()
         reference = FlawReference.objects.first()
         tracker = Tracker.objects.first()
         package_versions = CVEv5PackageVersions.objects.first()
@@ -240,6 +260,14 @@ class TestFlawSaver:
         assert meta.acl_write == acls
         assert meta.flaw == flaw
 
+        assert acknowledgment is not None
+        assert acknowledgment.name == "Jane Doe"
+        assert acknowledgment.affiliation == "XYZ Widget Company"
+        assert acknowledgment.from_upstream is False
+        assert acknowledgment.acl_read == acls
+        assert acknowledgment.acl_write == acls
+        assert acknowledgment.flaw == flaw
+
         assert reference is not None
         assert reference.url == "https://httpd.apache.org/link123"
         assert reference.type == "EXTERNAL"
@@ -284,6 +312,7 @@ class TestFlawSaver:
             [],
             [],
             [],
+            [],
             {},
         ).save()
 
@@ -298,6 +327,7 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
+            [],
             [],
             [],
             [],
@@ -328,6 +358,7 @@ class TestFlawSaver:
             self.get_meta(flaw),
             [],
             [],
+            [],
             {},
         ).save()
 
@@ -350,6 +381,7 @@ class TestFlawSaver:
             ],
             [],
             [],
+            [],
             {},
         ).save()
 
@@ -361,6 +393,107 @@ class TestFlawSaver:
         assert flaw.meta.first() == self.get_meta(flaw)[1]
         assert flaw.meta.first().meta_attr["name"] == "Lone Wanderer"
 
+    def test_acknowledgment_removed(self):
+        """
+        test acknowledgment removal on save
+        """
+        flaw = flaw_orig = self.get_flaw()
+        assert flaw_orig is not None
+
+        FlawSaver(
+            flaw,
+            [],
+            [],
+            [],
+            [],
+            self.get_acknowledgments(flaw, from_upstream=False),
+            [],
+            [],
+            {},
+        ).save()
+
+        flaw = Flaw.objects.first()
+        assert flaw == flaw_orig
+        assert Flaw.objects.count() == 1
+
+        acknowledgment = acknowledgment_orig = FlawAcknowledgment.objects.first()
+        assert FlawAcknowledgment.objects.count() == 1
+        assert flaw.acknowledgments.count() == 1
+        assert flaw.acknowledgments.first() == acknowledgment
+        assert acknowledgment.flaw == flaw
+
+        # Test that when only from_upstream is changed, the FlawAcknowledgment object is updated
+        # in place.
+        FlawSaver(
+            flaw,
+            [],
+            [],
+            [],
+            [],
+            self.get_acknowledgments(flaw, from_upstream=True),
+            [],
+            [],
+            {},
+        ).save()
+
+        flaw = Flaw.objects.first()
+        assert flaw == flaw_orig
+        assert Flaw.objects.count() == 1
+
+        acknowledgment = FlawAcknowledgment.objects.first()
+        assert acknowledgment == acknowledgment_orig
+        assert FlawAcknowledgment.objects.count() == 1
+        assert flaw.acknowledgments.count() == 1
+        assert flaw.acknowledgments.first() == acknowledgment
+        assert acknowledgment.flaw == flaw
+
+        # Test that when the acknowledgment is changed, the old one is deleted.
+        FlawSaver(
+            flaw,
+            [],
+            [],
+            [],
+            [],
+            self.get_acknowledgments(flaw, name="jaroslava kudrnova"),
+            [],
+            [],
+            {},
+        ).save()
+
+        flaw = Flaw.objects.first()
+        assert flaw == flaw_orig
+        assert Flaw.objects.count() == 1
+
+        acknowledgment = FlawAcknowledgment.objects.first()
+        assert acknowledgment.name == "jaroslava kudrnova"
+        # This created a new instance
+        assert acknowledgment != acknowledgment_orig
+        # The old instance has been deleted
+        assert FlawAcknowledgment.objects.count() == 1
+        assert flaw.acknowledgments.count() == 1
+        assert flaw.acknowledgments.first() == acknowledgment
+        assert acknowledgment.flaw == flaw
+
+        # Test that when the acknowledgment is removed, it is deleted.
+        FlawSaver(
+            flaw,
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            {},
+        ).save()
+
+        flaw = Flaw.objects.first()
+        assert flaw == flaw_orig
+        assert Flaw.objects.count() == 1
+
+        assert not FlawAcknowledgment.objects.exists()
+        assert flaw.acknowledgments.count() == 0
+
     def test_reference_removed(self):
         """
         test reference removal save
@@ -369,6 +502,7 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
+            [],
             [],
             [],
             [],
@@ -389,6 +523,7 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
+            [],
             [],
             [],
             [],
@@ -419,6 +554,7 @@ class TestFlawSaver:
             [],
             [],
             [],
+            [],
             self.get_trackers(affects[0]),
             {},
         ).save()
@@ -441,6 +577,7 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             affects,
+            [],
             [],
             [],
             [],
@@ -478,6 +615,7 @@ class TestFlawSaver:
             [],
             [],
             [],
+            [],
             self.get_package_versions(),
         ).save()
 
@@ -498,6 +636,7 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
+            [],
             [],
             [],
             [],
