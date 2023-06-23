@@ -305,6 +305,86 @@ class ACLMixin(models.Model):
         self.acl_group_map[acl] = group
         return acl
 
+    def set_acl_read(self, *groups):
+        """
+        Shortcut method for setting acl_read attribute.
+
+        This method takes in at least one plain-text group as argument and then
+        does the necessary steps to convert it to a UUID and set the acl_read
+        attribute to the generated UUIDs.
+
+        Returns a list of read acls that were set.
+
+        e.g.:
+            >>> acls = my_flaw.set_acl_read("top-secret-data", "prodsec-data")
+            >>> my_flaw.acl_read
+            ... [UUID(...), UUID(...)]
+            >>> acls == my_flaw.acl_read
+            ... True
+        """
+        acls = [self.group2acl(group) for group in groups]
+        self.acl_read = acls
+        return acls
+
+    def set_acl_write(self, *groups):
+        """
+        Shortcut method for setting acl_write attribute.
+
+        This method takes in at least one plain-text group as argument and then
+        does the necessary steps to convert it to a UUID and set the acl_write
+        attribute to the generated UUIDs.
+
+        Returns a list of read acls that were set.
+
+        e.g.:
+            >>> acls = my_flaw.set_acl_write("top-secret-data", "prodsec-data")
+            >>> my_flaw.acl_write
+            ... [UUID(...), UUID(...)]
+            >>> acls == my_flaw.acl_write
+            ... True
+        """
+        acls = [self.group2acl(group) for group in groups]
+        self.acl_write = acls
+        return acls
+
+    def set_public(self):
+        """
+        Shortcut method for making an ACL-enabled entity public.
+
+        Calling this method on an entity will **overwrite** its acl_read
+        and acl_write attributes to the default public ones.
+
+        e.g.:
+            >>> my_flaw.acl_read
+            ... [UUID(...), UUID(...), UUID(...), UUID(...)]
+            >>> my_flaw.set_public()
+            >>> # note that the acl_read have been completely replaced by the
+            >>> # public ACLs only, other ones are not kept.
+            >>> my_flaw.acl_read
+            ... [UUID(...), UUID(...)]
+        """
+        self.set_acl_read(*settings.PUBLIC_READ_GROUPS)
+        self.set_acl_write(settings.PUBLIC_WRITE_GROUP)
+
+    def set_embargoed(self):
+        """
+        Shortcut method for making an ACL-enabled entity embargoed.
+
+        Calling this method on an entity will **overwrite** its acl_read
+        and acl_write attributes to the default embargoed ones.
+
+        e.g.:
+            >>> my_flaw.acl_read
+            ... [UUID(...), UUID(...), UUID(...), UUID(...)]
+            >>> my_flaw.set_embargoed()
+            >>> # note that the acl_read have been completely replaced by the
+            >>> # embargoed ACLs only, other ones are not kept.
+            >>> my_flaw.acl_read
+            ... [UUID(...), UUID(...)]
+        """
+        self.set_acl_read(settings.EMBARGO_READ_GROUP)
+        self.set_acl_write(settings.EMBARGO_WRITE_GROUP)
+
     @cached_property
     def acls_public_read(self):
         """
