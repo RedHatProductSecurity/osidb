@@ -250,7 +250,12 @@ SPECTACULAR_SETTINGS = {
         "osidb.hooks.response_metadata_postprocess_hook",
     ],
     "ENUM_NAME_OVERRIDES": {
+        "AffectType": "osidb.models.Affect.AffectType",
+        "FlawType": "osidb.models.FlawType",
         "FlawCommentType": "osidb.models.FlawComment.FlawCommentType",
+        "FlawMetaType": "osidb.models.FlawMeta.FlawMetaType",
+        "FlawReferenceType": "osidb.models.FlawReference.FlawReferenceType",
+        "TrackerType": "osidb.models.Tracker.TrackerType",
     },
 }
 

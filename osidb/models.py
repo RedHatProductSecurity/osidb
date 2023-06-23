@@ -108,6 +108,9 @@ class FlawHistoryManager(ACLMixinManager):
 class FlawType(models.TextChoices):
     """allowable types"""
 
+    # NOTE: when moving or renaming this enum, please check and modify
+    # config/settings.py::SPECTACULAR_SETTINGS::ENUM_NAME_OVERRIDES accordingly
+
     VULNERABILITY = "VULNERABILITY"
     WEAKNESS = "WEAKNESS"
 
@@ -1107,6 +1110,9 @@ class Affect(
     class AffectType(models.TextChoices):
         """allowable type"""
 
+        # NOTE: when moving or renaming this enum, please check and modify
+        # config/settings.py::SPECTACULAR_SETTINGS::ENUM_NAME_OVERRIDES accordingly
+
         DEFAULT = "DEFAULT"  # we may have different types of affects in the future
 
     # internal primary key
@@ -1520,6 +1526,9 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     class TrackerType(models.TextChoices):
         """allowable bts name"""
 
+        # NOTE: when moving or renaming this enum, please check and modify
+        # config/settings.py::SPECTACULAR_SETTINGS::ENUM_NAME_OVERRIDES accordingly
+
         JIRA = "JIRA"
         BUGZILLA = "BUGZILLA"
 
@@ -1764,6 +1773,9 @@ class FlawMeta(AlertMixin, TrackingMixin, ACLMixin):
     class FlawMetaType(models.TextChoices):
         """allowable types"""
 
+        # NOTE: when moving or renaming this enum, please check and modify
+        # config/settings.py::SPECTACULAR_SETTINGS::ENUM_NAME_OVERRIDES accordingly
+
         ERRATA = "ERRATA"
         REFERENCE = "REFERENCE"
         ACKNOWLEDGMENT = "ACKNOWLEDGMENT"
@@ -1896,6 +1908,8 @@ class FlawComment(
     class FlawCommentType(models.TextChoices):
         """allowable types"""
 
+        # NOTE: when moving or renaming this enum, please check and modify
+        # config/settings.py::SPECTACULAR_SETTINGS::ENUM_NAME_OVERRIDES accordingly
         BUGZILLA = "BUGZILLA"
 
     # internal primary key
@@ -1989,6 +2003,9 @@ class FlawReference(ACLMixin, BugzillaSyncMixin, TrackingMixin):
             want to include respectable sources (such as upstream advisories,
             analysis of security researches, etc.).
         """
+
+        # NOTE: when moving or renaming this enum, please check and modify
+        # config/settings.py::SPECTACULAR_SETTINGS::ENUM_NAME_OVERRIDES accordingly
 
         ARTICLE = "ARTICLE"
         EXTERNAL = "EXTERNAL"
