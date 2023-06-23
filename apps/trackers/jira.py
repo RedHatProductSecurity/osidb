@@ -5,7 +5,7 @@ from typing import Any, Dict
 
 from apps.trackers.exceptions import NoPriorityAvailableError
 from apps.trackers.models import JiraProjectFields
-from osidb.models import FlawImpact
+from osidb.models import Impact
 
 from .bts_tracker import BTSTracker
 
@@ -24,16 +24,16 @@ class JiraPriority:
 
 
 IMPACT_TO_JIRA_PRIORITY = {
-    FlawImpact.CRITICAL: [JiraPriority.CRITICAL],
-    FlawImpact.IMPORTANT: [JiraPriority.MAJOR],
-    FlawImpact.MODERATE: [
+    Impact.CRITICAL: [JiraPriority.CRITICAL],
+    Impact.IMPORTANT: [JiraPriority.MAJOR],
+    Impact.MODERATE: [
         JiraPriority.NORMAL,
         JiraPriority.MINOR,
     ],  # some projects still miss Normal priority
-    FlawImpact.LOW: [JiraPriority.MINOR],
+    Impact.LOW: [JiraPriority.MINOR],
     # mapping below is just safeguard
     # but we should never file such trackers
-    FlawImpact.NOVALUE: [JiraPriority.UNDEFINED],
+    Impact.NOVALUE: [JiraPriority.UNDEFINED],
 }
 
 

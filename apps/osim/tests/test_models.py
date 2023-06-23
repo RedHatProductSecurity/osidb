@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from apps.osim.models import Check, State, Workflow
 from apps.osim.workflow import WorkflowFramework, WorkflowModel
-from osidb.models import Flaw, FlawImpact, FlawMeta, FlawSource, FlawType
+from osidb.models import Flaw, FlawMeta, FlawSource, FlawType, Impact
 from osidb.tests.factories import AffectFactory, FlawFactory, FlawMetaFactory
 
 pytestmark = pytest.mark.unit
@@ -33,7 +33,7 @@ class CheckDescFactory:
         ("has type", "type", FlawType.VULNERABILITY),
         ("has created_dt", "created_dt", timezone.now()),
         ("has updated_dt", "updated_dt", timezone.now()),
-        ("has impact", "impact", FlawImpact.MODERATE),
+        ("has impact", "impact", Impact.MODERATE),
         ("has title", "title", "random title"),
         ("has description", "description", "random description"),
         ("has summary", "summary", "random summary"),

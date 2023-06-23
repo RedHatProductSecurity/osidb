@@ -16,11 +16,11 @@ from osidb.models import (
     Flaw,
     FlawAcknowledgment,
     FlawComment,
-    FlawImpact,
     FlawMeta,
     FlawReference,
     FlawSource,
     FlawType,
+    Impact,
     Tracker,
 )
 from osidb.tests.factories import (
@@ -74,7 +74,7 @@ class TestFlaw:
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
-            impact=FlawImpact.CRITICAL,
+            impact=Impact.CRITICAL,
             source=FlawSource.APPLE,
             statement="statement",
             is_major_incident=True,
@@ -108,7 +108,7 @@ class TestFlaw:
             "fake_component",
             affectedness=Affect.AffectAffectedness.NEW,
             resolution=Affect.AffectResolution.NOVALUE,
-            impact=Affect.AffectImpact.NOVALUE,
+            impact=Impact.NOVALUE,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -209,7 +209,7 @@ class TestFlaw:
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
-            impact=FlawImpact.CRITICAL,
+            impact=Impact.CRITICAL,
             component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
@@ -230,7 +230,7 @@ class TestFlaw:
             title="first",
             unembargo_dt=tzdatetime(2000, 1, 1),
             description="description",
-            impact=FlawImpact.LOW,
+            impact=Impact.LOW,
             component="curl",
             source=FlawSource.INTERNET,
             acl_read=self.acl_read,
@@ -247,7 +247,7 @@ class TestFlaw:
             bz_id="12345",
             title="second",
             description="description",
-            impact=FlawImpact.LOW,
+            impact=Impact.LOW,
             source=FlawSource.INTERNET,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
@@ -371,7 +371,7 @@ class TestFlaw:
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
-            impact=FlawImpact.CRITICAL,
+            impact=Impact.CRITICAL,
             component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
@@ -395,7 +395,7 @@ class TestFlaw:
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
-            impact=FlawImpact.CRITICAL,
+            impact=Impact.CRITICAL,
             component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
@@ -418,7 +418,7 @@ class TestFlaw:
             type=FlawType.VULNERABILITY,
             title="title",
             description="description",
-            impact=FlawImpact.CRITICAL,
+            impact=Impact.CRITICAL,
             component="curl",
             source=FlawSource.INTERNET,
             statement="statement",
@@ -432,6 +432,44 @@ class TestFlaw:
         flaw.save()
 
         assert Flaw.objects.fts_search("title")
+
+
+class TestImpact:
+    @pytest.mark.parametrize(
+        "first,second",
+        [
+            ("", "LOW"),
+            ("", "MODERATE"),
+            ("", "IMPORTANT"),
+            ("", "CRITICAL"),
+            ("LOW", "MODERATE"),
+            ("LOW", "IMPORTANT"),
+            ("LOW", "CRITICAL"),
+            ("MODERATE", "IMPORTANT"),
+            ("MODERATE", "CRITICAL"),
+            ("IMPORTANT", "CRITICAL"),
+        ],
+    )
+    def test_less(self, first, second):
+        """
+        test that the first is less than the second
+        """
+        assert Impact(first) < Impact(second)
+
+    @pytest.mark.parametrize(
+        "maximum,impacts",
+        [
+            ("LOW", ["", "", "LOW", "LOW"]),
+            ("MODERATE", ["MODERATE"]),
+            ("IMPORTANT", ["LOW", "MODERATE", "IMPORTANT"]),
+            ("CRITICAL", ["IMPORTANT", "CRITICAL", ""]),
+        ],
+    )
+    def test_max(self, maximum, impacts):
+        """
+        test that the maximum is correctly identified
+        """
+        assert Impact(maximum) == max(Impact(impact) for impact in impacts)
 
 
 class TestFlawValidators:
@@ -1175,12 +1213,12 @@ class TestFlawValidators:
     @pytest.mark.parametrize(
         "start_impact,new_impact,tracker_statuses,should_raise",
         [
-            (FlawImpact.LOW, FlawImpact.MODERATE, ["Closed", "Open"], False),
-            (FlawImpact.CRITICAL, FlawImpact.IMPORTANT, ["Closed", "Open"], False),
-            (FlawImpact.LOW, FlawImpact.CRITICAL, ["Closed", "Open"], True),
-            (FlawImpact.CRITICAL, FlawImpact.LOW, ["Closed", "Open"], True),
-            (FlawImpact.LOW, FlawImpact.CRITICAL, ["Closed", "Closed"], False),
-            (FlawImpact.CRITICAL, FlawImpact.LOW, ["Closed", "Closed"], False),
+            (Impact.LOW, Impact.MODERATE, ["Closed", "Open"], False),
+            (Impact.CRITICAL, Impact.IMPORTANT, ["Closed", "Open"], False),
+            (Impact.LOW, Impact.CRITICAL, ["Closed", "Open"], True),
+            (Impact.CRITICAL, Impact.LOW, ["Closed", "Open"], True),
+            (Impact.LOW, Impact.CRITICAL, ["Closed", "Closed"], False),
+            (Impact.CRITICAL, Impact.LOW, ["Closed", "Closed"], False),
         ],
     )
     def test_validate_unsupported_impact_change(
@@ -1222,7 +1260,7 @@ class TestFlawValidators:
         """test that major incident flaws cannot be changed to non-major while having open trackers"""
 
         flaw = FlawFactory.build(
-            embargoed=False, is_major_incident=was_major, impact=FlawImpact.LOW
+            embargoed=False, is_major_incident=was_major, impact=Impact.LOW
         )
         flaw.save(raise_validation_error=False)
         FlawMetaFactory(
@@ -1316,31 +1354,31 @@ class TestFlawValidators:
         "impact,resolution,product,should_raise",
         [
             (
-                Affect.AffectImpact.LOW,
+                Impact.LOW,
                 Affect.AffectResolution.WONTREPORT,
                 "other-services",
                 False,
             ),
             (
-                Affect.AffectImpact.MODERATE,
+                Impact.MODERATE,
                 Affect.AffectResolution.WONTREPORT,
                 "other-services",
                 False,
             ),
             (
-                Affect.AffectImpact.IMPORTANT,
+                Impact.IMPORTANT,
                 Affect.AffectResolution.WONTREPORT,
                 "other-services",
                 True,
             ),
             (
-                Affect.AffectImpact.LOW,
+                Impact.LOW,
                 Affect.AffectResolution.WONTREPORT,
                 "regular-product",
                 True,
             ),
             (
-                Affect.AffectImpact.LOW,
+                Impact.LOW,
                 Affect.AffectResolution.WONTREPORT,
                 "invalid",
                 True,
@@ -1439,7 +1477,7 @@ class TestFlawValidators:
                 ps_product=PsProductFactory(short_name="other-services"),
             )
             affect.ps_module = "other-services-test-module"
-            affect.impact = Affect.AffectImpact.LOW
+            affect.impact = Impact.LOW
 
         if should_raise:
             with pytest.raises(

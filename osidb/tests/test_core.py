@@ -14,7 +14,12 @@ from osidb.tests.factories import (
     FlawMetaFactory,
     FlawReferenceFactory,
 )
-from osidb.tests.models import TestAlertModel, TestAlertModelBasic
+from osidb.tests.models import (
+    TestAlertModel,
+    TestAlertModelBasic,
+    TestComparableTextChoices_1,
+    TestComparableTextChoices_2,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -117,3 +122,34 @@ class TestModelDefinitions:
         with pytest.raises(ValueError) as e:
             m.alert("my_error", "This is a weird error", _type="weird")
         assert "Alert type 'weird' is not valid" in str(e)
+
+
+class TestComparableTextChoices:
+    def test_incomparable(self):
+        instance1 = TestComparableTextChoices_1(
+            TestComparableTextChoices_1.get_choices()[0]
+        )
+        instance2 = TestComparableTextChoices_2(
+            TestComparableTextChoices_2.get_choices()[0]
+        )
+
+        # even without equality being defined
+        # Python can decide this on identiy
+        assert not instance1 == instance2
+        assert instance1 != instance2
+
+        with pytest.raises(TypeError) as e:
+            assert instance1 < instance2
+        assert "'<' not supported" in str(e)
+
+        with pytest.raises(TypeError) as e:
+            assert instance1 <= instance2
+        assert "'<=' not supported" in str(e)
+
+        with pytest.raises(TypeError) as e:
+            assert instance1 > instance2
+        assert "'>' not supported" in str(e)
+
+        with pytest.raises(TypeError) as e:
+            assert instance1 >= instance2
+        assert "'>=' not supported" in str(e)

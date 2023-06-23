@@ -14,11 +14,11 @@ from osidb.models import (
     Flaw,
     FlawAcknowledgment,
     FlawComment,
-    FlawImpact,
     FlawMeta,
     FlawReference,
     FlawSource,
     FlawType,
+    Impact,
     PsContact,
     PsModule,
     PsProduct,
@@ -48,7 +48,7 @@ class FlawFactory(factory.django.DjangoModelFactory):
     reported_dt = factory.Faker("date_time", tzinfo=UTC)
     updated_dt = factory.Faker("date_time", tzinfo=UTC)
     impact = factory.Faker(
-        "random_element", elements=list(set(FlawImpact) - {FlawImpact.NOVALUE})
+        "random_element", elements=list(set(Impact) - {Impact.NOVALUE})
     )
     # max_nb_chars is the approximate length of generated text
     component = factory.Faker("text", max_nb_chars=50)
@@ -225,7 +225,7 @@ class AffectFactory(factory.django.DjangoModelFactory):
     )
     ps_module = factory.sequence(lambda n: f"ps-module-{n}")
     ps_component = factory.sequence(lambda n: f"ps-component-{n}")
-    impact = factory.Faker("random_element", elements=list(Affect.AffectImpact))
+    impact = factory.Faker("random_element", elements=list(Impact))
 
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     updated_dt = factory.Faker("date_time", tzinfo=UTC)

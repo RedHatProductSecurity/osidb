@@ -8,7 +8,7 @@ from freezegun import freeze_time
 from collectors.bzimport.convertors import FlawConvertor
 from osidb.core import generate_acls
 from osidb.exceptions import DataInconsistencyException
-from osidb.models import Flaw, FlawImpact, FlawSource
+from osidb.models import Flaw, FlawSource, Impact
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 from .test_flaw import tzdatetime
@@ -194,7 +194,7 @@ class TestTrackingMixin:
             title="title",
             cwe_id="CWE-1",
             description="description",
-            impact=FlawImpact.LOW,
+            impact=Impact.LOW,
             component="curl",
             source=FlawSource.INTERNET,
             acl_read=acl_read,

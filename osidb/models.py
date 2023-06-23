@@ -112,7 +112,72 @@ class FlawType(models.TextChoices):
     WEAKNESS = "WEAKNESS"
 
 
-class FlawImpact(models.TextChoices):
+class ComparableTextChoices(models.TextChoices):
+    """
+    extension of the models.TextChoices classes
+    making them comparable with the standard operators
+
+    the comparison order is defined simply by the
+    top-down order in which the choices are written
+    """
+
+    @classmethod
+    def get_choices(cls):
+        """
+        get processed choices
+        """
+        return [choice[0] for choice in cls.choices]
+
+    @property
+    def weight(self):
+        """
+        weight of the instance for the comparison
+        defined by the order of the definition of the choices
+        """
+        return self.get_choices().index(str(self))
+
+    def incomparable_with(self, other):
+        """
+        to ensure that that we are comparing the instances of the same type as
+        comparing different types (even two ComparableTextChoices) is undefined
+        """
+        return type(self) != type(other)
+
+    def __hash__(self):
+        return super().__hash__()
+
+    def __eq__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self.weight == other.weight
+
+    def __ne__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self.weight != other.weight
+
+    def __lt__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self.weight < other.weight
+
+    def __gt__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self.weight > other.weight
+
+    def __le__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self == other or self.__lt__(other)
+
+    def __ge__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self == other or self.__gt__(other)
+
+
+class Impact(ComparableTextChoices):
     """allowable impact"""
 
     NOVALUE = ""
@@ -342,7 +407,7 @@ class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
     )
 
     # flaw severity, from srtnotes "impact"
-    impact = models.CharField(choices=FlawImpact.choices, max_length=20, blank=True)
+    impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
 
     # from BZ summary
     title = models.TextField()
@@ -531,7 +596,7 @@ class Flaw(
     )
 
     # flaw severity, from srtnotes "impact"
-    impact = models.CharField(choices=FlawImpact.choices, max_length=20, blank=True)
+    impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
 
     # flaw component was originally a part of the Bugzilla sumary
     # so the value may depend on how successfully it was parsed
@@ -871,12 +936,11 @@ class Flaw(
 
         old_flaw = Flaw.objects.get(pk=self.pk)
         was_high_impact = (
-            old_flaw.impact in [FlawImpact.CRITICAL, FlawImpact.IMPORTANT]
+            old_flaw.impact in [Impact.CRITICAL, Impact.IMPORTANT]
             or old_flaw.is_major_incident
         )
         is_high_impact = (
-            self.impact in [FlawImpact.CRITICAL, FlawImpact.IMPORTANT]
-            or self.is_major_incident
+            self.impact in [Impact.CRITICAL, Impact.IMPORTANT] or self.is_major_incident
         )
         if (
             was_high_impact != is_high_impact
@@ -1127,15 +1191,6 @@ class Affect(
         DELEGATED = "DELEGATED"
         WONTREPORT = "WONTREPORT"
 
-    class AffectImpact(models.TextChoices):
-        """allowable impact"""
-
-        NOVALUE = ""
-        LOW = "LOW"
-        MODERATE = "MODERATE"
-        IMPORTANT = "IMPORTANT"
-        CRITICAL = "CRITICAL"
-
     class AffectFix(models.TextChoices):
         AFFECTED = "AFFECTED"
         NOTAFFECTED = "NOTAFFECTED"
@@ -1180,7 +1235,7 @@ class Affect(
     ps_component = models.CharField(max_length=255)
 
     # from srtnotes affects/impact
-    impact = models.CharField(choices=AffectImpact.choices, max_length=20, blank=True)
+    impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
 
     # from srtnotes affects/cvss2
     cvss2 = models.CharField(max_length=100, blank=True, validators=[validate_cvss2])
@@ -1421,8 +1476,7 @@ class Affect(
         """
         if (
             self.resolution == Affect.AffectResolution.WONTREPORT
-            and self.impact
-            not in [Affect.AffectImpact.LOW, Affect.AffectImpact.MODERATE]
+            and self.impact not in [Impact.LOW, Impact.MODERATE]
         ):
             raise ValidationError(
                 "wontreport can only be associated with low or moderate severity"
