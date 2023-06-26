@@ -880,7 +880,9 @@ class FlawCommentSerializer(
         ]
 
 
-@extend_schema_serializer(exclude_fields=["external_system_id", "flaw", "order"])
+@extend_schema_serializer(
+    exclude_fields=["external_system_id", "flaw", "order", "updated_dt"]
+)
 class FlawCommentPostSerializer(FlawCommentSerializer):
     # Extra serializer for POST request because some fields are not
     # submittable by the client and their submit values are hardwired
