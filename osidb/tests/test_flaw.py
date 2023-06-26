@@ -923,28 +923,28 @@ class TestFlawValidators:
         assert should_alert == ("cvss3_missing" in FlawFactory(cvss3=cvss3)._alerts)
 
     @pytest.mark.parametrize(
-        "summary,is_major_incident,req,should_raise",
+        "summary,is_major_incident,req,should_alert,alerts",
         [
-            ("", True, None, True),
-            ("", True, "+", True),
-            ("", True, "?", True),
-            ("", True, "-", False),
-            ("", False, None, False),
-            ("", False, "+", False),
-            ("", False, "?", False),
-            ("", False, "-", False),
-            ("foo", False, None, False),
-            ("foo", False, "+", False),
-            ("foo", False, "?", False),
-            ("foo", False, "-", False),
-            ("foo", True, None, True),
-            ("foo", True, "+", False),
-            ("foo", True, "?", True),
-            ("foo", True, "-", False),
+            ("", True, None, True, ["mi_summary_missing", "mi_summary_not_reviewed"]),
+            ("", True, "+", True, ["mi_summary_missing"]),
+            ("", True, "?", True, ["mi_summary_missing", "mi_summary_not_reviewed"]),
+            ("", True, "-", False, []),
+            ("", False, None, False, []),
+            ("", False, "+", False, []),
+            ("", False, "?", False, []),
+            ("", False, "-", False, []),
+            ("foo", False, None, False, []),
+            ("foo", False, "+", False, []),
+            ("foo", False, "?", False, []),
+            ("foo", False, "-", False, []),
+            ("foo", True, None, True, ["mi_summary_not_reviewed"]),
+            ("foo", True, "+", False, []),
+            ("foo", True, "?", True, ["mi_summary_not_reviewed"]),
+            ("foo", True, "-", False, []),
         ],
     )
     def test_validate_major_incident_summary(
-        self, summary, is_major_incident, req, should_raise
+        self, summary, is_major_incident, req, should_alert, alerts
     ):
         """
         Test that a Flaw that is Major Incident has a summary
@@ -952,26 +952,31 @@ class TestFlawValidators:
         flaw1 = FlawFactory.build(
             summary=summary,
             is_major_incident=is_major_incident,
+            embargoed=False,
         )
         flaw1.save(raise_validation_error=False)
+
         AffectFactory(flaw=flaw1)
         FlawReferenceFactory(
             flaw=flaw1,
             type=FlawReference.FlawReferenceType.ARTICLE,
             url="https://access.redhat.com/link123",
         )
-
         if req:
             FlawMetaFactory(
                 flaw=flaw1,
                 type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
                 meta_attr={"status": req},
             )
-        if should_raise:
-            with pytest.raises(ValidationError, match="does not have Summary"):
-                flaw1.save()
+
+        flaw1.save()
+
+        if should_alert:
+            for alert in alerts:
+                assert alert in flaw1._alerts
+            assert len(alerts) == len(flaw1._alerts)
         else:
-            assert flaw1.save() is None
+            assert flaw1._alerts == {}
 
     @pytest.mark.parametrize(
         "state,should_raise",

@@ -809,11 +809,15 @@ class Flaw(
             return
 
         if not self.summary:
-            raise ValidationError("Flaw marked as Major Incident does not have Summary")
+            self.alert(
+                "mi_summary_missing",
+                "Flaw marked as Major Incident does not have Summary",
+            )
 
         if not req or req.meta_attr.get("status") == "?":
-            raise ValidationError(
-                "Flaw marked as Major Incident does not have Summary reviewed"
+            self.alert(
+                "mi_summary_not_reviewed",
+                "Flaw marked as Major Incident does not have Summary reviewed",
             )
 
         # XXX: In SFM2 we check that the REQUIRES_DOC_TEXT flag is set by
