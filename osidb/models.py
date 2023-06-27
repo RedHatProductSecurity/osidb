@@ -1092,6 +1092,14 @@ class Flaw(
         ).exists()
 
     @property
+    def is_owned(self):
+        """
+        has either team or assignee
+        """
+        # TODO
+        return False
+
+    @property
     def trackers_filed(self):
         """check that all affects with FIX resolution have associated trackers filed"""
         return all(
