@@ -5,30 +5,44 @@ priority: 0
 conditions: []
 states:
   - name: DRAFT
+    enter_automaticaly: true
+    jira_state: New
+    jira_resolution: null
     requirements: []
 
-  - name: ANALYSIS
+  # as soon as we have some basic information
+  # and ownership we are no draft any more
+  - name: IN PROGRESS
+    enter_automaticaly: true
+    jira_state: New
+    jira_resolution: null
     requirements:
       - has affects
       - has description
       - has source
       - has title
+      - is owned
 
-  - name: REVIEW
+  - name: PUBLISHED
+    # publishing is done by humans
+    enter_automaticaly: false
+    jira_state: Refinement
+    jira_resolution: null
     requirements:
-      - affects resolved
-      - has cve
-      - has cwe
-
-  - name: FIX
-    requirements:
+      # we file trackers in 24h
       - trackers filed
 
-  # you can freely comment as you wish
-  # maybe about that this is the final state
-  - name: DONE
+  - name: REVIEW
+    enter_automaticaly: true
+    jira_state: In Progress
+    jira_resolution: null
     requirements:
-      # TODO embargoed is not model attribute any more but annotation
-      # so this currently errors out and we need to accout for the change
-      #- not embargoed
-      - trackers resolved
+      - has summary
+      # TODO flags
+
+  - name: FINALIZED
+    enter_automaticaly: true
+    jira_state: Closed
+    jira_resolution: Done
+    requirements:
+      - has cve
