@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "apps.bbsync",
     "apps.exploits",
     "apps.osim",
+    "apps.taskman",
     "apps.trackers",
     "collectors.bzimport",
     "collectors.errata",
@@ -201,6 +202,7 @@ LOGGING = {
                 "apps.bbsync",
                 "apps.exploits",
                 "apps.osim",
+                "apps.taskman",
                 "apps.trackers",
             ]
         },

@@ -3,16 +3,23 @@ Task Manager API endpoints
 """
 import json
 import logging
+from datetime import timedelta
 from typing import Optional
 
 from django.db import models
+from django.utils import timezone
 from jira.exceptions import JIRAError
 from rest_framework.response import Response
 
 from collectors.jiraffe.core import JiraQuerier
 from osidb.models import Affect, Flaw, PsProduct
 
-from .constants import JIRA_TASKMAN_PROJECT_KEY, JIRA_TASKMAN_URL
+from .constants import (
+    CLOSE_PUBLISHED_IN_INACTIVE_DAYS,
+    JIRA_TASKMAN_PROJECT_KEY,
+    JIRA_TASKMAN_URL,
+)
+from .models import ScheduledClosingTask
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +118,9 @@ class JiraTaskmanQuerier(JiraQuerier):
 
         try:
             if task:
+                if task["fields"]["status"]["name"] == TaskStatus.REFINEMENT:
+                    JiraTaskmanQuerier._schedule_status_change(task["key"])
+
                 data = {
                     "fields": {
                         "summary": summary,
@@ -175,6 +185,9 @@ class JiraTaskmanQuerier(JiraQuerier):
                         data="Trying to reject an affected Flaw. Please validate flaw's affects before rejecting the task.",
                         status=409,
                     )
+
+            if status == TaskStatus.REFINEMENT or status == TaskStatus.IN_PROGRESS:
+                JiraTaskmanQuerier._schedule_status_change(issue_key)
 
             if resolution:
                 self.jira_conn.transition_issue(
@@ -280,3 +293,10 @@ class JiraTaskmanQuerier(JiraQuerier):
             )
         except JIRAError as e:
             return Response(data=e.response.json(), status=e.status_code)
+
+    def _schedule_status_change(task_key: str):
+        today = timezone.now()
+        scheduled_dt = today + timedelta(days=CLOSE_PUBLISHED_IN_INACTIVE_DAYS)
+        ScheduledClosingTask.objects.update_or_create(
+            scheduled_dt=scheduled_dt, task_key=task_key
+        )
