@@ -1733,6 +1733,17 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             )
 
     @property
+    def aggregated_impact(self):
+        """
+        this property simply gives the maximum impact of the related entities
+        """
+        return max(
+            Impact(impact)
+            for impact in [affect.impact for affect in self.affects.all()]
+            + [affect.flaw.impact for affect in self.affects.all()]
+        )
+
+    @property
     def bz_id(self):
         """
         shortcut to enable unified Bugzilla Flaw and Tracker handling when meaningful
@@ -1782,6 +1793,27 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     @property
     def is_closed(self):
         return self.status.upper() == "CLOSED"
+
+    @property
+    def is_acked(self):
+        """
+        tracker acked by ProdSec - filed against an acked stream
+        the default approach important and critical aggregated impact
+        """
+        return not self.is_unacked
+
+    @property
+    def is_unacked(self):
+        """
+        tracker not acked by ProdSec - filed against an unacked stream
+        the default approach low and moderate aggregated impact
+        """
+        return (
+            PsUpdateStream.objects.filter(
+                name=self.ps_update_stream, unacked_to_ps_module__isnull=False
+            ).first()
+            is not None
+        )
 
 
 class ErratumManager(TrackingMixinManager):

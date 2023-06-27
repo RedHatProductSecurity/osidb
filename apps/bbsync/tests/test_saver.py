@@ -2,6 +2,7 @@ import bugzilla
 import pytest
 import requests
 
+from apps.bbsync.query import FlawBugzillaQueryBuilder
 from apps.bbsync.save import BugzillaSaver
 from collectors.bzimport.constants import BZ_URL
 from osidb.exceptions import DataInconsistencyException
@@ -17,6 +18,11 @@ class TestBugzillaSaver:
 
         with monkeypatch.context() as m:
             m.setattr(BugzillaSaver, "model", property(lambda _: Flaw))
+            m.setattr(
+                BugzillaSaver,
+                "query_builder",
+                property(lambda _: FlawBugzillaQueryBuilder),
+            )
 
             bs = BugzillaSaver(test_flaw, "foo")
             m.setattr(

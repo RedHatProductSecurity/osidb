@@ -9,7 +9,7 @@ from osidb.exceptions import DataInconsistencyException
 from osidb.models import Flaw
 
 from .exceptions import UnsaveableFlawError
-from .query import BugzillaQueryBuilder
+from .query import FlawBugzillaQueryBuilder
 
 
 class BugzillaSaver(BugzillaQuerier):
@@ -22,6 +22,14 @@ class BugzillaSaver(BugzillaQuerier):
     def model(self):
         """
         instance model class getter
+        needs to be defined in the subclasses
+        """
+        raise NotImplementedError
+
+    @property
+    def query_builder(self):
+        """
+        query builder class getter
         needs to be defined in the subclasses
         """
         raise NotImplementedError
@@ -48,7 +56,7 @@ class BugzillaSaver(BugzillaQuerier):
         """
         create a bug underlying the model instance in Bugilla
         """
-        bugzilla_query_builder = BugzillaQueryBuilder(self.instance)
+        bugzilla_query_builder = self.query_builder(self.instance)
         response = self.bz_conn.createbug(bugzilla_query_builder.query)
         self.instance.bz_id = response.id
         return self.instance
@@ -58,7 +66,7 @@ class BugzillaSaver(BugzillaQuerier):
         update a bug underlying the model instance in Bugilla
         """
         old_instance = self.model.objects.get(uuid=self.instance.uuid)
-        bugzilla_query_builder = BugzillaQueryBuilder(self.instance, old_instance)
+        bugzilla_query_builder = self.query_builder(self.instance, old_instance)
         self.check_collisions()  # check for collisions right before the update
         try:
             self.bz_conn.update_bugs(
@@ -132,6 +140,13 @@ class FlawBugzillaSaver(BugzillaSaver):
         Flaw model class getter
         """
         return Flaw
+
+    @property
+    def query_builder(self):
+        """
+        query builder class getter
+        """
+        return FlawBugzillaQueryBuilder
 
     def update(self):
         """

@@ -6,7 +6,7 @@ from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
 from apps.bbsync.exceptions import SRTNotesValidationError
-from apps.bbsync.query import BugzillaQueryBuilder, SRTNotesBuilder
+from apps.bbsync.query import FlawBugzillaQueryBuilder, SRTNotesBuilder
 from osidb.models import (
     Affect,
     Flaw,
@@ -74,7 +74,7 @@ class TestGenerateBasics:
             title=title,
         )
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["summary"] == summary
 
     @pytest.mark.parametrize(
@@ -137,7 +137,7 @@ class TestGenerateBasics:
             title=title,
         )
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["summary"] == summary
 
     def test_generate_summary_added_cve(self):
@@ -154,7 +154,7 @@ class TestGenerateBasics:
         old_flaw = Flaw.objects.first()
         flaw.cve_id = "CVE-2000-1000"
 
-        bbq = BugzillaQueryBuilder(flaw, old_flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw, old_flaw)
         assert bbq.query["summary"] == "CVE-2000-1000 hammer: is too heavy"
 
     def test_generate_summary_removed_cve(self):
@@ -171,7 +171,7 @@ class TestGenerateBasics:
         old_flaw = Flaw.objects.first()
         flaw.cve_id = ""
 
-        bbq = BugzillaQueryBuilder(flaw, old_flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw, old_flaw)
         assert bbq.query["summary"] == "hammer: is too heavy"
 
 
@@ -233,7 +233,7 @@ class TestGenerateSRTNotes:
         FlawCommentFactory(flaw=old_flaw)
         AffectFactory(flaw=old_flaw)
 
-        bbq = BugzillaQueryBuilder(flaw, old_flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw, old_flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -268,7 +268,7 @@ class TestGenerateSRTNotes:
             },
         )
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -324,7 +324,7 @@ class TestGenerateSRTNotes:
             cvss3="",
         )
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -379,7 +379,7 @@ class TestGenerateSRTNotes:
             description="link description",
         )
 
-        bqb = BugzillaQueryBuilder(flaw)
+        bqb = FlawBugzillaQueryBuilder(flaw)
         cf_srtnotes = bqb.query.get("cf_srtnotes")
         cf_srtnotes_json = json.loads(cf_srtnotes)
         references = cf_srtnotes_json.get("references", [])
@@ -453,7 +453,7 @@ class TestGenerateSRTNotes:
         FlawCommentFactory(flaw=flaw)
         AffectFactory(flaw=flaw)
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -511,7 +511,7 @@ class TestGenerateSRTNotes:
         flaw = FlawFactory(cwe_id=osidb_cwe, meta_attr={"original_srtnotes": srtnotes})
         FlawCommentFactory(flaw=flaw)
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -574,7 +574,7 @@ class TestGenerateSRTNotes:
         FlawCommentFactory(flaw=flaw)
         AffectFactory(flaw=flaw)
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -593,7 +593,7 @@ class TestGenerateSRTNotes:
         FlawCommentFactory(flaw=flaw)
         AffectFactory(flaw=flaw)
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -609,7 +609,7 @@ class TestGenerateSRTNotes:
         FlawCommentFactory(flaw=flaw)
         AffectFactory(flaw=flaw)
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -630,7 +630,7 @@ class TestGenerateSRTNotes:
             embargoed=flaw.is_embargoed,
         )
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -688,7 +688,7 @@ class TestGenerateSRTNotes:
         FlawCommentFactory(flaw=old_flaw)
         AffectFactory(flaw=old_flaw)
 
-        bbq = BugzillaQueryBuilder(flaw, old_flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw, old_flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -738,7 +738,7 @@ class TestGenerateSRTNotes:
         FlawCommentFactory(flaw=old_flaw)
         AffectFactory(flaw=old_flaw)
 
-        bbq = BugzillaQueryBuilder(flaw, old_flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw, old_flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -799,7 +799,7 @@ class TestGenerateSRTNotes:
         FlawCommentFactory(flaw=flaw)
         AffectFactory(flaw=flaw)
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -848,7 +848,7 @@ class TestGenerateSRTNotes:
         )
         FlawCommentFactory(flaw=flaw)
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
@@ -933,7 +933,7 @@ class TestGenerateSRTNotes:
             type=Tracker.TrackerType.JIRA,
         )
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         # SRTNotesValidationError exception should not be raised here
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes and json.loads(cf_srtnotes)
@@ -971,7 +971,7 @@ class TestGenerateGroups:
             },
         )
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         query = bbq.query
 
         assert not query.get("groups", [])
@@ -994,7 +994,7 @@ class TestGenerateGroups:
             },
         )
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         query = bbq.query
 
         groups = query.get("groups", [])
@@ -1021,7 +1021,7 @@ class TestGenerateGroups:
             },
         )
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         query = bbq.query
 
         groups = query.get("groups", [])
@@ -1050,7 +1050,7 @@ class TestGenerateGroups:
         new_flaw = Flaw.objects.first()
         new_flaw.acl_read = []  # make it whatever but embargoed
 
-        bbq = BugzillaQueryBuilder(new_flaw, old_flaw=flaw)
+        bbq = FlawBugzillaQueryBuilder(new_flaw, flaw)
         query = bbq.query
 
         groups = query.get("groups", [])
@@ -1098,7 +1098,7 @@ class TestGenerateGroups:
             },
         )
 
-        bbq = BugzillaQueryBuilder(new_flaw, old_flaw=flaw)
+        bbq = FlawBugzillaQueryBuilder(new_flaw, flaw)
         query = bbq.query
 
         groups = query.get("groups", [])
@@ -1122,7 +1122,7 @@ class TestGenerateComment:
         )
         assert FlawComment.objects.pending().count() == 1
 
-        bbq = BugzillaQueryBuilder(flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["comment"] == {
             "body": "Hello World",
             "is_private": False,
