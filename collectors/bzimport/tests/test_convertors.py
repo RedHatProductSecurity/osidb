@@ -536,7 +536,7 @@ class TestFlawConvertor:
             "last_change_time": "2001-01-01T12:12:12Z",
             "status": "CLOSED",
             "resolution": "",
-            "summary": "kernel: text",
+            "summary": "EMBARGOED TRIAGE CVE-2000-1234 foo: ACL bypass with Authorization: 0000 HTTP header",
             "cf_srtnotes": cls.get_flaw_srtnotes(),
         }
 
@@ -1112,6 +1112,31 @@ class TestFlawConvertor:
         assert affect.cvss2_score is None
         assert affect.cvss3 == ""
         assert affect.cvss3_score is None
+
+    def test_summary_meta_attr(self):
+        """
+        Test that the title (summary in BZ) is saved as-is in Flaw.meta_attr
+
+        Since the actual Flaw title goes through some parsing / transformations,
+        we need to at least provide the summary as-is from BZ in case the
+        parsing was subpar, this way clients can have the full context.
+        """
+        # TODO: make self.get_flaw_bug() into a fixture
+        flaw_bug = self.get_flaw_bug()
+        fbc = FlawConvertor(
+            flaw_bug,
+            [],
+            None,
+            None,
+            [],
+            [],
+        )
+        [flaw] = fbc.bug2flaws()
+        flaw.save()
+        flaw = Flaw.objects.first()
+
+        assert "bz_summary" in flaw.meta_attr
+        assert flaw.meta_attr["bz_summary"] == flaw_bug["summary"]
 
 
 class TestFlawConvertorFixedIn:
