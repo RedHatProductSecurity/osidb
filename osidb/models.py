@@ -1099,12 +1099,6 @@ class Flaw(
             for affect in self.affects.filter(resolution=Affect.AffectResolution.FIX)
         )
 
-    @property
-    def trackers_resolved(self):
-        """check that all trackers have resolution"""
-        # TODO we have no tracker resolution for now
-        return False
-
     def bzsync(self, *args, bz_api_key, **kwargs):
         """
         Bugzilla sync of the Flaw instance
