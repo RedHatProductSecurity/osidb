@@ -2117,7 +2117,7 @@ class FlawAcknowledgment(ACLMixin, BugzillaSyncMixin, TrackingMixin):
 
     # The affiliation of the person being acknowledged.
     # max length seen in production as of 02/2023 == 86
-    affiliation = models.CharField(max_length=255)
+    affiliation = models.CharField(max_length=255, blank=True)
 
     # Whether this acknowledgment comes from an upstream source.
     from_upstream = models.BooleanField()
