@@ -1104,6 +1104,7 @@ class Flaw(
         """check that all affects with FIX resolution have associated trackers filed"""
         return all(
             affect.trackers.exists()
+            # TODO we should probably include also NEW
             for affect in self.affects.filter(resolution=Affect.AffectResolution.FIX)
         )
 
