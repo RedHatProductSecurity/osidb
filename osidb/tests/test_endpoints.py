@@ -1656,6 +1656,7 @@ class TestEndpoints(object):
         """
         flaw = FlawFactory()
         flawreference = FlawReferenceFactory(flaw=flaw)
+        AffectFactory(flaw=flaw)
 
         url = f"{test_api_uri}/flaws/{str(flaw.uuid)}/references/{flawreference.uuid}"
         response = auth_client.get(url)
@@ -1663,7 +1664,7 @@ class TestEndpoints(object):
 
         # Tests "DELETE" on flaws/{uuid}/references/{uuid}
         response = auth_client.delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert response.status_code == status.HTTP_200_OK
         assert FlawReference.objects.count() == 0
 
     def test_tracker_create(self, auth_client, test_api_uri):

@@ -358,6 +358,22 @@ class FlawReferenceView(ModelViewSet):
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    def destroy(self, request, *args, **kwargs):
+        bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
+        if not bz_api_key:
+            raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
+        instance = self.get_object()
+        self.perform_destroy(instance, bz_api_key=bz_api_key)
+        return Response(status=HTTP_200_OK)
+
+    def perform_destroy(self, instance, bz_api_key):
+        """
+        override the default behavior to proxy the delete to Bugzilla
+        """
+        flaw = instance.flaw
+        instance.delete()
+        flaw.save(bz_api_key=bz_api_key)
+
 
 @extend_schema(
     responses={
