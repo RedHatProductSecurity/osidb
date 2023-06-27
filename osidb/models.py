@@ -1005,6 +1005,11 @@ class Flaw(
             if self.meta.filter(type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT).exists():
                 return
 
+            # Acknowledgments are stored in both FlawMeta and FlawAcknowledgment.
+            # FlawMeta will be deprecated in the future, so this check should be kept.
+            if self.acknowledgments.count() > 0:
+                return
+
             if source.is_public():
                 alert_text = (
                     f"Flaw source of type {source} can be public or private, "

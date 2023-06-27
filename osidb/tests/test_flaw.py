@@ -952,7 +952,6 @@ class TestFlawValidators:
         flaw1 = FlawFactory.build(
             summary=summary,
             is_major_incident=is_major_incident,
-            embargoed=False,
         )
         flaw1.save(raise_validation_error=False)
 
@@ -962,6 +961,12 @@ class TestFlawValidators:
             type=FlawReference.FlawReferenceType.ARTICLE,
             url="https://access.redhat.com/link123",
         )
+        if flaw1.source.is_private():
+            FlawAcknowledgmentFactory(flaw=flaw1)
+            FlawMetaFactory(
+                flaw=flaw1,
+                type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT,
+            )
         if req:
             FlawMetaFactory(
                 flaw=flaw1,
