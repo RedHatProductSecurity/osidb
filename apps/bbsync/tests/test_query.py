@@ -386,7 +386,7 @@ class TestGenerateSRTNotes:
 
         assert len(references) == 1
         reference = references[0]
-        assert reference["type"] == "EXTERNAL"
+        assert reference["type"] == "external"
         assert reference["url"] == "https://httpd.apache.org/link123"
         assert reference["description"] == "link description"
 
