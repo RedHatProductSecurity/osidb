@@ -642,7 +642,7 @@ class FlawReferenceSerializer(
         )
 
 
-@extend_schema_serializer(exclude_fields=["updated_dt"])
+@extend_schema_serializer(exclude_fields=["updated_dt", "flaw"])
 class FlawReferencePostSerializer(FlawReferenceSerializer):
     # extra serializer for POST request as there is no last update
     # timestamp but we need to make the field mandatory otherwise
