@@ -809,11 +809,15 @@ class Flaw(
             return
 
         if not self.summary:
-            raise ValidationError("Flaw marked as Major Incident does not have Summary")
+            self.alert(
+                "mi_summary_missing",
+                "Flaw marked as Major Incident does not have Summary",
+            )
 
         if not req or req.meta_attr.get("status") == "?":
-            raise ValidationError(
-                "Flaw marked as Major Incident does not have Summary reviewed"
+            self.alert(
+                "mi_summary_not_reviewed",
+                "Flaw marked as Major Incident does not have Summary reviewed",
             )
 
         # XXX: In SFM2 we check that the REQUIRES_DOC_TEXT flag is set by
@@ -999,6 +1003,11 @@ class Flaw(
         """
         if (source := FlawSource(self.source)) and source.is_private():
             if self.meta.filter(type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT).exists():
+                return
+
+            # Acknowledgments are stored in both FlawMeta and FlawAcknowledgment.
+            # FlawMeta will be deprecated in the future, so this check should be kept.
+            if self.acknowledgments.count() > 0:
                 return
 
             if source.is_public():
