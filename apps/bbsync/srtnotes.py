@@ -176,12 +176,17 @@ class SRTNotesBuilder:
     def generate_references(self):
         """
         generate array of references to SRT notes
+
+        OSIDB uses "ARTICLE" and "EXTERNAL",
+        but Bugzilla uses "vuln_response" and "external".
         """
+        references_mapping = {"ARTICLE": "vuln_response", "EXTERNAL": "external"}
+
         self.add_conditionally(
             "references",
             [
                 {
-                    "type": reference.type,
+                    "type": references_mapping[reference.type],
                     "url": reference.url,
                     "description": reference.description or None,
                 }
