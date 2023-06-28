@@ -2770,7 +2770,6 @@ paths:
         name: flaw_id
         schema:
           type: string
-          format: uuid
         required: true
       - in: query
         name: include_fields
@@ -2836,7 +2835,6 @@ paths:
         name: flaw_id
         schema:
           type: string
-          format: uuid
         required: true
       tags:
       - osidb
@@ -2873,7 +2871,7 @@ paths:
                     version:
                       type: string
           description: ''
-  /osidb/api/v1/flaws/{flaw_id}/references/{uuid}:
+  /osidb/api/v1/flaws/{flaw_id}/references/{id}:
     get:
       operationId: osidb_api_v1_flaws_references_retrieve
       parameters:
@@ -2890,7 +2888,11 @@ paths:
         name: flaw_id
         schema:
           type: string
-          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
         required: true
       - in: query
         name: include_fields
@@ -2913,13 +2915,6 @@ paths:
           wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
           keys from meta_attr. Omit this parameter to not include meta_attr fields
           at all. '
-      - in: path
-        name: uuid
-        schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this flaw reference.
-        required: true
       tags:
       - osidb
       security:
@@ -2951,14 +2946,11 @@ paths:
         name: flaw_id
         schema:
           type: string
-          format: uuid
         required: true
       - in: path
-        name: uuid
+        name: id
         schema:
           type: string
-          format: uuid
-        description: A UUID string identifying this flaw reference.
         required: true
       tags:
       - osidb
@@ -3002,14 +2994,11 @@ paths:
         name: flaw_id
         schema:
           type: string
-          format: uuid
         required: true
       - in: path
-        name: uuid
+        name: id
         schema:
           type: string
-          format: uuid
-        description: A UUID string identifying this flaw reference.
         required: true
       tags:
       - osidb
@@ -5962,9 +5951,6 @@ components:
       properties:
         description:
           type: string
-        flaw:
-          type: string
-          format: uuid
         type:
           $ref: '#/components/schemas/FlawReferenceType'
         url:
@@ -5987,7 +5973,6 @@ components:
       required:
       - created_dt
       - embargoed
-      - flaw
       - url
       - uuid
     FlawReferenceType:
