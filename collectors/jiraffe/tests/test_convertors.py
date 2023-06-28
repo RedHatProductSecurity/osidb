@@ -31,20 +31,24 @@ class TestJiraTrackerConvertor:
         assert tracker.ps_update_stream == "amq-7.1"
         assert tracker.created_dt == "2014-08-04T15:07:19.000+0000"
         assert tracker.updated_dt == "2014-09-10T01:43:37.000+0000"
-        assert tracker.is_embargoed
+        # make sure the tracker is set public if non-embargoed
+        # which is the case here with Red Hat Employee security level
+        assert not tracker.is_embargoed
 
     @pytest.mark.vcr
-    def test_convert_public(self):
+    @pytest.mark.parametrize(
+        "security_level", ["Embargoed Security Issue", "Security Issue"]
+    )
+    def test_convert_embargoed(self, security_level):
         """
-        test that the convertor ACLs setting works
-        this is a hypothetical case as the trackers should not be public
+        test that the convertor ACLs setting works properly for the embargoed trackers
         """
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
-        tracker_data.fields.security = None  # set tu public
+        tracker_data.fields.security.name = security_level  # set to embargoed
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker = tracker_convertor.convert()
 
-        assert not tracker.is_embargoed
+        assert tracker.is_embargoed
 
     @pytest.mark.vcr
     def test_convert_linked(self):

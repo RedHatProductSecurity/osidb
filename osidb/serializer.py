@@ -627,6 +627,7 @@ class FlawReferenceSerializer(
     ACLMixinSerializer,
     BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
+    IncludeMetaAttrMixin,
     TrackingMixinSerializer,
 ):
     """FlawReference serializer"""
@@ -642,7 +643,7 @@ class FlawReferenceSerializer(
         )
 
 
-@extend_schema_serializer(exclude_fields=["updated_dt"])
+@extend_schema_serializer(exclude_fields=["updated_dt", "flaw"])
 class FlawReferencePostSerializer(FlawReferenceSerializer):
     # extra serializer for POST request as there is no last update
     # timestamp but we need to make the field mandatory otherwise
@@ -880,7 +881,9 @@ class FlawCommentSerializer(
         ]
 
 
-@extend_schema_serializer(exclude_fields=["external_system_id", "flaw", "order"])
+@extend_schema_serializer(
+    exclude_fields=["external_system_id", "flaw", "order", "updated_dt"]
+)
 class FlawCommentPostSerializer(FlawCommentSerializer):
     # Extra serializer for POST request because some fields are not
     # submittable by the client and their submit values are hardwired

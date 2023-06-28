@@ -144,20 +144,26 @@ class JiraTrackerConvertor(TrackerConvertor):
         """
         appropriate read LDAP groups
         """
-        if self.get_field_attr(self._raw, "security", "name") is None:
-            return settings.PUBLIC_READ_GROUPS
+        security_level = self.get_field_attr(self._raw, "security", "name")
+        # embargo can be defined by two possible values of the security field name
+        # historically by Security Issue and more recently by Embargoed Security Issue
+        if security_level and "Security Issue" in security_level:
+            return [settings.EMBARGO_READ_GROUP]
 
-        return [settings.EMBARGO_READ_GROUP]
+        return settings.PUBLIC_READ_GROUPS
 
     @property
     def groups_write(self):
         """
         appropriate write LDAP groups
         """
-        if self.get_field_attr(self._raw, "security", "name") is None:
-            return [settings.PUBLIC_WRITE_GROUP]
+        security_level = self.get_field_attr(self._raw, "security", "name")
+        # embargo can be defined by two possible values of the security field name
+        # historically by Security Issue and more recently by Embargoed Security Issue
+        if security_level and "Security Issue" in security_level:
+            return [settings.EMBARGO_WRITE_GROUP]
 
-        return [settings.EMBARGO_WRITE_GROUP]
+        return [settings.PUBLIC_WRITE_GROUP]
 
     @cached_property
     def acl_read(self):

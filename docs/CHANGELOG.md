@@ -5,11 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [3.3.0] - 2023-06-28
 ### Added
 - Implement a new FlawReference API (OSIDB-71)
 - Implement adding new flaw comments (OSIDB-81)
 - Erratum advisory name to flaw filter (OSIDB-922)
 - CORS allow-list functionality (OSIDB-967, OSIDB-965)
+- Raw bugzilla summary to Flaw.meta_attr (OSIDB-1016)
+
+### Changed
+- Set Jira trackers as public instead of embargoed when private (OSIDB-1013)
 
 ## [3.2.2] - 2023-06-19
 ### Changed

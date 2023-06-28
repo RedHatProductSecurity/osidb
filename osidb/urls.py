@@ -23,7 +23,11 @@ router.register(r"flaws", FlawView)
 router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/comments", FlawCommentView, basename="flawcomments"
 )
-router.register(r"flaws/(?P<flaw_id>[^/.]+)/references", FlawReferenceView)
+router.register(
+    r"flaws/(?P<flaw_id>[^/.]+)/references",
+    FlawReferenceView,
+    basename="flawreferences",
+)
 router.register(r"affects", AffectView)
 router.register(r"trackers", TrackerView)
 
