@@ -5951,9 +5951,6 @@ components:
       properties:
         description:
           type: string
-        flaw:
-          type: string
-          format: uuid
         type:
           $ref: '#/components/schemas/FlawReferenceType'
         url:
@@ -5976,7 +5973,6 @@ components:
       required:
       - created_dt
       - embargoed
-      - flaw
       - url
       - uuid
     FlawReferenceType:

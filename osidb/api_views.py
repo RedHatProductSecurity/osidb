@@ -391,6 +391,16 @@ class FlawReferenceView(ModelViewSet):
         """
         return FlawReference.objects.filter(flaw=self.get_flaw())
 
+    def get_serializer(self, *args, **kwargs):
+        """
+        Updates a serializer to contain also a flaw uuid.
+        """
+        if "data" in kwargs:
+            data = kwargs["data"].copy()
+            data["flaw"] = str(self.get_flaw().uuid)
+            kwargs["data"] = data
+        return super().get_serializer(*args, **kwargs)
+
 
 @extend_schema(
     responses={
