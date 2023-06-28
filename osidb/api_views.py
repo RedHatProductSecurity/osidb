@@ -353,7 +353,6 @@ class FlawView(ModelViewSet):
     ),
 )
 class FlawReferenceView(ModelViewSet):
-    queryset = FlawReference.objects.all()
     serializer_class = FlawReferenceSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -373,6 +372,24 @@ class FlawReferenceView(ModelViewSet):
         flaw = instance.flaw
         instance.delete()
         flaw.save(bz_api_key=bz_api_key)
+
+    def get_flaw(self):
+        """
+        Gets a flaw associated with a given flaw reference.
+        """
+        _id = self.kwargs["flaw_id"]
+        if CVE_RE_STR.match(_id):
+            flaw = get_object_or_404(Flaw, cve_id=_id)
+        else:
+            flaw = get_object_or_404(Flaw, uuid=_id)
+        self.check_object_permissions(self.request, flaw)
+        return flaw
+
+    def get_queryset(self):
+        """
+        Returns flaw references only for a specified flaw.
+        """
+        return FlawReference.objects.filter(flaw=self.get_flaw())
 
 
 @extend_schema(
