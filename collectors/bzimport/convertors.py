@@ -22,6 +22,7 @@ from osidb.models import (
     CVEv5PackageVersions,
     CVEv5Version,
     Flaw,
+    FlawAcknowledgment,
     FlawComment,
     FlawHistory,
     FlawMeta,
@@ -182,6 +183,7 @@ class FlawSaver:
         comments,
         history,
         meta,
+        acknowledgments,
         references,
         trackers,
         package_versions,
@@ -191,6 +193,7 @@ class FlawSaver:
         self.comments = comments
         self.history = history
         self.meta = meta
+        self.acknowledgments = acknowledgments
         self.references = references
         self.trackers = trackers
         self.package_versions = package_versions
@@ -207,6 +210,7 @@ class FlawSaver:
             + self.comments
             + self.history
             + self.meta
+            + self.acknowledgments
             + self.references
             + self.trackers
         )
@@ -301,6 +305,15 @@ class FlawSaver:
         for meta in to_delete:
             meta.delete()
 
+    def clean_acknowledgments(self):
+        """clean obsoleted flaw acknowledgments"""
+        old_acknowledgments = set(self.flaw.acknowledgments.all())
+        new_acknowledgments = set(self.acknowledgments)
+
+        to_delete = list(old_acknowledgments - new_acknowledgments)
+        for acknowledgment in to_delete:
+            acknowledgment.delete()
+
     def clean_references(self):
         """clean obsoleted flaw references"""
         old_references = set(self.flaw.references.all())
@@ -369,6 +382,7 @@ class FlawSaver:
             # comments cannot be deleted in Bugzilla
             # history cannot be deleted in Bugzilla
             self.clean_meta()
+            self.clean_acknowledgments()
             self.clean_references()
             self.clean_trackers()
 
@@ -864,6 +878,32 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
             for item in items
         ]
 
+    def get_acknowledgments(self, flaw):
+        """get a list of FlawAcknowledgment Django models"""
+        acknowledgments = []
+
+        for acknowledgment_json in self.srtnotes.get("acknowledgments", []):
+            affiliation = acknowledgment_json.get("affiliation")
+            from_upstream = acknowledgment_json.get("from_upstream")
+            name = acknowledgment_json.get("name")
+
+            acknowledgment_json["acl_labels"] = self.groups
+
+            acknowledgment_obj = FlawAcknowledgment.objects.create_flawacknowledgment(
+                flaw,
+                name,
+                affiliation,
+                from_upstream=from_upstream,
+                meta_attr=acknowledgment_json,
+                acl_read=self.acl_read,
+                acl_write=self.acl_write,
+                created_dt=self.flaw_bug["creation_time"],
+                updated_dt=self.flaw_bug["last_change_time"],
+            )
+            acknowledgments.append(acknowledgment_obj)
+
+        return acknowledgments
+
     def get_references(self, flaw):
         """get a list of FlawReferences Django models"""
         references = []
@@ -992,6 +1032,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     self.get_comments(flaw),
                     self.get_history(),
                     self.get_all_meta(flaw),
+                    self.get_acknowledgments(flaw),
                     self.get_references(flaw),
                     self.get_trackers(),
                     self.package_versions,
@@ -1019,6 +1060,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     self.get_comments(flaw),
                     self.get_history(),
                     self.get_all_meta(flaw),
+                    self.get_acknowledgments(flaw),
                     self.get_references(flaw),
                     self.get_trackers(),
                     self.package_versions,
@@ -1050,6 +1092,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     self.get_comments(flaw),
                     self.get_history(),
                     self.get_all_meta(flaw),
+                    self.get_acknowledgments(flaw),
                     self.get_references(flaw),
                     self.get_trackers(),
                     self.package_versions,
