@@ -1653,6 +1653,103 @@ paths:
       operationId: osidb_api_v1_flaws_list
       parameters:
       - in: query
+        name: acknowledgments__affiliation
+        schema:
+          type: string
+      - in: query
+        name: acknowledgments__created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: acknowledgments__created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: acknowledgments__created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: acknowledgments__created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: acknowledgments__created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: acknowledgments__created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: acknowledgments__created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: acknowledgments__created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: acknowledgments__from_upstream
+        schema:
+          type: boolean
+      - in: query
+        name: acknowledgments__name
+        schema:
+          type: string
+      - in: query
+        name: acknowledgments__updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: acknowledgments__updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: acknowledgments__updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: acknowledgments__updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: acknowledgments__updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: acknowledgments__updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: acknowledgments__updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: acknowledgments__updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: acknowledgments__uuid
+        schema:
+          type: string
+          format: uuid
+      - in: query
         name: affects__affectedness
         schema:
           type: string
@@ -2188,6 +2285,12 @@ paths:
           items:
             type: string
             enum:
+            - -acknowledgments__affiliation
+            - -acknowledgments__created_dt
+            - -acknowledgments__from_upstream
+            - -acknowledgments__name
+            - -acknowledgments__updated_dt
+            - -acknowledgments__uuid
             - -affects__affectedness
             - -affects__created_dt
             - -affects__cvss2
@@ -2228,6 +2331,12 @@ paths:
             - -unembargo_dt
             - -updated_dt
             - -uuid
+            - acknowledgments__affiliation
+            - acknowledgments__created_dt
+            - acknowledgments__from_upstream
+            - acknowledgments__name
+            - acknowledgments__updated_dt
+            - acknowledgments__uuid
             - affects__affectedness
             - affects__created_dt
             - affects__cvss2
@@ -2545,6 +2654,376 @@ paths:
                       type: string
                     version:
                       type: string
+          description: ''
+  /osidb/api/v1/flaws/{flaw_id}/acknowledgments:
+    get:
+      operationId: osidb_api_v1_flaws_acknowledgments_list
+      parameters:
+      - in: query
+        name: affiliation
+        schema:
+          type: string
+      - in: query
+        name: created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: from_upstream
+        schema:
+          type: boolean
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: include_meta_attr
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Specify which keys from meta_attr field should be retrieved,
+          multiple values may be separated by commas. Dot notation can be used to
+          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
+          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
+          keys from meta_attr. Omit this parameter to not include meta_attr fields
+          at all. '
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: name
+        schema:
+          type: string
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedFlawAcknowledgmentList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: osidb_api_v1_flaws_acknowledgments_create
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawAcknowledgmentPost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawAcknowledgmentPost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawAcknowledgmentPost'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawAcknowledgment'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v1/flaws/{flaw_id}/acknowledgments/{id}:
+    get:
+      operationId: osidb_api_v1_flaws_acknowledgments_retrieve
+      parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: include_meta_attr
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Specify which keys from meta_attr field should be retrieved,
+          multiple values may be separated by commas. Dot notation can be used to
+          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
+          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
+          keys from meta_attr. Omit this parameter to not include meta_attr fields
+          at all. '
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawAcknowledgment'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: osidb_api_v1_flaws_acknowledgments_update
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawAcknowledgmentPut'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawAcknowledgmentPut'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawAcknowledgmentPut'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawAcknowledgment'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    delete:
+      operationId: osidb_api_v1_flaws_acknowledgments_destroy
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
           description: ''
   /osidb/api/v1/flaws/{flaw_id}/comments:
     get:
@@ -5566,6 +6045,11 @@ components:
           items:
             $ref: '#/components/schemas/CVEv5PackageVersions'
           readOnly: true
+        acknowledgments:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawAcknowledgment'
+          readOnly: true
         references:
           type: array
           items:
@@ -5601,6 +6085,7 @@ components:
               - DONE
           readOnly: true
       required:
+      - acknowledgments
       - affects
       - classification
       - comments
@@ -5615,6 +6100,118 @@ components:
       - state
       - title
       - trackers
+      - updated_dt
+      - uuid
+    FlawAcknowledgment:
+      type: object
+      description: FlawAcknowledgment serializer
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        affiliation:
+          type: string
+          maxLength: 255
+        from_upstream:
+          type: boolean
+        flaw:
+          type: string
+          format: uuid
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - affiliation
+      - created_dt
+      - embargoed
+      - flaw
+      - from_upstream
+      - name
+      - updated_dt
+      - uuid
+    FlawAcknowledgmentPost:
+      type: object
+      description: FlawAcknowledgment serializer
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        affiliation:
+          type: string
+          maxLength: 255
+        from_upstream:
+          type: boolean
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - affiliation
+      - created_dt
+      - embargoed
+      - from_upstream
+      - name
+      - uuid
+    FlawAcknowledgmentPut:
+      type: object
+      description: FlawAcknowledgment serializer
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        affiliation:
+          type: string
+          maxLength: 255
+        from_upstream:
+          type: boolean
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - affiliation
+      - created_dt
+      - embargoed
+      - from_upstream
+      - name
       - updated_dt
       - uuid
     FlawComment:
@@ -5880,6 +6477,11 @@ components:
           items:
             $ref: '#/components/schemas/CVEv5PackageVersions'
           readOnly: true
+        acknowledgments:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawAcknowledgment'
+          readOnly: true
         references:
           type: array
           items:
@@ -5910,6 +6512,7 @@ components:
               - DONE
           readOnly: true
       required:
+      - acknowledgments
       - affects
       - classification
       - comments
@@ -6244,6 +6847,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ExploitOnlyReportData'
+    PaginatedFlawAcknowledgmentList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawAcknowledgment'
     PaginatedFlawCommentList:
       type: object
       properties:

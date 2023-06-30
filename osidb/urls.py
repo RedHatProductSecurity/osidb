@@ -7,6 +7,7 @@ from rest_framework import routers
 
 from .api_views import (
     AffectView,
+    FlawAcknowledgmentView,
     FlawCommentView,
     FlawReferenceView,
     FlawView,
@@ -20,6 +21,11 @@ from .constants import OSIDB_API_VERSION
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r"flaws", FlawView)
+router.register(
+    r"flaws/(?P<flaw_id>[^/.]+)/acknowledgments",
+    FlawAcknowledgmentView,
+    basename="flawacknowledgments",
+)
 router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/comments", FlawCommentView, basename="flawcomments"
 )
