@@ -2254,10 +2254,9 @@ class FlawReference(ACLMixin, BugzillaSyncMixin, TrackingMixin):
         if self.type == self.FlawReferenceType.ARTICLE and not self.url.startswith(
             "https://access.redhat.com/"
         ):
-            self.alert(
-                "wrong_article_link",
-                f"An article link contains {self.url} "
-                f"and does not begin with https://access.redhat.com/.",
+            raise ValidationError(
+                r"A flaw reference of the ARTICLE type does not begin with "
+                r"https://access.redhat.com/."
             )
 
     def _validate_article_links_count_via_flawreferences(self):

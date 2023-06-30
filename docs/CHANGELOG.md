@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+- Change article link validation to be blocking (OSIDB-1060)
 
 ## [3.3.0] - 2023-06-28
 ### Added
