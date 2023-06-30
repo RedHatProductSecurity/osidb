@@ -1648,19 +1648,17 @@ class TestFlawValidators:
     def test_validate_article_link(self):
         """
         Tests that an article link not starting with https://access.redhat.com/
-        raises an alert.
+        raises an exception.
         """
-        flawreference = FlawReferenceFactory(
-            type=FlawReference.FlawReferenceType.ARTICLE,
-            url="https://httpd.apache.org/link123",
+        error_msg = (
+            r"A flaw reference of the ARTICLE type does not begin with "
+            r"https://access.redhat.com/."
         )
-        assert "wrong_article_link" in flawreference._alerts
-
-        flawreference = FlawReferenceFactory(
-            type=FlawReference.FlawReferenceType.ARTICLE,
-            url="https://access.redhat.com/link123",
-        )
-        assert "wrong_article_link" not in flawreference._alerts
+        with pytest.raises(ValidationError, match=error_msg):
+            FlawReferenceFactory(
+                type=FlawReference.FlawReferenceType.ARTICLE,
+                url="https://httpd.apache.org/link123",
+            )
 
     def test_validate_article_links_count_via_flawreferences(self):
         """
