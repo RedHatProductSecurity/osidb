@@ -43,6 +43,7 @@ class TestFlawSaver:
             title="title",
             description="description",
             impact=Impact.CRITICAL,
+            major_incident_state=Flaw.FlawMajorIncident.REQUESTED,
             created_dt=timezone.now(),
             updated_dt=timezone.now(),
             acl_read=self.get_acls(),
@@ -209,6 +210,7 @@ class TestFlawSaver:
         assert flaw.meta.first() == meta
         assert flaw.references.first() == reference
         assert flaw.package_versions.first() == package_versions
+        assert flaw.major_incident_state == Flaw.FlawMajorIncident.REQUESTED
 
         assert affect is not None
         assert affect.ps_module == "module"
@@ -561,6 +563,67 @@ class TestFlawConvertor:
             "source": "customer"
         }
         """
+
+    @pytest.mark.parametrize(
+        "hightouch,hightouch_lite,result",
+        [
+            # valid pairs
+            ("", "", Flaw.FlawMajorIncident.NOVALUE),
+            ("?", "?", Flaw.FlawMajorIncident.REQUESTED),
+            ("?", "", Flaw.FlawMajorIncident.REQUESTED),
+            ("", "?", Flaw.FlawMajorIncident.REQUESTED),
+            ("-", "-", Flaw.FlawMajorIncident.REJECTED),
+            ("-", "", Flaw.FlawMajorIncident.REJECTED),
+            ("", "-", Flaw.FlawMajorIncident.REJECTED),
+            ("+", "", Flaw.FlawMajorIncident.APPROVED),
+            ("+", "-", Flaw.FlawMajorIncident.APPROVED),
+            ("", "+", Flaw.FlawMajorIncident.CISA_APPROVED),
+            ("-", "+", Flaw.FlawMajorIncident.CISA_APPROVED),
+            # invalid pairs
+            ("+", "+", Flaw.FlawMajorIncident.INVALID),
+            ("+", "?", Flaw.FlawMajorIncident.INVALID),
+            ("?", "+", Flaw.FlawMajorIncident.INVALID),
+            ("-", "?", Flaw.FlawMajorIncident.INVALID),
+            ("?", "-", Flaw.FlawMajorIncident.INVALID),
+            # flags may not be present
+            ("+", None, Flaw.FlawMajorIncident.APPROVED),
+            (None, "+", Flaw.FlawMajorIncident.CISA_APPROVED),
+            (None, None, Flaw.FlawMajorIncident.NOVALUE),
+        ],
+    )
+    def test_flags_major_incident(self, hightouch, hightouch_lite, result):
+        """
+        Tests that hightouch and hightouch-lite flags from Bugzilla are correctly
+        converted into major_incident_state in OSIDB.
+        """
+        flaw_bug = self.get_flaw_bug()
+        flaw_bug["flags"] = []
+
+        if hightouch is not None:
+            flag = {"name": "hightouch", "status": hightouch}
+            flaw_bug["flags"].append(flag)
+
+        if hightouch_lite is not None:
+            flag = {"name": "hightouch-lite", "status": hightouch_lite}
+            flaw_bug["flags"].append(flag)
+
+        fc = FlawConvertor(
+            flaw_bug,
+            [],
+            self.get_flaw_history(),
+            None,
+            [],
+            [],
+        )
+        flaws = fc.bug2flaws()
+        assert not fc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        flaw.save()
+
+        flaw = Flaw.objects.first()
+        assert flaw is not None
+        assert flaw.major_incident_state == result
 
     def test_affect_ps_module_fixup(self):
         """
