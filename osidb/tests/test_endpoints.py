@@ -111,7 +111,9 @@ class TestEndpoints(object):
     def test_get_flaw(self, auth_client, test_api_uri):
         """retrieve specific flaw from endpoint"""
 
-        flaw1 = FlawFactory.build(is_major_incident=True)
+        flaw1 = FlawFactory.build(
+            is_major_incident=True, major_incident_state=Flaw.FlawMajorIncident.APPROVED
+        )
         flaw1.save(raise_validation_error=False)
         FlawMetaFactory(
             flaw=flaw1,
@@ -130,6 +132,7 @@ class TestEndpoints(object):
         assert response.status_code == 200
         body = response.json()
         assert body["is_major_incident"] is True
+        assert body["major_incident_state"] == Flaw.FlawMajorIncident.APPROVED
         assert len(body["comments"]) == 1
 
     def test_list_flaws(self, auth_client, test_api_uri):
