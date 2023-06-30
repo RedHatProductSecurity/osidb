@@ -549,6 +549,39 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         return [flag for flag in self.flaw_bug["flags"] if isinstance(flag, dict)]
 
     @cached_property
+    def major_incident_state(self):
+        """
+        A Major Incident state created from hightouch and hightouch-lite flags.
+        """
+        # Default values
+        hightouch = ""
+        hightouch_lite = ""
+
+        # Sets values from Bugzilla
+        for flag in self.flags:
+            if flag["name"] == "hightouch":
+                hightouch = flag["status"]
+            if flag["name"] == "hightouch-lite":
+                hightouch_lite = flag["status"]
+
+        valid_pairs = {
+            ("", ""): Flaw.FlawMajorIncident.NOVALUE,
+            ("?", "?"): Flaw.FlawMajorIncident.REQUESTED,
+            ("?", ""): Flaw.FlawMajorIncident.REQUESTED,
+            ("", "?"): Flaw.FlawMajorIncident.REQUESTED,
+            ("-", "-"): Flaw.FlawMajorIncident.REJECTED,
+            ("-", ""): Flaw.FlawMajorIncident.REJECTED,
+            ("", "-"): Flaw.FlawMajorIncident.REJECTED,
+            ("+", ""): Flaw.FlawMajorIncident.APPROVED,
+            ("+", "-"): Flaw.FlawMajorIncident.APPROVED,
+            ("", "+"): Flaw.FlawMajorIncident.CISA_APPROVED,
+            ("-", "+"): Flaw.FlawMajorIncident.CISA_APPROVED,
+        }
+        flags_from_bz = (hightouch, hightouch_lite)
+
+        return valid_pairs.get(flags_from_bz, Flaw.FlawMajorIncident.INVALID)
+
+    @cached_property
     def package_versions(self):
         """parse fixed_in to package versions"""
         fixed_in = self.flaw_bug["fixed_in"]
@@ -731,6 +764,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
             cve_id=cve_id,
             type=FlawType.VULNERABILITY,
             meta_attr=self.get_meta_attr(cve_id),
+            major_incident_state=self.major_incident_state,
             created_dt=self.flaw_bug["creation_time"],
             updated_dt=self.flaw_bug["last_change_time"],
             acl_read=self.acl_read,
