@@ -796,6 +796,7 @@ class FlawSerializer(
                 "cvss3_score",
                 "nvd_cvss3",
                 "is_major_incident",
+                "major_incident_state",
                 "affects",
                 "meta",
                 "comments",

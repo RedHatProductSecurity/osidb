@@ -2157,6 +2157,17 @@ paths:
         schema:
           type: integer
       - in: query
+        name: major_incident_state
+        schema:
+          type: string
+          enum:
+          - ''
+          - APPROVED
+          - CISA_APPROVED
+          - INVALID
+          - REJECTED
+          - REQUESTED
+      - in: query
         name: nvd_cvss2
         schema:
           type: string
@@ -2209,6 +2220,7 @@ paths:
             - -cwe_id
             - -impact
             - -is_major_incident
+            - -major_incident_state
             - -nvd_cvss2
             - -nvd_cvss3
             - -reported_dt
@@ -2249,6 +2261,7 @@ paths:
             - cwe_id
             - impact
             - is_major_incident
+            - major_incident_state
             - nvd_cvss2
             - nvd_cvss3
             - reported_dt
@@ -5467,6 +5480,10 @@ components:
           maxLength: 100
         is_major_incident:
           type: boolean
+        major_incident_state:
+          oneOf:
+          - $ref: '#/components/schemas/MajorIncidentStateEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         affects:
           type: array
           items:
@@ -5776,6 +5793,10 @@ components:
           maxLength: 100
         is_major_incident:
           type: boolean
+        major_incident_state:
+          oneOf:
+          - $ref: '#/components/schemas/MajorIncidentStateEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         affects:
           type: array
           items:
@@ -6114,6 +6135,14 @@ components:
       - emailAddress
       - key
       - name
+    MajorIncidentStateEnum:
+      enum:
+      - REQUESTED
+      - REJECTED
+      - APPROVED
+      - CISA_APPROVED
+      - INVALID
+      type: string
     MaturityPreliminaryEnum:
       enum:
       - 0
