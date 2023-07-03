@@ -1127,3 +1127,38 @@ class TestGenerateComment:
             "body": "Hello World",
             "is_private": False,
         }
+
+
+class TestGenerateFlags:
+    @pytest.mark.parametrize(
+        "mi_state,hightouch,hightouch_lite,should_convert",
+        [
+            # flags to convert
+            (Flaw.FlawMajorIncident.REQUESTED, "?", "?", True),
+            (Flaw.FlawMajorIncident.REJECTED, "-", "-", True),
+            (Flaw.FlawMajorIncident.APPROVED, "+", "-", True),
+            (Flaw.FlawMajorIncident.CISA_APPROVED, "-", "+", True),
+            # flags to ignore
+            (Flaw.FlawMajorIncident.NOVALUE, None, None, False),
+            (Flaw.FlawMajorIncident.INVALID, None, None, False),
+        ],
+    )
+    def test_generate_hightouch_and_hightouch_lite(
+        self, mi_state, hightouch, hightouch_lite, should_convert
+    ):
+        """
+        Tests that major_incident_state is correctly converted into hightouch and
+        hightouch-lite flags.
+        """
+        flaw = FlawFactory.build(major_incident_state=mi_state)
+        flaw.save(raise_validation_error=False)
+
+        fbqb = FlawBugzillaQueryBuilder(flaw)
+        flags = fbqb.query.get("flags")
+
+        if should_convert:
+            assert len(flags) == 2
+            assert {"name": "hightouch", "status": hightouch} in flags
+            assert {"name": "hightouch-lite", "status": hightouch_lite} in flags
+        else:
+            assert flags == []
