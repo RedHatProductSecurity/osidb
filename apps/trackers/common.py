@@ -1,6 +1,5 @@
 """
-BTS Trackers model used to create in-memory trackers
-that will be persisted in the corresponding BTS
+common tracker functionality shared between BTSs
 """
 from typing import Any, Dict
 

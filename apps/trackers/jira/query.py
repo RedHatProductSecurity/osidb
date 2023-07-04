@@ -1,5 +1,5 @@
 """
-Tracker API endpoints
+Jira tracker query module
 """
 import logging
 
@@ -11,7 +11,7 @@ from collectors.jiraffe.core import JiraQuerier
 from osidb.models import Affect, PsUpdateStream, Tracker
 
 from .constants import JIRA_SERVER
-from .jira import JiraTracker
+from .core import JiraTracker
 
 logger = logging.getLogger(__name__)
 

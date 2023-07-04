@@ -8,9 +8,9 @@ BTS instances for generating new cassettes.
 
 import pytest
 
-from apps.trackers.jira import JiraTracker
+from apps.trackers.jira.core import JiraTracker
+from apps.trackers.jira.query import JiraTrackerQuerier
 from apps.trackers.models import JiraProjectFields
-from apps.trackers.service import JiraTrackerQuerier
 from apps.trackers.tests.test_bts_tracker import validate_minimum_key_value
 from osidb.models import Impact, Tracker
 from osidb.tests.factories import (
