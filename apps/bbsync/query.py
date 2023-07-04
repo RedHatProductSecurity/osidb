@@ -223,7 +223,23 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         """
         self._query["flags"] = []
         # TODO needinfo and other flags
-        # hightouch | hightouch-lite | nist_cvss_validation | requires_doc_text
+        # nist_cvss_validation | requires_doc_text
+
+        flags_to_write = {
+            Flaw.FlawMajorIncident.REQUESTED: ("?", "?"),
+            Flaw.FlawMajorIncident.REJECTED: ("-", "-"),
+            Flaw.FlawMajorIncident.APPROVED: ("+", "-"),
+            Flaw.FlawMajorIncident.CISA_APPROVED: ("-", "+"),
+            # flags NOVALUE and INVALID are ignored
+        }
+
+        if self.flaw.major_incident_state in flags_to_write:
+            hightouch, hightouch_lite = flags_to_write[self.flaw.major_incident_state]
+
+            self._query["flags"].append({"name": "hightouch", "status": hightouch})
+            self._query["flags"].append(
+                {"name": "hightouch-lite", "status": hightouch_lite}
+            )
 
     # Bugzilla groups allowed to be set for Bugzilla Security Response product
     # https://bugzilla.redhat.com/editproducts.cgi?action=edit&product=Security%20Response
