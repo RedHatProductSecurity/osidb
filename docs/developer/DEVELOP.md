@@ -15,6 +15,7 @@ Create a file named `.env`:
 BZIMPORT_BZ_API_KEY=####################
 
 # Bugzilla URL (optional, defaults to RedHat production Bugzilla)
+# Never add the trailing slash to the URL as the python-bugzilla handles it wrong
 BZIMPORT_BZ_URL="https://foo.bar"
 
 # Jira REST API authentication token
