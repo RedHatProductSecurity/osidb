@@ -10,7 +10,7 @@ from typing import Any, Dict
 
 import pytest
 
-from apps.trackers.jira import JiraPriority, JiraTracker
+from apps.trackers.jira.core import JiraPriority, JiraTracker
 from apps.trackers.models import JiraProjectFields
 from osidb.models import Impact, Tracker
 from osidb.tests.factories import (

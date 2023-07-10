@@ -1,13 +1,12 @@
 """
-Jira tracker funtionality module
+Jira tracker core funtionality module
 """
 from typing import Any, Dict
 
+from apps.trackers.common import BTSTracker
 from apps.trackers.exceptions import NoPriorityAvailableError
 from apps.trackers.models import JiraProjectFields
 from osidb.models import Impact
-
-from .bts_tracker import BTSTracker
 
 
 class JiraPriority:
