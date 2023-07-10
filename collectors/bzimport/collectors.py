@@ -304,6 +304,15 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
             "end": timezone.datetime(2023, 5, 13, 2, 3, tzinfo=TIMEZONE),
             "step": relativedelta(hours=5),
         },
+        # migration reassigning flaws to nobody@redhat.com
+        # after security-response-team@redhat.com disabling
+        # 2023-07-07 08:25 UTC – 2023-07-07 08:40 UTC
+        # so we prevent large batches going by 3 minutes
+        {
+            "start": timezone.datetime(2023, 7, 7, 8, 25, tzinfo=TIMEZONE),
+            "end": timezone.datetime(2023, 7, 7, 8, 40, tzinfo=TIMEZONE),
+            "step": relativedelta(minutes=3),
+        },
     ]
 
     def end_period_heuristic(self, period_start):
