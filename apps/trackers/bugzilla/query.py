@@ -61,7 +61,6 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder):
         self.generate_groups()
         self.generate_keywords()
         self.generate_summary()
-        self.generate_version()
 
     def generate_base(self):
         """
@@ -69,6 +68,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder):
         """
         self._query = {
             "product": self.ps_module.bts_key,
+            "version": self.ps_update_stream.version,
         }
         # priority and severity is mirrored
         self._query["priority"] = self._query[
@@ -167,10 +167,3 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder):
         self._query[
             "summary"
         ] = f"{self.ps_component}: TODO [{self.ps_update_stream.name}]"
-
-    def generate_version(self):
-        """
-        generate Bugzilla component
-        """
-        # TODO RHSCL can override this
-        self._query["version"] = self.ps_update_stream.version
