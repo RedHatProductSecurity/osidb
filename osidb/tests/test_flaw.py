@@ -16,6 +16,7 @@ from osidb.models import (
     Flaw,
     FlawAcknowledgment,
     FlawComment,
+    FlawDraft,
     FlawMeta,
     FlawReference,
     FlawSource,
@@ -1907,3 +1908,133 @@ class TestFlawValidators:
         affect = AffectFactory(ps_module="test-ps-module", ps_component=ps_component)
 
         assert should_raise == bool("flaw_affects_unknown_component" in affect._alerts)
+
+
+class TestFlawDraft:
+    @pytest.mark.parametrize("impact", [i for i in Impact.values if i])
+    @pytest.mark.parametrize(
+        "source",
+        [
+            v
+            for v in FlawSource.values
+            if FlawSource(v).is_allowed() and FlawSource(v).is_public()
+        ],
+    )
+    def test_promotion_public(self, impact, source):
+
+        draft = FlawDraft(
+            origin="https://example.com",
+            content={"foo": "bar"},
+            title="Foo",
+            description="This FlawDraft is Foo",
+            component="flask",
+            impact=impact,
+            source=source,
+            unembargo_dt=tzdatetime(1998, 2, 25, 7, 7, 7),
+            reported_dt=tzdatetime(1998, 2, 24, 6, 6, 6),
+        )
+
+        draft.set_public()
+        draft.save()
+
+        assert (
+            not Flaw.objects.count()
+        ), "There should be no existing Flaws before promotion"
+
+        draft.promote()
+
+        flaw = Flaw.objects.first()
+
+        assert flaw is not None, "There should be one flaw after promotion"
+
+        assert draft.title == flaw.title, "FlawDraft and Flaw title mismatch"
+        assert (
+            draft.description == flaw.description
+        ), "FlawDraft and Flaw description mismatch"
+        assert (
+            draft.component == flaw.component
+        ), "FlawDraft and Flaw component mismatch"
+        assert draft.impact == flaw.impact, "FlawDraft and Flaw impact mismatch"
+        assert draft.source == flaw.source, "FlawDraft and Flaw source mismatch"
+        assert (
+            draft.unembargo_dt == flaw.unembargo_dt
+        ), "FlawDraft and Flaw unembargo_dt mismatch"
+        assert (
+            draft.reported_dt == flaw.reported_dt
+        ), "FlawDraft and Flaw reported_dt mismatch"
+        assert draft.checked, "FlawDraft should be marked as checked after promoting"
+        assert draft.flaw == flaw
+
+    @pytest.mark.parametrize("impact", [i for i in Impact.values if i])
+    @pytest.mark.parametrize(
+        "source",
+        [
+            v
+            for v in FlawSource.values
+            if FlawSource(v).is_allowed() and FlawSource(v).is_private()
+        ],
+    )
+    def test_promotion_private(self, impact, source):
+
+        draft = FlawDraft(
+            origin="https://example.com",
+            content={"foo": "bar"},
+            title="Foo",
+            description="This FlawDraft is Foo",
+            component="flask",
+            impact=impact,
+            source=source,
+            unembargo_dt=tzdatetime(2077, 2, 25, 13, 50, 32),
+            reported_dt=tzdatetime(1998, 2, 24, 6, 6, 6),
+        )
+
+        draft.set_embargoed()
+        draft.save()
+
+        assert (
+            not Flaw.objects.count()
+        ), "There should be no existing Flaws before promotion"
+
+        draft.promote()
+
+        flaw = Flaw.objects.first()
+
+        assert flaw is not None, "There should be one flaw after promotion"
+
+        assert draft.title == flaw.title, "FlawDraft and Flaw title mismatch"
+        assert (
+            draft.description == flaw.description
+        ), "FlawDraft and Flaw description mismatch"
+        assert (
+            draft.component == flaw.component
+        ), "FlawDraft and Flaw component mismatch"
+        assert draft.impact == flaw.impact, "FlawDraft and Flaw impact mismatch"
+        assert draft.source == flaw.source, "FlawDraft and Flaw source mismatch"
+        assert (
+            draft.unembargo_dt == flaw.unembargo_dt
+        ), "FlawDraft and Flaw unembargo_dt mismatch"
+        assert (
+            draft.reported_dt == flaw.reported_dt
+        ), "FlawDraft and Flaw reported_dt mismatch"
+
+    def test_rejection(self):
+        draft = FlawDraft(
+            origin="https://example.com",
+            content={"foo": "bar"},
+            title="Foo",
+            description="This FlawDraft is Foo",
+        )
+
+        draft.set_public()
+        draft.save()
+
+        assert (
+            not draft.checked
+        ), "FlawDraft should not be marked as checked until promotion/rejection"
+
+        draft.reject()
+
+        assert (
+            draft.checked
+        ), "FlawDraft should be marked as checked after promotion/rejection"
+        assert draft.flaw is None, "FlawDraft.flaw should be None if rejected"

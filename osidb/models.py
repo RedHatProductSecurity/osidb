@@ -589,11 +589,48 @@ class FlawManager(ACLMixinManager, TrackingMixinManager):
         # If search has no results, this will now return an empty queryset
 
 
+# Due to circular dependencies (on the Impact enum), this class must be
+# declared here
+# TODO: Move enums into their own namespace e.g. ./types.py
+class FlawMixin(ACLMixin, NullStrFieldsMixin, TrackingMixin):
+    """
+    Mixin for attributes in common between Flaw-like models
+    """
+
+    # short description of the Flaw
+    # TODO: should be a CharField?
+    title = models.TextField()
+
+    # informal, long description of the Flaw
+    description = models.TextField()
+
+    # the component being affected by this flaw
+    # originally a part of BZ summary, value depends on successful parsing
+    component = models.CharField(max_length=100, blank=True)
+
+    # flaw severity, from srtnotes "impact"
+    impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
+
+    # reported source of flaw, from srtnotes "source"
+    source = models.CharField(choices=FlawSource.choices, max_length=500, blank=True)
+
+    # date when embargo is to be lifted, from srtnotes "public"
+    unembargo_dt = models.DateTimeField(null=True, blank=True)
+
+    # reported date, from srtnotes "reported"
+    reported_dt = models.DateTimeField(
+        null=True,
+        blank=True,
+        validators=[no_future_date],
+    )
+
+    class Meta:
+        abstract = True
+
+
 class Flaw(
-    ACLMixin,
+    FlawMixin,
     BugzillaSyncMixin,
-    NullStrFieldsMixin,
-    TrackingMixin,
     WorkflowModel,
 ):
     """Model flaw"""
@@ -719,19 +756,6 @@ class Flaw(
         return_instead=FlawResolution.NOVALUE,
     )
 
-    # flaw severity, from srtnotes "impact"
-    impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
-
-    # flaw component was originally a part of the Bugzilla sumary
-    # so the value may depend on how successfully it was parsed
-    component = models.CharField(max_length=100, blank=True)
-
-    # from BZ summary
-    title = models.TextField()
-
-    # from BZ description
-    description = models.TextField()
-
     # from doc_team summary
     summary = models.TextField(blank=True)
 
@@ -745,17 +769,6 @@ class Flaw(
 
     # contains a single cwe-id or cwe relationships, from srtnotes "cwe"
     cwe_id = models.CharField(blank=True, max_length=255, validators=[validate_cwe_id])
-
-    # date when embargo is to be lifted, from srtnotes "public"
-    unembargo_dt = models.DateTimeField(null=True, blank=True)
-
-    # reported source of flaw, from srtnotes "source"
-    source = models.CharField(choices=FlawSource.choices, max_length=500, blank=True)
-
-    # reported date, from srtnotes "reported"
-    reported_dt = models.DateTimeField(
-        null=True, blank=True, validators=[no_future_date]
-    )
 
     # mitigation to apply if the final fix is not available, from srtnotes "mitigation"
     mitigation = models.TextField(blank=True)
@@ -2841,6 +2854,87 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.username
+
+
+class FlawDraft(FlawMixin, AlertMixin):
+
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    origin = models.URLField(max_length=2048)
+    # free-form storage of snippets from external sources
+    content = models.JSONField()
+    flaw = models.OneToOneField(
+        Flaw, on_delete=models.SET_NULL, related_name="+", null=True, blank=True
+    )
+    checked = models.BooleanField(default=False)
+
+    def _validate_acl_identical_to_parent_flaw(self):
+        # this is a "hack" to prevent this ACLMixin validation from running
+        # because it assumes that:
+        # 1) flaw has a parent relationship to this object which is not
+        #   the case here
+        # 2) flaw is not null, which is not the case here
+        #
+        # the proper solution to this problem would be to decouple said
+        # validation from ACLMixin with e.g. a FlawChildACLMixin mixin
+        # which inherits from ACLMixin and applies the aforementioned
+        # validation and any others related to the Flaw parent relationship
+        ...
+
+    def _validate_embargoed_source(self):
+        """
+        Checks that the source is private if the Flaw is embargoed.
+        """
+        # /!\ this is copied over from Flaw._validate_embargoed_source so it is
+        # technically duplicated code, however it cannot be factorized into the
+        # FlawMixin class because it would require that FlawMixin inherit from
+        # AlertMixin, which would lead to a diamond inheritance problem in the
+        # Flaw class as it would lead to an ambiguous MRO.
+        if not self.source:
+            return
+
+        if (
+            self.is_embargoed
+            and (source := FlawSource(self.source))
+            and source.is_public()
+        ):
+            if source.is_private():
+                self.alert(
+                    "embargoed_source_public",
+                    f"Flaw source of type {source} can be public or private, "
+                    "ensure that it is private since the Flaw is embargoed.",
+                )
+            else:
+                raise ValidationError(
+                    f"Flaw is embargoed but contains public source: {self.source}"
+                )
+
+    def promote(self):
+        flaw = Flaw(
+            title=self.title,
+            description=self.description,
+            component=self.component,
+            impact=self.impact,
+            source=self.source,
+            unembargo_dt=self.unembargo_dt,
+            reported_dt=self.reported_dt,
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
+        )
+        flaw.save()
+        self.checked = True
+        self.flaw = flaw
+        self.save()
+
+    def reject(self):
+        self.checked = True
+        self.save()
+
+    class Meta:
+        indexes = (models.Index(fields=["-created_dt"]),)
+        ordering = (
+            "-created_dt",
+            "uuid",
+        )
 
 
 from apps.bbsync.cc import AffectCCBuilder, RHSCLAffectCCBuilder  # noqa: E402
