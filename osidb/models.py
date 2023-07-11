@@ -307,25 +307,17 @@ class FlawSource(models.TextChoices):
     XEN = "XEN"
     XPDF = "XPDF"
 
-    def is_private(self):
-        """
-        Returns True if the source is private, False otherwise.
-
-        Note that the following sources can be both public and private:
-        DEBIAN, MAGEIA, GENTOO, SUSE, UBUNTU
-        """
-        return self in {
+    @property
+    def private(self):
+        return {
             # PRIVATE_SOURCES from SFM2
             self.ADOBE,
             self.APPLE,
             self.CERT,
             self.CUSTOMER,
-            self.DEBIAN,
             self.DISTROS,
-            self.GENTOO,
             self.GOOGLE,
             self.HW_VENDOR,
-            self.MAGEIA,
             self.MOZILLA,
             self.OPENSSL,
             self.REDHAT,
@@ -335,18 +327,11 @@ class FlawSource(models.TextChoices):
             self.XEN,
             self.VENDOR_SEC,
             self.SUN,
-            self.SUSE,
-            self.UBUNTU,
         }
 
-    def is_public(self):
-        """
-        Returns True if the source is public, False otherwise.
-
-        Note that the following sources can be both public and private:
-        DEBIAN, MAGEIA, GENTOO, SUSE, UBUNTU
-        """
-        return not self.is_private() or self in {
+    @property
+    def ambiguous(self):
+        return {
             self.DEBIAN,
             self.MAGEIA,
             self.GENTOO,
@@ -354,11 +339,80 @@ class FlawSource(models.TextChoices):
             self.UBUNTU,
         }
 
-    def is_allowed(self):
-        """
-        Returns True if the source is allowed (not historical), False otherwise.
-        """
-        return self in [
+    @property
+    def public(self):
+        return {
+            self.ASF,
+            self.BIND,
+            self.BK,
+            self.BUGTRAQ,
+            self.BUGZILLA,
+            self.CERTFI,
+            self.CORELABS,
+            self.CVE,
+            self.DAILYDAVE,
+            self.FEDORA,
+            self.FETCHMAIL,
+            self.FREEDESKTOP,
+            self.FREERADIUS,
+            self.FRSIRT,
+            self.FULL_DISCLOSURE,
+            self.GAIM,
+            self.GENTOOBZ,
+            self.GIT,
+            self.GNOME,
+            self.GNUPG,
+            self.HP,
+            self.IBM,
+            self.IDEFENSE,
+            self.INTERNET,
+            self.ISC,
+            self.ISEC,
+            self.IT,
+            self.JBOSS,
+            self.JPCERT,
+            self.KERNELBUGZILLA,
+            self.KERNELSEC,
+            self.LKML,
+            self.LWN,
+            self.MACROMEDIA,
+            self.MAILINGLIST,
+            self.MILW0RM,
+            self.MIT,
+            self.MITRE,
+            self.MUTTDEV,
+            self.NETDEV,
+            self.NISCC,
+            self.NOVALUE,
+            self.OCERT,
+            self.OPENOFFICE,
+            self.OPENSUSE,
+            self.ORACLE,
+            self.OSS,
+            self.OSS_SECURITY,
+            self.PHP,
+            self.PIDGIN,
+            self.POSTGRESQL,
+            self.PRESS,
+            self.REAL,
+            self.RT,
+            self.SAMBA,
+            self.SECALERT,
+            self.SECURITYFOCUS,
+            self.SKO,
+            self.SQUID,
+            self.SQUIRRELMAIL,
+            self.SUNSOLVE,
+            self.TWITTER,
+            self.VULNWATCH,
+            self.WIRESHARK,
+            self.XCHAT,
+            self.XPDF,
+        }
+
+    @property
+    def allowed(self):
+        return {
             self.ADOBE,
             self.APPLE,
             self.BUGTRAQ,
@@ -390,7 +444,31 @@ class FlawSource(models.TextChoices):
             self.UPSTREAM,
             self.VENDOR_SEC,
             self.XEN,
-        ]
+        }
+
+    def is_private(self):
+        """
+        Returns True if the source is private, False otherwise.
+
+        Note that the following sources can be both public and private:
+        DEBIAN, MAGEIA, GENTOO, SUSE, UBUNTU
+        """
+        return self in (self.private | self.ambiguous)
+
+    def is_public(self):
+        """
+        Returns True if the source is public, False otherwise.
+
+        Note that the following sources can be both public and private:
+        DEBIAN, MAGEIA, GENTOO, SUSE, UBUNTU
+        """
+        return self in (self.public | self.ambiguous)
+
+    def is_allowed(self):
+        """
+        Returns True if the source is allowed (not historical), False otherwise.
+        """
+        return self in self.allowed
 
 
 class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
