@@ -4,12 +4,15 @@ Helpers for direct or development shell usage
 
 import json
 import logging
+import sys
+import warnings
 from distutils.util import strtobool
 from os import getenv
 from typing import Any, List, Type, Union
 
 from celery._state import get_current_task
 from django.db import models
+from django_deprecate_fields import DeprecatedField, logger
 
 from .exceptions import OSIDBException
 
@@ -88,3 +91,67 @@ class TaskFormatter(logging.Formatter):
             record.__dict__.setdefault("task_name", record.__dict__.get("name"))
             record.__dict__.setdefault("task_id", "")
         return super().format(record)
+
+
+# Part of the following code is subject to a different license and copyright
+# holder:
+
+# Copyright 2018 3YOURMIND GmbH
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+# http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+class DynamicDeprecatedField(DeprecatedField):
+    """
+    This override allows a return_instead callable with argument.
+    """
+
+    def __get__(self, obj, type=None):
+        msg = "accessing deprecated field %s.%s" % (
+            obj.__class__.__name__,
+            self._get_name(obj),
+        )
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        logger.warning(msg)
+        if not callable(self.val):
+            return self.val
+        # this version of the code, when compared to the original, makes it
+        # so that if val is callable, its output can depend on the Model object
+        # instance
+        try:
+            return self.val(obj)
+        except TypeError:
+            # the callable that was passed does not support any arguments
+            return self.val()
+
+
+def deprecate_field(field_instance, return_instead=None):
+    """
+    Can be used in models to delete a Field in a Backwards compatible manner.
+    The process for deleting old model Fields is:
+    1. Mark a field as deprecated by wrapping the field with this function
+    2. Wait until (1) is deployed to every relevant server/branch
+    3. Delete the field from the model.
+
+    For (1) and (3) you need to run ./manage.py makemigrations:
+    :param field_instance: The field to deprecate
+    :param return_instead: A value or function that
+    the field will pretend to have
+    """
+    # this version of the code, when compared to the original, makes use
+    # of DynamicDeprecatedField instead of DeprecatedField.
+    if not set(sys.argv) & {"makemigrations", "migrate", "showmigrations"}:
+        return DynamicDeprecatedField(return_instead)
+
+    field_instance.null = True
+    return field_instance
