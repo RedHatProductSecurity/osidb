@@ -2651,6 +2651,16 @@ class PsModule(NullStrFieldsMixin, ValidateMixin):
         PsProduct, on_delete=models.CASCADE, related_name="ps_modules"
     )
 
+    @property
+    def is_rhscl(self) -> bool:
+        """
+        check and return whether the PS module is RHSCL one
+
+        Red Hat Software Collections represent an extra layer in
+        the component hierarchy and may require special handling
+        """
+        return self.bts_key == RHSCL_BTS_KEY
+
 
 class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
 
