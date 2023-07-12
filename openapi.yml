@@ -1472,6 +1472,13 @@ paths:
           description: ''
     post:
       operationId: osidb_api_v1_affects_create
+      parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       tags:
       - osidb
       requestBody:
@@ -1575,6 +1582,12 @@ paths:
     put:
       operationId: osidb_api_v1_affects_update
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: uuid
         schema:
@@ -2685,6 +2698,13 @@ paths:
           description: ''
     post:
       operationId: osidb_api_v1_flaws_create
+      parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       tags:
       - osidb
       requestBody:
@@ -3663,6 +3683,12 @@ paths:
     put:
       operationId: osidb_api_v1_flaws_update
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: id
         schema:
@@ -5000,7 +5026,7 @@ paths:
       description: Create a new group of tasks
       parameters:
       - in: header
-        name: JiraAuthentication
+        name: Jira-Api-Key
         schema:
           type: string
         description: User generated token for Jira authentication.
@@ -5043,7 +5069,7 @@ paths:
       description: Get a list of tasks from a group
       parameters:
       - in: header
-        name: JiraAuthentication
+        name: Jira-Api-Key
         schema:
           type: string
         description: User generated token for Jira authentication.
@@ -5081,7 +5107,7 @@ paths:
       description: Add a task into a group
       parameters:
       - in: header
-        name: JiraAuthentication
+        name: Jira-Api-Key
         schema:
           type: string
         description: User generated token for Jira authentication.
@@ -5123,7 +5149,7 @@ paths:
       description: Get a task from Jira given a task key
       parameters:
       - in: header
-        name: JiraAuthentication
+        name: Jira-Api-Key
         schema:
           type: string
         description: User generated token for Jira authentication.
@@ -5162,7 +5188,7 @@ paths:
       description: Create a new comment in a task
       parameters:
       - in: header
-        name: JiraAuthentication
+        name: Jira-Api-Key
         schema:
           type: string
         description: User generated token for Jira authentication.
@@ -5206,7 +5232,7 @@ paths:
       description: Edit a comment in a task
       parameters:
       - in: header
-        name: JiraAuthentication
+        name: Jira-Api-Key
         schema:
           type: string
         description: User generated token for Jira authentication.
@@ -5255,7 +5281,7 @@ paths:
       description: Change a task workflow status
       parameters:
       - in: header
-        name: JiraAuthentication
+        name: Jira-Api-Key
         schema:
           type: string
         description: User generated token for Jira authentication.
@@ -5328,7 +5354,7 @@ paths:
       description: Get a list of tasks from a user
       parameters:
       - in: header
-        name: JiraAuthentication
+        name: Jira-Api-Key
         schema:
           type: string
         description: User generated token for Jira authentication.
@@ -5366,7 +5392,7 @@ paths:
       description: Assign a task to a user
       parameters:
       - in: header
-        name: JiraAuthentication
+        name: Jira-Api-Key
         schema:
           type: string
         description: User generated token for Jira authentication.
@@ -5408,7 +5434,7 @@ paths:
       description: Get a task from Jira given a Flaw uuid
       parameters:
       - in: header
-        name: JiraAuthentication
+        name: Jira-Api-Key
         schema:
           type: string
         description: User generated token for Jira authentication.
@@ -5446,7 +5472,7 @@ paths:
       description: Create a task in Jira from a Flaw
       parameters:
       - in: header
-        name: JiraAuthentication
+        name: Jira-Api-Key
         schema:
           type: string
         description: User generated token for Jira authentication.
@@ -5482,7 +5508,7 @@ paths:
       description: Update a task in Jira from a Flaw
       parameters:
       - in: header
-        name: JiraAuthentication
+        name: Jira-Api-Key
         schema:
           type: string
         description: User generated token for Jira authentication.
@@ -5519,7 +5545,7 @@ paths:
       description: Get a list of tasks without an user assigned
       parameters:
       - in: header
-        name: JiraAuthentication
+        name: Jira-Api-Key
         schema:
           type: string
         description: User generated token for Jira authentication.

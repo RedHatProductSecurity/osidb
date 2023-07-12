@@ -228,6 +228,29 @@ flaw_id = OpenApiParameter(
     ),
 )
 
+bz_api_key_param = OpenApiParameter(
+    name="Bugzilla-Api-Key",
+    required=True,
+    type=str,
+    location=OpenApiParameter.HEADER,
+    description="User generated api key for Bugzilla authentication.",
+)
+
+
+def bz_api_key_extend_schema_view(
+    cls: Type[ViewSetMixin],
+) -> Type[ViewSetMixin]:
+    """
+    Decorator which adds `Bugzilla-Api-Key` header parameter description
+    into the schema for `create` and `update` methods
+    """
+    return (
+        extend_schema_view(
+            create=extend_schema(parameters=[bz_api_key_param]),
+            update=extend_schema(parameters=[bz_api_key_param]),
+        )
+    )(cls)
+
 
 def include_meta_attr_extend_schema_view(cls: Type[ViewSetMixin]) -> Type[ViewSetMixin]:
     """
@@ -261,6 +284,7 @@ def include_exclude_fields_extend_schema_view(
 
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
+@bz_api_key_extend_schema_view
 @extend_schema_view(
     list=extend_schema(
         parameters=[
@@ -554,6 +578,7 @@ class FlawCommentView(SubFlawViewGetMixin, ModelViewSet):
 
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
+@bz_api_key_extend_schema_view
 @extend_schema_view(
     create=extend_schema(
         request=AffectPostSerializer,
