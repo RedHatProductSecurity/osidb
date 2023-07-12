@@ -611,33 +611,50 @@ consider the DB and API compatibility. For the DB we need to ensure that OSIDB i
 that the app of version N can work with the DB of version N-1 and vice-versa. For the API we need to ensure
 that the breaking changes are introduced only in major releases. The standard procedure is as follows.
 
-* remove functionality using the field
-* mark model field as deprecated with Django
-  [deprecate-fields](https://github.com/3YOURMIND/django-deprecate-fields)
-* mark serializer field as deprecated with
-  [drf-spectacular](https://drf-spectacular.readthedocs.io/en/latest/drf_spectacular.html#drf_spectacular.utils.extend_schema)
-* create Django DB migration
+* Optionally remove functionality using the field, if whatever code that
+  depends on the field being deprecated can/should work with the in-memory-only
+  version of the field, then it is not necessary to remove the usage until it
+  is completely removed.
+* Mark model field as deprecated with `osidb.helpers.deprecate_field` which is
+  our vendored version of [deprecate-fields](https://github.com/3YOURMIND/django-deprecate-fields).
+* If the field is the product of a rename or restructuring and the logic can be
+  extracted from another field, you can provide a single-argument
+  function/method in which the argument is the Model object instance for which
+  the field was accessed.
+
+```python
+class MyModel(models.Model):
+
+    def extrapolate_foo(self):
+      return self.new_foo
+
+    foo = deprecate_field(models.CharField(), return_instead=extrapolate_foo)
+```
+
+* Mark serializer field as deprecated with [drf-spectacular](https://drf-spectacular.readthedocs.io/en/latest/drf_spectacular.html#drf_spectacular.utils.extend_schema).
+* Create Django DB migration.
 
 ```bash
 $ make migrate
 ```
 
-* update OpenAPI schema
+* Update OpenAPI schema.
 
 ```bash
 $ make update-schema
 ```
 
-* do [release](OPERATIONS.md#Release)
-* wait until the next major release is ahead
-* remove deprecated model field
-* remove deprecated serializer field and decorator
-* create Django DB migration
-* update OpenAPI schema
-* do major release
+* Do [release](OPERATIONS.md#Release).
+* Wait until the next major release is ahead.
+* Remove deprecated model field and callsites.
+* Remove deprecated serializer field and decorator.
+* Create Django DB migration.
+* Update OpenAPI schema.
+* Do major release.
 
-Obviously the procedure is simplified and ommits steps like review or release announcement.
-An example pull request can be see [here](https://github.com/RedHatProductSecurity/osidb/pull/55).
+Obviously the procedure is simplified and omits steps like review or release
+announcement.
+An example pull request can be seen [here](https://github.com/RedHatProductSecurity/osidb/pull/55).
 
 ## Row-level security & dummy data
 
