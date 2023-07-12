@@ -2,12 +2,12 @@ import logging
 
 from bugzilla import Bugzilla
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from jira import JIRA
 
 from osidb.helpers import get_env
-from osidb.models import Profile
+from osidb.models import AffectCVSS, FlawCVSS, Profile
 
 logger = logging.getLogger(__name__)
 
@@ -66,3 +66,9 @@ def auto_create_profile(sender, instance, created, **kwargs):
             bz_user_id=get_bz_user_id(instance.email),
             jira_user_id=get_jira_user_id(instance.email),
         ).save()
+
+
+@receiver(pre_save, sender=FlawCVSS)
+@receiver(pre_save, sender=AffectCVSS)
+def populate_cvss_score(sender, instance, **kwargs):
+    instance.score = instance.cvss_object.scores()[0]

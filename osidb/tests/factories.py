@@ -3,17 +3,22 @@ from random import choice
 
 import factory
 import factory.fuzzy
+from cvss.constants2 import METRICS_VALUE_NAMES as CVSS2_METRICS_VALUE_NAMES
+from cvss.constants3 import METRICS_VALUE_NAMES as CVSS3_METRICS_VALUE_NAMES
 from django.conf import settings
 from pytz import UTC
 
 from osidb.constants import AFFECTEDNESS_VALID_RESOLUTIONS, DATETIME_FMT
 from osidb.models import (
+    CVSS,
     Affect,
+    AffectCVSS,
     CVEv5PackageVersions,
     CVEv5Version,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
+    FlawCVSS,
     FlawMeta,
     FlawReference,
     FlawSource,
@@ -533,3 +538,118 @@ class PsUpdateStreamFactory(factory.django.DjangoModelFactory):
     aus_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
     eus_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
     unacked_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
+
+
+class CVSSFactory(factory.django.DjangoModelFactory):
+    class Params:
+        # CVSS2 params
+        cvss2_access_vector = factory.Faker(
+            "random_element", elements=CVSS2_METRICS_VALUE_NAMES["AV"].keys()
+        )
+        cvss2_access_complexity = factory.Faker(
+            "random_element", elements=CVSS2_METRICS_VALUE_NAMES["AC"].keys()
+        )
+        cvss2_authentication = factory.Faker(
+            "random_element", elements=CVSS2_METRICS_VALUE_NAMES["Au"].keys()
+        )
+        cvss2_confidentiality_impact = factory.Faker(
+            "random_element", elements=CVSS2_METRICS_VALUE_NAMES["C"].keys()
+        )
+        cvss2_integrity_impact = factory.Faker(
+            "random_element", elements=CVSS2_METRICS_VALUE_NAMES["I"].keys()
+        )
+        cvss2_availablity_impact = factory.Faker(
+            "random_element", elements=CVSS2_METRICS_VALUE_NAMES["A"].keys()
+        )
+
+        # CVSS3 params
+        cvss3_attack_vector = factory.Faker(
+            "random_element", elements=CVSS3_METRICS_VALUE_NAMES["AV"].keys()
+        )
+        cvss3_attack_complexity = factory.Faker(
+            "random_element",
+            elements=CVSS3_METRICS_VALUE_NAMES["AC"].keys(),
+        )
+        cvss3_privileges_required = factory.Faker(
+            "random_element",
+            elements=CVSS3_METRICS_VALUE_NAMES["PR"].keys(),
+        )
+        cvss3_user_interaction = factory.Faker(
+            "random_element",
+            elements=CVSS3_METRICS_VALUE_NAMES["UI"].keys(),
+        )
+        cvss3_scope = factory.Faker(
+            "random_element",
+            elements=CVSS3_METRICS_VALUE_NAMES["S"].keys(),
+        )
+        cvss3_confidentiality = factory.Faker(
+            "random_element",
+            elements=CVSS3_METRICS_VALUE_NAMES["C"].keys(),
+        )
+        cvss3_integrity = factory.Faker(
+            "random_element",
+            elements=CVSS3_METRICS_VALUE_NAMES["I"].keys(),
+        )
+        cvss3_availability = factory.Faker(
+            "random_element",
+            elements=CVSS3_METRICS_VALUE_NAMES["A"].keys(),
+        )
+
+    version = factory.Faker("random_element", elements=list(CVSS.CVSSVersion))
+    issuer = factory.Faker("random_element", elements=list(CVSS.CVSSIssuer))
+
+    @factory.lazy_attribute
+    def vector(self):
+        vectors = {
+            CVSS.CVSSVersion.VERSION2: (
+                f"AV:{self.cvss2_access_vector}"
+                f"/AC:{self.cvss2_access_complexity}"
+                f"/Au:{self.cvss2_authentication}"
+                f"/C:{self.cvss2_confidentiality_impact}"
+                f"/I:{self.cvss2_integrity_impact}"
+                f"/A:{self.cvss2_availablity_impact}"
+            ),
+            CVSS.CVSSVersion.VERSION3: (
+                f"CVSS:3.1/AV:{self.cvss3_attack_vector}"
+                f"/AC:{self.cvss3_attack_complexity}"
+                f"/PR:{self.cvss3_privileges_required}"
+                f"/UI:{self.cvss3_user_interaction}"
+                f"/S:{self.cvss3_scope}"
+                f"/C:{self.cvss3_confidentiality}"
+                f"/I:{self.cvss3_integrity}"
+                f"/A:{self.cvss3_availability}"
+            ),
+        }
+
+        return vectors[self.version]
+
+    comment = factory.LazyAttribute(
+        lambda o: "CVSS RH comment" if o.issuer == CVSS.CVSSIssuer.REDHAT else ""
+    )
+
+    created_dt = factory.Faker("date_time", tzinfo=UTC)
+    updated_dt = factory.Faker("date_time", tzinfo=UTC)
+
+
+class FlawCVSSFactory(CVSSFactory):
+    class Meta:
+        model = FlawCVSS
+        django_get_or_create = ("flaw", "issuer", "version")
+
+    flaw = factory.SubFactory(FlawFactory)
+
+    # let us inherit the parent flaw ACLs if not specified
+    acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
+    acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
+
+
+class AffectCVSSFactory(CVSSFactory):
+    class Meta:
+        model = AffectCVSS
+        django_get_or_create = ("affect", "issuer", "version")
+
+    affect = factory.SubFactory(AffectFactory)
+
+    # let us inherit the parent affect ACLs if not specified
+    acl_read = factory.LazyAttribute(lambda o: o.affect.acl_read)
+    acl_write = factory.LazyAttribute(lambda o: o.affect.acl_write)
