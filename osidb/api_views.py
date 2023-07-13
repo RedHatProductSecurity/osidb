@@ -597,15 +597,24 @@ class FlawCommentView(ModelViewSet):
         return obj
 
     def get_queryset(self):
+        """
+        Returns flaw comments only for a specified flaw.
+        """
         if getattr(self, "swagger_fake_view", False):
-            # https://drf-yasg.readthedocs.io/en/stable/openapi.html
+            # Required for autogeneration of parameters to openapi.yml because
+            # get_queryset depends on "flaw" not available at schema generation
+            # time. Documented in
+            # https://drf-spectacular.readthedocs.io/en/latest/faq.html#my-get-queryset-depends-on-some-attributes-not-available-at-schema-generation-time
             return FlawComment.objects.none()
         flaw = self.get_flaw()
         return FlawComment.objects.filter(flaw=flaw)
 
     def get_serializer(self, *args, **kwargs):
+        """
+        Updates a serializer to contain also a flaw uuid.
+        """
         if "data" in kwargs:
-            # Once upon a time, request.data used to be read-only, it seems.
+            # request.data can be immutable, depending on media type
             data = kwargs["data"].copy()
             # flaw is provided in URL, not in the request, so inject it for
             # the serializer and its validation
