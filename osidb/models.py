@@ -2391,6 +2391,14 @@ class FlawAcknowledgment(ACLMixin, BugzillaSyncMixin, TrackingMixin):
                     f"Flaw contains acknowledgments for public source {self.flaw.source}"
                 )
 
+    def bzsync(self, *args, bz_api_key, **kwargs):
+        """
+        Bugzilla sync of the FlawAcknowledgment instance
+        """
+        self.save()
+        # FlawAcknowledgment needs to be synced through flaw
+        self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
+
 
 class FlawReferenceManager(ACLMixinManager, TrackingMixinManager):
     """flawreference manager"""
