@@ -650,7 +650,7 @@ class FlawReferencePostSerializer(FlawReferenceSerializer):
     pass
 
 
-@extend_schema_serializer(deprecate_fields=["state", "resolution"])
+@extend_schema_serializer(deprecate_fields=["state", "resolution", "is_major_incident"])
 class FlawSerializer(
     ACLMixinSerializer,
     BugzillaSyncMixinSerializer,
@@ -716,6 +716,10 @@ class FlawSerializer(
 
     meta = serializers.SerializerMethodField()
     meta_attr = serializers.SerializerMethodField()
+
+    # This line forces the deprecated "is_major_incident" field NOT to change
+    # from boolean to string. Otherwise, some unknown logic turns it into string.
+    is_major_incident = serializers.BooleanField(required=False)
 
     @extend_schema_field(
         {

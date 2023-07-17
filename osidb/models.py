@@ -32,6 +32,7 @@ from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.osim.workflow import WorkflowModel
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 
+from .helpers import deprecate_field as deprecate_field_custom
 from .mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -541,13 +542,11 @@ class Flaw(
         Valid states represent the following BZ combinations in the format
         `<hightouch flag>|<hightouch-lite flag>`:
 
-            ( | ) no flags set (NOVALUE)
-            (?|?): can be either MI or MI CISA (REQUESTED)
-            (-|-): both MI and MI CISA are rejected (REJECTED)
-            (+| ) or (+|-): MI approved (APPROVED)
-            ( |+) or (-|+): MI CISA approved (CISA_APPROVED)
-
-        If a flaw is MI, its state must be either APPROVED or CISA_APPROVED.
+            ( | ): no flags set (NOVALUE)
+            (?| ), ( |?), (?|?): MI, CISA MI, or both requested (REQUESTED)
+            (-| ), ( |-), (-|-): MI, CISA MI, or both rejected (REJECTED)
+            (+| ), (+|-): MI approved (APPROVED)
+            ( |+), (-|+): CISA MI approved (CISA_APPROVED)
 
         If a state does not match any of BZ combinations, INVALID is set.
         """
@@ -652,8 +651,28 @@ class Flaw(
         max_length=100, blank=True, validators=[validate_cvss3]
     )
 
+    def is_major_incident_temp(self):
+        """
+        This function mirrors behaviour of the is_major_incident field.
+        Once the original field is removed, this should be turned into property.
+
+        "is_major_incident" is True if hightouch/hightouch-lite contains "+"/"?" flags.
+        """
+        if self is None:
+            return False
+
+        return self.major_incident_state in [
+            self.FlawMajorIncident.REQUESTED,
+            self.FlawMajorIncident.APPROVED,
+            self.FlawMajorIncident.CISA_APPROVED,
+        ]
+
     # should be set True if MAJOR_INCIDENT or MAJOR_INCIDENT_LITE FlawMeta exists, from BZ flagsq
-    is_major_incident = models.BooleanField(default=False)
+    is_major_incident = deprecate_field_custom(
+        models.BooleanField(default=False),
+        # required to keep backwards compatibility
+        return_instead=is_major_incident_temp,
+    )
 
     major_incident_state = models.CharField(
         choices=FlawMajorIncident.choices, max_length=20, blank=True
@@ -809,7 +828,9 @@ class Flaw(
         Check that a flaw that is a major incident has a summary
         """
         req = self.meta.filter(type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY).last()
-        if not self.is_major_incident or (req and req.meta_attr.get("status") == "-"):
+        if not self.is_major_incident_temp() or (
+            req and req.meta_attr.get("status") == "-"
+        ):
             return
 
         if not self.summary:
@@ -836,7 +857,7 @@ class Flaw(
         """
         article = self.references.filter(type=FlawReference.FlawReferenceType.ARTICLE)
 
-        if self.is_major_incident and article.count() == 0:
+        if self.is_major_incident_temp() and article.count() == 0:
             self.alert(
                 "mi_article_missing",
                 "A flaw marked as Major Incident does not have an article.",
@@ -846,7 +867,7 @@ class Flaw(
         """
         Tests that a Flaw that is Major Incident has a mitigation.
         """
-        if self.is_major_incident and self.mitigation == "":
+        if self.is_major_incident_temp() and self.mitigation == "":
             self.alert(
                 "mi_mitigation_missing",
                 "A flaw marked as Major Incident does not have a mitigation.",
@@ -856,7 +877,7 @@ class Flaw(
         """
         Tests that a Flaw that is Major Incident has a statement.
         """
-        if self.is_major_incident and self.statement == "":
+        if self.is_major_incident_temp() and self.statement == "":
             self.alert(
                 "mi_statement_missing",
                 "A flaw marked as Major Incident does not have a statement.",
@@ -945,10 +966,11 @@ class Flaw(
         old_flaw = Flaw.objects.get(pk=self.pk)
         was_high_impact = (
             old_flaw.impact in [Impact.CRITICAL, Impact.IMPORTANT]
-            or old_flaw.is_major_incident
+            or old_flaw.is_major_incident_temp()
         )
         is_high_impact = (
-            self.impact in [Impact.CRITICAL, Impact.IMPORTANT] or self.is_major_incident
+            self.impact in [Impact.CRITICAL, Impact.IMPORTANT]
+            or self.is_major_incident_temp()
         )
         if (
             was_high_impact != is_high_impact

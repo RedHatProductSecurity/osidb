@@ -1228,7 +1228,7 @@ class TestFlawConvertor:
 
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
-        assert flaw.is_major_incident is True
+        assert flaw.major_incident_state == Flaw.FlawMajorIncident.REQUESTED
 
     def test_attributes_removed_in_bugzilla(self):
         """

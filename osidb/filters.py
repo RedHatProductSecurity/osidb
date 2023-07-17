@@ -75,6 +75,8 @@ class FlawFilter(DistinctFilterSet):
     changed_before = DateTimeFilter(
         field_name="updated_dt", method="changed_before_filter"
     )
+    is_major_incident = BooleanFilter(method="is_major_incident_filter")
+
     bz_id = NumberFilter(field_name="meta_attr__bz_id", lookup_expr="exact")
     tracker_ids = CharInFilter(
         field_name="affects__trackers__external_system_id",
@@ -118,6 +120,24 @@ class FlawFilter(DistinctFilterSet):
             | Q(affects__trackers__updated_dt__lte=value)
         ).distinct()
 
+    def is_major_incident_filter(self, queryset, name, value):
+        """
+        Based on the `value`, returns all Flaws which are (or are not) Major Incidents.
+        """
+        if value:
+            return queryset.filter(
+                major_incident_state__in=[
+                    Flaw.FlawMajorIncident.REQUESTED,
+                    Flaw.FlawMajorIncident.APPROVED,
+                    Flaw.FlawMajorIncident.CISA_APPROVED,
+                ]
+            )
+        return queryset.filter(
+            major_incident_state__in=[
+                Flaw.FlawMajorIncident.REJECTED,
+            ]
+        )
+
     class Meta:
         """
         Class that defines some Filter properties. Can be used to auto-generate filters, but param names are less useful
@@ -152,7 +172,6 @@ class FlawFilter(DistinctFilterSet):
             "nvd_cvss2": ["exact"],
             "nvd_cvss3": ["exact"],
             "component": ["exact"],
-            "is_major_incident": ["exact"],
             "major_incident_state": ["exact"],
             # Affect fields
             "affects__uuid": ["exact"],
@@ -212,6 +231,25 @@ class AffectFilter(DistinctFilterSet):
     embargoed = BooleanFilter(field_name="embargoed")
     trackers__embargoed = BooleanFilter(field_name="trackers__embargoed")
     flaw__embargoed = BooleanFilter(field_name="flaw__embargoed")
+    flaw__is_major_incident = BooleanFilter(method="is_major_incident_filter")
+
+    def is_major_incident_filter(self, queryset, name, value):
+        """
+        Based on the `value`, returns all Flaws which are (or are not) Major Incidents.
+        """
+        if value:
+            return queryset.filter(
+                flaw__major_incident_state__in=[
+                    Flaw.FlawMajorIncident.REQUESTED,
+                    Flaw.FlawMajorIncident.APPROVED,
+                    Flaw.FlawMajorIncident.CISA_APPROVED,
+                ]
+            )
+        return queryset.filter(
+            flaw__major_incident_state__in=[
+                Flaw.FlawMajorIncident.REJECTED,
+            ]
+        )
 
     class Meta:
         model = Affect
@@ -264,7 +302,6 @@ class AffectFilter(DistinctFilterSet):
             "flaw__nvd_cvss2": ["exact"],
             "flaw__nvd_cvss3": ["exact"],
             "flaw__component": ["exact"],
-            "flaw__is_major_incident": ["exact"],
             # Tracker fields
             "trackers__uuid": ["exact"],
             "trackers__type": ["exact"],
@@ -292,6 +329,25 @@ class TrackerFilter(DistinctFilterSet):
     embargoed = BooleanFilter(field_name="embargoed")
     affects__embargoed = BooleanFilter(field_name="affects__embargoed")
     affects__flaw__embargoed = BooleanFilter(field_name="flaw__embargoed")
+    affects__flaw__is_major_incident = BooleanFilter(method="is_major_incident_filter")
+
+    def is_major_incident_filter(self, queryset, name, value):
+        """
+        Based on the `value`, returns all Flaws which are (or are not) Major Incidents.
+        """
+        if value:
+            return queryset.filter(
+                affects__flaw__major_incident_state__in=[
+                    Flaw.FlawMajorIncident.REQUESTED,
+                    Flaw.FlawMajorIncident.APPROVED,
+                    Flaw.FlawMajorIncident.CISA_APPROVED,
+                ]
+            )
+        return queryset.filter(
+            affects__flaw__major_incident_state__in=[
+                Flaw.FlawMajorIncident.REJECTED,
+            ]
+        )
 
     class Meta:
         model = Tracker
@@ -365,7 +421,6 @@ class TrackerFilter(DistinctFilterSet):
             "affects__flaw__nvd_cvss2": ["exact"],
             "affects__flaw__nvd_cvss3": ["exact"],
             "affects__flaw__component": ["exact"],
-            "affects__flaw__is_major_incident": ["exact"],
         }
 
     order = OrderingFilter(fields=Meta.fields.keys())

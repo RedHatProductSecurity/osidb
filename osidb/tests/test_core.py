@@ -7,7 +7,7 @@ from rest_framework.viewsets import ModelViewSet
 from osidb.api_views import get_valid_http_methods
 from osidb.core import set_user_acls
 from osidb.exceptions import OSIDBException
-from osidb.models import FlawMeta, FlawReference
+from osidb.models import Flaw, FlawMeta, FlawReference
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -31,7 +31,7 @@ class TestCore(object):
 
     def test_flaw_factory(self):
         """test that we can generate a flaw using factory"""
-        flaw1 = FlawFactory.build(is_major_incident=True)
+        flaw1 = FlawFactory.build(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
         flaw1.save(raise_validation_error=False)
         FlawMetaFactory(
             flaw=flaw1,
