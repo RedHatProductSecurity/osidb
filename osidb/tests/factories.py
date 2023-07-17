@@ -46,6 +46,11 @@ class FlawFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Flaw
 
+    # Used only in "summary" and "mitigation".
+    # This solves the issue that factory.Faker cannot be used in factory.LazyAttribute.
+    class Params:
+        fallback = factory.Faker("random_element", elements=["", "foo"])
+
     cve_id = factory.sequence(lambda n: f"CVE-2020-000{n}")
     cwe_id = factory.Faker("random_element", elements=["CWE-1", ""])
     type = factory.Faker("random_element", elements=list(FlawType))
@@ -69,20 +74,35 @@ class FlawFactory(factory.django.DjangoModelFactory):
     )
     statement = factory.LazyAttribute(lambda c: f"Statement for {c.cve_id}")
     embargoed = factory.Faker("random_element", elements=[False, True])
-    major_incident_state = factory.Maybe(
-        "is_major_incident",
-        yes_declaration=Flaw.FlawMajorIncident.APPROVED,
-        no_declaration=Flaw.FlawMajorIncident.NOVALUE,
+    major_incident_state = factory.Faker(
+        "random_element",
+        elements=[
+            Flaw.FlawMajorIncident.REQUESTED,
+            Flaw.FlawMajorIncident.REJECTED,
+            Flaw.FlawMajorIncident.APPROVED,
+            Flaw.FlawMajorIncident.CISA_APPROVED,
+            Flaw.FlawMajorIncident.NOVALUE,
+        ],
     )
-    summary = factory.Maybe(
-        "is_major_incident",
-        yes_declaration="I'm a spooky CVE",
-        no_declaration=factory.Faker("random_element", elements=["", "foo"]),
+    summary = factory.LazyAttribute(
+        lambda f: "I am a spooky CVE"
+        if f.major_incident_state
+        in [
+            Flaw.FlawMajorIncident.REQUESTED,
+            Flaw.FlawMajorIncident.APPROVED,
+            Flaw.FlawMajorIncident.CISA_APPROVED,
+        ]
+        else f.fallback
     )
-    mitigation = factory.Maybe(
-        "is_major_incident",
-        yes_declaration="CVE mitigation",
-        no_declaration=factory.Faker("random_element", elements=["", "foo"]),
+    mitigation = factory.LazyAttribute(
+        lambda f: "CVE mitigation"
+        if f.major_incident_state
+        in [
+            Flaw.FlawMajorIncident.REQUESTED,
+            Flaw.FlawMajorIncident.APPROVED,
+            Flaw.FlawMajorIncident.CISA_APPROVED,
+        ]
+        else f.fallback
     )
     unembargo_dt = factory.Maybe(
         "embargoed",

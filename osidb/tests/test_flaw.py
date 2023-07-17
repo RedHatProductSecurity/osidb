@@ -77,7 +77,7 @@ class TestFlaw:
             impact=Impact.CRITICAL,
             source=FlawSource.APPLE,
             statement="statement",
-            is_major_incident=True,
+            major_incident_state=Flaw.FlawMajorIncident.APPROVED,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
@@ -95,7 +95,7 @@ class TestFlaw:
             type=FlawReference.FlawReferenceType.ARTICLE,
             url="https://access.redhat.com/link123",
         )
-        assert vuln_1.is_major_incident
+        assert vuln_1.major_incident_state == Flaw.FlawMajorIncident.APPROVED
 
         affect1 = AffectFactory(flaw=vuln_1)
         all_trackers = affect1.trackers.all()
@@ -923,36 +923,57 @@ class TestFlawValidators:
         assert should_alert == ("cvss3_missing" in FlawFactory(cvss3=cvss3)._alerts)
 
     @pytest.mark.parametrize(
-        "summary,is_major_incident,req,should_alert,alerts",
+        "summary,major_incident,req,should_alert,alerts",
         [
-            ("", True, None, True, ["mi_summary_missing", "mi_summary_not_reviewed"]),
-            ("", True, "+", True, ["mi_summary_missing"]),
-            ("", True, "?", True, ["mi_summary_missing", "mi_summary_not_reviewed"]),
-            ("", True, "-", False, []),
-            ("", False, None, False, []),
-            ("", False, "+", False, []),
-            ("", False, "?", False, []),
-            ("", False, "-", False, []),
-            ("foo", False, None, False, []),
-            ("foo", False, "+", False, []),
-            ("foo", False, "?", False, []),
-            ("foo", False, "-", False, []),
-            ("foo", True, None, True, ["mi_summary_not_reviewed"]),
-            ("foo", True, "+", False, []),
-            ("foo", True, "?", True, ["mi_summary_not_reviewed"]),
-            ("foo", True, "-", False, []),
+            (
+                "",
+                Flaw.FlawMajorIncident.APPROVED,
+                None,
+                True,
+                ["mi_summary_missing", "mi_summary_not_reviewed"],
+            ),
+            ("", Flaw.FlawMajorIncident.APPROVED, "+", True, ["mi_summary_missing"]),
+            (
+                "",
+                Flaw.FlawMajorIncident.APPROVED,
+                "?",
+                True,
+                ["mi_summary_missing", "mi_summary_not_reviewed"],
+            ),
+            ("", Flaw.FlawMajorIncident.APPROVED, "-", False, []),
+            ("", Flaw.FlawMajorIncident.NOVALUE, None, False, []),
+            ("", Flaw.FlawMajorIncident.NOVALUE, "+", False, []),
+            ("", Flaw.FlawMajorIncident.NOVALUE, "?", False, []),
+            ("", Flaw.FlawMajorIncident.NOVALUE, "-", False, []),
+            ("foo", Flaw.FlawMajorIncident.NOVALUE, None, False, []),
+            ("foo", Flaw.FlawMajorIncident.NOVALUE, "+", False, []),
+            ("foo", Flaw.FlawMajorIncident.NOVALUE, "?", False, []),
+            ("foo", Flaw.FlawMajorIncident.NOVALUE, "-", False, []),
+            (
+                "foo",
+                Flaw.FlawMajorIncident.APPROVED,
+                None,
+                True,
+                ["mi_summary_not_reviewed"],
+            ),
+            ("foo", Flaw.FlawMajorIncident.APPROVED, "+", False, []),
+            (
+                "foo",
+                Flaw.FlawMajorIncident.APPROVED,
+                "?",
+                True,
+                ["mi_summary_not_reviewed"],
+            ),
+            ("foo", Flaw.FlawMajorIncident.APPROVED, "-", False, []),
         ],
     )
     def test_validate_major_incident_summary(
-        self, summary, is_major_incident, req, should_alert, alerts
+        self, summary, major_incident, req, should_alert, alerts
     ):
         """
         Test that a Flaw that is Major Incident has a summary
         """
-        flaw1 = FlawFactory.build(
-            summary=summary,
-            is_major_incident=is_major_incident,
-        )
+        flaw1 = FlawFactory.build(summary=summary, major_incident_state=major_incident)
         flaw1.save(raise_validation_error=False)
 
         AffectFactory(flaw=flaw1)
@@ -999,7 +1020,6 @@ class TestFlawValidators:
         Tests that a flaw has a valid Major Incident state.
         """
         flaw = FlawFactory.build(
-            is_major_incident=True,
             major_incident_state=state,
             mitigation="mitigation",
             statement="statement",
@@ -1078,7 +1098,7 @@ class TestFlawValidators:
         and statement correct.
         """
         flaw = FlawFactory.build(
-            is_major_incident=True,
+            major_incident_state=Flaw.FlawMajorIncident.APPROVED,
             mitigation=mitigation,
             statement=statement,
             embargoed=False,
@@ -1240,7 +1260,9 @@ class TestFlawValidators:
         """
 
         flaw = FlawFactory(
-            embargoed=False, is_major_incident=False, impact=start_impact
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            impact=start_impact,
         )
         affect = AffectFactory(
             flaw=flaw,
@@ -1256,12 +1278,42 @@ class TestFlawValidators:
     @pytest.mark.parametrize(
         "was_major,is_major,tracker_statuses,should_raise",
         [
-            (False, False, ["Closed", "Open"], False),
-            (True, True, ["Closed", "Open"], False),
-            (False, True, ["Closed", "Open"], True),
-            (True, False, ["Closed", "Open"], True),
-            (False, True, ["Closed", "Closed"], False),
-            (True, False, ["Closed", "Closed"], False),
+            (
+                Flaw.FlawMajorIncident.NOVALUE,
+                Flaw.FlawMajorIncident.NOVALUE,
+                ["Closed", "Open"],
+                False,
+            ),
+            (
+                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.APPROVED,
+                ["Closed", "Open"],
+                False,
+            ),
+            (
+                Flaw.FlawMajorIncident.NOVALUE,
+                Flaw.FlawMajorIncident.APPROVED,
+                ["Closed", "Open"],
+                True,
+            ),
+            (
+                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.NOVALUE,
+                ["Closed", "Open"],
+                True,
+            ),
+            (
+                Flaw.FlawMajorIncident.NOVALUE,
+                Flaw.FlawMajorIncident.APPROVED,
+                ["Closed", "Closed"],
+                False,
+            ),
+            (
+                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.NOVALUE,
+                ["Closed", "Closed"],
+                False,
+            ),
         ],
     )
     def test_validate_unsupported_major_incident_change(
@@ -1270,7 +1322,7 @@ class TestFlawValidators:
         """test that major incident flaws cannot be changed to non-major while having open trackers"""
 
         flaw = FlawFactory.build(
-            embargoed=False, is_major_incident=was_major, impact=Impact.LOW
+            embargoed=False, major_incident_state=was_major, impact=Impact.LOW
         )
         flaw.save(raise_validation_error=False)
         FlawMetaFactory(
@@ -1286,7 +1338,7 @@ class TestFlawValidators:
         affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         for status in tracker_statuses:
             TrackerFactory(embargoed=False, status=status, affects=(affect,))
-        flaw.is_major_incident = is_major
+        flaw.major_incident_state = is_major
         flaw.save()
 
         assert should_raise == bool("unsupported_impact_change" in flaw._alerts)

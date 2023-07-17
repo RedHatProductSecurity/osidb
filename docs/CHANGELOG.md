@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Change article link validation to be blocking (OSIDB-1060)
+- Deprecate the "is_major_incident" field in Flaw (OSIDB-1103)
 
 ## [3.3.0] - 2023-06-28
 ### Added

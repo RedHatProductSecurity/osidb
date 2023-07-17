@@ -11,6 +11,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from packageurl import PackageURL
 from rest_framework.decorators import api_view, permission_classes
@@ -273,6 +274,12 @@ def include_exclude_fields_extend_schema_view(
                     "Affects that have the specified Trackers related will be shown."
                 ),
             ),
+            OpenApiParameter(
+                "is_major_incident",
+                type=OpenApiTypes.BOOL,
+                location=OpenApiParameter.QUERY,
+                deprecated=True,
+            ),
         ],
     ),
     retrieve=extend_schema(
@@ -521,6 +528,16 @@ class FlawCommentView(ModelViewSet):
     create=extend_schema(
         request=AffectPostSerializer,
     ),
+    list=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "flaw__is_major_incident",
+                type=OpenApiTypes.BOOL,
+                location=OpenApiParameter.QUERY,
+                deprecated=True,
+            ),
+        ],
+    ),
 )
 class AffectView(ModelViewSet):
     queryset = Affect.objects.all()
@@ -550,6 +567,18 @@ class AffectView(ModelViewSet):
 # we have to consider them as read-only
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
+@extend_schema_view(
+    list=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "affects__flaw__is_major_incident",
+                type=OpenApiTypes.BOOL,
+                location=OpenApiParameter.QUERY,
+                deprecated=True,
+            ),
+        ],
+    ),
+)
 class TrackerView(ReadOnlyModelViewSet):
     queryset = Tracker.objects.all()
     serializer_class = TrackerSerializer

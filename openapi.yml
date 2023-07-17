@@ -936,6 +936,7 @@ paths:
         name: flaw__is_major_incident
         schema:
           type: boolean
+        deprecated: true
       - in: query
         name: flaw__nvd_cvss2
         schema:
@@ -1198,7 +1199,6 @@ paths:
             - -flaw__cvss3_score
             - -flaw__cwe_id
             - -flaw__impact
-            - -flaw__is_major_incident
             - -flaw__nvd_cvss2
             - -flaw__nvd_cvss3
             - -flaw__reported_dt
@@ -1237,7 +1237,6 @@ paths:
             - flaw__cvss3_score
             - flaw__cwe_id
             - flaw__impact
-            - flaw__is_major_incident
             - flaw__nvd_cvss2
             - flaw__nvd_cvss3
             - flaw__reported_dt
@@ -2150,6 +2149,7 @@ paths:
         name: is_major_incident
         schema:
           type: boolean
+        deprecated: true
       - name: limit
         required: false
         in: query
@@ -2219,7 +2219,6 @@ paths:
             - -cvss3_score
             - -cwe_id
             - -impact
-            - -is_major_incident
             - -major_incident_state
             - -nvd_cvss2
             - -nvd_cvss3
@@ -2260,7 +2259,6 @@ paths:
             - cvss3_score
             - cwe_id
             - impact
-            - is_major_incident
             - major_incident_state
             - nvd_cvss2
             - nvd_cvss3
@@ -3616,6 +3614,7 @@ paths:
         name: affects__flaw__is_major_incident
         schema:
           type: boolean
+        deprecated: true
       - in: query
         name: affects__flaw__nvd_cvss2
         schema:
@@ -4006,7 +4005,6 @@ paths:
             - -affects__flaw__cvss3_score
             - -affects__flaw__cwe_id
             - -affects__flaw__impact
-            - -affects__flaw__is_major_incident
             - -affects__flaw__nvd_cvss2
             - -affects__flaw__nvd_cvss3
             - -affects__flaw__reported_dt
@@ -4045,7 +4043,6 @@ paths:
             - affects__flaw__cvss3_score
             - affects__flaw__cwe_id
             - affects__flaw__impact
-            - affects__flaw__is_major_incident
             - affects__flaw__nvd_cvss2
             - affects__flaw__nvd_cvss3
             - affects__flaw__reported_dt
@@ -5480,6 +5477,7 @@ components:
           maxLength: 100
         is_major_incident:
           type: boolean
+          deprecated: true
         major_incident_state:
           oneOf:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'
@@ -5793,6 +5791,7 @@ components:
           maxLength: 100
         is_major_incident:
           type: boolean
+          deprecated: true
         major_incident_state:
           oneOf:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'
