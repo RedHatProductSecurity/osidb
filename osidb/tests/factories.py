@@ -90,6 +90,15 @@ class FlawFactory(factory.django.DjangoModelFactory):
             Flaw.FlawMajorIncident.NOVALUE,
         ],
     )
+    nist_cvss_validation = factory.Faker(
+        "random_element",
+        elements=[
+            Flaw.FlawNistCvssValidation.NOVALUE,
+            Flaw.FlawNistCvssValidation.REQUESTED,
+            Flaw.FlawNistCvssValidation.APPROVED,
+            Flaw.FlawNistCvssValidation.REJECTED,
+        ],
+    )
     summary = factory.LazyAttribute(
         lambda f: "I am a spooky CVE"
         if f.major_incident_state
