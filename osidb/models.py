@@ -542,13 +542,11 @@ class Flaw(
         Valid states represent the following BZ combinations in the format
         `<hightouch flag>|<hightouch-lite flag>`:
 
-            ( | ) no flags set (NOVALUE)
-            (?|?): can be either MI or MI CISA (REQUESTED)
-            (-|-): both MI and MI CISA are rejected (REJECTED)
-            (+| ) or (+|-): MI approved (APPROVED)
-            ( |+) or (-|+): MI CISA approved (CISA_APPROVED)
-
-        If a flaw is MI, its state must be either APPROVED or CISA_APPROVED.
+            ( | ): no flags set (NOVALUE)
+            (?| ), ( |?), (?|?): MI, CISA MI, or both requested (REQUESTED)
+            (-| ), ( |-), (-|-): MI, CISA MI, or both rejected (REJECTED)
+            (+| ), (+|-): MI approved (APPROVED)
+            ( |+), (-|+): CISA MI approved (CISA_APPROVED)
 
         If a state does not match any of BZ combinations, INVALID is set.
         """
