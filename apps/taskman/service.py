@@ -13,6 +13,7 @@ from collectors.jiraffe.core import JiraQuerier
 from osidb.models import Affect, Flaw, PsProduct
 
 from .constants import JIRA_TASKMAN_PROJECT_KEY, JIRA_TASKMAN_URL
+from .exceptions import MissingJiraTokenException
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,10 @@ class JiraTaskmanQuerier(JiraQuerier):
         Keyword arguments:
         token -- user token used in every request to Jira
         """
+        if not token:
+            raise MissingJiraTokenException(
+                "User's Jira Token is required to perform this action."
+            )
         self._jira_server = JIRA_TASKMAN_URL
         self._jira_token = token
 

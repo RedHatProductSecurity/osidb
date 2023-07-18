@@ -30,6 +30,11 @@ JIRA_TASKMAN_URL="https://foo.bar"
 # Project key used for task management
 JIRA_TASKMAN_PROJECT_KEY="OSIM"
 
+# If true, creating or editing a osidb.models.Flaw will require
+# passing a Jira token and a task will be created / updated in your
+# JIRA_TASKMAN_URL Jira instance for JIRA_TASKMAN_PROJECT_KEY project
+JIRA_TASKMAN_AUTO_SYNC_FLAW=1
+
 # Export the default local postgresql password
 OSIDB_DB_PASSWORD=passw0rd
 

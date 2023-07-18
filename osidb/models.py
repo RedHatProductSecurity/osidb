@@ -31,6 +31,8 @@ from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.osim.workflow import WorkflowModel
+from apps.taskman.constants import SYNC_REQUIRED_FIELDS
+from apps.taskman.mixins import JiraTaskSyncMixin
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 
 from .helpers import deprecate_field as deprecate_field_custom
@@ -634,6 +636,7 @@ class Flaw(
     FlawMixin,
     BugzillaSyncMixin,
     WorkflowModel,
+    JiraTaskSyncMixin,
 ):
     """Model flaw"""
 
@@ -1420,6 +1423,34 @@ class Flaw(
         # fetch from Bugzilla
         fc = FlawCollector()
         fc.sync_flaw(self.bz_id)
+
+    def tasksync(self, jira_token, *args, **kwargs):
+        """
+        Task sync of the Flaw instance in Jira
+        This function is responsible for synchronizing only existing flaws
+        that were authored in OSIDB which means they have a task already
+        created in Jira or flaw does not exists in db.
+        """
+        # imports here to prevent cycles
+        from apps.taskman.service import JiraTaskmanQuerier
+
+        if jira_token:
+            old_flaw = Flaw.objects.filter(uuid=self.uuid)
+            if old_flaw:
+                jira_task_request = JiraTaskmanQuerier(
+                    token=jira_token
+                ).get_task_by_flaw(self.uuid)
+
+                if jira_task_request.status_code == 200:
+                    sync_required = any(
+                        getattr(old_flaw[0], field) != getattr(self, field)
+                        for field in SYNC_REQUIRED_FIELDS
+                    )
+
+                    if sync_required:
+                        JiraTaskmanQuerier(token=jira_token).create_or_update_task(self)
+            else:
+                JiraTaskmanQuerier(token=jira_token).create_or_update_task(self)
 
 
 class AffectManager(ACLMixinManager, TrackingMixinManager):

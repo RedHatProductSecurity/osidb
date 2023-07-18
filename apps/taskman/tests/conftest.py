@@ -1,4 +1,7 @@
+import uuid
+
 import pytest
+from django.conf import settings
 from taskman.constants import TASKMAN_API_VERSION
 
 
@@ -47,3 +50,21 @@ def pin_urls(monkeypatch) -> None:
     """
     monkeypatch.setenv("HTTPS_PROXY", "http://squid.corp.redhat.com:3128")
     monkeypatch.setenv("JIRA_TASKMAN_URL", "https://issues.stage.redhat.com")
+
+
+@pytest.fixture
+def acl_read():
+    return [
+        uuid.uuid5(uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}")
+        for group in settings.PUBLIC_READ_GROUPS
+    ]
+
+
+@pytest.fixture
+def acl_write():
+    return [
+        uuid.uuid5(
+            uuid.NAMESPACE_URL,
+            f"https://osidb.prod.redhat.com/ns/acls#{settings.PUBLIC_WRITE_GROUP}",
+        )
+    ]
