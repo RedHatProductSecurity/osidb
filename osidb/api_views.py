@@ -28,11 +28,27 @@ from rest_framework.viewsets import (
 )
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
-from .filters import AffectFilter, FlawCommentFilter, FlawFilter, TrackerFilter
-from .models import Affect, Flaw, FlawComment, FlawReference, Tracker
+from .filters import (
+    AffectFilter,
+    FlawAcknowledgmentFilter,
+    FlawCommentFilter,
+    FlawFilter,
+    TrackerFilter,
+)
+from .models import (
+    Affect,
+    Flaw,
+    FlawAcknowledgment,
+    FlawComment,
+    FlawReference,
+    Tracker,
+)
 from .serializer import (
     AffectPostSerializer,
     AffectSerializer,
+    FlawAcknowledgmentPostSerializer,
+    FlawAcknowledgmentPutSerializer,
+    FlawAcknowledgmentSerializer,
     FlawCommentPostSerializer,
     FlawCommentSerializer,
     FlawPostSerializer,
@@ -356,6 +372,82 @@ class FlawView(ModelViewSet):
 @include_exclude_fields_extend_schema_view
 @extend_schema_view(
     create=extend_schema(
+        request=FlawAcknowledgmentPostSerializer,
+    ),
+    update=extend_schema(
+        request=FlawAcknowledgmentPutSerializer,
+    ),
+)
+class FlawAcknowledgmentView(ModelViewSet):
+    serializer_class = FlawAcknowledgmentSerializer
+    # As long as SRTNotesBuilder.generate_acknowledgments() builds from FlawMeta,
+    # POST, DELETE and PUT don't work.
+    # TODO: Resolve in a follow-up to PR 265.
+    http_method_names = get_valid_http_methods(
+        ModelViewSet, excluded=["post", "delete", "put"]
+    )
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filterset_class = FlawAcknowledgmentFilter
+
+    def destroy(self, request, *args, **kwargs):
+        bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
+        if not bz_api_key:
+            raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
+        instance = self.get_object()
+        self.perform_destroy(instance, bz_api_key=bz_api_key)
+        return Response(status=HTTP_200_OK)
+
+    def perform_destroy(self, instance, bz_api_key):
+        """
+        override the default behavior to proxy the delete to Bugzilla
+        """
+        flaw = instance.flaw
+        instance.delete()
+        flaw.save(bz_api_key=bz_api_key)
+
+    def get_flaw(self):
+        """
+        Get flaw object instance related to this FlawAcknowledgment.
+        """
+        pk = self.kwargs["flaw_id"]
+        if CVE_RE_STR.match(pk):
+            obj = get_object_or_404(Flaw, cve_id=pk)
+        else:
+            obj = get_object_or_404(Flaw, uuid=pk)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def get_queryset(self):
+        """
+        Returns flaw acknowledgments only for a specified flaw.
+        """
+        if getattr(self, "swagger_fake_view", False):
+            # Required for autogeneration of parameters to openapi.yml because
+            # get_queryset depends on "flaw" not available at schema generation
+            # time. Documented in
+            # https://drf-spectacular.readthedocs.io/en/latest/faq.html#my-get-queryset-depends-on-some-attributes-not-available-at-schema-generation-time
+            return FlawAcknowledgment.objects.none()
+        flaw = self.get_flaw()
+        return FlawAcknowledgment.objects.filter(flaw=flaw)
+
+    def get_serializer(self, *args, **kwargs):
+        """
+        Updates a serializer to contain also a flaw uuid.
+        """
+        if "data" in kwargs:
+            # request.data can be immutable, depending on media type
+            data = kwargs["data"].copy()
+            # flaw is provided in URL, not in the request, so inject it for
+            # the serializer and its validation
+            data["flaw"] = str(self.get_flaw().uuid)
+            kwargs["data"] = data
+        return super().get_serializer(*args, **kwargs)
+
+
+@include_meta_attr_extend_schema_view
+@include_exclude_fields_extend_schema_view
+@extend_schema_view(
+    create=extend_schema(
         request=FlawReferencePostSerializer,
     ),
 )
@@ -505,15 +597,24 @@ class FlawCommentView(ModelViewSet):
         return obj
 
     def get_queryset(self):
+        """
+        Returns flaw comments only for a specified flaw.
+        """
         if getattr(self, "swagger_fake_view", False):
-            # https://drf-yasg.readthedocs.io/en/stable/openapi.html
+            # Required for autogeneration of parameters to openapi.yml because
+            # get_queryset depends on "flaw" not available at schema generation
+            # time. Documented in
+            # https://drf-spectacular.readthedocs.io/en/latest/faq.html#my-get-queryset-depends-on-some-attributes-not-available-at-schema-generation-time
             return FlawComment.objects.none()
         flaw = self.get_flaw()
         return FlawComment.objects.filter(flaw=flaw)
 
     def get_serializer(self, *args, **kwargs):
+        """
+        Updates a serializer to contain also a flaw uuid.
+        """
         if "data" in kwargs:
-            # Once upon a time, request.data used to be read-only, it seems.
+            # request.data can be immutable, depending on media type
             data = kwargs["data"].copy()
             # flaw is provided in URL, not in the request, so inject it for
             # the serializer and its validation

@@ -13,7 +13,14 @@ from django_filters.rest_framework import (
     OrderingFilter,
 )
 
-from .models import Affect, Flaw, FlawComment, Tracker, search_helper
+from .models import (
+    Affect,
+    Flaw,
+    FlawAcknowledgment,
+    FlawComment,
+    Tracker,
+    search_helper,
+)
 
 LT_GT_LOOKUP_EXPRS = ["lt", "gt"]
 LTE_GTE_LOOKUP_EXPRS = ["lte", "gte"]
@@ -213,6 +220,19 @@ class FlawFilter(DistinctFilterSet):
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
             "affects__trackers__errata__advisory_name": ["exact"],
+            # Acknowledgment fields
+            "acknowledgments__uuid": ["exact"],
+            "acknowledgments__name": ["exact"],
+            "acknowledgments__affiliation": ["exact"],
+            "acknowledgments__from_upstream": ["exact"],
+            "acknowledgments__created_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "acknowledgments__updated_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
         }
 
     order = OrderingFilter(fields=Meta.fields.keys())
@@ -424,6 +444,25 @@ class TrackerFilter(DistinctFilterSet):
         }
 
     order = OrderingFilter(fields=Meta.fields.keys())
+
+
+class FlawAcknowledgmentFilter(FilterSet):
+    class Meta:
+        model = FlawAcknowledgment
+        fields = {
+            "uuid": ["exact"],
+            "name": ["exact"],
+            "affiliation": ["exact"],
+            "from_upstream": ["exact"],
+            "created_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "updated_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+        }
 
 
 class FlawCommentFilter(FilterSet):

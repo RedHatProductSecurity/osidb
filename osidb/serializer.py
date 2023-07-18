@@ -28,6 +28,7 @@ from .models import (
     CVEv5Version,
     Erratum,
     Flaw,
+    FlawAcknowledgment,
     FlawComment,
     FlawMeta,
     FlawReference,
@@ -623,6 +624,41 @@ class FlawAffectsTrackersField(serializers.Field):
         return list(trackers)
 
 
+class FlawAcknowledgmentSerializer(
+    ACLMixinSerializer,
+    BugzillaSyncMixinSerializer,
+    IncludeExcludeFieldsMixin,
+    IncludeMetaAttrMixin,
+    TrackingMixinSerializer,
+):
+    """FlawAcknowledgment serializer"""
+
+    class Meta:
+        """filter fields"""
+
+        model = FlawAcknowledgment
+        fields = (
+            ["name", "affiliation", "from_upstream", "flaw", "uuid"]
+            + ACLMixinSerializer.Meta.fields
+            + TrackingMixinSerializer.Meta.fields
+        )
+
+
+@extend_schema_serializer(exclude_fields=["flaw"])
+class FlawAcknowledgmentPutSerializer(FlawAcknowledgmentSerializer):
+    # Extra serializer for PUT request because flaw shouldn't be
+    # required in the body (already included in the path).
+    pass
+
+
+@extend_schema_serializer(exclude_fields=["flaw", "updated_dt"])
+class FlawAcknowledgmentPostSerializer(FlawAcknowledgmentSerializer):
+    # Extra serializer for POST request as there is no last update
+    # timestamp but we need to make the field mandatory otherwise.
+    # Flaw shouldn't be required in the body (already included in the path).
+    pass
+
+
 class FlawReferenceSerializer(
     ACLMixinSerializer,
     BugzillaSyncMixinSerializer,
@@ -711,6 +747,7 @@ class FlawSerializer(
     trackers = FlawAffectsTrackersField(source="*", read_only=True)
     affects = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
+    acknowledgments = FlawAcknowledgmentSerializer(many=True, read_only=True)
     references = FlawReferenceSerializer(many=True, read_only=True)
     package_versions = CVEv5PackageVersionsSerializer(many=True, read_only=True)
 
@@ -806,6 +843,7 @@ class FlawSerializer(
                 "comments",
                 "meta_attr",
                 "package_versions",
+                "acknowledgments",
                 "references",
             ]
             + ACLMixinSerializer.Meta.fields

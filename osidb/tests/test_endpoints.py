@@ -17,11 +17,20 @@ from osidb.filters import FlawFilter
 
 from ..core import generate_acls
 from ..helpers import ensure_list
-from ..models import Affect, Flaw, FlawComment, FlawMeta, FlawReference, Tracker
+from ..models import (
+    Affect,
+    Flaw,
+    FlawComment,
+    FlawMeta,
+    FlawReference,
+    FlawSource,
+    Tracker,
+)
 from .factories import (
     AffectFactory,
     CVEv5PackageVersionsFactory,
     CVEv5VersionFactory,
+    FlawAcknowledgmentFactory,
     FlawCommentFactory,
     FlawFactory,
     FlawMetaFactory,
@@ -93,6 +102,22 @@ class TestEndpoints(object):
 
         body = response.json()
         assert len(body["comments"]) == 2
+
+    def test_get_flaw_with_acknowledgments(self, auth_client, test_api_uri):
+        """retrieve specific flaw with flawacknowledgments from endpoint"""
+
+        # Source must be private in order for validation to pass.
+        flaw = FlawFactory(source=FlawSource.CUSTOMER)
+
+        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}")
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["acknowledgments"]) == 0
+
+        FlawAcknowledgmentFactory(flaw=flaw)
+
+        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}")
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["acknowledgments"]) == 1
 
     def test_get_flaw_with_references(self, auth_client, test_api_uri):
         """retrieve specific flaw with flawreferences from endpoint"""
@@ -1587,6 +1612,106 @@ class TestEndpoints(object):
 
         response = auth_client.get(affect_url)
         assert response.status_code == 404
+
+    def test_flawacknowledgment_create(self, auth_client, embargo_access, test_api_uri):
+        """
+        Test the creation of FlawAcknowledgment records via a REST API POST request.
+        """
+        # Source must be private in order for validation to pass.
+        flaw = FlawFactory(source=FlawSource.CUSTOMER)
+
+        flawacknowledgment_data = {
+            "name": "John Doe",
+            "affiliation": "Acme Corp.",
+            "from_upstream": False,
+            "embargoed": flaw.embargoed,
+        }
+
+        # Tests "POST" on flaws/{uuid}/acknowledgments
+        response = auth_client.post(
+            f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments",
+            flawacknowledgment_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+
+        # TODO: Resolve in a follow-up to PR 265.
+        # As long as SRTNotesBuilder.generate_acknowledgments() builds from FlawMeta,
+        # POST, DELETE and PUT don't work.
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+        # TODO: assert response.status_code == status.HTTP_201_CREATED
+        # TODO: acknowledgment_uuid = response.data["uuid"]
+
+        # TODO: # Tests "GET" on flaws/{uuid}/acknowledgments
+        # TODO: response = auth_client.get(
+        # TODO:     f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments"
+        # TODO: )
+        # TODO: assert response.status_code == status.HTTP_200_OK
+        # TODO: assert response.json()["count"] == 1
+
+        # TODO: # Tests "GET" on flaws/{uuid}/acknowledgments/{uuid}
+        # TODO: response = auth_client.get(
+        # TODO:     f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments/{acknowledgment_uuid}"
+        # TODO: )
+        # TODO: assert response.status_code == status.HTTP_200_OK
+        # TODO: assert response.data["uuid"] == acknowledgment_uuid
+
+    def test_flawacknowledgment_update(self, auth_client, embargo_access, test_api_uri):
+        """
+        Test the update of FlawAcknowledgment records via a REST API PUT request.
+        """
+        # Source must be private in order for validation to pass.
+        flaw = FlawFactory(source=FlawSource.CUSTOMER)
+        flawacknowledgment = FlawAcknowledgmentFactory(flaw=flaw)
+
+        response = auth_client.get(
+            f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments/{flawacknowledgment.uuid}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["name"] == "John Doe"
+
+        updated_data = response.json().copy()
+        updated_data["name"] = "Jon A"
+
+        # Tests "PUT" on flaws/{uuid}/acknowledgments/{uuid}
+        response = auth_client.put(
+            f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments/{flawacknowledgment.uuid}",
+            {**updated_data},
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+
+        # TODO: Resolve in a follow-up to PR 265.
+        # As long as SRTNotesBuilder.generate_acknowledgments() builds from FlawMeta,
+        # POST, DELETE and PUT don't work.
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+        # TODO: assert response.status_code == status.HTTP_200_OK
+        # TODO: assert response.data["name"] == "Jon A"
+
+    def test_flawacknowledgment_delete(self, auth_client, embargo_access, test_api_uri):
+        """
+        Test the deletion of FlawAcknowledgment records via a REST API DELETE request.
+        """
+        # Source must be private in order for validation to pass.
+        flaw = FlawFactory(source=FlawSource.CUSTOMER)
+        flawacknowledgment = FlawAcknowledgmentFactory(flaw=flaw)
+
+        # Necessary for Flaw validation
+        AffectFactory(flaw=flaw)
+
+        url = f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments/{flawacknowledgment.uuid}"
+        response = auth_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        # Tests "DELETE" on flaws/{uuid}/acknowledgments/{uuid}
+        response = auth_client.delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
+
+        # TODO: Resolve in a follow-up to PR 265.
+        # As long as SRTNotesBuilder.generate_acknowledgments() builds from FlawMeta,
+        # POST, DELETE and PUT don't work.
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+        # TODO: assert response.status_code == status.HTTP_200_OK
+        # TODO: assert FlawAcknowledgment.objects.count() == 0
 
     def test_flawreference_create(self, auth_client, embargo_access, test_api_uri):
         """
