@@ -1,5 +1,5 @@
 backoff
-celery
+celery[gevent]
 cvss
 django
 django-auth-ldap
@@ -18,8 +18,7 @@ djangorestframework-simplejwt
 djangorestframework-xml
 drf-spectacular
 flower
-gevent
-gunicorn
+gunicorn[gevent,setproctitle]
 inflection
 jira
 joblib
