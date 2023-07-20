@@ -7,20 +7,12 @@ from freezegun import freeze_time
 
 from apps.bbsync.exceptions import SRTNotesValidationError
 from apps.bbsync.query import FlawBugzillaQueryBuilder, SRTNotesBuilder
-from osidb.models import (
-    Affect,
-    Flaw,
-    FlawComment,
-    FlawMeta,
-    FlawSource,
-    Impact,
-    Tracker,
-)
+from osidb.models import Affect, Flaw, FlawComment, FlawSource, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
+    FlawAcknowledgmentFactory,
     FlawCommentFactory,
     FlawFactory,
-    FlawMetaFactory,
     FlawReferenceFactory,
     PsModuleFactory,
     TrackerFactory,
@@ -248,43 +240,34 @@ class TestGenerateSRTNotes:
         """
         flaw = FlawFactory(source=FlawSource.CUSTOMER)
         FlawCommentFactory(flaw=flaw)
-        FlawMetaFactory(flaw=flaw, type=FlawMeta.FlawMetaType.REFERENCE)  # not an ack
-        FlawMetaFactory(
+        FlawAcknowledgmentFactory(
             flaw=flaw,
-            type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT,
-            meta_attr={
-                "affiliation": "dear",
-                "from_upstream": False,
-                "name": "sir",
-            },
+            affiliation="Acme Corp.",
+            from_upstream=False,
+            name="John Doe",
         )
-        FlawMetaFactory(
+        FlawAcknowledgmentFactory(
             flaw=flaw,
-            type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT,
-            meta_attr={
-                "affiliation": "von Bahnhof",
-                "from_upstream": True,
-                "name": "Carl",
-            },
+            affiliation="Acme Corp. Security Team",
+            from_upstream=True,
+            name="Canis latrans microdon",
         )
 
-        bbq = FlawBugzillaQueryBuilder(flaw)
-        cf_srtnotes = bbq.query.get("cf_srtnotes")
-        assert cf_srtnotes
+        bqb = FlawBugzillaQueryBuilder(flaw)
+        cf_srtnotes = bqb.query.get("cf_srtnotes")
         cf_srtnotes_json = json.loads(cf_srtnotes)
-        assert "acknowledgments" in cf_srtnotes_json
-        acknowledgments = cf_srtnotes_json["acknowledgments"]
+        acknowledgments = cf_srtnotes_json.get("acknowledgments", [])
         assert len(acknowledgments) == 2
 
         for ack in acknowledgments:
             assert (
-                ack["affiliation"] == "dear"
+                ack["affiliation"] == "Acme Corp."
                 and not ack["from_upstream"]
-                and ack["name"] == "sir"
+                and ack["name"] == "John Doe"
             ) or (
-                ack["affiliation"] == "von Bahnhof"
+                ack["affiliation"] == "Acme Corp. Security Team"
                 and ack["from_upstream"]
-                and ack["name"] == "Carl"
+                and ack["name"] == "Canis latrans microdon"
             )
 
     def test_generate_affects(self):
@@ -868,9 +851,9 @@ class TestGenerateSRTNotes:
         {
             "acknowledgments": [
                 {
-                    "affiliation": "von Stadt",
+                    "affiliation": "Acme Corp.",
                     "from_upstream": true,
-                    "name": "Eduard"
+                    "name": "Jane Doe"
                 }
             ],
             "affects": [
@@ -907,14 +890,11 @@ class TestGenerateSRTNotes:
             statement="this flaw is very funny",
             unembargo_dt=make_aware(timezone.datetime(2021, 11, 23)),
         )
-        FlawMetaFactory(
+        FlawAcknowledgmentFactory(
             flaw=flaw,
-            type="ACKNOWLEDGMENT",
-            meta_attr={
-                "affiliation": "von Stadt",
-                "from_upstream": True,
-                "name": "Eduard",
-            },
+            affiliation="Acme Corp.",
+            from_upstream=True,
+            name="Jane Doe",
         )
         FlawCommentFactory(flaw=flaw)
         affect = AffectFactory(
@@ -933,10 +913,15 @@ class TestGenerateSRTNotes:
             type=Tracker.TrackerType.JIRA,
         )
 
-        bbq = FlawBugzillaQueryBuilder(flaw)
+        bqb = FlawBugzillaQueryBuilder(flaw)
         # SRTNotesValidationError exception should not be raised here
-        cf_srtnotes = bbq.query.get("cf_srtnotes")
-        assert cf_srtnotes and json.loads(cf_srtnotes)
+        # This is the main part of this test.
+        cf_srtnotes = bqb.query.get("cf_srtnotes")
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+        assert cf_srtnotes and cf_srtnotes_json
+
+        # Additionally, ensure that the validations were not run on empty data.
+        assert cf_srtnotes_json["acknowledgments"][0]["affiliation"] == "Acme Corp."
 
     def test_invalid_schema(self):
         """

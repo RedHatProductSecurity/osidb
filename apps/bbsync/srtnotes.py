@@ -1,9 +1,8 @@
 import json
-from ast import literal_eval
 
 import jsonschema
 
-from osidb.models import FlawMeta, Tracker
+from osidb.models import Tracker
 
 from .constants import DATE_FMT, DATETIME_FMT, SRTNOTES_SCHEMA_PATH
 from .exceptions import SRTNotesValidationError
@@ -88,14 +87,11 @@ class SRTNotesBuilder:
             "acknowledgments",
             [
                 {
-                    "affiliation": meta.meta_attr["affiliation"],
-                    # hstore holds bolean values as strings containing True|False
-                    # so we need to explicitly convert it to the bolean value
-                    "from_upstream": literal_eval(meta.meta_attr["from_upstream"]),
-                    "name": meta.meta_attr["name"],
+                    "affiliation": ack.affiliation,
+                    "from_upstream": ack.from_upstream,
+                    "name": ack.name,
                 }
-                for meta in self.flaw.meta.all()
-                if meta.type == FlawMeta.FlawMetaType.ACKNOWLEDGMENT
+                for ack in self.flaw.acknowledgments.all()
             ],
         )
 
