@@ -81,6 +81,7 @@ class TestFlaw:
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            requires_summary=Flaw.FlawRequiresSummary.APPROVED,
             # META
             meta_attr=meta_attr,
         )
@@ -923,52 +924,140 @@ class TestFlawValidators:
         assert should_alert == ("cvss3_missing" in FlawFactory(cvss3=cvss3)._alerts)
 
     @pytest.mark.parametrize(
-        "summary,major_incident,req,should_alert,alerts",
+        "summary,major_incident,req_old,req_new,should_alert,alerts",
         [
             (
                 "",
                 Flaw.FlawMajorIncident.APPROVED,
                 None,
+                Flaw.FlawRequiresSummary.NOVALUE,
                 True,
                 ["mi_summary_missing", "mi_summary_not_reviewed"],
             ),
-            ("", Flaw.FlawMajorIncident.APPROVED, "+", True, ["mi_summary_missing"]),
+            (
+                "",
+                Flaw.FlawMajorIncident.APPROVED,
+                "+",
+                Flaw.FlawRequiresSummary.APPROVED,
+                True,
+                ["mi_summary_missing"],
+            ),
             (
                 "",
                 Flaw.FlawMajorIncident.APPROVED,
                 "?",
+                Flaw.FlawRequiresSummary.REQUESTED,
                 True,
                 ["mi_summary_missing", "mi_summary_not_reviewed"],
             ),
-            ("", Flaw.FlawMajorIncident.APPROVED, "-", False, []),
-            ("", Flaw.FlawMajorIncident.NOVALUE, None, False, []),
-            ("", Flaw.FlawMajorIncident.NOVALUE, "+", False, []),
-            ("", Flaw.FlawMajorIncident.NOVALUE, "?", False, []),
-            ("", Flaw.FlawMajorIncident.NOVALUE, "-", False, []),
-            ("foo", Flaw.FlawMajorIncident.NOVALUE, None, False, []),
-            ("foo", Flaw.FlawMajorIncident.NOVALUE, "+", False, []),
-            ("foo", Flaw.FlawMajorIncident.NOVALUE, "?", False, []),
-            ("foo", Flaw.FlawMajorIncident.NOVALUE, "-", False, []),
+            (
+                "",
+                Flaw.FlawMajorIncident.APPROVED,
+                "-",
+                Flaw.FlawRequiresSummary.REJECTED,
+                False,
+                [],
+            ),
+            (
+                "",
+                Flaw.FlawMajorIncident.NOVALUE,
+                None,
+                Flaw.FlawRequiresSummary.NOVALUE,
+                False,
+                [],
+            ),
+            (
+                "",
+                Flaw.FlawMajorIncident.NOVALUE,
+                "+",
+                Flaw.FlawMajorIncident.APPROVED,
+                False,
+                [],
+            ),
+            (
+                "",
+                Flaw.FlawMajorIncident.NOVALUE,
+                "?",
+                Flaw.FlawRequiresSummary.REQUESTED,
+                False,
+                [],
+            ),
+            (
+                "",
+                Flaw.FlawMajorIncident.NOVALUE,
+                "-",
+                Flaw.FlawRequiresSummary.REJECTED,
+                False,
+                [],
+            ),
+            (
+                "foo",
+                Flaw.FlawMajorIncident.NOVALUE,
+                None,
+                Flaw.FlawRequiresSummary.NOVALUE,
+                False,
+                [],
+            ),
+            (
+                "foo",
+                Flaw.FlawMajorIncident.NOVALUE,
+                "+",
+                Flaw.FlawRequiresSummary.APPROVED,
+                False,
+                [],
+            ),
+            (
+                "foo",
+                Flaw.FlawMajorIncident.NOVALUE,
+                "?",
+                Flaw.FlawRequiresSummary.REQUESTED,
+                False,
+                [],
+            ),
+            (
+                "foo",
+                Flaw.FlawMajorIncident.NOVALUE,
+                "-",
+                Flaw.FlawRequiresSummary.REJECTED,
+                False,
+                [],
+            ),
             (
                 "foo",
                 Flaw.FlawMajorIncident.APPROVED,
                 None,
+                Flaw.FlawRequiresSummary.NOVALUE,
                 True,
                 ["mi_summary_not_reviewed"],
             ),
-            ("foo", Flaw.FlawMajorIncident.APPROVED, "+", False, []),
+            (
+                "foo",
+                Flaw.FlawMajorIncident.APPROVED,
+                "+",
+                Flaw.FlawRequiresSummary.APPROVED,
+                False,
+                [],
+            ),
             (
                 "foo",
                 Flaw.FlawMajorIncident.APPROVED,
                 "?",
+                Flaw.FlawRequiresSummary.REQUESTED,
                 True,
                 ["mi_summary_not_reviewed"],
             ),
-            ("foo", Flaw.FlawMajorIncident.APPROVED, "-", False, []),
+            (
+                "foo",
+                Flaw.FlawMajorIncident.APPROVED,
+                "-",
+                Flaw.FlawRequiresSummary.REJECTED,
+                False,
+                [],
+            ),
         ],
     )
     def test_validate_major_incident_summary(
-        self, summary, major_incident, req, should_alert, alerts
+        self, summary, major_incident, req_old, req_new, should_alert, alerts
     ):
         """
         Test that a Flaw that is Major Incident has a summary
@@ -988,12 +1077,14 @@ class TestFlawValidators:
                 flaw=flaw1,
                 type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT,
             )
-        if req:
+        # these variables have the same meaning, but "req_old" will be deprecated
+        if req_old or req_new:
             FlawMetaFactory(
                 flaw=flaw1,
                 type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-                meta_attr={"status": req},
+                meta_attr={"status": req_old},
             )
+            flaw1.requires_summary = req_new
 
         flaw1.save()
 
@@ -1024,6 +1115,7 @@ class TestFlawValidators:
             mitigation="mitigation",
             statement="statement",
             embargoed=False,
+            requires_summary=Flaw.FlawRequiresSummary.APPROVED,
         )
         flaw.save(raise_validation_error=False)
 
@@ -1102,6 +1194,7 @@ class TestFlawValidators:
             mitigation=mitigation,
             statement=statement,
             embargoed=False,
+            requires_summary=Flaw.FlawRequiresSummary.APPROVED,
         )
         flaw.save(raise_validation_error=False)
         FlawReferenceFactory(flaw=flaw, type=reference_type, url=reference_url)
@@ -1322,7 +1415,10 @@ class TestFlawValidators:
         """test that major incident flaws cannot be changed to non-major while having open trackers"""
 
         flaw = FlawFactory.build(
-            embargoed=False, major_incident_state=was_major, impact=Impact.LOW
+            embargoed=False,
+            major_incident_state=was_major,
+            impact=Impact.LOW,
+            requires_summary=Flaw.FlawRequiresSummary.REJECTED,
         )
         flaw.save(raise_validation_error=False)
         FlawMetaFactory(

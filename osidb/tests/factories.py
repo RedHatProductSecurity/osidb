@@ -46,10 +46,16 @@ class FlawFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Flaw
 
-    # Used only in "summary" and "mitigation".
-    # This solves the issue that factory.Faker cannot be used in factory.LazyAttribute.
     class Params:
+        # Used in "summary" and "mitigation". This solves the issue that
+        # factory.Faker cannot be used in factory.LazyAttribute.
         fallback = factory.Faker("random_element", elements=["", "foo"])
+
+        # Used in "requires_summary"
+        requires_summary_condition = factory.LazyAttribute(
+            lambda f: f.major_incident_state
+            in [Flaw.FlawMajorIncident.APPROVED, Flaw.FlawMajorIncident.CISA_APPROVED]
+        )
 
     cve_id = factory.sequence(lambda n: f"CVE-2020-000{n}")
     cwe_id = factory.Faker("random_element", elements=["CWE-1", ""])
@@ -93,6 +99,26 @@ class FlawFactory(factory.django.DjangoModelFactory):
             Flaw.FlawMajorIncident.CISA_APPROVED,
         ]
         else f.fallback
+    )
+    requires_summary = factory.Maybe(
+        "requires_summary_condition",
+        yes_declaration=factory.Faker(
+            "random_element",
+            elements=[
+                Flaw.FlawRequiresSummary.NOVALUE,
+                Flaw.FlawRequiresSummary.REQUESTED,
+                Flaw.FlawRequiresSummary.APPROVED,
+            ],
+        ),
+        no_declaration=factory.Faker(
+            "random_element",
+            elements=[
+                Flaw.FlawRequiresSummary.NOVALUE,
+                Flaw.FlawRequiresSummary.REQUESTED,
+                Flaw.FlawRequiresSummary.APPROVED,
+                Flaw.FlawRequiresSummary.REJECTED,
+            ],
+        ),
     )
     mitigation = factory.LazyAttribute(
         lambda f: "CVE mitigation"

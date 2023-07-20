@@ -559,6 +559,27 @@ class Flaw(
 
         INVALID = "INVALID"
 
+    class FlawRequiresSummary(models.TextChoices):
+        """
+        Stores summary state from the requires_doc_text flag in BZ.
+
+        The flag states have the following meaning:
+
+        * ( ) "" (no value): summary was not filled in
+        * (?) "REQUESTED": summary was filled in and a review was requested;
+              this includes also the "+" state set by "bugzilla@redhat.com"
+        * (+) "APPROVED" (set by PS member): summary was reviewed and approved;
+              this is the only state where summary is propagated to the flaw's CVE page
+        * (-) "REJECTED": summary is not required for this flaw
+
+        Note that if a flaw is MI or CISA MI, summary should be never "REJECTED".
+        """
+
+        NOVALUE = ""
+        REQUESTED = "REQUESTED"
+        APPROVED = "APPROVED"
+        REJECTED = "REJECTED"
+
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -613,6 +634,10 @@ class Flaw(
 
     # from doc_team summary
     summary = models.TextField(blank=True)
+
+    requires_summary = models.CharField(
+        choices=FlawRequiresSummary.choices, max_length=20, blank=True
+    )
 
     # if redhat cve-id then this is required, from srtnotes "statement"
     # eventually should compose up from affects
@@ -828,8 +853,12 @@ class Flaw(
         Check that a flaw that is a major incident has a summary
         """
         req = self.meta.filter(type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY).last()
-        if not self.is_major_incident_temp() or (
-            req and req.meta_attr.get("status") == "-"
+        if (
+            not self.is_major_incident
+            # checks requires_doc_text via FlawMeta (will be deprecated in the future)
+            or (req and req.meta_attr.get("status") == "-")
+            # checks requires_doc_text via Flaw (this should be kept in the future)
+            or self.requires_summary == self.FlawRequiresSummary.REJECTED
         ):
             return
 
@@ -839,7 +868,13 @@ class Flaw(
                 "Flaw marked as Major Incident does not have Summary",
             )
 
-        if not req or req.meta_attr.get("status") == "?":
+        if (
+            # checks requires_doc_text via FlawMeta (will be deprecated in the future)
+            not req
+            or req.meta_attr.get("status") == "?"
+            # checks requires_doc_text via Flaw (this should be kept in the future)
+            or self.requires_summary == self.FlawRequiresSummary.REQUESTED
+        ):
             self.alert(
                 "mi_summary_not_reviewed",
                 "Flaw marked as Major Incident does not have Summary reviewed",
