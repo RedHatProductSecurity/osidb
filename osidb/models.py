@@ -559,6 +559,28 @@ class Flaw(
 
         INVALID = "INVALID"
 
+    class FlawNistCvssValidation(models.TextChoices):
+        """
+        This flag determines the status of feedback loop between NIST and RH
+        requesting NVD CVSSv3 rescore for the CVE of this flaw.
+        The flag states have the following meaning:
+
+        * ( ) "" (no value): No CVSSv3 rescore request was sent to NIST.
+        * (?) "REQUESTED": CVSSv3 rescore request was sent to NIST and the
+              feedback loop between NIST and RH is still opened.
+        * (+) "APPROVED": CVSSv3 rescore request feedback loop between NIST and
+              RH was closed and NIST fully or partially accepted the request
+              lowering NVD score below 7.0.
+        * (-) "REJECTED": CVSSv3 rescore request feedback loop between NIST and
+              RH was closed and NIST rejected the request or accepted it only
+              partially so the NVD CVSSv3 score is still above or equal 7.0.
+        """
+
+        NOVALUE = ""
+        REQUESTED = "REQUESTED"
+        APPROVED = "APPROVED"
+        REJECTED = "REJECTED"
+
     class FlawRequiresSummary(models.TextChoices):
         """
         Stores summary state from the requires_doc_text flag in BZ.
@@ -705,6 +727,10 @@ class Flaw(
 
     # non operational meta data
     meta_attr = HStoreField(default=dict)
+
+    nist_cvss_validation = models.CharField(
+        choices=FlawNistCvssValidation.choices, max_length=20, blank=True
+    )
 
     class Meta:
         """define meta"""

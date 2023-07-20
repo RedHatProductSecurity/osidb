@@ -78,6 +78,7 @@ class TestFlaw:
             source=FlawSource.APPLE,
             statement="statement",
             major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+            nist_cvss_validation=Flaw.FlawNistCvssValidation.REQUESTED,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
@@ -97,6 +98,7 @@ class TestFlaw:
             url="https://access.redhat.com/link123",
         )
         assert vuln_1.major_incident_state == Flaw.FlawMajorIncident.APPROVED
+        assert vuln_1.nist_cvss_validation == Flaw.FlawNistCvssValidation.REQUESTED
 
         affect1 = AffectFactory(flaw=vuln_1)
         all_trackers = affect1.trackers.all()
