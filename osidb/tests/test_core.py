@@ -31,7 +31,10 @@ class TestCore(object):
 
     def test_flaw_factory(self):
         """test that we can generate a flaw using factory"""
-        flaw1 = FlawFactory.build(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
+        flaw1 = FlawFactory.build(
+            major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+            requires_summary=Flaw.FlawRequiresSummary.APPROVED,
+        )
         flaw1.save(raise_validation_error=False)
         FlawMetaFactory(
             flaw=flaw1,
