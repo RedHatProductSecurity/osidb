@@ -46,9 +46,9 @@ class FlawFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Flaw
 
-    # Used only in "summary" and "mitigation".
-    # This solves the issue that factory.Faker cannot be used in factory.LazyAttribute.
     class Params:
+        # Used in "summary" and "mitigation". This solves the issue that
+        # factory.Faker cannot be used in factory.LazyAttribute.
         fallback = factory.Faker("random_element", elements=["", "foo"])
 
         # Used in "requires_summary"
