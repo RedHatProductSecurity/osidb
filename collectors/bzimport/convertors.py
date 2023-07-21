@@ -596,6 +596,34 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         return valid_pairs.get(flags_from_bz, Flaw.FlawMajorIncident.INVALID)
 
     @cached_property
+    def requires_summary(self):
+        """
+        A requires_summary state created from the requires_doc_text flag.
+        """
+        # Default values
+        status = ""
+        setter = ""
+
+        # Sets values from Bugzilla
+        for flag in self.flags:
+            if flag["name"] == "requires_doc_text":
+                setter = flag["setter"]
+                status = flag["status"]
+
+        # this combination is set automatically by BZ when Doc Text is added
+        if setter == "bugzilla@redhat.com" and status == "+":
+            return Flaw.FlawRequiresSummary.REQUESTED
+
+        pairs = {
+            "": Flaw.FlawRequiresSummary.NOVALUE,
+            "-": Flaw.FlawRequiresSummary.REJECTED,
+            "?": Flaw.FlawRequiresSummary.REQUESTED,
+            "+": Flaw.FlawRequiresSummary.APPROVED,
+        }
+
+        return pairs.get(status)
+
+    @cached_property
     def package_versions(self):
         """parse fixed_in to package versions"""
         fixed_in = self.flaw_bug["fixed_in"]
@@ -779,6 +807,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
             type=FlawType.VULNERABILITY,
             meta_attr=self.get_meta_attr(cve_id),
             major_incident_state=self.major_incident_state,
+            requires_summary=self.requires_summary,
             created_dt=self.flaw_bug["creation_time"],
             updated_dt=self.flaw_bug["last_change_time"],
             acl_read=self.acl_read,
