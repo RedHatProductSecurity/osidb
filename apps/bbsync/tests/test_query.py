@@ -1135,7 +1135,10 @@ class TestGenerateFlags:
         Tests that major_incident_state is correctly converted into hightouch and
         hightouch-lite flags.
         """
-        flaw = FlawFactory.build(major_incident_state=mi_state)
+        flaw = FlawFactory.build(
+            major_incident_state=mi_state,
+            requires_summary=Flaw.FlawRequiresSummary.NOVALUE,
+        )
         flaw.save(raise_validation_error=False)
 
         fbqb = FlawBugzillaQueryBuilder(flaw)
@@ -1145,5 +1148,37 @@ class TestGenerateFlags:
             assert len(flags) == 2
             assert {"name": "hightouch", "status": hightouch} in flags
             assert {"name": "hightouch-lite", "status": hightouch_lite} in flags
+        else:
+            assert flags == []
+
+    @pytest.mark.parametrize(
+        "requires_summary,requires_doc_text,should_convert",
+        [
+            # flags to convert
+            (Flaw.FlawRequiresSummary.REQUESTED, "?", True),
+            (Flaw.FlawRequiresSummary.APPROVED, "+", True),
+            (Flaw.FlawRequiresSummary.REJECTED, "-", True),
+            # a flag to ignore
+            (Flaw.FlawRequiresSummary.NOVALUE, None, False),
+        ],
+    )
+    def test_generate_requires_doc_text(
+        self, requires_summary, requires_doc_text, should_convert
+    ):
+        """
+        Tests that requires_summary is correctly converted into requires_doc_text flag.
+        """
+        flaw = FlawFactory.build(
+            requires_summary=requires_summary,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        flaw.save(raise_validation_error=False)
+
+        fbqb = FlawBugzillaQueryBuilder(flaw)
+        flags = fbqb.query.get("flags")
+
+        if should_convert:
+            assert len(flags) == 1
+            assert {"name": "requires_doc_text", "status": requires_doc_text} in flags
         else:
             assert flags == []

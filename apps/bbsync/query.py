@@ -220,10 +220,11 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
     def generate_flags(self):
         """
         generate query for Bugzilla flags
-        TODO: needinfo, nist_cvss_validation, requires_doc_text and other flags
+        TODO: needinfo, nist_cvss_validation and other flags
         """
         self._query["flags"] = []
         self.generate_hightouch_flags()
+        self.generate_requires_doc_text_flag()
 
     def generate_hightouch_flags(self):
         """
@@ -243,6 +244,22 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
             self._query["flags"].append({"name": "hightouch", "status": hightouch})
             self._query["flags"].append(
                 {"name": "hightouch-lite", "status": hightouch_lite}
+            )
+
+    def generate_requires_doc_text_flag(self):
+        """
+        Generate requires_doc_text flag from requires_summary.
+        """
+        flags_to_write = {
+            Flaw.FlawRequiresSummary.REQUESTED: "?",
+            Flaw.FlawRequiresSummary.APPROVED: "+",
+            Flaw.FlawRequiresSummary.REJECTED: "-",
+            # flag NOVALUE is ignored
+        }
+
+        if bz_value := flags_to_write.get(self.flaw.requires_summary):
+            self._query["flags"].append(
+                {"name": "requires_doc_text", "status": bz_value}
             )
 
     # Bugzilla groups allowed to be set for Bugzilla Security Response product
