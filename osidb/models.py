@@ -1424,33 +1424,57 @@ class Flaw(
         fc = FlawCollector()
         fc.sync_flaw(self.bz_id)
 
-    def tasksync(self, jira_token, *args, **kwargs):
+    def tasksync(
+        self,
+        jira_token,
+        force_creation=False,
+        force_update=False,
+        *args,
+        **kwargs,
+    ):
         """
-        Task sync of the Flaw instance in Jira
-        This function is responsible for synchronizing only existing flaws
-        that were authored in OSIDB which means they have a task already
-        created in Jira or flaw does not exists in db.
+        Task sync of the Flaw instance in Jira.
+
+        If the flaw is OSIDB-authored and already exists in the database
+        the corresponding JIRA task will be updated if any of the
+        SYNC_REQUIRED_FIELDS has been updated.
+
+        If the flaw is OSIDB-authored and does not exist in the database
+        then a corresponding JIRA task will be created.
+
+        If the flaw is not OSIDB-authored then it's a no-op.
         """
+        if not jira_token:
+            return
+
         # imports here to prevent cycles
         from apps.taskman.service import JiraTaskmanQuerier
 
-        if jira_token:
-            old_flaw = Flaw.objects.filter(uuid=self.uuid)
-            if old_flaw:
-                jira_task_request = JiraTaskmanQuerier(
-                    token=jira_token
-                ).get_task_by_flaw(self.uuid)
+        jtq = JiraTaskmanQuerier(token=jira_token)
 
-                if jira_task_request.status_code == 200:
-                    sync_required = any(
-                        getattr(old_flaw[0], field) != getattr(self, field)
-                        for field in SYNC_REQUIRED_FIELDS
-                    )
+        # REST API can force new tasks since it has no access to flaw creation runtime -- create
+        if force_creation:
+            jtq.create_or_update_task(self)
+            return
 
-                    if sync_required:
-                        JiraTaskmanQuerier(token=jira_token).create_or_update_task(self)
-            else:
-                JiraTaskmanQuerier(token=jira_token).create_or_update_task(self)
+        try:
+            old_flaw = Flaw.objects.get(uuid=self.uuid)
+
+            jira_task_request = jtq.get_task_by_flaw(self.uuid)
+
+            # the flaw exists but the task doesn't, not an OSIDB-authored flaw -- no-op
+            if jira_task_request.status_code != 200:
+                return
+
+            # we're handling an existing OSIDB-authored flaw -- update
+            if force_update or any(
+                getattr(old_flaw, field) != getattr(self, field)
+                for field in SYNC_REQUIRED_FIELDS
+            ):
+                jtq.create_or_update_task(self)
+        except Flaw.DoesNotExist:
+            # we're handling a new OSIDB-authored flaw -- create
+            jtq.create_or_update_task(self)
 
 
 class AffectManager(ACLMixinManager, TrackingMixinManager):
