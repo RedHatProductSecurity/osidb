@@ -180,6 +180,7 @@ class FlawFilter(DistinctFilterSet):
             "nvd_cvss3": ["exact"],
             "component": ["exact"],
             "major_incident_state": ["exact"],
+            "requires_summary": ["exact"],
             # Affect fields
             "affects__uuid": ["exact"],
             "affects__type": ["exact"],

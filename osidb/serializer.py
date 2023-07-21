@@ -824,6 +824,7 @@ class FlawSerializer(
                 "trackers",
                 "description",
                 "summary",
+                "requires_summary",
                 "statement",
                 "cwe_id",
                 "unembargo_dt",
