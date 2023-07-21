@@ -20,6 +20,7 @@ from ..helpers import ensure_list
 from ..models import (
     Affect,
     Flaw,
+    FlawAcknowledgment,
     FlawComment,
     FlawMeta,
     FlawReference,
@@ -1646,27 +1647,22 @@ class TestEndpoints(object):
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
         )
+        assert response.status_code == status.HTTP_201_CREATED
+        acknowledgment_uuid = response.data["uuid"]
 
-        # TODO: Resolve in a follow-up to PR 265.
-        # As long as SRTNotesBuilder.generate_acknowledgments() builds from FlawMeta,
-        # POST, DELETE and PUT don't work.
-        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-        # TODO: assert response.status_code == status.HTTP_201_CREATED
-        # TODO: acknowledgment_uuid = response.data["uuid"]
+        # Tests "GET" on flaws/{uuid}/acknowledgments
+        response = auth_client.get(
+            f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == 1
 
-        # TODO: # Tests "GET" on flaws/{uuid}/acknowledgments
-        # TODO: response = auth_client.get(
-        # TODO:     f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments"
-        # TODO: )
-        # TODO: assert response.status_code == status.HTTP_200_OK
-        # TODO: assert response.json()["count"] == 1
-
-        # TODO: # Tests "GET" on flaws/{uuid}/acknowledgments/{uuid}
-        # TODO: response = auth_client.get(
-        # TODO:     f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments/{acknowledgment_uuid}"
-        # TODO: )
-        # TODO: assert response.status_code == status.HTTP_200_OK
-        # TODO: assert response.data["uuid"] == acknowledgment_uuid
+        # Tests "GET" on flaws/{uuid}/acknowledgments/{uuid}
+        response = auth_client.get(
+            f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments/{acknowledgment_uuid}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["uuid"] == acknowledgment_uuid
 
     def test_flawacknowledgment_update(self, auth_client, embargo_access, test_api_uri):
         """
@@ -1692,13 +1688,8 @@ class TestEndpoints(object):
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
         )
-
-        # TODO: Resolve in a follow-up to PR 265.
-        # As long as SRTNotesBuilder.generate_acknowledgments() builds from FlawMeta,
-        # POST, DELETE and PUT don't work.
-        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-        # TODO: assert response.status_code == status.HTTP_200_OK
-        # TODO: assert response.data["name"] == "Jon A"
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["name"] == "Jon A"
 
     def test_flawacknowledgment_delete(self, auth_client, embargo_access, test_api_uri):
         """
@@ -1717,13 +1708,8 @@ class TestEndpoints(object):
 
         # Tests "DELETE" on flaws/{uuid}/acknowledgments/{uuid}
         response = auth_client.delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
-
-        # TODO: Resolve in a follow-up to PR 265.
-        # As long as SRTNotesBuilder.generate_acknowledgments() builds from FlawMeta,
-        # POST, DELETE and PUT don't work.
-        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-        # TODO: assert response.status_code == status.HTTP_200_OK
-        # TODO: assert FlawAcknowledgment.objects.count() == 0
+        assert response.status_code == status.HTTP_200_OK
+        assert FlawAcknowledgment.objects.count() == 0
 
     def test_flawreference_create(self, auth_client, embargo_access, test_api_uri):
         """

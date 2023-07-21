@@ -380,12 +380,7 @@ class FlawView(ModelViewSet):
 )
 class FlawAcknowledgmentView(ModelViewSet):
     serializer_class = FlawAcknowledgmentSerializer
-    # As long as SRTNotesBuilder.generate_acknowledgments() builds from FlawMeta,
-    # POST, DELETE and PUT don't work.
-    # TODO: Resolve in a follow-up to PR 265.
-    http_method_names = get_valid_http_methods(
-        ModelViewSet, excluded=["post", "delete", "put"]
-    )
+    http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
     filterset_class = FlawAcknowledgmentFilter
 

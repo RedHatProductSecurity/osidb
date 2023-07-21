@@ -2839,6 +2839,50 @@ paths:
                     version:
                       type: string
           description: ''
+    post:
+      operationId: osidb_api_v1_flaws_acknowledgments_create
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawAcknowledgmentPost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawAcknowledgmentPost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawAcknowledgmentPost'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawAcknowledgment'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /osidb/api/v1/flaws/{flaw_id}/acknowledgments/{id}:
     get:
       operationId: osidb_api_v1_flaws_acknowledgments_retrieve
@@ -2907,6 +2951,90 @@ paths:
                       type: string
                     version:
                       type: string
+          description: ''
+    put:
+      operationId: osidb_api_v1_flaws_acknowledgments_update
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawAcknowledgmentPut'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawAcknowledgmentPut'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawAcknowledgmentPut'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawAcknowledgment'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    delete:
+      operationId: osidb_api_v1_flaws_acknowledgments_destroy
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
           description: ''
   /osidb/api/v1/flaws/{flaw_id}/comments:
     get:
@@ -6027,6 +6155,76 @@ components:
       - created_dt
       - embargoed
       - flaw
+      - from_upstream
+      - name
+      - updated_dt
+      - uuid
+    FlawAcknowledgmentPost:
+      type: object
+      description: FlawAcknowledgment serializer
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        affiliation:
+          type: string
+          maxLength: 255
+        from_upstream:
+          type: boolean
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - affiliation
+      - created_dt
+      - embargoed
+      - from_upstream
+      - name
+      - uuid
+    FlawAcknowledgmentPut:
+      type: object
+      description: FlawAcknowledgment serializer
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        affiliation:
+          type: string
+          maxLength: 255
+        from_upstream:
+          type: boolean
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - affiliation
+      - created_dt
+      - embargoed
       - from_upstream
       - name
       - updated_dt
