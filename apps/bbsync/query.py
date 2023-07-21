@@ -220,11 +220,15 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
     def generate_flags(self):
         """
         generate query for Bugzilla flags
+        TODO: needinfo, nist_cvss_validation, requires_doc_text and other flags
         """
         self._query["flags"] = []
-        # TODO needinfo and other flags
-        # nist_cvss_validation | requires_doc_text
+        self.generate_hightouch_flags()
 
+    def generate_hightouch_flags(self):
+        """
+        Generate hightouch and hightouch-lite flags from major_incident_state.
+        """
         flags_to_write = {
             Flaw.FlawMajorIncident.REQUESTED: ("?", "?"),
             Flaw.FlawMajorIncident.REJECTED: ("-", "-"),
