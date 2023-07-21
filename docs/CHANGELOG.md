@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Implement major_incident_state in Flaw API (OSIDB-266)
 - Implement a new FlawAcknowledgment API (OSIDB-1002)
+- Implement requires_summary in Flaw API (OSIDB-1005)
 
 ### Changed
 - Change article link validation to be blocking (OSIDB-1060)

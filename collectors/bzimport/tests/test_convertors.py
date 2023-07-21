@@ -45,6 +45,7 @@ class TestFlawSaver:
             description="description",
             impact=Impact.CRITICAL,
             major_incident_state=Flaw.FlawMajorIncident.REQUESTED,
+            requires_summary=Flaw.FlawRequiresSummary.NOVALUE,
             created_dt=timezone.now(),
             updated_dt=timezone.now(),
             acl_read=self.get_acls(),
@@ -231,6 +232,7 @@ class TestFlawSaver:
         assert flaw.references.first() == reference
         assert flaw.package_versions.first() == package_versions
         assert flaw.major_incident_state == Flaw.FlawMajorIncident.REQUESTED
+        assert flaw.requires_summary == Flaw.FlawRequiresSummary.NOVALUE
 
         assert affect is not None
         assert affect.ps_module == "module"
@@ -764,6 +766,52 @@ class TestFlawConvertor:
         assert flaw is not None
         assert flaw.major_incident_state == result
 
+    @pytest.mark.parametrize(
+        "requires_doc_text,setter,requires_summary",
+        [
+            ("", "", Flaw.FlawRequiresSummary.NOVALUE),
+            ("-", "", Flaw.FlawRequiresSummary.REJECTED),
+            ("?", "", Flaw.FlawRequiresSummary.REQUESTED),
+            ("+", "joe@redhat.com", Flaw.FlawRequiresSummary.APPROVED),
+            ("+", "bugzilla@redhat.com", Flaw.FlawRequiresSummary.REQUESTED),
+            # a flag may not be present
+            (None, "", Flaw.FlawRequiresSummary.NOVALUE),
+        ],
+    )
+    def test_flag_requires_summary(self, requires_doc_text, setter, requires_summary):
+        """
+        Tests that requires_doc_text flag from Bugzilla is correctly
+        converted into requires_summary in OSIDB.
+        """
+        flaw_bug = self.get_flaw_bug()
+        flaw_bug["flags"] = []
+
+        if requires_doc_text is not None:
+            flag = {
+                "name": "requires_doc_text",
+                "status": requires_doc_text,
+                "setter": setter,
+            }
+            flaw_bug["flags"].append(flag)
+
+        fc = FlawConvertor(
+            flaw_bug,
+            [],
+            self.get_flaw_history(),
+            None,
+            [],
+            [],
+        )
+        flaws = fc.bug2flaws()
+        assert not fc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        flaw.save()
+
+        flaw = Flaw.objects.first()
+        assert flaw is not None
+        assert flaw.requires_summary == requires_summary
+
     def test_affect_ps_module_fixup(self):
         """
         test that flaw with an affect fixed by a fixup
@@ -1199,8 +1247,9 @@ class TestFlawConvertor:
         flaw_bug = self.get_flaw_bug()
         flaw_bug["flags"] = [
             {
-                "name": "requires_summary",
+                "name": "requires_doc_text",
                 "status": "+",
+                "setter": "bob@redhat.com",
             },
             {
                 "name": "hightouch",
@@ -1229,6 +1278,7 @@ class TestFlawConvertor:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.major_incident_state == Flaw.FlawMajorIncident.REQUESTED
+        assert flaw.requires_summary == Flaw.FlawRequiresSummary.APPROVED
 
     def test_attributes_removed_in_bugzilla(self):
         """

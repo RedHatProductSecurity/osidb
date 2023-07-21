@@ -2326,6 +2326,7 @@ paths:
             - -nvd_cvss2
             - -nvd_cvss3
             - -reported_dt
+            - -requires_summary
             - -source
             - -type
             - -unembargo_dt
@@ -2372,6 +2373,7 @@ paths:
             - nvd_cvss2
             - nvd_cvss3
             - reported_dt
+            - requires_summary
             - source
             - type
             - unembargo_dt
@@ -2420,6 +2422,15 @@ paths:
         schema:
           type: string
           format: date-time
+      - in: query
+        name: requires_summary
+        schema:
+          type: string
+          enum:
+          - ''
+          - APPROVED
+          - REJECTED
+          - REQUESTED
       - in: query
         name: search
         schema:
@@ -5787,6 +5798,10 @@ components:
           type: string
         summary:
           type: string
+        requires_summary:
+          oneOf:
+          - $ref: '#/components/schemas/RequiresSummaryEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         statement:
           type: string
         cwe_id:
@@ -6149,6 +6164,10 @@ components:
           type: string
         summary:
           type: string
+        requires_summary:
+          oneOf:
+          - $ref: '#/components/schemas/RequiresSummaryEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         statement:
           type: string
         cwe_id:
@@ -6789,6 +6808,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Tracker'
+    RequiresSummaryEnum:
+      enum:
+      - REQUESTED
+      - APPROVED
+      - REJECTED
+      type: string
     ResolutionEnum:
       enum:
       - FIX

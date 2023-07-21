@@ -136,7 +136,10 @@ class TestEndpoints(object):
     def test_get_flaw(self, auth_client, test_api_uri):
         """retrieve specific flaw from endpoint"""
 
-        flaw1 = FlawFactory.build(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
+        flaw1 = FlawFactory.build(
+            major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+            requires_summary=Flaw.FlawRequiresSummary.APPROVED,
+        )
         flaw1.save(raise_validation_error=False)
         FlawMetaFactory(
             flaw=flaw1,
@@ -150,6 +153,7 @@ class TestEndpoints(object):
         )
         AffectFactory(flaw=flaw1)
         assert flaw1.save() is None
+        assert flaw1.requires_summary == Flaw.FlawRequiresSummary.APPROVED
         FlawCommentFactory(flaw=flaw1)
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
         assert response.status_code == 200
@@ -1088,7 +1092,10 @@ class TestEndpoints(object):
         assert "refresh" in body
         token = body["access"]
 
-        flaw1 = FlawFactory.build(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
+        flaw1 = FlawFactory.build(
+            major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+            requires_summary=Flaw.FlawRequiresSummary.APPROVED,
+        )
         flaw1.save(raise_validation_error=False)
         FlawMetaFactory(
             flaw=flaw1,
@@ -1103,6 +1110,7 @@ class TestEndpoints(object):
         AffectFactory(flaw=flaw1)
 
         assert flaw1.save() is None
+        assert flaw1.requires_summary == Flaw.FlawRequiresSummary.APPROVED
         FlawCommentFactory(flaw=flaw1)
 
         # attempt to access with unauthenticated client using good token value
