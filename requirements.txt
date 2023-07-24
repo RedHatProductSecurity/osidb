@@ -432,6 +432,9 @@ prompt-toolkit==3.0.22 \
     --hash=sha256:449f333dd120bd01f5d296a8ce1452114ba3a71fae7288d2f0ae2c918764fa72 \
     --hash=sha256:48d85cdca8b6c4f16480c7ce03fd193666b62b0a21667ca56b4bb5ad679d1170
     # via click-repl
+psycogreen==1.0.2 \
+    --hash=sha256:c429845a8a49cf2f76b71265008760bcd7c7c77d80b806db4dc81116dbcd130d
+    # via -r requirements.in
 psycopg2==2.9.2 \
     --hash=sha256:26322c3f114de1f60c1b0febf8fdd595c221b4f624524178f515d07350a71bd1 \
     --hash=sha256:6796ac614412ce374587147150e56d03b7845c9e031b88aacdcadc880e81bb38 \

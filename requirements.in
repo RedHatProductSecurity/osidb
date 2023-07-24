@@ -27,6 +27,7 @@ kerberos
 markdown
 nvdlib
 packageurl-python
+psycogreen
 psycopg2
 pyjwt==2.4.0
 python-bugzilla
