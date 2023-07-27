@@ -2595,9 +2595,6 @@ class PsProduct(models.Model):
     # the business unit to which the product belongs
     business_unit = models.CharField(max_length=50)
 
-    def __str__(self):
-        return self.package
-
 
 class PsModule(NullStrFieldsMixin, ValidateMixin):
 
