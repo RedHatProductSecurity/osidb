@@ -1058,7 +1058,10 @@ class TestEndpoints(object):
             resolution=Affect.AffectResolution.DELEGATED,
         )
         TrackerFactory(
-            affects=(delegated_affect,), status="won't fix", embargoed=flaw.is_embargoed
+            affects=(delegated_affect,),
+            status="won't fix",
+            embargoed=flaw.is_embargoed,
+            ps_update_stream="rhel-7.0",
         )
 
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}")
@@ -1068,6 +1071,7 @@ class TestEndpoints(object):
         affect = body["affects"][0]
         assert "trackers" in affect
         assert affect["delegated_resolution"] == Affect.AffectFix.WONTFIX
+        assert affect["trackers"][0]["ps_update_stream"] == "rhel-7.0"
 
         # assert delegated_affect.delegated_resolution == Affect.AffectFix.WONTFIX
 

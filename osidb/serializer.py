@@ -318,6 +318,7 @@ class TrackerSerializer(
             "resolution",
             "errata",
             "meta_attr",
+            "ps_update_stream",
         ] + TrackingMixinSerializer.Meta.fields
 
 

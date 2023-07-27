@@ -7015,6 +7015,9 @@ components:
             status:
               type: string
           readOnly: true
+        ps_update_stream:
+          type: string
+          maxLength: 100
         created_dt:
           type: string
           format: date-time
