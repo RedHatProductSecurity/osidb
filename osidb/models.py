@@ -1952,6 +1952,8 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         TrackerType.BUGZILLA: "bugzilla",
         TrackerType.JIRA: "jboss",
     }
+    # plus opposite direction mapping
+    BTS2TYPE = {b: t for t, b in TYPE2BTS.items()}
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
