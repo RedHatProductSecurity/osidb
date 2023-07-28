@@ -2661,6 +2661,18 @@ class PsModule(NullStrFieldsMixin, ValidateMixin):
         """
         return self.bts_key == RHSCL_BTS_KEY
 
+    def subcomponent(self, component) -> Union[str, None]:
+        """
+        return the subcomponent for the given component or None if not present
+        """
+        if (
+            self.component_overrides
+            and component in self.component_overrides
+            and isinstance(self.component_overrides[component], dict)
+            and self.component_overrides[component].get("sub_component")
+        ):
+            return self.component_overrides[component]["sub_component"]
+
 
 class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
 
