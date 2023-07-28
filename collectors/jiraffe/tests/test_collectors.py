@@ -111,9 +111,17 @@ class TestJiraTrackerCollector:
         test collecting a known Jira issue specified by the given ID
         which should result in updating the known one and no duplicates
         """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+        )
         tracker_id = "ENTMQ-755"
         TrackerFactory(
+            affects=[affect],
             type=Tracker.TrackerType.JIRA,
+            embargoed=affect.flaw.embargoed,
             external_system_id=tracker_id,
             status="New",
             resolution=None,
@@ -136,6 +144,7 @@ class TestJiraTrackerCollector:
         """
         flaw1 = FlawFactory(embargoed=False)
         flaw2 = FlawFactory(embargoed=False)
+        PsModuleFactory(bts_name="jboss", name="module")
         affect1 = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             flaw=flaw1,

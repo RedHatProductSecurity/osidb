@@ -606,6 +606,10 @@ class TestGenerateSRTNotes:
         flaw = FlawFactory()
         FlawCommentFactory(flaw=flaw)
         affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
+        PsModuleFactory(
+            bts_name="jboss",
+            name=affect.ps_module,
+        )
         TrackerFactory(
             affects=[affect],
             external_system_id="PROJECT-1",
@@ -907,6 +911,10 @@ class TestGenerateSRTNotes:
             cvss2="5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
+        PsModuleFactory(
+            bts_name="jboss",
+            name="fedora-all",
+        )
         TrackerFactory(
             affects=[affect],
             external_system_id="PROJECT-1",
@@ -946,14 +954,18 @@ class TestGenerateGroups:
         flaw = FlawFactory(embargoed=False)
         FlawCommentFactory(flaw=flaw)
         affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
-        TrackerFactory(affects=[affect], embargoed=flaw.is_embargoed)
-        PsModuleFactory(
+        ps_module = PsModuleFactory(
             name=affect.ps_module,
             bts_groups={
                 "embargoed": [
                     "private",
                 ]
             },
+        )
+        TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.is_embargoed,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
         bbq = FlawBugzillaQueryBuilder(flaw)
@@ -969,14 +981,18 @@ class TestGenerateGroups:
         flaw = FlawFactory(embargoed=True)
         FlawCommentFactory(flaw=flaw)
         affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
-        TrackerFactory(affects=[affect], embargoed=flaw.is_embargoed)
-        PsModuleFactory(
+        ps_module = PsModuleFactory(
             name=affect.ps_module,
             bts_groups={
                 "embargoed": [
                     "private",
                 ]
             },
+        )
+        TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.is_embargoed,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
         bbq = FlawBugzillaQueryBuilder(flaw)
@@ -996,14 +1012,18 @@ class TestGenerateGroups:
         flaw = FlawFactory(embargoed=True)
         FlawCommentFactory(flaw=flaw)
         affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
-        TrackerFactory(affects=[affect], embargoed=flaw.is_embargoed)
-        PsModuleFactory(
+        ps_module = PsModuleFactory(
             name=affect.ps_module,
             bts_groups={
                 "embargoed": [
                     "redhat",
                 ]
             },
+        )
+        TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.is_embargoed,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
         bbq = FlawBugzillaQueryBuilder(flaw)
@@ -1022,14 +1042,18 @@ class TestGenerateGroups:
         )
         FlawCommentFactory(flaw=flaw)
         affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
-        TrackerFactory(affects=[affect], embargoed=flaw.is_embargoed)
-        PsModuleFactory(
+        ps_module = PsModuleFactory(
             name=affect.ps_module,
             bts_groups={
                 "embargoed": [
                     "private",
                 ]
             },
+        )
+        TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.is_embargoed,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
         new_flaw = Flaw.objects.first()
@@ -1056,14 +1080,18 @@ class TestGenerateGroups:
         )
         FlawCommentFactory(flaw=flaw)
         affect1 = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
-        TrackerFactory(affects=[affect1], embargoed=flaw.is_embargoed)
-        PsModuleFactory(
+        ps_module1 = PsModuleFactory(
             name=affect1.ps_module,
             bts_groups={
                 "embargoed": [
                     "private",
                 ]
             },
+        )
+        TrackerFactory(
+            affects=[affect1],
+            embargoed=flaw.is_embargoed,
+            type=Tracker.BTS2TYPE[ps_module1.bts_name],
         )
 
         new_flaw = Flaw.objects.first()
@@ -1073,14 +1101,18 @@ class TestGenerateGroups:
         affect2 = AffectFactory(
             flaw=new_flaw, affectedness=Affect.AffectAffectedness.NEW
         )
-        TrackerFactory(affects=[affect2], embargoed=new_flaw.is_embargoed)
-        PsModuleFactory(
+        ps_module2 = PsModuleFactory(
             name=affect2.ps_module,
             bts_groups={
                 "embargoed": [
                     "secalert",
                 ]
             },
+        )
+        TrackerFactory(
+            affects=[affect2],
+            embargoed=new_flaw.is_embargoed,
+            type=Tracker.BTS2TYPE[ps_module2.bts_name],
         )
 
         bbq = FlawBugzillaQueryBuilder(new_flaw, flaw)

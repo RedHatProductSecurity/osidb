@@ -54,7 +54,13 @@ class TestTracker:
             resolution=Affect.AffectResolution.FIX,
         )
 
-        tracker = TrackerFactory(affects=[affect1, affect2], embargoed=flaw1.embargoed)
+        ps_module = PsModuleFactory(name=affect1.ps_module)
+
+        tracker = TrackerFactory(
+            affects=[affect1, affect2],
+            embargoed=flaw1.embargoed,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
         assert tracker.aggregated_impact == expected_impact
 
     def test_is_unacked(self):
@@ -71,8 +77,24 @@ class TestTracker:
             unacked_to_ps_module=ps_module,
         )
 
-        acked_tracker = TrackerFactory(ps_update_stream=acked_ps_update_stream.name)
-        unacked_tracker = TrackerFactory(ps_update_stream=unacked_ps_update_stream.name)
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+        )
+
+        acked_tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=acked_ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+        unacked_tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=unacked_ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
 
         assert acked_tracker.is_acked and not acked_tracker.is_unacked
         assert not unacked_tracker.is_acked and unacked_tracker.is_unacked

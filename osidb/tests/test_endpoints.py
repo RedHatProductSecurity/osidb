@@ -36,6 +36,8 @@ from .factories import (
     FlawFactory,
     FlawMetaFactory,
     FlawReferenceFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
     TrackerFactory,
 )
 
@@ -281,11 +283,17 @@ class TestEndpoints(object):
 
     @freeze_time(datetime(2021, 11, 23))
     def test_changed_after_from_tracker(self, auth_client, test_api_uri):
+        ps_module = PsModuleFactory(bts_name="bugzilla")
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
         )
-        tracker = TrackerFactory(affects=(affect,), embargoed=affect.flaw.embargoed)
+        tracker = TrackerFactory(
+            affects=(affect,),
+            embargoed=affect.flaw.embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
         future_dt = datetime(2021, 11, 27)
 
         # first check that we cannot get anything by querying any flaws changed after future_dt
@@ -361,9 +369,11 @@ class TestEndpoints(object):
 
     @freeze_time(datetime(2021, 11, 23))
     def test_changed_before_from_tracker(self, auth_client, test_api_uri):
+        ps_module = PsModuleFactory(bts_name="bugzilla")
         flaw = FlawFactory(updated_dt=datetime(2021, 11, 23))
         affect = AffectFactory(
             flaw=flaw,
+            ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
             updated_dt=datetime(2021, 11, 23),
@@ -372,6 +382,7 @@ class TestEndpoints(object):
             affects=(affect,),
             embargoed=affect.flaw.embargoed,
             updated_dt=datetime(2021, 11, 23),
+            type=Tracker.TrackerType.BUGZILLA,
         )
         past_dt = datetime(2019, 11, 27)
 
@@ -419,15 +430,18 @@ class TestEndpoints(object):
 
     @freeze_time(datetime(2021, 11, 23))
     def test_changed_before_from_multi_tracker(self, auth_client, test_api_uri):
+        ps_module = PsModuleFactory(bts_name="bugzilla")
         flaw = FlawFactory(updated_dt=datetime(2021, 11, 23))
         affect1 = AffectFactory(
             flaw=flaw,
+            ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
             updated_dt=datetime(2021, 11, 23),
         )
         affect2 = AffectFactory(
             flaw=flaw,
+            ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
             updated_dt=datetime(2021, 11, 23),
@@ -436,11 +450,13 @@ class TestEndpoints(object):
             affects=(affect1,),
             embargoed=flaw.embargoed,
             updated_dt=datetime(2021, 11, 23),
+            type=Tracker.TrackerType.BUGZILLA,
         )
         tracker2 = TrackerFactory(
             affects=(affect2,),
             embargoed=flaw.embargoed,
             updated_dt=datetime(2021, 11, 23),
+            type=Tracker.TrackerType.BUGZILLA,
         )
         past_dt = datetime(2019, 11, 27)
 
@@ -543,10 +559,20 @@ class TestEndpoints(object):
         body = response.json()
         assert body["count"] == 0
 
+        ps_module = PsModuleFactory(bts_name="bugzilla")
         flaw = FlawFactory()
         for _ in range(5):
-            affect = AffectFactory(flaw=flaw)
-            affect.trackers.set([TrackerFactory(embargoed=flaw.is_embargoed)])
+            affect = AffectFactory(
+                flaw=flaw,
+                ps_module=ps_module.name,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.FIX,
+            )
+            TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.is_embargoed,
+                type=Tracker.TrackerType.BUGZILLA,
+            )
 
         flaw_exclude_fields = ["resolution", "state", "uuid", "impact"]
         affect_exclude_fields = ["ps_module", "ps_component", "type", "affectedness"]
@@ -583,10 +609,20 @@ class TestEndpoints(object):
         body = response.json()
         assert body["count"] == 0
 
+        ps_module = PsModuleFactory(bts_name="bugzilla")
         flaw = FlawFactory()
         for _ in range(5):
-            affect = AffectFactory(flaw=flaw)
-            affect.trackers.set([TrackerFactory(embargoed=flaw.is_embargoed)])
+            affect = AffectFactory(
+                flaw=flaw,
+                ps_module=ps_module.name,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.FIX,
+            )
+            TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.is_embargoed,
+                type=Tracker.TrackerType.BUGZILLA,
+            )
 
         flaw_include_fields = ["resolution", "state", "uuid", "impact"]
         affect_include_fields = ["ps_module", "ps_component", "type", "affectedness"]
@@ -633,10 +669,20 @@ class TestEndpoints(object):
         body = response.json()
         assert body["count"] == 0
 
+        ps_module = PsModuleFactory(bts_name="bugzilla")
         flaw = FlawFactory()
         for _ in range(5):
-            affect = AffectFactory(flaw=flaw)
-            affect.trackers.set([TrackerFactory(embargoed=flaw.is_embargoed)])
+            affect = AffectFactory(
+                flaw=flaw,
+                ps_module=ps_module.name,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.FIX,
+            )
+            TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.is_embargoed,
+                type=Tracker.TrackerType.BUGZILLA,
+            )
 
         affect_include_fields = ["ps_module", "ps_component", "type", "affectedness"]
 
@@ -670,10 +716,20 @@ class TestEndpoints(object):
         body = response.json()
         assert body["count"] == 0
 
+        ps_module = PsModuleFactory(bts_name="bugzilla")
         flaw = FlawFactory()
         for _ in range(5):
-            affect = AffectFactory(flaw=flaw)
-            affect.trackers.set([TrackerFactory(embargoed=flaw.is_embargoed)])
+            affect = AffectFactory(
+                flaw=flaw,
+                ps_module=ps_module.name,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.FIX,
+            )
+            TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.is_embargoed,
+                type=Tracker.TrackerType.BUGZILLA,
+            )
 
         flaw_include_fields = ["resolution", "state", "uuid", "impact"]
         affect_include_fields = ["ps_module", "ps_component", "type", "affectedness"]
@@ -821,18 +877,21 @@ class TestEndpoints(object):
         """retrieve list of flaws with various meta_attr keys in nested serializers"""
 
         for _ in range(2):
+            ps_module = PsModuleFactory(bts_name="bugzilla")
             flaw = FlawFactory(meta_attr={f"test_key_{i}": "test" for i in range(5)})
             for _ in range(3):
                 affect = AffectFactory(
-                    flaw=flaw, meta_attr={f"test_key_{i}": "test" for i in range(5)}
+                    flaw=flaw,
+                    ps_module=ps_module.name,
+                    meta_attr={f"test_key_{i}": "test" for i in range(5)},
+                    affectedness=Affect.AffectAffectedness.AFFECTED,
+                    resolution=Affect.AffectResolution.DELEGATED,
                 )
-                affect.trackers.set(
-                    [
-                        TrackerFactory(
-                            embargoed=flaw.is_embargoed,
-                            meta_attr={f"test_key_{i}": "test" for i in range(5)},
-                        )
-                    ]
+                TrackerFactory(
+                    affects=[affect],
+                    embargoed=flaw.is_embargoed,
+                    meta_attr={f"test_key_{i}": "test" for i in range(5)},
+                    type=Tracker.TrackerType.BUGZILLA,
                 )
 
         response = auth_client.get(f"{test_api_uri}/flaws?{query_params}")
@@ -925,18 +984,21 @@ class TestEndpoints(object):
     ):
         """retrieve specific flaw with various meta_attr keys in nested serializers"""
 
+        ps_module = PsModuleFactory(bts_name="bugzilla")
         flaw = FlawFactory(meta_attr={f"test_key_{i}": "test" for i in range(5)})
         for _ in range(3):
             affect = AffectFactory(
-                flaw=flaw, meta_attr={f"test_key_{i}": "test" for i in range(5)}
+                flaw=flaw,
+                ps_module=ps_module.name,
+                meta_attr={f"test_key_{i}": "test" for i in range(5)},
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
             )
-            affect.trackers.set(
-                [
-                    TrackerFactory(
-                        embargoed=flaw.is_embargoed,
-                        meta_attr={f"test_key_{i}": "test" for i in range(5)},
-                    )
-                ]
+            TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.is_embargoed,
+                meta_attr={f"test_key_{i}": "test" for i in range(5)},
+                type=Tracker.TrackerType.BUGZILLA,
             )
 
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}?{query_params}")
@@ -1054,9 +1116,12 @@ class TestEndpoints(object):
         assert body["classification"]["state"] is not None
 
     def test_flaw_including_delegated_resolution(self, auth_client, test_api_uri):
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        PsUpdateStreamFactory(name="rhel-7.0", active_to_ps_module=ps_module)
         flaw = FlawFactory()
         delegated_affect = AffectFactory(
             flaw=flaw,
+            ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
@@ -1065,6 +1130,7 @@ class TestEndpoints(object):
             status="won't fix",
             embargoed=flaw.is_embargoed,
             ps_update_stream="rhel-7.0",
+            type=Tracker.TrackerType.BUGZILLA,
         )
 
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}")
@@ -1489,19 +1555,40 @@ class TestEndpoints(object):
         flaw = FlawFactory()
         FlawFactory()
 
-        affects_with_trackers_to_fetch = [AffectFactory(flaw=flaw) for _ in range(5)]
-        other_affects = [AffectFactory(flaw=flaw) for _ in range(5)]
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affects_with_trackers_to_fetch = [
+            AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.FIX,
+                ps_module=ps_module.name,
+            )
+            for _ in range(5)
+        ]
+        other_affects = [
+            AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.FIX,
+                ps_module=ps_module.name,
+            )
+            for _ in range(5)
+        ]
 
         trackers_to_fetch = [
-            TrackerFactory(embargoed=flaw.is_embargoed) for _ in range(5)
+            TrackerFactory(
+                affects=[affects_with_trackers_to_fetch[idx]],
+                embargoed=flaw.is_embargoed,
+                type=Tracker.TrackerType.BUGZILLA,
+            )
+            for idx in range(5)
         ]
-        other_trackers = [TrackerFactory(embargoed=flaw.is_embargoed) for _ in range(5)]
-
-        for affect, tracker in zip(affects_with_trackers_to_fetch, trackers_to_fetch):
-            affect.trackers.set([tracker])
-
-        for affect, tracker in zip(other_affects, other_trackers):
-            affect.trackers.set([tracker])
+        for idx in range(5):
+            TrackerFactory(
+                affects=[other_affects[idx]],
+                embargoed=flaw.is_embargoed,
+                type=Tracker.TrackerType.BUGZILLA,
+            )
 
         affect_ids = {str(affect.uuid) for affect in affects_with_trackers_to_fetch}
         tracker_ids = {str(tracker.external_system_id) for tracker in trackers_to_fetch}
@@ -1813,7 +1900,17 @@ class TestEndpoints(object):
         """
         Test the update of Tracker records via a REST API PUT request.
         """
-        tracker = TrackerFactory()
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
         response = auth_client.get(f"{test_api_uri}/trackers/{tracker.uuid}")
         assert response.status_code == 200
         original_body = response.json()
@@ -1834,7 +1931,17 @@ class TestEndpoints(object):
         """
         Test the deletion of Tracker records via a REST API DELETE request.
         """
-        tracker = TrackerFactory()
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
         tracker_url = f"{test_api_uri}/trackers/{tracker.uuid}"
         response = auth_client.get(tracker_url)
         assert response.status_code == 200
