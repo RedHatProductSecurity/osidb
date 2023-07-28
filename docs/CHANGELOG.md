@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement ps_update_stream in Tracker API (OSIDB-1064)
 - Implement daily monitoring email for failed tasks
 - Implement nist_cvss_validation in Flaw API (OSIDB-1006)
+- Implement additional tracker validations (OSIDB-787)
 
 ### Changed
 - Change article link validation to be blocking (OSIDB-1060)

@@ -83,9 +83,84 @@ class TestTrackerValidators:
         """
         test that no validator complains about valid tracker
         """
+        flaw = FlawFactory()
+        ps_module = PsModuleFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+        )
+        ps_update_stream = PsUpdateStreamFactory()
         # do not raise here
         # validation is run on save
-        TrackerFactory()
+        TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.embargoed,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+            ps_update_stream=ps_update_stream.name,
+        )
+
+    def test_validate_no_affect(self):
+        """
+        test that creation of a tracker without an affect results in an exception
+        """
+        ps_update_stream = PsUpdateStreamFactory()
+
+        with pytest.raises(
+            ValidationError,
+            match="Tracker must be associated with an affect",
+        ):
+            TrackerFactory(
+                ps_update_stream=ps_update_stream.name,
+            )
+
+    def test_validate_no_ps_module(self):
+        """
+        test that creation of a tracker without a valid PS module results in an exception
+        """
+        flaw = FlawFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module="unknown",
+        )
+        ps_update_stream = PsUpdateStreamFactory()
+
+        with pytest.raises(
+            ValidationError,
+            match="Tracker must be associated with a valid PS module",
+        ):
+            TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.embargoed,
+                ps_update_stream=ps_update_stream.name,
+            )
+
+    def test_validate_no_ps_update_stream(self):
+        """
+        test that creation of a tracker without a valid PS update stream results in an exception
+        """
+        flaw = FlawFactory()
+        ps_module = PsModuleFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+        )
+
+        with pytest.raises(
+            ValidationError,
+            match="Tracker must be associated with a valid PS update stream",
+        ):
+            TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.embargoed,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+                ps_update_stream="unknown",
+            )
 
     def test_validate_multi_flaw_tracker_ps_module(self):
         """

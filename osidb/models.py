@@ -1992,6 +1992,36 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     def __str__(self):
         return str(self.uuid)
 
+    def _validate_tracker_affect(self):
+        """
+        check that the tracker is associated with an affect
+        """
+        # there are no references before the first save to DB
+        if self._state.adding:
+            return
+
+        if not self.affects.exists():
+            raise ValidationError("Tracker must be associated with an affect")
+
+    def _validate_tracker_ps_module(self):
+        """
+        check that the tracker is associated with a valid PS module
+        """
+        if not self.affects.exists():
+            return
+
+        if not PsModule.objects.filter(name=self.affects.first().ps_module):
+            raise ValidationError("Tracker must be associated with a valid PS module")
+
+    def _validate_tracker_ps_update_stream(self):
+        """
+        check that the tracker is associated with a valid PS update stream
+        """
+        if not PsUpdateStream.objects.filter(name=self.ps_update_stream):
+            raise ValidationError(
+                "Tracker must be associated with a valid PS update stream"
+            )
+
     def _validate_tracker_flaw_accesses(self):
         """
         Check whether an public tracker is associated with an embargoed flaw.
