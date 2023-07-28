@@ -2651,6 +2651,28 @@ class PsModule(NullStrFieldsMixin, ValidateMixin):
         PsProduct, on_delete=models.CASCADE, related_name="ps_modules"
     )
 
+    @property
+    def is_rhscl(self) -> bool:
+        """
+        check and return whether the PS module is RHSCL one
+
+        Red Hat Software Collections represent an extra layer in
+        the component hierarchy and may require special handling
+        """
+        return self.bts_key == RHSCL_BTS_KEY
+
+    def subcomponent(self, component) -> Union[str, None]:
+        """
+        return the subcomponent for the given component or None if not present
+        """
+        if (
+            self.component_overrides
+            and component in self.component_overrides
+            and isinstance(self.component_overrides[component], dict)
+            and self.component_overrides[component].get("sub_component")
+        ):
+            return self.component_overrides[component]["sub_component"]
+
 
 class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
 
