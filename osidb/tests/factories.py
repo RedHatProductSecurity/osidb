@@ -310,93 +310,6 @@ class AffectFactory(factory.django.DjangoModelFactory):
         return super()._create(model_class, *args, **kwargs)
 
 
-class TrackerFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Tracker
-        django_get_or_create = ("type", "external_system_id")
-
-    type = factory.Faker("random_element", elements=list(Tracker.TrackerType))
-    external_system_id = factory.LazyAttributeSequence(
-        lambda o, n: f"{o.type}-{n}" if o.type else f"{n}"
-    )
-    status = factory.Faker("word")
-    resolution = factory.Faker("word")
-
-    embargoed = factory.Faker("random_element", elements=[False, True])
-    acl_read = factory.LazyAttribute(
-        lambda o: [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}"
-            )
-            for group in settings.PUBLIC_READ_GROUPS
-        ]
-        if o.embargoed is False
-        else [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_READ_GROUP}",
-            )
-        ]
-    )
-    acl_write = factory.LazyAttribute(
-        lambda o: [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                f"https://osidb.prod.redhat.com/ns/acls#{settings.PUBLIC_WRITE_GROUP}",
-            )
-        ]
-        if o.embargoed is False
-        else [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_WRITE_GROUP}",
-            )
-        ]
-    )
-
-    meta_attr = {"test": "1"}
-
-    @factory.post_generation
-    def affects(self, create, extracted, **kwargs):
-        if not create:
-            return
-
-        if extracted:
-            for affect in extracted:
-                self.affects.add(affect)
-
-    @classmethod
-    def _create(cls, model_class, *args, **kwargs):
-        """
-        instance creation
-        with saving to DB
-        """
-        # turn of automatic timestamps
-        # so we can explicitly assign them
-        kwargs["auto_timestamps"] = False
-        # embargoed is not a real model attribute but annotation so it is read-only
-        # but we want preserve it as writable factory attribute as it is easier to work with
-        # than with ACLs so we need to remove it for the tracker creation and emulate annotation
-        embargoed = kwargs.pop("embargoed")
-        tracker = super()._create(model_class, *args, **kwargs)
-        tracker.embargoed = embargoed
-        return tracker
-
-    @classmethod
-    def _build(cls, model_class, *args, **kwargs):
-        """
-        instance build
-        without saving to DB
-        """
-        # embargoed is not a real model attribute but annotation so it is read-only
-        # but we want preserve it as writable factory attribute as it is easier to work with
-        # than with ACLs so we need to remove it for the tracker creation and emulate annotation
-        embargoed = kwargs.pop("embargoed")
-        tracker = super()._build(model_class, *args, **kwargs)
-        tracker.embargoed = embargoed
-        return tracker
-
-
 class FlawCommentFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = FlawComment
@@ -551,7 +464,7 @@ class PsModuleFactory(factory.django.DjangoModelFactory):
     autofile_trackers = factory.Faker("boolean")
     special_handling_features = factory.List([factory.Faker("word") for _ in range(3)])
 
-    bts_name = factory.Faker("word")
+    bts_name = factory.Faker("random_element", elements=["bugzilla", "jboss"])
     bts_key = factory.Faker("word")
     bts_groups = factory.Dict(
         {
@@ -593,6 +506,94 @@ class PsUpdateStreamFactory(factory.django.DjangoModelFactory):
     aus_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
     eus_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
     unacked_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
+
+
+class TrackerFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Tracker
+        django_get_or_create = ("type", "external_system_id")
+
+    type = factory.Faker("random_element", elements=list(Tracker.TrackerType))
+    external_system_id = factory.LazyAttributeSequence(
+        lambda o, n: f"{o.type}-{n}" if o.type else f"{n}"
+    )
+    status = factory.Faker("word")
+    resolution = factory.Faker("word")
+    ps_update_stream = factory.LazyFunction(lambda: PsUpdateStreamFactory().name)
+
+    embargoed = factory.Faker("random_element", elements=[False, True])
+    acl_read = factory.LazyAttribute(
+        lambda o: [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}"
+            )
+            for group in settings.PUBLIC_READ_GROUPS
+        ]
+        if o.embargoed is False
+        else [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_READ_GROUP}",
+            )
+        ]
+    )
+    acl_write = factory.LazyAttribute(
+        lambda o: [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                f"https://osidb.prod.redhat.com/ns/acls#{settings.PUBLIC_WRITE_GROUP}",
+            )
+        ]
+        if o.embargoed is False
+        else [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_WRITE_GROUP}",
+            )
+        ]
+    )
+
+    meta_attr = {"test": "1"}
+
+    @factory.post_generation
+    def affects(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for affect in extracted:
+                self.affects.add(affect)
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        """
+        instance creation
+        with saving to DB
+        """
+        # turn of automatic timestamps
+        # so we can explicitly assign them
+        kwargs["auto_timestamps"] = False
+        # embargoed is not a real model attribute but annotation so it is read-only
+        # but we want preserve it as writable factory attribute as it is easier to work with
+        # than with ACLs so we need to remove it for the tracker creation and emulate annotation
+        embargoed = kwargs.pop("embargoed")
+        tracker = super()._create(model_class, *args, **kwargs)
+        tracker.embargoed = embargoed
+        return tracker
+
+    @classmethod
+    def _build(cls, model_class, *args, **kwargs):
+        """
+        instance build
+        without saving to DB
+        """
+        # embargoed is not a real model attribute but annotation so it is read-only
+        # but we want preserve it as writable factory attribute as it is easier to work with
+        # than with ACLs so we need to remove it for the tracker creation and emulate annotation
+        embargoed = kwargs.pop("embargoed")
+        tracker = super()._build(model_class, *args, **kwargs)
+        tracker.embargoed = embargoed
+        return tracker
 
 
 class CVSSFactory(factory.django.DjangoModelFactory):
