@@ -66,26 +66,6 @@ AUTH_LDAP_USER_FLAGS_BY_GROUP = {
     "is_superuser": f"cn={SERVICE_MANAGE_GROUP},ou=adhoc,ou=managedgroups,dc=redhat,dc=com",
 }
 
-DATABASES = {
-    "default": {
-        "NAME": get_env("OSIDB_DB_NAME", default="osidb"),
-        "USER": get_env("OSIDB_DB_USER"),
-        "PASSWORD": get_env("OSIDB_DB_PASSWORD"),
-        "HOST": get_env("OSIDB_DB_HOST"),
-        "PORT": get_env("OSIDB_DB_PORT", default="5432"),
-        "ENGINE": "psqlextra.backend",
-        "ATOMIC_REQUESTS": True,  # perform HTTP requests as atomic transactions
-        "OPTIONS": {
-            "sslmode": "require",
-            # prevent libpq from automatically trying to connect to the db via GSSAPI
-            "gssencmode": "disable",
-            # this is a hack due to our inability to set a custom parameter either at
-            # the database or role level in managed databases such as AWS RDS
-            "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000",
-        },
-    }
-}
-
 LOGOUT_REDIRECT_URL = "/"
 LOGIN_REDIRECT_URL = "/"
 

@@ -51,9 +51,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django_celery_results",
     "django_extensions",
     "django.contrib.postgres",
+    "django_celery_results",
+    "django_celery_beat",
     "psqlextra",
     "rest_framework",
     "django_filters",
@@ -153,6 +154,29 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
+
+# Prod / stage settings need to be defined here
+# So django-celery-results can use the right DB
+# Override in an env-specific settings file if needed
+DATABASES = {
+    "default": {
+        "NAME": get_env("OSIDB_DB_NAME", default="osidb"),
+        "USER": get_env("OSIDB_DB_USER"),
+        "PASSWORD": get_env("OSIDB_DB_PASSWORD"),
+        "HOST": get_env("OSIDB_DB_HOST"),
+        "PORT": get_env("OSIDB_DB_PORT", default="5432"),
+        "ENGINE": "psqlextra.backend",
+        "ATOMIC_REQUESTS": True,  # perform HTTP requests as atomic transactions
+        "OPTIONS": {
+            "sslmode": "require",
+            # prevent libpq from automatically trying to connect to the db via GSSAPI
+            "gssencmode": "disable",
+            # this is a hack due to our inability to set a custom parameter either at
+            # the database or role level in managed databases such as AWS RDS
+            "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000",
+        },
+    }
+}
 
 # Celery application definition
 CELERY_BROKER_URL = "redis://redis:6379/"

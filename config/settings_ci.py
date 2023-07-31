@@ -1,5 +1,4 @@
 import ldap
-from django.core.management.utils import get_random_secret_key
 from django_auth_ldap.config import GroupOfNamesType, LDAPSearch
 
 from .settings import *
@@ -70,6 +69,8 @@ AUTH_LDAP_USER_FLAGS_BY_GROUP = {
     "is_superuser": f"cn={SERVICE_MANAGE_GROUP},ou=users,dc=redhat,dc=com",
 }
 
+# Completely redefine instead of reusing certain parts
+# Since name / user / password / etc. are all different
 DATABASES = {
     "default": {
         "NAME": "osidb",
@@ -88,7 +89,6 @@ DATABASES = {
         },
     }
 }
-
 
 LOGOUT_REDIRECT_URL = "/"  # this is the name of the url
 LOGIN_REDIRECT_URL = "/"  # this is the name of the url

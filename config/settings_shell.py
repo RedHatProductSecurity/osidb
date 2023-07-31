@@ -25,22 +25,6 @@ EMBARGO_WRITE_GROUP = "data-topsecret-write"
 # Minimal group for managing the OSIDB service
 SERVICE_MANAGE_GROUP = "osidb-service-manage"
 
-DATABASES = {
-    "default": {
-        "NAME": get_env("OSIDB_DB_NAME", default="osidb"),
-        "USER": get_env("OSIDB_DB_USER", default="osidb_manage_user"),
-        "PASSWORD": get_env("OSIDB_DB_PASSWORD"),
-        "HOST": get_env("OSIDB_DB_HOST", default="localhost"),
-        "PORT": get_env("OSIDB_DB_PORT", default="5432"),
-        "ENGINE": "psqlextra.backend",
-        "ATOMIC_REQUESTS": True,  # perform HTTP requests as atomic transactions
-        "OPTIONS": {
-            "sslmode": "require",
-            # prevent libpq from automatically trying to connect to the db via GSSAPI
-            "gssencmode": "disable",
-            # this is a hack due to our inability to set a custom parameter either at
-            # the database or role level in managed databases such as AWS RDS
-            "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000",
-        },
-    }
-}
+# Use the same env vars, but provide a default if unset
+DATABASES["default"]["USER"] = get_env("OSIDB_DB_USER", default="osidb_manage_user")
+DATABASES["default"]["HOST"] = get_env("OSIDB_DB_HOST", default="localhost")
