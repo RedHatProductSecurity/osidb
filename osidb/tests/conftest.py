@@ -27,13 +27,6 @@ def enable_db_access_for_all_tests(db):
     pass
 
 
-@pytest.fixture(autouse=True)
-def test_ps_module():
-    from osidb.tests.factories import PsModuleFactory
-
-    PsModuleFactory(name="rhel-6")
-
-
 @pytest.fixture
 def root_url():
     return "http://osdib-service:8000"
