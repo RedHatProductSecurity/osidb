@@ -146,7 +146,7 @@ class ComparableTextChoices(models.TextChoices):
         to ensure that that we are comparing the instances of the same type as
         comparing different types (even two ComparableTextChoices) is undefined
         """
-        return type(self) != type(other)
+        return type(self) is not type(other)
 
     def __hash__(self):
         return super().__hash__()
