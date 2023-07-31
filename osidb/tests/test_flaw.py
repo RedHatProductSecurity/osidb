@@ -831,6 +831,7 @@ class TestFlawValidators:
         ],
     )
     def test_validate_affect_ps_module_alerts(self, bz_id, ps_module, should_alert):
+        PsModuleFactory(name="rhel-6")
         flaw = FlawFactory(meta_attr={"bz_id": bz_id})
         affect = AffectFactory(flaw=flaw, ps_module=ps_module)
         if should_alert:
@@ -850,6 +851,7 @@ class TestFlawValidators:
         ],
     )
     def test_validate_affect_ps_module_errors(self, bz_id, ps_module, should_raise):
+        PsModuleFactory(name="rhel-6")
         flaw = FlawFactory(meta_attr={"bz_id": bz_id})
         if should_raise:
             with pytest.raises(ValidationError) as e:
