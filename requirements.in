@@ -3,6 +3,7 @@ celery[gevent]
 cvss
 django
 django-auth-ldap
+django-celery-results
 django.contrib.postgres
 django-cors-headers
 django-db

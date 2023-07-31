@@ -25,6 +25,17 @@ ALLOWED_HOSTS = [
     ".redhat.com",
 ]
 
+OSIDB_MAILING_LIST = get_env("OSIDB_MAILING_LIST")
+# Mail these people on uncaught exceptions that result in 500 errors
+ADMINS = [("OSIDB developers", OSIDB_MAILING_LIST)]
+
+# Email settings - override for specific environments as needed
+SERVER_EMAIL = f"OSIDB <{OSIDB_MAILING_LIST}>"
+DEFAULT_FROM_EMAIL = SERVER_EMAIL
+EMAIL_PORT = 25
+EMAIL_HOST = get_env("RED_HAT_EMAIL_SERVER")
+EMAIL_USE_TLS = True
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_LDAP_SERVER_URI = get_env("LDAP_SERVER_URL", default="ldap://testldap:1389")
 
@@ -40,6 +51,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_celery_results",
     "django_extensions",
     "django.contrib.postgres",
     "psqlextra",
@@ -143,7 +155,22 @@ USE_L10N = True
 USE_TZ = True
 
 # Celery application definition
-CELERY_BROKER_URL = CELERY_RESULT_BACKEND = "redis://redis:6379/"
+CELERY_BROKER_URL = "redis://redis:6379/"
+CELERY_RESULT_BACKEND = "django-db"
+
+# Retry tasks due to Postgres failures instead of immediately re-raising exceptions
+# See https://docs.celeryproject.org/en/stable/userguide/configuration.html for details
+# See also a django-celery-results decorator for individual tasks:
+# https://django-celery-results.readthedocs.io/en/latest/reference/django_celery_results.managers.html
+CELERY_RESULT_BACKEND_ALWAYS_RETRY = True
+CELERY_RESULT_BACKEND_MAX_RETRIES = 2
+
+# Disable task result expiration:
+# https://docs.celeryproject.org/en/latest/userguide/configuration.html#std-setting-result_expires
+# By default, this job is enabled and runs daily at 4am. We have our own clean-up job (see
+# osidb.tasks.expire_task_results) with a longer time period and extra logging.
+CELERY_RESULT_EXPIRES = None
+
 CELERY_TASK_SOFT_TIME_LIMIT = 3600
 CELERY_TASK_IGNORE_RESULT = False
 CELERY_TASK_ROUTES = (
@@ -155,7 +182,18 @@ CELERY_TASK_ROUTES = (
         ("*", {"queue": "fast"}),  # default other tasks go to 'fast'
     ],
 )
-CELERY_BEAT_SCHEDULE = {}
+CELERY_BEAT_SCHEDULE = {
+    "email_failed_tasks": {
+        "task": "osidb.tasks.email_failed_tasks",
+        # Every day at 10:45 AM UTC
+        "schedule": crontab(hour=10, minute=45),
+    },
+    "expire_task_results": {
+        "task": "osidb.tasks.expire_task_results",
+        # Every day at 4:30 AM UTC, but it only deletes task results older than 30 days
+        "schedule": crontab(hour=4, minute=30),
+    },
+}
 
 LOGGING = {
     "version": 1,

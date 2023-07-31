@@ -8,6 +8,9 @@ from .settings import *
 # django secret key provided by ansible vault
 SECRET_KEY = get_env("DJANGO_SECRET_KEY")
 
+SERVER_EMAIL = f"OSIDB Stage <{OSIDB_MAILING_LIST}>"
+DEFAULT_FROM_EMAIL = SERVER_EMAIL
+
 # We trust OpenShift's HAProxy to strip the X-Forwarded-Proto header and to set it to "https" if
 # the request came over HTTPS from the client to HAProxy.
 USE_X_FORWARDED_HOST = True
