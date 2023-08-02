@@ -1,107 +1,186 @@
 """
-Jira tracker query module
+Jira tracker query generation module
 """
 import logging
+from functools import cached_property
 
-from django.db import transaction
-from jira.exceptions import JIRAError
-from rest_framework.response import Response
-
-from collectors.jiraffe.core import JiraQuerier
-from osidb.models import Affect, PsUpdateStream, Tracker
-
-from .constants import JIRA_SERVER
-from .core import JiraTracker
+from apps.trackers.exceptions import NoPriorityAvailableError
+from apps.trackers.models import JiraProjectFields
+from osidb.models import Impact, PsModule, PsUpdateStream
 
 logger = logging.getLogger(__name__)
 
 
-class JiraTrackerQuerier(JiraQuerier):
+class JiraPriority:
     """
-    Jira query handler for tracker management.
-    This class encapsulates calls for Jira doing validations
-    and its methods return data requested with HTTP status code
+    Allowed Jira priorities compliant with OJA-PRIS-001
     """
 
-    def __init__(self, token) -> None:
+    BLOCKER = "Blocker"
+    CRITICAL = "Critical"
+    MAJOR = "Major"
+    NORMAL = "Normal"
+    MINOR = "Minor"
+    UNDEFINED = "Undefined"
+
+
+IMPACT_TO_JIRA_PRIORITY = {
+    Impact.CRITICAL: [JiraPriority.CRITICAL],
+    Impact.IMPORTANT: [JiraPriority.MAJOR],
+    Impact.MODERATE: [
+        JiraPriority.NORMAL,
+        JiraPriority.MINOR,
+    ],  # some projects still miss Normal priority
+    Impact.LOW: [JiraPriority.MINOR],
+    # mapping below is just safeguard
+    # but we should never file such trackers
+    Impact.NOVALUE: [JiraPriority.UNDEFINED],
+}
+
+
+class TrackerJiraQueryBuilder:
+    """
+    Jira tracker bug query builder
+    to generate general tracker save query
+    """
+
+    def __init__(self, instance):
         """
-        Instantiate a new JiraTrackerQuerier object.
-
-        Keyword arguments:
-        token -- user token used in every request to Jira
+        init stuff
         """
-        self._jira_server = JIRA_SERVER
-        self._jira_token = token
+        self.instance = instance
+        self._query = {}
 
-    def get_bts_tracker(self, bts_id):
-        """get Jira tracker given its string key or integer id"""
-        try:
-            return Response(data=self.jira_conn.issue(bts_id).raw, status=200)
-        except JIRAError as e:
-            return Response(data=e.response.json(), status=e.status_code)
-
-    def create_bts_affect_tracker(
-        self, affect: Affect, tracked_streams: list[PsUpdateStream]
-    ):
+    @property
+    def tracker(self):
         """
-        Generates a tracker in BTS given an Affect.
-        If multiples streams is given creates one tracker per stream.
+        concrete name shortcut
         """
-        stream_names = [stream.name for stream in tracked_streams]
-        existing_trackers = affect.trackers.filter(
-            ps_update_stream__in=stream_names
-        ).values_list("ps_update_stream", flat=True)
-        if existing_trackers:
-            existing_trackers = ",".join(existing_trackers)
-            return Response(
-                data=f"Affect already have trackers created for stream(s) [{existing_trackers}].",
-                status=409,
-            )
+        return self.instance
 
-        # creates a list of trackers to be generated in BTS
-        bts_trackers = []
+    @cached_property
+    def ps_module(self):
+        """
+        cached PS module getter
+        """
+        # even when multiple affects they must all have the same PS module
+        return PsModule.objects.get(name=self.tracker.affects.first().ps_module)
 
-        for stream in tracked_streams:
-            bts_trackers.append(
-                JiraTracker(
-                    flaw=affect.flaw,
-                    affect=affect,
-                    stream=stream,
-                )
-            )
-        # submits a list of trackers/Jira issues to be created in bulk
-        try:
-            bulk_issues = []
-            for bts_tracker in bts_trackers:
-                bulk_issues.append(bts_tracker.generate_bts_object()["fields"])
+    @cached_property
+    def ps_component(self):
+        """
+        cached PS component getter
+        """
+        # even when multiple affects they must all have the same PS component
+        return self.tracker.affects.first().ps_component
 
-            response = self.jira_conn.create_issues(bulk_issues, prefetch=True)
-        except JIRAError as e:
-            return Response(data=e.response.json(), status=e.status_code)
+    @cached_property
+    def ps_update_stream(self):
+        """
+        cached PS update stream getter
+        """
+        return PsUpdateStream.objects.get(name=self.tracker.ps_update_stream)
 
-        # creates in OSIDB the equivalent entity for the created BTS trackers
-        issues = [created["issue"] for created in response]
-        try:
-            with transaction.atomic():
-                i = 0
-                while i < len(response):
-                    issue = issues[i].raw
-                    bts_tracker = bts_trackers[i]
-                    tracker = Tracker(
-                        type=Tracker.TrackerType.JIRA,
-                        external_system_id=issue["key"],
-                        status=issue["fields"]["status"]["name"],
-                        ps_update_stream=bts_tracker._stream.name,
-                        acl_read=affect.acl_read,
-                        acl_write=affect.acl_write,
-                    )
-                    tracker.save()
-                    tracker.affects.add(bts_tracker._affect)
-                    i += 1
-            return Response(data=response, status=201)
-        except Exception as e:
-            tracker_bts_keys = ",".join([issue.raw["key"] for issue in issues])
-            return Response(
-                data=f"Tracker(s) [{tracker_bts_keys}] created in Jira but not in OSIDB. {e}",
-                status=409,
-            )
+    @cached_property
+    def impact(self):
+        """
+        cached tracker maximum impact
+        """
+        return self.tracker.aggregated_impact
+
+    @cached_property
+    def reported_dt(self):
+        """
+        cached earliest reported date
+        """
+        self.tracker.affects.order_by("flaw__reported_dt")[0].flaw.reported_dt
+
+    def generate(self):
+        """
+        generate query
+        """
+        self.generate_base()
+        self.generate_priority()
+        self.generate_deadline()
+        self.generate_description()
+        self.generate_labels()
+        self.generate_summary()
+
+    def generate_base(self):
+        self._query = {
+            "fields": {
+                "issuetype": {"name": "Bug"},
+                "project": {"key": self.ps_module.bts_key},
+            }
+        }
+        if self.tracker.external_system_id:
+            self._query["key"] = self.tracker.external_system_id
+
+    def generate_priority(self):
+        """
+        Convert OSIDB impact to Jira Priority
+        """
+        allowed_values = JiraProjectFields.objects.get(
+            project_key=self.ps_module.bts_key, field_id="priority"
+        ).allowed_values
+        allowed_values = [value["name"] for value in allowed_values]
+        for priority in IMPACT_TO_JIRA_PRIORITY[self.impact]:
+            if priority in allowed_values:
+                self._query["fields"]["priority"] = {"name": priority}
+                return
+
+        raise NoPriorityAvailableError(
+            f"Jira project {self.ps_module.bts_key} does not have a corresponding priority for impact "
+            f"{self.impact}; allowed Jira priority values are: {', '.join(allowed_values)}"
+        )
+
+    def generate_deadline(self):
+        """
+        generate query for Bugzilla deadline
+        """
+        # TODO SLA module
+        pass
+
+    def generate_description(self):
+        """
+        Generates a text description for the vulnerability being tracked
+        """
+        if self.tracker.embargoed:
+            description = "Security Tracking Issue\n\nDo not make this issue public.\n"
+        else:
+            description = "Public Security Tracking Issue\n"
+
+        description += (
+            f"Impact: {self.impact}.\n"
+            f"Reported Date: {self.reported_dt}.\n\n"
+            "Flaw:\n-----"
+        )
+        for affect in self.tracker.affects.all():
+            description += f"https://osidb.prodsec.redhat.com/osidb/api/v1/flaws/{affect.flaw.uuid}\n"
+
+    def generate_labels(self):
+        """
+        generate query for Jira labels
+        """
+        cve_ids = self.tracker.affects.all().values_list("flaw__cve_id", flat=True)
+        self._query["fields"]["labels"] = {
+            *cve_ids,
+            "SecurityTracking",
+            "Security",
+            f"pscomponent:{self.ps_component}",
+        }
+
+    def generate_summary(self):
+        """
+        Generates the summary of a tracker
+        """
+        # TODO support multi-flaw tracker
+        flaw = self.tracker.affects.filter(flaw__cve_id__isnull=False).first().flaw
+        cve_id = flaw.cve_id + " "
+        if not flaw:
+            flaw = self.tracker.affects[0].flaw
+            cve_id = ""
+        self._query["fields"]["summary"] = (
+            f"{cve_id}{self.ps_component}: "
+            f"{flaw.title} [{self.tracker.ps_update_stream}]"
+        )
