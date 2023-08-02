@@ -72,6 +72,7 @@ class TrackerConvertor:
             meta_attr=self.tracker_data,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
+            raise_validation_error=False,  # do not raise exceptions here
         )
         # eventual save inside create_tracker would
         # override the timestamps so we have to set them here

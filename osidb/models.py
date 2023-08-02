@@ -1912,7 +1912,9 @@ class TrackerManager(ACLMixinManager, TrackingMixinManager):
     """tracker manager"""
 
     @staticmethod
-    def create_tracker(affect, external_system_id, _type, **extra_fields):
+    def create_tracker(
+        affect, external_system_id, _type, raise_validation_error=True, **extra_fields
+    ):
         """return a new tracker or update an existing tracker"""
         try:
             tracker = Tracker.objects.get(
@@ -1929,7 +1931,7 @@ class TrackerManager(ACLMixinManager, TrackingMixinManager):
             # must save, otherwise assigning affects won't work (no pk)
             # this is probably why before the affects were not being added
             # to newly created trackers
-            tracker.save()
+            tracker.save(raise_validation_error=raise_validation_error)
         if affect is not None:
             tracker.affects.add(affect)
         return tracker
