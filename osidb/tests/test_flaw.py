@@ -1764,6 +1764,65 @@ class TestFlawValidators:
         "resolution,is_tracker_open,should_raise",
         [
             (
+                Affect.AffectResolution.OOSS,
+                True,
+                True,
+            ),
+            (
+                Affect.AffectResolution.FIX,
+                True,
+                False,
+            ),
+            (
+                Affect.AffectResolution.WONTFIX,
+                False,
+                False,
+            ),
+        ],
+    )
+    def test_validate_ooss_open_tracker(
+        self, entity, resolution, is_tracker_open, should_raise
+    ):
+        """
+        Test that ooss affects with open trackers raise errors.
+        """
+        status = "OPEN" if is_tracker_open else "CLOSED"
+        flaw = FlawFactory(embargoed=False)
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=resolution,
+        )
+        tracker = TrackerFactory.build(
+            embargoed=False,
+            status=status,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        tracker.save(raise_validation_error=False)
+        tracker.affects.add(affect)
+
+        match = (
+            f"The tracker is associated with an OOSS affect: {affect.uuid}"
+            if entity == "tracker"
+            else f"{affect.uuid}.*is marked as.*but has open tracker"
+        )
+        entity = tracker if entity == "tracker" else affect
+        if should_raise:
+            with pytest.raises(
+                ValidationError,
+                match=match,
+            ):
+                entity.save()
+        else:
+            assert entity.save() is None
+
+    @pytest.mark.parametrize("entity", ["affect", "tracker"])
+    @pytest.mark.parametrize(
+        "resolution,is_tracker_open,should_raise",
+        [
+            (
                 Affect.AffectResolution.WONTFIX,
                 True,
                 True,

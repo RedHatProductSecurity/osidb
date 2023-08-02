@@ -1582,6 +1582,19 @@ class Affect(
                 "NOTAFFECTED but has open tracker(s).",
             )
 
+    def _validate_ooss_open_tracker(self):
+        """
+        Check whether out of support scope products have open trackers.
+        """
+        if (
+            self.resolution == Affect.AffectResolution.OOSS
+            and self.trackers.exclude(status__iexact="CLOSED").exists()
+        ):
+            raise ValidationError(
+                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
+                "OOSS but has open tracker(s).",
+            )
+
     def _validate_wontfix_open_tracker(self):
         """
         Check whether wontfix affects have open trackers.
@@ -2048,6 +2061,16 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             raise ValidationError(
                 f"Affect ({affect.uuid}) for {affect.ps_module}/{affect.ps_component} is marked as "
                 "NOTAFFECTED but has open tracker(s).",
+            )
+
+    def _validate_ooss_open_tracker(self):
+        """
+        Check whether out of support scope products have open trackers.
+        """
+        affect = self.affects.filter(resolution=Affect.AffectResolution.OOSS).first()
+        if not self.is_closed and affect:
+            raise ValidationError(
+                f"The tracker is associated with an OOSS affect: {affect.uuid}",
             )
 
     def _validate_wontfix_open_tracker(self):
