@@ -880,6 +880,77 @@ class Flaw(
         # users from reviewing in the first place, in which case we don't
         # need to perform this validation
 
+    def _validate_major_incident_fields(self):
+        """
+        Validate that a Flaw that is Major Incident complies with the following:
+        * has a mitigation
+        * has a statement
+        * has a summary
+        * requires_summary is APPROVED
+        * has exactly one article
+        """
+        if self.major_incident_state != Flaw.FlawMajorIncident.APPROVED:
+            return
+
+        if not self.mitigation:
+            self.alert(
+                "mi_mitigation_missing",
+                "Flaw marked as Major Incident does not have a mitigation.",
+            )
+
+        if not self.statement:
+            self.alert(
+                "mi_statement_missing",
+                "Flaw marked as Major Incident does not have a statement.",
+            )
+
+        if not self.summary:
+            self.alert(
+                "mi_summary_missing",
+                "Flaw marked as Major Incident does not have a summary.",
+            )
+
+        if self.requires_summary != self.FlawRequiresSummary.APPROVED:
+            self.alert(
+                "mi_summary_not_reviewed",
+                "Flaw marked as Major Incident does not have a summary reviewed.",
+            )
+
+        article = self.references.filter(type=FlawReference.FlawReferenceType.ARTICLE)
+        if article.count() != 1:
+            self.alert(
+                "mi_article_missing",
+                "Flaw marked as Major Incident must have exactly one article.",
+            )
+
+    def _validate_cisa_major_incident_fields(self):
+        """
+        Validate that a Flaw that is CISA Major Incident complies with the following:
+        * has a statement
+        * has a summary
+        * requires_summary is APPROVED
+        """
+        if self.major_incident_state != Flaw.FlawMajorIncident.CISA_APPROVED:
+            return
+
+        if not self.statement:
+            self.alert(
+                "cisa_mi_statement_missing",
+                "Flaw marked as CISA Major Incident does not have a statement.",
+            )
+
+        if not self.summary:
+            self.alert(
+                "cisa_mi_summary_missing",
+                "Flaw marked as CISA Major Incident does not have a summary.",
+            )
+
+        if self.requires_summary != self.FlawRequiresSummary.APPROVED:
+            self.alert(
+                "cisa_mi_summary_not_reviewed",
+                "Flaw marked as CISA Major Incident does not have a summary reviewed.",
+            )
+
     def _validate_embargoing_public_flaw(self):
         """
         Check whether a currently public flaw is being embargoed.
