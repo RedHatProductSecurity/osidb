@@ -874,75 +874,11 @@ class Flaw(
         if self.major_incident_state == self.FlawMajorIncident.INVALID:
             raise ValidationError("A flaw does not have a valid Major Incident state.")
 
-    def _validate_summary_major_incident(self):
-        """
-        Check that a flaw that is a major incident has a summary
-        """
-        req = self.meta.filter(type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY).last()
-        if (
-            not self.is_major_incident
-            # checks requires_doc_text via FlawMeta (will be deprecated in the future)
-            or (req and req.meta_attr.get("status") == "-")
-            # checks requires_doc_text via Flaw (this should be kept in the future)
-            or self.requires_summary == self.FlawRequiresSummary.REJECTED
-        ):
-            return
-
-        if not self.summary:
-            self.alert(
-                "mi_summary_missing",
-                "Flaw marked as Major Incident does not have Summary",
-            )
-
-        if (
-            # checks requires_doc_text via FlawMeta (will be deprecated in the future)
-            not req
-            or req.meta_attr.get("status") == "?"
-            # checks requires_doc_text via Flaw (this should be kept in the future)
-            or self.requires_summary == self.FlawRequiresSummary.REQUESTED
-        ):
-            self.alert(
-                "mi_summary_not_reviewed",
-                "Flaw marked as Major Incident does not have Summary reviewed",
-            )
-
         # XXX: In SFM2 we check that the REQUIRES_DOC_TEXT flag is set by
         # someone who has review access rights, it is uncertain whether
         # we'd need this in OSIDB as ideally we would block non-authorized
         # users from reviewing in the first place, in which case we don't
         # need to perform this validation
-
-    def _validate_major_incident_article(self):
-        """
-        Tests that a Flaw that is Major Incident has an article.
-        """
-        article = self.references.filter(type=FlawReference.FlawReferenceType.ARTICLE)
-
-        if self.is_major_incident_temp() and article.count() == 0:
-            self.alert(
-                "mi_article_missing",
-                "A flaw marked as Major Incident does not have an article.",
-            )
-
-    def _validate_major_incident_mitigation(self):
-        """
-        Tests that a Flaw that is Major Incident has a mitigation.
-        """
-        if self.is_major_incident_temp() and self.mitigation == "":
-            self.alert(
-                "mi_mitigation_missing",
-                "A flaw marked as Major Incident does not have a mitigation.",
-            )
-
-    def _validate_major_incident_statement(self):
-        """
-        Tests that a Flaw that is Major Incident has a statement.
-        """
-        if self.is_major_incident_temp() and self.statement == "":
-            self.alert(
-                "mi_statement_missing",
-                "A flaw marked as Major Incident does not have a statement.",
-            )
 
     def _validate_embargoing_public_flaw(self):
         """
