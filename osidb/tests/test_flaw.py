@@ -929,178 +929,6 @@ class TestFlawValidators:
         assert should_alert == ("cvss3_missing" in FlawFactory(cvss3=cvss3)._alerts)
 
     @pytest.mark.parametrize(
-        "summary,major_incident,req_old,req_new,should_alert,alerts",
-        [
-            (
-                "",
-                Flaw.FlawMajorIncident.APPROVED,
-                None,
-                Flaw.FlawRequiresSummary.NOVALUE,
-                True,
-                ["mi_summary_missing", "mi_summary_not_reviewed"],
-            ),
-            (
-                "",
-                Flaw.FlawMajorIncident.APPROVED,
-                "+",
-                Flaw.FlawRequiresSummary.APPROVED,
-                True,
-                ["mi_summary_missing"],
-            ),
-            (
-                "",
-                Flaw.FlawMajorIncident.APPROVED,
-                "?",
-                Flaw.FlawRequiresSummary.REQUESTED,
-                True,
-                ["mi_summary_missing", "mi_summary_not_reviewed"],
-            ),
-            (
-                "",
-                Flaw.FlawMajorIncident.APPROVED,
-                "-",
-                Flaw.FlawRequiresSummary.REJECTED,
-                False,
-                [],
-            ),
-            (
-                "",
-                Flaw.FlawMajorIncident.NOVALUE,
-                None,
-                Flaw.FlawRequiresSummary.NOVALUE,
-                False,
-                [],
-            ),
-            (
-                "",
-                Flaw.FlawMajorIncident.NOVALUE,
-                "+",
-                Flaw.FlawMajorIncident.APPROVED,
-                False,
-                [],
-            ),
-            (
-                "",
-                Flaw.FlawMajorIncident.NOVALUE,
-                "?",
-                Flaw.FlawRequiresSummary.REQUESTED,
-                False,
-                [],
-            ),
-            (
-                "",
-                Flaw.FlawMajorIncident.NOVALUE,
-                "-",
-                Flaw.FlawRequiresSummary.REJECTED,
-                False,
-                [],
-            ),
-            (
-                "foo",
-                Flaw.FlawMajorIncident.NOVALUE,
-                None,
-                Flaw.FlawRequiresSummary.NOVALUE,
-                False,
-                [],
-            ),
-            (
-                "foo",
-                Flaw.FlawMajorIncident.NOVALUE,
-                "+",
-                Flaw.FlawRequiresSummary.APPROVED,
-                False,
-                [],
-            ),
-            (
-                "foo",
-                Flaw.FlawMajorIncident.NOVALUE,
-                "?",
-                Flaw.FlawRequiresSummary.REQUESTED,
-                False,
-                [],
-            ),
-            (
-                "foo",
-                Flaw.FlawMajorIncident.NOVALUE,
-                "-",
-                Flaw.FlawRequiresSummary.REJECTED,
-                False,
-                [],
-            ),
-            (
-                "foo",
-                Flaw.FlawMajorIncident.APPROVED,
-                None,
-                Flaw.FlawRequiresSummary.NOVALUE,
-                True,
-                ["mi_summary_not_reviewed"],
-            ),
-            (
-                "foo",
-                Flaw.FlawMajorIncident.APPROVED,
-                "+",
-                Flaw.FlawRequiresSummary.APPROVED,
-                False,
-                [],
-            ),
-            (
-                "foo",
-                Flaw.FlawMajorIncident.APPROVED,
-                "?",
-                Flaw.FlawRequiresSummary.REQUESTED,
-                True,
-                ["mi_summary_not_reviewed"],
-            ),
-            (
-                "foo",
-                Flaw.FlawMajorIncident.APPROVED,
-                "-",
-                Flaw.FlawRequiresSummary.REJECTED,
-                False,
-                [],
-            ),
-        ],
-    )
-    def test_validate_major_incident_summary(
-        self, summary, major_incident, req_old, req_new, should_alert, alerts
-    ):
-        """
-        Test that a Flaw that is Major Incident has a summary
-        """
-        flaw1 = FlawFactory.build(summary=summary, major_incident_state=major_incident)
-        flaw1.save(raise_validation_error=False)
-
-        AffectFactory(flaw=flaw1)
-        FlawReferenceFactory(
-            flaw=flaw1,
-            type=FlawReference.FlawReferenceType.ARTICLE,
-            url="https://access.redhat.com/link123",
-        )
-        if flaw1.source.is_private():
-            FlawAcknowledgmentFactory(flaw=flaw1)
-            FlawMetaFactory(
-                flaw=flaw1,
-                type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT,
-            )
-        # these variables have the same meaning, but "req_old" will be deprecated
-        if req_old or req_new:
-            FlawMetaFactory(
-                flaw=flaw1,
-                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-                meta_attr={"status": req_old},
-            )
-            flaw1.requires_summary = req_new
-
-        flaw1.save()
-
-        if should_alert:
-            for alert in alerts:
-                assert alert in flaw1._alerts
-            assert len(alerts) == len(flaw1._alerts)
-        else:
-            assert flaw1._alerts == {}
-
-    @pytest.mark.parametrize(
         "state,should_raise",
         [
             (Flaw.FlawMajorIncident.NOVALUE, False),
@@ -1144,77 +972,234 @@ class TestFlawValidators:
             assert flaw.save() is None
 
     @pytest.mark.parametrize(
-        "reference_type,reference_url,mitigation,statement,alert_name,should_alert",
+        "mitigation,statement,summary,requires_summary,article,should_alert,alert",
         [
-            (
-                FlawReference.FlawReferenceType.EXTERNAL,
-                "https://httpd.apache.org/link123",
-                "mitigation text",
-                "statement text",
-                "mi_article_missing",
-                True,
-            ),
-            (
-                FlawReference.FlawReferenceType.ARTICLE,
-                "https://access.redhat.com/link123",
-                "",
-                "statement text",
-                "mi_mitigation_missing",
-                True,
-            ),
-            (
-                FlawReference.FlawReferenceType.ARTICLE,
-                "https://access.redhat.com/link123",
-                "mitigation text",
-                "",
-                "mi_statement_missing",
-                True,
-            ),
             # all good
             (
-                FlawReference.FlawReferenceType.ARTICLE,
-                "https://access.redhat.com/link123",
                 "mitigation text",
                 "statement text",
-                None,
+                "summary text",
+                Flaw.FlawRequiresSummary.APPROVED,
+                [
+                    FlawReference.FlawReferenceType.ARTICLE,
+                    "https://access.redhat.com/link123",
+                ],
                 False,
+                None,
+            ),
+            # empty mitigation
+            (
+                "",
+                "statement text",
+                "summary text",
+                Flaw.FlawRequiresSummary.APPROVED,
+                [
+                    FlawReference.FlawReferenceType.ARTICLE,
+                    "https://access.redhat.com/link123",
+                ],
+                True,
+                "mi_mitigation_missing",
+            ),
+            # empty statement
+            (
+                "mitigation text",
+                "",
+                "summary text",
+                Flaw.FlawRequiresSummary.APPROVED,
+                [
+                    FlawReference.FlawReferenceType.ARTICLE,
+                    "https://access.redhat.com/link123",
+                ],
+                True,
+                "mi_statement_missing",
+            ),
+            # empty summary
+            (
+                "mitigation text",
+                "statement text",
+                "",
+                Flaw.FlawRequiresSummary.APPROVED,
+                [
+                    FlawReference.FlawReferenceType.ARTICLE,
+                    "https://access.redhat.com/link123",
+                ],
+                True,
+                "mi_summary_missing",
+            ),
+            # summary review missing
+            (
+                "mitigation text",
+                "statement text",
+                "summary text",
+                Flaw.FlawRequiresSummary.NOVALUE,
+                [
+                    FlawReference.FlawReferenceType.ARTICLE,
+                    "https://access.redhat.com/link123",
+                ],
+                True,
+                "mi_summary_not_reviewed",
+            ),
+            # summary review requested
+            (
+                "mitigation text",
+                "statement text",
+                "summary text",
+                Flaw.FlawRequiresSummary.REQUESTED,
+                [
+                    FlawReference.FlawReferenceType.ARTICLE,
+                    "https://access.redhat.com/link123",
+                ],
+                True,
+                "mi_summary_not_reviewed",
+            ),
+            # summary review not required
+            (
+                "mitigation text",
+                "statement text",
+                "summary text",
+                Flaw.FlawRequiresSummary.REJECTED,
+                [
+                    FlawReference.FlawReferenceType.ARTICLE,
+                    "https://access.redhat.com/link123",
+                ],
+                True,
+                "mi_summary_not_reviewed",
+            ),
+            # article missing
+            (
+                "mitigation text",
+                "statement text",
+                "summary text",
+                Flaw.FlawRequiresSummary.APPROVED,
+                [
+                    FlawReference.FlawReferenceType.EXTERNAL,
+                    "https://httpd.apache.org/link123",
+                ],
+                True,
+                "mi_article_missing",
             ),
         ],
     )
     def test_validate_major_incident_fields(
         self,
-        reference_type,
-        reference_url,
         mitigation,
         statement,
-        alert_name,
+        summary,
+        requires_summary,
+        article,
         should_alert,
+        alert,
     ):
         """
-        Tests that a Flaw that is Major Incident has article reference, mitigation,
-        and statement correct.
+        Tests that a Flaw that is Major Incident complies with the following:
+        * has a mitigation
+        * has a statement
+        * has a summary
+        * requires_summary is APPROVED
+        * has exactly one article
         """
         flaw = FlawFactory.build(
             major_incident_state=Flaw.FlawMajorIncident.APPROVED,
             mitigation=mitigation,
             statement=statement,
-            embargoed=False,
-            requires_summary=Flaw.FlawRequiresSummary.APPROVED,
+            summary=summary,
+            requires_summary=requires_summary,
+            embargoed=False,  # to simplify fields that a flaw requires
         )
-        flaw.save(raise_validation_error=False)
-        FlawReferenceFactory(flaw=flaw, type=reference_type, url=reference_url)
+        flaw.save()
 
+        FlawReferenceFactory(flaw=flaw, type=article[0], url=article[1])
         AffectFactory(flaw=flaw)
-        FlawMetaFactory(
-            flaw=flaw,
-            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-            meta_attr={"status": "+"},
-        )
-
         flaw.save()
 
         if should_alert:
-            assert alert_name in flaw._alerts
+            assert len(flaw._alerts) == 1
+            assert alert in flaw._alerts
+        else:
+            assert flaw._alerts == {}
+
+    @pytest.mark.parametrize(
+        "statement,summary,requires_summary,should_alert,alert",
+        [
+            # all good
+            (
+                "statement text",
+                "summary text",
+                Flaw.FlawRequiresSummary.APPROVED,
+                False,
+                None,
+            ),
+            # empty statement
+            (
+                "",
+                "summary text",
+                Flaw.FlawRequiresSummary.APPROVED,
+                True,
+                "cisa_mi_statement_missing",
+            ),
+            # empty summary
+            (
+                "statement text",
+                "",
+                Flaw.FlawRequiresSummary.APPROVED,
+                True,
+                "cisa_mi_summary_missing",
+            ),
+            # summary review missing
+            (
+                "statement text",
+                "summary text",
+                Flaw.FlawRequiresSummary.NOVALUE,
+                True,
+                "cisa_mi_summary_not_reviewed",
+            ),
+            # summary review requested
+            (
+                "statement text",
+                "summary text",
+                Flaw.FlawRequiresSummary.REQUESTED,
+                True,
+                "cisa_mi_summary_not_reviewed",
+            ),
+            # summary review not required
+            (
+                "statement text",
+                "summary text",
+                Flaw.FlawRequiresSummary.REJECTED,
+                True,
+                "cisa_mi_summary_not_reviewed",
+            ),
+        ],
+    )
+    def test_validate_cisa_major_incident_fields(
+        self,
+        statement,
+        summary,
+        requires_summary,
+        should_alert,
+        alert,
+    ):
+        """
+        Tests that a Flaw that is CISA Major Incident complies with the following:
+        * has a statement
+        * has a summary
+        * requires_summary is APPROVED
+        """
+        flaw = FlawFactory.build(
+            major_incident_state=Flaw.FlawMajorIncident.CISA_APPROVED,
+            statement=statement,
+            summary=summary,
+            requires_summary=requires_summary,
+            embargoed=False,  # to simplify fields that a flaw requires
+        )
+        flaw.save()
+
+        AffectFactory(flaw=flaw)
+        flaw.save()
+
+        if should_alert:
+            assert len(flaw._alerts) == 1
+            assert alert in flaw._alerts
         else:
             assert flaw._alerts == {}
 
