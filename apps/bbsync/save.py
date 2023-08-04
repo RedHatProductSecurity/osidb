@@ -118,11 +118,14 @@ class BugzillaSaver(BugzillaQuerier):
     @property
     def stored_last_change(self):
         """
-        retrive the stored last change timestamp from DB
+        retrieve the stored last change timestamp from DB
         """
-        return make_aware(
-            datetime.strptime(self.instance.meta_attr["last_change_time"], DATETIME_FMT)
+        last_change_time = (
+            self.instance.meta_attr["last_change_time"]
+            if "last_change_time" in self.instance.meta_attr
+            else self.instance.meta_attr["updated_dt"]
         )
+        return make_aware(datetime.strptime(last_change_time, DATETIME_FMT))
 
 
 class FlawBugzillaSaver(BugzillaSaver):
