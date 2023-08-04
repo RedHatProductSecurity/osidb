@@ -2265,6 +2265,15 @@ paths:
           - REJECTED
           - REQUESTED
       - in: query
+        name: nist_cvss_validation
+        schema:
+          type: string
+          enum:
+          - ''
+          - APPROVED
+          - REJECTED
+          - REQUESTED
+      - in: query
         name: nvd_cvss2
         schema:
           type: string
@@ -2323,6 +2332,7 @@ paths:
             - -cwe_id
             - -impact
             - -major_incident_state
+            - -nist_cvss_validation
             - -nvd_cvss2
             - -nvd_cvss3
             - -reported_dt
@@ -2370,6 +2380,7 @@ paths:
             - cwe_id
             - impact
             - major_incident_state
+            - nist_cvss_validation
             - nvd_cvss2
             - nvd_cvss3
             - reported_dt
@@ -5976,6 +5987,10 @@ components:
           oneOf:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        nist_cvss_validation:
+          oneOf:
+          - $ref: '#/components/schemas/NistCvssValidationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         affects:
           type: array
           items:
@@ -6412,6 +6427,10 @@ components:
           oneOf:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        nist_cvss_validation:
+          oneOf:
+          - $ref: '#/components/schemas/NistCvssValidationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         affects:
           type: array
           items:
@@ -6806,6 +6825,12 @@ components:
       - type
       - updated_dt
       - uuid
+    NistCvssValidationEnum:
+      enum:
+      - REQUESTED
+      - APPROVED
+      - REJECTED
+      type: string
     PaginatedAffectList:
       type: object
       properties:

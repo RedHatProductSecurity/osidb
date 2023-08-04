@@ -46,6 +46,7 @@ class TestFlawSaver:
             impact=Impact.CRITICAL,
             major_incident_state=Flaw.FlawMajorIncident.REQUESTED,
             requires_summary=Flaw.FlawRequiresSummary.NOVALUE,
+            nist_cvss_validation=Flaw.FlawNistCvssValidation.REJECTED,
             created_dt=timezone.now(),
             updated_dt=timezone.now(),
             acl_read=self.get_acls(),
@@ -233,6 +234,7 @@ class TestFlawSaver:
         assert flaw.package_versions.first() == package_versions
         assert flaw.major_incident_state == Flaw.FlawMajorIncident.REQUESTED
         assert flaw.requires_summary == Flaw.FlawRequiresSummary.NOVALUE
+        assert flaw.nist_cvss_validation == Flaw.FlawNistCvssValidation.REJECTED
 
         assert affect is not None
         assert affect.ps_module == "module"
@@ -812,6 +814,45 @@ class TestFlawConvertor:
         assert flaw is not None
         assert flaw.requires_summary == requires_summary
 
+    @pytest.mark.parametrize(
+        "flag_value,mapped_result",
+        [
+            (None, Flaw.FlawNistCvssValidation.NOVALUE),
+            ("", Flaw.FlawNistCvssValidation.NOVALUE),
+            ("?", Flaw.FlawNistCvssValidation.REQUESTED),
+            ("+", Flaw.FlawNistCvssValidation.APPROVED),
+            ("-", Flaw.FlawNistCvssValidation.REJECTED),
+        ],
+    )
+    def test_flag_nist_cvss_validation(self, flag_value, mapped_result):
+        """
+        Tests that the nist_cvss_validation flag from Bugzilla is correctly
+        converted into nist_cvss_validation field in OSIDB.
+        """
+        flaw_bug = self.get_flaw_bug()
+        flaw_bug["flags"] = []
+        if flag_value is not None:
+            flag = {"name": "nist_cvss_validation", "status": flag_value}
+            flaw_bug["flags"].append(flag)
+
+        fc = FlawConvertor(
+            flaw_bug,
+            [],
+            self.get_flaw_history(),
+            None,
+            [],
+            [],
+        )
+        flaws = fc.bug2flaws()
+        assert not fc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        flaw.save()
+
+        flaw = Flaw.objects.first()
+        assert flaw is not None
+        assert flaw.nist_cvss_validation == mapped_result
+
     def test_affect_ps_module_fixup(self):
         """
         test that flaw with an affect fixed by a fixup
@@ -1279,6 +1320,7 @@ class TestFlawConvertor:
         flaw = Flaw.objects.first()
         assert flaw.major_incident_state == Flaw.FlawMajorIncident.REQUESTED
         assert flaw.requires_summary == Flaw.FlawRequiresSummary.APPROVED
+        assert flaw.nist_cvss_validation == Flaw.FlawNistCvssValidation.REJECTED
 
     def test_attributes_removed_in_bugzilla(self):
         """

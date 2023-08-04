@@ -624,6 +624,25 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         return pairs.get(status)
 
     @cached_property
+    def nist_cvss_validation(self):
+        """
+        Set Flaw field nist_cvss_validation from bugzilla flag nist_cvss_validation.
+        """
+        flag_value = ""
+        for flag in self.flags:
+            if flag["name"] == "nist_cvss_validation":
+                flag_value = flag["status"]
+
+        mapping = {
+            "": Flaw.FlawNistCvssValidation.NOVALUE,
+            "?": Flaw.FlawNistCvssValidation.REQUESTED,
+            "+": Flaw.FlawNistCvssValidation.APPROVED,
+            "-": Flaw.FlawNistCvssValidation.REJECTED,
+        }
+
+        return mapping.get(flag_value)
+
+    @cached_property
     def package_versions(self):
         """parse fixed_in to package versions"""
         fixed_in = self.flaw_bug["fixed_in"]
@@ -808,6 +827,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
             meta_attr=self.get_meta_attr(cve_id),
             major_incident_state=self.major_incident_state,
             requires_summary=self.requires_summary,
+            nist_cvss_validation=self.nist_cvss_validation,
             created_dt=self.flaw_bug["creation_time"],
             updated_dt=self.flaw_bug["last_change_time"],
             acl_read=self.acl_read,

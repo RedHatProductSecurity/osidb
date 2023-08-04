@@ -1134,10 +1134,12 @@ class TestGenerateFlags:
         """
         Tests that major_incident_state is correctly converted into hightouch and
         hightouch-lite flags.
+        Other flag-producing fields are set not to produce flags for ease of testing.
         """
         flaw = FlawFactory.build(
             major_incident_state=mi_state,
             requires_summary=Flaw.FlawRequiresSummary.NOVALUE,
+            nist_cvss_validation=Flaw.FlawNistCvssValidation.NOVALUE,
         )
         flaw.save(raise_validation_error=False)
 
@@ -1167,10 +1169,12 @@ class TestGenerateFlags:
     ):
         """
         Tests that requires_summary is correctly converted into requires_doc_text flag.
+        Other flag-producing fields are set not to produce flags for ease of testing.
         """
         flaw = FlawFactory.build(
             requires_summary=requires_summary,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            nist_cvss_validation=Flaw.FlawNistCvssValidation.NOVALUE,
         )
         flaw.save(raise_validation_error=False)
 
@@ -1180,5 +1184,39 @@ class TestGenerateFlags:
         if should_convert:
             assert len(flags) == 1
             assert {"name": "requires_doc_text", "status": requires_doc_text} in flags
+        else:
+            assert flags == []
+
+    @pytest.mark.parametrize(
+        "field_state,flag_value,should_convert",
+        [
+            # flags to convert
+            (Flaw.FlawNistCvssValidation.REQUESTED, "?", True),
+            (Flaw.FlawNistCvssValidation.APPROVED, "+", True),
+            (Flaw.FlawNistCvssValidation.REJECTED, "-", True),
+            # flag to ignore
+            (Flaw.FlawNistCvssValidation.NOVALUE, None, False),
+        ],
+    )
+    def test_generate_nist_cvss_validation(
+        self, field_state, flag_value, should_convert
+    ):
+        """
+        Tests that nist_cvss_validation field is correctly converted into a flag.
+        Other flag-producing fields are set not to produce flags for ease of testing.
+        """
+        flaw = FlawFactory.build(
+            nist_cvss_validation=field_state,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            requires_summary=Flaw.FlawRequiresSummary.NOVALUE,
+        )
+        flaw.save(raise_validation_error=False)
+
+        fbqb = FlawBugzillaQueryBuilder(flaw)
+        flags = fbqb.query.get("flags")
+
+        if should_convert:
+            assert len(flags) == 1
+            assert {"name": "nist_cvss_validation", "status": flag_value} in flags
         else:
             assert flags == []
