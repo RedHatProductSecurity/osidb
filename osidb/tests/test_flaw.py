@@ -1749,11 +1749,16 @@ class TestFlawValidators:
         tracker.save(raise_validation_error=False)
         tracker.affects.add(affect)
 
+        match = (
+            f"The tracker is associated with a NOTAFFECTED affect: {affect.uuid}"
+            if entity == "tracker"
+            else f"{affect.uuid}.*is marked as.*but has open tracker"
+        )
         entity = tracker if entity == "tracker" else affect
         if should_raise:
             with pytest.raises(
                 ValidationError,
-                match=f"{affect.uuid}.*is marked as.*but has open tracker",
+                match=match,
             ):
                 entity.save()
         else:
@@ -1862,11 +1867,16 @@ class TestFlawValidators:
         tracker.save(raise_validation_error=False)
         tracker.affects.add(affect)
 
+        match = (
+            f"The tracker is associated with a WONTFIX affect: {affect.uuid}"
+            if entity == "tracker"
+            else f"{affect.uuid}.*is marked as.*but has open tracker"
+        )
         entity = tracker if entity == "tracker" else affect
         if should_raise:
             with pytest.raises(
                 ValidationError,
-                match=f"{affect.uuid}.*is marked as.*but has open tracker",
+                match=match,
             ):
                 entity.save()
         else:

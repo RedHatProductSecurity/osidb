@@ -2059,8 +2059,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
         if not self.is_closed and affect:
             raise ValidationError(
-                f"Affect ({affect.uuid}) for {affect.ps_module}/{affect.ps_component} is marked as "
-                "NOTAFFECTED but has open tracker(s).",
+                f"The tracker is associated with a NOTAFFECTED affect: {affect.uuid}",
             )
 
     def _validate_ooss_open_tracker(self):
@@ -2080,8 +2079,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         affect = self.affects.filter(resolution=Affect.AffectResolution.WONTFIX).first()
         if not self.is_closed and affect:
             raise ValidationError(
-                f"Affect ({affect.uuid}) for {affect.ps_module}/{affect.ps_component} is marked as "
-                "WONTFIX but has open tracker(s).",
+                f"The tracker is associated with a WONTFIX affect: {affect.uuid}",
             )
 
     def _validate_multi_flaw_tracker(self):
