@@ -2146,7 +2146,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         assert (
             self.type == self.TrackerType.BUGZILLA
         ), "Only Bugzilla trackers have Bugzilla IDs"
-        return self.external_system_id
+        return self.external_system_id or None
 
     @bz_id.setter
     def bz_id(self, value):
