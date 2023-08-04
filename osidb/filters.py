@@ -181,6 +181,7 @@ class FlawFilter(DistinctFilterSet):
             "component": ["exact"],
             "major_incident_state": ["exact"],
             "requires_summary": ["exact"],
+            "nist_cvss_validation": ["exact"],
             # Affect fields
             "affects__uuid": ["exact"],
             "affects__type": ["exact"],

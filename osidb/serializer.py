@@ -840,6 +840,7 @@ class FlawSerializer(
                 "nvd_cvss3",
                 "is_major_incident",
                 "major_incident_state",
+                "nist_cvss_validation",
                 "affects",
                 "meta",
                 "comments",
