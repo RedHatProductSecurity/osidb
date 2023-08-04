@@ -86,6 +86,9 @@ class BugzillaSaver(BugzillaQuerier):
                     "concurrent update which Bugzilla does not support, "
                     "try again later."
                 ) from e
+
+            # reraise otherwise
+            raise e
         return self.instance
 
     def check_collisions(self):
