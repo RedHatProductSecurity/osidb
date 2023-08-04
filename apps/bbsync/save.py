@@ -58,7 +58,7 @@ class BugzillaSaver(BugzillaQuerier):
         """
         bugzilla_query_builder = self.query_builder(self.instance)
         response = self.bz_conn.createbug(bugzilla_query_builder.query)
-        self.instance.bz_id = response.id
+        self.instance.bz_id = str(response.id)
         return self.instance
 
     def update(self):
