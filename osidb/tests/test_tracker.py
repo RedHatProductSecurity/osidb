@@ -105,23 +105,26 @@ class TestTrackerValidators:
         """
         test that no validator complains about valid tracker
         """
-        flaw = FlawFactory()
-        ps_module = PsModuleFactory()
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
-            ps_module=ps_module.name,
-        )
-        ps_update_stream = PsUpdateStreamFactory()
-        # do not raise here
-        # validation is run on save
-        TrackerFactory(
-            affects=[affect],
-            embargoed=flaw.embargoed,
-            type=Tracker.BTS2TYPE[ps_module.bts_name],
-            ps_update_stream=ps_update_stream.name,
-        )
+        try:
+            flaw = FlawFactory()
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.FIX,
+                ps_module=ps_module.name,
+            )
+            ps_update_stream = PsUpdateStreamFactory()
+            # do not raise here
+            # validation is run on save
+            TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.embargoed,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+                ps_update_stream=ps_update_stream.name,
+            )
+        except ValidationError:
+            pytest.fail("Tracker creation should not fail here")
 
     def test_validate_no_affect(self):
         """
