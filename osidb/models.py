@@ -1575,7 +1575,9 @@ class Affect(
         """
         if (
             self.affectedness == Affect.AffectAffectedness.NOTAFFECTED
-            and self.trackers.exclude(status__iexact="CLOSED").exists()
+            and self.trackers.exclude(
+                status__iexact="CLOSED"
+            ).exists()  # see tracker.is_closed
         ):
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
@@ -1588,7 +1590,9 @@ class Affect(
         """
         if (
             self.resolution == Affect.AffectResolution.OOSS
-            and self.trackers.exclude(status__iexact="CLOSED").exists()
+            and self.trackers.exclude(
+                status__iexact="CLOSED"
+            ).exists()  # see tracker.is_closed
         ):
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
@@ -1601,7 +1605,9 @@ class Affect(
         """
         if (
             self.resolution == Affect.AffectResolution.WONTFIX
-            and self.trackers.exclude(status__iexact="CLOSED").exists()
+            and self.trackers.exclude(
+                status__iexact="CLOSED"
+            ).exists()  # see tracker.is_closed
         ):
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
@@ -2178,6 +2184,13 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
     @property
     def is_closed(self):
+        """
+        this property unifies the notion of the tracker closure between
+        Bugzilla where CLOSED is used and Jira with Closed instead
+
+        note that this reliably covers only the after-OJA world
+        while before it is pretty much impossible to unify anything
+        """
         return self.status.upper() == "CLOSED"
 
     @property
