@@ -220,11 +220,12 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
     def generate_flags(self):
         """
         generate query for Bugzilla flags
-        TODO: needinfo, nist_cvss_validation and other flags
+        TODO: needinfo and other flags
         """
         self._query["flags"] = []
         self.generate_hightouch_flags()
         self.generate_requires_doc_text_flag()
+        self.generate_nist_cvss_validation_flag()
 
     def generate_hightouch_flags(self):
         """
@@ -260,6 +261,23 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         if bz_value := flags_to_write.get(self.flaw.requires_summary):
             self._query["flags"].append(
                 {"name": "requires_doc_text", "status": bz_value}
+            )
+
+    def generate_nist_cvss_validation_flag(self):
+        """
+        Generate nist_cvss_validation bugzilla flag from Flaw field nist_cvss_validation.
+        """
+
+        flag_to_write = {
+            Flaw.FlawNistCvssValidation.REQUESTED: "?",
+            Flaw.FlawNistCvssValidation.APPROVED: "+",
+            Flaw.FlawNistCvssValidation.REJECTED: "-",
+            # flag NOVALUE is ignored
+        }
+
+        if flag_value := flag_to_write.get(self.flaw.nist_cvss_validation):
+            self._query["flags"].append(
+                {"name": "nist_cvss_validation", "status": flag_value}
             )
 
     # Bugzilla groups allowed to be set for Bugzilla Security Response product
