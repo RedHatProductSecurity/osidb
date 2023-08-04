@@ -1953,6 +1953,7 @@ class TrackerManager(ACLMixinManager, TrackingMixinManager):
             tracker.save(raise_validation_error=raise_validation_error)
         if affect is not None:
             tracker.affects.add(affect)
+            tracker.save(raise_validation_error=raise_validation_error)  # revalidate
         return tracker
 
 
