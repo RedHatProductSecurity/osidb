@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement a new FlawAcknowledgment API (OSIDB-1002)
 - Implement requires_summary in Flaw API (OSIDB-1005)
 - Implement ps_update_stream in Tracker API (OSIDB-1064)
-- Implement daily monitoring email for failed tasks
+- Implement daily monitoring email for failed tasks / collectors
 - Implement nist_cvss_validation in Flaw API (OSIDB-1006)
 - Implement additional tracker validations (OSIDB-787)
 

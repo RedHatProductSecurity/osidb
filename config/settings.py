@@ -171,6 +171,14 @@ CELERY_RESULT_BACKEND_MAX_RETRIES = 2
 # osidb.tasks.expire_task_results) with a longer time period and extra logging.
 CELERY_RESULT_EXPIRES = None
 
+# Store task args and kwargs into the DB, in newer django-celery-results versions:
+# https://github.com/celery/django-celery-results/issues/326
+CELERY_RESULT_EXTENDED = True
+
+# Track the start time of each task by creating its TaskResult as soon as it enters the STARTED
+# state. This allows us to measure task execution time of each task by `date_done - date_created`.
+CELERY_TASK_TRACK_STARTED = True
+
 CELERY_TASK_SOFT_TIME_LIMIT = 3600
 CELERY_TASK_IGNORE_RESULT = False
 CELERY_TASK_ROUTES = (
