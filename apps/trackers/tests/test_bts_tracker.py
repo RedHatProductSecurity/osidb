@@ -12,7 +12,7 @@ import pytest
 
 from apps.trackers.jira.core import JiraPriority, JiraTracker
 from apps.trackers.models import JiraProjectFields
-from osidb.models import Impact, Tracker
+from osidb.models import Affect, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -99,7 +99,11 @@ class TestJiraTracker(object):
             impact=Impact.CRITICAL,
         )
         embargoed_affect = AffectFactory(
-            flaw=embargoed_flaw, ps_module="foo-module", ps_component="foo-component"
+            flaw=embargoed_flaw,
+            ps_module="foo-module",
+            ps_component="foo-component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
         )
         expected3 = {
             "fields": {
@@ -141,12 +145,13 @@ class TestJiraTracker(object):
             flaw=embargoed_flaw, ps_module="foo-module", ps_component="foo-component"
         )
         assert not embargoed_affect2.trackers.exists()
-        osidb_tracker = TrackerFactory(
+        TrackerFactory(
+            affects=[embargoed_affect],
+            embargoed=True,
             type=Tracker.TrackerType.JIRA,
             ps_update_stream=stream.name,
             external_system_id="FOOPROJECT-140",
         )
-        osidb_tracker.affects.add(embargoed_affect)
         tracker4 = JiraTracker(
             embargoed_flaw, embargoed_affect2, stream
         ).generate_bts_object()

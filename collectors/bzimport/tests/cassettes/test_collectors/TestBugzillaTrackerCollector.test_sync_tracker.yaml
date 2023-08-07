@@ -134,7 +134,7 @@ interactions:
         "name": "bressers@redhat.com"}, {"id": 8542, "email": "paul@city-fan.org",
         "name": "paul@city-fan.org", "real_name": "Paul Howarth"}], "severity": "medium",
         "target_milestone": "---", "whiteboard": "", "assigned_to": "paul@city-fan.org",
-        "summary": "CVE-2010-1132 spamass-milter: remote command execution", "creator_detail":
+        "summary": "CVE-2010-1132 spamass-milter: remote command execution [update-stream]", "creator_detail":
         {"email": "vdanen@redhat.com", "id": 275188, "real_name": "Vincent Danen",
         "name": "vdanen@redhat.com"}, "is_cc_accessible": true, "cf_cust_facing":
         "---", "alias": [], "qa_contact": "extras-qa@fedoraproject.org", "platform":

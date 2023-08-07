@@ -372,7 +372,7 @@ interactions:
         "", "cf_qe_conditional_nak": [], "cf_environment": "", "assigned_to_detail":
         {"email": "nobody@redhat.com", "real_name": "Nobody", "name": "nobody@redhat.com",
         "insider": false, "id": 29451, "partner": false, "active": true}, "depends_on":
-        [1995563], "cf_last_closed": null, "deadline": null, "target_release": ["---"],
+        [], "cf_last_closed": null, "deadline": null, "target_release": ["---"],
         "version": ["unspecified"], "cf_internal_whiteboard": "", "creator_detail":
         {"insider": true, "name": "osoukup@redhat.com", "real_name": "Ondrej Soukup",
         "email": "osoukup@redhat.com", "active": true, "partner": false, "id": 412888},

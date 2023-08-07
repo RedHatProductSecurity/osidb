@@ -215,6 +215,8 @@ class TestBugzillaTrackerCollector:
 
     @pytest.mark.vcr
     def test_sync_tracker(self, bz_tracker_collector):
+        PsUpdateStreamFactory(name="update-stream")
+
         assert Tracker.objects.count() == 0
         bz_tracker_collector.sync_tracker("577404")
 
@@ -228,14 +230,19 @@ class TestBugzillaTrackerCollector:
         assert tracker.resolution == "NOTABUG"
         # no affect, thus this should be empty
         assert list(tracker.affects.all()) == []
-        assert tracker.ps_update_stream == ""
+        assert tracker.ps_update_stream == "update-stream"
 
     @pytest.mark.vcr
     def test_sync_with_affect(self, bz_tracker_collector):
+        PsModuleFactory(bts_name="bugzilla", name="module")
+        PsUpdateStreamFactory(name="update-stream")
+
         creation_dt = datetime(2011, 1, 1, tzinfo=timezone.utc)
         with freeze_time(creation_dt):
             affect = AffectFactory.create(
-                flaw__embargoed=False, affectedness=Affect.AffectAffectedness.NEW
+                flaw__embargoed=False,
+                affectedness=Affect.AffectAffectedness.NEW,
+                ps_module="module",
             )
             TrackerFactory.create(
                 affects=(affect,),

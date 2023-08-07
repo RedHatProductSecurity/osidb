@@ -117,10 +117,13 @@ class TestFlaw:
             acl_write=self.acl_write,
         )
         affect2.save()
+        PsModuleFactory(bts_name="bugzilla", name="fakemodule")
         tracker1 = TrackerFactory(
             affects=(affect2,),
+            embargoed=affect2.flaw.embargoed,
             status="random_status",
             resolution="random_resolution",
+            type=Tracker.TrackerType.BUGZILLA,
         )
         tracker1.save()
         all_affects = vuln_1.affects.all()
@@ -263,13 +266,23 @@ class TestFlaw:
         assert Flaw.objects.first().title == "second"
 
     def test_multi_affect_tracker(self):
-        affect1 = AffectFactory(affectedness=Affect.AffectAffectedness.NEW)
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect1 = AffectFactory(
+            affectedness=Affect.AffectAffectedness.NEW,
+            ps_module=ps_module.name,
+            ps_component="component",
+        )
         tracker = TrackerFactory.create(
-            affects=(affect1,), embargoed=affect1.flaw.is_embargoed
+            affects=(affect1,),
+            embargoed=affect1.flaw.is_embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
         )
         assert len(tracker.affects.all()) == 1
         affect2 = AffectFactory(
-            flaw__embargoed=False, affectedness=Affect.AffectAffectedness.NEW
+            flaw__embargoed=False,
+            affectedness=Affect.AffectAffectedness.NEW,
+            ps_module=ps_module.name,
+            ps_component="component",
         )
         Tracker.objects.create_tracker(
             affect2, tracker.external_system_id, tracker.type
@@ -278,13 +291,19 @@ class TestFlaw:
 
     def test_trackers_filed(self):
         flaw = FlawFactory()
+        ps_module = PsModuleFactory(bts_name="bugzilla")
         fix_affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
             flaw=flaw,
         )
         assert not flaw.trackers_filed
-        TrackerFactory(affects=(fix_affect,), embargoed=flaw.is_embargoed)
+        TrackerFactory(
+            affects=(fix_affect,),
+            embargoed=flaw.is_embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
         assert flaw.trackers_filed
         AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
@@ -294,15 +313,18 @@ class TestFlaw:
         assert not flaw.trackers_filed
 
     def test_delegated_affects(self):
+        ps_module = PsModuleFactory(bts_name="bugzilla")
         delegated_affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
             flaw__embargoed=False,
         )
         TrackerFactory(
             affects=(delegated_affect,),
             status="won't fix",
             embargoed=delegated_affect.flaw.is_embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
         )
         assert delegated_affect.delegated_resolution == Affect.AffectFix.WONTFIX
         # NOTAFFECTED is ranked higher than WONTFIX
@@ -311,6 +333,7 @@ class TestFlaw:
             status="done",
             resolution="notabug",
             embargoed=delegated_affect.flaw.is_embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
         )
         assert delegated_affect.delegated_resolution == Affect.AffectFix.NOTAFFECTED
         # DEFER is ranged lower than NOTAFFECTED
@@ -319,6 +342,7 @@ class TestFlaw:
             status="closed",
             resolution="deferred",
             embargoed=delegated_affect.flaw.is_embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
         )
         assert delegated_affect.delegated_resolution == Affect.AffectFix.NOTAFFECTED
 
@@ -331,11 +355,32 @@ class TestFlaw:
         assert undelegated_affect.delegated_resolution is None
 
     def test_tracker_fix_state(self):
-        wontfix_tracker = TrackerFactory(status="won't fix")
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+            flaw__embargoed=False,
+        )
+        wontfix_tracker = TrackerFactory(
+            affects=[affect],
+            status="won't fix",
+            type=Tracker.TrackerType.BUGZILLA,
+        )
         assert wontfix_tracker.fix_state == Affect.AffectFix.WONTFIX
-        random_tracker = TrackerFactory(status="foo", resolution="bar")
+        random_tracker = TrackerFactory(
+            status="foo",
+            resolution="bar",
+            affects=[affect],
+            type=Tracker.TrackerType.BUGZILLA,
+        )
         assert random_tracker.fix_state == Affect.AffectFix.AFFECTED
-        empty_tracker = TrackerFactory(status="foo", resolution="")
+        empty_tracker = TrackerFactory(
+            status="foo",
+            resolution="",
+            affects=[affect],
+            type=Tracker.TrackerType.BUGZILLA,
+        )
         assert empty_tracker.fix_state == Affect.AffectFix.AFFECTED
 
     def test_flawmeta_create_or_update(self):
@@ -1261,6 +1306,7 @@ class TestFlawValidators:
         """test Tracker model validator making sure flaws can't have a public tracker"""
 
         affects = []
+        PsModuleFactory(bts_name="bugzilla", name="module")
         for embargoed_flaw in flaws_embargoed_status:
             affects.append(
                 AffectFactory(
@@ -1276,11 +1322,17 @@ class TestFlawValidators:
                 match="Tracker is public but is associated with an embargoed flaw",
             ):
                 TrackerFactory(
-                    affects=affects, embargoed=embargoed_tracker, status="CLOSED"
+                    affects=affects,
+                    embargoed=embargoed_tracker,
+                    type=Tracker.TrackerType.BUGZILLA,
+                    status="CLOSED",
                 )
         else:
             assert TrackerFactory(
-                affects=affects, embargoed=embargoed_tracker, status="CLOSED"
+                affects=affects,
+                embargoed=embargoed_tracker,
+                type=Tracker.TrackerType.BUGZILLA,
+                status="CLOSED",
             )
 
     def test_validate_no_placeholder(self):
@@ -1347,12 +1399,19 @@ class TestFlawValidators:
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             impact=start_impact,
         )
+        ps_module = PsModuleFactory(bts_name="bugzilla")
         affect = AffectFactory(
             flaw=flaw,
+            ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.NEW,
         )
         for status in tracker_statuses:
-            TrackerFactory(embargoed=False, status=status, affects=(affect,))
+            TrackerFactory(
+                embargoed=False,
+                status=status,
+                type=Tracker.TrackerType.BUGZILLA,
+                affects=(affect,),
+            )
         flaw.impact = new_impact
         flaw.save()
 
@@ -1421,9 +1480,19 @@ class TestFlawValidators:
             type=FlawReference.FlawReferenceType.ARTICLE,
             url="https://access.redhat.com/link123",
         )
-        affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.NEW,
+        )
         for status in tracker_statuses:
-            TrackerFactory(embargoed=False, status=status, affects=(affect,))
+            TrackerFactory(
+                affects=(affect,),
+                embargoed=False,
+                status=status,
+                type=Tracker.TrackerType.BUGZILLA,
+            )
         flaw.major_incident_state = is_major
         flaw.save()
 
@@ -1665,19 +1734,90 @@ class TestFlawValidators:
         """
         status = "OPEN" if is_tracker_open else "CLOSED"
         flaw = FlawFactory(embargoed=False)
+        ps_module = PsModuleFactory(bts_name="bugzilla")
         affect = AffectFactory(
             flaw=flaw,
+            ps_module=ps_module.name,
             affectedness=affectedness,
             resolution=Affect.AffectResolution.NOVALUE,
         )
-        tracker = TrackerFactory(embargoed=False, status=status)
+        tracker = TrackerFactory.build(
+            embargoed=False,
+            status=status,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        tracker.save(raise_validation_error=False)
         tracker.affects.add(affect)
 
+        match = (
+            f"The tracker is associated with a NOTAFFECTED affect: {affect.uuid}"
+            if entity == "tracker"
+            else f"{affect.uuid}.*is marked as.*but has open tracker"
+        )
         entity = tracker if entity == "tracker" else affect
         if should_raise:
             with pytest.raises(
                 ValidationError,
-                match=f"{affect.uuid}.*is marked as.*but has open tracker",
+                match=match,
+            ):
+                entity.save()
+        else:
+            assert entity.save() is None
+
+    @pytest.mark.parametrize("entity", ["affect", "tracker"])
+    @pytest.mark.parametrize(
+        "resolution,is_tracker_open,should_raise",
+        [
+            (
+                Affect.AffectResolution.OOSS,
+                True,
+                True,
+            ),
+            (
+                Affect.AffectResolution.FIX,
+                True,
+                False,
+            ),
+            (
+                Affect.AffectResolution.WONTFIX,
+                False,
+                False,
+            ),
+        ],
+    )
+    def test_validate_ooss_open_tracker(
+        self, entity, resolution, is_tracker_open, should_raise
+    ):
+        """
+        Test that ooss affects with open trackers raise errors.
+        """
+        status = "OPEN" if is_tracker_open else "CLOSED"
+        flaw = FlawFactory(embargoed=False)
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=resolution,
+        )
+        tracker = TrackerFactory.build(
+            embargoed=False,
+            status=status,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        tracker.save(raise_validation_error=False)
+        tracker.affects.add(affect)
+
+        match = (
+            f"The tracker is associated with an OOSS affect: {affect.uuid}"
+            if entity == "tracker"
+            else f"{affect.uuid}.*is marked as.*but has open tracker"
+        )
+        entity = tracker if entity == "tracker" else affect
+        if should_raise:
+            with pytest.raises(
+                ValidationError,
+                match=match,
             ):
                 entity.save()
         else:
@@ -1712,19 +1852,31 @@ class TestFlawValidators:
         """
         status = "OPEN" if is_tracker_open else "CLOSED"
         flaw = FlawFactory(embargoed=False)
+        ps_module = PsModuleFactory(bts_name="bugzilla")
         affect = AffectFactory(
             flaw=flaw,
-            resolution=resolution,
+            ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=resolution,
         )
-        tracker = TrackerFactory(embargoed=False, status=status)
+        tracker = TrackerFactory.build(
+            embargoed=False,
+            status=status,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        tracker.save(raise_validation_error=False)
         tracker.affects.add(affect)
 
+        match = (
+            f"The tracker is associated with a WONTFIX affect: {affect.uuid}"
+            if entity == "tracker"
+            else f"{affect.uuid}.*is marked as.*but has open tracker"
+        )
         entity = tracker if entity == "tracker" else affect
         if should_raise:
             with pytest.raises(
                 ValidationError,
-                match=f"{affect.uuid}.*is marked as.*but has open tracker",
+                match=match,
             ):
                 entity.save()
         else:

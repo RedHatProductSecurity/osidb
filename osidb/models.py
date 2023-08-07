@@ -1575,11 +1575,28 @@ class Affect(
         """
         if (
             self.affectedness == Affect.AffectAffectedness.NOTAFFECTED
-            and self.trackers.exclude(status__iexact="CLOSED").exists()
+            and self.trackers.exclude(
+                status__iexact="CLOSED"
+            ).exists()  # see tracker.is_closed
         ):
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
                 "NOTAFFECTED but has open tracker(s).",
+            )
+
+    def _validate_ooss_open_tracker(self):
+        """
+        Check whether out of support scope products have open trackers.
+        """
+        if (
+            self.resolution == Affect.AffectResolution.OOSS
+            and self.trackers.exclude(
+                status__iexact="CLOSED"
+            ).exists()  # see tracker.is_closed
+        ):
+            raise ValidationError(
+                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
+                "OOSS but has open tracker(s).",
             )
 
     def _validate_wontfix_open_tracker(self):
@@ -1588,7 +1605,9 @@ class Affect(
         """
         if (
             self.resolution == Affect.AffectResolution.WONTFIX
-            and self.trackers.exclude(status__iexact="CLOSED").exists()
+            and self.trackers.exclude(
+                status__iexact="CLOSED"
+            ).exists()  # see tracker.is_closed
         ):
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
@@ -1912,7 +1931,9 @@ class TrackerManager(ACLMixinManager, TrackingMixinManager):
     """tracker manager"""
 
     @staticmethod
-    def create_tracker(affect, external_system_id, _type, **extra_fields):
+    def create_tracker(
+        affect, external_system_id, _type, raise_validation_error=True, **extra_fields
+    ):
         """return a new tracker or update an existing tracker"""
         try:
             tracker = Tracker.objects.get(
@@ -1929,9 +1950,10 @@ class TrackerManager(ACLMixinManager, TrackingMixinManager):
             # must save, otherwise assigning affects won't work (no pk)
             # this is probably why before the affects were not being added
             # to newly created trackers
-            tracker.save()
+            tracker.save(raise_validation_error=raise_validation_error)
         if affect is not None:
             tracker.affects.add(affect)
+            tracker.save(raise_validation_error=raise_validation_error)  # revalidate
         return tracker
 
 
@@ -1952,6 +1974,8 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         TrackerType.BUGZILLA: "bugzilla",
         TrackerType.JIRA: "jboss",
     }
+    # plus opposite direction mapping
+    BTS2TYPE = {b: t for t, b in TYPE2BTS.items()}
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -1990,6 +2014,36 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     def __str__(self):
         return str(self.uuid)
 
+    def _validate_tracker_affect(self):
+        """
+        check that the tracker is associated with an affect
+        """
+        # there are no references before the first save to DB
+        if self._state.adding:
+            return
+
+        if not self.affects.exists():
+            raise ValidationError("Tracker must be associated with an affect")
+
+    def _validate_tracker_ps_module(self):
+        """
+        check that the tracker is associated with a valid PS module
+        """
+        if not self.affects.exists():
+            return
+
+        if not PsModule.objects.filter(name=self.affects.first().ps_module):
+            raise ValidationError("Tracker must be associated with a valid PS module")
+
+    def _validate_tracker_ps_update_stream(self):
+        """
+        check that the tracker is associated with a valid PS update stream
+        """
+        if not PsUpdateStream.objects.filter(name=self.ps_update_stream):
+            raise ValidationError(
+                "Tracker must be associated with a valid PS update stream"
+            )
+
     def _validate_tracker_flaw_accesses(self):
         """
         Check whether an public tracker is associated with an embargoed flaw.
@@ -2012,8 +2066,17 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
         if not self.is_closed and affect:
             raise ValidationError(
-                f"Affect ({affect.uuid}) for {affect.ps_module}/{affect.ps_component} is marked as "
-                "NOTAFFECTED but has open tracker(s).",
+                f"The tracker is associated with a NOTAFFECTED affect: {affect.uuid}",
+            )
+
+    def _validate_ooss_open_tracker(self):
+        """
+        Check whether out of support scope products have open trackers.
+        """
+        affect = self.affects.filter(resolution=Affect.AffectResolution.OOSS).first()
+        if not self.is_closed and affect:
+            raise ValidationError(
+                f"The tracker is associated with an OOSS affect: {affect.uuid}",
             )
 
     def _validate_wontfix_open_tracker(self):
@@ -2023,8 +2086,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         affect = self.affects.filter(resolution=Affect.AffectResolution.WONTFIX).first()
         if not self.is_closed and affect:
             raise ValidationError(
-                f"Affect ({affect.uuid}) for {affect.ps_module}/{affect.ps_component} is marked as "
-                "WONTFIX but has open tracker(s).",
+                f"The tracker is associated with a WONTFIX affect: {affect.uuid}",
             )
 
     def _validate_multi_flaw_tracker(self):
@@ -2123,6 +2185,13 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
     @property
     def is_closed(self):
+        """
+        this property unifies the notion of the tracker closure between
+        Bugzilla where CLOSED is used and Jira with Closed instead
+
+        note that this reliably covers only the after-OJA world
+        while before it is pretty much impossible to unify anything
+        """
         return self.status.upper() == "CLOSED"
 
     @property

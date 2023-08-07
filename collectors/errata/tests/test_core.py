@@ -1,8 +1,8 @@
 import pytest
 from django.utils import timezone
 
-from osidb.models import Erratum, Tracker
-from osidb.tests.factories import TrackerFactory
+from osidb.models import Affect, Erratum, Tracker
+from osidb.tests.factories import AffectFactory, PsModuleFactory, TrackerFactory
 
 from ..core import (
     get_all_errata,
@@ -69,11 +69,24 @@ class TestErrataToolCollection:
         self, sample_erratum_with_bz_bugs, sample_erratum_name
     ):
         """Test that a given (et_id, advisory_name) pair can have its data fetched, saved to the DB, and linked"""
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect = AffectFactory(
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+        )
+
         TrackerFactory.create(
-            external_system_id="2021161", type=Tracker.TrackerType.BUGZILLA
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            external_system_id="2021161",
+            type=Tracker.TrackerType.BUGZILLA,
         )
         TrackerFactory.create(
-            external_system_id="2021168", type=Tracker.TrackerType.BUGZILLA
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            external_system_id="2021168",
+            type=Tracker.TrackerType.BUGZILLA,
         )
         link_bugs_to_errata(
             [
@@ -103,9 +116,19 @@ class TestErrataToolCollection:
         self, sample_erratum_with_jira_issues, sample_erratum_name
     ):
         """Test that a given (et_id, advisory_name) pair can have its data fetched, saved to the DB, and linked"""
+        ps_module = PsModuleFactory(bts_name="jboss")
+        affect = AffectFactory(
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+        )
+
         # The test uses the same code as above, but no errata I've checked have both Bugzilla and Jira trackers
         TrackerFactory.create(
-            external_system_id="LOG-2064", type=Tracker.TrackerType.JIRA
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            external_system_id="LOG-2064",
+            type=Tracker.TrackerType.JIRA,
         )
         link_bugs_to_errata(
             [
@@ -184,11 +207,24 @@ class TestErrataToolCollection:
         self, sample_erratum_with_bz_bugs, sample_erratum_name
     ):
         """Test that when advisory_name changes the Erratum is updated during linking"""
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect = AffectFactory(
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+        )
+
         TrackerFactory.create(
-            external_system_id="2021161", type=Tracker.TrackerType.BUGZILLA
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            external_system_id="2021161",
+            type=Tracker.TrackerType.BUGZILLA,
         )
         TrackerFactory.create(
-            external_system_id="2021168", type=Tracker.TrackerType.BUGZILLA
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            external_system_id="2021168",
+            type=Tracker.TrackerType.BUGZILLA,
         )
 
         link_bugs_to_errata(

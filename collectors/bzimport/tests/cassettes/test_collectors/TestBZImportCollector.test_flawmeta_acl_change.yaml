@@ -220,10 +220,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [],
         \"mitigation\": \"Mitigation for this issue is either not available or the
         currently available options don''t meet the Red Hat Product Security criteria
         comprising ease of use and deployment, applicability to widespread installation
@@ -342,11 +339,7 @@ interactions:
         kernel address information leak, arbitrary execution, etc.", "blocks": [2086700],
         "severity": "high", "status": "NEW", "estimated_time": 0, "creator": "mrehak@redhat.com",
         "cf_conditional_nak": [], "is_cc_accessible": true, "dupe_of": null, "id":
-        2086753, "keywords": ["Security"], "depends_on": [2087945, 2087946, 2087947,
-        2087948, 2087949, 2087950, 2087952, 2087953, 2087954, 2087955, 2087956, 2087959,
-        2087960, 2087961, 2087962, 2087963, 2087964, 2087965, 2087966, 2087951, 2087957,
-        2087973, 2087974, 2087975, 2087976, 2087977, 2087978, 2087979, 2087980, 2088501,
-        2088502, 2089288, 2089289], "cf_fixed_in": "kernel 5.18 rc9", "summary": "CVE-2022-1729
+        2086753, "keywords": ["Security"], "depends_on": [], "cf_fixed_in": "kernel 5.18 rc9", "summary": "CVE-2022-1729
         kernel: race condition in perf_event_open leads to privilege escalation",
         "cf_last_closed": null, "assigned_to": "security-response-team@redhat.com",
         "external_bugs": [{"ext_priority": "3 (Normal)", "ext_bz_bug_id": "03231420",
@@ -451,11 +444,7 @@ interactions:
         the leading PERF_TYPE_TRACEPOINT and sub PERF_EVENT_HARDWARE plus the PERF_EVENT_SOFTWARE
         using the perf_event_open() function with these three types. This flaw allows
         a local user to crash the system.", "docs_contact": "", "cf_pgm_internal":
-        "", "resolution": "", "see_also": [], "cf_build_id": "", "depends_on": [2087945,
-        2087946, 2087947, 2087948, 2087949, 2087950, 2087952, 2087953, 2087954, 2087955,
-        2087956, 2087959, 2087960, 2087961, 2087962, 2087963, 2087964, 2087965, 2087966,
-        2087951, 2087957, 2087973, 2087974, 2087975, 2087976, 2087977, 2087978, 2087979,
-        2087980, 2088501, 2088502, 2089288, 2089289], "product": "Security Response",
+        "", "resolution": "", "see_also": [], "cf_build_id": "", "depends_on": [], "product": "Security Response",
         "tags": [], "actual_time": 0, "cc_detail": [{"name": "acaringi@redhat.com",
         "real_name": "Augusto Caringi", "email": "acaringi@redhat.com", "id": 408364},
         {"id": 448206, "email": "adscvr@gmail.com", "real_name": "Facundo", "name":
@@ -690,10 +679,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [],
         \"mitigation\": \"Mitigation for this issue is either not available or the
         currently available options don''t meet the Red Hat Product Security criteria
         comprising ease of use and deployment, applicability to widespread installation
@@ -1057,10 +1043,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [],
         \"mitigation\": \"Mitigation for this issue is either not available or the
         currently available options don''t meet the Red Hat Product Security criteria
         comprising ease of use and deployment, applicability to widespread installation
@@ -1087,11 +1070,7 @@ interactions:
         "security-response-team@redhat.com", "steved@redhat.com", "swood@redhat.com",
         "vkumar@redhat.com", "walters@redhat.com", "williams@redhat.com", "ycote@redhat.com",
         "yozone@redhat.com"], "keywords": ["Security"], "creator": "mrehak@redhat.com",
-        "depends_on": [2087945, 2087946, 2087947, 2087948, 2087949, 2087950, 2087952,
-        2087953, 2087954, 2087955, 2087956, 2087959, 2087960, 2087961, 2087962, 2087963,
-        2087964, 2087965, 2087966, 2087951, 2087957, 2087973, 2087974, 2087975, 2087976,
-        2087977, 2087978, 2087979, 2087980, 2088501, 2088502, 2089288, 2089289], "classification":
-        "Other", "resolution": "", "see_also": []}]}'
+        "depends_on": [], "classification": "Other", "resolution": "", "see_also": []}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -1984,9 +1963,7 @@ interactions:
         \"2022-05-20\", \"reported\": \"2022-05-16\", \"source\": \"distros\"}"}],
         "when": "2022-05-18T14:36:56Z", "who": "allarkin@redhat.com"}, {"who": "allarkin@redhat.com",
         "when": "2022-05-18T15:07:47Z", "changes": [{"removed": "", "field_name":
-        "depends_on", "added": "2087961, 2087949, 2087963, 2087946, 2087954, 2087945,
-        2087950, 2087959, 2087960, 2087956, 2087966, 2087955, 2087952, 2087948, 2087953,
-        2087965, 2087947, 2087962, 2087964, 2087957, 2087951"}]}, {"when": "2022-05-18T15:13:22Z",
+        "depends_on", "added": ""}]}, {"when": "2022-05-18T15:13:22Z",
         "changes": [{"removed": "{\"affects\": [{\"affectedness\": \"affected\", \"cvss2\":
         null, \"cvss3\": null, \"impact\": \"important\", \"ps_component\": \"kernel\",
         \"ps_module\": \"rhel-8\", \"resolution\": \"fix\"}, {\"affectedness\": \"affected\",
@@ -3091,7 +3068,7 @@ interactions:
         {"removed": "", "added": "michal.skrivanek@redhat.com, mperina@redhat.com,
         sbonazzo@redhat.com", "field_name": "cc"}], "when": "2022-05-19T15:01:48Z",
         "who": "allarkin@redhat.com"}, {"when": "2022-05-19T15:03:32Z", "changes":
-        [{"removed": "", "field_name": "depends_on", "added": "2088501, 2088502"},
+        [{"removed": "", "field_name": "depends_on", "added": ""},
         {"field_name": "cf_srtnotes", "added": "{\"affects\": [{\"affectedness\":
         \"affected\", \"cvss2\": null, \"cvss3\": null, \"impact\": \"important\",
         \"ps_component\": \"kernel\", \"ps_module\": \"rhel-8\", \"resolution\": \"fix\"},
@@ -11987,10 +11964,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [],
         \"mitigation\": \"Mitigation for this issue is either not available or the
         currently available options don''t meet the Red Hat Product Security criteria
         comprising ease of use and deployment, applicability to widespread installation
@@ -12186,10 +12160,7 @@ interactions:
         reported in secalert/postmortem\", \"not_applicable\": false}], \"name\":
         \"Base flaw\", \"signature\": \"4350164\", \"template\": \"base_flaw\"}],
         \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\", \"cwe\":
-        \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [],
         \"mitigation\": \"Mitigation for this issue is either not available or the
         currently available options don''t meet the Red Hat Product Security criteria
         comprising ease of use and deployment, applicability to widespread installation
@@ -12704,10 +12675,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [],
         \"mitigation\": \"Mitigation for this issue is either not available or the
         currently available options don''t meet the Red Hat Product Security criteria
         comprising ease of use and deployment, applicability to widespread installation
@@ -14879,10 +14847,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"7/CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11626\"},
-        {\"bts_name\": \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11627\"}], \"mitigation\": \"By default,  for Red Hat Enterprise
+        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [], \"mitigation\": \"By default,  for Red Hat Enterprise
         Linux, an unprivileged user can trigger an attack. To prevent the possibility
         of an unprivileged users'' attack, set kernel.perf_event_paranoid to the value
         3.\\nIt is possible with the command:\\n\\nsudo /sbin/sysctl -w \\\"kernel.perf_event_paranoid=3\\\"\\n\\n\\nOr
@@ -14963,10 +14928,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"7/CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11626\"},
-        {\"bts_name\": \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11627\"}], \"mitigation\": \"By default,  for Red Hat Enterprise
+        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [], \"mitigation\": \"By default,  for Red Hat Enterprise
         Linux, an unprivileged user can trigger an attack. To prevent the possibility
         of an unprivileged users'' attack, set kernel.perf_event_paranoid to the value
         3.\\nIt is possible with the command:\\n\\nsudo /sbin/sysctl -w \\\"kernel.perf_event_paranoid=3\\\"\\n\\n\\nOr
@@ -15044,10 +15006,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"7/CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11627\"}], \"mitigation\": \"By default,  for Red Hat Enterprise
+        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [], \"mitigation\": \"By default,  for Red Hat Enterprise
         Linux, an unprivileged user can trigger an attack. To prevent the possibility
         of an unprivileged users'' attack, set kernel.perf_event_paranoid to the value
         3.\\nIt is possible with the command:\\n\\nsudo /sbin/sysctl -w \\\"kernel.perf_event_paranoid=3\\\"\\n\\n\\nOr
@@ -15140,10 +15099,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"7/CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11627\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [],
         \"mitigation\": \"By default,  for Red Hat Enterprise Linux, an unprivileged
         user can trigger an attack. To prevent the possibility of an unprivileged
         users'' attack, set kernel.perf_event_paranoid to the value 3.\\nIt is possible
@@ -15223,10 +15179,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"7/CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11627\"}], \"mitigation\": \"By default,  for Red Hat Enterprise
+        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [], \"mitigation\": \"By default,  for Red Hat Enterprise
         Linux, an unprivileged user can trigger an attack. To prevent the possibility
         of an unprivileged users'' attack, set kernel.perf_event_paranoid to the value
         3.\\nIt is possible with the command:\\n\\nsudo /sbin/sysctl -w \\\"kernel.perf_event_paranoid=3\\\"\\n\\n\\nOr
@@ -15306,10 +15259,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"7/CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11627\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [],
         \"mitigation\": \"By default,  for Red Hat Enterprise Linux, an unprivileged
         user can trigger an attack. To prevent the possibility of an unprivileged
         users'' attack, set kernel.perf_event_paranoid to the value 3.\\nIt is possible
@@ -15388,10 +15338,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"7/CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [],
         \"mitigation\": \"By default,  for Red Hat Enterprise Linux, an unprivileged
         user can trigger an attack. To prevent the possibility of an unprivileged
         users'' attack, set kernel.perf_event_paranoid to the value 3.\\nIt is possible
@@ -15475,10 +15422,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"7/CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [],
         \"mitigation\": \"By default,  for Red Hat Enterprise Linux, an unprivileged
         user can trigger an attack. To prevent the possibility of an unprivileged
         users'' attack, set kernel.perf_event_paranoid to the value 3.\\nIt is possible
@@ -15557,10 +15501,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [],
         \"mitigation\": \"By default,  for Red Hat Enterprise Linux, an unprivileged
         user can trigger an attack. To prevent the possibility of an unprivileged
         users'' attack, set kernel.perf_event_paranoid to the value 3.\\nIt is possible
@@ -15665,10 +15606,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [],
         \"mitigation\": \"By default,  for Red Hat Enterprise Linux, an unprivileged
         user can trigger an attack. To prevent the possibility of an unprivileged
         users'' attack, set kernel.perf_event_paranoid to the value 3.\\nIt is possible
@@ -15747,10 +15685,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [],
         \"mitigation\": \"Mitigation for this issue is either not available or the
         currently available options don''t meet the Red Hat Product Security criteria
         comprising ease of use and deployment, applicability to widespread installation
@@ -15842,10 +15777,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"moderate\", \"jira_trackers\": [],
         \"mitigation\": \"Mitigation for this issue is either not available or the
         currently available options don''t meet the Red Hat Product Security criteria
         comprising ease of use and deployment, applicability to widespread installation
@@ -15921,10 +15853,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [],
         \"mitigation\": \"Mitigation for this issue is either not available or the
         currently available options don''t meet the Red Hat Product Security criteria
         comprising ease of use and deployment, applicability to widespread installation
@@ -16032,10 +15961,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [],
         \"mitigation\": \"Mitigation for this issue is either not available or the
         currently available options don''t meet the Red Hat Product Security criteria
         comprising ease of use and deployment, applicability to widespread installation
@@ -16111,10 +16037,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [],
         \"mitigation\": \"Mitigation for this issue is either not available or the
         currently available options don''t meet the Red Hat Product Security criteria
         comprising ease of use and deployment, applicability to widespread installation
@@ -16202,10 +16125,7 @@ interactions:
         reported in secalert/postmortem\", \"not_applicable\": false}], \"name\":
         \"Base flaw\", \"signature\": \"4350164\", \"template\": \"base_flaw\"}],
         \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\", \"cwe\":
-        \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [],
         \"mitigation\": \"Mitigation for this issue is either not available or the
         currently available options don''t meet the Red Hat Product Security criteria
         comprising ease of use and deployment, applicability to widespread installation
@@ -16283,10 +16203,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"4350164\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"6.2/CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H\",
-        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [{\"bts_name\":
-        \"jboss\", \"key\": \"ARO-1092\"}, {\"bts_name\": \"jboss\", \"key\": \"ARO-1102\"},
-        {\"bts_name\": \"jboss\", \"key\": \"OSD-11625\"}, {\"bts_name\": \"jboss\",
-        \"key\": \"OSD-11626\"}, {\"bts_name\": \"jboss\", \"key\": \"OSD-11627\"}],
+        \"cwe\": \"CWE-362\", \"impact\": \"important\", \"jira_trackers\": [],
         \"mitigation\": \"Mitigation for this issue is either not available or the
         currently available options don''t meet the Red Hat Product Security criteria
         comprising ease of use and deployment, applicability to widespread installation

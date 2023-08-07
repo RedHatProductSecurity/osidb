@@ -397,7 +397,7 @@ interactions:
         0, "severity": "medium", "creator_detail": {"email": "osoukup@redhat.com",
         "partner": false, "real_name": "Ondrej Soukup", "name": "osoukup@redhat.com",
         "active": true, "id": 412888, "insider": true}, "cf_qe_conditional_nak": [],
-        "assigned_to": "nobody@redhat.com", "depends_on": [1995563], "creator": "osoukup@redhat.com",
+        "assigned_to": "nobody@redhat.com", "depends_on": [], "creator": "osoukup@redhat.com",
         "status": "NEW", "cf_internal_whiteboard": "", "sub_components": {}, "cf_qa_whiteboard":
         "", "summary": "CVE-2000-3000 ssh: I cannot ssh into Matrix", "target_milestone":
         "---", "priority": "medium"}], "offset": 0, "limit": "20", "total_matches":
