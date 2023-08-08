@@ -17,15 +17,28 @@ class TrackerJiraSaver(JiraQuerier):
     Jira tracker bug save handler
     """
 
-    def __init__(self, token) -> None:
+    def __init__(self, tracker, token) -> None:
         """
         Instantiate a new JiraTrackerQuerier object.
 
         Keyword arguments:
         token -- user token used in every request to Jira
         """
+        self.tracker = tracker
         self._jira_server = JIRA_SERVER
         self._jira_token = token
+
+    def save(self):
+        """
+        generic save serving as class entry point
+        which calls create or update handler to continue
+        returns an updated instance (without saving)
+        """
+        return (
+            self.create(self.tracker)
+            if not self.tracker.external_system_id
+            else self.update(self.tracker)
+        )
 
     def create(self, tracker):
         """
