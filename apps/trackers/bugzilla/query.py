@@ -1,27 +1,19 @@
 import logging
-from functools import cached_property
 
 from apps.bbsync.cc import AffectCCBuilder, RHSCLAffectCCBuilder
 from apps.bbsync.exceptions import ProductDataError
 from apps.bbsync.models import BugzillaComponent
 from apps.bbsync.query import BugzillaQueryBuilder
-from osidb.models import PsModule, PsUpdateStream
+from apps.trackers.common import TrackerQueryBuilder
 
 logger = logging.getLogger(__name__)
 
 
-class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder):
+class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
     """
     Bugzilla tracker bug query builder
     to generate general tracker save query
     """
-
-    @property
-    def tracker(self):
-        """
-        concrete name shortcut
-        """
-        return self.instance
 
     @property
     def old_tracker(self):
@@ -29,29 +21,6 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder):
         concrete name shortcut
         """
         return self.old_instance
-
-    @cached_property
-    def ps_module(self):
-        """
-        cached PS module getter
-        """
-        # even when multiple affects they must all have the same PS module
-        return PsModule.objects.get(name=self.tracker.affects.first().ps_module)
-
-    @cached_property
-    def ps_component(self):
-        """
-        cached PS component getter
-        """
-        # even when multiple affects they must all have the same PS component
-        return self.tracker.affects.first().ps_component
-
-    @cached_property
-    def ps_update_stream(self):
-        """
-        cached PS update stream getter
-        """
-        return PsUpdateStream.objects.get(name=self.tracker.ps_update_stream)
 
     def generate(self):
         """
