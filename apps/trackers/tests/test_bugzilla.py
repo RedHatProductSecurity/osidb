@@ -4,11 +4,13 @@ Bugzilla specific tracker test cases
 import pytest
 
 from apps.bbsync.constants import RHSCL_BTS_KEY
+from apps.bbsync.exceptions import ProductDataError
 from apps.bbsync.tests.factories import BugzillaComponentFactory, BugzillaProductFactory
 from apps.trackers.bugzilla.query import TrackerBugzillaQueryBuilder
-from osidb.models import Affect, Tracker
+from osidb.models import Affect, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
+    FlawFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
@@ -207,3 +209,197 @@ class TestTrackerBugzillaQueryBuilder:
         assert query["sub_components"] == {"manager": ["installer"]}
         assert "version" in query
         assert query["version"] == "version"
+
+    @pytest.mark.parametrize(
+        "impact,priority_severity",
+        [
+            (Impact.LOW, "low"),
+            (Impact.MODERATE, "medium"),
+            (Impact.IMPORTANT, "high"),
+            (Impact.CRITICAL, "urgent"),
+        ],
+    )
+    def test_generate_priority_severity(self, impact, priority_severity):
+        """
+        test that priority and severity fields are correctly set
+        """
+        ps_module = PsModuleFactory(
+            bts_name="bugzilla",
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+        )
+
+        flaw = FlawFactory(impact=impact)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            impact=None,  # no override here
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        query = TrackerBugzillaQueryBuilder(tracker).query
+
+        assert "priority" in query
+        assert query["priority"] == priority_severity
+        assert "severity" in query
+        assert query["severity"] == priority_severity
+
+    @pytest.mark.parametrize(
+        "bts_groups,groups",
+        [
+            ({"public": [], "embargoed": ["security"]}, []),
+            ({"public": ["redhat"], "embargoed": []}, ["redhat"]),
+            ({"public": ["redhat", "fedora"], "embargoed": []}, ["redhat", "fedora"]),
+            ({"public": ["redhat"], "embargoed": ["fedora"]}, ["redhat"]),
+        ],
+    )
+    def test_generate_groups_public(self, bts_groups, groups):
+        """
+        test that the groups are set correctly for a public tracker
+        """
+        ps_module = PsModuleFactory(
+            bts_groups=bts_groups,
+            bts_name="bugzilla",
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+        )
+
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        query = TrackerBugzillaQueryBuilder(tracker).query
+
+        assert "groups" in query
+        assert query["groups"] == groups
+
+    @pytest.mark.parametrize(
+        "bts_groups,groups",
+        [
+            ({"public": [], "embargoed": ["security"]}, ["security"]),
+            ({"public": ["redhat"], "embargoed": ["security"]}, ["security"]),
+            (
+                {"public": ["redhat"], "embargoed": ["security", "top-secret"]},
+                ["security", "top-secret"],
+            ),
+        ],
+    )
+    def test_generate_groups_embargoed(self, bts_groups, groups):
+        """
+        test that the groups are set correctly for an embargoed tracker
+        """
+        ps_module = PsModuleFactory(
+            bts_groups=bts_groups,
+            bts_name="bugzilla",
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+        )
+
+        flaw = FlawFactory(embargoed=True)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        query = TrackerBugzillaQueryBuilder(tracker).query
+
+        assert "groups" in query
+        assert query["groups"] == groups
+
+    def test_generate_groups_embargoed_empty(self):
+        """
+        test that the embargoed tracker cannot be created with no Bugzilla groups
+        """
+        ps_module = PsModuleFactory(
+            bts_groups={"public": [], "embargoed": []},
+            bts_name="bugzilla",
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+        )
+
+        flaw = FlawFactory(embargoed=True)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        with pytest.raises(
+            ProductDataError,
+            match="Cannot create EMBARGOED trackers without group restrictions!",
+        ):
+            TrackerBugzillaQueryBuilder(tracker).query
+
+    def test_generate_keywords(self):
+        """
+        test that the expected keywords are in the query
+        """
+        ps_module = PsModuleFactory(
+            bts_name="bugzilla",
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+        )
+
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        # create query
+        query = TrackerBugzillaQueryBuilder(tracker).query
+
+        assert "keywords" in query
+        assert "Security" in query["keywords"]
+        assert "SecurityTracking" in query["keywords"]
+
+        # update query
+        query = TrackerBugzillaQueryBuilder(tracker, tracker).query
+
+        assert "keywords" in query
+        assert "add" in query["keywords"]
+        assert "Security" in query["keywords"]["add"]
+        assert "SecurityTracking" in query["keywords"]["add"]
