@@ -5,6 +5,7 @@ from osidb.models import Flaw, Tracker
 
 from .bugzilla.save import TrackerBugzillaSaver
 from .exceptions import BTSException, UnsupportedTrackerError
+from .jira.save import TrackerJiraSaver
 
 
 class TrackerSaver:
@@ -13,8 +14,7 @@ class TrackerSaver:
     provides the specific sub-handler
     """
 
-    # TODO Jira part
-    def __new__(cls, tracker, bz_api_key=None):
+    def __new__(cls, tracker, bz_api_key=None, jira_token=None):
         """
         detect and return the correct saver
         assuming that all prerequisites are met
@@ -31,7 +31,8 @@ class TrackerSaver:
             return TrackerBugzillaSaver(tracker, bz_api_key)
 
         if tracker.type == Tracker.TrackerType.JIRA:
-            raise NotImplementedError
+            assert jira_token, "Jira access token not provided"
+            return TrackerJiraSaver(tracker, jira_token)
 
         # we should never get here
         raise BTSException("Unknown BTS")
