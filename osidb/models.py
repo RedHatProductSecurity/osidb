@@ -2182,7 +2182,9 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             "uuid",
         )
         unique_together = ["type", "external_system_id"]
-        indexes = TrackingMixin.Meta.indexes
+        indexes = TrackingMixin.Meta.indexes + [
+            models.Index(fields=["external_system_id"]),
+        ]
 
     objects = TrackerManager()
 
