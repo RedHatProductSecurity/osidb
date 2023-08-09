@@ -18,6 +18,7 @@ from django.core.exceptions import (
     ValidationError,
 )
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_deprecate_fields import deprecate_field
@@ -883,6 +884,60 @@ class Flaw(
                 "RH and NVD CVSSv3 score difference crosses severity boundary - "
                 f"RH {rh_cvss3_score}:{rh_severity} | "
                 f"NVD {nvd_cvss3_score}:{nvd_severity}",
+            )
+
+    def _validate_rh_products_in_affects(self):
+        """
+        Returns True if a flaw has RH products in its affects list, False otherwise.
+        """
+        rh_pruducts = PsModule.objects.exclude(
+            Q(ps_product__business_unit="Community") | Q(name__startswith="rhel-br-")
+        ).values_list("name", flat=True)
+
+        flaw_products = self.affects.values_list("ps_module", flat=True)
+
+        # set() is used because querysets are of different types
+        return bool(set(rh_pruducts) & set(flaw_products))
+
+    def _validate_nist_rh_cvss_feedback_loop(self):
+        """
+        Checks whether RH should send a request to NIST on flaw CVSS rescore.
+
+        The request should be sent if the flaw meets the following conditions:
+        * it has NIST CVSS3 score of 7.0 or higher
+        * it has RH CVSS3 score, which differs by 1.0 or more from NIST CVSS3 score
+        * it affects at least one RH product
+        * it has no associated NIST feedback loop in progress (see nist_cvss_validation)
+        * it has no RH CVSS3 explanation comment
+        """
+        if self.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION3).count() != 2:
+            return
+
+        nist_cvss = self.cvss_scores.filter(
+            issuer=FlawCVSS.CVSSIssuer.NIST,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            score__gte=Decimal("7.0"),
+        ).first()
+
+        rh_cvss = self.cvss_scores.filter(
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            comment__exact="",
+        ).first()
+
+        if (
+            nist_cvss
+            and rh_cvss
+            and self._validate_rh_products_in_affects()
+            and not self.nist_cvss_validation
+            and abs(nist_cvss.score - rh_cvss.score) >= Decimal("1.0")
+        ):
+            self.alert(
+                "request_nist_cvss_validation",
+                f"NIST CVSSv3 score ({nist_cvss.score}) is significantly different "
+                f"from the RH-assigned CVSSv3 score ({rh_cvss.score}). "
+                f"Consider requesting CVSSv3 rescoring from NIST or add "
+                f"an explanation comment for RH CVSSv3 score.",
             )
 
     def _validate_nonempty_source(self):
