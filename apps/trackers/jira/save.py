@@ -6,8 +6,8 @@ import logging
 
 from collectors.jiraffe.core import JiraQuerier
 
-from . import TrackerJiraQueryBuilder
 from .constants import JIRA_SERVER
+from .query import TrackerJiraQueryBuilder
 
 logger = logging.getLogger(__name__)
 
