@@ -16,6 +16,7 @@ from osidb.models import (
     Flaw,
     FlawAcknowledgment,
     FlawComment,
+    FlawCVSS,
     FlawDraft,
     FlawMeta,
     FlawReference,
@@ -28,6 +29,7 @@ from osidb.tests.factories import (
     AffectFactory,
     FlawAcknowledgmentFactory,
     FlawCommentFactory,
+    FlawCVSSFactory,
     FlawFactory,
     FlawMetaFactory,
     FlawReferenceFactory,
@@ -794,6 +796,148 @@ class TestFlawValidators:
         flaw = FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
         assert Flaw.objects.count() == 1
         assert "rh_nvd_cvss_severity_diff" not in flaw._alerts
+
+    @pytest.mark.parametrize(
+        "name,business_unit,is_rh_product",
+        [
+            ("rhel-7", "Core RHEL", True),
+            ("epel-6", "Community", False),
+            ("rhel-br-9", "Core RHEL", False),
+        ],
+    )
+    def test_validate_rh_products_in_affects(self, name, business_unit, is_rh_product):
+        """
+        Tests that a flaw with RH products in its affects list returns True,
+        False otherwise.
+        """
+        flaw = FlawFactory()
+        PsModuleFactory(
+            name=name, ps_product=PsProductFactory(business_unit=business_unit)
+        )
+        AffectFactory(flaw=flaw, ps_module=name)
+        flaw.save()
+
+        if is_rh_product:
+            assert flaw._validate_rh_products_in_affects()
+        else:
+            assert not flaw._validate_rh_products_in_affects()
+
+    @pytest.mark.enable_signals
+    @pytest.mark.parametrize(
+        "nist_cvss,rh_cvss,ps_module,rh_cvss_comment,rescore,should_alert",
+        [
+            # should alert, there is no RH CVSSv3 comment or NIST rescore request
+            (
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",  # score 7.1
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",  # score 8.1
+                "rhel-7",
+                "",
+                Flaw.FlawNistCvssValidation.NOVALUE,
+                True,
+            ),
+            # everything below is without alerts
+            # no NIST CVSSv3 score
+            (
+                "",
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",  # score 8.1
+                "rhel-7",
+                "",
+                Flaw.FlawNistCvssValidation.NOVALUE,
+                False,
+            ),
+            # NIST CVSSv3 is lower than 7.0
+            (
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:H",  # score 6.8
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",  # score 8.1
+                "rhel-7",
+                "",
+                Flaw.FlawNistCvssValidation.NOVALUE,
+                False,
+            ),
+            # NIST CVSSv3 and RH CVSSv3 are not significantly different
+            (
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",  # score 7.1
+                "CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:H",  # score 7.0
+                "rhel-7",
+                "",
+                Flaw.FlawNistCvssValidation.NOVALUE,
+                False,
+            ),
+            # no RH product
+            (
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",  # score 7.1
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",  # score 8.1
+                "rhel-br-9",
+                "",
+                Flaw.FlawNistCvssValidation.NOVALUE,
+                False,
+            ),
+            # solved via RH CVSSv3 comment
+            (
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",  # score 7.1
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",  # score 8.1
+                "rhel-7",
+                "explanation comment",
+                Flaw.FlawNistCvssValidation.NOVALUE,
+                False,
+            ),
+            # solved via NIST rescore request
+            (
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",  # score 7.1
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",  # score 8.1
+                "rhel-7",
+                "",
+                Flaw.FlawNistCvssValidation.REQUESTED,
+                False,
+            ),
+        ],
+    )
+    def test_validate_nist_rh_cvss_feedback_loop(
+        self,
+        nist_cvss,
+        rh_cvss,
+        rh_cvss_comment,
+        ps_module,
+        rescore,
+        should_alert,
+    ):
+        """
+        Tests whether RH should send a request to NIST on flaw CVSS rescore.
+        """
+        flaw = FlawFactory(
+            nist_cvss_validation=rescore,
+            # fields below are set to avoid any alerts
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            summary="summary",
+            statement="statement",
+        )
+        if nist_cvss:
+            FlawCVSSFactory(
+                flaw=flaw,
+                version=FlawCVSS.CVSSVersion.VERSION3,
+                issuer=FlawCVSS.CVSSIssuer.NIST,
+                vector=nist_cvss,
+                comment="",
+            )
+        FlawCVSSFactory(
+            flaw=flaw,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            vector=rh_cvss,
+            comment=rh_cvss_comment,
+        )
+        PsModuleFactory(
+            name=ps_module, ps_product=PsProductFactory(business_unit="Core RHEL")
+        )
+        AffectFactory(flaw=flaw, ps_module=ps_module)
+        flaw.save()
+
+        if should_alert:
+            assert len(flaw._alerts) == 1
+            assert "request_nist_cvss_validation" in flaw._alerts
+        else:
+            assert flaw._alerts == {}
 
     def test_no_source(self):
         """
