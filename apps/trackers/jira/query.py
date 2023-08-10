@@ -4,9 +4,10 @@ Jira tracker query generation module
 import logging
 from functools import cached_property
 
+from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import NoPriorityAvailableError
 from apps.trackers.models import JiraProjectFields
-from osidb.models import Impact, PsModule, PsUpdateStream
+from osidb.models import Impact
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ IMPACT_TO_JIRA_PRIORITY = {
 }
 
 
-class TrackerJiraQueryBuilder:
+class TrackerJiraQueryBuilder(TrackerQueryBuilder):
     """
     Jira tracker bug query builder
     to generate general tracker save query
@@ -50,36 +51,6 @@ class TrackerJiraQueryBuilder:
         """
         self.instance = instance
         self._query = {}
-
-    @property
-    def tracker(self):
-        """
-        concrete name shortcut
-        """
-        return self.instance
-
-    @cached_property
-    def ps_module(self):
-        """
-        cached PS module getter
-        """
-        # even when multiple affects they must all have the same PS module
-        return PsModule.objects.get(name=self.tracker.affects.first().ps_module)
-
-    @cached_property
-    def ps_component(self):
-        """
-        cached PS component getter
-        """
-        # even when multiple affects they must all have the same PS component
-        return self.tracker.affects.first().ps_component
-
-    @cached_property
-    def ps_update_stream(self):
-        """
-        cached PS update stream getter
-        """
-        return PsUpdateStream.objects.get(name=self.tracker.ps_update_stream)
 
     @cached_property
     def impact(self):
