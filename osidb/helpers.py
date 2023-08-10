@@ -4,6 +4,7 @@ Helpers for direct or development shell usage
 
 import json
 import logging
+import re
 import sys
 import warnings
 from distutils.util import strtobool
@@ -15,6 +16,18 @@ from django.db import models
 from django_deprecate_fields import DeprecatedField, logger
 
 from .exceptions import OSIDBException
+
+
+def cve_id_comparator(cve_id):
+    """
+    comparator to sort CVE IDs by
+
+        1) the year
+        2) the sequence
+    """
+    digits = re.sub(r"[^0-9]", "", cve_id)
+    # stress the value of the year above the sequence
+    return int(digits[:4]) ** 2 + int(digits[4:])
 
 
 def ensure_list(item):

@@ -1,8 +1,8 @@
 import json
-import re
 from itertools import chain
 
 from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
+from osidb.helpers import cve_id_comparator
 from osidb.models import Flaw, FlawComment, Impact, PsModule
 
 from .cc import CCBuilder
@@ -146,17 +146,6 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
             * then follows the title
 
         """
-
-        def cve_id_comparator(cve_id):
-            """
-            comparator to sort CVE IDs by
-
-                1) the year
-                2) the sequence
-            """
-            digits = re.sub(r"[^0-9]", "", cve_id)
-            # stress the value of the year above the sequence
-            return int(digits[:4]) ** 2 + int(digits[4:])
 
         embargoed = "EMBARGOED " if self.flaw.is_embargoed else ""
 
