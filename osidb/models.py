@@ -2039,7 +2039,8 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     type = models.CharField(choices=TrackerType.choices, max_length=100)
 
     # key
-    external_system_id = models.CharField(max_length=100)
+    # may be empty during the creation in an external system
+    external_system_id = models.CharField(max_length=100, blank=True)
 
     # BTS status:resolution context
     # the values are dependent on the BTS
@@ -2200,7 +2201,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         assert (
             self.type == self.TrackerType.BUGZILLA
         ), "Only Bugzilla trackers have Bugzilla IDs"
-        return self.external_system_id
+        return self.external_system_id or None
 
     @bz_id.setter
     def bz_id(self, value):

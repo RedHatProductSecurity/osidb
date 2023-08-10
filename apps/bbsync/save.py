@@ -58,7 +58,7 @@ class BugzillaSaver(BugzillaQuerier):
         """
         bugzilla_query_builder = self.query_builder(self.instance)
         response = self.bz_conn.createbug(bugzilla_query_builder.query)
-        self.instance.bz_id = response.id
+        self.instance.bz_id = str(response.id)
         return self.instance
 
     def update(self):
@@ -86,6 +86,9 @@ class BugzillaSaver(BugzillaQuerier):
                     "concurrent update which Bugzilla does not support, "
                     "try again later."
                 ) from e
+
+            # reraise otherwise
+            raise e
         return self.instance
 
     def check_collisions(self):
@@ -115,11 +118,14 @@ class BugzillaSaver(BugzillaQuerier):
     @property
     def stored_last_change(self):
         """
-        retrive the stored last change timestamp from DB
+        retrieve the stored last change timestamp from DB
         """
-        return make_aware(
-            datetime.strptime(self.instance.meta_attr["last_change_time"], DATETIME_FMT)
+        last_change_time = (
+            self.instance.meta_attr["last_change_time"]
+            if "last_change_time" in self.instance.meta_attr
+            else self.instance.meta_attr["updated_dt"]
         )
+        return make_aware(datetime.strptime(last_change_time, DATETIME_FMT))
 
 
 class FlawBugzillaSaver(BugzillaSaver):
