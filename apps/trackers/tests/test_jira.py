@@ -7,7 +7,7 @@ import pytest
 
 from apps.trackers.jira.query import JiraPriority, TrackerJiraQueryBuilder
 from apps.trackers.models import JiraProjectFields
-from osidb.models import Affect, Impact, Tracker
+from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -58,7 +58,7 @@ class TestTrackerJiraQueryBuilder:
                 "priority": {"name": expected_impact},
                 "project": {"key": "FOOPROJECT"},
                 "issuetype": {"name": "Bug"},
-                "summary": "CVE-2999-1000 foo-component: CVE-2999-1000 kernel: some description [bar-1.2.3]",
+                "summary": "CVE-2999-1000 foo-component: some description [bar-1.2.3]",
                 "labels": [
                     "CVE-2999-1000",
                     "pscomponent:foo-component",
@@ -68,7 +68,12 @@ class TestTrackerJiraQueryBuilder:
             }
         }
         flaw = FlawFactory(
-            embargoed=False, bz_id="123", cve_id="CVE-2999-1000", impact=flaw_impact
+            embargoed=False,
+            bz_id="123",
+            cve_id="CVE-2999-1000",
+            impact=flaw_impact,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="some description",
         )
         affect = AffectFactory(
             flaw=flaw,

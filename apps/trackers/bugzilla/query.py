@@ -194,7 +194,4 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         """
         generate query for tracker summary
         """
-        # TODO
-        self._query[
-            "summary"
-        ] = f"{self.ps_component}: TODO [{self.ps_update_stream.name}]"
+        self._query["summary"] = self.summary
