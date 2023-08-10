@@ -94,9 +94,12 @@ class FlawFactory(factory.django.DjangoModelFactory):
         "random_element",
         elements=[
             Flaw.FlawNistCvssValidation.NOVALUE,
-            Flaw.FlawNistCvssValidation.REQUESTED,
-            Flaw.FlawNistCvssValidation.APPROVED,
-            Flaw.FlawNistCvssValidation.REJECTED,
+            # TODO: values below are currently commented out because FlawFactory is not
+            #       able to create two cvss via FlawCVSSFactory. Therefore, these values
+            #       are tested in test_validate_cvss_scores_and_nist_cvss_validation.
+            # Flaw.FlawNistCvssValidation.REQUESTED,
+            # Flaw.FlawNistCvssValidation.APPROVED,
+            # Flaw.FlawNistCvssValidation.REJECTED,
         ],
     )
     summary = factory.LazyAttribute(

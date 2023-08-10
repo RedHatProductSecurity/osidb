@@ -65,6 +65,7 @@ class TestFlaw:
             )
         ]
 
+    @pytest.mark.enable_signals
     def test_create(self, datetime_with_tz, good_cve_id):
         """test raw flaw creation"""
         meta_attr = {}
@@ -90,6 +91,22 @@ class TestFlaw:
             meta_attr=meta_attr,
         )
         vuln_1.save(raise_validation_error=False)
+
+        nist_cvss = FlawCVSSFactory(
+            flaw=vuln_1,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            issuer=FlawCVSS.CVSSIssuer.NIST,
+        )
+        rh_cvss = FlawCVSSFactory(
+            flaw=vuln_1,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+        )
+        all_cvss_scores = vuln_1.cvss_scores.all()
+        assert len(all_cvss_scores) == 2
+        assert nist_cvss in all_cvss_scores
+        assert rh_cvss in all_cvss_scores
+
         FlawMetaFactory(
             flaw=vuln_1,
             type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
@@ -904,7 +921,7 @@ class TestFlawValidators:
         """
         Tests whether RH should send a request to NIST on flaw CVSS rescore.
         """
-        flaw = FlawFactory(
+        flaw = FlawFactory.build(
             nist_cvss_validation=rescore,
             # fields below are set to avoid any alerts
             embargoed=False,
@@ -912,6 +929,8 @@ class TestFlawValidators:
             summary="summary",
             statement="statement",
         )
+        flaw.save(raise_validation_error=False)
+
         if nist_cvss:
             FlawCVSSFactory(
                 flaw=flaw,
@@ -938,6 +957,55 @@ class TestFlawValidators:
             assert "request_nist_cvss_validation" in flaw._alerts
         else:
             assert flaw._alerts == {}
+
+    @pytest.mark.enable_signals
+    @pytest.mark.parametrize(
+        "rescore,nist_cvss,rh_cvss,should_raise",
+        [
+            (Flaw.FlawNistCvssValidation.REQUESTED, False, True, True),
+            (Flaw.FlawNistCvssValidation.REJECTED, False, False, True),
+            (Flaw.FlawNistCvssValidation.APPROVED, True, True, False),
+            (Flaw.FlawNistCvssValidation.NOVALUE, False, True, False),
+        ],
+    )
+    def test_validate_cvss_scores_and_nist_cvss_validation(
+        self, rescore, nist_cvss, rh_cvss, should_raise
+    ):
+        """
+        Tests that if nist_cvss_validation is set, then both NIST CVSSv3 and RH CVSSv3
+        scores need to be present.
+        """
+        flaw = FlawFactory.build(
+            nist_cvss_validation=rescore,
+            # fields below are set to avoid any alerts
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        flaw.save(raise_validation_error=False)
+
+        if nist_cvss:
+            FlawCVSSFactory(
+                flaw=flaw,
+                version=FlawCVSS.CVSSVersion.VERSION3,
+                issuer=FlawCVSS.CVSSIssuer.NIST,
+            )
+        if rh_cvss:
+            FlawCVSSFactory(
+                flaw=flaw,
+                version=FlawCVSS.CVSSVersion.VERSION3,
+                issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            )
+        AffectFactory(flaw=flaw)
+
+        if should_raise:
+            error_msg = (
+                "nist_cvss_validation can only be set if a flaw has both "
+                "NIST CVSSv3 and RH CVSSv3 scores assigned."
+            )
+            with pytest.raises(ValidationError, match=error_msg):
+                flaw.save()
+        else:
+            assert flaw.save() is None
 
     def test_no_source(self):
         """
