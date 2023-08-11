@@ -1312,8 +1312,8 @@ class Flaw(
         self = bs.save()
         # save in case a new Bugzilla ID was obtained
         # so the flaw is later matched in BZ import
-        # and do not care for validations here
-        kwargs["raise_validation_error"] = False
+        kwargs["auto_timestamps"] = False  # the timestamps will be get from Bugzilla
+        kwargs["raise_validation_error"] = False  # the validations were already run
         self.save(*args, **kwargs)
         # fetch from Bugzilla
         fc = FlawCollector()
