@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deprecate the "is_major_incident" field in Flaw (OSIDB-1103)
 - Change CORS policy to allow credentials (OSIDB-1115)
 - Validate MI and CISA MI separately (OSIDB-1104)
+- Fix auto-timestamp issues (OSIDB-1171)
 
 ## [3.3.0] - 2023-06-28
 ### Added
