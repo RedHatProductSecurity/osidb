@@ -910,9 +910,6 @@ class Flaw(
         * it has no associated NIST feedback loop in progress (see nist_cvss_validation)
         * it has no RH CVSS3 explanation comment
         """
-        if self.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION3).count() != 2:
-            return
-
         nist_cvss = self.cvss_scores.filter(
             issuer=FlawCVSS.CVSSIssuer.NIST,
             version=FlawCVSS.CVSSVersion.VERSION3,
