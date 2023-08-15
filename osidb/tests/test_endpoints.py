@@ -142,7 +142,7 @@ class TestEndpoints(object):
         flaw1 = FlawFactory.build(
             major_incident_state=Flaw.FlawMajorIncident.APPROVED,
             requires_summary=Flaw.FlawRequiresSummary.APPROVED,
-            nist_cvss_validation=Flaw.FlawNistCvssValidation.REJECTED,
+            nist_cvss_validation=Flaw.FlawNistCvssValidation.NOVALUE,
         )
         flaw1.save(raise_validation_error=False)
         FlawMetaFactory(
@@ -163,7 +163,7 @@ class TestEndpoints(object):
         assert response.status_code == 200
         body = response.json()
         assert body["major_incident_state"] == Flaw.FlawMajorIncident.APPROVED
-        assert body["nist_cvss_validation"] == Flaw.FlawNistCvssValidation.REJECTED
+        assert body["nist_cvss_validation"] == Flaw.FlawNistCvssValidation.NOVALUE
         assert len(body["comments"]) == 1
 
     def test_list_flaws(self, auth_client, test_api_uri):

@@ -910,9 +910,6 @@ class Flaw(
         * it has no associated NIST feedback loop in progress (see nist_cvss_validation)
         * it has no RH CVSS3 explanation comment
         """
-        if self.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION3).count() != 2:
-            return
-
         nist_cvss = self.cvss_scores.filter(
             issuer=FlawCVSS.CVSSIssuer.NIST,
             version=FlawCVSS.CVSSVersion.VERSION3,
@@ -938,6 +935,27 @@ class Flaw(
                 f"from the RH-assigned CVSSv3 score ({rh_cvss.score}). "
                 f"Consider requesting CVSSv3 rescoring from NIST or add "
                 f"an explanation comment for RH CVSSv3 score.",
+            )
+
+    def _validate_cvss_scores_and_nist_cvss_validation(self):
+        """
+        Checks that if nist_cvss_validation is set, then both NIST CVSSv3 and RH CVSSv3
+        scores need to be present.
+        """
+        nist_cvss = self.cvss_scores.filter(
+            issuer=FlawCVSS.CVSSIssuer.NIST,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+        ).first()
+
+        rh_cvss = self.cvss_scores.filter(
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+        ).first()
+
+        if self.nist_cvss_validation and not (nist_cvss and rh_cvss):
+            raise ValidationError(
+                "nist_cvss_validation can only be set if a flaw has both "
+                "NIST CVSSv3 and RH CVSSv3 scores assigned.",
             )
 
     def _validate_nonempty_source(self):
