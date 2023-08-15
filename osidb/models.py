@@ -2864,6 +2864,13 @@ class PsProduct(models.Model):
     # the business unit to which the product belongs
     business_unit = models.CharField(max_length=50)
 
+    @property
+    def is_community(self):
+        """
+        is community boolean property
+        """
+        return self.business_unit == "Community"
+
 
 class PsModule(NullStrFieldsMixin, ValidateMixin):
 
