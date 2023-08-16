@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement additional tracker validations (OSIDB-787)
 - Validate NIST RH CVSS feedback loop (OSIDB-334)
 - Validate nist_cvss_validation and cvss_scores (OSIDB-1165)
+- Implement tracker summary generation (OSIDB-1172)
 
 ### Changed
 - Change article link validation to be blocking (OSIDB-1060)

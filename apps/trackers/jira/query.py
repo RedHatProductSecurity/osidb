@@ -145,13 +145,4 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         Generates the summary of a tracker
         """
-        # TODO support multi-flaw tracker
-        flaw = self.tracker.affects.filter(flaw__cve_id__isnull=False).first().flaw
-        cve_id = flaw.cve_id + " "
-        if not flaw:
-            flaw = self.tracker.affects[0].flaw
-            cve_id = ""
-        self._query["fields"]["summary"] = (
-            f"{cve_id}{self.ps_component}: "
-            f"{flaw.title} [{self.tracker.ps_update_stream}]"
-        )
+        self._query["fields"]["summary"] = self.summary
