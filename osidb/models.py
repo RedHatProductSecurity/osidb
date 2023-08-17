@@ -2317,6 +2317,15 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             is not None
         )
 
+    @property
+    def is_triage(self):
+        """
+        triage tracker has a non-published flaw state attached
+        """
+        # TODO this is only a placeholder for now
+        # it is to be determined and implemented
+        return False
+
 
 class ErratumManager(TrackingMixinManager):
     """
