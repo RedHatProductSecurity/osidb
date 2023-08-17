@@ -9,6 +9,7 @@ from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
     PsModuleFactory,
+    PsProductFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
 )
@@ -279,4 +280,452 @@ class TestTrackerQueryBuilderSummary:
         assert (
             tqb.summary
             == summary_prefix + "large-component: serious flaw [deep-stream]"
+        )
+
+
+class TestTrackerQueryBuilderDescription:
+    """
+    TrackerQueryBuilder description related test cases
+    """
+
+    def test_bugzilla_basic(self):
+        """
+        test Bugzilla basic tracker description generation
+        """
+        ps_product = PsProductFactory(business_unit="Engineering")
+        ps_module = PsModuleFactory(
+            bts_name="bugzilla",
+            name="special-module",
+            private_trackers_allowed=True,
+            ps_product=ps_product,
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            name="deep-stream", ps_module=ps_module
+        )
+        flaw = FlawFactory(
+            cve_id="CVE-2020-12345",
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="serious flaw",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+            ps_component="large-component",
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+
+        assert tqb.description == (
+            """\
+special-module tracking bug for large-component: see the bugs linked in the "Blocks" field of this bug for full details of the security issue(s).
+
+This bug is never intended to be made public, please put any public notes in the blocked bugs."""
+        )
+
+    def test_bugzilla_embargoed(self):
+        """
+        test Bugzilla embargoed tracker description generation
+        """
+        ps_product = PsProductFactory(business_unit="Engineering")
+        ps_module = PsModuleFactory(
+            bts_name="bugzilla",
+            name="special-module",
+            private_trackers_allowed=True,
+            ps_product=ps_product,
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            name="deep-stream", ps_module=ps_module
+        )
+        flaw = FlawFactory(
+            cve_id="CVE-2020-12345",
+            embargoed=True,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="serious flaw",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+            ps_component="large-component",
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+
+        assert tqb.description == (
+            """\
+special-module tracking bug for large-component: see the bugs linked in the "Blocks" field of this bug for full details of the security issue(s).
+
+This bug is never intended to be made public, please put any public notes in the blocked bugs.
+
+NOTE THIS ISSUE IS CURRENTLY EMBARGOED, DO NOT MAKE PUBLIC COMMITS OR COMMENTS ABOUT THIS ISSUE.
+
+WARNING: NOTICE THAT REMOVING THE "SECURITY" GROUP FROM THIS TRACKER MAY BREAK THE EMBARGO."""
+        )
+
+    def test_bugzilla_rhel(self):
+        """
+        test Bugzilla RHEL tracker description generation
+        """
+        ps_module = PsModuleFactory(bts_name="bugzilla", name="rhel-42")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+
+        assert (
+            (
+                """\
+For the Enterprise Linux security issues handling process overview see:
+https://source.redhat.com/groups/public/product-security/content/product_security_wiki/eus_z_stream_and_security_bugs"""
+            )
+            in tqb.description
+        )
+
+    @pytest.mark.parametrize("ps_component", ["xen", "kvm", "kernel-xen"])
+    def test_bugzilla_virtualizaiton(self, ps_component):
+        """
+        test Bugzilla embargoed virtualization tracker description generation
+        """
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory(embargoed=True)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+            ps_component=ps_component,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+
+        assert (
+            (
+                """\
+Information with regards to this bug is considered Red Hat Confidential \
+until the embargo has lifted. Please post the patch only to the \
+'rhkernel-team-list' and/or 'virt-devel' mailing lists for review and acks."""
+            )
+            in tqb.description
+        )
+
+    @pytest.mark.parametrize("flaw_count", [1, 2, 3])
+    def test_community(self, flaw_count):
+        """
+        test community tracker description generation
+        """
+        ps_product = PsProductFactory(business_unit="Community")
+        ps_module = PsModuleFactory(ps_product=ps_product)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        affects = []
+        embargoed = None
+        for idx in range(flaw_count):
+            if embargoed is None:
+                flaw = FlawFactory(bz_id=str(idx))
+                embargoed = flaw.embargoed
+            else:
+                flaw = FlawFactory(
+                    bz_id=str(idx),
+                    embargoed=embargoed,
+                )
+            affects.append(
+                AffectFactory(
+                    flaw=flaw,
+                    affectedness=Affect.AffectAffectedness.AFFECTED,
+                    resolution=Affect.AffectResolution.DELEGATED,
+                    ps_module=ps_module.name,
+                    ps_component="large-component",
+                )
+            )
+
+        tracker = TrackerFactory(
+            affects=affects,
+            embargoed=embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+
+        if flaw_count == 1:
+            assert tqb.description == (
+                """\
+More information about this security flaw is available in the following bug:
+
+https://bugzilla.redhat.com/show_bug.cgi?id=0
+
+Disclaimer: Community trackers are created by Red Hat Product Security team on a \
+best effort basis. Package maintainers are required to ascertain if the flaw indeed \
+affects their package, before starting the update process."""
+            )
+        elif flaw_count == 2:
+            assert tqb.description == (
+                """\
+More information about these security flaws is available in the following bugs:
+
+https://bugzilla.redhat.com/show_bug.cgi?id=0
+https://bugzilla.redhat.com/show_bug.cgi?id=1
+
+Disclaimer: Community trackers are created by Red Hat Product Security team on a \
+best effort basis. Package maintainers are required to ascertain if the flaw indeed \
+affects their package, before starting the update process."""
+            )
+        elif flaw_count == 3:
+            assert tqb.description == (
+                """\
+More information about these security flaws is available in the following bugs:
+
+https://bugzilla.redhat.com/show_bug.cgi?id=0
+https://bugzilla.redhat.com/show_bug.cgi?id=1
+https://bugzilla.redhat.com/show_bug.cgi?id=2
+
+Disclaimer: Community trackers are created by Red Hat Product Security team on a \
+best effort basis. Package maintainers are required to ascertain if the flaw indeed \
+affects their package, before starting the update process."""
+            )
+
+    def test_jira_basic(self):
+        """
+        test Jira basic tracker description generation
+        """
+        ps_product = PsProductFactory(business_unit="Engineering")
+        ps_module = PsModuleFactory(
+            bts_name="jboss",
+            name="special-module",
+            private_trackers_allowed=True,
+            ps_product=ps_product,
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            name="deep-stream", ps_module=ps_module
+        )
+        flaw = FlawFactory(
+            bz_id="12345",
+            cve_id="CVE-2020-12345",
+            description="this flaw is very hard to fix",
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="serious flaw",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+            ps_component="large-component",
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+
+        assert tqb.description == (
+            """\
+Security Tracking Issue
+
+Do not make this issue public.
+
+Flaw:
+-----
+
+serious flaw
+https://bugzilla.redhat.com/show_bug.cgi?id=12345
+
+this flaw is very hard to fix
+
+~~~"""
+        )
+
+    def test_jira_embargoed(self):
+        """
+        test Jira embargoed tracker description generation
+        """
+        ps_product = PsProductFactory(business_unit="Engineering")
+        ps_module = PsModuleFactory(
+            bts_name="jboss",
+            name="special-module",
+            private_trackers_allowed=True,
+            ps_product=ps_product,
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            name="deep-stream", ps_module=ps_module
+        )
+        flaw = FlawFactory(
+            bz_id="12345",
+            cve_id="CVE-2020-12345",
+            description="this flaw is very hard to fix",
+            embargoed=True,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="serious flaw",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+            ps_component="large-component",
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+
+        assert tqb.description == (
+            """\
+Security Tracking Issue
+
+Do not make this issue public.
+
+NOTE THIS ISSUE IS CURRENTLY EMBARGOED, DO NOT MAKE PUBLIC COMMITS OR COMMENTS ABOUT THIS ISSUE.
+
+WARNING: NOTICE THAT CHANGING THE SECURITY LEVEL FROM "SECURITY ISSUE" TO "RED HAT INTERNAL" MAY BREAK THE EMBARGO.
+
+Flaw:
+-----
+
+serious flaw
+https://bugzilla.redhat.com/show_bug.cgi?id=12345
+
+this flaw is very hard to fix
+
+~~~"""
+        )
+
+    @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
+    @pytest.mark.parametrize("embargoed", [False, True])
+    @pytest.mark.parametrize(
+        "ps_component", ["kernel", "realtime-kernel", "kernel-rt", "kernel-alt"]
+    )
+    def test_kernel(self, bts_name, embargoed, ps_component):
+        """
+        test kernel tracker description generation
+        """
+        ps_module = PsModuleFactory(bts_name=bts_name)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory(embargoed=embargoed)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+            ps_component=ps_component,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+
+        if bts_name == "bugzilla" and embargoed:
+            assert (
+                (
+                    """\
+Information with regards to this bug is considered Red Hat Confidential \
+until the embargo has lifted. Please post the patch only to the \
+'rhkernel-team-list' mailing list for review and acks."""
+                )
+                in tqb.description
+            )
+
+        assert tqb.description.endswith(
+            "Reproducers, if any, will remain confidential and never be made public, unless done so by the security team."
+        )
+
+    def test_triage(self, fake_triage):
+        """
+        test triage tracker description generation
+        """
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+
+        assert (
+            (
+                """\
+This is a preliminary notification of a potential vulnerability under \
+the accelerated "Triage Tracker" program introduced between Product Security \
+and Engineering to allow deeper collaboration.
+
+The in-depth analysis is ongoing, and details are expected to change until \
+such time as it concludes.
+
+Be aware that someone other than the analyst performing the Secondary Assessment \
+will usually create the triage tracker. The best option is to comment in the \
+tracker and wait for a reply. Based on your regular interactions, \
+if you know the Incident Response Analyst for your offering, you can reach out \
+to them directly or add a private comment in the triage tracker or in \
+the flaw bug for their attention.
+
+Please refer to the FAQ page for more information - \
+https://source.redhat.com/departments/products_and_global_engineering/product_security/content/product_security_wiki/incident_response_coordination_faq"""
+            )
+            in tqb.description
         )

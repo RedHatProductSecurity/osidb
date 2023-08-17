@@ -114,20 +114,9 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
 
     def generate_description(self):
         """
-        Generates a text description for the vulnerability being tracked
+        generates query for the tracker description
         """
-        if self.tracker.embargoed:
-            description = "Security Tracking Issue\n\nDo not make this issue public.\n"
-        else:
-            description = "Public Security Tracking Issue\n"
-
-        description += (
-            f"Impact: {self.impact}.\n"
-            f"Reported Date: {self.reported_dt}.\n\n"
-            "Flaw:\n-----"
-        )
-        for affect in self.tracker.affects.all():
-            description += f"https://osidb.prodsec.redhat.com/osidb/api/v1/flaws/{affect.flaw.uuid}\n"
+        self._query["fields"]["description"] = self.description
 
     def generate_labels(self):
         """
