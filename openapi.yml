@@ -1619,6 +1619,7 @@ paths:
           description: ''
     delete:
       operationId: osidb_api_v1_affects_destroy
+      description: Destroy the instance and proxy the delete to Bugzilla
       parameters:
       - in: path
         name: uuid
@@ -3014,6 +3015,7 @@ paths:
           description: ''
     delete:
       operationId: osidb_api_v1_flaws_acknowledgments_destroy
+      description: Destroy the instance and proxy the delete to Bugzilla
       parameters:
       - in: path
         name: flaw_id
@@ -3501,6 +3503,7 @@ paths:
           description: ''
     delete:
       operationId: osidb_api_v1_flaws_references_destroy
+      description: Destroy the instance and proxy the delete to Bugzilla
       parameters:
       - in: path
         name: flaw_id

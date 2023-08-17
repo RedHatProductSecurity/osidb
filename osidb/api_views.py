@@ -35,14 +35,7 @@ from .filters import (
     FlawFilter,
     TrackerFilter,
 )
-from .models import (
-    Affect,
-    Flaw,
-    FlawAcknowledgment,
-    FlawComment,
-    FlawReference,
-    Tracker,
-)
+from .models import Affect, Flaw, Tracker
 from .serializer import (
     AffectPostSerializer,
     AffectSerializer,
@@ -368,41 +361,25 @@ class FlawView(ModelViewSet):
         return response
 
 
-@include_meta_attr_extend_schema_view
-@include_exclude_fields_extend_schema_view
-@extend_schema_view(
-    create=extend_schema(
-        request=FlawAcknowledgmentPostSerializer,
-    ),
-    update=extend_schema(
-        request=FlawAcknowledgmentPutSerializer,
-    ),
-)
-class FlawAcknowledgmentView(ModelViewSet):
-    serializer_class = FlawAcknowledgmentSerializer
-    http_method_names = get_valid_http_methods(ModelViewSet)
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    filterset_class = FlawAcknowledgmentFilter
-
+class SubFlawViewDestroyMixin:
     def destroy(self, request, *args, **kwargs):
+        """
+        Destroy the instance and proxy the delete to Bugzilla
+        """
         bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
         if not bz_api_key:
             raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
         instance = self.get_object()
-        self.perform_destroy(instance, bz_api_key=bz_api_key)
-        return Response(status=HTTP_200_OK)
-
-    def perform_destroy(self, instance, bz_api_key):
-        """
-        override the default behavior to proxy the delete to Bugzilla
-        """
         flaw = instance.flaw
         instance.delete()
         flaw.save(bz_api_key=bz_api_key)
+        return Response(status=HTTP_200_OK)
 
+
+class SubFlawViewGetMixin:
     def get_flaw(self):
         """
-        Get flaw object instance related to this FlawAcknowledgment.
+        Gets the flaw instance associated with the requested model instance.
         """
         pk = self.kwargs["flaw_id"]
         if CVE_RE_STR.match(pk):
@@ -414,20 +391,20 @@ class FlawAcknowledgmentView(ModelViewSet):
 
     def get_queryset(self):
         """
-        Returns flaw acknowledgments only for a specified flaw.
+        Returns the requested model instances only for the specified flaw.
         """
         if getattr(self, "swagger_fake_view", False):
             # Required for autogeneration of parameters to openapi.yml because
             # get_queryset depends on "flaw" not available at schema generation
             # time. Documented in
             # https://drf-spectacular.readthedocs.io/en/latest/faq.html#my-get-queryset-depends-on-some-attributes-not-available-at-schema-generation-time
-            return FlawAcknowledgment.objects.none()
+            return self.serializer_class.Meta.model.objects.none()
         flaw = self.get_flaw()
-        return FlawAcknowledgment.objects.filter(flaw=flaw)
+        return self.serializer_class.Meta.model.objects.filter(flaw=flaw)
 
     def get_serializer(self, *args, **kwargs):
         """
-        Updates a serializer to contain also a flaw uuid.
+        Updates the serializer to contain also the flaw uuid.
         """
         if "data" in kwargs:
             # request.data can be immutable, depending on media type
@@ -439,6 +416,41 @@ class FlawAcknowledgmentView(ModelViewSet):
         return super().get_serializer(*args, **kwargs)
 
 
+class SubFlawViewNoneFormatQuerysetMixin:
+    # This mixin exists so that OpenAPI schema stays unchanged for ModelViewSets
+    # that had a slightly buggy version of get_queryset.
+    # The correct get_queryset generates openapi parameter format "uuid", whereas
+    # this get_queryset generates parameter format "none".
+    # (This is not a docstring because that would appear in the schema.)
+    # TODO: Eliminate this mixin when such API change is allowed.
+
+    def get_queryset(self):
+        """
+        Returns the requested model instances only for the specified flaw.
+        """
+        flaw = self.get_flaw()
+        return self.serializer_class.Meta.model.objects.filter(flaw=flaw)
+
+
+@include_meta_attr_extend_schema_view
+@include_exclude_fields_extend_schema_view
+@extend_schema_view(
+    create=extend_schema(
+        request=FlawAcknowledgmentPostSerializer,
+    ),
+    update=extend_schema(
+        request=FlawAcknowledgmentPutSerializer,
+    ),
+)
+class FlawAcknowledgmentView(
+    SubFlawViewDestroyMixin, SubFlawViewGetMixin, ModelViewSet
+):
+    serializer_class = FlawAcknowledgmentSerializer
+    http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filterset_class = FlawAcknowledgmentFilter
+
+
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
 @extend_schema_view(
@@ -446,54 +458,15 @@ class FlawAcknowledgmentView(ModelViewSet):
         request=FlawReferencePostSerializer,
     ),
 )
-class FlawReferenceView(ModelViewSet):
+class FlawReferenceView(
+    SubFlawViewNoneFormatQuerysetMixin,
+    SubFlawViewDestroyMixin,
+    SubFlawViewGetMixin,
+    ModelViewSet,
+):
     serializer_class = FlawReferenceSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def destroy(self, request, *args, **kwargs):
-        bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
-        if not bz_api_key:
-            raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
-        instance = self.get_object()
-        self.perform_destroy(instance, bz_api_key=bz_api_key)
-        return Response(status=HTTP_200_OK)
-
-    def perform_destroy(self, instance, bz_api_key):
-        """
-        override the default behavior to proxy the delete to Bugzilla
-        """
-        flaw = instance.flaw
-        instance.delete()
-        flaw.save(bz_api_key=bz_api_key)
-
-    def get_flaw(self):
-        """
-        Gets a flaw associated with a given flaw reference.
-        """
-        _id = self.kwargs["flaw_id"]
-        if CVE_RE_STR.match(_id):
-            flaw = get_object_or_404(Flaw, cve_id=_id)
-        else:
-            flaw = get_object_or_404(Flaw, uuid=_id)
-        self.check_object_permissions(self.request, flaw)
-        return flaw
-
-    def get_queryset(self):
-        """
-        Returns flaw references only for a specified flaw.
-        """
-        return FlawReference.objects.filter(flaw=self.get_flaw())
-
-    def get_serializer(self, *args, **kwargs):
-        """
-        Updates a serializer to contain also a flaw uuid.
-        """
-        if "data" in kwargs:
-            data = kwargs["data"].copy()
-            data["flaw"] = str(self.get_flaw().uuid)
-            kwargs["data"] = data
-        return super().get_serializer(*args, **kwargs)
 
 
 @extend_schema(
@@ -571,51 +544,12 @@ def whoami(request: Request) -> Response:
         ],
     ),
 )
-class FlawCommentView(ModelViewSet):
+class FlawCommentView(SubFlawViewGetMixin, ModelViewSet):
     serializer_class = FlawCommentSerializer
     filterset_class = FlawCommentFilter
     http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete", "put"])
     permission_classes = [IsAuthenticatedOrReadOnly]
     lookup_url_kwarg = "comment_id"
-
-    def get_flaw(self):
-        """
-        Get flaw object instance.
-        Similar to FlawView.get_object().
-        """
-        pk = self.kwargs["flaw_id"]
-        if CVE_RE_STR.match(pk):
-            obj = get_object_or_404(Flaw, cve_id=pk)
-        else:
-            obj = get_object_or_404(Flaw, uuid=pk)
-        self.check_object_permissions(self.request, obj)
-        return obj
-
-    def get_queryset(self):
-        """
-        Returns flaw comments only for a specified flaw.
-        """
-        if getattr(self, "swagger_fake_view", False):
-            # Required for autogeneration of parameters to openapi.yml because
-            # get_queryset depends on "flaw" not available at schema generation
-            # time. Documented in
-            # https://drf-spectacular.readthedocs.io/en/latest/faq.html#my-get-queryset-depends-on-some-attributes-not-available-at-schema-generation-time
-            return FlawComment.objects.none()
-        flaw = self.get_flaw()
-        return FlawComment.objects.filter(flaw=flaw)
-
-    def get_serializer(self, *args, **kwargs):
-        """
-        Updates a serializer to contain also a flaw uuid.
-        """
-        if "data" in kwargs:
-            # request.data can be immutable, depending on media type
-            data = kwargs["data"].copy()
-            # flaw is provided in URL, not in the request, so inject it for
-            # the serializer and its validation
-            data["flaw"] = str(self.get_flaw().uuid)
-            kwargs["data"] = data
-        return super().get_serializer(*args, **kwargs)
 
 
 @include_meta_attr_extend_schema_view
@@ -635,28 +569,12 @@ class FlawCommentView(ModelViewSet):
         ],
     ),
 )
-class AffectView(ModelViewSet):
+class AffectView(SubFlawViewDestroyMixin, ModelViewSet):
     queryset = Affect.objects.all()
     serializer_class = AffectSerializer
     filterset_class = AffectFilter
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def destroy(self, request, *args, **kwargs):
-        bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
-        if not bz_api_key:
-            raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
-        instance = self.get_object()
-        self.perform_destroy(instance, bz_api_key=bz_api_key)
-        return Response(status=HTTP_200_OK)
-
-    def perform_destroy(self, instance, bz_api_key):
-        """
-        override the default behavior to proxy the delete to Bugzilla
-        """
-        flaw = instance.flaw
-        instance.delete()
-        flaw.save(bz_api_key=bz_api_key)
 
 
 # until we implement tracker write operations
