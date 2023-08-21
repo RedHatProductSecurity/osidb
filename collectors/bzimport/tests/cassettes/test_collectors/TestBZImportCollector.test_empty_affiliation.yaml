@@ -1,0 +1,794 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/version
+  response:
+    body:
+      string: '{"version": "5.0.4.rh90"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '24'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 21 Aug 2023 13:38:17 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.5adfda17.1692625097.2ce1c57b
+      x-rh-edge-request-id:
+      - 2ce1c57b
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/user?ids=1
+  response:
+    body:
+      string: '{"users": [{"name": "aander07@packetmaster.com", "id": 1, "email":
+        "aander07@packetmaster.com", "can_login": true, "real_name": "Need Real Name"}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '137'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 21 Aug 2023 13:38:18 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.5adfda17.1692625098.2ce1cda9
+      x-rh-edge-request-id:
+      - 2ce1cda9
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=1824033
+  response:
+    body:
+      string: '{"total_matches": 1, "limit": "20", "bugs": [{"groups": [], "tags":
+        [], "deadline": null, "description": "OAuth2 refresh tokens do not respect
+        the expiration specified in REFRESH_TOKEN_EXPIRE_SECONDS.", "cc": ["dmoppert@redhat.com",
+        "gblomqui@redhat.com", "mabashia@redhat.com", "smcdonal@redhat.com"], "component":
+        ["vulnerability"], "product": "Security Response", "creation_time": "2020-04-15T06:34:38Z",
+        "external_bugs": [], "resolution": "", "target_milestone": "---", "assigned_to_detail":
+        {"partner": false, "active": true, "name": "nobody@redhat.com", "email": "nobody@redhat.com",
+        "real_name": "Nobody", "insider": false, "id": 29451}, "cf_build_id": "",
+        "cf_qa_whiteboard": "", "is_creator_accessible": true, "flags": [{"modification_date":
+        "2020-04-16T13:08:13Z", "creation_date": "2020-04-16T13:08:13Z", "id": 4485441,
+        "type_id": 415, "name": "requires_doc_text", "setter": "rtillery@redhat.com",
+        "status": "+", "is_active": 1}, {"id": 5079959, "modification_date": "2021-06-21T14:00:09Z",
+        "creation_date": "2021-06-21T14:00:09Z", "is_active": 1, "status": "?", "type_id":
+        1637, "name": "nist_cvss_validation", "setter": "btarraso@redhat.com"}], "whiteboard":
+        "", "cf_clone_of": null, "docs_contact": "", "status": "NEW", "cf_conditional_nak":
+        [], "cf_qe_conditional_nak": [], "depends_on": [1824034, 1824035], "id": 1824033,
+        "qa_contact": "", "cf_pgm_internal": "", "cf_doc_type": "If docs needed, set
+        a value", "keywords": ["Security"], "priority": "medium", "data_category":
+        "Public", "cf_pm_score": "0", "creator": "btarraso@redhat.com", "last_change_time":
+        "2023-07-07T08:33:40Z", "blocks": [1824028], "op_sys": "Linux", "creator_detail":
+        {"active": true, "name": "btarraso@redhat.com", "email": "btarraso@redhat.com",
+        "partner": false, "id": 406891, "insider": true, "real_name": "Borja Tarraso"},
+        "summary": "CVE-2020-10709 Tower: OAuth2 refresh tokens do not respect the
+        expiration", "is_open": true, "url": "", "cf_internal_whiteboard": "", "actual_time":
+        0, "cc_detail": [{"real_name": "Doran Moppert", "insider": true, "id": 395911,
+        "partner": false, "name": "dmoppert@redhat.com", "active": true, "email":
+        "dmoppert@redhat.com"}, {"partner": false, "email": "gblomqui@redhat.com",
+        "name": "gblomqui@redhat.com", "active": true, "insider": true, "real_name":
+        "Greg Blomquist", "id": 200751}, {"active": true, "name": "mabashia@redhat.com",
+        "email": "mabashia@redhat.com", "partner": false, "id": 447308, "real_name":
+        "Michael Abashian", "insider": false}, {"id": 404843, "insider": true, "real_name":
+        "Shane McDonald", "active": true, "name": "smcdonal@redhat.com", "email":
+        "smcdonal@redhat.com", "partner": false}], "version": ["unspecified"], "cf_last_closed":
+        null, "platform": "All", "remaining_time": 0, "is_confirmed": true, "severity":
+        "medium", "comments": [{"attachment_id": null, "time": "2020-04-15T06:34:38Z",
+        "bug_id": 1824033, "tags": [], "text": "OAuth2 refresh tokens do not respect
+        the expiration specified in REFRESH_TOKEN_EXPIRE_SECONDS.", "creator": "btarraso@redhat.com",
+        "is_private": false, "creation_time": "2020-04-15T06:34:38Z", "creator_id":
+        406891, "count": 0, "id": 13801479}, {"count": 3, "id": 13805740, "creator":
+        "btarraso@redhat.com", "is_private": false, "creation_time": "2020-04-16T08:05:08Z",
+        "creator_id": 406891, "text": "Acknowledgments:\n\nName: @sdwru", "attachment_id":
+        null, "time": "2020-04-16T08:05:08Z", "tags": [], "bug_id": 1824033}, {"text":
+        "Statement:\n\nAnsible Tower 3.5.5 and 3.6.3 as well as previous versions
+        are affected.", "bug_id": 1824033, "tags": [], "attachment_id": null, "time":
+        "2020-04-16T08:05:11Z", "id": 13805741, "count": 4, "creator_id": 406891,
+        "creation_time": "2020-04-16T08:05:11Z", "creator": "btarraso@redhat.com",
+        "is_private": false}, {"time": "2020-04-16T08:05:14Z", "attachment_id": null,
+        "tags": [], "bug_id": 1824033, "text": "Mitigation:\n\nWhenever is possible,
+        deleting the user from Ansible Tower is the only way to mitigate the authentication
+        of OAuth2 tokens.", "creation_time": "2020-04-16T08:05:14Z", "is_private":
+        false, "creator": "btarraso@redhat.com", "creator_id": 406891, "id": 13805744,
+        "count": 5}, {"id": 13805750, "count": 6, "creator_id": 406891, "creation_time":
+        "2020-04-16T08:08:10Z", "creator": "btarraso@redhat.com", "is_private": false,
+        "text": "Upstream AWX fix: https://github.com/ansible/awx/issues/6630", "tags":
+        [], "bug_id": 1824033, "attachment_id": null, "time": "2020-04-16T08:08:10Z"}],
+        "estimated_time": 0, "target_release": ["---"], "cf_embargoed": null, "cf_cust_facing":
+        "---", "cf_major_incident": null, "alias": ["CVE-2020-10709"], "cf_devel_whiteboard":
+        "(DO NOT MODIFY THIS FIELD MANUALLY; YOUR CHANGES WILL BE OVERWRITTEN ON NEXT
+        UPDATE.)\r\n\r\nSTATEMENT\r\n---------\r\n\r\nAnsible Tower 3.5.5 and 3.6.3
+        as well as previous versions are affected.\r\n\r\nMITIGATION\r\n-----------\r\n\r\nWhenever
+        is possible, deleting the user from Ansible Tower is the only way to mitigate
+        the authentication of OAuth2 tokens.\r\n\r\nACKNOWLEDGMENTS\r\n---------------\r\n\r\n@sdwru",
+        "is_cc_accessible": true, "dupe_of": null, "cf_environment": "", "assigned_to":
+        "nobody@redhat.com", "cf_srtnotes": "{\"acknowledgments\": [{\"affiliation\":
+        null, \"from_upstream\": false, \"name\": \"@sdwru\"}], \"affects\": [{\"affectedness\":
+        \"affected\", \"cvss2\": null, \"cvss3\": null, \"impact\": null, \"ps_component\":
+        \"ansible-tower\", \"ps_module\": \"ansible_tower-3\", \"resolution\": \"fix\"}],
+        \"checklists\": [{\"items\": [{\"checked\": true, \"comment\": null, \"item\":
+        \"0. Concise and precise summary\", \"not_applicable\": false}, {\"checked\":
+        true, \"comment\": null, \"item\": \"1. Accurate technical information\",
+        \"not_applicable\": false}, {\"checked\": true, \"comment\": null, \"item\":
+        \"2. Appropriate CVSS\", \"not_applicable\": false}, {\"checked\": true, \"comment\":
+        null, \"item\": \"3. Fixed in version\", \"not_applicable\": false}, {\"checked\":
+        true, \"comment\": null, \"item\": \"4. Appropriate CWE(s) \", \"not_applicable\":
+        false}, {\"checked\": true, \"comment\": null, \"item\": \"5. Reported/public
+        dates\", \"not_applicable\": false}, {\"checked\": true, \"comment\": null,
+        \"item\": \"6. CVE has been assigned\", \"not_applicable\": false}, {\"checked\":
+        false, \"comment\": null, \"item\": \"7. Explain any significant CVSS differences
+        between RH vs NVD\", \"not_applicable\": true}, {\"checked\": false, \"comment\":
+        null, \"item\": \"8. Appropriate External References (e.g. upstream advisories)\",
+        \"not_applicable\": true}, {\"checked\": true, \"comment\": null, \"item\":
+        \"9. Flaw has private patches (or links to upstream if public)\", \"not_applicable\":
+        false}, {\"checked\": false, \"comment\": null, \"item\": \"10. Reproducer/Notes
+        on how to test are present\", \"not_applicable\": true}, {\"checked\": true,
+        \"comment\": null, \"item\": \"11. Flaw has correct acknowledgment text and
+        reporter has given explicit permission to be listed\", \"not_applicable\":
+        false}, {\"checked\": true, \"comment\": null, \"item\": \"12. Doc Text is
+        provided\", \"not_applicable\": false}, {\"checked\": false, \"comment\":
+        null, \"item\": \"13. Task problems reported in secalert/postmortem\", \"not_applicable\":
+        true}], \"name\": \"Base flaw\", \"signature\": \"85504c9\", \"template\":
+        \"base_flaw\"}], \"cvss3\": \"7.1/CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N\",
+        \"cwe\": \"CWE-287->CWE-672->CWE-613\", \"impact\": \"moderate\", \"jira_trackers\":
+        [], \"mitigation\": \"Whenever is possible, deleting the user from Ansible
+        Tower is the only way to mitigate the authentication of OAuth2 tokens.\",
+        \"public\": \"2020-04-07\", \"reported\": \"2020-04-07\", \"source\": \"researcher\",
+        \"statement\": \"Ansible Tower 3.5.5 and 3.6.3 as well as previous versions
+        are affected.\"}", "cf_release_notes": "A security flaw was found in Ansible
+        Tower when requesting an OAuth2 token with an OAuth2 application. Ansible
+        Tower uses the token to provide authentication. This flaw allows an attacker
+        to obtain a refresh token that does not expire. The original token granted
+        to the user still has access to Ansible Tower, which allows any user that
+        can gain access to the token to be fully authenticated to Ansible Tower.",
+        "cf_fixed_in": "ansible_tower 3.6.4, ansible_tower 3.5.6", "classification":
+        "Other", "sub_components": {}}], "offset": 0}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 21 Aug 2023 13:38:19 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '10887'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.5adfda17.1692625099.2ce1e2e4
+      x-rh-edge-request-id:
+      - 2ce1e2e4
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=1824033
+  response:
+    body:
+      string: '{"limit": "20", "bugs": [{"cf_major_incident": null, "estimated_time":
+        0, "classification": "Other", "platform": "All", "flags": [{"is_active": 1,
+        "id": 4485441, "name": "requires_doc_text", "status": "+", "setter": "rtillery@redhat.com",
+        "type_id": 415, "creation_date": "2020-04-16T13:08:13Z", "modification_date":
+        "2020-04-16T13:08:13Z"}, {"type_id": 1637, "status": "?", "setter": "btarraso@redhat.com",
+        "modification_date": "2021-06-21T14:00:09Z", "creation_date": "2021-06-21T14:00:09Z",
+        "name": "nist_cvss_validation", "id": 5079959, "is_active": 1}], "cf_devel_whiteboard":
+        "(DO NOT MODIFY THIS FIELD MANUALLY; YOUR CHANGES WILL BE OVERWRITTEN ON NEXT
+        UPDATE.)\r\n\r\nSTATEMENT\r\n---------\r\n\r\nAnsible Tower 3.5.5 and 3.6.3
+        as well as previous versions are affected.\r\n\r\nMITIGATION\r\n-----------\r\n\r\nWhenever
+        is possible, deleting the user from Ansible Tower is the only way to mitigate
+        the authentication of OAuth2 tokens.\r\n\r\nACKNOWLEDGMENTS\r\n---------------\r\n\r\n@sdwru",
+        "creation_time": "2020-04-15T06:34:38Z", "data_category": "Public", "groups":
+        [], "creator": "btarraso@redhat.com", "product": "Security Response", "cf_clone_of":
+        null, "cf_conditional_nak": [], "cf_pgm_internal": "", "component": ["vulnerability"],
+        "sub_components": {}, "severity": "medium", "target_milestone": "---", "cf_doc_type":
+        "If docs needed, set a value", "deadline": null, "cf_environment": "", "cf_qa_whiteboard":
+        "", "dupe_of": null, "comments": [{"bug_id": 1824033, "creator_id": 406891,
+        "count": 0, "attachment_id": null, "time": "2020-04-15T06:34:38Z", "id": 13801479,
+        "tags": [], "is_private": false, "creator": "btarraso@redhat.com", "text":
+        "OAuth2 refresh tokens do not respect the expiration specified in REFRESH_TOKEN_EXPIRE_SECONDS.",
+        "creation_time": "2020-04-15T06:34:38Z"}, {"id": 13805740, "tags": [], "creator":
+        "btarraso@redhat.com", "is_private": false, "text": "Acknowledgments:\n\nName:
+        @sdwru", "creation_time": "2020-04-16T08:05:08Z", "bug_id": 1824033, "creator_id":
+        406891, "time": "2020-04-16T08:05:08Z", "attachment_id": null, "count": 3},
+        {"tags": [], "creator": "btarraso@redhat.com", "is_private": false, "text":
+        "Statement:\n\nAnsible Tower 3.5.5 and 3.6.3 as well as previous versions
+        are affected.", "creation_time": "2020-04-16T08:05:11Z", "id": 13805741, "attachment_id":
+        null, "time": "2020-04-16T08:05:11Z", "count": 4, "bug_id": 1824033, "creator_id":
+        406891}, {"time": "2020-04-16T08:05:14Z", "attachment_id": null, "count":
+        5, "creator_id": 406891, "bug_id": 1824033, "text": "Mitigation:\n\nWhenever
+        is possible, deleting the user from Ansible Tower is the only way to mitigate
+        the authentication of OAuth2 tokens.", "creation_time": "2020-04-16T08:05:14Z",
+        "creator": "btarraso@redhat.com", "is_private": false, "tags": [], "id": 13805744},
+        {"id": 13805750, "text": "Upstream AWX fix: https://github.com/ansible/awx/issues/6630",
+        "creation_time": "2020-04-16T08:08:10Z", "is_private": false, "creator": "btarraso@redhat.com",
+        "tags": [], "creator_id": 406891, "bug_id": 1824033, "attachment_id": null,
+        "time": "2020-04-16T08:08:10Z", "count": 6}], "blocks": [1824028], "creator_detail":
+        {"active": true, "id": 406891, "partner": false, "name": "btarraso@redhat.com",
+        "email": "btarraso@redhat.com", "real_name": "Borja Tarraso", "insider": true},
+        "assigned_to_detail": {"active": true, "id": 29451, "partner": false, "email":
+        "nobody@redhat.com", "name": "nobody@redhat.com", "real_name": "Nobody", "insider":
+        false}, "alias": ["CVE-2020-10709"], "is_confirmed": true, "is_creator_accessible":
+        true, "cf_release_notes": "A security flaw was found in Ansible Tower when
+        requesting an OAuth2 token with an OAuth2 application. Ansible Tower uses
+        the token to provide authentication. This flaw allows an attacker to obtain
+        a refresh token that does not expire. The original token granted to the user
+        still has access to Ansible Tower, which allows any user that can gain access
+        to the token to be fully authenticated to Ansible Tower.", "is_open": true,
+        "actual_time": 0, "cc_detail": [{"name": "dmoppert@redhat.com", "email": "dmoppert@redhat.com",
+        "real_name": "Doran Moppert", "insider": true, "id": 395911, "partner": false,
+        "active": true}, {"id": 200751, "partner": false, "real_name": "Greg Blomquist",
+        "name": "gblomqui@redhat.com", "email": "gblomqui@redhat.com", "insider":
+        true, "active": true}, {"active": true, "id": 447308, "partner": false, "name":
+        "mabashia@redhat.com", "email": "mabashia@redhat.com", "real_name": "Michael
+        Abashian", "insider": false}, {"real_name": "Shane McDonald", "name": "smcdonal@redhat.com",
+        "email": "smcdonal@redhat.com", "insider": true, "id": 404843, "partner":
+        false, "active": true}], "cc": ["dmoppert@redhat.com", "gblomqui@redhat.com",
+        "mabashia@redhat.com", "smcdonal@redhat.com"], "assigned_to": "nobody@redhat.com",
+        "cf_cust_facing": "---", "depends_on": [1824034, 1824035], "last_change_time":
+        "2023-07-07T08:33:40Z", "cf_pm_score": "0", "id": 1824033, "url": "", "cf_fixed_in":
+        "ansible_tower 3.6.4, ansible_tower 3.5.6", "tags": [], "external_bugs": [],
+        "docs_contact": "", "version": ["unspecified"], "cf_build_id": "", "cf_srtnotes":
+        "{\"acknowledgments\": [{\"affiliation\": null, \"from_upstream\": false,
+        \"name\": \"@sdwru\"}], \"affects\": [{\"affectedness\": \"affected\", \"cvss2\":
+        null, \"cvss3\": null, \"impact\": null, \"ps_component\": \"ansible-tower\",
+        \"ps_module\": \"ansible_tower-3\", \"resolution\": \"fix\"}], \"checklists\":
+        [{\"items\": [{\"checked\": true, \"comment\": null, \"item\": \"0. Concise
+        and precise summary\", \"not_applicable\": false}, {\"checked\": true, \"comment\":
+        null, \"item\": \"1. Accurate technical information\", \"not_applicable\":
+        false}, {\"checked\": true, \"comment\": null, \"item\": \"2. Appropriate
+        CVSS\", \"not_applicable\": false}, {\"checked\": true, \"comment\": null,
+        \"item\": \"3. Fixed in version\", \"not_applicable\": false}, {\"checked\":
+        true, \"comment\": null, \"item\": \"4. Appropriate CWE(s) \", \"not_applicable\":
+        false}, {\"checked\": true, \"comment\": null, \"item\": \"5. Reported/public
+        dates\", \"not_applicable\": false}, {\"checked\": true, \"comment\": null,
+        \"item\": \"6. CVE has been assigned\", \"not_applicable\": false}, {\"checked\":
+        false, \"comment\": null, \"item\": \"7. Explain any significant CVSS differences
+        between RH vs NVD\", \"not_applicable\": true}, {\"checked\": false, \"comment\":
+        null, \"item\": \"8. Appropriate External References (e.g. upstream advisories)\",
+        \"not_applicable\": true}, {\"checked\": true, \"comment\": null, \"item\":
+        \"9. Flaw has private patches (or links to upstream if public)\", \"not_applicable\":
+        false}, {\"checked\": false, \"comment\": null, \"item\": \"10. Reproducer/Notes
+        on how to test are present\", \"not_applicable\": true}, {\"checked\": true,
+        \"comment\": null, \"item\": \"11. Flaw has correct acknowledgment text and
+        reporter has given explicit permission to be listed\", \"not_applicable\":
+        false}, {\"checked\": true, \"comment\": null, \"item\": \"12. Doc Text is
+        provided\", \"not_applicable\": false}, {\"checked\": false, \"comment\":
+        null, \"item\": \"13. Task problems reported in secalert/postmortem\", \"not_applicable\":
+        true}], \"name\": \"Base flaw\", \"signature\": \"85504c9\", \"template\":
+        \"base_flaw\"}], \"cvss3\": \"7.1/CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N\",
+        \"cwe\": \"CWE-287->CWE-672->CWE-613\", \"impact\": \"moderate\", \"jira_trackers\":
+        [], \"mitigation\": \"Whenever is possible, deleting the user from Ansible
+        Tower is the only way to mitigate the authentication of OAuth2 tokens.\",
+        \"public\": \"2020-04-07\", \"reported\": \"2020-04-07\", \"source\": \"researcher\",
+        \"statement\": \"Ansible Tower 3.5.5 and 3.6.3 as well as previous versions
+        are affected.\"}", "priority": "medium", "resolution": "", "whiteboard": "",
+        "description": "OAuth2 refresh tokens do not respect the expiration specified
+        in REFRESH_TOKEN_EXPIRE_SECONDS.", "is_cc_accessible": true, "cf_embargoed":
+        null, "keywords": ["Security"], "summary": "CVE-2020-10709 Tower: OAuth2 refresh
+        tokens do not respect the expiration", "target_release": ["---"], "status":
+        "NEW", "cf_internal_whiteboard": "", "cf_qe_conditional_nak": [], "remaining_time":
+        0, "cf_last_closed": null, "op_sys": "Linux", "qa_contact": ""}], "total_matches":
+        1, "offset": 0}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 21 Aug 2023 13:38:20 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '10887'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.5adfda17.1692625100.2ce1fb98
+      x-rh-edge-request-id:
+      - 2ce1fb98
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug/1824033/comment
+  response:
+    body:
+      string: '{"bugs": {"1824033": {"comments": [{"text": "OAuth2 refresh tokens
+        do not respect the expiration specified in REFRESH_TOKEN_EXPIRE_SECONDS.",
+        "tags": [], "creation_time": "2020-04-15T06:34:38Z", "is_private": false,
+        "creator": "btarraso@redhat.com", "creator_id": 406891, "time": "2020-04-15T06:34:38Z",
+        "bug_id": 1824033, "attachment_id": null, "id": 13801479, "count": 0}, {"text":
+        "Acknowledgments:\n\nName: @sdwru", "tags": [], "creation_time": "2020-04-16T08:05:08Z",
+        "creator": "btarraso@redhat.com", "is_private": false, "time": "2020-04-16T08:05:08Z",
+        "creator_id": 406891, "attachment_id": null, "bug_id": 1824033, "count": 3,
+        "id": 13805740}, {"id": 13805741, "count": 4, "bug_id": 1824033, "attachment_id":
+        null, "creator_id": 406891, "time": "2020-04-16T08:05:11Z", "is_private":
+        false, "creator": "btarraso@redhat.com", "creation_time": "2020-04-16T08:05:11Z",
+        "tags": [], "text": "Statement:\n\nAnsible Tower 3.5.5 and 3.6.3 as well as
+        previous versions are affected."}, {"time": "2020-04-16T08:05:14Z", "creator_id":
+        406891, "attachment_id": null, "bug_id": 1824033, "count": 5, "id": 13805744,
+        "text": "Mitigation:\n\nWhenever is possible, deleting the user from Ansible
+        Tower is the only way to mitigate the authentication of OAuth2 tokens.", "creation_time":
+        "2020-04-16T08:05:14Z", "tags": [], "is_private": false, "creator": "btarraso@redhat.com"},
+        {"is_private": false, "creator": "btarraso@redhat.com", "text": "Upstream
+        AWX fix: https://github.com/ansible/awx/issues/6630", "tags": [], "creation_time":
+        "2020-04-16T08:08:10Z", "attachment_id": null, "bug_id": 1824033, "count":
+        6, "id": 13805750, "time": "2020-04-16T08:08:10Z", "creator_id": 406891}]}},
+        "comments": {}}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 21 Aug 2023 13:38:22 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '4509'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.5adfda17.1692625102.2ce219ce
+      x-rh-edge-request-id:
+      - 2ce219ce
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=1824028&include_fields=assigned_to&include_fields=id&include_fields=product
+  response:
+    body:
+      string: '{"offset": 0, "limit": "20", "bugs": [{"assigned_to_detail": {"insider":
+        true, "id": 406891, "name": "btarraso@redhat.com", "email": "btarraso@redhat.com",
+        "partner": false, "active": true, "real_name": "Borja Tarraso"}, "data_category":
+        "Security Restricted", "id": 1824028, "product": "Security Response", "assigned_to":
+        "btarraso@redhat.com"}], "total_matches": 1}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '338'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 21 Aug 2023 13:38:23 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.5adfda17.1692625103.2ce22ee6
+      x-rh-edge-request-id:
+      - 2ce22ee6
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=1824034
+  response:
+    body:
+      string: '{"offset": 0, "total_matches": 1, "limit": "20", "bugs": [{"cf_qa_whiteboard":
+        "", "cf_release_notes": "", "cf_conditional_nak": [], "dupe_of": null, "alias":
+        [], "keywords": ["Security", "SecurityTracking"], "cf_pm_score": "0", "tags":
+        [], "cf_major_incident": null, "cf_doc_type": "No Doc Update", "data_category":
+        "Red Hat", "product": "Red Hat Ansible Tower and Controller", "status": "CLOSED",
+        "target_milestone": "---", "component": ["Security"], "cf_build_id": "", "cf_verified":
+        [], "summary": "CVE-2020-10709 ansible-tower: Tower: OAuth2 refresh tokens
+        do not respect the expiration [ansible_tower-3.5]", "depends_on": [], "cc_detail":
+        [{"email": "awithrow@redhat.com", "partner": false, "active": true, "real_name":
+        "", "insider": true, "id": 426493, "name": "awithrow@redhat.com"}, {"insider":
+        false, "name": "cmeyers@redhat.com", "id": 424312, "active": false, "email":
+        "cmeyers@redhat.com", "partner": false, "real_name": "Chris Meyers"}, {"email":
+        "gblomqui@redhat.com", "partner": false, "active": true, "real_name": "Greg
+        Blomquist", "insider": true, "name": "gblomqui@redhat.com", "id": 200751},
+        {"partner": false, "active": false, "email": "gmainwar@redhat.com", "real_name":
+        "Graham Mainwaring", "insider": false, "name": "gmainwar@redhat.com", "id":
+        406614}, {"real_name": "Lisa Wojcik", "email": "lwojcik@redhat.com", "active":
+        true, "partner": false, "name": "lwojcik@redhat.com", "id": 284623, "insider":
+        true}, {"email": "mabashia@redhat.com", "active": true, "partner": false,
+        "real_name": "Michael Abashian", "insider": false, "name": "mabashia@redhat.com",
+        "id": 447308}, {"active": false, "email": "notting@redhat.com", "partner":
+        false, "real_name": "Bill Nottingham", "insider": false, "name": "notting@redhat.com",
+        "id": 4}, {"real_name": "Ryan Petrello", "partner": false, "email": "rpetrell@redhat.com",
+        "active": false, "name": "rpetrell@redhat.com", "id": 421702, "insider": false},
+        {"active": true, "partner": false, "email": "smcdonal@redhat.com", "real_name":
+        "Shane McDonald", "insider": true, "id": 404843, "name": "smcdonal@redhat.com"}],
+        "is_confirmed": true, "groups": ["redhat"], "cf_fixed_in": "", "sub_components":
+        {}, "creation_time": "2020-04-15T06:35:19Z", "id": 1824034, "estimated_time":
+        0, "cf_partner": [], "docs_contact": "", "is_creator_accessible": true, "cf_clone_of":
+        null, "assigned_to": "awithrow@redhat.com", "cf_target_upstream_version":
+        "", "last_change_time": "2020-04-22T17:12:28Z", "comments": [{"creator": "btarraso@redhat.com",
+        "attachment_id": null, "creation_time": "2020-04-15T06:35:19Z", "is_private":
+        false, "count": 0, "id": 13801480, "tags": [], "time": "2020-04-15T06:35:19Z",
+        "text": "ansible_tower-3 tracking bug for ansible-tower: see the bugs linked
+        in the \"Blocks\" field of this bug for full details of the security issue(s).\n\nThis
+        bug is never intended to be made public, please put any public notes in the
+        blocked bugs.\n\nImpact: Moderate\nPublic Date: 07-Apr-2020\nResolve Bug By:
+        07-Apr-2021\n\nIn case the dates above are already past, please evaluate this
+        bug in your next prioritization review and make a decision then. Remember
+        to explicitly set CLOSED:WONTFIX if you decide not to fix this bug.\n\nPlease
+        see the Security Errata Policy for further details: https://docs.engineering.redhat.com/x/9RBqB",
+        "creator_id": 406891, "bug_id": 1824034}], "cf_embargoed": null, "deadline":
+        "2021-04-07", "description": "ansible_tower-3 tracking bug for ansible-tower:
+        see the bugs linked in the \"Blocks\" field of this bug for full details of
+        the security issue(s).\n\nThis bug is never intended to be made public, please
+        put any public notes in the blocked bugs.\n\nImpact: Moderate\nPublic Date:
+        07-Apr-2020\nResolve Bug By: 07-Apr-2021\n\nIn case the dates above are already
+        past, please evaluate this bug in your next prioritization review and make
+        a decision then. Remember to explicitly set CLOSED:WONTFIX if you decide not
+        to fix this bug.\n\nPlease see the Security Errata Policy for further details:
+        https://docs.engineering.redhat.com/x/9RBqB", "creator": "btarraso@redhat.com",
+        "cf_environment": "", "classification": "Red Hat", "platform": "Unspecified",
+        "cf_pgm_internal": "", "actual_time": 0, "cf_cust_facing": "---", "creator_detail":
+        {"insider": true, "name": "btarraso@redhat.com", "id": 406891, "partner":
+        false, "active": true, "email": "btarraso@redhat.com", "real_name": "Borja
+        Tarraso"}, "cf_devel_whiteboard": "", "cf_qe_conditional_nak": [], "assigned_to_detail":
+        {"insider": true, "id": 426493, "name": "awithrow@redhat.com", "partner":
+        false, "active": true, "email": "awithrow@redhat.com", "real_name": ""}, "qa_contact":
+        "", "severity": "medium", "resolution": "ERRATA", "flags": [{"setter": "bugzilla@redhat.com",
+        "creation_date": "2020-04-15T06:35:19Z", "status": "-", "modification_date":
+        "2020-04-15T06:35:19Z", "id": 4482356, "name": "requires_doc_text", "is_active":
+        1, "type_id": 415}], "cf_last_closed": "2020-04-22T17:12:28Z", "is_cc_accessible":
+        true, "remaining_time": 0, "blocks": [1824033], "cf_internal_whiteboard":
+        "", "cc": ["awithrow@redhat.com", "cmeyers@redhat.com", "gblomqui@redhat.com",
+        "gmainwar@redhat.com", "lwojcik@redhat.com", "mabashia@redhat.com", "notting@redhat.com",
+        "rpetrell@redhat.com", "smcdonal@redhat.com"], "url": "", "priority": "medium",
+        "whiteboard": "component:ansible-tower", "external_bugs": [], "target_release":
+        ["---"], "version": ["3.5"], "is_open": false, "op_sys": "Unspecified"}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 21 Aug 2023 13:38:24 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '5111'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.5adfda17.1692625104.2ce2408a
+      x-rh-edge-request-id:
+      - 2ce2408a
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=1824035
+  response:
+    body:
+      string: '{"limit": "20", "total_matches": 1, "bugs": [{"tags": [], "is_confirmed":
+        true, "severity": "medium", "is_open": false, "cf_qa_whiteboard": "", "cc_detail":
+        [{"real_name": "", "id": 426493, "active": true, "email": "awithrow@redhat.com",
+        "partner": false, "name": "awithrow@redhat.com", "insider": true}, {"real_name":
+        "Chris Meyers", "id": 424312, "active": false, "email": "cmeyers@redhat.com",
+        "partner": false, "name": "cmeyers@redhat.com", "insider": false}, {"partner":
+        false, "name": "gblomqui@redhat.com", "insider": true, "active": true, "real_name":
+        "Greg Blomquist", "id": 200751, "email": "gblomqui@redhat.com"}, {"active":
+        false, "id": 406614, "real_name": "Graham Mainwaring", "email": "gmainwar@redhat.com",
+        "partner": false, "insider": false, "name": "gmainwar@redhat.com"}, {"real_name":
+        "Lisa Wojcik", "active": true, "id": 284623, "email": "lwojcik@redhat.com",
+        "partner": false, "insider": true, "name": "lwojcik@redhat.com"}, {"name":
+        "mabashia@redhat.com", "insider": false, "partner": false, "email": "mabashia@redhat.com",
+        "id": 447308, "active": true, "real_name": "Michael Abashian"}, {"partner":
+        false, "name": "notting@redhat.com", "insider": false, "real_name": "Bill
+        Nottingham", "active": false, "id": 4, "email": "notting@redhat.com"}, {"insider":
+        false, "name": "rpetrell@redhat.com", "partner": false, "email": "rpetrell@redhat.com",
+        "real_name": "Ryan Petrello", "active": false, "id": 421702}, {"name": "smcdonal@redhat.com",
+        "insider": true, "partner": false, "email": "smcdonal@redhat.com", "real_name":
+        "Shane McDonald", "id": 404843, "active": true}], "description": "ansible_tower-3
+        tracking bug for ansible-tower: see the bugs linked in the \"Blocks\" field
+        of this bug for full details of the security issue(s).\n\nThis bug is never
+        intended to be made public, please put any public notes in the blocked bugs.\n\nImpact:
+        Moderate\nPublic Date: 07-Apr-2020\nResolve Bug By: 07-Apr-2021\n\nIn case
+        the dates above are already past, please evaluate this bug in your next prioritization
+        review and make a decision then. Remember to explicitly set CLOSED:WONTFIX
+        if you decide not to fix this bug.\n\nPlease see the Security Errata Policy
+        for further details: https://docs.engineering.redhat.com/x/9RBqB", "flags":
+        [{"modification_date": "2020-04-15T06:35:21Z", "status": "-", "id": 4482358,
+        "creation_date": "2020-04-15T06:35:21Z", "name": "requires_doc_text", "type_id":
+        415, "is_active": 1, "setter": "bugzilla@redhat.com"}], "estimated_time":
+        0, "classification": "Red Hat", "cf_doc_type": "No Doc Update", "docs_contact":
+        "", "cf_conditional_nak": [], "assigned_to_detail": {"insider": true, "name":
+        "awithrow@redhat.com", "partner": false, "email": "awithrow@redhat.com", "id":
+        426493, "real_name": "", "active": true}, "depends_on": [], "cf_build_id":
+        "", "blocks": [1824033], "url": "", "priority": "medium", "assigned_to": "awithrow@redhat.com",
+        "external_bugs": [], "creation_time": "2020-04-15T06:35:21Z", "component":
+        ["Security"], "cf_last_closed": "2020-04-22T17:12:51Z", "cf_target_upstream_version":
+        "", "comments": [{"id": 13801481, "bug_id": 1824035, "count": 0, "creator":
+        "btarraso@redhat.com", "creator_id": 406891, "is_private": false, "creation_time":
+        "2020-04-15T06:35:21Z", "text": "ansible_tower-3 tracking bug for ansible-tower:
+        see the bugs linked in the \"Blocks\" field of this bug for full details of
+        the security issue(s).\n\nThis bug is never intended to be made public, please
+        put any public notes in the blocked bugs.\n\nImpact: Moderate\nPublic Date:
+        07-Apr-2020\nResolve Bug By: 07-Apr-2021\n\nIn case the dates above are already
+        past, please evaluate this bug in your next prioritization review and make
+        a decision then. Remember to explicitly set CLOSED:WONTFIX if you decide not
+        to fix this bug.\n\nPlease see the Security Errata Policy for further details:
+        https://docs.engineering.redhat.com/x/9RBqB", "time": "2020-04-15T06:35:21Z",
+        "attachment_id": null, "tags": []}], "target_release": ["---"], "version":
+        ["3.6"], "cf_fixed_in": "", "cf_cust_facing": "---", "is_cc_accessible": true,
+        "deadline": "2021-04-07", "sub_components": {}, "resolution": "ERRATA", "cf_verified":
+        [], "cc": ["awithrow@redhat.com", "cmeyers@redhat.com", "gblomqui@redhat.com",
+        "gmainwar@redhat.com", "lwojcik@redhat.com", "mabashia@redhat.com", "notting@redhat.com",
+        "rpetrell@redhat.com", "smcdonal@redhat.com"], "alias": [], "cf_qe_conditional_nak":
+        [], "id": 1824035, "cf_internal_whiteboard": "", "is_creator_accessible":
+        true, "cf_pgm_internal": "", "platform": "Unspecified", "groups": ["redhat"],
+        "cf_release_notes": "", "whiteboard": "component:ansible-tower", "last_change_time":
+        "2020-04-22T17:12:51Z", "cf_major_incident": null, "product": "Red Hat Ansible
+        Tower and Controller", "remaining_time": 0, "summary": "CVE-2020-10709 ansible-tower:
+        Tower: OAuth2 refresh tokens do not respect the expiration [ansible_tower-3.6]",
+        "cf_embargoed": null, "cf_partner": [], "cf_pm_score": "0", "creator_detail":
+        {"real_name": "Borja Tarraso", "active": true, "id": 406891, "email": "btarraso@redhat.com",
+        "partner": false, "name": "btarraso@redhat.com", "insider": true}, "target_milestone":
+        "---", "creator": "btarraso@redhat.com", "op_sys": "Unspecified", "keywords":
+        ["Security", "SecurityTracking"], "status": "CLOSED", "qa_contact": "", "cf_clone_of":
+        null, "cf_environment": "", "cf_devel_whiteboard": "", "dupe_of": null, "actual_time":
+        0, "data_category": "Red Hat"}], "offset": 0}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Mon, 21 Aug 2023 13:38:26 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '5111'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.5adfda17.1692625106.2ce25a8f
+      x-rh-edge-request-id:
+      - 2ce25a8f
+    status:
+      code: 200
+      message: OK
+version: 1
