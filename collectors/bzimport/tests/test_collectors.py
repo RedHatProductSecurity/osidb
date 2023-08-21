@@ -3,6 +3,7 @@ from datetime import datetime
 
 import pytest
 from django.conf import settings
+from django.db.utils import IntegrityError
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -151,6 +152,19 @@ class TestBZImportCollector:
         assert Flaw.objects.count() != 0
         assert Affect.objects.count() != 0
         assert Tracker.objects.count() != 0
+
+    @pytest.mark.vcr
+    def test_empty_affiliation(self, flaw_collector):
+        """
+        test that syncing a flaw with an acknowledgment with an empty (null) affilitation works
+        this is a reproducer of the bug tracked by https://issues.redhat.com/browse/OSIDB-1195
+        """
+        try:
+            # known public flaw with empty
+            # acknowledgment affiliation
+            flaw_collector.sync_flaw("1824033")
+        except IntegrityError:
+            pytest.fail("Flaw synchronization failed")
 
     @pytest.mark.vcr
     def test_flawmeta_acl_change(

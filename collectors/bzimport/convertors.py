@@ -932,7 +932,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         acknowledgments = []
 
         for acknowledgment_json in self.srtnotes.get("acknowledgments", []):
-            affiliation = acknowledgment_json.get("affiliation")
+            affiliation = acknowledgment_json.get("affiliation") or ""
             from_upstream = acknowledgment_json.get("from_upstream")
             name = acknowledgment_json.get("name")
 
