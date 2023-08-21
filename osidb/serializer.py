@@ -459,10 +459,13 @@ class CommentSerializer(TrackingMixinSerializer):
         ] + TrackingMixinSerializer.Meta.fields
 
 
-class BugzillaSyncMixinSerializer(serializers.ModelSerializer):
+class BugzillaBareSyncMixinSerializer(serializers.ModelSerializer):
     """
-    serializer mixin class implementing special handling of the models
-    which need to perform Bugzilla sync as part of the save procedure
+    Serializer mixin class implementing special handling of model saving
+    required to perform Bugzilla sync as part of the save procedure.
+    This class is intended for serializer classes that instantiate and update
+    the models themselves and only need the mixin for the special bugzilla sync
+    save behavior.
     """
 
     def __get_bz_api_key(self):
@@ -473,16 +476,52 @@ class BugzillaSyncMixinSerializer(serializers.ModelSerializer):
             )
         return bz_api_key
 
+    def create(self, instance):
+        """
+        Sync the already-created instance to bugzilla and sync&save it back to
+        the database.
+        """
+        instance.save(bz_api_key=self.__get_bz_api_key())
+        return instance
+
+    def update(self, instance):
+        """
+        Sync the already-created instance to bugzilla and sync&save it back to
+        the database.
+        """
+        try:
+            instance.save(bz_api_key=self.__get_bz_api_key())
+        except DataInconsistencyException as e:
+            # translate internal exception into Django serializable
+            raise BadRequest(
+                "Received model contains non-refreshed and outdated data! "
+                "It has been probably edited by someone else in the meantime"
+            ) from e
+
+        return instance
+
+    class Meta:
+        model = BugzillaSyncMixin
+        abstract = True
+
+
+class BugzillaSyncMixinSerializer(BugzillaBareSyncMixinSerializer):
+    """
+    serializer mixin class implementing special handling of the models
+    which need to perform Bugzilla sync as part of the save procedure
+    """
+
     def create(self, validated_data):
         """
         perform the ordinary instance create
         with providing BZ API key while saving
         """
         # NOTE: This won't work for many-to-many fields as
-        # some logic from original .create() was overwritten
+        # some logic from original .create() was overwritten.
+        # Consider BugzillaBareSyncMixinSerializer for these.
 
         instance = self.Meta.model(**validated_data)
-        instance.save(bz_api_key=self.__get_bz_api_key())
+        instance = super().create(instance)
         return instance
 
     def update(self, instance, validated_data):
@@ -492,18 +531,12 @@ class BugzillaSyncMixinSerializer(serializers.ModelSerializer):
         """
         # NOTE: This won't work for many-to-many fields as
         # some logic from original .create() was overwritten
+        # Consider BugzillaBareSyncMixinSerializer for these.
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        try:
-            instance.save(bz_api_key=self.__get_bz_api_key())
-        except DataInconsistencyException as e:
-            # translate internal exception into Django serializable
-            raise BadRequest(
-                "Received model contains non-refreshed and outdated data! "
-                "It has been probably edited by someone else in the meantime"
-            ) from e
+        instance = super().update(instance)
 
         return instance
 
