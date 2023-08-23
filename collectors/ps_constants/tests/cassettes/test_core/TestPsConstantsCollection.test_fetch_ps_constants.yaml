@@ -1,0 +1,759 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+    method: GET
+    uri: https://git.prodsec.redhat.com/devops/ps-constants/-/raw/master/data/ubi_packages.yml?job=build
+  response:
+    body:
+      string: '# list of packages / components in UBI images
+
+        # separate list provided for each RHEL version, keys need to match ps module
+
+        # names
+
+        # https://projects.engineering.redhat.com/browse/PSIRT-730
+
+        # https://projects.engineering.redhat.com/browse/PSDEVOPS-2076
+
+
+        rhel-8:
+
+        - acl
+
+        - attr
+
+        - audit
+
+        - basesystem
+
+        - bash
+
+        - brotli
+
+        - bzip2
+
+        - ca-certificates
+
+        - chkconfig
+
+        - coreutils
+
+        - cracklib
+
+        - crypto-policies
+
+        - cryptsetup
+
+        - curl
+
+        - cyrus-sasl
+
+        - dbus
+
+        - dbus-glib
+
+        - dbus-python
+
+        - dmidecode
+
+        - dnf
+
+        - dnf-plugins-core
+
+        - e2fsprogs
+
+        - elfutils
+
+        - expat
+
+        - file
+
+        - filesystem
+
+        - findutils
+
+        - gawk
+
+        - gcc
+
+        - gdb
+
+        - gdbm
+
+        - glib2
+
+        - glibc
+
+        - gmp
+
+        - gnupg2
+
+        - gnutls
+
+        - gobject-introspection
+
+        - gpgme
+
+        - grep
+
+        - gzip
+
+        - ima-evm-utils
+
+        - json-c
+
+        - json-glib
+
+        - keyutils
+
+        - kmod
+
+        - krb5
+
+        - langpacks
+
+        - libarchive
+
+        - libassuan
+
+        - libcap
+
+        - libcap-ng
+
+        - libcomps
+
+        - libdb
+
+        - libdnf
+
+        - libffi
+
+        - libgcrypt
+
+        - libgpg-error
+
+        - libidn2
+
+        - libksba
+
+        - libmodulemd
+
+        - libnl3
+
+        - libnsl2
+
+        - libpeas
+
+        - libpsl
+
+        - libpwquality
+
+        - librepo
+
+        - libreport
+
+        - librhsm
+
+        - libseccomp
+
+        - libselinux
+
+        - libsemanage
+
+        - libsepol
+
+        - libsigsegv
+
+        - libsolv
+
+        - libssh
+
+        - libtasn1
+
+        - libtirpc
+
+        - libunistring
+
+        - libusbx
+
+        - libuser
+
+        - libutempter
+
+        - libverto
+
+        - libxcrypt
+
+        - libxml2
+
+        - libyaml
+
+        - lua
+
+        - lvm2
+
+        - lz4
+
+        - microdnf
+
+        - mpfr
+
+        - ncurses
+
+        - nettle
+
+        - nghttp2
+
+        - npth
+
+        - openldap
+
+        - openssl
+
+        - p11-kit
+
+        - pam
+
+        - passwd
+
+        - pcre
+
+        - pcre2
+
+        - popt
+
+        - procps-ng
+
+        - publicsuffix-list
+
+        - pygobject3
+
+        - python-chardet
+
+        - python-dateutil
+
+        - python-decorator
+
+        - python-dmidecode
+
+        - python-ethtool
+
+        - python-idna
+
+        - python-iniparse
+
+        - python-inotify
+
+        - python-pip
+
+        - python-pysocks
+
+        - python-requests
+
+        - python-setuptools
+
+        - python-six
+
+        - python-systemd
+
+        - python-urllib3
+
+        - python3
+
+        - readline
+
+        - redhat-release
+
+        - rootfiles
+
+        - rpm
+
+        - sed
+
+        - setup
+
+        - shadow-utils
+
+        - sqlite
+
+        - subscription-manager
+
+        - systemd
+
+        - tar
+
+        - texinfo
+
+        - tpm2-tss
+
+        - tzdata
+
+        - usermode
+
+        - util-linux
+
+        - vim
+
+        - virt-what
+
+        - which
+
+        - xz
+
+        - zlib
+
+        - zstd
+
+
+        rhel-9:
+
+        - acl
+
+        - attr
+
+        - audit
+
+        - basesystem
+
+        - bash
+
+        - bzip2
+
+        - ca-certificates
+
+        - chkconfig
+
+        - coreutils
+
+        - cracklib
+
+        - crypto-policies
+
+        - curl
+
+        - cyrus-sasl
+
+        - dbus
+
+        - dbus-broker
+
+        - dbus-python
+
+        - dejavu-fonts
+
+        - dmidecode
+
+        - dnf
+
+        - dnf-plugins-core
+
+        - e2fsprogs
+
+        - elfutils
+
+        - expat
+
+        - file
+
+        - filesystem
+
+        - findutils
+
+        - fonts-rpm-macros
+
+        - gawk
+
+        - gcc
+
+        - gdb
+
+        - gdbm
+
+        - glib2
+
+        - glibc
+
+        - gmp
+
+        - gnupg2
+
+        - gnutls
+
+        - gobject-introspection
+
+        - gpgme
+
+        - grep
+
+        - gzip
+
+        - ima-evm-utils
+
+        - json-c
+
+        - json-glib
+
+        - keyutils
+
+        - kmod
+
+        - krb5
+
+        - langpacks
+
+        - libarchive
+
+        - libassuan
+
+        - libcap
+
+        - libcap-ng
+
+        - libcomps
+
+        - libdb
+
+        - libdnf
+
+        - libeconf
+
+        - libevent
+
+        - libffi
+
+        - libgcrypt
+
+        - libgpg-error
+
+        - libidn2
+
+        - libksba
+
+        - libmodulemd
+
+        - libnl3
+
+        - libpeas
+
+        - libpwquality
+
+        - librepo
+
+        - libreport
+
+        - librhsm
+
+        - libseccomp
+
+        - libselinux
+
+        - libsemanage
+
+        - libsepol
+
+        - libsigsegv
+
+        - libsolv
+
+        - libtasn1
+
+        - libunistring
+
+        - libusbx
+
+        - libuser
+
+        - libutempter
+
+        - libverto
+
+        - libxcrypt
+
+        - libxml2
+
+        - libyaml
+
+        - lua
+
+        - lz4
+
+        - microdnf
+
+        - mpfr
+
+        - ncurses
+
+        - nettle
+
+        - nghttp2
+
+        - npth
+
+        - openldap
+
+        - openssl
+
+        - p11-kit
+
+        - pam
+
+        - passwd
+
+        - pcre
+
+        - pcre2
+
+        - popt
+
+        - procps-ng
+
+        - pygobject3
+
+        - python-chardet
+
+        - python-dateutil
+
+        - python-decorator
+
+        - python-ethtool
+
+        - python-idna
+
+        - python-iniparse
+
+        - python-inotify
+
+        - python-pip
+
+        - python-pysocks
+
+        - python-requests
+
+        - python-setuptools
+
+        - python-six
+
+        - python-systemd
+
+        - python-urllib3
+
+        - python3.9
+
+        - readline
+
+        - redhat-release
+
+        - rootfiles
+
+        - rpm
+
+        - sed
+
+        - setup
+
+        - shadow-utils
+
+        - sqlite
+
+        - subscription-manager
+
+        - subscription-manager-rhsm-certificates
+
+        - systemd
+
+        - tar
+
+        - tpm2-tss
+
+        - tzdata
+
+        - usermode
+
+        - util-linux
+
+        - vim
+
+        - virt-what
+
+        - which
+
+        - xz
+
+        - zlib
+
+        - zstd
+
+
+        '
+    headers:
+      Cache-Control:
+      - max-age=60, public, must-revalidate, stale-while-revalidate=60, stale-if-error=300,
+        s-maxage=60
+      Connection:
+      - keep-alive
+      Content-Disposition:
+      - inline
+      Content-Security-Policy:
+      - ''
+      Content-Type:
+      - text/plain; charset=utf-8
+      Date:
+      - Tue, 22 Aug 2023 22:57:41 GMT
+      Etag:
+      - W/"aa9eae444e3274a1cd0dae33faf92845"
+      Permissions-Policy:
+      - interest-cohort=()
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=63072000
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      - Accept
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Gitlab-Meta:
+      - '{"correlation_id":"01H8FQFN6VBZ5XNMVEKP1V72CE","version":"1"}'
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Request-Id:
+      - 01H8FQFN6VBZ5XNMVEKP1V72CE
+      X-Runtime:
+      - '0.094326'
+      X-Ua-Compatible:
+      - IE=edge
+      X-Xss-Protection:
+      - 1; mode=block
+      content-length:
+      - '3414'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+    method: GET
+    uri: https://git.prodsec.redhat.com/devops/ps-constants/-/raw/master/data/special_consideration_packages.yml?job=build
+  response:
+    body:
+      string: '# list of special consideration packages
+
+        # https://docs.engineering.redhat.com/pages/viewpage.action?pageId=93525528
+
+        - bind
+
+        - dnf
+
+        - glibc
+
+        - gnutls
+
+        - httpd
+
+        - kernel
+
+        - kernel-rt
+
+        - libgcrypt
+
+        - libvirt
+
+        - nss
+
+        - ntp
+
+        - openssh
+
+        - openssl
+
+        - qemu-kvm
+
+        - rpm
+
+        - squid
+
+        - sudo
+
+        - systemd
+
+        - yum
+
+        '
+    headers:
+      Cache-Control:
+      - max-age=60, public, must-revalidate, stale-while-revalidate=60, stale-if-error=300,
+        s-maxage=60
+      Connection:
+      - keep-alive
+      Content-Disposition:
+      - inline
+      Content-Security-Policy:
+      - ''
+      Content-Type:
+      - text/plain; charset=utf-8
+      Date:
+      - Tue, 22 Aug 2023 22:57:41 GMT
+      Etag:
+      - W/"e421bf00158b35d34131f5f4673f888e"
+      Permissions-Policy:
+      - interest-cohort=()
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=63072000
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      - Accept
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Gitlab-Meta:
+      - '{"correlation_id":"01H8FQFNF7Y0X38RE060HDQAES","version":"1"}'
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Request-Id:
+      - 01H8FQFNF7Y0X38RE060HDQAES
+      X-Runtime:
+      - '0.080923'
+      X-Ua-Compatible:
+      - IE=edge
+      X-Xss-Protection:
+      - 1; mode=block
+      content-length:
+      - '278'
+    status:
+      code: 200
+      message: OK
+version: 1

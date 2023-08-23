@@ -39,6 +39,9 @@ ET_URL="https://foo.bar"
 # Product definitions git URL
 PRODUCT_DEF_URL="https://foo.bar"
 
+# PS Constants git URL
+PS_CONSTANTS_URL="https://foo.bar"
+
 # Repository from which to pull pip packages (optional)
 PIP_INDEX_URL="https://foo.bar"
 
