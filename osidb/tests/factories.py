@@ -51,6 +51,10 @@ class FlawFactory(factory.django.DjangoModelFactory):
 
         fallback = factory.Faker("random_element", elements=["", "foo"])
 
+        impact_requiring_summary = factory.LazyAttribute(
+            lambda f: f.impact in [Impact.MODERATE, Impact.IMPORTANT, Impact.CRITICAL]
+        )
+
         is_mi = factory.LazyAttribute(
             lambda f: f.major_incident_state
             in [Flaw.FlawMajorIncident.APPROVED, Flaw.FlawMajorIncident.CISA_APPROVED]
@@ -108,7 +112,9 @@ class FlawFactory(factory.django.DjangoModelFactory):
         ],
     )
     summary = factory.LazyAttribute(
-        lambda f: "I am a spooky CVE" if f.is_mi else f.fallback
+        lambda f: "I am a spooky CVE"
+        if f.is_mi
+        else ("random summary" if f.impact_requiring_summary else f.fallback)
     )
 
     @factory.lazy_attribute

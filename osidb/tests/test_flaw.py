@@ -1008,6 +1008,40 @@ class TestFlawValidators:
             assert flaw.save() is None
 
     @pytest.mark.parametrize(
+        "impact,summary,should_alert,alert",
+        [
+            (Impact.MODERATE, "", True, "impact_without_summary"),
+            (Impact.IMPORTANT, "", True, "impact_without_summary"),
+            (Impact.CRITICAL, "", True, "impact_without_summary"),
+            # everything below is correct
+            (Impact.LOW, "", False, None),
+            (Impact.LOW, "summary", False, None),
+            (Impact.MODERATE, "summary", False, None),
+            (Impact.IMPORTANT, "summary", False, None),
+            (Impact.CRITICAL, "summary", False, None),
+        ],
+    )
+    def test_validate_impact_and_summary(self, impact, summary, should_alert, alert):
+        """
+        Tests that if impact has MODERATE, IMPORTANT or CRITICAL value set,
+        then summary must not be missing.
+        """
+        flaw = FlawFactory(
+            impact=impact,
+            summary=summary,
+            # fields below are set to avoid any alerts
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        AffectFactory(flaw=flaw)
+
+        if should_alert:
+            assert len(flaw._alerts) == 1
+            assert "impact_without_summary" in flaw._alerts
+        else:
+            assert flaw._alerts == {}
+
+    @pytest.mark.parametrize(
         "requires_summary,summary,should_raise",
         [
             (Flaw.FlawRequiresSummary.REQUESTED, "", True),
@@ -1034,6 +1068,7 @@ class TestFlawValidators:
             # fields below are set to avoid any alerts
             embargoed=False,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            impact=Impact.LOW,
         )
         flaw.save(raise_validation_error=False)
         AffectFactory(flaw=flaw)
@@ -1403,6 +1438,7 @@ class TestFlawValidators:
             summary=summary,
             requires_summary=requires_summary,
             embargoed=False,  # to simplify fields that a flaw requires
+            impact=Impact.LOW,
         )
         flaw.save()
 
@@ -1490,6 +1526,7 @@ class TestFlawValidators:
             summary=summary,
             requires_summary=requires_summary,
             embargoed=False,  # to simplify fields that a flaw requires
+            impact=Impact.LOW,
         )
         flaw.save()
 
@@ -1653,6 +1690,7 @@ class TestFlawValidators:
             embargoed=False,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             impact=start_impact,
+            summary="summary",
         )
         ps_module = PsModuleFactory(bts_name="bugzilla")
         affect = AffectFactory(
@@ -2145,6 +2183,7 @@ class TestFlawValidators:
             statement="statement",
             summary="summary",
             requires_summary=Flaw.FlawRequiresSummary.NOVALUE,
+            impact=Impact.LOW,
         )
         AffectFactory(flaw=flaw1, ps_module="test-special-feature")
         flaw1.save()
@@ -2161,7 +2200,7 @@ class TestFlawValidators:
         assert "special_handling_flaw_missing_statement" in flaw1._alerts
 
         # Test from Affect validation perspective
-        flaw2 = FlawFactory(statement="", summary="")
+        flaw2 = FlawFactory(statement="", summary="", impact=Impact.LOW)
         AffectFactory(flaw=flaw2, ps_module="test-special-feature")
 
         assert "special_handling_flaw_missing_summary" in flaw2._alerts

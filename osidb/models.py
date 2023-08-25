@@ -958,6 +958,20 @@ class Flaw(
                 "NIST CVSSv3 and RH CVSSv3 scores assigned.",
             )
 
+    def _validate_impact_and_summary(self):
+        """
+        Checks that if impact has MODERATE, IMPORTANT or CRITICAL value set,
+        then summary must not be missing.
+        """
+        if (
+            self.impact in [Impact.MODERATE, Impact.IMPORTANT, Impact.CRITICAL]
+            and not self.summary
+        ):
+            self.alert(
+                "impact_without_summary",
+                f"Summary cannot be missing if impact is {self.impact}.",
+            )
+
     def _validate_summary_and_requires_summary(self):
         """
         Checks that if summary is missing, then requires_summary must not have
