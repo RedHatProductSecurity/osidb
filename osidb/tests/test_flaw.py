@@ -1007,6 +1007,46 @@ class TestFlawValidators:
         else:
             assert flaw.save() is None
 
+    @pytest.mark.parametrize(
+        "requires_summary,summary,should_raise",
+        [
+            (Flaw.FlawRequiresSummary.REQUESTED, "", True),
+            (Flaw.FlawRequiresSummary.APPROVED, "", True),
+            # everything below is correct
+            (Flaw.FlawRequiresSummary.NOVALUE, "summary", False),
+            (Flaw.FlawRequiresSummary.NOVALUE, "", False),
+            (Flaw.FlawRequiresSummary.REJECTED, "summary", False),
+            (Flaw.FlawRequiresSummary.REJECTED, "", False),
+            (Flaw.FlawRequiresSummary.REQUESTED, "summary", False),
+            (Flaw.FlawRequiresSummary.APPROVED, "summary", False),
+        ],
+    )
+    def test_validate_summary_and_requires_summary(
+        self, requires_summary, summary, should_raise
+    ):
+        """
+        Tests that if summary is missing, then requires_summary must not have
+        REQUESTED or APPROVED value set.
+        """
+        flaw = FlawFactory.build(
+            summary=summary,
+            requires_summary=requires_summary,
+            # fields below are set to avoid any alerts
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        flaw.save(raise_validation_error=False)
+        AffectFactory(flaw=flaw)
+
+        if should_raise:
+            error_msg = (
+                f"requires_summary cannot be {requires_summary} if summary is missing."
+            )
+            with pytest.raises(ValidationError, match=error_msg):
+                flaw.save()
+        else:
+            assert flaw.save() is None
+
     def test_no_source(self):
         """
         test that flaw cannot have an empty source
@@ -1204,6 +1244,7 @@ class TestFlawValidators:
             major_incident_state=state,
             mitigation="mitigation",
             statement="statement",
+            summary="summary",
             embargoed=False,
             requires_summary=Flaw.FlawRequiresSummary.APPROVED,
         )
@@ -1229,7 +1270,7 @@ class TestFlawValidators:
             assert flaw.save() is None
 
     @pytest.mark.parametrize(
-        "mitigation,statement,summary,requires_summary,article,should_alert,alert",
+        "mitigation,statement,summary,requires_summary,article,should_alert,alerts",
         [
             # all good
             (
@@ -1255,7 +1296,7 @@ class TestFlawValidators:
                     "https://access.redhat.com/link123",
                 ],
                 True,
-                "mi_mitigation_missing",
+                ["mi_mitigation_missing"],
             ),
             # empty statement
             (
@@ -1268,20 +1309,20 @@ class TestFlawValidators:
                     "https://access.redhat.com/link123",
                 ],
                 True,
-                "mi_statement_missing",
+                ["mi_statement_missing"],
             ),
             # empty summary
             (
                 "mitigation text",
                 "statement text",
                 "",
-                Flaw.FlawRequiresSummary.APPROVED,
+                Flaw.FlawRequiresSummary.NOVALUE,
                 [
                     FlawReference.FlawReferenceType.ARTICLE,
                     "https://access.redhat.com/link123",
                 ],
                 True,
-                "mi_summary_missing",
+                ["mi_summary_missing", "mi_summary_not_reviewed"],
             ),
             # summary review missing
             (
@@ -1294,7 +1335,7 @@ class TestFlawValidators:
                     "https://access.redhat.com/link123",
                 ],
                 True,
-                "mi_summary_not_reviewed",
+                ["mi_summary_not_reviewed"],
             ),
             # summary review requested
             (
@@ -1307,7 +1348,7 @@ class TestFlawValidators:
                     "https://access.redhat.com/link123",
                 ],
                 True,
-                "mi_summary_not_reviewed",
+                ["mi_summary_not_reviewed"],
             ),
             # summary review not required
             (
@@ -1320,7 +1361,7 @@ class TestFlawValidators:
                     "https://access.redhat.com/link123",
                 ],
                 True,
-                "mi_summary_not_reviewed",
+                ["mi_summary_not_reviewed"],
             ),
             # article missing
             (
@@ -1333,7 +1374,7 @@ class TestFlawValidators:
                     "https://httpd.apache.org/link123",
                 ],
                 True,
-                "mi_article_missing",
+                ["mi_article_missing"],
             ),
         ],
     )
@@ -1345,7 +1386,7 @@ class TestFlawValidators:
         requires_summary,
         article,
         should_alert,
-        alert,
+        alerts,
     ):
         """
         Tests that a Flaw that is Major Incident complies with the following:
@@ -1370,13 +1411,14 @@ class TestFlawValidators:
         flaw.save()
 
         if should_alert:
-            assert len(flaw._alerts) == 1
-            assert alert in flaw._alerts
+            assert len(flaw._alerts) == len(alerts)
+            for alert in alerts:
+                assert alert in flaw._alerts
         else:
             assert flaw._alerts == {}
 
     @pytest.mark.parametrize(
-        "statement,summary,requires_summary,should_alert,alert",
+        "statement,summary,requires_summary,should_alert,alerts",
         [
             # all good
             (
@@ -1392,15 +1434,15 @@ class TestFlawValidators:
                 "summary text",
                 Flaw.FlawRequiresSummary.APPROVED,
                 True,
-                "cisa_mi_statement_missing",
+                ["cisa_mi_statement_missing"],
             ),
             # empty summary
             (
                 "statement text",
                 "",
-                Flaw.FlawRequiresSummary.APPROVED,
+                Flaw.FlawRequiresSummary.NOVALUE,
                 True,
-                "cisa_mi_summary_missing",
+                ["cisa_mi_summary_missing", "cisa_mi_summary_not_reviewed"],
             ),
             # summary review missing
             (
@@ -1408,7 +1450,7 @@ class TestFlawValidators:
                 "summary text",
                 Flaw.FlawRequiresSummary.NOVALUE,
                 True,
-                "cisa_mi_summary_not_reviewed",
+                ["cisa_mi_summary_not_reviewed"],
             ),
             # summary review requested
             (
@@ -1416,7 +1458,7 @@ class TestFlawValidators:
                 "summary text",
                 Flaw.FlawRequiresSummary.REQUESTED,
                 True,
-                "cisa_mi_summary_not_reviewed",
+                ["cisa_mi_summary_not_reviewed"],
             ),
             # summary review not required
             (
@@ -1424,7 +1466,7 @@ class TestFlawValidators:
                 "summary text",
                 Flaw.FlawRequiresSummary.REJECTED,
                 True,
-                "cisa_mi_summary_not_reviewed",
+                ["cisa_mi_summary_not_reviewed"],
             ),
         ],
     )
@@ -1434,7 +1476,7 @@ class TestFlawValidators:
         summary,
         requires_summary,
         should_alert,
-        alert,
+        alerts,
     ):
         """
         Tests that a Flaw that is CISA Major Incident complies with the following:
@@ -1455,8 +1497,9 @@ class TestFlawValidators:
         flaw.save()
 
         if should_alert:
-            assert len(flaw._alerts) == 1
-            assert alert in flaw._alerts
+            assert len(flaw._alerts) == len(alerts)
+            for alert in alerts:
+                assert alert in flaw._alerts
         else:
             assert flaw._alerts == {}
 
@@ -1679,14 +1722,8 @@ class TestFlawValidators:
             embargoed=False,
             major_incident_state=was_major,
             impact=Impact.LOW,
-            requires_summary=Flaw.FlawRequiresSummary.REJECTED,
         )
         flaw.save(raise_validation_error=False)
-        FlawMetaFactory(
-            flaw=flaw,
-            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-            meta_attr={"status": "-"},
-        )
         FlawReferenceFactory(
             flaw=flaw,
             type=FlawReference.FlawReferenceType.ARTICLE,
@@ -2104,7 +2141,11 @@ class TestFlawValidators:
         )
 
         # Test that none of the models will raise alerts
-        flaw1 = FlawFactory(statement="statement", summary="summary")
+        flaw1 = FlawFactory(
+            statement="statement",
+            summary="summary",
+            requires_summary=Flaw.FlawRequiresSummary.NOVALUE,
+        )
         AffectFactory(flaw=flaw1, ps_module="test-special-feature")
         flaw1.save()
 

@@ -47,14 +47,25 @@ class FlawFactory(factory.django.DjangoModelFactory):
         model = Flaw
 
     class Params:
-        # Used in "summary" and "mitigation". This solves the issue that
-        # factory.Faker cannot be used in factory.LazyAttribute.
+        # Note that factory.Faker cannot be used directly in factory.LazyAttribute.
+
         fallback = factory.Faker("random_element", elements=["", "foo"])
 
-        # Used in "requires_summary"
-        requires_summary_condition = factory.LazyAttribute(
+        is_mi = factory.LazyAttribute(
             lambda f: f.major_incident_state
             in [Flaw.FlawMajorIncident.APPROVED, Flaw.FlawMajorIncident.CISA_APPROVED]
+        )
+
+        not_mi_with_summary = factory.Faker(
+            "random_element", elements=list(Flaw.FlawRequiresSummary)
+        )
+
+        not_mi_without_summary = factory.Faker(
+            "random_element",
+            elements=[
+                Flaw.FlawRequiresSummary.NOVALUE,
+                Flaw.FlawRequiresSummary.REJECTED,
+            ],
         )
 
     cve_id = factory.sequence(lambda n: f"CVE-2020-000{n}")
@@ -82,13 +93,7 @@ class FlawFactory(factory.django.DjangoModelFactory):
     embargoed = factory.Faker("random_element", elements=[False, True])
     major_incident_state = factory.Faker(
         "random_element",
-        elements=[
-            Flaw.FlawMajorIncident.REQUESTED,
-            Flaw.FlawMajorIncident.REJECTED,
-            Flaw.FlawMajorIncident.APPROVED,
-            Flaw.FlawMajorIncident.CISA_APPROVED,
-            Flaw.FlawMajorIncident.NOVALUE,
-        ],
+        elements=list(set(Flaw.FlawMajorIncident) - {Flaw.FlawMajorIncident.INVALID}),
     )
     nist_cvss_validation = factory.Faker(
         "random_element",
@@ -103,44 +108,24 @@ class FlawFactory(factory.django.DjangoModelFactory):
         ],
     )
     summary = factory.LazyAttribute(
-        lambda f: "I am a spooky CVE"
-        if f.major_incident_state
-        in [
-            Flaw.FlawMajorIncident.REQUESTED,
-            Flaw.FlawMajorIncident.APPROVED,
-            Flaw.FlawMajorIncident.CISA_APPROVED,
-        ]
-        else f.fallback
+        lambda f: "I am a spooky CVE" if f.is_mi else f.fallback
     )
-    requires_summary = factory.Maybe(
-        "requires_summary_condition",
-        yes_declaration=factory.Faker(
-            "random_element",
-            elements=[
-                Flaw.FlawRequiresSummary.NOVALUE,
-                Flaw.FlawRequiresSummary.REQUESTED,
-                Flaw.FlawRequiresSummary.APPROVED,
-            ],
-        ),
-        no_declaration=factory.Faker(
-            "random_element",
-            elements=[
-                Flaw.FlawRequiresSummary.NOVALUE,
-                Flaw.FlawRequiresSummary.REQUESTED,
-                Flaw.FlawRequiresSummary.APPROVED,
-                Flaw.FlawRequiresSummary.REJECTED,
-            ],
-        ),
-    )
+
+    @factory.lazy_attribute
+    def requires_summary(self):
+        if not self.is_mi and self.summary:
+            return self.not_mi_with_summary
+        elif not self.is_mi and not self.summary:
+            return self.not_mi_without_summary
+        elif self.is_mi and self.summary:
+            return Flaw.FlawRequiresSummary.APPROVED
+        # MI without summary is not a valid combination and should never happen,
+        # but leaving it here to cover all possibilities
+        else:
+            return Flaw.FlawRequiresSummary.NOVALUE
+
     mitigation = factory.LazyAttribute(
-        lambda f: "CVE mitigation"
-        if f.major_incident_state
-        in [
-            Flaw.FlawMajorIncident.REQUESTED,
-            Flaw.FlawMajorIncident.APPROVED,
-            Flaw.FlawMajorIncident.CISA_APPROVED,
-        ]
-        else f.fallback
+        lambda f: "CVE mitigation" if f.is_mi else f.fallback
     )
     unembargo_dt = factory.Maybe(
         "embargoed",

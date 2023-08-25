@@ -710,7 +710,7 @@ class Flaw(
               this is the only state where summary is propagated to the flaw's CVE page
         * (-) "REJECTED": summary is not required for this flaw
 
-        Note that if a flaw is MI or CISA MI, summary should be never "REJECTED".
+        Note that if a flaw is MI or CISA MI, requires_summary should be "APPROVED".
         """
 
         NOVALUE = ""
@@ -956,6 +956,20 @@ class Flaw(
             raise ValidationError(
                 "nist_cvss_validation can only be set if a flaw has both "
                 "NIST CVSSv3 and RH CVSSv3 scores assigned.",
+            )
+
+    def _validate_summary_and_requires_summary(self):
+        """
+        Checks that if summary is missing, then requires_summary must not have
+        REQUESTED or APPROVED value set.
+        """
+        if not self.summary and self.requires_summary in [
+            self.FlawRequiresSummary.REQUESTED,
+            self.FlawRequiresSummary.APPROVED,
+        ]:
+            raise ValidationError(
+                f"requires_summary cannot be {self.requires_summary} if summary is "
+                f"missing."
             )
 
     def _validate_nonempty_source(self):
