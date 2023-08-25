@@ -47,11 +47,10 @@ class FlawFactory(factory.django.DjangoModelFactory):
         model = Flaw
 
     class Params:
-        # Used in "summary" and "mitigation". This solves the issue that
-        # factory.Faker cannot be used in factory.LazyAttribute.
+        # Note that factory.Faker cannot be used directly in factory.LazyAttribute.
+
         fallback = factory.Faker("random_element", elements=["", "foo"])
 
-        # Used in "requires_summary"
         is_mi = factory.LazyAttribute(
             lambda f: f.major_incident_state
             in [Flaw.FlawMajorIncident.APPROVED, Flaw.FlawMajorIncident.CISA_APPROVED]
@@ -94,13 +93,7 @@ class FlawFactory(factory.django.DjangoModelFactory):
     embargoed = factory.Faker("random_element", elements=[False, True])
     major_incident_state = factory.Faker(
         "random_element",
-        elements=[
-            Flaw.FlawMajorIncident.REQUESTED,
-            Flaw.FlawMajorIncident.REJECTED,
-            Flaw.FlawMajorIncident.APPROVED,
-            Flaw.FlawMajorIncident.CISA_APPROVED,
-            Flaw.FlawMajorIncident.NOVALUE,
-        ],
+        elements=list(set(Flaw.FlawMajorIncident) - {Flaw.FlawMajorIncident.INVALID}),
     )
     nist_cvss_validation = factory.Faker(
         "random_element",
@@ -115,14 +108,7 @@ class FlawFactory(factory.django.DjangoModelFactory):
         ],
     )
     summary = factory.LazyAttribute(
-        lambda f: "I am a spooky CVE"
-        if f.major_incident_state
-        in [
-            Flaw.FlawMajorIncident.REQUESTED,
-            Flaw.FlawMajorIncident.APPROVED,
-            Flaw.FlawMajorIncident.CISA_APPROVED,
-        ]
-        else f.fallback
+        lambda f: "I am a spooky CVE" if f.is_mi else f.fallback
     )
 
     @factory.lazy_attribute
@@ -139,14 +125,7 @@ class FlawFactory(factory.django.DjangoModelFactory):
             return Flaw.FlawRequiresSummary.NOVALUE
 
     mitigation = factory.LazyAttribute(
-        lambda f: "CVE mitigation"
-        if f.major_incident_state
-        in [
-            Flaw.FlawMajorIncident.REQUESTED,
-            Flaw.FlawMajorIncident.APPROVED,
-            Flaw.FlawMajorIncident.CISA_APPROVED,
-        ]
-        else f.fallback
+        lambda f: "CVE mitigation" if f.is_mi else f.fallback
     )
     unembargo_dt = factory.Maybe(
         "embargoed",
