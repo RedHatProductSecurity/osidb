@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Implement collector for ps-constants project (OSIDB-1199)
+- Validate summary and requires_summary (OSIDB-1164)
 
 ## [3.4.1] - 2023-08-21
 ### Changed
