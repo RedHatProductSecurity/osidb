@@ -34,6 +34,7 @@ from apps.osim.workflow import WorkflowModel
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 
 from .helpers import deprecate_field as deprecate_field_custom
+from .helpers import ps_update_stream_natural_keys
 from .mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -2942,6 +2943,22 @@ class PsModule(NullStrFieldsMixin, ValidateMixin):
         the component hierarchy and may require special handling
         """
         return self.bts_key == RHSCL_BTS_KEY
+
+    @property
+    def y_streams(self):
+        """Current Y-stream(s) - it can be more of them"""
+
+        return list(self.active_ps_update_streams.exclude(name__endswith="z"))
+
+    @property
+    def z_stream(self):
+        """Current Z-stream"""
+        z_streams = self.active_ps_update_streams.filter(name__endswith="z")
+        return (
+            max(list(z_streams), key=ps_update_stream_natural_keys)
+            if z_streams
+            else None
+        )
 
     def subcomponent(self, component) -> Union[str, None]:
         """
