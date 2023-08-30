@@ -6,11 +6,13 @@ from django.utils import timezone
 from collectors.bzimport.convertors import FlawConvertor, FlawSaver
 from osidb.models import (
     Affect,
+    AffectCVSS,
     CVEv5PackageVersions,
     CVEv5Version,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
+    FlawCVSS,
     FlawHistory,
     FlawMeta,
     FlawReference,
@@ -62,6 +64,24 @@ class TestFlawSaver:
                 flaw=flaw,
                 ps_module="module",
                 ps_component="component",
+                created_dt=timezone.now(),
+                updated_dt=timezone.now(),
+                acl_read=self.get_acls(),
+                acl_write=self.get_acls(),
+            )
+        ]
+
+    def get_affects_cvss_scores(self, affect):
+        """
+        minimal affect cvss scores getter
+        """
+        return [
+            AffectCVSS(
+                affect=affect,
+                vector="CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+                score=3.7,
+                version=AffectCVSS.CVSSVersion.VERSION3,
+                issuer=AffectCVSS.CVSSIssuer.REDHAT,
                 created_dt=timezone.now(),
                 updated_dt=timezone.now(),
                 acl_read=self.get_acls(),
@@ -161,6 +181,24 @@ class TestFlawSaver:
             )
         ]
 
+    def get_cvss_scores(self, flaw):
+        """
+        minimal flaw cvss score getter
+        """
+        return [
+            FlawCVSS(
+                flaw=flaw,
+                vector="CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+                score=3.7,
+                version=FlawCVSS.CVSSVersion.VERSION3,
+                issuer=FlawCVSS.CVSSIssuer.REDHAT,
+                created_dt=timezone.now(),
+                updated_dt=timezone.now(),
+                acl_read=self.get_acls(),
+                acl_write=self.get_acls(),
+            )
+        ]
+
     def get_trackers(self, affect):
         """
         minimal trackers getter
@@ -199,23 +237,26 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
-            affects,
+            [affects, self.get_affects_cvss_scores(affects[0])],
             self.get_comments(flaw),
             self.get_history(),
             self.get_meta(flaw),
             self.get_acknowledgments(flaw),
             self.get_references(flaw),
+            self.get_cvss_scores(flaw),
             self.get_trackers(affects[0]),
             self.get_package_versions(),
         ).save()
 
         flaw = Flaw.objects.first()
         affect = Affect.objects.first()
+        affect_cvss_score = AffectCVSS.objects.first()
         comment = FlawComment.objects.first()
         history = FlawHistory.objects.first()
         meta = FlawMeta.objects.first()
         acknowledgment = FlawAcknowledgment.objects.first()
         reference = FlawReference.objects.first()
+        cvss_score = FlawCVSS.objects.first()
         tracker = Tracker.objects.first()
         package_versions = CVEv5PackageVersions.objects.first()
         version = CVEv5Version.objects.first()
@@ -231,6 +272,7 @@ class TestFlawSaver:
         assert flaw.comments.first() == comment
         assert flaw.meta.first() == meta
         assert flaw.references.first() == reference
+        assert flaw.cvss_scores.first() == cvss_score
         assert flaw.package_versions.first() == package_versions
         assert flaw.major_incident_state == Flaw.FlawMajorIncident.REQUESTED
         assert flaw.requires_summary == Flaw.FlawRequiresSummary.NOVALUE
@@ -244,6 +286,18 @@ class TestFlawSaver:
         assert affect.flaw == flaw
         assert affect.trackers.count() == 1
         assert affect.trackers.first() == tracker
+        assert affect.cvss_scores.first() == affect_cvss_score
+
+        assert affect_cvss_score is not None
+        assert (
+            affect_cvss_score.vector == "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+        )
+        assert affect_cvss_score.score == 3.7
+        assert affect_cvss_score.version == AffectCVSS.CVSSVersion.VERSION3
+        assert affect_cvss_score.issuer == AffectCVSS.CVSSIssuer.REDHAT
+        assert affect_cvss_score.acl_read == acls
+        assert affect_cvss_score.acl_write == acls
+        assert affect_cvss_score.affect == affect
 
         assert comment is not None
         assert comment.external_system_id == "123"
@@ -282,6 +336,15 @@ class TestFlawSaver:
         assert reference.acl_write == acls
         assert reference.flaw == flaw
 
+        assert cvss_score is not None
+        assert cvss_score.vector == "CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
+        assert cvss_score.score == 3.7
+        assert cvss_score.version == FlawCVSS.CVSSVersion.VERSION3
+        assert cvss_score.issuer == FlawCVSS.CVSSIssuer.REDHAT
+        assert cvss_score.acl_read == acls
+        assert cvss_score.acl_write == acls
+        assert cvss_score.flaw == flaw
+
         assert tracker is not None
         assert tracker.type == Tracker.TrackerType.JIRA
         assert tracker.external_system_id == "OSIDB-1"
@@ -312,7 +375,8 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
-            self.get_affects(flaw),
+            [self.get_affects(flaw), []],
+            [],
             [],
             [],
             [],
@@ -333,6 +397,7 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
+            [[], []],
             [],
             [],
             [],
@@ -350,6 +415,61 @@ class TestFlawSaver:
         assert affect is None
         assert flaw.affects.count() == 0
 
+    def test_affect_cvss_score_removed(self):
+        """
+        test affect cvss score removal save
+        """
+        flaw = self.get_flaw()
+        affects = self.get_affects(flaw)
+
+        FlawSaver(
+            flaw,
+            [affects, self.get_affects_cvss_scores(affects[0])],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            {},
+        ).save()
+
+        flaw = Flaw.objects.first()
+        affect = Affect.objects.first()
+        affect_cvss_score = AffectCVSS.objects.first()
+
+        assert flaw is not None
+        assert affect is not None
+        assert affect_cvss_score is not None
+        assert flaw.affects.count() == 1
+        assert flaw.affects.first() == affect
+        assert affect.cvss_scores.count() == 1
+        assert affect.cvss_scores.first() == affect_cvss_score
+        assert affect_cvss_score.affect == affect
+
+        FlawSaver(
+            flaw,
+            [affects, []],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            {},
+        ).save()
+
+        flaw = Flaw.objects.first()
+        affect = Affect.objects.first()
+        affect_cvss_score = AffectCVSS.objects.first()
+
+        assert flaw is not None
+        assert affect is not None
+        assert affect_cvss_score is None
+        assert affect.cvss_scores.count() == 0
+
     def test_meta_removed(self):
         """
         test meta removal save
@@ -358,10 +478,11 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
-            [],
+            [[], []],
             [],
             [],
             self.get_meta(flaw),
+            [],
             [],
             [],
             [],
@@ -379,12 +500,13 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
-            [],
+            [[], []],
             [],
             [],
             [
                 self.get_meta(flaw)[1],
             ],
+            [],
             [],
             [],
             [],
@@ -408,11 +530,12 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
-            [],
+            [[], []],
             [],
             [],
             [],
             self.get_acknowledgments(flaw, from_upstream=False),
+            [],
             [],
             [],
             {},
@@ -432,11 +555,12 @@ class TestFlawSaver:
         # in place.
         FlawSaver(
             flaw,
-            [],
+            [[], []],
             [],
             [],
             [],
             self.get_acknowledgments(flaw, from_upstream=True),
+            [],
             [],
             [],
             {},
@@ -456,11 +580,12 @@ class TestFlawSaver:
         # Test that when the acknowledgment is changed, the old one is deleted.
         FlawSaver(
             flaw,
-            [],
+            [[], []],
             [],
             [],
             [],
             self.get_acknowledgments(flaw, name="jaroslava kudrnova"),
+            [],
             [],
             [],
             {},
@@ -483,6 +608,7 @@ class TestFlawSaver:
         # Test that when the acknowledgment is removed, it is deleted.
         FlawSaver(
             flaw,
+            [[], []],
             [],
             [],
             [],
@@ -508,12 +634,13 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
-            [],
+            [[], []],
             [],
             [],
             [],
             [],
             self.get_references(flaw),
+            [],
             [],
             {},
         ).save()
@@ -529,6 +656,7 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
+            [[], []],
             [],
             [],
             [],
@@ -546,6 +674,54 @@ class TestFlawSaver:
         assert reference is None
         assert flaw.references.count() == 0
 
+    def test_cvss_score_removed(self):
+        """
+        test cvss score removal save
+        """
+        flaw = self.get_flaw()
+
+        FlawSaver(
+            flaw,
+            [[], []],
+            [],
+            [],
+            [],
+            [],
+            [],
+            self.get_cvss_scores(flaw),
+            [],
+            {},
+        ).save()
+
+        flaw = Flaw.objects.first()
+        cvss = FlawCVSS.objects.first()
+
+        assert flaw is not None
+        assert cvss is not None
+        assert flaw.cvss_scores.count() == 1
+        assert flaw.cvss_scores.first() == cvss
+        assert cvss.flaw == flaw
+
+        FlawSaver(
+            flaw,
+            [[], []],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            {},
+        ).save()
+
+        flaw = Flaw.objects.first()
+        cvss = FlawCVSS.objects.first()
+
+        assert flaw is not None
+        assert cvss is None
+        assert flaw.cvss_scores.count() == 0
+
     def test_trackers_removed(self):
         """
         test tracker removal save
@@ -555,7 +731,8 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
-            affects,
+            [affects, []],
+            [],
             [],
             [],
             [],
@@ -582,7 +759,8 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
-            affects,
+            [affects, []],
+            [],
             [],
             [],
             [],
@@ -615,6 +793,7 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
+            [[], []],
             [],
             [],
             [],
@@ -642,6 +821,7 @@ class TestFlawSaver:
 
         FlawSaver(
             flaw,
+            [[], []],
             [],
             [],
             [],

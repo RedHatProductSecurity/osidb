@@ -19,11 +19,13 @@ from osidb.core import generate_acls, set_user_acls
 from osidb.mixins import AlertMixin, TrackingMixin
 from osidb.models import (
     Affect,
+    AffectCVSS,
     CVEv5PackageVersions,
     CVEv5Version,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
+    FlawCVSS,
     FlawHistory,
     FlawMeta,
     FlawReference,
@@ -185,16 +187,19 @@ class FlawSaver:
         meta,
         acknowledgments,
         references,
+        cvss_scores,
         trackers,
         package_versions,
     ):
         self.flaw = flaw
-        self.affects = affects
+        self.affects = affects[0]
+        self.affects_cvss_scores = affects[1]
         self.comments = comments
         self.history = history
         self.meta = meta
         self.acknowledgments = acknowledgments
         self.references = references
+        self.cvss_scores = cvss_scores
         self.trackers = trackers
         self.package_versions = package_versions
 
@@ -207,11 +212,13 @@ class FlawSaver:
         return (
             [self.flaw]
             + self.affects
+            + self.affects_cvss_scores
             + self.comments
             + self.history
             + self.meta
             + self.acknowledgments
             + self.references
+            + self.cvss_scores
             + self.trackers
         )
 
@@ -253,6 +260,19 @@ class FlawSaver:
             else:
                 # affect does not exist any more
                 old_affect.delete()
+
+    def clean_affects_cvss_scores(self):
+        """clean obsoleted affect cvss scores"""
+        old_cvss = set()
+        for affect in self.flaw.affects.all():
+            for cvss_scores in affect.cvss_scores.all():
+                old_cvss.add(cvss_scores)
+
+        new_cvss = set(self.affects_cvss_scores)
+
+        to_delete = list(old_cvss - new_cvss)
+        for cvss in to_delete:
+            cvss.delete()
 
     def clean_meta(self):
         """
@@ -323,6 +343,15 @@ class FlawSaver:
         for reference in to_delete:
             reference.delete()
 
+    def clean_cvss_scores(self):
+        """clean obsoleted flaw cvss scores"""
+        old_cvss = set(self.flaw.cvss_scores.all())
+        new_cvss = set(self.cvss_scores)
+
+        to_delete = list(old_cvss - new_cvss)
+        for cvss in to_delete:
+            cvss.delete()
+
     def clean_trackers(self):
         """clean obsoleted affect-tracker links"""
         tracker_ids = [t.external_system_id for t in self.trackers]
@@ -379,11 +408,13 @@ class FlawSaver:
             self.save_packageversions()
 
             self.clean_affects()
+            self.clean_affects_cvss_scores()
             # comments cannot be deleted in Bugzilla
             # history cannot be deleted in Bugzilla
             self.clean_meta()
             self.clean_acknowledgments()
             self.clean_references()
+            self.clean_cvss_scores()
             self.clean_trackers()
 
             self.link_trackers()
@@ -754,8 +785,10 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
     ########################
 
     def get_affects(self, flaw):
-        """get list of Affect Django models"""
+        """get list of Affect and AffectCVSS Django models"""
         affects = []
+        affects_cvss_scores = []
+
         for affect_json in self.srtnotes.get("affects", []):
 
             # PS module is identifier so the fixup must be applied before the lookup
@@ -784,12 +817,34 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
             self.record_errors(errors)
             affects.append(affect_obj)
 
+            # AffectCVSS is created here because it requires an affect object
+            for cvss_pair in [
+                ("cvss2", AffectCVSS.CVSSVersion.VERSION2),
+                ("cvss3", AffectCVSS.CVSSVersion.VERSION3),
+            ]:
+                cvss, version = cvss_pair
+
+                if affect_json.get(cvss) and "/" in affect_json[cvss]:
+                    cvss_obj = AffectCVSS.objects.create_cvss(
+                        affect_obj,
+                        AffectCVSS.CVSSIssuer.REDHAT,
+                        version,
+                        vector=affect_json[cvss].split("/", 1)[1],
+                        acl_read=self.acl_read,
+                        acl_write=self.acl_write,
+                        created_dt=self.flaw_bug["creation_time"],
+                        updated_dt=self.flaw_bug["last_change_time"],
+                    )
+                    affects_cvss_scores.append(cvss_obj)
+
         # fixup might result in duplicate affects (rhel-5.0 and rhel-5.1 fixed to rhel-5)
         # so we need to deduplicate them - simply choosing one of the duplicates by random
         #
         # this has consequences when the duplicate affects have different affectednes etc.
         # which is price for fixing the PS module which is prior - these are old data anyway
-        return list({a.ps_module + a.ps_component: a for a in affects}.values())
+        affects = list({a.ps_module + a.ps_component: a for a in affects}.values())
+
+        return [affects, affects_cvss_scores]
 
     def get_comments(self, flaw):
         """get FlawComment Django models"""
@@ -981,6 +1036,36 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
 
         return references
 
+    def get_flaw_cvss(self, flaw):
+        """get a list of FlawCVSS Django models"""
+        all_cvss = []
+
+        for cvss_pair in [
+            ("cvss2", FlawCVSS.CVSSVersion.VERSION2),
+            ("cvss3", FlawCVSS.CVSSVersion.VERSION3),
+        ]:
+            cvss, version = cvss_pair
+
+            if self.srtnotes.get(cvss) and "/" in self.srtnotes[cvss]:
+                comment = {}
+                if cvss == "cvss3" and self.srtnotes.get("cvss3_comment"):
+                    comment["comment"] = self.srtnotes["cvss3_comment"]
+
+                cvss_obj = FlawCVSS.objects.create_cvss(
+                    flaw,
+                    FlawCVSS.CVSSIssuer.REDHAT,
+                    version,
+                    vector=self.srtnotes[cvss].split("/", 1)[1],
+                    acl_read=self.acl_read,
+                    acl_write=self.acl_write,
+                    created_dt=self.flaw_bug["creation_time"],
+                    updated_dt=self.flaw_bug["last_change_time"],
+                    **comment,
+                )
+                all_cvss.append(cvss_obj)
+
+        return all_cvss
+
     def get_trackers(self):
         """
         get list of Tracker objects.
@@ -1075,6 +1160,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     self.get_all_meta(flaw),
                     self.get_acknowledgments(flaw),
                     self.get_references(flaw),
+                    self.get_flaw_cvss(flaw),
                     self.get_trackers(),
                     self.package_versions,
                 )
@@ -1103,6 +1189,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     self.get_all_meta(flaw),
                     self.get_acknowledgments(flaw),
                     self.get_references(flaw),
+                    self.get_flaw_cvss(flaw),
                     self.get_trackers(),
                     self.package_versions,
                 )
@@ -1135,6 +1222,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     self.get_all_meta(flaw),
                     self.get_acknowledgments(flaw),
                     self.get_references(flaw),
+                    self.get_flaw_cvss(flaw),
                     self.get_trackers(),
                     self.package_versions,
                 )
