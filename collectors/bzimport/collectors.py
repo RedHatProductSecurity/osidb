@@ -66,13 +66,15 @@ class BugzillaConnector:
 class BugzillaQuerier(BugzillaConnector):
     """Bugzilla query handler"""
 
-    # Bugzilla API limit - 20 is default
-    # query result is cut when exceeding the limit
-    #
-    # 20 is the default but we set the limit to the maximum
-    # by explicitely giving it 0 value and the maximum is 1000
-    # this enhances the queries significantly
-    BZ_API_LIMIT = 1000
+    # This is the max amount of records to be returned by the BZ API per
+    # request, the default is 20 and the maximum allowed is 1000 for the
+    # specific Bugzilla instance that we use. However, 1000 is a lot and
+    # can result in 503 errors which can be potentially crippling for
+    # collectors and make them stuck, so here we choose a sensible limit
+    # that allows us to fetch a lot more than the default without being
+    # too greedy.
+    # TODO: Set up a mechanism to lower the LIMIT based on 503 error returned
+    BZ_API_LIMIT = 100
 
     ######################
     # SINGLE BUG QUERIES #
@@ -140,10 +142,7 @@ class BugzillaQuerier(BugzillaConnector):
         return query
 
     def query_maximum(self, query):
-        """
-        extend query limit to API maximum
-        stored in BZ_API_LIMIT above (1000)
-        """
+        """extend query to override default limit with BZ_API_LIMIT"""
         query = dict(query)
         query["limit"] = self.BZ_API_LIMIT
         return query
@@ -181,6 +180,10 @@ class BugzillaQuerier(BugzillaConnector):
         query = self.query_maximum(query)
         updated_query = query
         bugs = []
+
+        logger.debug(
+            "Running Bugzilla query with the following parameters: " f"{updated_query}"
+        )
 
         while True:
             query_result = self.bz_conn.query(updated_query)
