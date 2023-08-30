@@ -339,14 +339,9 @@ class TestFlaw:
             ps_module=ps_module.name,
             flaw__embargoed=False,
         )
-        TrackerFactory(
-            affects=(delegated_affect,),
-            status="won't fix",
-            embargoed=delegated_affect.flaw.is_embargoed,
-            type=Tracker.TrackerType.BUGZILLA,
-        )
-        assert delegated_affect.delegated_resolution == Affect.AffectFix.WONTFIX
-        # NOTAFFECTED is ranked higher than WONTFIX
+        # no trackers = affected
+        assert delegated_affect.delegated_resolution == Affect.AffectFix.AFFECTED
+
         TrackerFactory(
             affects=(delegated_affect,),
             status="done",
@@ -354,8 +349,9 @@ class TestFlaw:
             embargoed=delegated_affect.flaw.is_embargoed,
             type=Tracker.TrackerType.BUGZILLA,
         )
+        # if the only tracker is notaffected, delegated_resolution is notaffected
         assert delegated_affect.delegated_resolution == Affect.AffectFix.NOTAFFECTED
-        # DEFER is ranged lower than NOTAFFECTED
+
         TrackerFactory(
             affects=(delegated_affect,),
             status="closed",
@@ -363,7 +359,38 @@ class TestFlaw:
             embargoed=delegated_affect.flaw.is_embargoed,
             type=Tracker.TrackerType.BUGZILLA,
         )
-        assert delegated_affect.delegated_resolution == Affect.AffectFix.NOTAFFECTED
+        # DEFER is ranked higher than NOTAFFECTED
+        assert delegated_affect.delegated_resolution == Affect.AffectFix.DEFER
+
+        TrackerFactory(
+            affects=(delegated_affect,),
+            status="done",
+            resolution="eol",
+            embargoed=delegated_affect.flaw.is_embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        # OOSS is ranked higher than DEFER
+        assert delegated_affect.delegated_resolution == Affect.AffectFix.OOSS
+
+        TrackerFactory(
+            affects=(delegated_affect,),
+            status="won't fix",
+            embargoed=delegated_affect.flaw.is_embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        # WONTFIX is ranked higher than OOSS
+        assert delegated_affect.delegated_resolution == Affect.AffectFix.WONTFIX
+
+        # AFFECTED should have higher precedence than any other resolution
+        t = TrackerFactory(
+            affects=(delegated_affect,),
+            status="foo",
+            resolution="bar",
+            embargoed=delegated_affect.flaw.is_embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        assert t.fix_state == Affect.AffectFix.AFFECTED
+        assert delegated_affect.delegated_resolution == Affect.AffectFix.AFFECTED
 
         new_affect = AffectFactory(affectedness=Affect.AffectAffectedness.NEW)
         assert new_affect.delegated_resolution is None

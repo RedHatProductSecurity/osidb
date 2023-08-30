@@ -1838,12 +1838,17 @@ class Affect(
             return Affect.AffectFix.AFFECTED
 
         statuses = [tracker.fix_state for tracker in trackers]
+        # order is **very** important here, if there are multiple trackers
+        # the order of these statuses determines which tracker status takes
+        # precedence over all the rest, meaning that if one tracker is affected
+        # and another is not affected, the overall affect delegated_resolution
+        # will be affected and not notaffected.
         for status in (
-            Affect.AffectFix.NOTAFFECTED,
             Affect.AffectFix.AFFECTED,
             Affect.AffectFix.WONTFIX,
             Affect.AffectFix.OOSS,
             Affect.AffectFix.DEFER,
+            Affect.AffectFix.NOTAFFECTED,
         ):
             if status in statuses:
                 return status

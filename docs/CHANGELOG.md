@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Reduce the total amount of records per page when querying Bugzilla (OSIDB-1232)
+- Set AFFECTED as highest precedence resolution when calculating Affect.delegated_resolution (OSIDB-1230)
 
 ## [3.4.1] - 2023-08-21
 ### Changed
