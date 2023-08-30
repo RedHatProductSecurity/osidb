@@ -283,11 +283,12 @@ class ACLMixin(models.Model):
         # caching the ACLs and building the group map
         self.acls_all
 
+    def get_embargoed_acl():
+        return [uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])]
+
     @property
     def is_embargoed(self):
-        return self.acl_read == [
-            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
-        ]
+        return self.acl_read == ACLMixin.get_embargoed_acl()
 
     def acl2group(self, acl):
         """
