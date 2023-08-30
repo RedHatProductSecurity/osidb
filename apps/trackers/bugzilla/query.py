@@ -128,10 +128,10 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
 
     def generate_description(self):
         """
-        generate query for flaw description on create
+        generate query for flaw description
         """
         if self.creation:
-            self._query["description"] = "TODO"
+            self._query["description"] = self.description
             # auto-created description should be always public
             self._query["comment_is_private"] = False
 

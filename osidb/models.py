@@ -2317,6 +2317,15 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             is not None
         )
 
+    @property
+    def is_triage(self):
+        """
+        triage tracker has a non-published flaw state attached
+        """
+        # TODO this is only a placeholder for now
+        # it is to be determined and implemented
+        return False
+
 
 class ErratumManager(TrackingMixinManager):
     """
@@ -2863,6 +2872,13 @@ class PsProduct(models.Model):
 
     # the business unit to which the product belongs
     business_unit = models.CharField(max_length=50)
+
+    @property
+    def is_community(self):
+        """
+        is community boolean property
+        """
+        return self.business_unit == "Community"
 
 
 class PsModule(NullStrFieldsMixin, ValidateMixin):
