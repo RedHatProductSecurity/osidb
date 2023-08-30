@@ -2356,7 +2356,9 @@ class Erratum(TrackingMixin):
     et_id = models.IntegerField(unique=True)  # Five-digit internal ID, e.g. 44547
     advisory_name = models.CharField(max_length=20, unique=True)  # E.g. RHSA-2019:2411
 
-    # TrackingMixin's updated_dt keeps track of the last time we refreshed an erratum from Errata Tool
+    # creation and last update timestamps are provided by the TrackingMixin
+    # and the values are taken from the Errata Tool as the authoritative source
+    shipped_dt = models.DateTimeField(null=True, blank=True)
 
     # An Erratum can fix many trackers, and a tracker can be fixed in multiple errata
     # For example, one erratum may fix a component on RHEL 7

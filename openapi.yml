@@ -1940,6 +1940,46 @@ paths:
         schema:
           type: string
       - in: query
+        name: affects__trackers__errata__shipped_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__errata__shipped_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__errata__shipped_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__errata__shipped_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__errata__shipped_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__errata__shipped_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__errata__shipped_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__errata__shipped_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
         name: affects__trackers__external_system_id
         schema:
           type: string
@@ -2313,6 +2353,7 @@ paths:
             - -affects__resolution
             - -affects__trackers__created_dt
             - -affects__trackers__errata__advisory_name
+            - -affects__trackers__errata__shipped_dt
             - -affects__trackers__external_system_id
             - -affects__trackers__ps_update_stream
             - -affects__trackers__resolution
@@ -2361,6 +2402,7 @@ paths:
             - affects__resolution
             - affects__trackers__created_dt
             - affects__trackers__errata__advisory_name
+            - affects__trackers__errata__shipped_dt
             - affects__trackers__external_system_id
             - affects__trackers__ps_update_stream
             - affects__trackers__resolution
@@ -5894,6 +5936,10 @@ components:
         advisory_name:
           type: string
           readOnly: true
+        shipped_dt:
+          type: string
+          format: date-time
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -5907,6 +5953,7 @@ components:
       - advisory_name
       - created_dt
       - et_id
+      - shipped_dt
       - updated_dt
     ExploitOnlyReportData:
       type: object

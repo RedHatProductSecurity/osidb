@@ -94,6 +94,7 @@ class TestErrataToolCollection:
                     "et_id": sample_erratum_with_bz_bugs,
                     "advisory_name": sample_erratum_name,
                     "created_dt": "2023-01-08T00:41:10Z",
+                    "shipped_dt": "2023-02-08T00:41:10Z",
                     "updated_dt": "2023-03-08T00:41:10Z",
                 }
             ]
@@ -105,6 +106,9 @@ class TestErrataToolCollection:
         assert Erratum.objects.first().trackers.count() == 2
         assert Erratum.objects.first().created_dt == timezone.datetime(
             2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
+        assert Erratum.objects.first().shipped_dt == timezone.datetime(
+            2023, 2, 8, 0, 41, 10, tzinfo=timezone.utc
         )
         assert Erratum.objects.first().updated_dt == timezone.datetime(
             2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
@@ -136,6 +140,7 @@ class TestErrataToolCollection:
                     "et_id": sample_erratum_with_jira_issues,
                     "advisory_name": sample_erratum_name,
                     "created_dt": "2023-01-08T00:41:10Z",
+                    "shipped_dt": "2023-02-08T00:41:10Z",
                     "updated_dt": "2023-03-08T00:41:10Z",
                 }
             ]
@@ -147,6 +152,9 @@ class TestErrataToolCollection:
         assert Erratum.objects.first().trackers.count() == 1
         assert Erratum.objects.first().created_dt == timezone.datetime(
             2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
+        assert Erratum.objects.first().shipped_dt == timezone.datetime(
+            2023, 2, 8, 0, 41, 10, tzinfo=timezone.utc
         )
         assert Erratum.objects.first().updated_dt == timezone.datetime(
             2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
@@ -163,6 +171,7 @@ class TestErrataToolCollection:
                     "et_id": sample_erratum_with_no_flaws,
                     "advisory_name": sample_erratum_name,
                     "created_dt": "2023-01-08T00:41:10Z",
+                    "shipped_dt": "2023-02-08T00:41:10Z",
                     "updated_dt": "2023-03-08T00:41:10Z",
                 }
             ]
@@ -186,6 +195,7 @@ class TestErrataToolCollection:
                     "et_id": sample_erratum_with_jira_issues,
                     "advisory_name": sample_erratum_name,
                     "created_dt": "2023-01-08T00:41:10Z",
+                    "shipped_dt": "2023-02-08T00:41:10Z",
                     "updated_dt": "2023-03-08T00:41:10Z",
                 }
             ]
@@ -197,6 +207,9 @@ class TestErrataToolCollection:
         assert Erratum.objects.first().trackers.count() == 0
         assert Erratum.objects.first().created_dt == timezone.datetime(
             2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
+        assert Erratum.objects.first().shipped_dt == timezone.datetime(
+            2023, 2, 8, 0, 41, 10, tzinfo=timezone.utc
         )
         assert Erratum.objects.first().updated_dt == timezone.datetime(
             2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
@@ -233,6 +246,7 @@ class TestErrataToolCollection:
                     "et_id": sample_erratum_with_bz_bugs,
                     "advisory_name": f"{sample_erratum_name}-01",
                     "created_dt": "2023-01-08T00:41:10Z",
+                    "shipped_dt": "2023-02-08T00:41:10Z",
                     "updated_dt": "2023-03-08T00:41:10Z",
                 }
             ]
@@ -244,6 +258,9 @@ class TestErrataToolCollection:
         assert Erratum.objects.first().created_dt == timezone.datetime(
             2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
         )
+        assert Erratum.objects.first().shipped_dt == timezone.datetime(
+            2023, 2, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
         assert Erratum.objects.first().updated_dt == timezone.datetime(
             2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
         )
@@ -254,6 +271,7 @@ class TestErrataToolCollection:
                     "et_id": sample_erratum_with_bz_bugs,
                     "advisory_name": f"{sample_erratum_name}-02",
                     "created_dt": "2023-01-08T00:41:10Z",
+                    "shipped_dt": "2023-03-08T00:41:10Z",
                     "updated_dt": "2023-05-08T00:41:10Z",
                 }
             ]
@@ -264,6 +282,9 @@ class TestErrataToolCollection:
         assert Erratum.objects.first().advisory_name == f"{sample_erratum_name}-02"
         assert Erratum.objects.first().created_dt == timezone.datetime(
             2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
+        )
+        assert Erratum.objects.first().shipped_dt == timezone.datetime(
+            2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
         )
         assert Erratum.objects.first().updated_dt == timezone.datetime(
             2023, 5, 8, 0, 41, 10, tzinfo=timezone.utc
