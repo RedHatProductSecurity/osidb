@@ -2,7 +2,7 @@
 common tracker constants
 """
 
-TRACKER_API_VERSION = "v1"
+TRACKERS_API_VERSION = "v1"
 
 # tracker summary constants
 MAX_SUMMARY_LENGTH = 255

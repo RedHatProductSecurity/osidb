@@ -1,6 +1,6 @@
 import pytest
 
-from apps.trackers.constants import TRACKER_API_VERSION
+from apps.trackers.constants import TRACKERS_API_VERSION
 from osidb.models import Tracker
 
 
@@ -47,12 +47,12 @@ def stage_jira_project() -> str:
 
 @pytest.fixture
 def test_scheme_host() -> str:
-    return "http://osidb-service:8000/tracker"
+    return "http://osidb-service:8000/trackers"
 
 
 @pytest.fixture
 def api_version() -> str:
-    return TRACKER_API_VERSION
+    return TRACKERS_API_VERSION
 
 
 @pytest.fixture
