@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement endpoint for suggesting trackers to file (OSIDB-90)
 - Add shipped date to erratum model (OSIDB-1197)
 
+## [3.4.2] - 2023-08-31
+### Changed
+- Reduce the total amount of records per page when querying Bugzilla (OSIDB-1232)
+- Set AFFECTED as highest precedence resolution when calculating Affect.delegated_resolution (OSIDB-1230)
+
 ## [3.4.1] - 2023-08-21
 ### Changed
 - Fix FlawCollector to account for an empty acknowledgment affiliation (OSIDB-1195)
