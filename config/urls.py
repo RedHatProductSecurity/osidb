@@ -33,6 +33,8 @@ urlpatterns = [
     path("collectors/", include("collectors.framework.urls")),
     # data
     path("osidb/", include("osidb.urls")),
+    # Trackers
+    path("trackers/", include("apps.trackers.urls")),
     # manage
     path("admin/", admin.site.urls),
     # auth

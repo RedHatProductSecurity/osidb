@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate summary and requires_summary (OSIDB-1164)
 - Validate impact and summary (OSIDB-1164)
 - Implement tracker description generation (OSIDB-1173)
+- Implement endpoint for suggesting trackers to file (OSIDB-90)
 
 ## [3.4.1] - 2023-08-21
 ### Changed

@@ -5531,6 +5531,46 @@ paths:
                   version:
                     type: string
           description: ''
+  /trackers/api/v1/file:
+    post:
+      operationId: trackers_api_v1_file_create
+      description: Given a list of flaws, generates a list of suggested trackers to
+        file.
+      tags:
+      - trackers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawUUIDList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawUUIDList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawUUIDList'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrackerSuggestion'
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
 components:
   schemas:
     Affect:
@@ -6669,6 +6709,16 @@ components:
       - VULNERABILITY
       - WEAKNESS
       type: string
+    FlawUUIDList:
+      type: object
+      properties:
+        flaw_uuids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - flaw_uuids
     ImpactEnum:
       enum:
       - LOW
@@ -6828,6 +6878,30 @@ components:
       - type
       - updated_dt
       - uuid
+    ModuleComponent:
+      type: object
+      properties:
+        ps_module:
+          type: string
+          format: uuid
+        ps_component:
+          type: string
+          format: uuid
+        streams:
+          type: array
+          items:
+            $ref: '#/components/schemas/PsStreamSelection'
+        selected:
+          type: boolean
+        affect:
+          type: string
+          readOnly: true
+      required:
+      - affect
+      - ps_component
+      - ps_module
+      - selected
+      - streams
     NistCvssValidationEnum:
       enum:
       - REQUESTED
@@ -7034,6 +7108,25 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Tracker'
+    PsStreamSelection:
+      type: object
+      properties:
+        ps_update_stream:
+          type: string
+        selected:
+          type: boolean
+        acked:
+          type: boolean
+        eus:
+          type: boolean
+        aus:
+          type: boolean
+      required:
+      - acked
+      - aus
+      - eus
+      - ps_update_stream
+      - selected
     RequiresSummaryEnum:
       enum:
       - REQUESTED
@@ -7280,6 +7373,19 @@ components:
       - external_system_id
       - status
       - type
+    TrackerSuggestion:
+      type: object
+      properties:
+        modules_components:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModuleComponent'
+        not_applicable:
+          type: string
+          readOnly: true
+      required:
+      - modules_components
+      - not_applicable
     TrackerType:
       enum:
       - JIRA

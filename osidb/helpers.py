@@ -106,6 +106,19 @@ class TaskFormatter(logging.Formatter):
         return super().format(record)
 
 
+def ps_update_stream_natural_keys(values):
+    """Sort alphanumeric strings
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    """
+    if not values:
+        return []
+
+    def atoi(text):
+        return int(text) if text.isdigit() else text
+
+    return [atoi(c) for c in re.split(r"(\d+)", values.name)]
+
+
 # Part of the following code is subject to a different license and copyright
 # holder:
 
