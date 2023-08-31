@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate impact and summary (OSIDB-1164)
 - Implement tracker description generation (OSIDB-1173)
 
+## [3.4.2] - 2023-08-31
 ### Changed
 - Reduce the total amount of records per page when querying Bugzilla (OSIDB-1232)
 - Set AFFECTED as highest precedence resolution when calculating Affect.delegated_resolution (OSIDB-1230)
