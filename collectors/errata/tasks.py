@@ -25,8 +25,7 @@ logger = get_task_logger(__name__)
     data_models=[Erratum],
     depends_on=[
         "collectors.bzimport.tasks.bztracker_collector",
-        # TODO Jiraffe is not a collector but should be
-        # "collectors.jiraffe.tasks.jiraffe_collector",
+        "collectors.jiraffe.tasks.jira_tracker_collector",
     ],
 )
 def errata_collector(collector_obj) -> str:

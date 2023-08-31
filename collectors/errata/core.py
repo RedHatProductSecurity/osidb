@@ -54,6 +54,7 @@ def get_erratum(et_id) -> dict:
         "et_id": et_id,
         "advisory_name": erratum_json["advisory_name"],
         "created_dt": erratum_json["timestamps"]["created_at"],
+        "shipped_dt": erratum_json["timestamps"]["actual_ship_date"],
         "updated_dt": erratum_json["timestamps"]["updated_at"],
     }
 

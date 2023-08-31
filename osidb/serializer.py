@@ -245,6 +245,7 @@ class ErratumSerializer(
 
     et_id = serializers.IntegerField(read_only=True)
     advisory_name = serializers.CharField(read_only=True)
+    shipped_dt = serializers.DateTimeField(read_only=True)
 
     class Meta:
         """filter fields"""
@@ -253,6 +254,7 @@ class ErratumSerializer(
         fields = [
             "et_id",
             "advisory_name",
+            "shipped_dt",
         ] + TrackingMixinSerializer.Meta.fields
 
 
