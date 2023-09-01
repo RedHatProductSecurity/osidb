@@ -3,8 +3,8 @@ from django.utils import timezone
 
 from collectors.framework.models import CollectorMetadata
 from collectors.nvd.collectors import NVDCollector
-from osidb.models import Flaw
-from osidb.tests.factories import FlawFactory
+from osidb.models import Flaw, FlawCVSS
+from osidb.tests.factories import FlawCVSSFactory, FlawFactory
 
 pytestmark = pytest.mark.integration
 
@@ -141,3 +141,78 @@ class TestNVDCollector:
         flaw = Flaw.objects.get(cve_id=cve2)
         assert flaw.nvd_cvss2 == "6.8/AV:N/AC:M/Au:N/C:P/I:P/A:P"
         assert flaw.nvd_cvss3 == "7.8/CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"
+
+    @pytest.mark.enable_signals
+    @pytest.mark.parametrize(
+        "cve_id,original_cvss2,original_cvss3,new_cvss2,new_cvss3",
+        # new_cvss2 and new_cvss3 should correspond to the reality for tests to pass
+        [
+            # without changes
+            (
+                "CVE-2014-0148",
+                [None, None],
+                [5.5, "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H"],
+                [None, None],
+                [5.5, "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H"],
+            ),
+            (
+                "CVE-2020-1234",
+                [6.8, "AV:N/AC:M/Au:N/C:P/I:P/A:P"],
+                [7.8, "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"],
+                [6.8, "AV:N/AC:M/Au:N/C:P/I:P/A:P"],
+                [7.8, "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"],
+            ),
+            # new CVSSv2
+            (
+                "CVE-2000-0835",
+                [None, None],
+                [None, None],
+                [5.0, "AV:N/AC:L/Au:N/C:P/I:N/A:N"],
+                [None, None],
+            ),
+            # different CVSSv3
+            (
+                "CVE-2020-1235",
+                [6.8, "AV:N/AC:M/Au:N/C:P/I:P/A:P"],
+                [7.4, "CVSS:3.1/AV:L/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H"],
+                [6.8, "AV:N/AC:M/Au:N/C:P/I:P/A:P"],
+                [7.8, "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"],
+            ),
+        ],
+    )
+    def test_flawcvss_model(
+        self, cve_id, original_cvss2, original_cvss3, new_cvss2, new_cvss3
+    ):
+        """
+        Test that CVSSv2 and CVSSv3 scores are correctly loaded and updated
+        in the FlawCVSS model.
+        """
+        # do not care about nvd_cvss2 and nvd_cvss3 as they will be deprecated
+        flaw = FlawFactory(cve_id=cve_id, nvd_cvss2="", nvd_cvss3="")
+
+        for vector, version in [
+            (original_cvss2[1], FlawCVSS.CVSSVersion.VERSION2),
+            (original_cvss3[1], FlawCVSS.CVSSVersion.VERSION3),
+        ]:
+            if vector:
+                FlawCVSSFactory(
+                    flaw=flaw,
+                    issuer=FlawCVSS.CVSSIssuer.NIST,
+                    version=version,
+                    vector=vector,
+                )
+
+        nvdc = NVDCollector()
+        nvdc.collect(cve_id)
+
+        flaw = Flaw.objects.get(cve_id=cve_id)
+
+        for score, vector, version in [
+            (new_cvss2[0], new_cvss2[1], FlawCVSS.CVSSVersion.VERSION2),
+            (new_cvss3[0], new_cvss3[1], FlawCVSS.CVSSVersion.VERSION3),
+        ]:
+            if vector:
+                assert flaw.cvss_scores.filter(version=version).first().score == score
+                assert flaw.cvss_scores.filter(version=version).first().vector == vector
+            else:
+                assert flaw.cvss_scores.filter(version=version).first() is None

@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from collectors.framework.models import Collector
 from osidb.core import set_user_acls
-from osidb.models import Flaw
+from osidb.models import Flaw, FlawCVSS
 
 logger = get_task_logger(__name__)
 
@@ -153,14 +153,60 @@ class NVDCollector(Collector, NVDQuerier):
             if not flaw:
                 continue
 
-            # check if any changes
+            # we are interested in NIST only
+            flaw_nist_cvss_scores = flaw.cvss_scores.filter(
+                issuer=FlawCVSS.CVSSIssuer.NIST
+            )
+
+            # get the original CVSSv2 and CVSSv3 vectors
+            original_cvss2 = (
+                flaw_nist_cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION2)
+                .values_list("vector", flat=True)
+                .first()
+            )
+            original_cvss3 = (
+                flaw_nist_cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION3)
+                .values_list("vector", flat=True)
+                .first()
+            )
+
+            # get the new CVSSv2 and CVSSv3 vectors
+            new_cvss2 = item["cvss2"].split("/", 1)[1] if item["cvss2"] else None
+            new_cvss3 = item["cvss3"].split("/", 1)[1] if item["cvss3"] else None
+
+            # check if any changes (via FlawCVSS)
+            if original_cvss2 == new_cvss2 and original_cvss3 == new_cvss3:
+                continue
+
+            # check if any changes (via Flaw, will be deprecated)
             if flaw.nvd_cvss2 == item["cvss2"] and flaw.nvd_cvss3 == item["cvss3"]:
                 continue
 
             desync.append(item["cve"])
 
-            flaw.nvd_cvss2 = item["cvss2"]
-            flaw.nvd_cvss3 = item["cvss3"]
+            # update CVSSv2 and CVSSv3 if necessary (via FlawCVSS)
+            for original_cvss, new_cvss, version in [
+                (original_cvss2, new_cvss2, FlawCVSS.CVSSVersion.VERSION2),
+                (original_cvss3, new_cvss3, FlawCVSS.CVSSVersion.VERSION3),
+            ]:
+                if original_cvss != new_cvss:
+                    # performs either update or create
+                    cvss_score = FlawCVSS.objects.create_cvss(
+                        flaw,
+                        FlawCVSS.CVSSIssuer.NIST,
+                        version,
+                        vector=new_cvss,
+                        acl_write=flaw.acl_write,
+                        acl_read=flaw.acl_read,
+                    )
+                    cvss_score.save()
+
+            # update CVSSv2 and CVSSv3 if necessary (via Flaw, will be deprecated)
+            if flaw.nvd_cvss2 != item["cvss2"]:
+                flaw.nvd_cvss2 = item["cvss2"]
+            if flaw.nvd_cvss3 != item["cvss3"]:
+                flaw.nvd_cvss3 = item["cvss3"]
+
             # no automatic timestamps as those go from Bugzilla
             # and no validation exceptions not to fail here
             flaw.save(
