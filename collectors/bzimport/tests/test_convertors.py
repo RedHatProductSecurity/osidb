@@ -36,6 +36,17 @@ class TestFlawSaver:
             )
         ]
 
+    def get_acls_write(self):
+        """
+        minimal acls getter
+        """
+        return [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                "https://osidb.prod.redhat.com/ns/acls#data-prodsec-write",
+            )
+        ]
+
     def get_flaw(self):
         """
         minimal flaw getter
@@ -51,7 +62,7 @@ class TestFlawSaver:
             created_dt=timezone.now(),
             updated_dt=timezone.now(),
             acl_read=self.get_acls(),
-            acl_write=self.get_acls(),
+            acl_write=self.get_acls_write(),
         )
 
     def get_affects(self, flaw):
@@ -231,6 +242,7 @@ class TestFlawSaver:
         test basic flaw and realated entities save
         """
         acls = self.get_acls()
+        acls_write = self.get_acls_write()
         flaw = self.get_flaw()
         affects = self.get_affects(flaw)
 
@@ -266,7 +278,7 @@ class TestFlawSaver:
         assert flaw.description == "description"
         assert flaw.impact == Impact.CRITICAL
         assert flaw.acl_read == acls
-        assert flaw.acl_write == acls
+        assert flaw.acl_write == acls_write
         assert flaw.affects.first() == affect
         assert flaw.comments.first() == comment
         assert flaw.meta.first() == meta
@@ -1606,6 +1618,32 @@ class TestFlawConvertor:
 
         assert "bz_summary" in flaw.meta_attr
         assert flaw.meta_attr["bz_summary"] == flaw_bug["summary"]
+
+    def test_fixed_in_meta_attr(self):
+        """
+        Test that fixed_in bz field is saved as-is in Flaw.meta_attr
+
+        The model structure of Package and PackageVer doesn't store the
+        separator between package and version used in bugzilla fixed_in.
+        Therefore, we need to store fixed_in as-is for bbsync's reference
+        to keep the original separators.
+        """
+        flaw_bug = self.get_flaw_bug()
+        flaw_bug["fixed_in"] = "foobar 1.2, foobaz-1.2"
+        fbc = FlawConvertor(
+            flaw_bug,
+            [],
+            None,
+            None,
+            [],
+            [],
+        )
+        [flaw] = fbc.bug2flaws()
+        flaw.save()
+        flaw = Flaw.objects.first()
+
+        assert "fixed_in" in flaw.meta_attr
+        assert flaw.meta_attr["fixed_in"] == flaw_bug["fixed_in"]
 
 
 class TestFlawConvertorFixedIn:

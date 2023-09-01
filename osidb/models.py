@@ -3041,7 +3041,7 @@ class PackageManager(ACLMixinManager, TrackingMixinManager):
         return package
 
 
-class Package(ACLMixin, TrackingMixin):
+class Package(ACLMixin, BugzillaSyncMixin, TrackingMixin):
     """
     Model representing a package with connected versions.
 
@@ -3063,11 +3063,15 @@ class Package(ACLMixin, TrackingMixin):
 
     package = models.CharField(max_length=2048)
 
-    # TODO: This is temporarily present to make existing tests happy. Reconsider whether to delete.
-    def validate(self, *args, **kwargs):
-        super().clean_fields(*args, **kwargs)
-
     objects = PackageManager()
+
+    def bzsync(self, *args, bz_api_key, **kwargs):
+        """
+        Bugzilla sync of the Package instance and linked PackageVer instances.
+        """
+        self.save()
+        # needs to be synced through flaw
+        self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
 
 
 class PackageVer(models.Model):
@@ -3085,10 +3089,6 @@ class PackageVer(models.Model):
         verbose_name = "Version"
 
     version = models.CharField(max_length=1024)
-
-    # TODO: This is temporarily present to make existing tests happy. Reconsider whether to delete.
-    def validate(self, *args, **kwargs):
-        super().clean_fields(*args, **kwargs)
 
 
 class PsProduct(models.Model):

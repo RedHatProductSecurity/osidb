@@ -757,6 +757,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         meta_attr["original_srtnotes"] = self.flaw_bug["cf_srtnotes"]
         meta_attr["status"] = self.flaw_bug["status"]
         meta_attr["resolution"] = self.flaw_bug["resolution"]
+        meta_attr["fixed_in"] = self.flaw_bug["fixed_in"]
         return meta_attr
 
     ##############################
