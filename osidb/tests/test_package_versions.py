@@ -2,7 +2,7 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from osidb.models import Package, PackageVer
-from osidb.tests.factories import PackageFactory, PackageVerFactory
+from osidb.tests.factories import FlawFactory, PackageFactory, PackageVerFactory
 
 pytestmark = pytest.mark.unit
 
@@ -11,7 +11,11 @@ class TestPackageVersions(object):
     def test_create_cve_v5_version(self):
         """test raw verison range creation"""
 
-        pkg = PackageFactory.create()
+        generate_fake_acls = FlawFactory()
+        pkg = PackageFactory(
+            acl_read=generate_fake_acls.acl_read,
+            acl_write=generate_fake_acls.acl_write,
+        )
 
         vr_2 = PackageVer.objects.create(
             version="3.2.1",
@@ -27,7 +31,7 @@ class TestPackageVersions(object):
         with pytest.raises(ValidationError):
             vrs_1.validate()
 
-        vrs_2 = PackageFactory.create()
+        vrs_2 = PackageFactory()
         PackageVerFactory(package=vrs_2)
 
         assert vrs_2.validate() is None

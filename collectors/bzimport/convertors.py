@@ -223,19 +223,23 @@ class FlawSaver:
         )
 
     def save_packageversions(self):
-        """save packageversions and versions and remove the obsoleted"""
+        """
+        Saves Package and their associated PackageVer and removes obsoleted.
+        """
         for package, versions in self.package_versions.items():
-            package_versions, _ = Package.objects.get_or_create(
+            package_instance = Package.objects.create_package(
                 flaw=self.flaw,
                 package=package,
+                acl_read=self.flaw.acl_read,
+                acl_write=self.flaw.acl_write,
             )
             # remove all the existing versions
-            package_versions.versions.all().delete()
+            package_instance.versions.all().delete()
             # replace them
             for version in versions:
-                version = PackageVer.objects.create(
+                PackageVer.objects.create(
                     version=version,
-                    package=package_versions,
+                    package=package_instance,
                 )
         # remove obsoleted Package instances
         Package.objects.filter(

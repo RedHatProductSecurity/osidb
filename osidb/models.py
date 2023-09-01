@@ -3023,7 +3023,25 @@ class CVEv5PackageVersions(PackageVersions):
         super().clean_fields(*args, **kwargs)
 
 
-class Package(models.Model):
+class PackageManager(ACLMixinManager, TrackingMixinManager):
+    @staticmethod
+    def create_package(flaw, package, **extra_fields):
+        """
+        Return a new Package, or update an existing Package without saving.
+        Unlike other similar manager methods in this file, new Package
+        instance is saved into database to allow relationships with PackageVer.
+        """
+        try:
+            package = Package.objects.get(flaw=flaw, package=package)
+            for attr, value in extra_fields.items():
+                setattr(package, attr, value)
+        except ObjectDoesNotExist:
+            package = Package(flaw=flaw, package=package, **extra_fields)
+            package.save()
+        return package
+
+
+class Package(ACLMixin, TrackingMixin):
     """
     Model representing a package with connected versions.
 
@@ -3048,6 +3066,8 @@ class Package(models.Model):
     # TODO: This is temporarily present to make existing tests happy. Reconsider whether to delete.
     def validate(self, *args, **kwargs):
         super().clean_fields(*args, **kwargs)
+
+    objects = PackageManager()
 
 
 class PackageVer(models.Model):

@@ -398,6 +398,13 @@ class PackageFactory(factory.django.DjangoModelFactory):
 
     flaw = factory.SubFactory(FlawFactory)
 
+    created_dt = factory.Faker("date_time", tzinfo=UTC)
+    updated_dt = factory.Faker("date_time", tzinfo=UTC)
+
+    # let us inherit the parent flaw ACLs if not specified
+    acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
+    acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
+
 
 class PackageVerFactory(factory.django.DjangoModelFactory):
     class Meta:
