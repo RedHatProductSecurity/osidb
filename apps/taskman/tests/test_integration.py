@@ -25,7 +25,7 @@ class TestIntegration(object):
         flaw = FlawFactory(uuid="a56760bc-868b-4797-8026-e8c7b5d889b9", embargoed=False)
         AffectFactory(flaw=flaw)
 
-        headers = {"HTTP_JiraAuthentication": user_token}
+        headers = {"HTTP_JIRA_API_KEY": user_token}
         response1 = auth_client.post(
             f"{test_api_uri}/task/flaw/{flaw.uuid}",
             data={},
@@ -139,7 +139,7 @@ class TestIntegration(object):
         # remove randomness from flaw
         flaw = FlawFactory(uuid="98c0c5fd-b2fc-46cb-adf4-5de2bdce2737", embargoed=False)
 
-        headers = {"HTTP_JiraAuthentication": user_token}
+        headers = {"HTTP_JIRA_API_KEY": user_token}
         response1 = auth_client.post(
             f"{test_api_uri}/task/flaw/{flaw.uuid}",
             data={},
@@ -193,7 +193,7 @@ class TestIntegration(object):
         PUT -> /group/<str:group_key>
         GET -> /group/<str:group_key>
         """
-        headers = {"HTTP_JiraAuthentication": user_token}
+        headers = {"HTTP_JIRA_API_KEY": user_token}
         response1 = auth_client.post(
             f"{test_api_uri}/group",
             data={
@@ -281,7 +281,7 @@ class TestIntegration(object):
         flaw_uuid = "bbb87fd5-5935-4df0-a39c-ca7f13cfd99e"
         flaw1 = FlawFactory(uuid=flaw_uuid, embargoed=False)
 
-        headers = {"HTTP_JiraAuthentication": user_token}
+        headers = {"HTTP_JIRA_API_KEY": user_token}
         response1 = auth_client.post(
             f"{test_api_uri}/task/flaw/{flaw1.uuid}",
             data={},
@@ -310,6 +310,13 @@ class TestIntegration(object):
 
         assert created_issue_found
 
+        count = auth_client.get(
+            f"{test_api_uri}/task/assignee/{user}",
+            data={},
+            format="json",
+            **headers,
+        ).json()["total"]
+
         response3 = auth_client.put(
             f"{test_api_uri}/task/assignee/{user}",
             data={"task_key": issue1["key"]},
@@ -325,7 +332,7 @@ class TestIntegration(object):
             **headers,
         )
         assert response4.status_code == 200
-        assert response4.json()["total"] == 1
+        assert response4.json()["total"] > count
 
         # Test serializer failing cases
         response5 = auth_client.put(

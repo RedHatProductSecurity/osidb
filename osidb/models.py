@@ -31,6 +31,8 @@ from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.osim.workflow import WorkflowModel
+from apps.taskman.constants import SYNC_REQUIRED_FIELDS
+from apps.taskman.mixins import JiraTaskSyncMixin
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 
 from .helpers import deprecate_field as deprecate_field_custom
@@ -634,6 +636,7 @@ class Flaw(
     FlawMixin,
     BugzillaSyncMixin,
     WorkflowModel,
+    JiraTaskSyncMixin,
 ):
     """Model flaw"""
 
@@ -1420,6 +1423,58 @@ class Flaw(
         # fetch from Bugzilla
         fc = FlawCollector()
         fc.sync_flaw(self.bz_id)
+
+    def tasksync(
+        self,
+        jira_token,
+        force_creation=False,
+        force_update=False,
+        *args,
+        **kwargs,
+    ):
+        """
+        Task sync of the Flaw instance in Jira.
+
+        If the flaw is OSIDB-authored and already exists in the database
+        the corresponding JIRA task will be updated if any of the
+        SYNC_REQUIRED_FIELDS has been updated.
+
+        If the flaw is OSIDB-authored and does not exist in the database
+        then a corresponding JIRA task will be created.
+
+        If the flaw is not OSIDB-authored then it's a no-op.
+        """
+        if not jira_token:
+            return
+
+        # imports here to prevent cycles
+        from apps.taskman.service import JiraTaskmanQuerier
+
+        jtq = JiraTaskmanQuerier(token=jira_token)
+
+        # REST API can force new tasks since it has no access to flaw creation runtime -- create
+        if force_creation:
+            jtq.create_or_update_task(self)
+            return
+
+        try:
+            old_flaw = Flaw.objects.get(uuid=self.uuid)
+
+            jira_task_request = jtq.get_task_by_flaw(self.uuid)
+
+            # the flaw exists but the task doesn't, not an OSIDB-authored flaw -- no-op
+            if jira_task_request.status_code != 200:
+                return
+
+            # we're handling an existing OSIDB-authored flaw -- update
+            if force_update or any(
+                getattr(old_flaw, field) != getattr(self, field)
+                for field in SYNC_REQUIRED_FIELDS
+            ):
+                jtq.create_or_update_task(self)
+        except Flaw.DoesNotExist:
+            # we're handling a new OSIDB-authored flaw -- create
+            jtq.create_or_update_task(self)
 
 
 class AffectManager(ACLMixinManager, TrackingMixinManager):

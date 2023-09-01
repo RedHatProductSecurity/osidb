@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 jira_token_description = extend_schema(
     parameters=[
         OpenApiParameter(
-            name="JiraAuthentication",
+            name="Jira-Api-Key",
             required=True,
             type=str,
             location=OpenApiParameter.HEADER,
@@ -73,9 +73,9 @@ class task(GenericAPIView):
     )
     def get(self, request, task_key):
         """Get a task from Jira given a task key"""
-        return JiraTaskmanQuerier(
-            token=request.headers.get("JiraAuthentication")
-        ).get_task(task_key)
+        return JiraTaskmanQuerier(token=request.headers.get("Jira-Api-Key")).get_task(
+            task_key
+        )
 
 
 @jira_token_description
@@ -91,7 +91,7 @@ class task_comment_new(GenericAPIView):
         serializer = TaskCommentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return JiraTaskmanQuerier(
-            token=request.headers.get("JiraAuthentication")
+            token=request.headers.get("Jira-Api-Key")
         ).create_comment(
             issue_key=task_key,
             body=request.data["content"],
@@ -112,7 +112,7 @@ class task_comment(GenericAPIView):
         serializer = TaskCommentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return JiraTaskmanQuerier(
-            token=request.headers.get("JiraAuthentication")
+            token=request.headers.get("Jira-Api-Key")
         ).update_comment(
             issue_key=task_key,
             comment_id=comment_id,
@@ -135,7 +135,7 @@ class task_group_new(GenericAPIView):
         serializer.is_valid(raise_exception=True)
 
         return JiraTaskmanQuerier(
-            token=request.headers.get("JiraAuthentication")
+            token=request.headers.get("Jira-Api-Key")
         ).create_group(
             name=serializer.validated_data["name"],
             description=serializer.validated_data["description"],
@@ -150,7 +150,7 @@ class task_group(GenericAPIView):
     def get(self, request, group_key):
         """Get a list of tasks from a group"""
         return JiraTaskmanQuerier(
-            token=request.headers.get("JiraAuthentication")
+            token=request.headers.get("Jira-Api-Key")
         ).search_task_by_group(group_key)
 
     @extend_schema(
@@ -164,7 +164,7 @@ class task_group(GenericAPIView):
         serializer = TaskKeySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return JiraTaskmanQuerier(
-            token=request.headers.get("JiraAuthentication")
+            token=request.headers.get("Jira-Api-Key")
         ).add_task_into_group(
             issue_key=serializer.validated_data["task_key"], group_key=group_key
         )
@@ -182,14 +182,14 @@ class task_flaw(GenericAPIView):
     def get(self, request, flaw_uuid):
         """Get a task from Jira given a Flaw uuid"""
         return JiraTaskmanQuerier(
-            token=request.headers.get("JiraAuthentication")
+            token=request.headers.get("Jira-Api-Key")
         ).get_task_by_flaw(flaw_uuid)
 
     def post(self, request, flaw_uuid):
         """Create a task in Jira from a Flaw"""
         flaw = Flaw.objects.get(uuid=flaw_uuid)
         return JiraTaskmanQuerier(
-            token=request.headers.get("JiraAuthentication")
+            token=request.headers.get("Jira-Api-Key")
         ).create_or_update_task(flaw=flaw, fail_if_exists=True)
 
     @extend_schema(
@@ -200,7 +200,7 @@ class task_flaw(GenericAPIView):
         """Update a task in Jira from a Flaw"""
         flaw = Flaw.objects.get(uuid=flaw_uuid)
         return JiraTaskmanQuerier(
-            token=request.headers.get("JiraAuthentication")
+            token=request.headers.get("Jira-Api-Key")
         ).create_or_update_task(flaw=flaw, fail_if_exists=False)
 
 
@@ -233,7 +233,7 @@ class task_status(GenericAPIView):
     def put(self, request, task_key):
         serializer = StatusSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        jira_conn = JiraTaskmanQuerier(token=request.headers.get("JiraAuthentication"))
+        jira_conn = JiraTaskmanQuerier(token=request.headers.get("Jira-Api-Key"))
         if "reason" in serializer:
             jira_conn.create_comment(
                 issue_key=task_key,
@@ -253,7 +253,7 @@ class task_assignee(GenericAPIView):
     def get(self, request, user):
         """Get a list of tasks from a user"""
         return JiraTaskmanQuerier(
-            token=request.headers.get("JiraAuthentication")
+            token=request.headers.get("Jira-Api-Key")
         ).search_tasks_by_assignee(user)
 
     @extend_schema(
@@ -270,7 +270,7 @@ class task_assignee(GenericAPIView):
         issue_key = serializer.validated_data["task_key"]
 
         return JiraTaskmanQuerier(
-            token=request.headers.get("JiraAuthentication")
+            token=request.headers.get("Jira-Api-Key")
         ).assign_task(task_key=issue_key, assignee=user)
 
 
@@ -282,5 +282,5 @@ class task_unassigneed(GenericAPIView):
     def get(self, request):
         """Get a list of tasks without an user assigned"""
         return JiraTaskmanQuerier(
-            token=request.headers.get("JiraAuthentication")
+            token=request.headers.get("Jira-Api-Key")
         ).search_tasks_by_assignee(None)

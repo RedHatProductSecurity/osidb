@@ -1,5 +1,10 @@
+import uuid
+
 import pytest
+from django.conf import settings
 from taskman.constants import TASKMAN_API_VERSION
+
+from osidb.constants import OSIDB_API_VERSION
 
 
 @pytest.fixture(autouse=True)
@@ -26,6 +31,11 @@ def user_token():
 
 
 @pytest.fixture
+def bz_api_key():
+    return "USER_BZ_API_KEY"
+
+
+@pytest.fixture
 def test_scheme_host():
     return "http://osidb-service:8000/taskman"
 
@@ -47,3 +57,36 @@ def pin_urls(monkeypatch) -> None:
     """
     monkeypatch.setenv("HTTPS_PROXY", "http://squid.corp.redhat.com:3128")
     monkeypatch.setenv("JIRA_TASKMAN_URL", "https://issues.stage.redhat.com")
+
+
+@pytest.fixture
+def acl_read():
+    return [
+        uuid.uuid5(uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}")
+        for group in settings.PUBLIC_READ_GROUPS
+    ]
+
+
+@pytest.fixture
+def acl_write():
+    return [
+        uuid.uuid5(
+            uuid.NAMESPACE_URL,
+            f"https://osidb.prod.redhat.com/ns/acls#{settings.PUBLIC_WRITE_GROUP}",
+        )
+    ]
+
+
+@pytest.fixture
+def test_osidb_scheme_host():
+    return "http://osidb-service:8000/osidb"
+
+
+@pytest.fixture
+def osidb_api_version():
+    return OSIDB_API_VERSION
+
+
+@pytest.fixture
+def test_osidb_api_uri(test_osidb_scheme_host, osidb_api_version):
+    return f"{test_osidb_scheme_host}/api/{osidb_api_version}"

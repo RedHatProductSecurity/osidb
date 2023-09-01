@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement tracker description generation (OSIDB-1173)
 - Implement endpoint for suggesting trackers to file (OSIDB-90)
 - Add shipped date to erratum model (OSIDB-1197)
+- Flaw creation and update triggers a Jira task sync (OSIDB-861)
 
 ## [3.4.2] - 2023-08-31
 ### Changed

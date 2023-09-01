@@ -17,6 +17,8 @@ from rest_framework import serializers
 
 from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.osim.serializers import WorkflowModelSerializer
+from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FIELDS
+from apps.taskman.mixins import JiraTaskSyncMixin
 
 from .core import generate_acls
 from .exceptions import DataInconsistencyException
@@ -508,6 +510,56 @@ class BugzillaSyncMixinSerializer(serializers.ModelSerializer):
         abstract = True
 
 
+class JiraTaskSyncMixinSerializer(serializers.ModelSerializer):
+    """
+    serializer mixin class implementing special handling of the models
+    which need to perform Jira sync as part of the save procedure
+    """
+
+    def __get_user_jira_token(self):
+        jira_token = self.context["request"].META.get("HTTP_JIRA_API_KEY")
+        if not jira_token:
+            raise serializers.ValidationError(
+                {"Jira-Api-Key": "This HTTP header is required."}
+            )
+        return jira_token
+
+    def create(self, validated_data):
+        """
+        perform the ordinary instance create
+        with providing Jira token while saving
+        """
+        instance = super().create(validated_data)
+        if JIRA_TASKMAN_AUTO_SYNC_FLAW:
+            instance.tasksync(
+                jira_token=self.__get_user_jira_token(), force_creation=True
+            )
+        return instance
+
+    def update(self, instance, validated_data):
+        """
+        perform the ordinary instance create
+        with providing Jira token while saving
+        """
+        # to allow other mixings to override update we call parent's update method
+        # and validate if an important change were made forcing a sync when it is needed
+        sync_required = any(
+            field in validated_data
+            and getattr(instance, field) != validated_data[field]
+            for field in SYNC_REQUIRED_FIELDS
+        )
+        updated_instance = super().update(instance, validated_data)
+        if JIRA_TASKMAN_AUTO_SYNC_FLAW and sync_required:
+            updated_instance.tasksync(
+                jira_token=self.__get_user_jira_token(), force_update=True
+            )
+        return updated_instance
+
+    class Meta:
+        model = JiraTaskSyncMixin
+        abstract = True
+
+
 class AffectSerializer(
     ACLMixinSerializer,
     BugzillaSyncMixinSerializer,
@@ -692,6 +744,7 @@ class FlawReferencePostSerializer(FlawReferenceSerializer):
 @extend_schema_serializer(deprecate_fields=["state", "resolution", "is_major_incident"])
 class FlawSerializer(
     ACLMixinSerializer,
+    JiraTaskSyncMixinSerializer,
     BugzillaSyncMixinSerializer,
     TrackingMixinSerializer,
     WorkflowModelSerializer,
