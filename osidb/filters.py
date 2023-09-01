@@ -20,6 +20,7 @@ from .models import (
     FlawAcknowledgment,
     FlawComment,
     FlawCVSS,
+    Package,
     Tracker,
     search_helper,
 )
@@ -554,4 +555,23 @@ class AffectCVSSFilter(FilterSet):
             + DATE_LOOKUP_EXPRS,
             "uuid": ["exact"],
             "vector": ["exact"],
+        }
+
+
+class FlawPackageVersionFilter(FilterSet):
+    class Meta:
+        model = Package
+        fields = {
+            "uuid": ["exact"],
+            "package": ["exact"],
+            "created_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "updated_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            # versions fields
+            "versions__version": ["exact"],
         }

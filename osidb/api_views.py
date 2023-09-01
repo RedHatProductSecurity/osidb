@@ -35,6 +35,7 @@ from .filters import (
     FlawCommentFilter,
     FlawCVSSFilter,
     FlawFilter,
+    FlawPackageVersionFilter,
     TrackerFilter,
 )
 from .models import Affect, AffectCVSS, Flaw, Tracker
@@ -52,6 +53,9 @@ from .serializer import (
     FlawCVSSPostSerializer,
     FlawCVSSPutSerializer,
     FlawCVSSSerializer,
+    FlawPackageVersionPostSerializer,
+    FlawPackageVersionPutSerializer,
+    FlawPackageVersionSerializer,
     FlawPostSerializer,
     FlawReferencePostSerializer,
     FlawReferenceSerializer,
@@ -663,6 +667,24 @@ class FlawCommentView(SubFlawViewGetMixin, ModelViewSet):
     http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete", "put"])
     permission_classes = [IsAuthenticatedOrReadOnly]
     lookup_url_kwarg = "comment_id"
+
+
+@include_exclude_fields_extend_schema_view
+@extend_schema_view(
+    create=extend_schema(
+        request=FlawPackageVersionPostSerializer,
+    ),
+    update=extend_schema(
+        request=FlawPackageVersionPutSerializer,
+    ),
+)
+class FlawPackageVersionView(
+    SubFlawViewGetMixin, SubFlawViewDestroyMixin, ModelViewSet
+):
+    serializer_class = FlawPackageVersionSerializer
+    filterset_class = FlawPackageVersionFilter
+    http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 @include_meta_attr_extend_schema_view
