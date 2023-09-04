@@ -382,6 +382,12 @@ class FlawSaver:
                 continue
 
             tracker.affects.add(affect)
+            # liking tracker may clean some of the alerts
+            # however the save is needed to recreate them
+            tracker.save(
+                auto_timestamps=False,
+                raise_validation_error=False,
+            )
 
     def save(self):
         """save flaw with its context to DB"""
