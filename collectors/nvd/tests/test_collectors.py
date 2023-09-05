@@ -142,10 +142,10 @@ class TestNVDCollector:
         assert flaw.nvd_cvss2 == "6.8/AV:N/AC:M/Au:N/C:P/I:P/A:P"
         assert flaw.nvd_cvss3 == "7.8/CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"
 
+    @pytest.mark.vcr
     @pytest.mark.enable_signals
     @pytest.mark.parametrize(
         "cve_id,original_cvss2,original_cvss3,new_cvss2,new_cvss3",
-        # new_cvss2 and new_cvss3 should correspond to the reality for tests to pass
         [
             # without changes
             (
