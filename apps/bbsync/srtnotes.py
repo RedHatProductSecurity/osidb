@@ -2,7 +2,7 @@ import json
 
 import jsonschema
 
-from osidb.models import FlawCVSS, Tracker
+from osidb.models import AffectCVSS, FlawCVSS, Tracker
 
 from .constants import DATE_FMT, DATETIME_FMT, SRTNOTES_SCHEMA_PATH
 from .exceptions import SRTNotesValidationError
@@ -108,8 +108,25 @@ class SRTNotesBuilder:
                     # so let us prefer null which may cause some unexpected rewrites
                     # from none to null but this can be considered as data fixes
                     "impact": affect.impact.lower() or None,
-                    "cvss2": affect.cvss2 or None,
-                    "cvss3": affect.cvss3 or None,
+                    # CVSSv2 and CVSSv3 are from AffectCVSS
+                    "cvss2": None
+                    if not affect.cvss_scores.filter(
+                        issuer=AffectCVSS.CVSSIssuer.REDHAT
+                    ).filter(version=FlawCVSS.CVSSVersion.VERSION2)
+                    else "{}/{}".format(
+                        *affect.cvss_scores.filter(issuer=AffectCVSS.CVSSIssuer.REDHAT)
+                        .filter(version=FlawCVSS.CVSSVersion.VERSION2)
+                        .values_list("score", "vector")[0]
+                    ),
+                    "cvss3": None
+                    if not affect.cvss_scores.filter(
+                        issuer=AffectCVSS.CVSSIssuer.REDHAT
+                    ).filter(version=FlawCVSS.CVSSVersion.VERSION3)
+                    else "{}/{}".format(
+                        *affect.cvss_scores.filter(issuer=AffectCVSS.CVSSIssuer.REDHAT)
+                        .filter(version=FlawCVSS.CVSSVersion.VERSION3)
+                        .values_list("score", "vector")[0]
+                    ),
                 }
                 for affect in self.flaw.affects.all()
             ],

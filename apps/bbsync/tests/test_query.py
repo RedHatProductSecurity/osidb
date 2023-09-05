@@ -9,6 +9,7 @@ from apps.bbsync.exceptions import SRTNotesValidationError
 from apps.bbsync.query import FlawBugzillaQueryBuilder, SRTNotesBuilder
 from osidb.models import (
     Affect,
+    AffectCVSS,
     Flaw,
     FlawComment,
     FlawCVSS,
@@ -17,6 +18,7 @@ from osidb.models import (
     Tracker,
 )
 from osidb.tests.factories import (
+    AffectCVSSFactory,
     AffectFactory,
     FlawAcknowledgmentFactory,
     FlawCommentFactory,
@@ -279,20 +281,22 @@ class TestGenerateSRTNotes:
                 and ack["name"] == "Canis latrans microdon"
             )
 
+    @pytest.mark.enable_signals
     def test_generate_affects(self):
         """
         test generating of SRT affects attribute array
         """
         flaw = FlawFactory()
         FlawCommentFactory(flaw=flaw)
-        AffectFactory(
+        affect = AffectFactory(
             flaw=flaw,
             ps_module="rhel-6",
             ps_component="ImageMagick",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
             impact=Impact.CRITICAL,
-            cvss2="10.0/AV:N/AC:L/Au:N/C:C/I:C/A:C",
+            # do not care about cvss2 and cvss3 as they will be deprecated
+            cvss2="",
             cvss3="",
         )
         AffectFactory(
@@ -302,8 +306,9 @@ class TestGenerateSRTNotes:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             impact=Impact.MODERATE,
-            cvss2="5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
-            cvss3="7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+            # do not care about cvss2 and cvss3 as they will be deprecated
+            cvss2="",
+            cvss3="",
         )
         AffectFactory(
             flaw=flaw,
@@ -312,8 +317,23 @@ class TestGenerateSRTNotes:
             affectedness=Affect.AffectAffectedness.NOTAFFECTED,
             resolution=Affect.AffectResolution.NOVALUE,
             impact=Impact.NOVALUE,
+            # do not care about cvss2 and cvss3 as they will be deprecated
             cvss2="",
             cvss3="",
+        )
+        AffectCVSSFactory(
+            affect=affect,
+            issuer=AffectCVSS.CVSSIssuer.REDHAT,
+            version=AffectCVSS.CVSSVersion.VERSION2,
+            vector="AV:N/AC:M/Au:N/C:P/I:P/A:P",  # 6.8
+            comment="",
+        )
+        AffectCVSSFactory(
+            affect=affect,
+            issuer=AffectCVSS.CVSSIssuer.REDHAT,
+            version=AffectCVSS.CVSSVersion.VERSION3,
+            vector="CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",  # 7.8
+            comment="",
         )
 
         bbq = FlawBugzillaQueryBuilder(flaw)
@@ -340,17 +360,17 @@ class TestGenerateSRTNotes:
         assert rhel6affect["affectedness"] == "affected"
         assert rhel6affect["resolution"] == "fix"
         assert rhel6affect["impact"] == "critical"
-        assert rhel6affect["cvss2"] == "10.0/AV:N/AC:L/Au:N/C:C/I:C/A:C"
-        assert rhel6affect["cvss3"] is None
+        assert rhel6affect["cvss2"] == "6.8/AV:N/AC:M/Au:N/C:P/I:P/A:P"
+        assert (
+            rhel6affect["cvss3"] == "7.8/CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"
+        )
 
         assert rhel7affect["ps_component"] == "kernel"
         assert rhel7affect["affectedness"] == "affected"
         assert rhel7affect["resolution"] == "delegated"
         assert rhel7affect["impact"] == "moderate"
-        assert rhel7affect["cvss2"] == "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C"
-        assert (
-            rhel7affect["cvss3"] == "7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
-        )
+        assert rhel7affect["cvss2"] is None
+        assert rhel7affect["cvss3"] is None
 
         assert rhel8affect["ps_component"] == "bash"
         assert rhel8affect["affectedness"] == "notaffected"
