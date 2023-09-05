@@ -2,7 +2,7 @@ import json
 
 import jsonschema
 
-from osidb.models import Tracker
+from osidb.models import FlawCVSS, Tracker
 
 from .constants import DATE_FMT, DATETIME_FMT, SRTNOTES_SCHEMA_PATH
 from .exceptions import SRTNotesValidationError
@@ -69,12 +69,8 @@ class SRTNotesBuilder:
         self.generate_impact()
         self.generate_jira_trackers()
         self.generate_references()
+        self.generate_flaw_cvss()
         self.generate_source()
-        self.generate_string("cvss2", "cvss2")
-        self.generate_string("cvss3", "cvss3")
-        # TODO the CVSS comments are not yet supported in OSIDB and tracked as part of OSIDB-377
-        # we need to implement their SRT notes generator afterwards and probably modify
-        # the existing CVSS into SRT notes generation too
         self.generate_string("cwe_id", "cwe")
         self.generate_string("mitigation", "mitigation")
         self.generate_string("statement", "statement")
@@ -189,6 +185,34 @@ class SRTNotesBuilder:
                 for reference in self.flaw.references.all()
             ],
         )
+
+    def generate_flaw_cvss(self):
+        """
+        generate cvss2, cvss3, and cvss3_comment attributes
+        """
+        cvss2 = (
+            self.flaw.cvss_scores.filter(issuer=FlawCVSS.CVSSIssuer.REDHAT)
+            .filter(version=FlawCVSS.CVSSVersion.VERSION2)
+            .values_list("score", "vector")
+            .first()
+        )
+        cvss3 = (
+            self.flaw.cvss_scores.filter(issuer=FlawCVSS.CVSSIssuer.REDHAT)
+            .filter(version=FlawCVSS.CVSSVersion.VERSION3)
+            .values_list("score", "vector", "comment")
+            .first()
+        )
+
+        cvss2_string = f"{cvss2[0]}/{cvss2[1]}" if cvss2 else None
+        cvss3_string = f"{cvss3[0]}/{cvss3[1]}" if cvss3 else None
+        cvss3_comment = cvss3[2] if cvss3 else None
+
+        for key, value in [
+            ("cvss2", cvss2_string),
+            ("cvss3", cvss3_string),
+            ("cvss3_comment", cvss3_comment),
+        ]:
+            self.add_conditionally(key, value)
 
     def generate_source(self):
         """
