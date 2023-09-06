@@ -7,11 +7,22 @@ from freezegun import freeze_time
 
 from apps.bbsync.exceptions import SRTNotesValidationError
 from apps.bbsync.query import FlawBugzillaQueryBuilder, SRTNotesBuilder
-from osidb.models import Affect, Flaw, FlawComment, FlawSource, Impact, Tracker
+from osidb.models import (
+    Affect,
+    AffectCVSS,
+    Flaw,
+    FlawComment,
+    FlawCVSS,
+    FlawSource,
+    Impact,
+    Tracker,
+)
 from osidb.tests.factories import (
+    AffectCVSSFactory,
     AffectFactory,
     FlawAcknowledgmentFactory,
     FlawCommentFactory,
+    FlawCVSSFactory,
     FlawFactory,
     FlawReferenceFactory,
     PsModuleFactory,
@@ -270,20 +281,22 @@ class TestGenerateSRTNotes:
                 and ack["name"] == "Canis latrans microdon"
             )
 
+    @pytest.mark.enable_signals
     def test_generate_affects(self):
         """
         test generating of SRT affects attribute array
         """
         flaw = FlawFactory()
         FlawCommentFactory(flaw=flaw)
-        AffectFactory(
+        affect = AffectFactory(
             flaw=flaw,
             ps_module="rhel-6",
             ps_component="ImageMagick",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
             impact=Impact.CRITICAL,
-            cvss2="10.0/AV:N/AC:L/Au:N/C:C/I:C/A:C",
+            # do not care about cvss2 and cvss3 as they will be deprecated
+            cvss2="",
             cvss3="",
         )
         AffectFactory(
@@ -293,8 +306,9 @@ class TestGenerateSRTNotes:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             impact=Impact.MODERATE,
-            cvss2="5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
-            cvss3="7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+            # do not care about cvss2 and cvss3 as they will be deprecated
+            cvss2="",
+            cvss3="",
         )
         AffectFactory(
             flaw=flaw,
@@ -303,8 +317,23 @@ class TestGenerateSRTNotes:
             affectedness=Affect.AffectAffectedness.NOTAFFECTED,
             resolution=Affect.AffectResolution.NOVALUE,
             impact=Impact.NOVALUE,
+            # do not care about cvss2 and cvss3 as they will be deprecated
             cvss2="",
             cvss3="",
+        )
+        AffectCVSSFactory(
+            affect=affect,
+            issuer=AffectCVSS.CVSSIssuer.REDHAT,
+            version=AffectCVSS.CVSSVersion.VERSION2,
+            vector="AV:N/AC:M/Au:N/C:P/I:P/A:P",  # 6.8
+            comment="",
+        )
+        AffectCVSSFactory(
+            affect=affect,
+            issuer=AffectCVSS.CVSSIssuer.REDHAT,
+            version=AffectCVSS.CVSSVersion.VERSION3,
+            vector="CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",  # 7.8
+            comment="",
         )
 
         bbq = FlawBugzillaQueryBuilder(flaw)
@@ -331,17 +360,17 @@ class TestGenerateSRTNotes:
         assert rhel6affect["affectedness"] == "affected"
         assert rhel6affect["resolution"] == "fix"
         assert rhel6affect["impact"] == "critical"
-        assert rhel6affect["cvss2"] == "10.0/AV:N/AC:L/Au:N/C:C/I:C/A:C"
-        assert rhel6affect["cvss3"] is None
+        assert rhel6affect["cvss2"] == "6.8/AV:N/AC:M/Au:N/C:P/I:P/A:P"
+        assert (
+            rhel6affect["cvss3"] == "7.8/CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"
+        )
 
         assert rhel7affect["ps_component"] == "kernel"
         assert rhel7affect["affectedness"] == "affected"
         assert rhel7affect["resolution"] == "delegated"
         assert rhel7affect["impact"] == "moderate"
-        assert rhel7affect["cvss2"] == "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C"
-        assert (
-            rhel7affect["cvss3"] == "7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
-        )
+        assert rhel7affect["cvss2"] is None
+        assert rhel7affect["cvss3"] is None
 
         assert rhel8affect["ps_component"] == "bash"
         assert rhel8affect["affectedness"] == "notaffected"
@@ -373,84 +402,36 @@ class TestGenerateSRTNotes:
         assert reference["url"] == "https://httpd.apache.org/link123"
         assert reference["description"] == "link description"
 
-    @pytest.mark.parametrize(
-        "osidb_cvss2,osidb_cvss3,srtnotes,bz_cvss2_present,bz_cvss3_present,bz_cvss2,bz_cvss3",
-        [
-            (
-                "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
-                "7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-                """
-                {
-                    "cvss2": "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
-                    "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
-                }
-                """,
-                True,
-                True,
-                "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
-                "7.5/CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-            ),
-            (
-                "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
-                None,
-                "",
-                True,
-                False,
-                "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
-                None,
-            ),
-            (
-                None,
-                None,
-                """
-                {
-                    "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
-                }
-                """,
-                False,
-                True,
-                None,
-                None,
-            ),
-        ],
-    )
-    def test_cvss(
-        self,
-        osidb_cvss2,
-        osidb_cvss3,
-        srtnotes,
-        bz_cvss2_present,
-        bz_cvss3_present,
-        bz_cvss2,
-        bz_cvss3,
-    ):
+    @pytest.mark.enable_signals
+    def test_generate_flaw_cvss(self):
         """
         test generating of SRT notes CVSS attributes
         """
-        flaw = FlawFactory.build(
-            cvss2=osidb_cvss2,
-            cvss3=osidb_cvss3,
-            meta_attr={"original_srtnotes": srtnotes},
+        # do not care about cvss2 and cvss3 as they will be deprecated
+        flaw = FlawFactory(cvss2="", cvss3="")
+
+        FlawCVSSFactory(
+            flaw=flaw,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            vector="CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",  # 7.8
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            comment="text",
         )
-        flaw.save(raise_validation_error=False)
-        FlawCommentFactory(flaw=flaw)
-        AffectFactory(flaw=flaw)
+        # no CVSSv2
 
         bbq = FlawBugzillaQueryBuilder(flaw)
         cf_srtnotes = bbq.query.get("cf_srtnotes")
         assert cf_srtnotes
         cf_srtnotes_json = json.loads(cf_srtnotes)
 
-        if bz_cvss2_present:
-            assert "cvss2" in cf_srtnotes_json
-            assert cf_srtnotes_json["cvss2"] == bz_cvss2
-        else:
-            assert "cvss2" not in cf_srtnotes_json
-        if bz_cvss3_present:
-            assert "cvss3" in cf_srtnotes_json
-            assert cf_srtnotes_json["cvss3"] == bz_cvss3
-        else:
-            assert "cvss3" not in cf_srtnotes_json
+        assert "cvss3" in cf_srtnotes_json
+        assert (
+            cf_srtnotes_json["cvss3"]
+            == "7.8/CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"
+        )
+        assert "cvss3_comment" in cf_srtnotes_json
+        assert cf_srtnotes_json["cvss3_comment"] == "text"
+        assert "cvss2" not in cf_srtnotes_json
 
     @pytest.mark.parametrize(
         "osidb_cwe,srtnotes,bz_present,bz_cwe",
