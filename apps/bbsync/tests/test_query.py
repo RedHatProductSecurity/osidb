@@ -326,14 +326,12 @@ class TestGenerateSRTNotes:
             issuer=AffectCVSS.CVSSIssuer.REDHAT,
             version=AffectCVSS.CVSSVersion.VERSION2,
             vector="AV:N/AC:M/Au:N/C:P/I:P/A:P",  # 6.8
-            comment="",
         )
         AffectCVSSFactory(
             affect=affect,
             issuer=AffectCVSS.CVSSIssuer.REDHAT,
             version=AffectCVSS.CVSSVersion.VERSION3,
             vector="CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",  # 7.8
-            comment="",
         )
 
         bbq = FlawBugzillaQueryBuilder(flaw)

@@ -673,10 +673,6 @@ class CVSSFactory(factory.django.DjangoModelFactory):
 
         return vectors[self.version]
 
-    comment = factory.LazyAttribute(
-        lambda o: "CVSS RH comment" if o.issuer == CVSS.CVSSIssuer.REDHAT else ""
-    )
-
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     updated_dt = factory.Faker("date_time", tzinfo=UTC)
 
@@ -687,6 +683,12 @@ class FlawCVSSFactory(CVSSFactory):
         django_get_or_create = ("flaw", "issuer", "version")
 
     flaw = factory.SubFactory(FlawFactory)
+
+    comment = factory.LazyAttribute(
+        lambda o: "CVSS RH comment"
+        if o.issuer == CVSS.CVSSIssuer.REDHAT and o.version == CVSS.CVSSVersion.VERSION3
+        else ""
+    )
 
     # let us inherit the parent flaw ACLs if not specified
     acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)

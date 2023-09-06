@@ -2014,7 +2014,11 @@ class CVSS(
 
     issuer = models.CharField(choices=CVSSIssuer.choices, max_length=16)
 
-    comment = models.TextField(blank=True)
+    comment = deprecate_field_custom(
+        models.TextField(default=""),
+        # required to keep backwards compatibility
+        return_instead="",
+    )
 
     # populated by the pre_save signal
     score = models.FloatField(default=0)
@@ -2046,15 +2050,6 @@ class CVSS(
                 f"Invalid CVSS: Malformed {self.full_version} string: {e}"
             )
 
-    def _validate_cvss_comment(self):
-        """
-        For non-Red-Hat-issued CVSSs, the comment attribute should be blank.
-        """
-        if self.comment and self.issuer != self.CVSSIssuer.REDHAT:
-            raise ValidationError(
-                "CVSS comment can be set only for CVSSs issued by Red Hat."
-            )
-
     class Meta:
         abstract = True
 
@@ -2063,6 +2058,17 @@ class FlawCVSS(CVSS):
     flaw = models.ForeignKey(
         Flaw, on_delete=models.CASCADE, blank=True, related_name="cvss_scores"
     )
+
+    comment = models.TextField(blank=True)
+
+    def _validate_cvss_comment(self):
+        """
+        For non-Red-Hat-issued CVSSs, the comment attribute should be blank.
+        """
+        if self.comment and self.issuer != self.CVSSIssuer.REDHAT:
+            raise ValidationError(
+                "CVSS comment can be set only for CVSSs issued by Red Hat."
+            )
 
     objects = FlawCVSSManager()
 
