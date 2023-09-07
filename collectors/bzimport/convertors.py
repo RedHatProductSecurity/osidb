@@ -168,6 +168,7 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
             "resolution": self._raw["resolution"],
             "created_dt": self._raw["creation_time"],
             "updated_dt": self._raw["last_change_time"],
+            "blocks": self._raw["blocks"],
         }
 
 
@@ -382,6 +383,12 @@ class FlawSaver:
                 continue
 
             tracker.affects.add(affect)
+            # liking tracker may clean some of the alerts
+            # however the save is needed to recreate them
+            tracker.save(
+                auto_timestamps=False,
+                raise_validation_error=False,
+            )
 
     def save(self):
         """save flaw with its context to DB"""

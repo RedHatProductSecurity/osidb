@@ -22,6 +22,38 @@ class TestTrackerBugzillaQueryBuilder:
     test Bugzilla tracker query building
     """
 
+    @pytest.mark.parametrize("flaw_count", [1, 2, 3])
+    def test_generate_blocks(self, flaw_count):
+        """
+        test that the query for the flaws to be blocked by the tracker is correctly generated
+        """
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        affects, flaw_ids = [], []
+        for idx in range(flaw_count):
+            affect = AffectFactory(
+                flaw__bz_id=idx,
+                flaw__embargoed=False,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                ps_module=ps_module.name,
+                ps_component="component",
+            )
+            affects.append(affect)
+            flaw_ids.append(str(affect.flaw.bz_id))
+
+        tracker = TrackerFactory(
+            affects=affects,
+            embargoed=False,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        query = TrackerBugzillaQueryBuilder(tracker).query
+
+        assert "blocks" in query
+        assert sorted(query["blocks"]) == sorted(flaw_ids)
+
     @pytest.mark.parametrize(
         "ps_component,component_overrides,bz_component",
         [

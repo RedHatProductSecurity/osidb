@@ -6,7 +6,7 @@ import pytest
 from django.utils import timezone
 
 from apps.trackers.save import TrackerSaver
-from collectors.bzimport.collectors import BugzillaTrackerCollector
+from collectors.bzimport.collectors import FlawCollector
 from collectors.bzimport.constants import BZ_DT_FMT
 from osidb.models import Affect, Impact, Tracker
 from osidb.tests.factories import (
@@ -40,8 +40,11 @@ class TestTrackerSaver:
             version="1.0",
         )
         flaw = FlawFactory(
+            bz_id="2013494",
+            cve_id=None,
             embargoed=False,
             impact=Impact.IMPORTANT,
+            title="sample title",
         )
         affect = AffectFactory(
             flaw=flaw,
@@ -65,8 +68,10 @@ class TestTrackerSaver:
         assert created_tracker.bz_id
 
         # 3) load tracker from Bugzilla
-        btc = BugzillaTrackerCollector()
-        btc.sync_tracker(created_tracker.bz_id)
+        #    this must be done through flaw collector
+        #    because that one is responsible for linking
+        fc = FlawCollector()
+        fc.sync_flaw(flaw.bz_id)
 
         # 4) get the newly loaded tracker from the DB
         loaded_tracker = Tracker.objects.get(external_system_id=created_tracker.bz_id)
@@ -78,11 +83,9 @@ class TestTrackerSaver:
         assert loaded_tracker.ps_update_stream == "rhcertification-6"
         assert loaded_tracker.status == "NEW"
         assert not loaded_tracker.resolution
-        # TODO to be implemented
-        # assert loaded_tracker.affects.count() == 1
-        # assert loaded_tracker.affects.first() == affect
-        # TODO will fail on no associated affect
-        # assert not loaded_tracker._alerts
+        assert loaded_tracker.affects.count() == 1
+        assert loaded_tracker.affects.first() == affect
+        assert not loaded_tracker._alerts
 
     @pytest.mark.vcr
     def test_tracker_update_bugzilla(self):
@@ -103,6 +106,7 @@ class TestTrackerSaver:
             version="1.0",
         )
         flaw = FlawFactory(
+            bz_id="2013494",
             embargoed=False,
             impact=Impact.IMPORTANT,
         )
@@ -116,15 +120,15 @@ class TestTrackerSaver:
 
         # 2) define a tracker model instance
         #    according an exising Bugzilla tracker
-        tracker_id = "2016018"
-        updated_dt = "2023-08-04T10:43:55Z"
+        tracker_id = "2017149"
+        updated_dt = "2023-09-04T15:05:15Z"
         tracker = TrackerFactory(
             affects=[affect],
             bz_id=tracker_id,
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
-            meta_attr={"updated_dt": updated_dt},
+            meta_attr={"blocks": ["2013494"], "updated_dt": updated_dt},
             updated_dt=timezone.datetime.strptime(updated_dt, BZ_DT_FMT),
         )
         assert tracker.bz_id == tracker_id
@@ -135,8 +139,10 @@ class TestTrackerSaver:
         assert updated_tracker.bz_id == tracker_id
 
         # 4) load tracker from Bugzilla
-        btc = BugzillaTrackerCollector()
-        btc.sync_tracker(tracker_id)
+        #    this must be done through flaw collector
+        #    because that one is responsible for linking
+        fc = FlawCollector()
+        fc.sync_flaw(flaw.bz_id)
 
         # 5) get the newly loaded tracker from the DB
         loaded_tracker = Tracker.objects.get(external_system_id=tracker_id)
@@ -148,11 +154,9 @@ class TestTrackerSaver:
         assert loaded_tracker.ps_update_stream == "rhcertification-6"
         assert loaded_tracker.status == "NEW"
         assert not loaded_tracker.resolution
-        # TODO to be implemented
-        # assert loaded_tracker.affects.count() == 1
-        # assert loaded_tracker.affects.first() == affect
-        # TODO will fail on no associated affect
-        # assert not loaded_tracker._alerts
+        assert loaded_tracker.affects.count() == 1
+        assert loaded_tracker.affects.first() == affect
+        assert not loaded_tracker._alerts
 
         # 7) check that the update actually happened
         assert "updated_dt" in loaded_tracker.meta_attr
