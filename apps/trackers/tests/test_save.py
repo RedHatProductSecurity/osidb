@@ -2,12 +2,17 @@
 tracker saver tests
 """
 
+from unittest.mock import patch
+
 import pytest
 
+from apps.bbsync.save import BugzillaSaver
 from apps.trackers.bugzilla.save import TrackerBugzillaSaver
 from apps.trackers.exceptions import UnsupportedTrackerError
 from apps.trackers.jira.save import TrackerJiraSaver
 from apps.trackers.save import TrackerSaver
+from collectors.bzimport.collectors import BugzillaTrackerCollector
+from collectors.jiraffe.collectors import JiraTrackerCollector
 from osidb.models import Affect, Tracker
 from osidb.tests.factories import (
     AffectFactory,
@@ -167,3 +172,142 @@ class TestTrackerSaver:
             match="Jira access token not provided",
         ):
             TrackerSaver(tracker)
+
+
+class TestTrackerModelSave:
+    """
+    test the tracker model save funtionality
+    which integrates with the TrackerSaver class
+    """
+
+    def test_bugzilla_db_only(self):
+        """
+        test the default Bugzilla tracker database only save
+        """
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+            ps_component="component",
+        )
+
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        with (
+            patch.object(
+                BugzillaSaver, "save", return_value=tracker
+            ) as bugzilla_save_mock,
+            patch.object(
+                BugzillaTrackerCollector, "sync_tracker"
+            ) as bugzilla_load_mock,
+        ):
+            tracker.save(bz_api_key="SECRET")
+
+            assert not bugzilla_save_mock.called
+            assert not bugzilla_load_mock.called
+
+    def test_bugzilla_backend(self, enable_bugzilla_sync):
+        """
+        test the Bugzilla tracker backend save
+        """
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+            ps_component="component",
+        )
+
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        with (
+            patch.object(
+                BugzillaSaver, "save", return_value=tracker
+            ) as bugzilla_save_mock,
+            patch.object(
+                BugzillaTrackerCollector, "sync_tracker"
+            ) as bugzilla_load_mock,
+        ):
+            tracker.save(bz_api_key="SECRET")
+
+            assert bugzilla_save_mock.called
+            assert bugzilla_load_mock.called
+
+    def test_jira_db_only(self):
+        """
+        test the default Jira tracker database only save
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+            ps_component="component",
+        )
+
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        with (
+            patch.object(
+                TrackerJiraSaver, "save", return_value=tracker
+            ) as jira_save_mock,
+            patch.object(JiraTrackerCollector, "collect") as jira_load_mock,
+        ):
+            tracker.save(jira_token="SECRET")  # nosec
+
+            assert not jira_save_mock.called
+            assert not jira_load_mock.called
+
+    def test_jira_backend(self, enable_jira_sync):
+        """
+        test the Jira tracker backend save
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+            ps_component="component",
+        )
+
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        with (
+            patch.object(
+                TrackerJiraSaver, "save", return_value=tracker
+            ) as jira_save_mock,
+            patch.object(JiraTrackerCollector, "collect") as jira_load_mock,
+        ):
+            tracker.save(jira_token="SECRET")  # nosec
+
+            assert jira_save_mock.called
+            assert jira_load_mock.called
