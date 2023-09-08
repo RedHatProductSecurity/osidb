@@ -20,6 +20,10 @@ the release branch so that the code can be reviewed.
 Make sure that the stage environment is set to pull from this branch at least until it is merged
 back into the main development branch.
 
+Additionally, if the API was extended with completely new entities, either independent
+or embeded under the others, make sure to raise the corresponding feature request to the
+[Griffon](https://github.com/RedHatProductSecurity/griffon/) project.
+
 ## Release
 
 Follow this procedure when performing OSIDB version X.Y.Z release, this step assumes that
