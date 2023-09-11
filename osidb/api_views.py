@@ -29,14 +29,19 @@ from rest_framework.viewsets import (
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import (
+    AffectCVSSFilter,
     AffectFilter,
     FlawAcknowledgmentFilter,
     FlawCommentFilter,
+    FlawCVSSFilter,
     FlawFilter,
     TrackerFilter,
 )
-from .models import Affect, Flaw, Tracker
+from .models import Affect, AffectCVSS, Flaw, Tracker
 from .serializer import (
+    AffectCVSSPostSerializer,
+    AffectCVSSPutSerializer,
+    AffectCVSSSerializer,
     AffectPostSerializer,
     AffectSerializer,
     FlawAcknowledgmentPostSerializer,
@@ -44,6 +49,9 @@ from .serializer import (
     FlawAcknowledgmentSerializer,
     FlawCommentPostSerializer,
     FlawCommentSerializer,
+    FlawCVSSPostSerializer,
+    FlawCVSSPutSerializer,
+    FlawCVSSSerializer,
     FlawPostSerializer,
     FlawReferencePostSerializer,
     FlawReferenceSerializer,
@@ -517,6 +525,22 @@ class FlawReferenceView(
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
+@include_exclude_fields_extend_schema_view
+@extend_schema_view(
+    create=extend_schema(
+        request=FlawCVSSPostSerializer,
+    ),
+    update=extend_schema(
+        request=FlawCVSSPutSerializer,
+    ),
+)
+class FlawCVSSView(SubFlawViewGetMixin, SubFlawViewDestroyMixin, ModelViewSet):
+    serializer_class = FlawCVSSSerializer
+    http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filterset_class = FlawCVSSFilter
+
+
 @extend_schema(
     responses={
         200: {
@@ -624,6 +648,68 @@ class AffectView(SubFlawViewDestroyMixin, ModelViewSet):
     filterset_class = AffectFilter
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+@include_exclude_fields_extend_schema_view
+@extend_schema_view(
+    create=extend_schema(
+        request=AffectCVSSPostSerializer,
+    ),
+    update=extend_schema(
+        request=AffectCVSSPutSerializer,
+    ),
+)
+class AffectCVSSView(ModelViewSet):
+    serializer_class = AffectCVSSSerializer
+    http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filterset_class = AffectCVSSFilter
+
+    def get_affect(self):
+        """
+        Gets the affect associated with the given affect cvss.
+        """
+        _id = self.kwargs["affect_id"]
+        obj = get_object_or_404(Affect, uuid=_id)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def get_queryset(self):
+        """
+        Returns affect cvss scores only for the specified affect.
+        """
+        # This solves the issue described in the section "My get_queryset()
+        # depends on some attributes not available at schema generation time" in
+        # https://drf-spectacular.readthedocs.io/en/latest/faq.html
+        if getattr(self, "swagger_fake_view", False):
+            return AffectCVSS.objects.none()
+
+        affect = self.get_affect()
+        return AffectCVSS.objects.filter(affect=affect)
+
+    def get_serializer(self, *args, **kwargs):
+        """
+        Updates the serializer to contain also the affect uuid.
+        """
+        if "data" in kwargs:
+            data = kwargs["data"].copy()
+            data["affect"] = str(self.get_affect().uuid)
+            kwargs["data"] = data
+        return super().get_serializer(*args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Destroy the instance and proxy the delete to Bugzilla.
+        """
+        bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
+        if not bz_api_key:
+            raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
+
+        instance = self.get_object()
+        affect = instance.affect
+        instance.delete()
+        affect.save(bz_api_key=bz_api_key)
+        return Response(status=HTTP_200_OK)
 
 
 # until we implement tracker write operations

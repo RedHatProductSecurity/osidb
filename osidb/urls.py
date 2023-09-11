@@ -6,9 +6,11 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
 from .api_views import (
+    AffectCVSSView,
     AffectView,
     FlawAcknowledgmentView,
     FlawCommentView,
+    FlawCVSSView,
     FlawReferenceView,
     FlawView,
     ManifestView,
@@ -30,11 +32,17 @@ router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/comments", FlawCommentView, basename="flawcomments"
 )
 router.register(
+    r"flaws/(?P<flaw_id>[^/.]+)/cvss_scores", FlawCVSSView, basename="flawcvss"
+)
+router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/references",
     FlawReferenceView,
     basename="flawreferences",
 )
 router.register(r"affects", AffectView)
+router.register(
+    r"affects/(?P<affect_id>[^/.]+)/cvss_scores", AffectCVSSView, basename="affectcvss"
+)
 router.register(r"trackers", TrackerView)
 
 urlpatterns = [

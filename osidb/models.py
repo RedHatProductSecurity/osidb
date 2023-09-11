@@ -1991,11 +1991,7 @@ class AffectCVSSManager(ACLMixinManager, TrackingMixinManager):
             )
 
 
-class CVSS(
-    ACLMixin,
-    AlertMixin,
-    TrackingMixin,
-):
+class CVSS(ACLMixin, BugzillaSyncMixin, TrackingMixin):
     class CVSSVersion(models.TextChoices):
         VERSION2 = "V2", "version 2"
         VERSION3 = "V3", "version 3"
@@ -2073,6 +2069,14 @@ class FlawCVSS(CVSS):
             ),
         ]
 
+    def bzsync(self, *args, bz_api_key, **kwargs):
+        """
+        Bugzilla sync of the FlawCVSS instance
+        """
+        self.save()
+        # FlawCVSS needs to be synced through flaw
+        self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
+
 
 class AffectCVSS(CVSS):
     affect = models.ForeignKey(
@@ -2087,6 +2091,14 @@ class AffectCVSS(CVSS):
                 fields=["affect", "version", "issuer"], name="unique CVSS of an Affect"
             ),
         ]
+
+    def bzsync(self, *args, bz_api_key, **kwargs):
+        """
+        Bugzilla sync of the AffectCVSS instance
+        """
+        self.save()
+        # AffectCVSS needs to be synced through affect
+        self.affect.save(*args, bz_api_key=bz_api_key, **kwargs)
 
 
 class TrackerManager(ACLMixinManager, TrackingMixinManager):
