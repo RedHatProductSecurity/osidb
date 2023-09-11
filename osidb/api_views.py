@@ -32,6 +32,7 @@ from .filters import (
     AffectFilter,
     FlawAcknowledgmentFilter,
     FlawCommentFilter,
+    FlawCVSSFilter,
     FlawFilter,
     TrackerFilter,
 )
@@ -536,6 +537,7 @@ class FlawCVSSView(SubFlawViewGetMixin, SubFlawViewDestroyMixin, ModelViewSet):
     serializer_class = FlawCVSSSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
+    filterset_class = FlawCVSSFilter
 
 
 @extend_schema(

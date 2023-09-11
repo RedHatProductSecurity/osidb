@@ -2487,6 +2487,115 @@ paths:
           type: number
           format: float
       - in: query
+        name: cvss_scores__comment
+        schema:
+          type: string
+      - in: query
+        name: cvss_scores__created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: cvss_scores__created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: cvss_scores__created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: cvss_scores__created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: cvss_scores__created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: cvss_scores__created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: cvss_scores__created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: cvss_scores__created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: cvss_scores__cvss_version
+        schema:
+          type: string
+      - in: query
+        name: cvss_scores__issuer
+        schema:
+          type: string
+          enum:
+          - NIST
+          - RH
+      - in: query
+        name: cvss_scores__score
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: cvss_scores__updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: cvss_scores__updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: cvss_scores__updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: cvss_scores__updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: cvss_scores__updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: cvss_scores__updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: cvss_scores__updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: cvss_scores__updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: cvss_scores__uuid
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: cvss_scores__vector
+        schema:
+          type: string
+      - in: query
         name: cwe_id
         schema:
           type: string
@@ -2634,6 +2743,13 @@ paths:
             - -cvss2_score
             - -cvss3
             - -cvss3_score
+            - -cvss_scores__comment
+            - -cvss_scores__created_dt
+            - -cvss_scores__issuer
+            - -cvss_scores__score
+            - -cvss_scores__updated_dt
+            - -cvss_scores__uuid
+            - -cvss_scores__vector
             - -cwe_id
             - -impact
             - -major_incident_state
@@ -2683,6 +2799,13 @@ paths:
             - cvss2_score
             - cvss3
             - cvss3_score
+            - cvss_scores__comment
+            - cvss_scores__created_dt
+            - cvss_scores__issuer
+            - cvss_scores__score
+            - cvss_scores__updated_dt
+            - cvss_scores__uuid
+            - cvss_scores__vector
             - cwe_id
             - impact
             - major_incident_state
@@ -3590,6 +3713,54 @@ paths:
       operationId: osidb_api_v1_flaws_cvss_scores_list
       parameters:
       - in: query
+        name: comment
+        schema:
+          type: string
+      - in: query
+        name: created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: cvss_version
+        schema:
+          type: string
+      - in: query
         name: exclude_fields
         schema:
           type: array
@@ -3613,6 +3784,13 @@ paths:
         description: 'Include only specified fields in the response. Multiple values
           may be separated by commas. Dot notation can be used to filter on related
           model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: issuer
+        schema:
+          type: string
+          enum:
+          - NIST
+          - RH
       - name: limit
         required: false
         in: query
@@ -3625,6 +3803,60 @@ paths:
         description: The initial index from which to return the results.
         schema:
           type: integer
+      - in: query
+        name: score
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: vector
+        schema:
+          type: string
       tags:
       - osidb
       security:
