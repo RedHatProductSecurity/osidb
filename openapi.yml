@@ -1514,6 +1514,256 @@ paths:
                     version:
                       type: string
           description: ''
+  /osidb/api/v1/affects/{affect_id}/cvss_scores:
+    get:
+      operationId: osidb_api_v1_affects_cvss_scores_list
+      parameters:
+      - in: path
+        name: affect_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedAffectCVSSList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: osidb_api_v1_affects_cvss_scores_create
+      parameters:
+      - in: path
+        name: affect_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AffectCVSSPost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AffectCVSSPost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AffectCVSSPost'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/AffectCVSS'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v1/affects/{affect_id}/cvss_scores/{id}:
+    get:
+      operationId: osidb_api_v1_affects_cvss_scores_retrieve
+      parameters:
+      - in: path
+        name: affect_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/AffectCVSS'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: osidb_api_v1_affects_cvss_scores_update
+      parameters:
+      - in: path
+        name: affect_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AffectCVSSPut'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AffectCVSSPut'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AffectCVSSPut'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/AffectCVSS'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    delete:
+      operationId: osidb_api_v1_affects_cvss_scores_destroy
+      description: Destroy the instance and proxy the delete to Bugzilla.
+      parameters:
+      - in: path
+        name: affect_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
   /osidb/api/v1/affects/{uuid}:
     get:
       operationId: osidb_api_v1_affects_retrieve
@@ -5981,6 +6231,11 @@ components:
         delegated_resolution:
           type: string
           readOnly: true
+        cvss_scores:
+          type: array
+          items:
+            $ref: '#/components/schemas/AffectCVSS'
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -5997,6 +6252,7 @@ components:
             it is used to detect mit-air collisions.
       required:
       - created_dt
+      - cvss_scores
       - delegated_resolution
       - embargoed
       - flaw
@@ -6006,6 +6262,129 @@ components:
       - trackers
       - updated_dt
       - uuid
+    AffectCVSS:
+      type: object
+      description: AffectCVSS serializer
+      properties:
+        affect:
+          type: string
+          format: uuid
+        comment:
+          type: string
+        cvss_version:
+          type: string
+        issuer:
+          $ref: '#/components/schemas/IssuerEnum'
+        score:
+          type: number
+          format: float
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        vector:
+          type: string
+          maxLength: 100
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - created_dt
+      - cvss_version
+      - embargoed
+      - issuer
+      - updated_dt
+      - uuid
+      - vector
+    AffectCVSSPost:
+      type: object
+      description: AffectCVSS serializer
+      properties:
+        comment:
+          type: string
+        cvss_version:
+          type: string
+        issuer:
+          $ref: '#/components/schemas/IssuerEnum'
+        score:
+          type: number
+          format: float
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        vector:
+          type: string
+          maxLength: 100
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_dt
+      - cvss_version
+      - embargoed
+      - issuer
+      - uuid
+      - vector
+    AffectCVSSPut:
+      type: object
+      description: AffectCVSS serializer
+      properties:
+        comment:
+          type: string
+        cvss_version:
+          type: string
+        issuer:
+          $ref: '#/components/schemas/IssuerEnum'
+        score:
+          type: number
+          format: float
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        vector:
+          type: string
+          maxLength: 100
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - created_dt
+      - cvss_version
+      - embargoed
+      - issuer
+      - updated_dt
+      - uuid
+      - vector
     AffectPost:
       type: object
       description: Affect serializer
@@ -6084,6 +6463,11 @@ components:
         delegated_resolution:
           type: string
           readOnly: true
+        cvss_scores:
+          type: array
+          items:
+            $ref: '#/components/schemas/AffectCVSS'
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -6095,6 +6479,7 @@ components:
           readOnly: true
       required:
       - created_dt
+      - cvss_scores
       - delegated_resolution
       - embargoed
       - flaw
@@ -7383,6 +7768,26 @@ components:
       - APPROVED
       - REJECTED
       type: string
+    PaginatedAffectCVSSList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AffectCVSS'
     PaginatedAffectList:
       type: object
       properties:

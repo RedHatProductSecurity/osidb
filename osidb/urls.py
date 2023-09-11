@@ -6,6 +6,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
 from .api_views import (
+    AffectCVSSView,
     AffectView,
     FlawAcknowledgmentView,
     FlawCommentView,
@@ -39,6 +40,9 @@ router.register(
     basename="flawreferences",
 )
 router.register(r"affects", AffectView)
+router.register(
+    r"affects/(?P<affect_id>[^/.]+)/cvss_scores", AffectCVSSView, basename="affectcvss"
+)
 router.register(r"trackers", TrackerView)
 
 urlpatterns = [

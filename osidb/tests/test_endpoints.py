@@ -19,6 +19,7 @@ from ..core import generate_acls
 from ..helpers import ensure_list
 from ..models import (
     Affect,
+    AffectCVSS,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
@@ -29,6 +30,7 @@ from ..models import (
     Tracker,
 )
 from .factories import (
+    AffectCVSSFactory,
     AffectFactory,
     CVEv5PackageVersionsFactory,
     CVEv5VersionFactory,
@@ -150,6 +152,21 @@ class TestEndpoints(object):
         FlawCVSSFactory(flaw=flaw)
 
         response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["cvss_scores"]) == 1
+
+    @pytest.mark.enable_signals
+    def test_get_affect_with_cvss(self, auth_client, test_api_uri):
+        """retrieve specific affect with affectcvss from endpoint"""
+        affect = AffectFactory()
+
+        response = auth_client.get(f"{test_api_uri}/affects/{affect.uuid}")
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["cvss_scores"]) == 0
+
+        AffectCVSSFactory(affect=affect)
+
+        response = auth_client.get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["cvss_scores"]) == 1
 
@@ -1975,6 +1992,90 @@ class TestEndpoints(object):
         response = auth_client.delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
         assert response.status_code == status.HTTP_200_OK
         assert FlawCVSS.objects.count() == 0
+
+    @pytest.mark.enable_signals
+    def test_affectcvss_create(self, auth_client, embargo_access, test_api_uri):
+        """
+        Test the creation of AffectCVSS records via a REST API POST request.
+        """
+        flaw = FlawFactory()
+        affect = AffectFactory(flaw=flaw)
+        cvss_data = {
+            "issuer": AffectCVSS.CVSSIssuer.REDHAT,
+            "cvss_version": AffectCVSS.CVSSVersion.VERSION3,
+            "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+            "embargoed": flaw.embargoed,
+        }
+
+        # Tests "POST" on affects/{uuid}/cvss_scores
+        response = auth_client.post(
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores",
+            data=cvss_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        cvss_uuid = response.data["uuid"]
+
+        # Tests "GET" on affects/{uuid}/cvss_scores
+        response = auth_client.get(
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == 1
+
+        # Tests "GET" on affects/{uuid}/cvss_scores/{uuid}
+        response = auth_client.get(
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss_uuid}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["uuid"] == cvss_uuid
+
+    @pytest.mark.enable_signals
+    def test_affectcvss_update(self, auth_client, embargo_access, test_api_uri):
+        """
+        Test the update of AffectCVSS records via a REST API PUT request.
+        """
+        affect = AffectFactory()
+        cvss = AffectCVSSFactory(
+            affect=affect, issuer=AffectCVSS.CVSSIssuer.REDHAT, comment=""
+        )
+
+        response = auth_client.get(
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["comment"] == ""
+
+        updated_data = response.json().copy()
+        updated_data["comment"] = "text"
+
+        # Tests "PUT" on affects/{uuid}/cvss_scores/{uuid}
+        response = auth_client.put(
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}",
+            data=updated_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["comment"] == "text"
+
+    @pytest.mark.enable_signals
+    def test_affectcvss_delete(self, auth_client, embargo_access, test_api_uri):
+        """
+        Test the deletion of AffectCVSS records via a REST API DELETE request.
+        """
+        affect = AffectFactory()
+        cvss = AffectCVSSFactory(affect=affect)
+
+        url = f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}"
+        response = auth_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        # Tests "DELETE" on affects/{uuid}/cvss_scores/{uuid}
+        response = auth_client.delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
+        assert response.status_code == status.HTTP_200_OK
+        assert AffectCVSS.objects.count() == 0
 
     def test_tracker_create(self, auth_client, test_api_uri):
         """

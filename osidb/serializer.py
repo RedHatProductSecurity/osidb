@@ -26,6 +26,7 @@ from .helpers import ensure_list
 from .mixins import ACLMixin, TrackingMixin
 from .models import (
     Affect,
+    AffectCVSS,
     CVEv5PackageVersions,
     CVEv5Version,
     Erratum,
@@ -561,6 +562,42 @@ class JiraTaskSyncMixinSerializer(serializers.ModelSerializer):
         abstract = True
 
 
+class AffectCVSSSerializer(
+    ACLMixinSerializer,
+    BugzillaSyncMixinSerializer,
+    IncludeExcludeFieldsMixin,
+    TrackingMixinSerializer,
+):
+    """AffectCVSS serializer"""
+
+    cvss_version = serializers.CharField(source="version")
+
+    class Meta:
+        """filter fields"""
+
+        model = AffectCVSS
+        fields = (
+            ["affect", "comment", "cvss_version", "issuer", "score", "uuid", "vector"]
+            + ACLMixinSerializer.Meta.fields
+            + TrackingMixinSerializer.Meta.fields
+        )
+
+
+@extend_schema_serializer(exclude_fields=["affect", "updated_dt"])
+class AffectCVSSPostSerializer(AffectCVSSSerializer):
+    # Extra serializer for POST request as there is no last update
+    # timestamp but we need to make the field mandatory otherwise.
+    # Flaw shouldn't be required in the body (already included in the path).
+    pass
+
+
+@extend_schema_serializer(exclude_fields=["affect"])
+class AffectCVSSPutSerializer(AffectCVSSSerializer):
+    # Extra serializer for PUT request because affect shouldn't be
+    # required in the body (already included in the path).
+    pass
+
+
 class AffectSerializer(
     ACLMixinSerializer,
     BugzillaSyncMixinSerializer,
@@ -591,6 +628,7 @@ class AffectSerializer(
 
     trackers = serializers.SerializerMethodField()
     meta_attr = serializers.SerializerMethodField()
+    cvss_scores = AffectCVSSSerializer(many=True, read_only=True)
 
     @extend_schema_field(
         {
@@ -636,6 +674,7 @@ class AffectSerializer(
                 "trackers",
                 "meta_attr",
                 "delegated_resolution",
+                "cvss_scores",
             ]
             + ACLMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
