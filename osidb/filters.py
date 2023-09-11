@@ -15,6 +15,7 @@ from django_filters.rest_framework import (
 
 from .models import (
     Affect,
+    AffectCVSS,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
@@ -274,6 +275,7 @@ class AffectFilter(DistinctFilterSet):
     trackers__embargoed = BooleanFilter(field_name="trackers__embargoed")
     flaw__embargoed = BooleanFilter(field_name="flaw__embargoed")
     flaw__is_major_incident = BooleanFilter(method="is_major_incident_filter")
+    cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
 
     def is_major_incident_filter(self, queryset, name, value):
         """
@@ -359,6 +361,20 @@ class AffectFilter(DistinctFilterSet):
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
+            # AffectCVSS fields
+            "cvss_scores__comment": ["exact"],
+            "cvss_scores__created_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "cvss_scores__issuer": ["exact"],
+            "cvss_scores__score": ["exact"],
+            "cvss_scores__updated_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "cvss_scores__uuid": ["exact"],
+            "cvss_scores__vector": ["exact"],
         }
 
     order = OrderingFilter(fields=Meta.fields.keys())
@@ -502,6 +518,28 @@ class FlawCVSSFilter(FilterSet):
 
     class Meta:
         model = FlawCVSS
+        fields = {
+            "comment": ["exact"],
+            "created_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "issuer": ["exact"],
+            "score": ["exact"],
+            "updated_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "uuid": ["exact"],
+            "vector": ["exact"],
+        }
+
+
+class AffectCVSSFilter(FilterSet):
+    cvss_version = CharFilter(field_name="version")
+
+    class Meta:
+        model = AffectCVSS
         fields = {
             "comment": ["exact"],
             "created_dt": ["exact"]

@@ -29,6 +29,7 @@ from rest_framework.viewsets import (
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import (
+    AffectCVSSFilter,
     AffectFilter,
     FlawAcknowledgmentFilter,
     FlawCommentFilter,
@@ -662,6 +663,7 @@ class AffectCVSSView(ModelViewSet):
     serializer_class = AffectCVSSSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
+    filterset_class = AffectCVSSFilter
 
     def get_affect(self):
         """
