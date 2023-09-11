@@ -1991,11 +1991,9 @@ class AffectCVSSManager(ACLMixinManager, TrackingMixinManager):
             )
 
 
-class CVSS(
-    ACLMixin,
-    AlertMixin,
-    TrackingMixin,
-):
+# once API for AffectCVSS is done, CVSS should inherit also from BugzillaSyncMixin,
+# and FlawCVSS with AffectCVSS should inherit from CVSS class only
+class CVSS(ACLMixin, TrackingMixin):
     class CVSSVersion(models.TextChoices):
         VERSION2 = "V2", "version 2"
         VERSION3 = "V3", "version 3"
@@ -2059,7 +2057,7 @@ class CVSS(
         abstract = True
 
 
-class FlawCVSS(CVSS):
+class FlawCVSS(BugzillaSyncMixin, CVSS):
     flaw = models.ForeignKey(
         Flaw, on_delete=models.CASCADE, blank=True, related_name="cvss_scores"
     )
@@ -2073,8 +2071,16 @@ class FlawCVSS(CVSS):
             ),
         ]
 
+    def bzsync(self, *args, bz_api_key, **kwargs):
+        """
+        Bugzilla sync of the FlawCVSS instance
+        """
+        self.save()
+        # FlawCVSS needs to be synced through flaw
+        self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
 
-class AffectCVSS(CVSS):
+
+class AffectCVSS(AlertMixin, CVSS):
     affect = models.ForeignKey(
         Affect, on_delete=models.CASCADE, blank=True, related_name="cvss_scores"
     )

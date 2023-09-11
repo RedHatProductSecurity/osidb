@@ -32,6 +32,7 @@ from .models import (
     Flaw,
     FlawAcknowledgment,
     FlawComment,
+    FlawCVSS,
     FlawMeta,
     FlawReference,
     Profile,
@@ -741,6 +742,42 @@ class FlawReferencePostSerializer(FlawReferenceSerializer):
     pass
 
 
+class FlawCVSSSerializer(
+    ACLMixinSerializer,
+    BugzillaSyncMixinSerializer,
+    IncludeExcludeFieldsMixin,
+    TrackingMixinSerializer,
+):
+    """FlawCVSS serializer"""
+
+    cvss_version = serializers.CharField(source="version")
+
+    class Meta:
+        """filter fields"""
+
+        model = FlawCVSS
+        fields = (
+            ["comment", "cvss_version", "flaw", "issuer", "score", "uuid", "vector"]
+            + ACLMixinSerializer.Meta.fields
+            + TrackingMixinSerializer.Meta.fields
+        )
+
+
+@extend_schema_serializer(exclude_fields=["updated_dt", "flaw"])
+class FlawCVSSPostSerializer(FlawCVSSSerializer):
+    # Extra serializer for POST request as there is no last update
+    # timestamp but we need to make the field mandatory otherwise.
+    # Flaw shouldn't be required in the body (already included in the path).
+    pass
+
+
+@extend_schema_serializer(exclude_fields=["flaw"])
+class FlawCVSSPutSerializer(FlawCVSSSerializer):
+    # Extra serializer for PUT request because flaw shouldn't be
+    # required in the body (already included in the path).
+    pass
+
+
 @extend_schema_serializer(deprecate_fields=["state", "resolution", "is_major_incident"])
 class FlawSerializer(
     ACLMixinSerializer,
@@ -805,6 +842,7 @@ class FlawSerializer(
     comments = CommentSerializer(many=True, read_only=True)
     acknowledgments = FlawAcknowledgmentSerializer(many=True, read_only=True)
     references = FlawReferenceSerializer(many=True, read_only=True)
+    cvss_scores = FlawCVSSSerializer(many=True, read_only=True)
     package_versions = CVEv5PackageVersionsSerializer(many=True, read_only=True)
 
     meta = serializers.SerializerMethodField()
@@ -903,6 +941,7 @@ class FlawSerializer(
                 "package_versions",
                 "acknowledgments",
                 "references",
+                "cvss_scores",
             ]
             + ACLMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields

@@ -3335,6 +3335,256 @@ paths:
                     version:
                       type: string
           description: ''
+  /osidb/api/v1/flaws/{flaw_id}/cvss_scores:
+    get:
+      operationId: osidb_api_v1_flaws_cvss_scores_list
+      parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedFlawCVSSList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: osidb_api_v1_flaws_cvss_scores_create
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawCVSSPost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawCVSSPost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawCVSSPost'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawCVSS'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v1/flaws/{flaw_id}/cvss_scores/{id}:
+    get:
+      operationId: osidb_api_v1_flaws_cvss_scores_retrieve
+      parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawCVSS'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: osidb_api_v1_flaws_cvss_scores_update
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawCVSSPut'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawCVSSPut'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawCVSSPut'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawCVSS'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    delete:
+      operationId: osidb_api_v1_flaws_cvss_scores_destroy
+      description: Destroy the instance and proxy the delete to Bugzilla
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
   /osidb/api/v1/flaws/{flaw_id}/references:
     get:
       operationId: osidb_api_v1_flaws_references_list
@@ -6213,6 +6463,11 @@ components:
           items:
             $ref: '#/components/schemas/FlawReference'
           readOnly: true
+        cvss_scores:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawCVSS'
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -6248,6 +6503,7 @@ components:
       - classification
       - comments
       - created_dt
+      - cvss_scores
       - description
       - embargoed
       - meta
@@ -6372,6 +6628,129 @@ components:
       - name
       - updated_dt
       - uuid
+    FlawCVSS:
+      type: object
+      description: FlawCVSS serializer
+      properties:
+        comment:
+          type: string
+        cvss_version:
+          type: string
+        flaw:
+          type: string
+          format: uuid
+        issuer:
+          $ref: '#/components/schemas/IssuerEnum'
+        score:
+          type: number
+          format: float
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        vector:
+          type: string
+          maxLength: 100
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - created_dt
+      - cvss_version
+      - embargoed
+      - issuer
+      - updated_dt
+      - uuid
+      - vector
+    FlawCVSSPost:
+      type: object
+      description: FlawCVSS serializer
+      properties:
+        comment:
+          type: string
+        cvss_version:
+          type: string
+        issuer:
+          $ref: '#/components/schemas/IssuerEnum'
+        score:
+          type: number
+          format: float
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        vector:
+          type: string
+          maxLength: 100
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_dt
+      - cvss_version
+      - embargoed
+      - issuer
+      - uuid
+      - vector
+    FlawCVSSPut:
+      type: object
+      description: FlawCVSS serializer
+      properties:
+        comment:
+          type: string
+        cvss_version:
+          type: string
+        issuer:
+          $ref: '#/components/schemas/IssuerEnum'
+        score:
+          type: number
+          format: float
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        vector:
+          type: string
+          maxLength: 100
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - created_dt
+      - cvss_version
+      - embargoed
+      - issuer
+      - updated_dt
+      - uuid
+      - vector
     FlawComment:
       type: object
       description: FlawComment serializer for use by flaw_comments endpoint
@@ -6653,6 +7032,11 @@ components:
           items:
             $ref: '#/components/schemas/FlawReference'
           readOnly: true
+        cvss_scores:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawCVSS'
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -6683,6 +7067,7 @@ components:
       - classification
       - comments
       - created_dt
+      - cvss_scores
       - description
       - embargoed
       - meta
@@ -6810,6 +7195,11 @@ components:
       - MODERATE
       - IMPORTANT
       - CRITICAL
+      type: string
+    IssuerEnum:
+      enum:
+      - RH
+      - NIST
       type: string
     JiraComment:
       type: object
@@ -7073,6 +7463,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FlawAcknowledgment'
+    PaginatedFlawCVSSList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawCVSS'
     PaginatedFlawCommentList:
       type: object
       properties:

@@ -44,6 +44,9 @@ from .serializer import (
     FlawAcknowledgmentSerializer,
     FlawCommentPostSerializer,
     FlawCommentSerializer,
+    FlawCVSSPostSerializer,
+    FlawCVSSPutSerializer,
+    FlawCVSSSerializer,
     FlawPostSerializer,
     FlawReferencePostSerializer,
     FlawReferenceSerializer,
@@ -513,6 +516,21 @@ class FlawReferenceView(
     ModelViewSet,
 ):
     serializer_class = FlawReferenceSerializer
+    http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+@include_exclude_fields_extend_schema_view
+@extend_schema_view(
+    create=extend_schema(
+        request=FlawCVSSPostSerializer,
+    ),
+    update=extend_schema(
+        request=FlawCVSSPutSerializer,
+    ),
+)
+class FlawCVSSView(SubFlawViewGetMixin, SubFlawViewDestroyMixin, ModelViewSet):
+    serializer_class = FlawCVSSSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
 
