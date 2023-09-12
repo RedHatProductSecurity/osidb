@@ -39,13 +39,11 @@ EMAIL_USE_TLS = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_LDAP_SERVER_URI = get_env("LDAP_SERVER_URL", default="ldap://testldap:1389")
 
-LOGIN_URL = "/admin/"
 BLACKLISTED_HTTP_METHODS = ("patch",)
 READONLY_MODE: bool = get_env("OSIDB_READONLY_MODE", default="False", is_bool=True)
 
 # Application definition
 INSTALLED_APPS = [
-    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",

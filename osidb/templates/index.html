@@ -16,22 +16,6 @@
           <b>OSIDB - Open Security Issue Database</b>
         </a>
       </div>
-      <div class="collapse navbar-collapse navbar-collapse-1">
-        <ul class="nav navbar-nav navbar-utility">
-          <li>
-          {% if user.is_authenticated %}
-            <a style="padding: 10px 10px;" href="/admin">
-              <i class="fa fa-user"></i> {{ request.user.username }}
-            </a>
-          </li>
-          <li>
-            <a style="padding: 10px 10px;" href="/admin/logout">Logout</a>
-          {% else %}
-            <a style="padding: 10px 10px;" href="/admin/login?next=/">Login</a>
-          {% endif %}
-          </li>
-        </ul>
-      </div>
     </nav>
     <div class="container-fluid">
       <hr/>
