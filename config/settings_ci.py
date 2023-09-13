@@ -89,10 +89,6 @@ DATABASES = {
     }
 }
 
-
-LOGOUT_REDIRECT_URL = "/"  # this is the name of the url
-LOGIN_REDIRECT_URL = "/"  # this is the name of the url
-
 STATIC_ROOT = "/var/www/osidb/static/"
 STATIC_URL = "/static/"
 

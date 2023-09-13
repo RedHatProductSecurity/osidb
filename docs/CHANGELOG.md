@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Link tracker to flaw(s) on create/update (OSIDB-1182)
 - Implement FlawCVSS and AffectCVSS APIs with filters (OSIDB-1105)
 
+### Removed
+- Remove the Django admin interface (OSIDB-1188)
+
 ## [3.4.2] - 2023-08-31
 ### Changed
 - Reduce the total amount of records per page when querying Bugzilla (OSIDB-1232)

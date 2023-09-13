@@ -83,9 +83,6 @@ DATABASES = {
     }
 }
 
-LOGOUT_REDIRECT_URL = "/"
-LOGIN_REDIRECT_URL = "/"
-
 STATIC_ROOT = "/opt/app-root/static/"
 STATIC_URL = "/static/"
 

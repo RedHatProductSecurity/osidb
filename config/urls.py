@@ -35,8 +35,6 @@ urlpatterns = [
     path("osidb/", include("osidb.urls")),
     # Trackers
     path("trackers/", include("apps.trackers.urls")),
-    # manage
-    path("admin/", admin.site.urls),
     # auth
     token_obtain_path,
     path("auth/token/refresh", TokenRefreshView.as_view(), name="token_refresh"),
