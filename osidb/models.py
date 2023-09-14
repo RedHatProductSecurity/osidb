@@ -846,48 +846,67 @@ class Flaw(
         """convert to string"""
         return str(self.uuid)
 
-    def _validate_rh_nvd_cvss_score_diff(self):
+    def _validate_rh_nist_cvss_score_diff(self):
         """
-        Checks that the difference between the RH and NVD CVSS score is not >= 1.0
+        Checks that the difference between the RH and NIST CVSSv3 score is not >= 1.0.
         """
-        if self.cvss3_score is None or not self.nvd_cvss3:
-            return
-        # we don't store the nvd_cvss3_score directly unlike the RH one
-        nvd_cvss3_score = Decimal(self.nvd_cvss3.split("/", 1)[0])
-        rh_cvss3_score = Decimal(str(self.cvss3_score))
+        cvss_scores_v3 = self.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION3)
+        nist_score = (
+            cvss_scores_v3.filter(issuer=FlawCVSS.CVSSIssuer.NIST)
+            .values_list("score", flat=True)
+            .first()
+        )
+        rh_score = (
+            cvss_scores_v3.filter(issuer=FlawCVSS.CVSSIssuer.REDHAT)
+            .values_list("score", flat=True)
+            .first()
+        )
 
-        if abs(nvd_cvss3_score - rh_cvss3_score) >= Decimal("1.0"):
+        if not nist_score or not rh_score:
+            return
+
+        if abs(nist_score - rh_score) >= Decimal("1.0"):
             self.alert(
-                "rh_nvd_cvss_score_diff",
-                f"RH and NVD CVSSv3 score differs by 1.0 or more - "
-                f"RH {rh_cvss3_score} | NVD {nvd_cvss3_score}",
+                "rh_nist_cvss_score_diff",
+                f"RH and NIST CVSSv3 score differs by 1.0 or more - "
+                f"RH {rh_score} | NIST {nist_score}.",
             )
 
-    def _validate_rh_nvd_cvss_severity_diff(self):
+    def _validate_rh_nist_cvss_severity_diff(self):
         """
-        Checks that NVD and RH CVSS are not of a different severity.
+        Checks that the NIST and RH CVSSv3 score are not of a different severity.
         """
-        if self.cvss3_score is None or not self.nvd_cvss3:
-            return
-        nvd_cvss3_score = Decimal(self.nvd_cvss3.split("/", 1)[0])
-        rh_cvss3_score = Decimal(str(self.cvss3_score))
+        cvss_scores_v3 = self.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION3)
+        nist_score = (
+            cvss_scores_v3.filter(issuer=FlawCVSS.CVSSIssuer.NIST)
+            .values_list("score", flat=True)
+            .first()
+        )
+        rh_score = (
+            cvss_scores_v3.filter(issuer=FlawCVSS.CVSSIssuer.REDHAT)
+            .values_list("score", flat=True)
+            .first()
+        )
 
-        rh_severity = nvd_severity = None
+        if not nist_score or not rh_score:
+            return
+
+        rh_severity = nist_severity = None
         for key, value in CVSS3_SEVERITY_SCALE.items():
             lower, upper = value
 
-            if lower <= rh_cvss3_score <= upper:
+            if lower <= rh_score <= upper:
                 rh_severity = key
 
-            if lower <= nvd_cvss3_score <= upper:
-                nvd_severity = key
+            if lower <= nist_score <= upper:
+                nist_severity = key
 
-        if rh_severity != nvd_severity:
+        if rh_severity != nist_severity:
             self.alert(
-                "rh_nvd_cvss_severity_diff",
-                "RH and NVD CVSSv3 score difference crosses severity boundary - "
-                f"RH {rh_cvss3_score}:{rh_severity} | "
-                f"NVD {nvd_cvss3_score}:{nvd_severity}",
+                "rh_nist_cvss_severity_diff",
+                "RH and NIST CVSSv3 score difference crosses severity boundary - "
+                f"RH {rh_score}:{rh_severity} | "
+                f"NIST {nist_score}:{nist_severity}.",
             )
 
     def _validate_rh_products_in_affects(self):
@@ -1057,10 +1076,14 @@ class Flaw(
         """
         Check that a CVSSv3 string is present.
         """
-        if not self.cvss3:
+        rh_cvss3 = self.cvss_scores.filter(
+            version=FlawCVSS.CVSSVersion.VERSION3, issuer=FlawCVSS.CVSSIssuer.REDHAT
+        ).first()
+
+        if not rh_cvss3:
             self.alert(
                 "cvss3_missing",
-                "CVSSv3 score is missing",
+                "CVSSv3 score is missing.",
             )
 
     def _validate_major_incident_state(self):
