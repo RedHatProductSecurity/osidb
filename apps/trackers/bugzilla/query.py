@@ -192,7 +192,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         """
         groups = []
 
-        if self.tracker.embargoed:
+        if self.tracker.is_embargoed:
             groups = self.ps_module.bts_groups["embargoed"]
             if not groups:
                 # safety check for the theoretical case of misconfigured PS module
