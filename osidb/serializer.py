@@ -27,8 +27,6 @@ from .mixins import ACLMixin, TrackingMixin
 from .models import (
     Affect,
     AffectCVSS,
-    CVEv5PackageVersions,
-    CVEv5Version,
     Erratum,
     Flaw,
     FlawAcknowledgment,
@@ -36,6 +34,8 @@ from .models import (
     FlawCVSS,
     FlawMeta,
     FlawReference,
+    Package,
+    PackageVer,
     Profile,
     Tracker,
 )
@@ -691,21 +691,28 @@ class AffectPostSerializer(AffectSerializer):
     pass
 
 
-class CVEv5VersionsSerializer(serializers.ModelSerializer):
-    """CVEv5 Package Version Serializer"""
+@extend_schema_serializer(deprecate_fields=["status"])
+class PackageVerSerializer(serializers.ModelSerializer):
+    """
+    PackageVer model serializer for read-only use in FlawSerializer via
+    PackageVerSerializer.
+    """
+
+    # Deprecated field, kept for schema backwards compatibility.
+    status = serializers.ReadOnlyField(default="UNAFFECTED")
 
     class Meta:
-        model = CVEv5Version
+        model = PackageVer
         fields = ["version", "status"]
 
 
-class CVEv5PackageVersionsSerializer(serializers.ModelSerializer):
-    """CVEv5 package versions serializer"""
+class PackageSerializer(serializers.ModelSerializer):
+    """package_versions (Package model) serializer for read-only use in FlawSerializer."""
 
-    versions = CVEv5VersionsSerializer(many=True)
+    versions = PackageVerSerializer(many=True)
 
     class Meta:
-        model = CVEv5PackageVersions
+        model = Package
         fields = ["package", "versions"]
 
 
@@ -897,7 +904,7 @@ class FlawSerializer(
     acknowledgments = FlawAcknowledgmentSerializer(many=True, read_only=True)
     references = FlawReferenceSerializer(many=True, read_only=True)
     cvss_scores = FlawCVSSSerializer(many=True, read_only=True)
-    package_versions = CVEv5PackageVersionsSerializer(many=True, read_only=True)
+    package_versions = PackageSerializer(many=True, read_only=True)
 
     meta = serializers.SerializerMethodField()
     meta_attr = serializers.SerializerMethodField()

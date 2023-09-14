@@ -10,20 +10,13 @@ from freezegun import freeze_time
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.collectors import BugzillaQuerier, MetadataCollector
 from osidb.core import generate_acls
-from osidb.models import (
-    Affect,
-    CVEv5PackageVersions,
-    Flaw,
-    FlawComment,
-    FlawMeta,
-    Tracker,
-)
+from osidb.models import Affect, Flaw, FlawComment, FlawMeta, Package, Tracker
 from osidb.tests.factories import (
     AffectFactory,
-    CVEv5PackageVersionsFactory,
     FlawCommentFactory,
     FlawFactory,
     FlawMetaFactory,
+    PackageFactory,
     PsModuleFactory,
     PsProductFactory,
     PsUpdateStreamFactory,
@@ -42,14 +35,14 @@ class TestBugzillaQuerier:
             title="testing: flaw", embargoed=False, meta_attr={"bz_id": "123"}
         )
         AffectFactory(flaw=flaw2)
-        CVEv5PackageVersionsFactory(flaw=flaw2)
+        PackageFactory(flaw=flaw2)
         FlawCommentFactory(flaw=flaw2)
         FlawMetaFactory(flaw=flaw2)
 
         flaw1 = Flaw.objects.filter(meta_attr__bz_id="321").first()
         flaw2 = Flaw.objects.filter(meta_attr__bz_id="123").first()
         affect = Affect.objects.first()
-        package_version = CVEv5PackageVersions.objects.first()
+        package_version = Package.objects.first()
         comment = FlawComment.objects.first()
         meta = FlawMeta.objects.first()
 
@@ -75,7 +68,7 @@ class TestBugzillaQuerier:
         flaw1 = Flaw.objects.filter(meta_attr__bz_id="321").first()
         flaw2 = Flaw.objects.filter(meta_attr__bz_id="123").first()
         affect = Affect.objects.first()
-        package_version = CVEv5PackageVersions.objects.first()
+        package_version = Package.objects.first()
         comment = FlawComment.objects.first()
         meta = FlawMeta.objects.first()
 

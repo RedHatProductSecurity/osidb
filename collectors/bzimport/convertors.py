@@ -20,8 +20,6 @@ from osidb.mixins import AlertMixin, TrackingMixin
 from osidb.models import (
     Affect,
     AffectCVSS,
-    CVEv5PackageVersions,
-    CVEv5Version,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
@@ -30,8 +28,9 @@ from osidb.models import (
     FlawMeta,
     FlawReference,
     FlawType,
+    Package,
+    PackageVer,
     Tracker,
-    VersionStatus,
 )
 from osidb.validators import CVE_RE_STR, restrict_regex
 
@@ -226,27 +225,24 @@ class FlawSaver:
     def save_packageversions(self):
         """save packageversions and versions and remove the obsoleted"""
         for package, versions in self.package_versions.items():
-            package_versions, _ = CVEv5PackageVersions.objects.get_or_create(
+            package_versions, _ = Package.objects.get_or_create(
                 flaw=self.flaw,
                 package=package,
             )
             # remove all the existing versions
-            for old_version in package_versions.versions.all():
-                package_versions.versions.remove(old_version)
-                old_version.delete()
+            package_versions.versions.all().delete()
             # replace them
             for version in versions:
-                version = CVEv5Version.objects.create(
+                version = PackageVer.objects.create(
                     version=version,
-                    status=VersionStatus.UNAFFECTED,
+                    package=package_versions,
                 )
-                package_versions.versions.add(version)
-        # remove obsoleted packageversions
-        CVEv5PackageVersions.objects.filter(
+        # remove obsoleted Package instances
+        Package.objects.filter(
             flaw=self.flaw,
         ).exclude(package__in=self.package_versions.keys()).delete()
         # remove obsoleted versions
-        CVEv5Version.objects.filter(packageversions__isnull=True).delete()
+        PackageVer.objects.filter(package__isnull=True).delete()
 
     def clean_affects(self):
         """clean obsoleted affects"""

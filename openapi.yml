@@ -7007,32 +7007,6 @@ components:
     BlankEnum:
       enum:
       - ''
-    CVEv5PackageVersions:
-      type: object
-      description: CVEv5 package versions serializer
-      properties:
-        package:
-          type: string
-          maxLength: 2058
-        versions:
-          type: array
-          items:
-            $ref: '#/components/schemas/CVEv5Versions'
-      required:
-      - package
-      - versions
-    CVEv5Versions:
-      type: object
-      description: CVEv5 Package Version Serializer
-      properties:
-        version:
-          type: string
-          maxLength: 1024
-        status:
-          $ref: '#/components/schemas/StatusEnum'
-      required:
-      - status
-      - version
     Comment:
       type: object
       description: FlawComment serializer for use by FlawSerializer
@@ -7324,7 +7298,7 @@ components:
         package_versions:
           type: array
           items:
-            $ref: '#/components/schemas/CVEv5PackageVersions'
+            $ref: '#/components/schemas/Package'
           readOnly: true
         acknowledgments:
           type: array
@@ -7899,7 +7873,7 @@ components:
         package_versions:
           type: array
           items:
-            $ref: '#/components/schemas/CVEv5PackageVersions'
+            $ref: '#/components/schemas/Package'
           readOnly: true
         acknowledgments:
           type: array
@@ -8262,6 +8236,38 @@ components:
       - APPROVED
       - REJECTED
       type: string
+    Package:
+      type: object
+      description: package_versions (Package model) serializer for read-only use in
+        FlawSerializer.
+      properties:
+        package:
+          type: string
+          maxLength: 2048
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackageVer'
+      required:
+      - package
+      - versions
+    PackageVer:
+      type: object
+      description: |-
+        PackageVer model serializer for read-only use in FlawSerializer via
+        PackageVerSerializer.
+      properties:
+        version:
+          type: string
+          maxLength: 1024
+        status:
+          type: string
+          readOnly: true
+          default: UNAFFECTED
+          deprecated: true
+      required:
+      - status
+      - version
     PaginatedAffectCVSSList:
       type: object
       properties:
@@ -8624,12 +8630,6 @@ components:
       - XCHAT
       - XEN
       - XPDF
-      type: string
-    StatusEnum:
-      enum:
-      - AFFECTED
-      - UNAFFECTED
-      - UNKNOWN
       type: string
     SupportedProducts:
       type: object

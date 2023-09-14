@@ -32,14 +32,14 @@ from ..models import (
 from .factories import (
     AffectCVSSFactory,
     AffectFactory,
-    CVEv5PackageVersionsFactory,
-    CVEv5VersionFactory,
     FlawAcknowledgmentFactory,
     FlawCommentFactory,
     FlawCVSSFactory,
     FlawFactory,
     FlawMetaFactory,
     FlawReferenceFactory,
+    PackageFactory,
+    PackageVerFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
@@ -1119,8 +1119,8 @@ class TestEndpoints(object):
 
     def test_flaw_including_package_versions(self, auth_client, test_api_uri):
         """retrieve flaw with package_versions"""
-        version = CVEv5VersionFactory()
-        package_versions = CVEv5PackageVersionsFactory(versions=[version])
+        package_versions = PackageFactory()
+        PackageVerFactory(package=package_versions)
 
         response = auth_client.get(
             f"{test_api_uri}/flaws/{package_versions.flaw.cve_id}"
