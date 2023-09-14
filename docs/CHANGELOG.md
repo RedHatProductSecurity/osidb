@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Link tracker to flaw(s) on create/update (OSIDB-1182)
 - Implement FlawCVSS and AffectCVSS APIs with filters (OSIDB-1105)
 
+### Changed
+- Deprecate various cvss fields in Flaw and Affect APIs (OSIDB-1105)
+
 ### Fixed
 - Fix schema wrongly showing status code for DELETE methods being 204
   whereas the actual returned status code is 200

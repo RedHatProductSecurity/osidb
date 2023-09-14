@@ -715,131 +715,151 @@ class TestFlawValidators:
         flaw.meta.set([meta1, meta2], bulk=False)
         assert flaw.meta.count() == 2
 
+    @pytest.mark.enable_signals
     @pytest.mark.parametrize(
-        "vector_pair",
+        "rh_cvss,nist_cvss,should_alert",
         [
+            # difference is higher or equal to 1
             (
-                "8.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
-                # delta of exactly 1.0
-                "7.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",  # score 8.1
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",  # score 7.1
+                True,
             ),
+            # difference is lower than 1
             (
-                "8.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
-                # delta of > 1.0
-                "6.8/CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:H",
-            ),
-            (
-                "7.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",
-                # delta of exactly 1.0 in the opposite direction
-                "8.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
-            ),
-            (
-                "6.8/CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:H",
-                # delta of > 1.0 in the opposite direction
-                "8.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",  # score 7.1
+                "CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",  # score 7.2
+                False,
             ),
         ],
     )
-    def test_cvss_rh_nvd_score_diff_invalid(self, vector_pair):
-        nvd_v, rh_v = vector_pair
-        rh_score = rh_v.split("/", 1)[0]
-        flaw = FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
-        assert Flaw.objects.count() == 1
-        assert "rh_nvd_cvss_score_diff" in flaw._alerts
+    def test_validate_rh_nist_cvss_score_diff(self, nist_cvss, rh_cvss, should_alert):
+        """
+        Tests that the difference between the RH and NIST CVSSv3 score is not >= 1.0.
+        """
+        flaw = FlawFactory(
+            # fields below are set to avoid any alerts
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
 
-    @pytest.mark.parametrize(
-        "vector_pair",
-        [
-            (
-                "7.2/CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
-                # delta within acceptable range
-                "7.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",
-            ),
-            (
-                "7.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H",
-                # delta within acceptable range in the opposite direction
-                "7.2/CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
-            ),
-        ],
-    )
-    def test_cvss_rh_nvd_score_diff_valid(self, vector_pair):
-        nvd_v, rh_v = vector_pair
-        rh_score = rh_v.split("/", 1)[0]
-        flaw = FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
-        assert Flaw.objects.count() == 1
-        assert "rh_nvd_cvss_score_diff" not in flaw._alerts
+        for issuer, vector, comment in [
+            (FlawCVSS.CVSSIssuer.REDHAT, rh_cvss, "comment"),
+            (FlawCVSS.CVSSIssuer.NIST, nist_cvss, ""),
+        ]:
+            FlawCVSSFactory(
+                flaw=flaw,
+                version=FlawCVSS.CVSSVersion.VERSION3,
+                issuer=issuer,
+                vector=vector,
+                comment="",
+            )
 
+        AffectFactory(flaw=flaw)
+        flaw.save()
+
+        if should_alert:
+            assert len(flaw._alerts) == 1
+            assert "rh_nist_cvss_score_diff" in flaw._alerts
+        else:
+            assert flaw._alerts == {}
+
+    @pytest.mark.enable_signals
     @pytest.mark.parametrize(
-        "vector_pair",
+        "rh_cvss,nist_cvss,should_alert",
         [
             # Note: not possible to test None vs Low since the lowest possible
-            # CVSS score of low severity is 1.6 which violates the RH vs NVD
+            # CVSS score of low severity is 1.6 which violates the RH vs NIST
             # score diff constraint
+            # Low vs Medium
             (
-                # Low vs Medium
-                "3.8/CVSS:3.1/AV:A/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:L",
-                "4.0/CVSS:3.1/AV:L/AC:L/PR:H/UI:R/S:U/C:L/I:L/A:L",
+                "CVSS:3.1/AV:A/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:L",  # score 3.8
+                "CVSS:3.1/AV:L/AC:L/PR:H/UI:R/S:U/C:L/I:L/A:L",  # score 4.0
+                True,
             ),
+            # Medium vs Low
             (
-                # Medium vs Low
-                "4.0/CVSS:3.1/AV:L/AC:L/PR:H/UI:R/S:U/C:L/I:L/A:L",
-                "3.9/CVSS:3.1/AV:N/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:L",
+                "CVSS:3.1/AV:L/AC:L/PR:H/UI:R/S:U/C:L/I:L/A:L",  # score 4.0
+                "CVSS:3.1/AV:N/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:L",  # score 3.9
+                True,
             ),
+            # Medium vs High
             (
-                # Medium vs High
-                "6.9/CVSS:3.1/AV:P/AC:H/PR:L/UI:R/S:C/C:H/I:H/A:H",
-                "7.6/CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:H/I:L/A:H",
+                "CVSS:3.1/AV:P/AC:H/PR:L/UI:R/S:C/C:H/I:H/A:H",  # score 6.9
+                "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:H/I:L/A:H",  # score 7.6
+                True,
             ),
+            # High vs Critical
             (
-                # High vs Critical
-                "8.8/CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H",
-                "9.4/CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:H",
+                "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H",  # score 8.8
+                "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:H",  # score 9.4
+                True,
+            ),
+            # everything below is without alerts
+            # None vs None
+            (
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N",  # score 0.0
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N",  # score 0.0
+                False,
+            ),
+            # Low vs Low (right boundary)
+            (
+                "CVSS:3.1/AV:N/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:L",  # score 3.9
+                "CVSS:3.1/AV:P/AC:H/PR:H/UI:R/S:U/C:N/I:N/A:H",  # score 3.8
+                False,
+            ),
+            # Medium vs Medium (left boundary)
+            (
+                "CVSS:3.1/AV:L/AC:L/PR:H/UI:R/S:U/C:L/I:L/A:L",  # score 4.0
+                "CVSS:3.1/AV:P/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:H",  # score 4.9
+                False,
+            ),
+            # High vs High
+            (
+                "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:H/I:L/A:H",  # score 7.6
+                "CVSS:3.1/AV:N/AC:H/PR:H/UI:R/S:C/C:L/I:H/A:H",  # score 7.5
+                False,
+            ),
+            # High vs Critical
+            (
+                "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:H",  # score 9.4
+                "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:H/A:H",  # score 10.0
+                False,
             ),
         ],
     )
-    def test_cvss_rh_nvd_severity_diff_invalid(self, vector_pair):
-        nvd_v, rh_v = vector_pair
-        rh_score = rh_v.split("/", 1)[0]
-        flaw = FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
-        assert Flaw.objects.count() == 1
-        assert "rh_nvd_cvss_severity_diff" in flaw._alerts
+    def test_validate_rh_nist_cvss_severity_diff(
+        self, nist_cvss, rh_cvss, should_alert
+    ):
+        """
+        Tests that the NIST and RH CVSSv3 score are not of a different severity.
+        """
+        flaw = FlawFactory(
+            # fields below are set to avoid any alerts
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
 
-    @pytest.mark.parametrize(
-        "vector_pair",
-        [
-            (
-                # None vs None
-                "0.0/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N",
-                "0.0/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N",
-            ),
-            (
-                # Low vs Low (right boundary)
-                "3.9/CVSS:3.1/AV:N/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:L",
-                "3.8/CVSS:3.1/AV:P/AC:H/PR:H/UI:R/S:U/C:N/I:N/A:H",
-            ),
-            (
-                # Medium vs Medium (left boundary)
-                "4.0/CVSS:3.1/AV:L/AC:L/PR:H/UI:R/S:U/C:L/I:L/A:L",
-                "4.9/CVSS:3.1/AV:P/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:H",
-            ),
-            (
-                # High vs High
-                "7.6/CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:H/I:L/A:H",
-                "7.5/CVSS:3.1/AV:N/AC:H/PR:H/UI:R/S:C/C:L/I:H/A:H",
-            ),
-            (
-                # High vs Critical
-                "9.4/CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:H",
-                "10.0/CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:H/A:H",
-            ),
-        ],
-    )
-    def test_cvss_rh_nvd_severity_diff_valid(self, vector_pair):
-        nvd_v, rh_v = vector_pair
-        rh_score = rh_v.split("/", 1)[0]
-        flaw = FlawFactory(cvss3=rh_v, cvss3_score=rh_score, nvd_cvss3=nvd_v)
-        assert Flaw.objects.count() == 1
-        assert "rh_nvd_cvss_severity_diff" not in flaw._alerts
+        for issuer, vector, comment in [
+            (FlawCVSS.CVSSIssuer.REDHAT, rh_cvss, "comment"),
+            (FlawCVSS.CVSSIssuer.NIST, nist_cvss, ""),
+        ]:
+            FlawCVSSFactory(
+                flaw=flaw,
+                version=FlawCVSS.CVSSVersion.VERSION3,
+                issuer=issuer,
+                vector=vector,
+                comment="",
+            )
+
+        AffectFactory(flaw=flaw)
+        flaw.save()
+
+        if should_alert:
+            assert len(flaw._alerts) == 1
+            assert "rh_nist_cvss_severity_diff" in flaw._alerts
+        else:
+            assert flaw._alerts == {}
 
     @pytest.mark.parametrize(
         "name,business_unit,is_rh_product",
@@ -940,8 +960,8 @@ class TestFlawValidators:
         self,
         nist_cvss,
         rh_cvss,
-        rh_cvss_comment,
         ps_module,
+        rh_cvss_comment,
         rescore,
         should_alert,
     ):
@@ -979,11 +999,22 @@ class TestFlawValidators:
         AffectFactory(flaw=flaw, ps_module=ps_module)
         flaw.save()
 
+        # there may be an extra alert if the difference between the RH and NIST
+        # CVSSv3 score is >= 1.0, regardless of whether a test should fail or not
         if should_alert:
-            assert len(flaw._alerts) == 1
             assert "request_nist_cvss_validation" in flaw._alerts
+            assert (
+                len(flaw._alerts) == 1
+                if "rh_nist_cvss_score_diff" not in flaw._alerts
+                else 2
+            )
         else:
-            assert flaw._alerts == {}
+            assert "request_nist_cvss_validation" not in flaw._alerts
+            assert (
+                len(flaw._alerts) == 0
+                if "rh_nist_cvss_score_diff" not in flaw._alerts
+                else 1
+            )
 
     @pytest.mark.enable_signals
     @pytest.mark.parametrize(
@@ -1060,7 +1091,13 @@ class TestFlawValidators:
             embargoed=False,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
+        FlawCVSSFactory(
+            flaw=flaw,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+        )
         AffectFactory(flaw=flaw)
+        flaw.save()
 
         if should_alert:
             assert len(flaw._alerts) == 1
@@ -1274,18 +1311,39 @@ class TestFlawValidators:
             FlawFactory(unembargo_dt=future_dt, embargoed=True)
             # no exception should be raised now
 
+    @pytest.mark.enable_signals
     @pytest.mark.parametrize(
-        "cvss3,should_alert",
+        "rh_cvss,should_alert",
         [
-            ("3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N", False),
-            (None, True),
+            ("", True),
+            ("CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:L/A:H", False),
         ],
     )
-    def test_validate_cvss3_model(self, cvss3, should_alert):
+    def test_validate_cvss3(self, rh_cvss, should_alert):
         """
-        Test that an alert is not raised when the flaw has a CVSS3 string
+        Tests that an alert is raised when the CVSSv3 string is not present.
         """
-        assert should_alert == ("cvss3_missing" in FlawFactory(cvss3=cvss3)._alerts)
+        flaw = FlawFactory(
+            # fields below are set to avoid any alerts
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        if rh_cvss:
+            FlawCVSSFactory(
+                flaw=flaw,
+                version=FlawCVSS.CVSSVersion.VERSION3,
+                issuer=FlawCVSS.CVSSIssuer.REDHAT,
+                vector=rh_cvss,
+                comment="",
+            )
+        AffectFactory(flaw=flaw)
+        flaw.save()
+
+        if should_alert:
+            assert len(flaw._alerts) == 1
+            assert "cvss3_missing" in flaw._alerts
+        else:
+            assert flaw._alerts == {}
 
     @pytest.mark.parametrize(
         "state,should_raise",
@@ -1458,7 +1516,7 @@ class TestFlawValidators:
         * requires_summary is APPROVED
         * has exactly one article
         """
-        flaw = FlawFactory.build(
+        flaw = FlawFactory(
             major_incident_state=Flaw.FlawMajorIncident.APPROVED,
             mitigation=mitigation,
             statement=statement,
@@ -1467,8 +1525,11 @@ class TestFlawValidators:
             embargoed=False,  # to simplify fields that a flaw requires
             impact=Impact.LOW,
         )
-        flaw.save()
-
+        FlawCVSSFactory(
+            flaw=flaw,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+        )
         FlawReferenceFactory(flaw=flaw, type=article[0], url=article[1])
         AffectFactory(flaw=flaw)
         flaw.save()
@@ -1547,7 +1608,7 @@ class TestFlawValidators:
         * has a summary
         * requires_summary is APPROVED
         """
-        flaw = FlawFactory.build(
+        flaw = FlawFactory(
             major_incident_state=Flaw.FlawMajorIncident.CISA_APPROVED,
             statement=statement,
             summary=summary,
@@ -1555,6 +1616,12 @@ class TestFlawValidators:
             embargoed=False,  # to simplify fields that a flaw requires
             impact=Impact.LOW,
         )
+        FlawCVSSFactory(
+            flaw=flaw,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+        )
+        AffectFactory(flaw=flaw)
         flaw.save()
 
         AffectFactory(flaw=flaw)
