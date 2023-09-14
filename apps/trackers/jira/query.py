@@ -50,7 +50,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         init stuff
         """
         self.instance = instance
-        self._query = {}
+        self._query = None
 
     @cached_property
     def impact(self):

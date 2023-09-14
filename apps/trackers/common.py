@@ -22,6 +22,22 @@ class TrackerQueryBuilder:
     """
 
     @property
+    def query(self):
+        """
+        query getter shorcut
+        """
+        if self._query is None:
+            self.generate()
+
+        return self._query
+
+    def generate(self):
+        """
+        generate query
+        """
+        raise NotImplementedError
+
+    @property
     def tracker(self):
         """
         concrete name shortcut

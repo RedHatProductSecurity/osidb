@@ -44,7 +44,7 @@ class TrackerJiraSaver(JiraQuerier):
         """
         create a representation of tracker model in Jira
         """
-        query = TrackerJiraQueryBuilder(tracker).generate()
+        query = TrackerJiraQueryBuilder(tracker).query
         issue = self.jira_conn.create_issue(fields=query["fields"], prefetch=True)
         tracker.external_system_id = issue["key"]
         return tracker
@@ -53,6 +53,7 @@ class TrackerJiraSaver(JiraQuerier):
         """
         update an existing representation of tracker model in Jira
         """
-        query = TrackerJiraQueryBuilder(tracker).generate()
+        query = TrackerJiraQueryBuilder(tracker).query
         url = f"{self.jira_conn._get_url('issue')}/{query['key']}"
         self.jira_conn._session.put(url, json.dumps(query))
+        return tracker
