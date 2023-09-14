@@ -46,7 +46,7 @@ class TrackerJiraSaver(JiraQuerier):
         """
         query = TrackerJiraQueryBuilder(tracker).query
         issue = self.jira_conn.create_issue(fields=query["fields"], prefetch=True)
-        tracker.external_system_id = issue["key"]
+        tracker.external_system_id = issue.key
         return tracker
 
     def update(self, tracker):
