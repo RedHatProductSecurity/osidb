@@ -46,7 +46,7 @@ def stage_jira_project() -> str:
 
 
 @pytest.fixture
-def test_scheme_host() -> str:
+def test_app_scheme_host() -> str:
     return "http://osidb-service:8000/trackers"
 
 
@@ -56,8 +56,8 @@ def api_version() -> str:
 
 
 @pytest.fixture
-def test_api_uri(test_scheme_host, api_version) -> str:
-    return f"{test_scheme_host}/api/{api_version}"
+def test_app_api_uri(test_app_scheme_host, api_version) -> str:
+    return f"{test_app_scheme_host}/api/{api_version}"
 
 
 @pytest.fixture
