@@ -741,11 +741,13 @@ paths:
         name: cvss2
         schema:
           type: string
+        deprecated: true
       - in: query
         name: cvss2_score
         schema:
           type: number
           format: float
+        deprecated: true
       - in: query
         name: cvss2_score__gt
         schema:
@@ -770,11 +772,13 @@ paths:
         name: cvss3
         schema:
           type: string
+        deprecated: true
       - in: query
         name: cvss3_score
         schema:
           type: number
           format: float
+        deprecated: true
       - in: query
         name: cvss3_score__gt
         schema:
@@ -2664,11 +2668,13 @@ paths:
         name: cvss2
         schema:
           type: string
+        deprecated: true
       - in: query
         name: cvss2_score
         schema:
           type: number
           format: float
+        deprecated: true
       - in: query
         name: cvss2_score__gt
         schema:
@@ -2693,11 +2699,13 @@ paths:
         name: cvss3
         schema:
           type: string
+        deprecated: true
       - in: query
         name: cvss3_score
         schema:
           type: number
           format: float
+        deprecated: true
       - in: query
         name: cvss3_score__gt
         schema:
@@ -2922,10 +2930,12 @@ paths:
         name: nvd_cvss2
         schema:
           type: string
+        deprecated: true
       - in: query
         name: nvd_cvss3
         schema:
           type: string
+        deprecated: true
       - name: offset
         required: false
         in: query
@@ -6652,17 +6662,21 @@ components:
         cvss2:
           type: string
           maxLength: 100
+          deprecated: true
         cvss2_score:
           type: number
           format: float
           nullable: true
+          deprecated: true
         cvss3:
           type: string
           maxLength: 100
+          deprecated: true
         cvss3_score:
           type: number
           format: float
           nullable: true
+          deprecated: true
         trackers:
           type: array
           items:
@@ -6884,17 +6898,21 @@ components:
         cvss2:
           type: string
           maxLength: 100
+          deprecated: true
         cvss2_score:
           type: number
           format: float
           nullable: true
+          deprecated: true
         cvss3:
           type: string
           maxLength: 100
+          deprecated: true
         cvss3_score:
           type: number
           format: float
           nullable: true
+          deprecated: true
         trackers:
           type: array
           items:
@@ -7190,23 +7208,29 @@ components:
         cvss2:
           type: string
           maxLength: 100
+          deprecated: true
         cvss2_score:
           type: number
           format: float
           nullable: true
+          deprecated: true
         nvd_cvss2:
           type: string
           maxLength: 100
+          deprecated: true
         cvss3:
           type: string
           maxLength: 100
+          deprecated: true
         cvss3_score:
           type: number
           format: float
           nullable: true
+          deprecated: true
         nvd_cvss3:
           type: string
           maxLength: 100
+          deprecated: true
         is_major_incident:
           type: boolean
           deprecated: true
@@ -7759,23 +7783,29 @@ components:
         cvss2:
           type: string
           maxLength: 100
+          deprecated: true
         cvss2_score:
           type: number
           format: float
           nullable: true
+          deprecated: true
         nvd_cvss2:
           type: string
           maxLength: 100
+          deprecated: true
         cvss3:
           type: string
           maxLength: 100
+          deprecated: true
         cvss3_score:
           type: number
           format: float
           nullable: true
+          deprecated: true
         nvd_cvss3:
           type: string
           maxLength: 100
+          deprecated: true
         is_major_incident:
           type: boolean
           deprecated: true

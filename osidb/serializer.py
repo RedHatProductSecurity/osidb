@@ -598,6 +598,9 @@ class AffectCVSSPutSerializer(AffectCVSSSerializer):
     pass
 
 
+@extend_schema_serializer(
+    deprecate_fields=["cvss2", "cvss2_score", "cvss3", "cvss3_score"]
+)
 class AffectSerializer(
     ACLMixinSerializer,
     BugzillaSyncMixinSerializer,
@@ -817,7 +820,19 @@ class FlawCVSSPutSerializer(FlawCVSSSerializer):
     pass
 
 
-@extend_schema_serializer(deprecate_fields=["state", "resolution", "is_major_incident"])
+@extend_schema_serializer(
+    deprecate_fields=[
+        "state",
+        "resolution",
+        "is_major_incident",
+        "cvss2",
+        "cvss2_score",
+        "cvss3",
+        "cvss3_score",
+        "nvd_cvss2",
+        "nvd_cvss3",
+    ]
+)
 class FlawSerializer(
     ACLMixinSerializer,
     JiraTaskSyncMixinSerializer,
