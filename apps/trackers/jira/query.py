@@ -124,13 +124,15 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         generate query for Jira labels
         """
-        cve_ids = self.tracker.affects.all().values_list("flaw__cve_id", flat=True)
-        self._query["fields"]["labels"] = {
-            *cve_ids,
+        self._query["fields"]["labels"] = [
             "SecurityTracking",
             "Security",
             f"pscomponent:{self.ps_component}",
-        }
+        ] + list(  # add all linked non-empty CVE IDs
+            self.tracker.affects.exclude(flaw__cve_id__isnull=True).values_list(
+                "flaw__cve_id", flat=True
+            )
+        )
 
     def generate_summary(self):
         """
