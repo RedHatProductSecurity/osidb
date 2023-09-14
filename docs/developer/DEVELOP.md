@@ -57,6 +57,10 @@ RH_CERT_URL="https://foo.bar"
 # otherwise all the writes are performed only locally in OSIDB
 BBSYNC_SYNC_TO_BZ=1
 
+# enable Jira tracker sync to propagate writes to Jira
+# otherwise all the writes are performed only locally in OSIDB
+TRACKERS_SYNC_TO_JIRA=1
+
 # Run taskman tests behind a proxy (optional)
 # This variable is only necessary if rewriting the taskman cassettes locally and using the Stage Red Hat JIRA instance, which requires a proxy to be accessed.
 HTTPS_TASKMAN_PROXY="http://foo.bar"

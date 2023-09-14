@@ -25,7 +25,7 @@ from django_deprecate_fields import deprecate_field
 from polymorphic.models import PolymorphicModel
 from psqlextra.fields import HStoreField
 
-from apps.bbsync.constants import RHSCL_BTS_KEY
+from apps.bbsync.constants import RHSCL_BTS_KEY, SYNC_TO_BZ
 from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
@@ -33,6 +33,7 @@ from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.osim.workflow import WorkflowModel
 from apps.taskman.constants import SYNC_REQUIRED_FIELDS
 from apps.taskman.mixins import JiraTaskSyncMixin
+from apps.trackers.constants import SYNC_TO_JIRA
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 
 from .helpers import deprecate_field as deprecate_field_custom
@@ -2190,6 +2191,58 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
     def __str__(self):
         return str(self.uuid)
+
+    def save(self, *args, bz_api_key=None, jira_token=None, **kwargs):
+        """
+        save the tracker by storing to the backend and fetching back
+
+        when neither Bugzilla API key and nor Jira token is provided
+        it is considered to be a call done by a collector or test
+        and thus we perform just regular save
+
+        the backend sync is also conditional based on environment variables
+        """
+        # imports here to prevent cycles
+        from apps.trackers.save import TrackerSaver
+        from collectors.bzimport.collectors import BugzillaTrackerCollector
+        from collectors.jiraffe.collectors import JiraTrackerCollector
+
+        # always perform the validations first
+        self.validate(raise_validation_error=kwargs.get("raise_validation_error", True))
+
+        # check Bugzilla conditions are met
+        if SYNC_TO_BZ and bz_api_key is not None:
+            # sync to Bugzilla
+            self = TrackerSaver(self, bz_api_key=bz_api_key).save()
+            # save in case a new Bugzilla ID was obtained
+            # so the flaw is later matched in BZ import
+            kwargs[
+                "auto_timestamps"
+            ] = False  # the timestamps will be get from Bugzilla
+            kwargs["raise_validation_error"] = False  # the validations were already run
+            self.save(*args, **kwargs)
+            # fetch from Bugzilla
+            btc = BugzillaTrackerCollector()
+            btc.sync_tracker(self.external_system_id)
+
+        # check Jira conditions are met
+        elif SYNC_TO_JIRA and jira_token is not None:
+            # sync to Jira
+            self = TrackerSaver(self, jira_token=jira_token).save()
+            # save in case a new Jira ID was obtained
+            # so the flaw is later matched in Jiraffe sync
+            kwargs[
+                "auto_timestamps"
+            ] = False  # the timestamps will be get from Bugzilla
+            kwargs["raise_validation_error"] = False  # the validations were already run
+            self.save(*args, **kwargs)
+            # fetch from Jira
+            jtc = JiraTrackerCollector()
+            jtc.collect(self.external_system_id)
+
+        # regular save otherwise
+        else:
+            super().save(*args, **kwargs)
 
     def _validate_tracker_affect(self):
         """
