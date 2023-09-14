@@ -1,0 +1,223 @@
+interactions:
+- request:
+    body: '{"fields": {"issuetype": {"name": "Bug"}, "project": {"key": "OSIDB"},
+      "priority": {"name": "Minor"}, "description": "Public Security Tracking Issue\n\nFlaw:\n-----\n\nsample
+      title\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1997880\n\nDescription
+      for None\n\n~~~", "labels": ["SecurityTracking", "Security", "pscomponent:openshift"],
+      "summary": "[Major Incident] openshift: sample title [openshift-4.9.z]"}, "key":
+      "OSIDB-920"}'
+    headers:
+      Accept:
+      - application/json,*.*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '435'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.31.0
+      X-Atlassian-Token:
+      - no-check
+    method: PUT
+    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/OSIDB-920
+  response:
+    body:
+      string: ''
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - sandbox
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Thu, 14 Sep 2023 15:54:44 GMT
+      Expires:
+      - Thu, 14 Sep 2023 15:54:44 GMT
+      Pragma:
+      - no-cache
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-dc-stg-mpp-0
+      x-arequestid:
+      - 954x23476x1
+      x-asessionid:
+      - tkele
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-rh-edge-cache-status:
+      - NotCacheable from child
+      x-rh-edge-reference-id:
+      - 0.7df06e68.1694706884.1847f669
+      x-rh-edge-request-id:
+      - 1847f669
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*.*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.31.0
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/OSIDB-920
+  response:
+    body:
+      string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+        "id": "15297716", "self": "https://issues.redhat.com/rest/api/2/issue/15297716",
+        "key": "OSIDB-920", "fields": {"issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/1",
+        "id": "1", "description": "A problem which impairs or prevents the functions
+        of the product.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        "name": "Bug", "subtask": false, "avatarId": 13263}, "customfield_12322244":
+        null, "customfield_12318341": null, "timespent": null, "customfield_12320940":
+        null, "project": {"self": "https://issues.redhat.com/rest/api/2/project/12332734",
+        "id": "12332734", "key": "OSIDB", "name": "Open Security Issue Database",
+        "projectTypeKey": "software", "avatarUrls": {"48x48": "https://issues.redhat.com/secure/projectavatar?pid=12332734&avatarId=10010",
+        "24x24": "https://issues.redhat.com/secure/projectavatar?size=small&pid=12332734&avatarId=10010",
+        "16x16": "https://issues.redhat.com/secure/projectavatar?size=xsmall&pid=12332734&avatarId=10010",
+        "32x32": "https://issues.redhat.com/secure/projectavatar?size=medium&pid=12332734&avatarId=10010"}},
+        "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
+        "resolution": null, "customfield_12310220": null, "customfield_12314740":
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@23e734b0[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@756c411c[overall=PullRequestOverallBean{stateCount=0,
+        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@72925f6b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@65e18484[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@17397761[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@2a6d9874[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4a64e355[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@23489b39[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7f96624e[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@39fefbf0[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@546dd9d1[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@339b1136[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
+        "customfield_12310183": null, "resolutiondate": null, "workratio": -1, "customfield_12316840":
+        null, "customfield_12317379": null, "customfield_12315950": null, "customfield_12316841":
+        null, "customfield_12310940": null, "customfield_12319040": null, "lastViewed":
+        "2023-09-14T15:54:35.852+0000", "watches": {"self": "https://issues.redhat.com/rest/api/2/issue/OSIDB-920/watchers",
+        "watchCount": 1, "isWatching": true}, "created": "2023-09-14T15:12:41.610+0000",
+        "customfield_12321240": null, "customfield_12313140": null, "priority": {"self":
+        "https://issues.redhat.com/rest/api/2/priority/4", "iconUrl": "https://issues.redhat.com/images/icons/priorities/minor.svg",
+        "name": "Minor", "id": "4"}, "labels": ["Security", "SecurityTracking", "pscomponent:openshift"],
+        "customfield_12320947": [{"self": "https://issues.redhat.com/rest/api/2/customFieldOption/27714",
+        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/27705",
+        "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
+        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
+        null, "updated": "2023-09-14T15:54:44.103+0000", "customfield_12313942": null,
+        "customfield_12313941": null, "status": {"self": "https://issues.redhat.com/rest/api/2/status/10016",
+        "description": "Initial creation status. Implies nothing yet and should be
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.redhat.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/2",
+        "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
+        [{"self": "https://issues.redhat.com/rest/api/2/component/12367567",
+        "id": "12367567", "name": "osidb"}], "customfield_12316142": null, "timeoriginalestimate":
+        null, "description": "Public Security Tracking Issue\n\nFlaw:\n-----\n\nsample
+        title\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1997880\n\nDescription
+        for None\n\n~~~", "customfield_12314040": null, "customfield_12320844": null,
+        "archiveddate": null, "timetracking": {}, "customfield_12320842": null, "attachment":
+        [], "aggregatetimeestimate": null, "customfield_12316542": {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/14655",
+        "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
+        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/14657",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12317313":
+        null, "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
+        "summary": "[Major Incident] openshift: sample title [openshift-4.9.z]", "customfield_12323640":
+        null, "customfield_12323642": null, "creator": {"self": "https://issues.redhat.com/rest/api/2/user?username=osoukup%40redhat.com",
+        "name": "osoukup@redhat.com", "key": "osoukup", "emailAddress": "osoukup+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17283",
+        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17283",
+        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17283",
+        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17283"},
+        "displayName": "Ondrej Soukup", "active": true, "timeZone": "Europe/Prague"},
+        "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
+        "customfield_12323647": [{"self": "https://issues.redhat.com/rest/api/2/customFieldOption/34762",
+        "value": "en-US (English)", "id": "34762", "disabled": false}], "reporter":
+        {"self": "https://issues.redhat.com/rest/api/2/user?username=osoukup%40redhat.com",
+        "name": "osoukup@redhat.com", "key": "osoukup", "emailAddress": "osoukup+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17283",
+        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17283",
+        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17283",
+        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17283"},
+        "displayName": "Ondrej Soukup", "active": true, "timeZone": "Europe/Prague"},
+        "customfield_12320850": null, "aggregateprogress": {"progress": 0, "total":
+        0}, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
+        null, "customfield_12323645": null, "customfield_12310211": null, "environment":
+        null, "customfield_12315542": null, "customfield_12315740": null, "customfield_12313441":
+        "", "customfield_12313440": "0.0", "customfield_12313240": null, "duedate":
+        null, "customfield_12311140": null, "customfield_12319742": null, "progress":
+        {"progress": 0, "total": 0}, "comment": {"comments": [], "maxResults": 0,
+        "total": 0, "startAt": 0}, "votes": {"self": "https://issues.redhat.com/rest/api/2/issue/OSIDB-920/votes",
+        "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
+        "total": 0, "worklogs": []}, "customfield_12319743": null, "customfield_12310213":
+        null, "archivedby": null, "customfield_12311940": "1|zbmtr0:"}}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - sandbox
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Thu, 14 Sep 2023 15:54:44 GMT
+      Expires:
+      - Thu, 14 Sep 2023 15:54:44 GMT
+      Pragma:
+      - no-cache
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      content-length:
+      - '9050'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-dc-stg-mpp-0
+      x-arequestid:
+      - 954x23478x1
+      x-asessionid:
+      - kjmbn3
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-rh-edge-cache-status:
+      - NotCacheable from child
+      x-rh-edge-reference-id:
+      - 0.7df06e68.1694706884.1847f84c
+      x-rh-edge-request-id:
+      - 1847f84c
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1

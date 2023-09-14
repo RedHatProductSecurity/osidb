@@ -20,12 +20,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
-from rest_framework.viewsets import (
-    ModelViewSet,
-    ReadOnlyModelViewSet,
-    ViewSet,
-    ViewSetMixin,
-)
+from rest_framework.viewsets import ModelViewSet, ViewSet, ViewSetMixin
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import (
@@ -62,6 +57,7 @@ from .serializer import (
     FlawReferencePutSerializer,
     FlawReferenceSerializer,
     FlawSerializer,
+    TrackerPostSerializer,
     TrackerSerializer,
     UserSerializer,
 )
@@ -784,11 +780,14 @@ class AffectCVSSView(ModelViewSet):
         return Response(status=HTTP_200_OK)
 
 
-# until we implement tracker write operations
-# we have to consider them as read-only
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
+@bz_api_key_extend_schema_view
+@jira_api_key_extend_schema_view
 @extend_schema_view(
+    create=extend_schema(
+        request=TrackerPostSerializer,
+    ),
     list=extend_schema(
         parameters=[
             OpenApiParameter(
@@ -800,9 +799,9 @@ class AffectCVSSView(ModelViewSet):
         ],
     ),
 )
-class TrackerView(ReadOnlyModelViewSet):
+class TrackerView(ModelViewSet):
     queryset = Tracker.objects.all()
     serializer_class = TrackerSerializer
     filterset_class = TrackerFilter
-    http_method_names = get_valid_http_methods(ReadOnlyModelViewSet)
+    http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])
     permission_classes = [IsAuthenticatedOrReadOnly]

@@ -1515,12 +1515,9 @@ class TestEndpoints(object):
             HTTP_BUGZILLA_API_KEY="SECRET",
         )
 
-        assert response.status_code == 400
-        context = response.context.flatten()
-        assert "exception_value" in context
-        assert context["exception_value"] == (
-            "Received model contains non-refreshed and outdated data! "
-            "It has been probably edited by someone else in the meantime"
+        assert response.status_code == 409
+        assert "Save operation based on an outdated model instance" in str(
+            response.content
         )
 
     def test_flaw_comment_create(self, auth_client, test_api_uri):
@@ -2079,29 +2076,50 @@ class TestEndpoints(object):
         assert response.status_code == status.HTTP_200_OK
         assert AffectCVSS.objects.count() == 0
 
-    def test_tracker_create(self, auth_client, test_api_uri):
+    @pytest.mark.parametrize("embargoed", [False, True])
+    def test_tracker_create(self, auth_client, embargo_access, test_api_uri, embargoed):
         """
         Test the creation of Tracker records via a REST API POST request.
         """
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw__embargoed=embargoed,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+        )
+
+        assert Tracker.objects.count() == 0
+
         tracker_data = {
-            "type": Tracker.TrackerType.JIRA,
-            "external_system_id": "PSDEVOPS-0001",
-            "status": "foo",
-            "resolution": "bar",
+            "affects": [affect.uuid],
+            "embargoed": embargoed,
+            "ps_update_stream": ps_update_stream.name,
+            "status": "TEST",  # this one is mandatory
         }
         response = auth_client.post(
-            f"{test_api_uri}/trackers", tracker_data, format="json"
+            f"{test_api_uri}/trackers",
+            tracker_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
-        # this HTTP method is not allowed until we integrate
-        # with the authoritative sources of the tracker data
-        assert response.status_code == 405
 
-    def test_tracker_update(self, auth_client, test_api_uri):
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Tracker.objects.count() == 1
+        tracker = Tracker.objects.first()
+        assert tracker.affects.count() == 1
+        assert tracker.affects.first().uuid == affect.uuid
+
+    @pytest.mark.parametrize("embargoed", [False, True])
+    def test_tracker_update(self, auth_client, embargo_access, test_api_uri, embargoed):
         """
         Test the update of Tracker records via a REST API PUT request.
         """
         ps_module = PsModuleFactory(bts_name="bugzilla")
         affect = AffectFactory(
+            flaw__embargoed=embargoed,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
             ps_module=ps_module.name,
@@ -2122,10 +2140,58 @@ class TestEndpoints(object):
                 "resolution": "this is different",
             },
             format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
-        # this HTTP method is not allowed until we integrate
-        # with the authoritative sources of the tracker data
-        assert response.status_code == 405
+        assert response.status_code == 200
+
+    @pytest.mark.parametrize("embargoed", [False, True])
+    def test_tracker_update_link(
+        self, auth_client, embargo_access, test_api_uri, embargoed
+    ):
+        """
+        Test the update of Tracker records via a REST API PUT request.
+        """
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect1 = AffectFactory(
+            flaw__embargoed=embargoed,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+        )
+        affect2 = AffectFactory(
+            flaw__embargoed=embargoed,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect1],
+            embargoed=affect1.flaw.embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        response = auth_client.get(f"{test_api_uri}/trackers/{tracker.uuid}")
+        assert response.status_code == 200
+        original_body = response.json()
+        assert affect1.uuid in response.data["affects"]
+        assert affect2.uuid not in response.data["affects"]
+
+        response = auth_client.put(
+            f"{test_api_uri}/trackers/{tracker.uuid}",
+            {
+                **original_body,
+                "affects": [
+                    affect2.uuid
+                ],  # remove the first affect and add the second one
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        assert affect1.uuid not in response.data["affects"]
+        assert affect2.uuid in response.data["affects"]
 
     def test_tracker_delete(self, auth_client, test_api_uri):
         """

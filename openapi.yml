@@ -6283,6 +6283,56 @@ paths:
                     version:
                       type: string
           description: ''
+    post:
+      operationId: osidb_api_v1_trackers_create
+      parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
+      - in: header
+        name: Jira-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Jira authentication.
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrackerPost'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TrackerPost'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TrackerPost'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Tracker'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /osidb/api/v1/trackers/{uuid}:
     get:
       operationId: osidb_api_v1_trackers_retrieve
@@ -6329,6 +6379,63 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Tracker'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: osidb_api_v1_trackers_update
+      parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
+      - in: header
+        name: Jira-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Jira authentication.
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Tracker.
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Tracker'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Tracker'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Tracker'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
       responses:
         '200':
           content:
@@ -9422,26 +9529,89 @@ components:
       type: object
       description: Tracker serializer
       properties:
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
-        type:
-          $ref: '#/components/schemas/TrackerType'
-        external_system_id:
-          type: string
-          maxLength: 100
         affects:
           type: array
           items:
             type: string
             format: uuid
+        errata:
+          type: array
+          items:
+            $ref: '#/components/schemas/Erratum'
+          readOnly: true
+        external_system_id:
+          type: string
+          readOnly: true
+        meta_attr:
+          type: object
+          properties:
+            bz_id:
+              type: string
+            owner:
+              type: string
+            qe_owner:
+              type: string
+            ps_component:
+              type: string
+            ps_module:
+              type: string
+            ps_update_stream:
+              type: string
+            resolution:
+              type: string
+            status:
+              type: string
+          readOnly: true
+        ps_update_stream:
+          type: string
+          maxLength: 100
         status:
           type: string
           maxLength: 100
         resolution:
           type: string
           maxLength: 100
+        type:
+          allOf:
+          - $ref: '#/components/schemas/TrackerType'
+          readOnly: true
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - created_dt
+      - embargoed
+      - errata
+      - external_system_id
+      - meta_attr
+      - status
+      - type
+      - updated_dt
+      - uuid
+    TrackerPost:
+      type: object
+      description: Tracker serializer
+      properties:
+        affects:
+          type: array
+          items:
+            type: string
+            format: uuid
         errata:
           type: array
           items:
@@ -9470,6 +9640,25 @@ components:
         ps_update_stream:
           type: string
           maxLength: 100
+        status:
+          type: string
+          maxLength: 100
+        resolution:
+          type: string
+          maxLength: 100
+        type:
+          allOf:
+          - $ref: '#/components/schemas/TrackerType'
+          readOnly: true
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
         created_dt:
           type: string
           format: date-time
@@ -9481,8 +9670,8 @@ components:
             it is used to detect mit-air collisions.
       required:
       - created_dt
+      - embargoed
       - errata
-      - external_system_id
       - meta_attr
       - status
       - type

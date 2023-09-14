@@ -37,6 +37,7 @@ from .models import (
     Package,
     PackageVer,
     Profile,
+    PsUpdateStream,
     Tracker,
 )
 
@@ -262,72 +263,6 @@ class ErratumSerializer(
         ] + TrackingMixinSerializer.Meta.fields
 
 
-class TrackerSerializer(
-    TrackingMixinSerializer,
-    IncludeExcludeFieldsMixin,
-    IncludeMetaAttrMixin,
-):
-    """Tracker serializer"""
-
-    # All currently used keys in Tracker.meta_attr used for SwaggerUI population,
-    # whenever we introduce new key, which users might be interested in, we should
-    # add it to this tuple.
-    #
-    # See osidb/helpers.py::get_unique_meta_attr_keys for listing all existing keys
-    # in the DB
-    META_ATTR_KEYS = (
-        "bz_id",
-        "owner",
-        "qe_owner",
-        "ps_component",
-        "ps_module",
-        "ps_update_stream",
-        "resolution",
-        "status",
-    )
-
-    errata = serializers.SerializerMethodField()
-    meta_attr = serializers.SerializerMethodField()
-
-    @extend_schema_field(ErratumSerializer(many=True))
-    def get_errata(self, obj):
-        """erratum serializer getter"""
-        context = {
-            "include_fields": self._next_level_include_fields.get("errata", []),
-            "exclude_fields": self._next_level_exclude_fields.get("errata", []),
-        }
-
-        serializer = ErratumSerializer(
-            instance=obj.errata.all(), many=True, context=context
-        )
-        return serializer.data
-
-    @extend_schema_field(
-        {
-            "type": "object",
-            "properties": {key: {"type": "string"} for key in META_ATTR_KEYS},
-        }
-    )
-    def get_meta_attr(self, obj):
-        return super().get_meta_attr(obj)
-
-    class Meta:
-        """filter fields"""
-
-        model = Tracker
-        fields = [
-            "uuid",
-            "type",
-            "external_system_id",
-            "affects",
-            "status",
-            "resolution",
-            "errata",
-            "meta_attr",
-            "ps_update_stream",
-        ] + TrackingMixinSerializer.Meta.fields
-
-
 class EmbargoedField(serializers.BooleanField):
     """The embargoed boolean attribute is technically read-only as it just indirectly
     modifies the ACLs but is mandatory as it controls the access to the resource."""
@@ -425,6 +360,179 @@ class ACLMixinSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
+class BugzillaAPIKeyMixin:
+    """
+    simple mixin providing the Bugzilla API key getter to be shared easily
+    """
+
+    def get_bz_api_key(self):
+        bz_api_key = self.context["request"].META.get("HTTP_BUGZILLA_API_KEY")
+        if not bz_api_key:
+            raise serializers.ValidationError(
+                {"Bugzilla-Api-Key": "This HTTP header is required."}
+            )
+        return bz_api_key
+
+
+class JiraAPIKeyMixin:
+    """
+    simple mixin providing the Jira API key getter to be shared easily
+    """
+
+    def get_jira_token(self):
+        jira_token = self.context["request"].META.get("HTTP_JIRA_API_KEY")
+        if not jira_token:
+            raise serializers.ValidationError(
+                {"Jira-Api-Key": "This HTTP header is required."}
+            )
+        return jira_token
+
+
+class TrackerSerializer(
+    ACLMixinSerializer,
+    BugzillaAPIKeyMixin,
+    IncludeExcludeFieldsMixin,
+    IncludeMetaAttrMixin,
+    JiraAPIKeyMixin,
+    TrackingMixinSerializer,
+):
+    """Tracker serializer"""
+
+    # All currently used keys in Tracker.meta_attr used for SwaggerUI population,
+    # whenever we introduce new key, which users might be interested in, we should
+    # add it to this tuple.
+    #
+    # See osidb/helpers.py::get_unique_meta_attr_keys for listing all existing keys
+    # in the DB
+    META_ATTR_KEYS = (
+        "bz_id",
+        "owner",
+        "qe_owner",
+        "ps_component",
+        "ps_module",
+        "ps_update_stream",
+        "resolution",
+        "status",
+    )
+
+    errata = serializers.SerializerMethodField()
+    meta_attr = serializers.SerializerMethodField()
+
+    @extend_schema_field(ErratumSerializer(many=True))
+    def get_errata(self, obj):
+        """erratum serializer getter"""
+        context = {
+            "include_fields": self._next_level_include_fields.get("errata", []),
+            "exclude_fields": self._next_level_exclude_fields.get("errata", []),
+        }
+
+        serializer = ErratumSerializer(
+            instance=obj.errata.all(), many=True, context=context
+        )
+        return serializer.data
+
+    @extend_schema_field(
+        {
+            "type": "object",
+            "properties": {key: {"type": "string"} for key in META_ATTR_KEYS},
+        }
+    )
+    def get_meta_attr(self, obj):
+        return super().get_meta_attr(obj)
+
+    class Meta:
+        """filter fields"""
+
+        model = Tracker
+        fields = (
+            [
+                "affects",
+                "errata",
+                "external_system_id",
+                "meta_attr",
+                "ps_update_stream",
+                "status",
+                "resolution",
+                "type",
+                "uuid",
+            ]
+            + ACLMixinSerializer.Meta.fields
+            + TrackingMixinSerializer.Meta.fields
+        )
+        read_only_fields = [
+            "external_system_id",
+            "type",
+        ]
+
+    def create(self, validated_data):
+        """
+        perform the ordinary instance create
+        with providing the API keys while saving
+        """
+        # transform the embargoed status to the ACLs
+        validated_data = ACLMixinSerializer.embargoed2acls(self, validated_data)
+
+        try:
+            # determine the tracker type from the PS update stream
+            ps_update_stream = PsUpdateStream.objects.get(
+                name=validated_data["ps_update_stream"]
+            )
+            validated_data["type"] = Tracker.BTS2TYPE[
+                ps_update_stream.ps_module.bts_name
+            ]
+        except PsUpdateStream.DoesNotExist:
+            raise serializers.ValidationError(
+                {
+                    "ps_update_stream": "Tracker must be associated with a valid PS update stream"
+                }
+            )
+
+        affects = validated_data.pop("affects", [])
+        instance = self.Meta.model(**validated_data)
+        # first save the instance to the local DB only
+        # so we can make the links before the backend sync
+        instance.save()
+        for affect in affects:
+            instance.affects.add(affect)
+
+        instance.save(
+            bz_api_key=self.get_bz_api_key(), jira_token=self.get_jira_token()
+        )
+
+        return instance
+
+    def update(self, instance, validated_data):
+        """
+        perform the ordinary instance update
+        with providing the API keys while saving
+        """
+        # transform the embargoed status to the ACLs
+        validated_data = ACLMixinSerializer.embargoed2acls(self, validated_data)
+
+        # update the relations by simply recreating them
+        # which will both delete the old and add the new
+        instance.affects.clear()
+        for affect in validated_data.pop("affects", []):
+            instance.affects.add(affect)
+
+        # update the attributes
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save(
+            bz_api_key=self.get_bz_api_key(), jira_token=self.get_jira_token()
+        )
+
+        return instance
+
+
+@extend_schema_serializer(exclude_fields=["external_system_id"])
+class TrackerPostSerializer(TrackerSerializer):
+    # extra serializer for POST request to exclude
+    # not yet existing but otherwise mandatory fields
+    pass
+
+
 class MetaSerializer(ACLMixinSerializer, TrackingMixinSerializer):
     """FlawMeta serializer"""
 
@@ -459,7 +567,7 @@ class CommentSerializer(TrackingMixinSerializer):
         ] + TrackingMixinSerializer.Meta.fields
 
 
-class BugzillaBareSyncMixinSerializer(serializers.ModelSerializer):
+class BugzillaBareSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSerializer):
     """
     Serializer mixin class implementing special handling of model saving
     required to perform Bugzilla sync as part of the save procedure.
@@ -468,20 +576,12 @@ class BugzillaBareSyncMixinSerializer(serializers.ModelSerializer):
     save behavior.
     """
 
-    def __get_bz_api_key(self):
-        bz_api_key = self.context["request"].META.get("HTTP_BUGZILLA_API_KEY")
-        if not bz_api_key:
-            raise serializers.ValidationError(
-                {"Bugzilla-Api-Key": "This HTTP header is required."}
-            )
-        return bz_api_key
-
     def create(self, instance):
         """
         Sync the already-created instance to bugzilla and sync&save it back to
         the database.
         """
-        instance.save(bz_api_key=self.__get_bz_api_key())
+        instance.save(bz_api_key=self.get_bz_api_key())
         return instance
 
     def update(self, instance):
@@ -490,7 +590,7 @@ class BugzillaBareSyncMixinSerializer(serializers.ModelSerializer):
         the database.
         """
         try:
-            instance.save(bz_api_key=self.__get_bz_api_key())
+            instance.save(bz_api_key=self.get_bz_api_key())
         except DataInconsistencyException as e:
             # translate internal exception into Django serializable
             raise BadRequest(
@@ -537,7 +637,6 @@ class BugzillaSyncMixinSerializer(BugzillaBareSyncMixinSerializer):
             setattr(instance, attr, value)
 
         instance = super().update(instance)
-
         return instance
 
     class Meta:
@@ -545,19 +644,11 @@ class BugzillaSyncMixinSerializer(BugzillaBareSyncMixinSerializer):
         abstract = True
 
 
-class JiraTaskSyncMixinSerializer(serializers.ModelSerializer):
+class JiraTaskSyncMixinSerializer(JiraAPIKeyMixin, serializers.ModelSerializer):
     """
     serializer mixin class implementing special handling of the models
     which need to perform Jira sync as part of the save procedure
     """
-
-    def __get_user_jira_token(self):
-        jira_token = self.context["request"].META.get("HTTP_JIRA_API_KEY")
-        if not jira_token:
-            raise serializers.ValidationError(
-                {"Jira-Api-Key": "This HTTP header is required."}
-            )
-        return jira_token
 
     def create(self, validated_data):
         """
@@ -566,9 +657,7 @@ class JiraTaskSyncMixinSerializer(serializers.ModelSerializer):
         """
         instance = super().create(validated_data)
         if JIRA_TASKMAN_AUTO_SYNC_FLAW:
-            instance.tasksync(
-                jira_token=self.__get_user_jira_token(), force_creation=True
-            )
+            instance.tasksync(jira_token=self.get_jira_token(), force_creation=True)
         return instance
 
     def update(self, instance, validated_data):
@@ -586,7 +675,7 @@ class JiraTaskSyncMixinSerializer(serializers.ModelSerializer):
         updated_instance = super().update(instance, validated_data)
         if JIRA_TASKMAN_AUTO_SYNC_FLAW and sync_required:
             updated_instance.tasksync(
-                jira_token=self.__get_user_jira_token(), force_update=True
+                jira_token=self.get_jira_token(), force_update=True
             )
         return updated_instance
 
