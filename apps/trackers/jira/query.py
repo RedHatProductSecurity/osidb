@@ -118,6 +118,8 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         self._query["fields"]["description"] = self.description
 
+    # TODO we should not delete other labels
+    # because the engineeting may use them
     def generate_labels(self):
         """
         generate query for Jira labels
