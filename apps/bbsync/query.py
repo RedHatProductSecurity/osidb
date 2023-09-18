@@ -106,7 +106,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         self.generate_srt_notes()
         self.generate_comment()
         # TODO tracker links
-        # TODO fixed_in
+        self.generate_fixed_in()
         # TODO dupe_of
         # TODO cf_devel_whiteboard
         # TODO ARRAY_FIELDS_ON_CREATE = ("depends_on", "blocks")
@@ -389,3 +389,84 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
                 "body": pending_comments.first().text,
                 "is_private": False,
             }
+
+    def generate_fixed_in(self):
+        """
+        Generates bugzilla query value for the bugzilla field fixed_in based
+        on the hierarchy of Flaw-associated models Package and PackageVer.
+
+        Except for flaws that have been stored in the database for a long time
+        and haven't been refreshed by bzimport since introducing this function
+        (and the associated save_packageversions in convertors.py). For such,
+        the bugzilla query for the flag is silently not generated.
+        """
+
+        if "fixed_in" not in self.flaw.meta_attr:
+            # TODO: Consider manually bzimporting leftover Flaws without
+            #       meta_attr["fixed_in"] before prod goes writable. It might be
+            #       a manageable number by then.
+            # TODO: [File an issue to track this, add the OSIDB-<number> ID here.]
+            #
+            # Do not send fixed_in to bugzilla. If this bbsync runs because of an API request
+            # to edit fixed_in, the change will be silently discarded.
+            #
+            # * If this branch executes, this flaw has not been updated in OSIDB database since
+            #   adding support for fixed_in. That's a long time.
+            # * OSIDB is planned to run for months with meta_attr["fixed_in"] support before the
+            #   first usage of the API for modification of fixed_in
+            #   (/flaw/<flaw_id>/package_versions). Therefore on most Flaws where users might need
+            #   modifying fixed_in, meta_attr["fixed_in"] will have already been bzimported by the
+            #   time they start doing so.
+            # * We can't just blanket raise an exception when meta_attr["fixed_in"] is missing
+            #   because that would block all bbsync operations for all not-yet-bzimported Flaws.
+            # * Detecting API-performed changes without flaw.meta_attr["fixed_in"] would be
+            #   nontrivial, so intelligently deciding when to raise such an exception would also be
+            #   nontrivial.
+            # * The most proper way would be to bzimport the Flaw here and populate meta_attr.
+            #   However, that is potentially complicated and breaks decomposition for a probably
+            #   miniscule benefit.
+            # * Any Flaw bbsync triggers a follow-up bzimport that will load meta_attr["fixed_in"].
+            #   We can expect that if an old Flaw gets updated, fixed_in will not be the first
+            #   edit operation.
+            #
+            return
+
+        # Tokenize the existing state of fixed_in to find out whether " " or "-" was used for
+        # delimiting the package-version pairs. The algorithm is similar to
+        # FlawConvertor.package_versions.
+        original_fixed_in = []
+        for token in self.flaw.meta_attr["fixed_in"].split(","):
+            token = token.strip()
+            token_items = token.split(" ", 1)
+            if len(token_items) == 1:
+                # fixed_in version can be split with ' ', or '-'
+                token_items = token.rsplit("-", 1)
+                if len(token_items) == 1:
+                    # FlawConvertor ignores such a token, do the same here.
+                    continue
+                pkg = token_items[0]
+                separator = "-"
+                ver = token_items[1]
+            else:
+                pkg = token_items[0]
+                separator = " "
+                ver = token_items[1]
+            original_fixed_in.append((pkg, separator, ver))
+
+        # New package-version pairs based on current models.
+        proposed_fixed_in = set()
+        for pkg_obj in self.flaw.package_versions.all():
+            for ver_obj in pkg_obj.versions.all():
+                proposed_fixed_in.add((pkg_obj.package, ver_obj.version))
+
+        # Consolidate new and old.
+        result = []
+        # Preserve order of existing versions in fixed_in, but remove those that were deleted.
+        for pkg, separator, ver in original_fixed_in:
+            if (pkg, ver) in proposed_fixed_in:
+                result.append(f"{pkg}{separator}{ver}")
+                proposed_fixed_in.remove((pkg, ver))
+        # And also add newly added versions to fixed_in.
+        result.extend(sorted([f"{pkg} {ver}" for (pkg, ver) in proposed_fixed_in]))
+
+        self._query["cf_fixed_in"] = ", ".join(result)

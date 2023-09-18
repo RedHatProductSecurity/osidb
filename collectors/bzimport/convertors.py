@@ -20,8 +20,6 @@ from osidb.mixins import AlertMixin, TrackingMixin
 from osidb.models import (
     Affect,
     AffectCVSS,
-    CVEv5PackageVersions,
-    CVEv5Version,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
@@ -30,8 +28,9 @@ from osidb.models import (
     FlawMeta,
     FlawReference,
     FlawType,
+    Package,
+    PackageVer,
     Tracker,
-    VersionStatus,
 )
 from osidb.validators import CVE_RE_STR, restrict_regex
 
@@ -224,29 +223,30 @@ class FlawSaver:
         )
 
     def save_packageversions(self):
-        """save packageversions and versions and remove the obsoleted"""
+        """
+        Saves Package and their associated PackageVer and removes obsoleted.
+        """
         for package, versions in self.package_versions.items():
-            package_versions, _ = CVEv5PackageVersions.objects.get_or_create(
+            package_instance = Package.objects.create_package(
                 flaw=self.flaw,
                 package=package,
+                acl_read=self.flaw.acl_read,
+                acl_write=self.flaw.acl_write,
             )
             # remove all the existing versions
-            for old_version in package_versions.versions.all():
-                package_versions.versions.remove(old_version)
-                old_version.delete()
+            package_instance.versions.all().delete()
             # replace them
             for version in versions:
-                version = CVEv5Version.objects.create(
+                PackageVer.objects.create(
                     version=version,
-                    status=VersionStatus.UNAFFECTED,
+                    package=package_instance,
                 )
-                package_versions.versions.add(version)
-        # remove obsoleted packageversions
-        CVEv5PackageVersions.objects.filter(
+        # remove obsoleted Package instances
+        Package.objects.filter(
             flaw=self.flaw,
         ).exclude(package__in=self.package_versions.keys()).delete()
         # remove obsoleted versions
-        CVEv5Version.objects.filter(packageversions__isnull=True).delete()
+        PackageVer.objects.filter(package__isnull=True).delete()
 
     def clean_affects(self):
         """clean obsoleted affects"""
@@ -757,6 +757,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         meta_attr["original_srtnotes"] = self.flaw_bug["cf_srtnotes"]
         meta_attr["status"] = self.flaw_bug["status"]
         meta_attr["resolution"] = self.flaw_bug["resolution"]
+        meta_attr["fixed_in"] = self.flaw_bug["fixed_in"]
         return meta_attr
 
     ##############################

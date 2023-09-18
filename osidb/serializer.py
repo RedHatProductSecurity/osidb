@@ -27,8 +27,6 @@ from .mixins import ACLMixin, TrackingMixin
 from .models import (
     Affect,
     AffectCVSS,
-    CVEv5PackageVersions,
-    CVEv5Version,
     Erratum,
     Flaw,
     FlawAcknowledgment,
@@ -36,6 +34,8 @@ from .models import (
     FlawCVSS,
     FlawMeta,
     FlawReference,
+    Package,
+    PackageVer,
     Profile,
     Tracker,
 )
@@ -459,10 +459,13 @@ class CommentSerializer(TrackingMixinSerializer):
         ] + TrackingMixinSerializer.Meta.fields
 
 
-class BugzillaSyncMixinSerializer(serializers.ModelSerializer):
+class BugzillaBareSyncMixinSerializer(serializers.ModelSerializer):
     """
-    serializer mixin class implementing special handling of the models
-    which need to perform Bugzilla sync as part of the save procedure
+    Serializer mixin class implementing special handling of model saving
+    required to perform Bugzilla sync as part of the save procedure.
+    This class is intended for serializer classes that instantiate and update
+    the models themselves and only need the mixin for the special bugzilla sync
+    save behavior.
     """
 
     def __get_bz_api_key(self):
@@ -473,16 +476,52 @@ class BugzillaSyncMixinSerializer(serializers.ModelSerializer):
             )
         return bz_api_key
 
+    def create(self, instance):
+        """
+        Sync the already-created instance to bugzilla and sync&save it back to
+        the database.
+        """
+        instance.save(bz_api_key=self.__get_bz_api_key())
+        return instance
+
+    def update(self, instance):
+        """
+        Sync the already-created instance to bugzilla and sync&save it back to
+        the database.
+        """
+        try:
+            instance.save(bz_api_key=self.__get_bz_api_key())
+        except DataInconsistencyException as e:
+            # translate internal exception into Django serializable
+            raise BadRequest(
+                "Received model contains non-refreshed and outdated data! "
+                "It has been probably edited by someone else in the meantime"
+            ) from e
+
+        return instance
+
+    class Meta:
+        model = BugzillaSyncMixin
+        abstract = True
+
+
+class BugzillaSyncMixinSerializer(BugzillaBareSyncMixinSerializer):
+    """
+    serializer mixin class implementing special handling of the models
+    which need to perform Bugzilla sync as part of the save procedure
+    """
+
     def create(self, validated_data):
         """
         perform the ordinary instance create
         with providing BZ API key while saving
         """
         # NOTE: This won't work for many-to-many fields as
-        # some logic from original .create() was overwritten
+        # some logic from original .create() was overwritten.
+        # Consider BugzillaBareSyncMixinSerializer for these.
 
         instance = self.Meta.model(**validated_data)
-        instance.save(bz_api_key=self.__get_bz_api_key())
+        instance = super().create(instance)
         return instance
 
     def update(self, instance, validated_data):
@@ -492,18 +531,12 @@ class BugzillaSyncMixinSerializer(serializers.ModelSerializer):
         """
         # NOTE: This won't work for many-to-many fields as
         # some logic from original .create() was overwritten
+        # Consider BugzillaBareSyncMixinSerializer for these.
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        try:
-            instance.save(bz_api_key=self.__get_bz_api_key())
-        except DataInconsistencyException as e:
-            # translate internal exception into Django serializable
-            raise BadRequest(
-                "Received model contains non-refreshed and outdated data! "
-                "It has been probably edited by someone else in the meantime"
-            ) from e
+        instance = super().update(instance)
 
         return instance
 
@@ -691,21 +724,28 @@ class AffectPostSerializer(AffectSerializer):
     pass
 
 
-class CVEv5VersionsSerializer(serializers.ModelSerializer):
-    """CVEv5 Package Version Serializer"""
+@extend_schema_serializer(deprecate_fields=["status"])
+class PackageVerSerializer(serializers.ModelSerializer):
+    """
+    PackageVer model serializer for read-only use in FlawSerializer via
+    PackageVerSerializer.
+    """
+
+    # Deprecated field, kept for schema backwards compatibility.
+    status = serializers.ReadOnlyField(default="UNAFFECTED")
 
     class Meta:
-        model = CVEv5Version
+        model = PackageVer
         fields = ["version", "status"]
 
 
-class CVEv5PackageVersionsSerializer(serializers.ModelSerializer):
-    """CVEv5 package versions serializer"""
+class PackageSerializer(serializers.ModelSerializer):
+    """package_versions (Package model) serializer for read-only use in FlawSerializer."""
 
-    versions = CVEv5VersionsSerializer(many=True)
+    versions = PackageVerSerializer(many=True)
 
     class Meta:
-        model = CVEv5PackageVersions
+        model = Package
         fields = ["package", "versions"]
 
 
@@ -751,6 +791,166 @@ class FlawAcknowledgmentPutSerializer(FlawAcknowledgmentSerializer):
 
 @extend_schema_serializer(exclude_fields=["flaw", "updated_dt"])
 class FlawAcknowledgmentPostSerializer(FlawAcknowledgmentSerializer):
+    # Extra serializer for POST request as there is no last update
+    # timestamp but we need to make the field mandatory otherwise.
+    # Flaw shouldn't be required in the body (already included in the path).
+    pass
+
+
+class FlawVersionSerializer(
+    IncludeExcludeFieldsMixin,
+):
+    """PackageVer serializer used by FlawPackageVersionSerializer."""
+
+    class Meta:
+        model = PackageVer
+        fields = ["version"]
+
+
+class FlawPackageVersionSerializerMixin:
+    """
+    This mixin enables FlawPackageVersionSerializer to insert Package (and
+    nested PackageVer) deserialization into the MRO between ACLMixinSerializer
+    and BugzillaBareSyncMixinSerializer.
+
+    Performs deserialization of PackageVer nested within Package because
+    Django doesn't provide out-of-the-box nested write serialization.
+    """
+
+    def create(self, validated_data):
+        """
+        Handles POST HTTP to add one or more package versions to the specified Flaw.
+
+        # - Package and version are treated as a unit, so even if the given
+        #   package name is already tracked, the version(s) provided in the
+        #   request are added.
+        # - If a package & version already exist, it is not touched and the POST
+        #   request returns the UUID of the respective Package object.
+        # - If a package already exists, but some of the versions provided in the
+        #   request don't, the Package object is preserved, its existing versions
+        #   are preserved and the versions provided in the request are added.
+        """
+
+        # NOTE: This method needs to have this line from
+        #       ACLMixinSerializer.create() already executed at this point:
+        #           validated_data = self.embargoed2acls(validated_data)
+        #       This is ensured by the MRO of
+        #       FlawPackageVersionSerializer.create().
+
+        versions = validated_data.pop("versions")
+
+        package_instance = Package.objects.create_package(**validated_data)
+        for version in versions:
+            version = version["version"]
+            PackageVer.objects.get_or_create(
+                version=version,
+                package=package_instance,
+            )
+
+        # NOTE: Bugzilla sync needs to have the equivalent of these 2 lines from
+        #       BugzillaBareSyncMixinSerializer.create() executed before the return:
+        #           bzkey = self._BugzillaBareSyncMixinSerializer__get_bz_api_key()
+        #           package_instance.save(bz_api_key=bzkey)
+        #       This is ensured by the MRO of
+        #       FlawPackageVersionSerializer.create() and the following line:
+        package_instance = super().create(package_instance)
+
+        return package_instance
+
+    def update(self, retrieved_package_instance, validated_data):
+        """
+        Handles PUT HTTP to perform update of the requested Package instance and of
+        the associated PackageVer instances.
+
+        # - The UUID of the Package instance is provided in the URL of the HTTP
+        #   request. This instance is updated based on the data provided in the request.
+        # - If the package name changes, the UUID of the Package instance changes.
+        # - If the package name in the request collides with another already-existing
+        #   Package object, the request-supplied UUID is deleted and the returned UUID
+        #   is the UUID of the Package object with the request-supplied package name.
+        # - Versions are replaced by the versions provided in the request.
+        """
+
+        # NOTE: This method needs to have this line from
+        #       ACLMixinSerializer.update() already executed at this point:
+        #           validated_data = self.embargoed2acls(validated_data)
+        #       This is ensured by the MRO of
+        #       FlawPackageVersionSerializer.update().
+
+        versions = validated_data.pop("versions")
+        package = validated_data.pop("package")
+        flaw = validated_data.pop("flaw")
+
+        # NOTE: "package_instance" contains request-provided "updated_dt",
+        #       but "retrieved_package_instance" contains database-stored
+        #       "updated_dt".
+        # NOTE: We must continue with "package_instance" so that TrackingMixin
+        #       validates the "updated_dt" timestamp correctly.
+        # NOTE: "retrieved_package_instance" was found based on UUID, whereas
+        #       "package_instance" is searched based on (flaw, package).
+        package_instance = Package.objects.create_package(
+            flaw=flaw,
+            package=package,
+            **validated_data,
+        )
+        if package_instance.uuid != retrieved_package_instance.uuid:
+            # The package name got changed in the request.
+            # Delete retrieved_package_instance.
+            # Package_instance is either new, or it is an existing Package
+            # instance if the name got changed to an already-existing one.
+            retrieved_package_instance.versions.all().delete()
+            retrieved_package_instance.delete()
+
+        # remove all the existing versions
+        package_instance.versions.all().delete()
+        # replace them
+        for version in versions:
+            version = version["version"]
+            PackageVer.objects.get_or_create(
+                version=version,
+                package=package_instance,
+            )
+
+        # NOTE: Bugzilla sync needs to have the equivalent of these 2 lines from
+        #       BugzillaBareSyncMixinSerializer.update() executed before the return:
+        #           bzkey = self._BugzillaBareSyncMixinSerializer__get_bz_api_key()
+        #           package_instance.save(bz_api_key=bzkey)
+        #       This is ensured by the MRO of
+        #       FlawPackageVersionSerializer.update() and the following line:
+        package_instance = super().update(package_instance)
+
+        return package_instance
+
+
+class FlawPackageVersionSerializer(
+    ACLMixinSerializer,
+    FlawPackageVersionSerializerMixin,
+    BugzillaBareSyncMixinSerializer,
+    IncludeExcludeFieldsMixin,
+    TrackingMixinSerializer,
+):
+    """Package model serializer"""
+
+    versions = FlawVersionSerializer(many=True)
+
+    class Meta:
+        model = Package
+        fields = (
+            ["package", "versions", "flaw", "uuid"]
+            + ACLMixinSerializer.Meta.fields
+            + TrackingMixinSerializer.Meta.fields
+        )
+
+
+@extend_schema_serializer(exclude_fields=["flaw"])
+class FlawPackageVersionPutSerializer(FlawPackageVersionSerializer):
+    # Extra serializer for PUT request because flaw shouldn't be
+    # required in the body (already included in the path).
+    pass
+
+
+@extend_schema_serializer(exclude_fields=["flaw", "updated_dt"])
+class FlawPackageVersionPostSerializer(FlawPackageVersionSerializer):
     # Extra serializer for POST request as there is no last update
     # timestamp but we need to make the field mandatory otherwise.
     # Flaw shouldn't be required in the body (already included in the path).
@@ -897,7 +1097,7 @@ class FlawSerializer(
     acknowledgments = FlawAcknowledgmentSerializer(many=True, read_only=True)
     references = FlawReferenceSerializer(many=True, read_only=True)
     cvss_scores = FlawCVSSSerializer(many=True, read_only=True)
-    package_versions = CVEv5PackageVersionsSerializer(many=True, read_only=True)
+    package_versions = PackageSerializer(many=True, read_only=True)
 
     meta = serializers.SerializerMethodField()
     meta_attr = serializers.SerializerMethodField()

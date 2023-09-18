@@ -13,8 +13,6 @@ from osidb.models import (
     CVSS,
     Affect,
     AffectCVSS,
-    CVEv5PackageVersions,
-    CVEv5Version,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
@@ -24,12 +22,13 @@ from osidb.models import (
     FlawSource,
     FlawType,
     Impact,
+    Package,
+    PackageVer,
     PsContact,
     PsModule,
     PsProduct,
     PsUpdateStream,
     Tracker,
-    VersionStatus,
 )
 
 DATA_PRODSEC_ACL_READ = uuid.uuid5(
@@ -391,32 +390,28 @@ class FlawReferenceFactory(factory.django.DjangoModelFactory):
     flaw = factory.SubFactory(FlawFactory)
 
 
-class CVEv5VersionFactory(factory.django.DjangoModelFactory):
+class PackageFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = CVEv5Version
-
-    version = "3.2.1"
-    status = VersionStatus.UNAFFECTED
-
-
-class CVEv5PackageVersionsFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = CVEv5PackageVersions
+        model = Package
 
     package = "package"
 
     flaw = factory.SubFactory(FlawFactory)
 
-    @factory.post_generation
-    def versions(self, create, extracted, **kwargs):
-        if not create:
-            # Simple build, do nothing.
-            return
+    created_dt = factory.Faker("date_time", tzinfo=UTC)
+    updated_dt = factory.Faker("date_time", tzinfo=UTC)
 
-        if extracted:
-            # A list of groups were passed in, use them
-            for version in extracted:
-                self.versions.add(version)
+    # let us inherit the parent flaw ACLs if not specified
+    acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
+    acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
+
+
+class PackageVerFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = PackageVer
+
+    version = "3.2.1"
+    package = factory.SubFactory(PackageFactory)
 
 
 class PsContactFactory(factory.django.DjangoModelFactory):

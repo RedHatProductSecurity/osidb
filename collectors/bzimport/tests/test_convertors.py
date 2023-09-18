@@ -7,8 +7,6 @@ from collectors.bzimport.convertors import FlawConvertor, FlawSaver
 from osidb.models import (
     Affect,
     AffectCVSS,
-    CVEv5PackageVersions,
-    CVEv5Version,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
@@ -17,8 +15,9 @@ from osidb.models import (
     FlawMeta,
     FlawReference,
     Impact,
+    Package,
+    PackageVer,
     Tracker,
-    VersionStatus,
 )
 from osidb.tests.factories import AffectFactory, FlawFactory
 
@@ -37,6 +36,17 @@ class TestFlawSaver:
             )
         ]
 
+    def get_acls_write(self):
+        """
+        minimal acls getter
+        """
+        return [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                "https://osidb.prod.redhat.com/ns/acls#data-prodsec-write",
+            )
+        ]
+
     def get_flaw(self):
         """
         minimal flaw getter
@@ -52,7 +62,7 @@ class TestFlawSaver:
             created_dt=timezone.now(),
             updated_dt=timezone.now(),
             acl_read=self.get_acls(),
-            acl_write=self.get_acls(),
+            acl_write=self.get_acls_write(),
         )
 
     def get_affects(self, flaw):
@@ -232,6 +242,7 @@ class TestFlawSaver:
         test basic flaw and realated entities save
         """
         acls = self.get_acls()
+        acls_write = self.get_acls_write()
         flaw = self.get_flaw()
         affects = self.get_affects(flaw)
 
@@ -258,8 +269,8 @@ class TestFlawSaver:
         reference = FlawReference.objects.first()
         cvss_score = FlawCVSS.objects.first()
         tracker = Tracker.objects.first()
-        package_versions = CVEv5PackageVersions.objects.first()
-        version = CVEv5Version.objects.first()
+        package = Package.objects.first()
+        package_version = PackageVer.objects.first()
 
         assert flaw is not None
         assert flaw.cve_id == "CVE-2000-1234"
@@ -267,13 +278,13 @@ class TestFlawSaver:
         assert flaw.description == "description"
         assert flaw.impact == Impact.CRITICAL
         assert flaw.acl_read == acls
-        assert flaw.acl_write == acls
+        assert flaw.acl_write == acls_write
         assert flaw.affects.first() == affect
         assert flaw.comments.first() == comment
         assert flaw.meta.first() == meta
         assert flaw.references.first() == reference
         assert flaw.cvss_scores.first() == cvss_score
-        assert flaw.package_versions.first() == package_versions
+        assert flaw.package_versions.first() == package
         assert flaw.major_incident_state == Flaw.FlawMajorIncident.REQUESTED
         assert flaw.requires_summary == Flaw.FlawRequiresSummary.NOVALUE
         assert flaw.nist_cvss_validation == Flaw.FlawNistCvssValidation.REJECTED
@@ -354,18 +365,15 @@ class TestFlawSaver:
         assert tracker.affects.count() == 1
         assert tracker.affects.first() == affect
 
-        assert package_versions is not None
-        assert package_versions.package == "package"
-        assert package_versions.default_status == VersionStatus.UNAFFECTED
-        assert package_versions.flaw == flaw
-        assert package_versions.versions.count() == 1
-        assert package_versions.versions.first() == version
+        assert package is not None
+        assert package.package == "package"
+        assert package.flaw == flaw
+        assert package.versions.count() == 1
+        assert package.versions.first() == package_version
 
-        assert version is not None
-        assert version.version == "version"
-        assert version.status == VersionStatus.UNAFFECTED
-        assert version.packageversions_set.count() == 1
-        assert version.packageversions_set.first() == package_versions
+        assert package_version is not None
+        assert package_version.version == "version"
+        assert package_version.package == package
 
     def test_affect_removed(self):
         """
@@ -805,19 +813,18 @@ class TestFlawSaver:
         ).save()
 
         flaw = Flaw.objects.first()
-        package_versions = CVEv5PackageVersions.objects.first()
-        version = CVEv5Version.objects.first()
+        package = Package.objects.first()
+        package_version = PackageVer.objects.first()
 
         assert flaw is not None
-        assert package_versions is not None
-        assert version is not None
+        assert package is not None
+        assert package_version is not None
         assert flaw.package_versions.count() == 1
-        assert flaw.package_versions.first() == package_versions
-        assert package_versions.flaw == flaw
-        assert package_versions.versions.count() == 1
-        assert package_versions.versions.first() == version
-        assert version.packageversions_set.count() == 1
-        assert version.packageversions_set.first() == package_versions
+        assert flaw.package_versions.first() == package
+        assert package.flaw == flaw
+        assert package.versions.count() == 1
+        assert package.versions.first() == package_version
+        assert package_version.package == package
 
         FlawSaver(
             flaw,
@@ -833,12 +840,12 @@ class TestFlawSaver:
         ).save()
 
         flaw = Flaw.objects.first()
-        package_versions = CVEv5PackageVersions.objects.first()
-        version = CVEv5Version.objects.first()
+        package = Package.objects.first()
+        package_version = PackageVer.objects.first()
 
         assert flaw is not None
-        assert package_versions is None
-        assert version is None
+        assert package is None
+        assert package_version is None
         assert flaw.package_versions.count() == 0
 
 
@@ -1612,6 +1619,32 @@ class TestFlawConvertor:
         assert "bz_summary" in flaw.meta_attr
         assert flaw.meta_attr["bz_summary"] == flaw_bug["summary"]
 
+    def test_fixed_in_meta_attr(self):
+        """
+        Test that fixed_in bz field is saved as-is in Flaw.meta_attr
+
+        The model structure of Package and PackageVer doesn't store the
+        separator between package and version used in bugzilla fixed_in.
+        Therefore, we need to store fixed_in as-is for bbsync's reference
+        to keep the original separators.
+        """
+        flaw_bug = self.get_flaw_bug()
+        flaw_bug["fixed_in"] = "foobar 1.2, foobaz-1.2"
+        fbc = FlawConvertor(
+            flaw_bug,
+            [],
+            None,
+            None,
+            [],
+            [],
+        )
+        [flaw] = fbc.bug2flaws()
+        flaw.save()
+        flaw = Flaw.objects.first()
+
+        assert "fixed_in" in flaw.meta_attr
+        assert flaw.meta_attr["fixed_in"] == flaw_bug["fixed_in"]
+
 
 class TestFlawConvertorFixedIn:
     def init_models(self, fixed_in):
@@ -1639,10 +1672,10 @@ class TestFlawConvertorFixedIn:
     def test_find_package_multi(self):
         self.init_models("django 3.2.5, django 3.1.13")
 
-        package_versions = CVEv5PackageVersions.objects.all()
-        assert package_versions.count() == 1
+        package = Package.objects.all()
+        assert package.count() == 1
 
-        package_version = package_versions.first()
+        package_version = package.first()
         assert package_version.package == "django"
 
         cvev5versions = package_version.versions.all()
@@ -1655,10 +1688,10 @@ class TestFlawConvertorFixedIn:
     def test_find_package_single(self):
         self.init_models("django 3.2.5")
 
-        package_versions = CVEv5PackageVersions.objects.all()
-        assert package_versions.count() == 1
+        package = Package.objects.all()
+        assert package.count() == 1
 
-        package_version = package_versions.first()
+        package_version = package.first()
         assert package_version.package == "django"
 
         cvev5versions = package_version.versions.all()
@@ -1670,10 +1703,10 @@ class TestFlawConvertorFixedIn:
     def test_find_package_single_dash(self):
         self.init_models("django-3.2.5")
 
-        package_versions = CVEv5PackageVersions.objects.all()
-        assert package_versions.count() == 1
+        package = Package.objects.all()
+        assert package.count() == 1
 
-        package_version = package_versions.first()
+        package_version = package.first()
         assert package_version.package == "django"
 
         cvev5versions = package_version.versions.all()
@@ -1685,10 +1718,10 @@ class TestFlawConvertorFixedIn:
     def test_find_package_multi_dash(self):
         self.init_models("python-pillow-2.8.0")
 
-        package_versions = CVEv5PackageVersions.objects.all()
-        assert package_versions.count() == 1
+        package = Package.objects.all()
+        assert package.count() == 1
 
-        package_version = package_versions.first()
+        package_version = package.first()
         assert package_version.package == "python-pillow"
 
         cvev5versions = package_version.versions.all()
@@ -1700,20 +1733,20 @@ class TestFlawConvertorFixedIn:
     def test_find_package_no_value(self):
         self.init_models("")
 
-        assert not CVEv5PackageVersions.objects.count()
+        assert not Package.objects.count()
 
     def test_find_package_null_value(self):
         self.init_models(None)
 
-        assert not CVEv5PackageVersions.objects.count()
+        assert not Package.objects.count()
 
     def test_find_package_with_golang(self):
         self.init_models("github.com/gogo/protobuf 1.3.2")
 
-        package_versions = CVEv5PackageVersions.objects.all()
-        assert package_versions.count() == 1
+        package = Package.objects.all()
+        assert package.count() == 1
 
-        package_version = package_versions.first()
+        package_version = package.first()
         assert package_version.package == "github.com/gogo/protobuf"
 
         cvev5versions = package_version.versions.all()
@@ -1725,11 +1758,11 @@ class TestFlawConvertorFixedIn:
     def test_parse_fixed_in_multi_package(self):
         self.init_models("a 1, b 1")
 
-        package_versions = CVEv5PackageVersions.objects.all()
-        assert package_versions.count() == 2
+        package = Package.objects.all()
+        assert package.count() == 2
 
-        package_version1 = package_versions.filter(package="a").first()
-        package_version2 = package_versions.filter(package="b").first()
+        package_version1 = package.filter(package="a").first()
+        package_version2 = package.filter(package="b").first()
         assert package_version1
         assert package_version2
 
@@ -1746,11 +1779,11 @@ class TestFlawConvertorFixedIn:
     def test_parse_fixed_in_multi_package_dash(self):
         self.init_models("a-1, b 1")
 
-        package_versions = CVEv5PackageVersions.objects.all()
-        assert package_versions.count() == 2
+        package = Package.objects.all()
+        assert package.count() == 2
 
-        package_version1 = package_versions.filter(package="a").first()
-        package_version2 = package_versions.filter(package="b").first()
+        package_version1 = package.filter(package="a").first()
+        package_version2 = package.filter(package="b").first()
         assert package_version1
         assert package_version2
 

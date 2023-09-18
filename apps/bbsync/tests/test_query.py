@@ -25,6 +25,8 @@ from osidb.tests.factories import (
     FlawCVSSFactory,
     FlawFactory,
     FlawReferenceFactory,
+    PackageFactory,
+    PackageVerFactory,
     PsModuleFactory,
     TrackerFactory,
 )
@@ -1233,3 +1235,58 @@ class TestGenerateFlags:
             assert {"name": "nist_cvss_validation", "status": flag_value} in flags
         else:
             assert flags == []
+
+
+class TestGenerateFixedIn:
+    def test_generate_fixed_in_without_meta_attr(self):
+        """
+        Tests that package_versions are not converted to fixed_in bz field when
+        it's not clear where to use dash or space as separator.
+
+        Test that nothing is generated when fixed_in is not present in meta_attr.
+        This is so that existing historical fixed_in is not destroyed (there's
+        a lot of non-package-version strings with dashes in old flaws).
+        """
+        flaw = FlawFactory(source=FlawSource.CUSTOMER)
+        # fixed_in NOT in meta_attr!
+        AffectFactory(flaw=flaw)
+
+        pkg = PackageFactory(package="foobar", flaw=flaw)
+        PackageVerFactory(version="1.2.3.4", package=pkg)
+
+        fbqb = FlawBugzillaQueryBuilder(flaw)
+
+        assert "cf_fixed_in" not in fbqb.query
+
+    def test_generate_fixed_in(self):
+        """
+        Tests that package_versions are correctly converted to fixed_in bz field.
+
+        Test that
+        - Versions already in fixed_in are left in fixed_in as they are, including order and
+          dash/space separator.
+        - Versions no longer existing are removed from fixed_in.
+        - New versions are added to fixed_in with space separator.
+        """
+        flaw = FlawFactory(source=FlawSource.CUSTOMER)
+        flaw.meta_attr[
+            "fixed_in"
+        ] = "bazfoo-2.3.4.5, something 4.5, foobar 1.2.3.4, foobar-2.3.4.5"
+        AffectFactory(flaw=flaw)
+
+        pkg_a = PackageFactory(package="foobar", flaw=flaw)
+        pkg_b = PackageFactory(package="bazfoo", flaw=flaw)
+        pkg_c = PackageFactory(package="fobr", flaw=flaw)
+        PackageVerFactory(version="1.2.3.4", package=pkg_a)
+        PackageVerFactory(version="1.2.3.4", package=pkg_b)
+        PackageVerFactory(version="2.3.4.5", package=pkg_a)
+        PackageVerFactory(version="2.3.4.5", package=pkg_b)
+        PackageVerFactory(version="3.4.5.6", package=pkg_c)
+
+        fbqb = FlawBugzillaQueryBuilder(flaw)
+        fixed_in = fbqb.query.get("cf_fixed_in")
+
+        assert (
+            fixed_in
+            == "bazfoo-2.3.4.5, foobar 1.2.3.4, foobar-2.3.4.5, bazfoo 1.2.3.4, fobr 3.4.5.6"
+        )

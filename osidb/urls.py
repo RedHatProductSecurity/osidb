@@ -11,6 +11,7 @@ from .api_views import (
     FlawAcknowledgmentView,
     FlawCommentView,
     FlawCVSSView,
+    FlawPackageVersionView,
     FlawReferenceView,
     FlawView,
     ManifestView,
@@ -33,6 +34,11 @@ router.register(
 )
 router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/cvss_scores", FlawCVSSView, basename="flawcvss"
+)
+router.register(
+    r"flaws/(?P<flaw_id>[^/.]+)/package_versions",
+    FlawPackageVersionView,
+    basename="flawpackageversions",
 )
 router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/references",

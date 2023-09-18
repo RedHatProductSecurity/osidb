@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Config gunicorn access log file depending on environment (OSIDB-879)
 - Link tracker to flaw(s) on create/update (OSIDB-1182)
 - Implement FlawCVSS and AffectCVSS APIs with filters (OSIDB-1105)
+- Implement package_versions API (OSIDB-1066)
 
 ### Changed
 - Deprecate various cvss fields in Flaw and Affect APIs (OSIDB-1105)
