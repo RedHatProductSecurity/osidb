@@ -93,7 +93,7 @@ DATABASES = {
             # the database or role level in managed databases such as AWS RDS
             "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000",
         },
-        "CONN_MAX_AGE": 120,
+        "CONN_MAX_AGE": 60,
     },
     "read-replica-1": {
         "NAME": get_env("OSIDB_DB_NAME", default="osidb"),
@@ -110,6 +110,7 @@ DATABASES = {
             # the database or role level in managed databases such as AWS RDS
             "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000",
         },
+        "CONN_MAX_AGE": 60,
     },
 }
 
