@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from apps.osim.models import Check, State, Workflow
 from apps.osim.workflow import WorkflowFramework, WorkflowModel
-from osidb.models import Flaw, FlawMeta, FlawSource, FlawType, Impact
+from osidb.models import Affect, Flaw, FlawMeta, FlawSource, FlawType, Impact
 from osidb.tests.factories import (
     AffectFactory,
     FlawCVSSFactory,
@@ -20,6 +20,11 @@ pytestmark = pytest.mark.unit
 def assert_state_equals(current, expected):
     message = f'flaw classified as {current.name}, expected {expected["name"]}'
     assert current.name == expected["name"], message
+
+
+def assert_workflow_equals(current, expected):
+    message = f"flaw classified in {current.name} workflow, expected {expected.name}"
+    assert current.name == expected.name, message
 
 
 class CheckDescFactory:
@@ -464,190 +469,135 @@ class TestWorkflow:
 
 
 class TestWorkflowFramework:
-    @pytest.mark.parametrize("count", [0, 1, 2, 3, 4, 5])
-    def test_classify_default_state(self, count):
-        """
-        test that a flaw is always classified in some workflow when the default workflow exists
-        """
-        random_states, _ = StateFactory().generate(count=random.randint(1, 3))
-        random_states[0].requirements = []  # default state
-        default_workflow = Workflow(
-            {
-                "name": "random name",
-                "description": "random description",
-                "priority": 0,
-                "conditions": [],  # default workflow with empty conditions
-                "states": [],  # this is not valid but OK for this test
-            }
-        )
-        default_workflow.states = random_states
-        workflow_framework = WorkflowFramework()
-        workflow_framework.register_workflow(default_workflow)
-
-        for index in range(count):
-            state_factory = StateFactory()
-            random_states, _ = state_factory.generate(count=random.randint(1, 3))
-            random_states[0].requirements = []  # default state
-            conditions, _ = CheckDescFactory.generate()
-            workflow = Workflow(
-                {
-                    "name": f"random name {index}",
-                    "description": "random description",
-                    "priority": index + 1,
-                    "conditions": conditions,  # random workflow conditions
-                    "states": [],  # this is not valid but OK for this test
-                }
-            )
-            workflow.states = random_states
-            workflow_framework.register_workflow(workflow)
-
-        flaw = FlawFactory()  # random flaw
-
-        message = "flaw was not classified in any workflow despite the default workflow exists"
-        assert workflow_framework.classify(flaw, state=False) is not None, message
-
-    @pytest.mark.parametrize("count", [1, 2, 3, 4, 5])
-    def test_classify_priority(self, count):
+    def test_classify_priority(self):
         """
         test that a flaw is always classified in the most prior accepting workflow
         """
-        workflow_framework = WorkflowFramework()
-
-        random_states, _ = StateFactory().generate(count=1)
-        random_states[0].requirements = []  # default state
-
-        for index in range(count):
-            workflow = Workflow(
-                {
-                    "name": f"random name {index}",
-                    "description": "random description",
-                    "priority": index + 1,
-                    "conditions": [],
-                    "states": [],  # this is not valid but OK for this test
-                }
-            )
-            workflow.states = random_states
-            workflow_framework.register_workflow(workflow)
-
-        flaw = FlawFactory()  # random flaw
-
-        message = (
-            "flaw was classified in workflow with priority "
-            f"{workflow_framework.classify(flaw, state=False).priority} "
-            f"despite the most prior accepting workflow has priority {count}"
-        )
-        assert workflow_framework.classify(flaw, state=False).priority == count, message
-
-    @pytest.mark.parametrize(
-        "workflows,workflow_name,state_name",
-        [
-            (
-                [
-                    ("default", 0, True, 1),
-                ],
-                "default",
-                "DRAFT",
-            ),
-            (
-                [
-                    ("another", 1, True, 2),
-                    ("default", 0, True, 1),
-                ],
-                "another",
-                "NEW",
-            ),
-            (
-                [
-                    ("another", 1, False, 1),
-                    ("default", 0, True, 3),
-                ],
-                "default",
-                "ANALYSIS",
-            ),
-            (
-                [
-                    ("first", 2, False, 2),
-                    ("another", 1, True, 1),
-                    ("default", 0, True, 2),
-                ],
-                "another",
-                "DRAFT",
-            ),
-            # TODO this test case occasionally generates so complex workflows
-            # that we are running out of flaw properties which results in empty
-            # state requirements so they accept flaw instead of rejecting
-            # - enable again when we have more flaw properties or this is refactored
-            # (
-            #     [
-            #         ("first", 3, False, 1),
-            #         ("better", 2, False, 1),
-            #         ("another", 1, True, 2),
-            #         ("default", 0, True, 1),
-            #     ],
-            #     "another",
-            #     "NEW",
-            # ),
-        ],
-    )
-    def test_classify_complete(self, workflows, workflow_name, state_name):
-        """test flaw classification in both workflow and state"""
-        workflow_framework = WorkflowFramework()
-
-        flaw_properties = {
-            "unembargo_dt": None,
-            "embargoed": None,
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
+        new_low = {
+            "name": "new low priority state",
+            "requirements": [],
+        }
+        new_high = {
+            "name": "new high priority state",
+            "requirements": [],
         }
 
-        for name, priority, accepting, accepting_states in workflows:
-            workflow = Workflow(
-                {
-                    "name": name,
-                    "description": "random description",
-                    "priority": priority,
-                    "conditions": [],
-                    "states": [],  # this is not valid but OK for this test
-                }
-            )
-            # create conditions
-            requirements, flaw_properties = CheckDescFactory.generate(
-                accepts=accepting, count=1, exclude=flaw_properties
-            )
-            workflow.conditions = [Check(check_dest) for check_dest in requirements]
-            # create states with one additional rejecting
-            state_factory = StateFactory()
-            a_states, flaw_properties = state_factory.generate(
-                accepts=True, count=accepting_states, exclude=flaw_properties
-            )
-            r_states, flaw_properties = state_factory.generate(
-                accepts=False, count=1, exclude=flaw_properties
-            )
-            workflow.states = a_states + r_states
-            # register workflow in the workflow framework
-            workflow_framework.register_workflow(workflow)
+        workflow_low = Workflow(
+            {
+                "name": "test zero priority workflow",
+                "description": "a test workflow",
+                "priority": 0,
+                "conditions": [],
+                "states": [new_low],
+            }
+        )
+        workflow_high = Workflow(
+            {
+                "name": "test one priority workflow",
+                "description": "another test workflow",
+                "priority": 1,
+                "conditions": [],
+                "states": [new_high],
+            }
+        )
 
-        flaw = FlawFactory.build(**flaw_properties)
+        workflow_framework = WorkflowFramework()
+        workflow_framework.register_workflow(workflow_high)
+        workflow_framework.register_workflow(workflow_low)
 
-        if flaw.is_major_incident:
-            flaw.save(raise_validation_error=False)
-            AffectFactory(flaw=flaw)
-            FlawMetaFactory(
-                flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-                meta_attr={"status": "-"},
-            )
-        flaw.save()
+        flaw = Flaw()
+        classified_workflow, classified_state = workflow_framework.classify(flaw)
+        assert_workflow_equals(classified_workflow, workflow_high)
+        assert_state_equals(classified_state, new_high)
+
+        # register order should not matter
+        workflow_framework = WorkflowFramework()
+        workflow_framework.register_workflow(workflow_low)
+        workflow_framework.register_workflow(workflow_high)
+
+        flaw = Flaw()
+        classified_workflow, classified_state = workflow_framework.classify(flaw)
+        assert_workflow_equals(classified_workflow, workflow_high)
+        assert_state_equals(classified_state, new_high)
+
+    def test_classify_complete(self):
+        """test flaw classification in both workflow and state"""
+        state_new = {
+            "name": WorkflowModel.OSIMState.DRAFT,
+            "requirements": [],
+        }
+        state_first = {
+            "name": WorkflowModel.OSIMState.ANALYSIS,
+            "requirements": ["has description"],
+        }
+        state_second = {
+            "name": WorkflowModel.OSIMState.DONE,
+            "requirements": ["has title"],
+        }
+
+        workflow_main = Workflow(
+            {
+                "name": "main workflow",
+                "description": "a three step workflow to test classification",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_new, state_first, state_second],
+            }
+        )
+
+        state_not_affected = {
+            "name": WorkflowModel.OSIMState.REVIEW,
+            "requirements": [],
+        }
+
+        workflow_reject = Workflow(
+            {
+                "name": "reject workflow",
+                "description": "a worflow for rejected flaws",
+                "priority": 1,
+                "conditions": ["has affects", "affects notaffected"],
+                "states": [state_not_affected],
+            }
+        )
+
+        workflow_framework = WorkflowFramework()
+        # remove yml workflows
+        workflow_framework._workflows = []
+        workflow_framework.register_workflow(workflow_main)
+        workflow_framework.register_workflow(workflow_reject)
+
+        flaw = FlawFactory()
+        flaw.description = ""
+        flaw.title = ""
 
         classified_workflow, classified_state = workflow_framework.classify(flaw)
-        message = (
-            f"flaw was classified in workflow to {classified_workflow.name}:{classified_state.name}"
-            f" but the expected classification was {workflow_name}:{state_name}"
+        assert_workflow_equals(classified_workflow, workflow_main)
+        assert_state_equals(classified_state, state_new)
+
+        flaw.description = "valid description"
+        classified_workflow, classified_state = workflow_framework.classify(flaw)
+        assert_state_equals(classified_state, state_first)
+
+        flaw.title = "valid title"
+        classified_workflow, classified_state = workflow_framework.classify(flaw)
+        assert_state_equals(classified_state, state_second)
+
+        affect = AffectFactory(
+            flaw=flaw,
+            resolution=Affect.AffectResolution.FIX,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
         )
-        assert (
-            classified_workflow.name == workflow_name
-            and classified_state.name == state_name
-        ), message
+
+        classified_workflow, classified_state = workflow_framework.classify(flaw)
+        assert_workflow_equals(classified_workflow, workflow_main)
+        assert_state_equals(classified_state, state_second)
+
+        affect.resolution = Affect.AffectResolution.NOVALUE
+        affect.affectedness = Affect.AffectAffectedness.NOTAFFECTED
+        affect.save()
+        classified_workflow, classified_state = workflow_framework.classify(flaw)
+        assert_workflow_equals(classified_workflow, workflow_reject)
+        assert_state_equals(classified_state, state_not_affected)
 
 
 class TestFlaw:
@@ -730,7 +680,7 @@ class TestFlaw:
         workflow.states = random_states
         workflow_framework.register_workflow(workflow)
 
-        flaw = FlawFactory.build(is_major_incident=True)
+        flaw = FlawFactory.build(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
         flaw.save(raise_validation_error=False)
 
         AffectFactory(flaw=flaw)
@@ -745,7 +695,7 @@ class TestFlaw:
             "state": "DRAFT",
         }
 
-        flaw.is_major_incident = False
+        flaw.is_major_incident = Flaw.FlawMajorIncident.NOVALUE
         flaw.adjust_classification()
         assert flaw.classification == {
             "workflow": "default workflow",
