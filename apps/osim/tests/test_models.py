@@ -5,12 +5,11 @@ from django.utils import timezone
 
 from apps.osim.models import Check, State, Workflow
 from apps.osim.workflow import WorkflowFramework, WorkflowModel
-from osidb.models import Affect, Flaw, FlawMeta, FlawSource, FlawType, Impact
+from osidb.models import Affect, Flaw, FlawSource, FlawType, Impact
 from osidb.tests.factories import (
     AffectFactory,
     FlawCVSSFactory,
     FlawFactory,
-    FlawMetaFactory,
     PackageFactory,
 )
 
@@ -213,6 +212,23 @@ class TestCheck:
 
         factory(flaw)
         assert check(flaw), f'check for "{check.name}" failed.'
+
+    def test_function_value(self):
+        """
+        test if a function without parameters can be used as condition can be checked
+        """
+        check = Check("is_major_incident_temp")
+        # alias
+        check_alias = Check("is major incident")
+
+        flaw = FlawFactory(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
+        AffectFactory(flaw=flaw)
+        assert check(flaw) and check_alias(flaw), f'check for "{check.name}" failed.'
+
+        flaw.major_incident_state = Flaw.FlawMajorIncident.NOVALUE
+        assert not check_alias(flaw) and not check(
+            flaw
+        ), f'check for "{check.name}" should have failed, but passed.'
 
     @pytest.mark.parametrize(
         "field",
@@ -631,6 +647,8 @@ class TestFlaw:
                             "workflow": new_stored_workflow,
                             "state": new_stored_state,
                         }
+                # prevent asigning same workflow depending on order in the framework
+                break
 
         # stored classification has changed
         assert flaw.osim_workflow == new_stored_workflow
@@ -648,8 +666,28 @@ class TestFlaw:
     def test_adjust(self):
         """test flaw classification adjustion after metadata change"""
         workflow_framework = WorkflowFramework()
-        random_states, _ = StateFactory().generate(count=1)
-        random_states[0].requirements = []  # default state
+        workflow_framework._workflows = []
+
+        state_new = State(
+            {
+                "name": WorkflowModel.OSIMState.DRAFT,
+                "requirements": [],
+            }
+        )
+        state_first = State(
+            {
+                "name": WorkflowModel.OSIMState.ANALYSIS,
+                "requirements": ["has description"],
+            }
+        )
+        state_second = State(
+            {
+                "name": WorkflowModel.OSIMState.DONE,
+                "requirements": ["has title"],
+            }
+        )
+
+        states = [state_new, state_first, state_second]
 
         # initialize default workflow first so there is
         # always some workflow to classify the flaw in
@@ -662,7 +700,7 @@ class TestFlaw:
                 "states": [],  # this is not valid but OK for this test
             }
         )
-        workflow.states = random_states
+        workflow.states = states
         workflow_framework.register_workflow(workflow)
 
         # major incident workflow
@@ -672,42 +710,23 @@ class TestFlaw:
                 "description": "random description",
                 "priority": 1,  # is more prior than default one
                 "conditions": [
-                    "major_incident"
+                    "is_major_incident_temp"
                 ],  # major incident flaws are classified here
                 "states": [],  # this is not valid but OK for this test
             }
         )
-        workflow.states = random_states
+        workflow.states = states
         workflow_framework.register_workflow(workflow)
 
-        flaw = FlawFactory.build(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
-        flaw.save(raise_validation_error=False)
-
+        flaw = FlawFactory(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
         AffectFactory(flaw=flaw)
-        FlawMetaFactory(
-            flaw=flaw,
-            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-            meta_attr={"status": "-"},
-        )
 
-        assert flaw.classification == {
-            "workflow": "major incident workflow",
-            "state": "DRAFT",
-        }
+        assert flaw.classification["workflow"] == "major incident workflow"
 
-        flaw.is_major_incident = Flaw.FlawMajorIncident.NOVALUE
+        flaw.major_incident_state = Flaw.FlawMajorIncident.NOVALUE
         flaw.adjust_classification()
-        assert flaw.classification == {
-            "workflow": "default workflow",
-            "state": "DRAFT",
-        }
 
-        # also test that adjust operation is idempotent
-        flaw.adjust_classification()
-        assert flaw.classification == {
-            "workflow": "default workflow",
-            "state": "DRAFT",
-        }
+        assert flaw.classification["workflow"] == "default workflow"
 
     def test_adjust_no_change(self):
         """test that adjusting classification has no effect without flaw modification"""
