@@ -3,6 +3,8 @@ OSIM entity requirement check definition
 """
 import inspect
 
+from django.db import models
+
 from .exceptions import WorkflowDefinitionError
 
 
@@ -102,15 +104,17 @@ class CheckParser(metaclass=MetaCheckParser):
         if check_desc.startswith("has_"):
             attr = cls.map_attribute(check_desc[4:])
             if hasattr(cls.model, attr):
-
                 message = (
                     f"check that {cls.model.__name__} attribute {attr} has a value set"
                 )
 
-                # TODO: Create "empty" check helper which would check emptiness based
-                # on a field type
-                EMPTY_VALUES = [None, ""]
-                return (
-                    message,
-                    lambda instance: getattr(instance, attr) not in EMPTY_VALUES,
-                )
+                def has_element(instance):
+                    EMPTY_VALUES = [None, ""]
+                    field = getattr(instance, attr)
+
+                    if isinstance(field, models.manager.BaseManager):
+                        return field.all().exists()
+                    else:
+                        return field not in EMPTY_VALUES
+
+                return (message, has_element)

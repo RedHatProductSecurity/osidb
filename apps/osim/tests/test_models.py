@@ -6,7 +6,13 @@ from django.utils import timezone
 from apps.osim.models import Check, State, Workflow
 from apps.osim.workflow import WorkflowFramework, WorkflowModel
 from osidb.models import Flaw, FlawMeta, FlawSource, FlawType, Impact
-from osidb.tests.factories import AffectFactory, FlawFactory, FlawMetaFactory
+from osidb.tests.factories import (
+    AffectFactory,
+    FlawCVSSFactory,
+    FlawFactory,
+    FlawMetaFactory,
+    PackageFactory,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -176,6 +182,28 @@ class StateFactory:
 
 
 class TestCheck:
+    @pytest.mark.parametrize(
+        "field,factory",
+        [
+            ("affects", lambda flaw: AffectFactory(flaw=flaw)),
+            ("cvss_scores", lambda flaw: FlawCVSSFactory(flaw=flaw)),
+            ("package_versions", lambda flaw: PackageFactory(flaw=flaw)),
+        ],
+    )
+    def test_relational_property(self, field, factory):
+        """
+        test that properties from a relationship with flaw rejects
+        a empty list and accept while having at least one element
+        """
+        flaw = FlawFactory(source=FlawSource.CVE, embargoed=False)
+        check = Check(f"has {field}")
+        assert not check(
+            flaw
+        ), f'check for "{check.name}" should have failed, but passed.'
+
+        factory(flaw)
+        assert check(flaw), f'check for "{check.name}" failed.'
+
     @pytest.mark.parametrize("cathegory", ["property", "not_property", "has_property"])
     def test_property_positive(self, cathegory):
         """test that property check accepts a flaw with that property being True"""
