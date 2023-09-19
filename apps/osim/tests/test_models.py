@@ -192,8 +192,8 @@ class TestCheck:
     )
     def test_relational_property(self, field, factory):
         """
-        test that properties from a relationship with flaw rejects
-        a empty list and accept while having at least one element
+        test that properties from a relationship with flaw reject
+        an empty list and accept it while having at least one element
         """
         flaw = FlawFactory(source=FlawSource.CVE, embargoed=False)
         check = Check(f"has {field}")
@@ -204,131 +204,75 @@ class TestCheck:
         factory(flaw)
         assert check(flaw), f'check for "{check.name}" failed.'
 
-    @pytest.mark.parametrize("cathegory", ["property", "not_property", "has_property"])
-    def test_property_positive(self, cathegory):
-        """test that property check accepts a flaw with that property being True"""
-        flaw_properties = {
-            "unembargo_dt": None,
-            "embargoed": None,
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
-        }
-        requirements, flaw_properties = CheckDescFactory.generate(
-            cathegory=cathegory, accepts=True, count=1, exclude=flaw_properties
-        )
-        check_desc = requirements[0]  # one requirement was requested
-        check = Check(check_desc)
-        flaw = FlawFactory.build(**flaw_properties)
+    @pytest.mark.parametrize(
+        "field",
+        [
+            "cve_id",
+            "cwe_id",
+            "created_dt",
+            "impact",
+            "description",
+            "title",
+            "summary",
+            "cvss3",
+            "source",
+        ],
+    )
+    def test_property_positive(self, field):
+        """
+        test that flaw containing requested properties passes in check
+        """
+        # most of properties are being auto generated as non-null by factory
+        flaw = FlawFactory(cwe_id="CWE-1", summary="random summary")
+        check = Check(f"has {field}")
 
-        if (
-            "is_major_incident" in flaw_properties
-            and flaw_properties["is_major_incident"]
-        ):
-            flaw.save(raise_validation_error=False)
-            AffectFactory(flaw=flaw)
-            FlawMetaFactory(
-                flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-                meta_attr={"status": "-"},
-            )
-        flaw.save()
-        assert check(
-            flaw
-        ), f'"{check_desc}" check does not accept a flaw with {flaw_properties}'
+        assert check(flaw), f'check for "{check.name}" failed.'
 
-    @pytest.mark.parametrize("cathegory", ["property", "not_property", "has_property"])
-    def test_property_negative(self, cathegory):
-        """test that property check rejects a flaw with that property being False"""
-        flaw_properties = {
-            "unembargo_dt": None,
-            "embargoed": None,
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
-        }
-        requirements, flaw_properties = CheckDescFactory.generate(
-            cathegory=cathegory,
-            accepts=False,
-            count=1,
-            exclude=flaw_properties,
-        )
+    @pytest.mark.parametrize(
+        "field,novalue",
+        [
+            ("cve_id", ""),
+            ("cwe_id", ""),
+            ("created_dt", ""),
+            ("impact", Impact.NOVALUE),
+            ("description", ""),
+            ("title", ""),
+            ("summary", ""),
+            ("cvss3", ""),
+            ("source", ""),
+        ],
+    )
+    def test_property_negative(self, field, novalue):
+        """
+        test that flaw only passes a a check if it not contains
+        an excluded properties
+        """
+        flaw = FlawFactory()
+        setattr(flaw, field, novalue)
+        check = Check(f"not {field}")
 
-        check_desc = requirements[0]  # one requirement was requested
-        check = Check(check_desc)
-        flaw = FlawFactory.build(**flaw_properties)
+        assert check(flaw), f'check for "{check.name}" failed.'
 
-        if flaw.is_major_incident:
-            flaw.save(raise_validation_error=False)
-            AffectFactory(flaw=flaw)
-            FlawMetaFactory(
-                flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-                meta_attr={"status": "-"},
-            )
-        flaw.save()
+    @pytest.mark.parametrize(
+        "field,alias",
+        [
+            ("cve_id", "cve"),
+            ("cwe_id", "cwe"),
+        ],
+    )
+    def test_property_alias(self, field, alias):
+        """
+        test that check can use aliases
+        """
+        flaw = FlawFactory()
+        setattr(flaw, field, "any value")
+        check = Check(f"has {alias}")
+        assert check(flaw), f'check for "{check.name}" failed.'
 
+        setattr(flaw, field, "")
         assert not check(
             flaw
-        ), f'"{check_desc}" check does not reject a flaw with {flaw_properties}'
-
-    @pytest.mark.parametrize("cathegory", ["property", "not_property", "has_property"])
-    def test_all_properties_positive(self, cathegory):
-        """test all positive properties"""
-        flaw_properties = {
-            "unembargo_dt": None,
-            "embargoed": None,
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
-        }
-        requirements, flaw_properties = CheckDescFactory.generate(
-            cathegory=cathegory, accepts=True, exclude=flaw_properties
-        )
-        flaw = FlawFactory.build(**flaw_properties)
-
-        if flaw.is_major_incident:
-            flaw.save(raise_validation_error=False)
-            AffectFactory(flaw=flaw)
-            FlawMetaFactory(
-                flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-                meta_attr={"status": "-"},
-            )
-        flaw.save()
-
-        for check_desc in requirements:
-            check = Check(check_desc)
-            assert check(
-                flaw
-            ), f'"{check_desc}" check does not accept a flaw with {flaw_properties}'
-
-    @pytest.mark.parametrize("cathegory", ["property", "not_property", "has_property"])
-    def test_all_properties_negative(self, cathegory):
-        """test all negative properties"""
-        flaw_properties = {
-            "unembargo_dt": None,
-            "embargoed": None,
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
-        }
-        requirements, flaw_properties = CheckDescFactory.generate(
-            cathegory=cathegory, accepts=False, exclude=flaw_properties
-        )
-        flaw = FlawFactory.build(**flaw_properties)
-
-        if flaw.is_major_incident:
-            flaw.save(raise_validation_error=False)
-            AffectFactory(flaw=flaw)
-            FlawMetaFactory(
-                flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-                meta_attr={"status": "-"},
-            )
-        flaw.save()
-
-        for check_desc in requirements:
-            check = Check(check_desc)
-            assert not check(
-                flaw
-            ), f'"{check_desc}" check does not reject a flaw with {flaw_properties}'
+        ), f'check for "{check.name}" should have failed, but passed.'
 
 
 class TestState:
