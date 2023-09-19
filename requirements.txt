@@ -853,6 +853,10 @@ zope-interface==5.4.0 \
     # via gevent
 
 # The following packages are considered to be unsafe in a requirements file:
+pip==23.1 \
+    --hash=sha256:408539897ee535dbfb83a153f7bc4d620f990d8bd44a52a986efc0b4d330d34a \
+    --hash=sha256:64b1d4528e491aa835ec6ece0c1ac40ce6ab6d886e60740f6519db44b2e9634d
+    # via -r requirements.in
 setuptools==65.5.1 \
     --hash=sha256:d0b9a8433464d5800cbe05094acf5c6d52a91bfac9b52bcfc4d41382be5d5d31 \
     --hash=sha256:e197a19aa8ec9722928f2206f8de752def0e4c9fc6953527360d1c36d94ddb2f

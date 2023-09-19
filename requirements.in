@@ -39,3 +39,4 @@ requests
 requests_cache
 requests_gssapi
 whitenoise
+pip==23.1
