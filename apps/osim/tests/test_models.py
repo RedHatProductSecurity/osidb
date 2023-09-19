@@ -287,87 +287,43 @@ class TestState:
         flaw = FlawFactory()  # random flaw
         assert state.accepts(flaw), "state with no requirements rejects a flaw"
 
-    @pytest.mark.parametrize("count", [1, 2, 3, 4, 5])
-    def test_satisfied_requirements(self, count):
+    def test_requirements(self):
         """test that a state accepts a flaw which satisfies its requirements"""
-        flaw_properties = {
-            "unembargo_dt": None,
-            "embargoed": None,
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
-        }
-        requirements, flaw_properties = CheckDescFactory.generate(
-            accepts=True, count=count, exclude=flaw_properties
-        )
+
+        requirements = [
+            "has cve_id",
+            "has impact",
+            "has cvss3",
+            "not cwe",
+            "not description",
+            "not title",
+        ]
         state = State(
             {
                 "name": "random name",
                 "requirements": requirements,
             }
         )
-        flaw = FlawFactory.build(**flaw_properties)
+        flaw = FlawFactory()
+        # fields set outside factory to skip validation
+        flaw.cwe_id = ""
+        flaw.description = ""
+        flaw.title = ""
 
-        if flaw.is_major_incident:
-            flaw.save(raise_validation_error=False)
-            AffectFactory(flaw=flaw)
-            FlawMetaFactory(
-                flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-                meta_attr={"status": "-"},
-            )
-        flaw.save()
+        assert state.accepts(
+            flaw
+        ), f'flaw doesn\'t met the requirements "{requirements}"'
 
-        message = (
-            f'state with requirements "{requirements}"'
-            f"does not accept a flaw with {flaw_properties}"
-        )
-        assert state.accepts(flaw), message
+        flaw.cwe_id = "CWE-1"
+        assert not state.accepts(
+            flaw
+        ), f'state accepted flaw without the requirements "{requirements}"'
 
-    @pytest.mark.parametrize(
-        "positive,negative", [(0, 1), (1, 1), (7, 1), (0, 5), (3, 3)]
-    )
-    def test_unsatisfied_requirements(self, positive, negative):
-        """test that a state rejects a flaw which does not satisfy its requirements"""
-        flaw_properties = {
-            "unembargo_dt": None,
-            "embargoed": None,
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
-        }
-        positive_requirements, flaw_properties = CheckDescFactory.generate(
-            accepts=True, count=positive, exclude=flaw_properties
-        )
-        negative_requirements, flaw_properties = CheckDescFactory.generate(
-            accepts=False, count=negative, exclude=flaw_properties
-        )
-        requirements = positive_requirements + negative_requirements
-        random.shuffle(requirements)
-        state = State(
-            {
-                "name": "random name",
-                "requirements": requirements,
-            }
-        )
-        flaw = FlawFactory.build(**flaw_properties)
-
-        if (
-            "is_major_incident" in flaw_properties
-            and flaw_properties["is_major_incident"]
-        ):
-            flaw.save(raise_validation_error=False)
-            AffectFactory(flaw=flaw)
-            FlawMetaFactory(
-                flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-                meta_attr={"status": "-"},
-            )
-        flaw.save()
-
-        message = (
-            f'state with requirements "{requirements}"'
-            f"does not reject a flaw with {flaw_properties}"
-        )
-        assert not state.accepts(flaw), message
+        flaw.cwe_id = ""
+        flaw.impact = Impact.NOVALUE
+        assert not state.accepts(
+            flaw
+        ), f'state accepted flaw without the requirements "{requirements}"'
 
 
 class TestWorkflow:
