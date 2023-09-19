@@ -1,10 +1,9 @@
 import pytest
 
-from apps.osim.models import Workflow
+from apps.osim.models import State, Workflow
 from apps.osim.serializers import WorkflowSerializer
-from apps.osim.tests.test_models import StateFactory
 from apps.osim.urls import urlpatterns
-from apps.osim.workflow import WorkflowFramework
+from apps.osim.workflow import WorkflowFramework, WorkflowModel
 from osidb.models import Flaw
 from osidb.tests.factories import AffectFactory, FlawFactory
 
@@ -93,8 +92,26 @@ class TestEndpoints(object):
     def test_workflows_uuid_adjusting(self, auth_client, test_api_uri):
         """test flaw classification adjustion after metadata change"""
         workflow_framework = WorkflowFramework()
-        random_states, _ = StateFactory().generate(count=1)
-        random_states[0].requirements = []  # default state
+        state_new = State(
+            {
+                "name": WorkflowModel.OSIMState.DRAFT,
+                "requirements": [],
+            }
+        )
+        state_first = State(
+            {
+                "name": WorkflowModel.OSIMState.ANALYSIS,
+                "requirements": ["has description"],
+            }
+        )
+        state_second = State(
+            {
+                "name": WorkflowModel.OSIMState.DONE,
+                "requirements": ["has title"],
+            }
+        )
+
+        states = [state_new, state_first, state_second]
 
         # initialize default workflow first so there is
         # always some workflow to classify the flaw in
@@ -107,7 +124,7 @@ class TestEndpoints(object):
                 "states": [],  # this is not valid but OK for this test
             }
         )
-        workflow.states = random_states
+        workflow.states = states
         workflow_framework.register_workflow(workflow)
 
         # major incident workflow
@@ -122,7 +139,7 @@ class TestEndpoints(object):
                 "states": [],  # this is not valid but OK for this test
             }
         )
-        workflow.states = random_states
+        workflow.states = states
         workflow_framework.register_workflow(workflow)
 
         flaw = FlawFactory.build(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
@@ -131,7 +148,7 @@ class TestEndpoints(object):
 
         assert flaw.classification == {
             "workflow": "major incident workflow",
-            "state": "DRAFT",
+            "state": "DONE",
         }
 
         flaw.major_incident_state = Flaw.FlawMajorIncident.NOVALUE
@@ -144,14 +161,14 @@ class TestEndpoints(object):
         assert "classification" in body
         assert body["classification"] == {
             "workflow": "default workflow",
-            "state": "DRAFT",
+            "state": "DONE",
         }
 
         # reload flaw DB
         flaw = Flaw.objects.get(pk=flaw.pk)
         assert flaw.classification == {
             "workflow": "default workflow",
-            "state": "DRAFT",
+            "state": "DONE",
         }
 
     def test_workflows_uuid_adjusting_no_modification(self, auth_client, test_api_uri):
