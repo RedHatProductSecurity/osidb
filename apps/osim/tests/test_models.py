@@ -17,6 +17,11 @@ from osidb.tests.factories import (
 pytestmark = pytest.mark.unit
 
 
+def assert_state_equals(current, expected):
+    message = f'flaw classified as {current.name}, expected {expected["name"]}'
+    assert current.name == expected["name"], message
+
+
 class CheckDescFactory:
     """
     test factory to produce random check descriptions together
@@ -341,18 +346,19 @@ class TestWorkflow:
         flaw = FlawFactory()  # random flaw
         assert workflow.accepts(flaw), "workflow with no conditions rejects a flaw"
 
-    @pytest.mark.parametrize("count", [1, 2, 3, 4, 5])
-    def test_satisfied_conditions(self, count):
+    @pytest.mark.parametrize(
+        "conditions",
+        [
+            ["has description"],
+            ["has description", "has title"],
+            ["not description"],
+            ["not description", "not title"],
+            ["has description", "not title"],
+        ],
+    )
+    def test_satisfied_conditions(self, conditions):
         """test that a workflow accepts a flaw which satisfies its conditions"""
-        flaw_properties = {
-            "unembargo_dt": None,
-            "embargoed": None,
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
-        }
-        conditions, flaw_properties = CheckDescFactory.generate(
-            accepts=True, count=count, exclude=flaw_properties
-        )
+
         workflow = Workflow(
             {
                 "name": "random name",
@@ -362,43 +368,32 @@ class TestWorkflow:
                 "states": [],  # this is not valid but OK for this test
             }
         )
-        flaw = FlawFactory.build(**flaw_properties)
+        flaw = FlawFactory()
+        for condition in conditions:
+            mode, attr = condition.split(" ", maxsplit=1)
+            attr = attr.replace(" ", "_")
+            if mode == "has":
+                setattr(flaw, attr, "valid value")
+            elif mode == "not":
+                setattr(flaw, attr, "")
 
-        if flaw.is_major_incident:
-            flaw.save(raise_validation_error=False)
-            AffectFactory(flaw=flaw)
-            FlawMetaFactory(
-                flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-                meta_attr={"status": "-"},
-            )
-        flaw.save()
-
-        message = (
-            f'workflow with conditions "{conditions}"'
-            f"does not accept a flaw with {flaw_properties}"
-        )
-        assert workflow.accepts(flaw), message
+        assert workflow.accepts(
+            flaw
+        ), f'flaw was rejected by workflow conditions "{conditions}"'
 
     @pytest.mark.parametrize(
-        "positive,negative", [(0, 1), (1, 1), (7, 1), (0, 5), (3, 3)]
+        "conditions",
+        [
+            ["has description"],
+            ["has description", "has title"],
+            ["not description"],
+            ["not description", "not title"],
+            ["has description", "not title"],
+        ],
     )
-    def test_unsatisfied_conditions(self, positive, negative):
-        """test that a workflow rejects a flaw which does not satisfy its conditions"""
-        flaw_properties = {
-            "unembargo_dt": None,
-            "embargoed": None,
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
-        }
-        positive_conditions, flaw_properties = CheckDescFactory.generate(
-            accepts=True, count=positive, exclude=flaw_properties
-        )
-        negative_conditions, flaw_properties = CheckDescFactory.generate(
-            accepts=False, count=negative, exclude=flaw_properties
-        )
-        conditions = positive_conditions + negative_conditions
-        random.shuffle(conditions)
+    def test_unsatisfied_conditions(self, conditions):
+        """test that a workflow accepts a flaw which satisfies its conditions"""
+
         workflow = Workflow(
             {
                 "name": "random name",
@@ -408,104 +403,64 @@ class TestWorkflow:
                 "states": [],  # this is not valid but OK for this test
             }
         )
-        flaw = FlawFactory.build(**flaw_properties)
+        flaw = FlawFactory()
+        for condition in conditions:
+            mode, attr = condition.split(" ", maxsplit=1)
+            attr = attr.replace(" ", "_")
+            if mode == "has":
+                setattr(flaw, attr, "")
+            elif mode == "not":
+                setattr(flaw, attr, "invalid value in a 'not' condition")
 
-        if (
-            "is_major_incident" in flaw_properties
-            and flaw_properties["is_major_incident"]
-        ):
-            flaw.save(raise_validation_error=False)
-            AffectFactory(flaw=flaw)
-            FlawMetaFactory(
-                flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-                meta_attr={"status": "-"},
-            )
-        flaw.save()
-        message = (
-            f'workflow with conditions "{conditions}"'
-            f"does not reject a flaw with {flaw_properties}"
-        )
-        assert not workflow.accepts(flaw), message
+        assert not workflow.accepts(
+            flaw
+        ), f'flaw was wrongly accepted by workflow conditions "{conditions}"'
 
-    @pytest.mark.parametrize("count1,count2", [(1, 1), (2, 2), (3, 1), (1, 4)])
-    def test_classify(self, count1, count2):
+        # conditions partially satisfied
+        if len(conditions) > 1:
+            mode, attr = conditions[0].split(" ", maxsplit=1)
+            attr = attr.replace(" ", "_")
+
+            if mode == "has":
+                setattr(flaw, attr, "valid value")
+            elif mode == "not":
+                setattr(flaw, attr, "")
+        assert not workflow.accepts(
+            flaw
+        ), f'flaw was wrongly accepted by workflow conditions "{conditions}"'
+
+    def test_classify(self):
         """test that a flaw is correctly classified in the workflow states"""
-        flaw_properties = {
-            "unembargo_dt": None,
-            "embargoed": None,
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            "title": "EMBARGOED CVE-2022-1234 kernel: some description",
+        state_new = {
+            "name": "new",
+            "requirements": [],
         }
-        state_factory = StateFactory()
-        accepting_states, flaw_properties = state_factory.generate(
-            accepts=True, count=count1, exclude=flaw_properties
-        )
-        rejecting_states, flaw_properties = state_factory.generate(
-            accepts=False, count=1, exclude=flaw_properties
-        )
-        random_states, flaw_properties = state_factory.generate(
-            count=count2, exclude=flaw_properties
-        )
-
-        classify_in = accepting_states[-1]
+        state_first = {"name": "first state", "requirements": ["has description"]}
+        state_second = {"name": "second state", "requirements": ["has title"]}
 
         workflow = Workflow(
             {
-                "name": "random name",
-                "description": "random description",
+                "name": "test workflow",
+                "description": "a three step workflow to test classification",
                 "priority": 0,
                 "conditions": [],
-                "states": [],  # this is not valid but OK for this test
+                "states": [state_new, state_first, state_second],
             }
         )
-        workflow.states = accepting_states + rejecting_states + random_states
-        flaw = FlawFactory.build(**flaw_properties)
+        flaw = Flaw()
+        assert_state_equals(workflow.classify(flaw), state_new)
 
-        if (
-            "is_major_incident" in flaw_properties
-            and flaw_properties["is_major_incident"]
-        ):
-            flaw.save(raise_validation_error=False)
-            AffectFactory(flaw=flaw)
-            FlawMetaFactory(
-                flaw=flaw,
-                type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-                meta_attr={"status": "-"},
-            )
-        flaw.save()
+        flaw.description = "valid description"
+        assert_state_equals(workflow.classify(flaw), state_first)
 
-        message = (
-            "flaw in workflow classification failure - was classified in state "
-            f'"{workflow.classify(flaw).name}" instead of "{classify_in.name}"'
-        )
-        assert workflow.classify(flaw).name == classify_in.name, message
+        flaw.title = "valid title"
+        assert_state_equals(workflow.classify(flaw), state_second)
 
-    @pytest.mark.parametrize("count", [1, 2, 3, 4, 5])
-    def test_classify_default_state(self, count):
-        """
-        test that a flaw is always classified in some state when a workflow has the default state
-        """
-        random_states, _ = StateFactory().generate(count=count)
-        random_states[0].requirements = []  # default state
-        workflow = Workflow(
-            {
-                "name": "random name",
-                "description": "random description",
-                "priority": 0,
-                "conditions": [],
-                "states": [],  # this is not valid but OK for this test
-            }
-        )
-        workflow.states = random_states
-        workflow_framework = WorkflowFramework()
-        workflow_framework.register_workflow(workflow)
-        flaw = FlawFactory()  # random flaw
-
-        message = (
-            "flaw was not classified in any state despite the default state exists"
-        )
-        assert workflow.classify(flaw) is not None, message
+        # Test that a flaw having a later state requirements
+        # does not bypass previous states without requirements
+        bypass_flaw = Flaw()
+        bypass_flaw.cwe_id = "CWE-1"
+        assert_state_equals(workflow.classify(bypass_flaw), state_new)
 
 
 class TestWorkflowFramework:
