@@ -28,7 +28,7 @@ testrunner.all-unit-tests:
 testrunner.all-integration-tests:
 	$(podman) exec -it testrunner tox -e integration-tests collectors/bzimport collectors/jiraffe collectors/product_definitions osidb
 testrunner.all-tests:
-	$(podman) exec -it testrunner tox -e tests -- --ignore=apps/osim
+	$(podman) exec -it testrunner tox -e tests
 testrunner.record-new:
 	rm -rf *_cache.sqlite
 	$(podman) exec -it testrunner tox -e record-new osidb/ collectors/jiraffe collectors/bzimport collectors/product_definitions
