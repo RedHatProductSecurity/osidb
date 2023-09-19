@@ -213,6 +213,39 @@ class CollectorMetadata(NullStrFieldsMixin):
         """ongoing run check"""
         return self.collector_state == CollectorMetadata.CollectorState.RUNNING
 
+    @property
+    def is_up2date(self) -> bool:
+        """
+        data up-to-date check
+
+        we suppose that in the case of failure the updated_until_dt is unchanged
+        so we estimate the freshness based on it and the estimated next run
+        and compare it with the current time to see whether
+
+        updated_until_dt < remaining_estimate < now
+
+        holds with the second delta being greater then the first which we consider outdated mark
+        the idea is that if fresh the data should not be older then twice their refresh period
+        as we expect that the refresh period is always less then or equal to collector run time
+
+        incomplete data are always outdated
+        we also suppose that complete data always have a updated_until_dt set
+
+        the result is an estimation as with the crontab the runs
+        do not have to be performed with a constant period
+        """
+        if not self.is_complete:
+            return False
+
+        last_run = self.updated_until_dt
+        re_created_crontab = crontab(**self.crontab_params)
+        double_period = re_created_crontab.remaining_estimate(last_run) * 2
+
+        if last_run + double_period < timezone.now():
+            return False
+
+        return True
+
     # track when was the last time the collector ran
     last_run_dt = models.DateTimeField(null=True)
 
@@ -330,35 +363,8 @@ class Collector(Task):
 
     @property
     def is_up2date(self) -> bool:
-        """
-        data up-to-date check
-
-        we suppose that in the case of failure the updated_until_dt is unchanged
-        so we estimate the freshness based on it and the estimated next run
-        and compare it with the current time to see whether
-
-        updated_until_dt < remaining_estimate < now
-
-        holds with the second delta being greater then the first which we consider outdated mark
-        the idea is that if fresh the data should not be older then twice their refresh period
-        as we expect that the refresh period is always less then or equal to collector run time
-
-        incomplete data are always outdated
-        we also suppose that complete data always have a updated_until_dt set
-
-        the result is an estimation as with the crontab the runs
-        do not have to be performed with a constant period
-        """
-        if not self.is_complete:
-            return False
-
-        last_run = self.metadata.updated_until_dt
-        double_period = self.crontab.remaining_estimate(last_run) * 2
-
-        if last_run + double_period < timezone.now():
-            return False
-
-        return True
+        """up2date check"""
+        return self.metadata.is_up2date
 
     @property
     def has_failed(self) -> bool:
