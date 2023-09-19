@@ -1,6 +1,7 @@
 bind = "0.0.0.0:8000"
-workers = 12
 worker_class = "gevent"
+workers = 3
+worker_connections = 2000
 proc_name = "osidb"
 timeout = 300
 
