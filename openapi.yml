@@ -213,6 +213,8 @@ paths:
                           nullable: true
                         is_complete:
                           type: boolean
+                        is_up2date:
+                          type: bool
                         data_models:
                           type: array
                           items:

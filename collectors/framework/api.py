@@ -74,8 +74,7 @@ class status(APIView):
                                 },
                                 "error": {"type": "object", "nullable": True},
                                 "is_complete": {"type": "boolean"},
-                                # TODO explained below
-                                # "is_up2date": {"type": "bool"},
+                                "is_up2date": {"type": "bool"},
                                 "data_models": {
                                     "type": "array",
                                     "items": {"type": "string"},
@@ -100,6 +99,7 @@ class status(APIView):
         get the overall status of all collectors and the collected data
         """
         logger.info("getting collector status")
+
         return Response(
             {
                 "collectors": {
@@ -109,8 +109,7 @@ class status(APIView):
                         "depends_on": collector.depends_on,
                         "error": collector.error,
                         "is_complete": collector.is_complete,
-                        # TODO this requires some crontab refactoring
-                        # "is_up2date": collector.is_up2date,
+                        "is_up2date": collector.is_up2date,
                         "data_models": collector.data_models,
                         "state": collector.collector_state,
                         "updated_until": collector.updated_until_dt,
