@@ -4,7 +4,9 @@ workers = 3
 worker_connections = 2000
 proc_name = "osidb"
 timeout = 300
+graceful_timeout = 800
 reuse_port = True
+preload_app = True
 
 
 def post_fork(server, worker):
