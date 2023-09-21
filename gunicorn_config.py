@@ -1,7 +1,7 @@
 bind = "0.0.0.0:8000"
 worker_class = "gthread"
-workers = 4
-threads = 4
+workers = 3
+threads = 10
 proc_name = "osidb"
 timeout = 300
 graceful_timeout = 800
