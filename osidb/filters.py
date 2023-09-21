@@ -226,6 +226,7 @@ class FlawFilter(DistinctFilterSet):
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
             "affects__trackers__errata__advisory_name": ["exact"],
+            "affects__trackers__errata__et_id": ["exact"],
             "affects__trackers__errata__shipped_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
