@@ -2441,6 +2441,10 @@ paths:
         schema:
           type: string
       - in: query
+        name: affects__trackers__errata__et_id
+        schema:
+          type: integer
+      - in: query
         name: affects__trackers__errata__shipped_dt
         schema:
           type: string
@@ -2969,6 +2973,7 @@ paths:
             - -affects__resolution
             - -affects__trackers__created_dt
             - -affects__trackers__errata__advisory_name
+            - -affects__trackers__errata__et_id
             - -affects__trackers__errata__shipped_dt
             - -affects__trackers__external_system_id
             - -affects__trackers__ps_update_stream
@@ -3025,6 +3030,7 @@ paths:
             - affects__resolution
             - affects__trackers__created_dt
             - affects__trackers__errata__advisory_name
+            - affects__trackers__errata__et_id
             - affects__trackers__errata__shipped_dt
             - affects__trackers__external_system_id
             - affects__trackers__ps_update_stream
