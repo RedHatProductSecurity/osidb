@@ -70,6 +70,9 @@ sync-deps: check-venv-active
 	$(ps) requirements.txt devel-requirements.txt $$([ -f local-requirements.txt ] && echo 'local-requirements.txt')
 
 
+#***********************************
+### Upgrade pinned package selectively. Read DEVELOP.md for details. Example: make upgrade-dep package=requests==2.0.0 reqfile=requirements.in
+#***********************************
 .PHONY : upgrade-dep
 upgrade-dep: check-venv-active
 	@echo ">upgrading specified packages"
