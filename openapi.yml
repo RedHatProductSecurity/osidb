@@ -4677,6 +4677,7 @@ paths:
         name: flaw_id
         schema:
           type: string
+          format: uuid
         required: true
       - in: query
         name: include_fields
@@ -4742,6 +4743,7 @@ paths:
         name: flaw_id
         schema:
           type: string
+          format: uuid
         required: true
       tags:
       - osidb
@@ -4795,6 +4797,7 @@ paths:
         name: flaw_id
         schema:
           type: string
+          format: uuid
         required: true
       - in: path
         name: id
@@ -4853,6 +4856,7 @@ paths:
         name: flaw_id
         schema:
           type: string
+          format: uuid
         required: true
       - in: path
         name: id
@@ -4902,6 +4906,7 @@ paths:
         name: flaw_id
         schema:
           type: string
+          format: uuid
         required: true
       - in: path
         name: id

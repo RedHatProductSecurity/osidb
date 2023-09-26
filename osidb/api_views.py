@@ -517,22 +517,6 @@ class SubFlawViewGetMixin:
         return super().get_serializer(*args, **kwargs)
 
 
-class SubFlawViewNoneFormatQuerysetMixin:
-    # This mixin exists so that OpenAPI schema stays unchanged for ModelViewSets
-    # that had a slightly buggy version of get_queryset.
-    # The correct get_queryset generates openapi parameter format "uuid", whereas
-    # this get_queryset generates parameter format "none".
-    # (This is not a docstring because that would appear in the schema.)
-    # TODO: Eliminate this mixin when such API change is allowed.
-
-    def get_queryset(self):
-        """
-        Returns the requested model instances only for the specified flaw.
-        """
-        flaw = self.get_flaw()
-        return self.serializer_class.Meta.model.objects.filter(flaw=flaw)
-
-
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
 @extend_schema_view(
@@ -559,12 +543,7 @@ class FlawAcknowledgmentView(
         request=FlawReferencePostSerializer,
     ),
 )
-class FlawReferenceView(
-    SubFlawViewNoneFormatQuerysetMixin,
-    SubFlawViewDestroyMixin,
-    SubFlawViewGetMixin,
-    ModelViewSet,
-):
+class FlawReferenceView(SubFlawViewDestroyMixin, SubFlawViewGetMixin, ModelViewSet):
     serializer_class = FlawReferenceSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
