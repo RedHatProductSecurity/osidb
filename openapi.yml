@@ -3005,6 +3005,12 @@ paths:
             - -nist_cvss_validation
             - -nvd_cvss2
             - -nvd_cvss3
+            - -references__created_dt
+            - -references__description
+            - -references__type
+            - -references__updated_dt
+            - -references__url
+            - -references__uuid
             - -reported_dt
             - -requires_summary
             - -source
@@ -3062,6 +3068,12 @@ paths:
             - nist_cvss_validation
             - nvd_cvss2
             - nvd_cvss3
+            - references__created_dt
+            - references__description
+            - references__type
+            - references__updated_dt
+            - references__url
+            - references__uuid
             - reported_dt
             - requires_summary
             - source
@@ -3072,6 +3084,106 @@ paths:
         description: Ordering
         explode: false
         style: form
+      - in: query
+        name: references__created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: references__created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: references__created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: references__created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: references__created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: references__created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: references__created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: references__created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: references__description
+        schema:
+          type: string
+      - in: query
+        name: references__type
+        schema:
+          type: string
+          enum:
+          - ARTICLE
+          - EXTERNAL
+      - in: query
+        name: references__updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: references__updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: references__updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: references__updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: references__updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: references__updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: references__updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: references__updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: references__url
+        schema:
+          type: string
+      - in: query
+        name: references__uuid
+        schema:
+          type: string
+          format: uuid
       - in: query
         name: reported_dt
         schema:
@@ -4665,6 +4777,50 @@ paths:
       operationId: osidb_api_v1_flaws_references_list
       parameters:
       - in: query
+        name: created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: description
+        schema:
+          type: string
+      - in: query
         name: exclude_fields
         schema:
           type: array
@@ -4677,6 +4833,7 @@ paths:
         name: flaw_id
         schema:
           type: string
+          format: uuid
         required: true
       - in: query
         name: include_fields
@@ -4711,6 +4868,62 @@ paths:
         description: The initial index from which to return the results.
         schema:
           type: integer
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - ARTICLE
+          - EXTERNAL
+      - in: query
+        name: updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: url
+        schema:
+          type: string
+      - in: query
+        name: uuid
+        schema:
+          type: string
+          format: uuid
       tags:
       - osidb
       security:
@@ -4742,6 +4955,7 @@ paths:
         name: flaw_id
         schema:
           type: string
+          format: uuid
         required: true
       tags:
       - osidb
@@ -4795,6 +5009,7 @@ paths:
         name: flaw_id
         schema:
           type: string
+          format: uuid
         required: true
       - in: path
         name: id
@@ -4853,6 +5068,7 @@ paths:
         name: flaw_id
         schema:
           type: string
+          format: uuid
         required: true
       - in: path
         name: id
@@ -4865,13 +5081,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawReference'
+              $ref: '#/components/schemas/FlawReferencePut'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawReference'
+              $ref: '#/components/schemas/FlawReferencePut'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawReference'
+              $ref: '#/components/schemas/FlawReferencePut'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -4902,6 +5118,7 @@ paths:
         name: flaw_id
         schema:
           type: string
+          format: uuid
         required: true
       - in: path
         name: id
@@ -8457,6 +8674,42 @@ components:
       required:
       - created_dt
       - embargoed
+      - url
+      - uuid
+    FlawReferencePut:
+      type: object
+      description: FlawReference serializer
+      properties:
+        description:
+          type: string
+        type:
+          $ref: '#/components/schemas/FlawReferenceType'
+        url:
+          type: string
+          format: uri
+          maxLength: 2048
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - created_dt
+      - embargoed
+      - updated_dt
       - url
       - uuid
     FlawReferenceType:

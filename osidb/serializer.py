@@ -984,6 +984,13 @@ class FlawReferencePostSerializer(FlawReferenceSerializer):
     pass
 
 
+@extend_schema_serializer(exclude_fields=["flaw"])
+class FlawReferencePutSerializer(FlawReferenceSerializer):
+    # Extra serializer for PUT request because flaw shouldn't be
+    # required in the body (already included in the path).
+    pass
+
+
 class FlawCVSSSerializer(
     ACLMixinSerializer,
     BugzillaSyncMixinSerializer,
