@@ -4869,13 +4869,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawReference'
+              $ref: '#/components/schemas/FlawReferencePut'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawReference'
+              $ref: '#/components/schemas/FlawReferencePut'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawReference'
+              $ref: '#/components/schemas/FlawReferencePut'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -8462,6 +8462,42 @@ components:
       required:
       - created_dt
       - embargoed
+      - url
+      - uuid
+    FlawReferencePut:
+      type: object
+      description: FlawReference serializer
+      properties:
+        description:
+          type: string
+        type:
+          $ref: '#/components/schemas/FlawReferenceType'
+        url:
+          type: string
+          format: uri
+          maxLength: 2048
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - created_dt
+      - embargoed
+      - updated_dt
       - url
       - uuid
     FlawReferenceType:

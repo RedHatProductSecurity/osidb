@@ -58,6 +58,7 @@ from .serializer import (
     FlawPackageVersionSerializer,
     FlawPostSerializer,
     FlawReferencePostSerializer,
+    FlawReferencePutSerializer,
     FlawReferenceSerializer,
     FlawSerializer,
     TrackerSerializer,
@@ -541,6 +542,9 @@ class FlawAcknowledgmentView(
 @extend_schema_view(
     create=extend_schema(
         request=FlawReferencePostSerializer,
+    ),
+    update=extend_schema(
+        request=FlawReferencePutSerializer,
     ),
 )
 class FlawReferenceView(SubFlawViewDestroyMixin, SubFlawViewGetMixin, ModelViewSet):
