@@ -37,7 +37,7 @@ def generate_vers(apps):
         .all()
         .iterator()
     ):
-        for old_pkg in old_ver.packageversions_set.only("uuid").all().iterator():
+        for old_pkg in old_ver.packageversions_set.all().iterator():
             try:
                 new_pkg = Package.objects.get(uuid=old_pkg.uuid)
             except ObjectDoesNotExist:
@@ -47,14 +47,23 @@ def generate_vers(apps):
                 # the old models CVEv5PackageVersions and CVEv5Version. This is not a problem
                 # w.r.t. data integrity because of the branch `if "fixed_in" not in self.flaw.meta_attr`
                 # in generate_fixed_in() in query.py (it also contains a detailed explanation).
+
+                try:
+                    old_flaw = old_pkg.flaw
+                except ObjectDoesNotExist:
+                    # Dangling CVEv5PackageVersions objects may exist.
+                    # Skip processing those.
+                    # Again not a problem due to the explanation above.
+                    continue
+
                 new_pkg = Package.objects.create(
                     uuid=old_pkg.uuid,
-                    flaw=old_pkg.flaw,
+                    flaw=old_flaw,
                     package=old_pkg.package,
-                    acl_read=old_pkg.flaw.acl_read,
-                    acl_write=old_pkg.flaw.acl_write,
-                    created_dt=old_pkg.flaw.created_dt,
-                    updated_dt=old_pkg.flaw.updated_dt,
+                    acl_read=old_flaw.acl_read,
+                    acl_write=old_flaw.acl_write,
+                    created_dt=old_flaw.created_dt,
+                    updated_dt=old_flaw.updated_dt,
                 )
 
             new_ver = PackageVer(
