@@ -36,6 +36,7 @@ from .filters import (
     FlawCVSSFilter,
     FlawFilter,
     FlawPackageVersionFilter,
+    FlawReferenceFilter,
     TrackerFilter,
 )
 from .models import Affect, AffectCVSS, Flaw, Tracker
@@ -551,6 +552,7 @@ class FlawReferenceView(SubFlawViewDestroyMixin, SubFlawViewGetMixin, ModelViewS
     serializer_class = FlawReferenceSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
+    filterset_class = FlawReferenceFilter
 
 
 @include_exclude_fields_extend_schema_view

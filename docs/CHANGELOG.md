@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement package_versions API (OSIDB-1066)
 - is_up2date to collector status API (OSIDB-1328)
 - Implement flaw filtering based on erratum id in API (OSIDB-1330)
+- Implement filters for flaw references in API (OSIDB-1368)
 
 ### Changed
 - Deprecate various cvss fields in Flaw and Affect APIs (OSIDB-1105)

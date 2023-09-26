@@ -20,6 +20,7 @@ from .models import (
     FlawAcknowledgment,
     FlawComment,
     FlawCVSS,
+    FlawReference,
     Package,
     Tracker,
     search_helper,
@@ -258,6 +259,19 @@ class FlawFilter(DistinctFilterSet):
             + DATE_LOOKUP_EXPRS,
             "cvss_scores__uuid": ["exact"],
             "cvss_scores__vector": ["exact"],
+            # Reference fields
+            "references__created_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "references__description": ["exact"],
+            "references__type": ["exact"],
+            "references__updated_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "references__url": ["exact"],
+            "references__uuid": ["exact"],
         }
 
     order = OrderingFilter(fields=Meta.fields.keys())
@@ -534,6 +548,25 @@ class FlawCVSSFilter(FilterSet):
             + DATE_LOOKUP_EXPRS,
             "uuid": ["exact"],
             "vector": ["exact"],
+        }
+
+
+class FlawReferenceFilter(FilterSet):
+    class Meta:
+        model = FlawReference
+        fields = {
+            "created_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "description": ["exact"],
+            "type": ["exact"],
+            "updated_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "url": ["exact"],
+            "uuid": ["exact"],
         }
 
 
