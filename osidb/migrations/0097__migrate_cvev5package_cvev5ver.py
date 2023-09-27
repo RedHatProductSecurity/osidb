@@ -6,7 +6,9 @@ Written manually on 2023-08-30
 * Add ACLs to new Package model instances.
 """
 
-from django.core.exceptions import ObjectDoesNotExist
+from osidb.core import set_user_acls
+
+from django.conf import settings
 from django.db import migrations
 from django.db.models import Prefetch
 from itertools import islice
@@ -38,25 +40,7 @@ def generate_vers(apps):
         .iterator()
     ):
         for old_pkg in old_ver.packageversions_set.only("uuid").all().iterator():
-            try:
-                new_pkg = Package.objects.get(uuid=old_pkg.uuid)
-            except ObjectDoesNotExist:
-                # The migration doesn't run in isolation. Packages can change while it runs.
-                # It's not expected to be a large number, hence non-batched creation.
-                # Note that the parallel tasks run with the old bzimport that instantiates
-                # the old models CVEv5PackageVersions and CVEv5Version. This is not a problem
-                # w.r.t. data integrity because of the branch `if "fixed_in" not in self.flaw.meta_attr`
-                # in generate_fixed_in() in query.py (it also contains a detailed explanation).
-                new_pkg = Package.objects.create(
-                    uuid=old_pkg.uuid,
-                    flaw=old_pkg.flaw,
-                    package=old_pkg.package,
-                    acl_read=old_pkg.flaw.acl_read,
-                    acl_write=old_pkg.flaw.acl_write,
-                    created_dt=old_pkg.flaw.created_dt,
-                    updated_dt=old_pkg.flaw.updated_dt,
-                )
-
+            new_pkg = Package.objects.get(uuid=old_pkg.uuid)
             new_ver = PackageVer(
                 package=new_pkg,
                 version=old_ver.version,
@@ -89,6 +73,11 @@ def forwards_func(apps, schema_editor):
     """
     Copies data from old models to new models.
     """
+    set_user_acls(settings.PUBLIC_READ_GROUPS + [
+        settings.PUBLIC_WRITE_GROUP,
+        settings.EMBARGO_READ_GROUP,
+        settings.EMBARGO_WRITE_GROUP,
+    ])
     generator = generate_pkgs(apps)
     model = apps.get_model("osidb", "Package")
     while batch := list(islice(generator, BATCH_SIZE)):
@@ -109,6 +98,11 @@ def backwards_func(apps, schema_editor):
     (unless a future migration already deleted them). Data potentially fetched
     into the new models by bzimport in the meantime also get deleted by backwards_func.
     """
+    set_user_acls(settings.PUBLIC_READ_GROUPS + [
+        settings.PUBLIC_WRITE_GROUP,
+        settings.EMBARGO_READ_GROUP,
+        settings.EMBARGO_WRITE_GROUP,
+    ])
     PackageVer = apps.get_model("osidb", "PackageVer")
     Package = apps.get_model("osidb", "Package")
 
