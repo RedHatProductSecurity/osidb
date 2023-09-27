@@ -835,3 +835,34 @@ array like so: `["http://example-ui1.com", "http://example-ui2.com"]`.
 
 This configuration allows developers to adjust CORS rules as needed and gives
 operations the information necessary for setting up the correct environment.
+
+### Creating data migrations
+
+Whenever a data migration is created for the purpose of retroactively fixing
+existing data and/or applying new processes to old data, one must be wary to
+remember that unlike in the local dev environment, stage and production are
+subject to row-level security, meaning that by default the database user used
+to read and write to the database might not have access to any row and this
+could make the data migration fail.
+
+In order to solve it, append the following snippet to the beginning of your
+migration regardless of whether it's a python or sql migration:
+
+```python
+from osidb.core import set_user_acls
+from django.conf import settings
+
+
+def forwards_func(...):
+    # set up user acls so that we can read/write to the database
+    set_user_acls(settings.PUBLIC_READ_GROUPS + [
+        settings.PUBLIC_WRITE_GROUP,
+        settings.EMBARGO_READ_GROUP,
+        settings.EMBARGO_WRITE_GROUP,
+    ])
+    # execute migration logic
+    ...
+```
+
+The `setup_user_acls` is the important part here, you should apply it to both
+the forwards and backwards function before performing any database operations.

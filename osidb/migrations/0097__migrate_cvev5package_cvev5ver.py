@@ -6,6 +6,9 @@ Written manually on 2023-08-30
 * Add ACLs to new Package model instances.
 """
 
+from osidb.core import set_user_acls
+
+from django.conf import settings
 from django.db import migrations
 from django.db.models import Prefetch
 from itertools import islice
@@ -70,6 +73,11 @@ def forwards_func(apps, schema_editor):
     """
     Copies data from old models to new models.
     """
+    set_user_acls(settings.PUBLIC_READ_GROUPS + [
+        settings.PUBLIC_WRITE_GROUP,
+        settings.EMBARGO_READ_GROUP,
+        settings.EMBARGO_WRITE_GROUP,
+    ])
     generator = generate_pkgs(apps)
     model = apps.get_model("osidb", "Package")
     while batch := list(islice(generator, BATCH_SIZE)):
@@ -90,6 +98,11 @@ def backwards_func(apps, schema_editor):
     (unless a future migration already deleted them). Data potentially fetched
     into the new models by bzimport in the meantime also get deleted by backwards_func.
     """
+    set_user_acls(settings.PUBLIC_READ_GROUPS + [
+        settings.PUBLIC_WRITE_GROUP,
+        settings.EMBARGO_READ_GROUP,
+        settings.EMBARGO_WRITE_GROUP,
+    ])
     PackageVer = apps.get_model("osidb", "PackageVer")
     Package = apps.get_model("osidb", "Package")
 
