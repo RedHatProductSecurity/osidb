@@ -1179,13 +1179,6 @@ class FlawSerializer(
         "state",
         "statement",
         "task_owner",
-        # Internal data
-        # "acl_labels",
-        # "bz_trace",
-        # "bzimport_last_imported_dt",
-        # "bzimport_last_job_uuid",
-        # "bzimport_last_jobitem_id",
-        # "bzimport_tracker_dict",
     )
 
     cve_id = serializers.CharField(required=False, allow_null=True)
