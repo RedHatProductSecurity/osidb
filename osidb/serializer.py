@@ -589,15 +589,7 @@ class BugzillaBareSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSeri
         Sync the already-created instance to bugzilla and sync&save it back to
         the database.
         """
-        try:
-            instance.save(bz_api_key=self.get_bz_api_key())
-        except DataInconsistencyException as e:
-            # translate internal exception into Django serializable
-            raise BadRequest(
-                "Received model contains non-refreshed and outdated data! "
-                "It has been probably edited by someone else in the meantime"
-            ) from e
-
+        instance.save(bz_api_key=self.get_bz_api_key())
         return instance
 
     class Meta:
@@ -1006,7 +998,17 @@ class FlawPackageVersionSerializerMixin:
         #           package_instance.save(bz_api_key=bzkey)
         #       This is ensured by the MRO of
         #       FlawPackageVersionSerializer.update() and the following line:
-        package_instance = super().update(package_instance)
+        try:
+            package_instance = super().update(package_instance)
+        # TODO remove explicit 400 in favor of implicit 409
+        # however it is not completely straight forward here
+        # as it seems to break atomicity which is not acceptable
+        except DataInconsistencyException as e:
+            # translate internal exception into Django serializable
+            raise BadRequest(
+                "Received model contains non-refreshed and outdated data! "
+                "It has been probably edited by someone else in the meantime"
+            ) from e
 
         return package_instance
 

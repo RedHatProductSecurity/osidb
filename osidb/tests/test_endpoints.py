@@ -1515,10 +1515,11 @@ class TestEndpoints(object):
             HTTP_BUGZILLA_API_KEY="SECRET",
         )
 
-        assert response.status_code == 409
+        assert response.status_code == status.HTTP_409_CONFLICT
         assert "Save operation based on an outdated model instance" in str(
             response.content
         )
+        assert Flaw.objects.get(uuid=flaw.uuid).title == flaw.title
 
     def test_flaw_comment_create(self, auth_client, test_api_uri):
         """
