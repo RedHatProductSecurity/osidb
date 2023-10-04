@@ -7,6 +7,7 @@ import socket
 from pathlib import Path
 
 from celery.schedules import crontab
+from corsheaders.defaults import default_headers
 from django.core.management.utils import get_random_secret_key
 
 from osidb.helpers import get_env
@@ -311,5 +312,9 @@ DEFAULT_REQUEST_TIMEOUT = get_env(
     "OSIDB_DEFAULT_REQUEST_TIMEOUT", default="30", is_int=True
 )
 
+# sets the Access-Control-Allow-Origin response header
+# example value: ["https://osidb.example.com", "https://osim.example.com"]
 CORS_ALLOWED_ORIGINS = get_env("OSIDB_CORS_ALLOWED_ORIGINS", default="[]", is_json=True)
+# sets the Access-Control-Allow-Headers response header; lowercase
+CORS_ALLOW_HEADERS = (*default_headers, *get_env("OSIDB_CORS_ALLOW_HEADERS", default='["bugzilla-api-key"]', is_json=True))
 CORS_ALLOW_CREDENTIALS = True
