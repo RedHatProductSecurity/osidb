@@ -2234,7 +2234,11 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         self.validate(raise_validation_error=kwargs.get("raise_validation_error", True))
 
         # check Bugzilla conditions are met
-        if SYNC_TO_BZ and bz_api_key is not None:
+        if (
+            SYNC_TO_BZ
+            and bz_api_key is not None
+            and self.type == self.TrackerType.BUGZILLA
+        ):
             # sync to Bugzilla
             self = TrackerSaver(self, bz_api_key=bz_api_key).save()
             # save in case a new Bugzilla ID was obtained
@@ -2249,7 +2253,11 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             btc.sync_tracker(self.external_system_id)
 
         # check Jira conditions are met
-        elif SYNC_TO_JIRA and jira_token is not None:
+        elif (
+            SYNC_TO_JIRA
+            and jira_token is not None
+            and self.type == self.TrackerType.JIRA
+        ):
             # sync to Jira
             self = TrackerSaver(self, jira_token=jira_token).save()
             # save in case a new Jira ID was obtained
