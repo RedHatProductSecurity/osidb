@@ -318,6 +318,6 @@ CORS_ALLOWED_ORIGINS = get_env("OSIDB_CORS_ALLOWED_ORIGINS", default="[]", is_js
 # sets the Access-Control-Allow-Headers response header; lowercase
 CORS_ALLOW_HEADERS = (
     *default_headers,
-    *get_env("OSIDB_CORS_ALLOW_HEADERS", default='["bugzilla-api-key"]', is_json=True),
+    *get_env("OSIDB_CORS_ALLOW_HEADERS", default="[]", is_json=True),
 )
 CORS_ALLOW_CREDENTIALS = True
