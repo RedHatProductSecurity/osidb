@@ -2386,6 +2386,20 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 f"Tracker type and BTS mismatch: {self.type} versus {ps_module.bts_name}"
             )
 
+    def _validate_tracker_duplicate(self):
+        """
+        validate that there is only one tracker with this update stream associated with each affect
+        """
+        for affect in self.affects.all():
+            if (
+                affect.trackers.filter(ps_update_stream=self.ps_update_stream).count()
+                > 1
+            ):
+                raise ValidationError(
+                    f"Tracker with the update stream {self.ps_update_stream} "
+                    f"is already associated with the affect {affect.uuid}"
+                )
+
     @property
     def aggregated_impact(self):
         """

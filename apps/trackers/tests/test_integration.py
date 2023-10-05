@@ -123,8 +123,8 @@ class TestTrackerSaver:
 
         # 2) define a tracker model instance
         #    according an exising Bugzilla tracker
-        tracker_id = "2017149"
-        updated_dt = "2023-09-04T15:05:15Z"
+        tracker_id = "2018651"
+        updated_dt = "2023-10-11T15:48:03Z"
         tracker = TrackerFactory(
             affects=[affect],
             bz_id=tracker_id,
