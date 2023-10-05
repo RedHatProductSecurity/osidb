@@ -44,12 +44,12 @@ class TestTrackerJiraQueryBuilder:
             field_id="priority",
             field_name="Priority",
             allowed_values=[
-                {"name": "Blocker"},
-                {"name": "Critical"},
-                {"name": "Major"},
-                {"name": "Normal"},
-                {"name": "Minor"},
-                {"name": "Undefined"},
+                "Blocker",
+                "Critical",
+                "Major",
+                "Normal",
+                "Minor",
+                "Undefined",
             ],
         )
         field.save()

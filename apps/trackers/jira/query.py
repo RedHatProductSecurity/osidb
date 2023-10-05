@@ -94,7 +94,6 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         allowed_values = JiraProjectFields.objects.get(
             project_key=self.ps_module.bts_key, field_id="priority"
         ).allowed_values
-        allowed_values = [value["name"] for value in allowed_values]
         for priority in IMPACT_TO_JIRA_PRIORITY[self.impact]:
             if priority in allowed_values:
                 self._query["fields"]["priority"] = {"name": priority}

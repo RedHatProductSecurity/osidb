@@ -360,9 +360,7 @@ class TestTrackerAPI:
         JiraProjectFieldsFactory(
             project_key="OSIDB",
             field_id="priority",
-            allowed_values=[
-                {"name": JiraPriority.MINOR},
-            ],
+            allowed_values=[JiraPriority.MINOR],
         )
 
         # 2) create tracker in OSIDB and Bugzilla
@@ -440,9 +438,7 @@ class TestTrackerAPI:
         JiraProjectFieldsFactory(
             project_key="OSIDB",
             field_id="priority",
-            allowed_values=[
-                {"name": JiraPriority.MINOR},
-            ],
+            allowed_values=[JiraPriority.MINOR],
         )
 
         # 2) define a tracker model instance
