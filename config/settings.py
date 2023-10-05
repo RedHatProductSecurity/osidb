@@ -316,5 +316,8 @@ DEFAULT_REQUEST_TIMEOUT = get_env(
 # example value: ["https://osidb.example.com", "https://osim.example.com"]
 CORS_ALLOWED_ORIGINS = get_env("OSIDB_CORS_ALLOWED_ORIGINS", default="[]", is_json=True)
 # sets the Access-Control-Allow-Headers response header; lowercase
-CORS_ALLOW_HEADERS = (*default_headers, *get_env("OSIDB_CORS_ALLOW_HEADERS", default='["bugzilla-api-key"]', is_json=True))
+CORS_ALLOW_HEADERS = (
+    *default_headers,
+    *get_env("OSIDB_CORS_ALLOW_HEADERS", default='["bugzilla-api-key"]', is_json=True),
+)
 CORS_ALLOW_CREDENTIALS = True
