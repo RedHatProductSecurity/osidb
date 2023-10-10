@@ -74,7 +74,7 @@ class status(APIView):
                                 },
                                 "error": {"type": "object", "nullable": True},
                                 "is_complete": {"type": "boolean"},
-                                "is_up2date": {"type": "bool"},
+                                "is_up2date": {"type": "boolean"},
                                 "data_models": {
                                     "type": "array",
                                     "items": {"type": "string"},
