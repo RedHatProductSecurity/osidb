@@ -81,7 +81,11 @@ class TrackingMixinManager(models.Manager):
         auto_timestamps = kwargs.pop("auto_timestamps", None)
         obj = self.model(**kwargs)
         self._for_write = True
-        obj.save(auto_timestamps=auto_timestamps, force_insert=True, using=self.db)
+        # re-add the auto_timestamps argument only if it was actually present before
+        new_kwargs = (
+            {"auto_timestamps": auto_timestamps} if auto_timestamps is not None else {}
+        )
+        obj.save(force_insert=True, using=self.db, **new_kwargs)
         return obj
 
 
