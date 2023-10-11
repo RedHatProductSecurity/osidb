@@ -1,0 +1,25 @@
+name: OSIDB Bindings integration
+on:
+  pull_request:
+    paths:
+    - "openapi.yml"
+jobs:
+  regenerate-bindings:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+      - uses: actions/checkout@v3
+        with:
+          repository: "RedHatProductSecurity/osidb-bindings"
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: pip install -r devel-requirements.txt
+      - name: Download recent OpenAPI schema
+        run: make download-schema ref=${{ steps.extract_branch.outputs.branch }}
+      - name: Regenerate OSIDB bindings with the new schema file
+        run: make update
