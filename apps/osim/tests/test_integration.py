@@ -7,21 +7,21 @@
     curl is used to independently test API
 
 """
-
 import json
 import subprocess
 
 import pytest
 
+from apps.osim.models import Workflow
 from apps.osim.serializers import WorkflowSerializer
 from apps.osim.urls import urlpatterns
-from apps.osim.workflow import WorkflowFramework
+from apps.osim.workflow import WorkflowFramework, WorkflowModel
+from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.integration
 
-pytestmark = pytest.mark.integration
 
-
+@pytest.mark.skip(reason="No support for this type test in the current environment.")
 class TestIntegration(object):
     def test_index_with_curl(self, command_curl, test_scheme_host, tokens):
         """access index API using curl"""
@@ -193,3 +193,117 @@ class TestIntegration(object):
         else:
             assert "detail" in json_body
             assert json_body["detail"] == "Not found."
+
+
+class TestRestApi(object):
+    def test_index(self, auth_client, test_scheme_host):
+        """test access index API"""
+        response = auth_client.get(
+            f"{test_scheme_host}/",
+            data={},
+            format="json",
+        )
+        assert response.status_code == 200
+
+        json_body = response.json()
+        assert json_body["index"] == [f"/{url.pattern}" for url in urlpatterns]
+
+    def test_healthy(self, auth_client, test_scheme_host):
+        """test access healthy API"""
+        response = auth_client.get(
+            f"{test_scheme_host}/healthy",
+            data={},
+            format="json",
+        )
+        assert response.status_code == 200
+
+    def test_adjust(self, auth_client, test_api_uri):
+        """test refreshing/adjusting a flaw state through API"""
+        state_new = {
+            "name": WorkflowModel.OSIMState.DRAFT,
+            "requirements": [],
+        }
+        state_first = {
+            "name": WorkflowModel.OSIMState.ANALYSIS,
+            "requirements": ["has cwe"],
+        }
+
+        workflow_main = Workflow(
+            {
+                "name": "main workflow",
+                "description": "a workflow to test classification",
+                "priority": 100,
+                "conditions": [],
+                "states": [state_new, state_first],
+            }
+        )
+
+        workflow_framework = WorkflowFramework()
+        workflow_framework.register_workflow(workflow_main)
+
+        flaw = FlawFactory()
+        AffectFactory(flaw=flaw)
+        flaw.cwe_id = ""
+        flaw.save(raise_validation_error=False)
+        flaw.adjust_classification()
+        assert flaw.classification["state"] == WorkflowModel.OSIMState.DRAFT
+
+        flaw.cwe_id = "CWE-1"
+        flaw.save(raise_validation_error=False)
+
+        response = auth_client.post(
+            f"{test_api_uri}/workflows/{flaw.uuid}/adjust",
+            data={},
+            format="json",
+        )
+        assert response.status_code == 200
+
+        json_body = response.json()
+        assert str(flaw.uuid) == json_body["flaw"]
+        assert WorkflowModel.OSIMState.ANALYSIS == json_body["classification"]["state"]
+
+    def test_classification(self, auth_client, test_api_uri):
+        state_new = {
+            "name": WorkflowModel.OSIMState.DRAFT,
+            "requirements": [],
+        }
+
+        workflow_main = Workflow(
+            {
+                "name": "main workflow",
+                "description": "a workflow to test classification",
+                "priority": 100,
+                "conditions": [],
+                "states": [state_new],
+            }
+        )
+
+        workflow_framework = WorkflowFramework()
+        workflow_framework.register_workflow(workflow_main)
+        flaw = FlawFactory()
+        AffectFactory(flaw=flaw)
+
+        response = auth_client.get(
+            f"{test_api_uri}/workflows/{flaw.uuid}",
+            data={},
+            format="json",
+        )
+        assert response.status_code == 200
+        json_body = response.json()
+        assert "classification" in json_body
+        assert "workflow" in json_body["classification"]
+        assert "state" in json_body["classification"]
+
+        assert json_body["classification"]["workflow"] == "main workflow"
+        assert json_body["classification"]["state"] == WorkflowModel.OSIMState.DRAFT
+
+    def test_workflows(self, auth_client, test_api_uri):
+        response = auth_client.get(
+            f"{test_api_uri}/workflows",
+            data={},
+            format="json",
+        )
+        json_body = response.json()
+        workflows = WorkflowSerializer(WorkflowFramework().workflows, many=True).data
+
+        assert json_body["workflows"] == workflows

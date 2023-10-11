@@ -3,6 +3,8 @@ OSIM entity requirement check definition
 """
 import inspect
 
+from django.db import models
+
 from .exceptions import WorkflowDefinitionError
 
 
@@ -32,7 +34,7 @@ class CheckParser(metaclass=MetaCheckParser):
     """check description parser"""
 
     ATTRIBUTE_MAP = {
-        "major_incident": "is_major_incident",
+        "is_major_incident": "is_major_incident_temp",
         "cve": "cve_id",
         "cwe": "cwe_id",
     }
@@ -76,10 +78,12 @@ class CheckParser(metaclass=MetaCheckParser):
         check_desc = cls.map_attribute(check_desc)
         if hasattr(cls.model, check_desc):
             func = getattr(cls.model, check_desc)
-            return (
-                inspect.getdoc(func),
-                lambda instance: getattr(instance, check_desc),
-            )
+
+            def get_element(instance):
+                field = getattr(instance, check_desc)
+                return field if not callable(field) else field()
+
+            return (inspect.getdoc(func), get_element)
 
     @classmethod
     def desc2not_property(cls, check_desc):
@@ -102,15 +106,17 @@ class CheckParser(metaclass=MetaCheckParser):
         if check_desc.startswith("has_"):
             attr = cls.map_attribute(check_desc[4:])
             if hasattr(cls.model, attr):
-
                 message = (
                     f"check that {cls.model.__name__} attribute {attr} has a value set"
                 )
 
-                # TODO: Create "empty" check helper which would check emptiness based
-                # on a field type
-                EMPTY_VALUES = [None, ""]
-                return (
-                    message,
-                    lambda instance: getattr(instance, attr) not in EMPTY_VALUES,
-                )
+                def has_element(instance):
+                    EMPTY_VALUES = [None, ""]
+                    field = getattr(instance, attr)
+
+                    if isinstance(field, models.manager.BaseManager):
+                        return field.all().exists()
+                    else:
+                        return field not in EMPTY_VALUES
+
+                return (message, has_element)
