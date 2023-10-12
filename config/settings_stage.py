@@ -92,7 +92,7 @@ STATIC_URL = "/static/"
 # Celery settings
 
 REDIS_PASSWORD = get_env("OSIDB_REDIS_PASSWORD")
-CELERY_BROKER_URL = f"rediss://:{REDIS_PASSWORD}@redis:6379/"
+CELERY_BROKER_URL = f"redis://:{REDIS_PASSWORD}@redis:6379/"
 CELERY_BROKER_USE_SSL = {
     "ssl_keyfile": "/opt/app-root/etc/redis/certs/osidb-redis.key",
     "ssl_certfile": "/opt/app-root/etc/redis/certs/osidb-redis.crt",
