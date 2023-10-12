@@ -3301,8 +3301,8 @@ class PsContact(NullStrFieldsMixin, ValidateMixin):
     username = models.CharField(max_length=100, unique=True)
 
     # BTS usernames
-    bz_username = models.CharField(max_length=100)
-    jboss_username = models.CharField(max_length=100)
+    bz_username = models.CharField(max_length=100, blank=True)
+    jboss_username = models.CharField(max_length=100, blank=True)
 
 
 class Profile(models.Model):

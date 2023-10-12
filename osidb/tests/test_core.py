@@ -1,13 +1,14 @@
 from datetime import datetime
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.test.utils import isolate_apps
 from rest_framework.viewsets import ModelViewSet
 
 from osidb.api_views import get_valid_http_methods
 from osidb.core import set_user_acls
 from osidb.exceptions import OSIDBException
-from osidb.models import Flaw, FlawMeta, FlawReference
+from osidb.models import Flaw, FlawMeta, FlawReference, PsContact
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -125,6 +126,16 @@ class TestModelDefinitions:
         with pytest.raises(ValueError) as e:
             m.alert("my_error", "This is a weird error", _type="weird")
         assert "Alert type 'weird' is not valid" in str(e)
+
+    def test_ps_contact_empty(self):
+        """
+        test that even an empty PS contact can be properly stored to DB as there
+        are no restrictions on the attributes being present - reproducer for OSIDB-1445
+        """
+        try:
+            PsContact(username="unique_name").save()
+        except ValidationError:
+            pytest.fail("PS contact creation should not fail here")
 
 
 class TestComparableTextChoices:
