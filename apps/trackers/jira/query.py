@@ -50,7 +50,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         init stuff
         """
         self.instance = instance
-        self._query = {}
+        self._query = None
 
     @cached_property
     def impact(self):
@@ -94,7 +94,6 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         allowed_values = JiraProjectFields.objects.get(
             project_key=self.ps_module.bts_key, field_id="priority"
         ).allowed_values
-        allowed_values = [value["name"] for value in allowed_values]
         for priority in IMPACT_TO_JIRA_PRIORITY[self.impact]:
             if priority in allowed_values:
                 self._query["fields"]["priority"] = {"name": priority}
@@ -118,17 +117,21 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         self._query["fields"]["description"] = self.description
 
+    # TODO we should not delete other labels
+    # because the engineeting may use them
     def generate_labels(self):
         """
         generate query for Jira labels
         """
-        cve_ids = self.tracker.affects.all().values_list("flaw__cve_id", flat=True)
-        self._query["fields"]["labels"] = {
-            *cve_ids,
+        self._query["fields"]["labels"] = [
             "SecurityTracking",
             "Security",
             f"pscomponent:{self.ps_component}",
-        }
+        ] + list(  # add all linked non-empty CVE IDs
+            self.tracker.affects.exclude(flaw__cve_id__isnull=True).values_list(
+                "flaw__cve_id", flat=True
+            )
+        )
 
     def generate_summary(self):
         """

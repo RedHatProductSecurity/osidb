@@ -241,20 +241,24 @@ class TestACLMixin:
 
 
 class TestTrackingMixin:
-    def create_flaw(self, **kwargs):
-        """shortcut to create minimal flaw"""
-        acl_read = [
+    def get_acl_read(self):
+        return [
             uuid.uuid5(
                 uuid.NAMESPACE_URL,
                 "https://osidb.prod.redhat.com/ns/acls#data-prodsec",
             )
         ]
-        acl_write = [
+
+    def get_acl_write(self):
+        return [
             uuid.uuid5(
                 uuid.NAMESPACE_URL,
                 "https://osidb.prod.redhat.com/ns/acls#data-prodsec-write",
             )
         ]
+
+    def create_flaw(self, **kwargs):
+        """shortcut to create minimal flaw"""
         return Flaw(
             title="title",
             cwe_id="CWE-1",
@@ -262,8 +266,8 @@ class TestTrackingMixin:
             impact=Impact.LOW,
             component="curl",
             source=FlawSource.INTERNET,
-            acl_read=acl_read,
-            acl_write=acl_write,
+            acl_read=self.get_acl_read(),
+            acl_write=self.get_acl_write(),
             reported_dt=timezone.now(),
             unembargo_dt=tzdatetime(2000, 1, 1),
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
@@ -441,3 +445,41 @@ class TestTrackingMixin:
         flaw = Flaw.objects.get(cve_id="CVE-2020-12345")
         assert flaw.created_dt == tzdatetime(2020, 12, 24)
         assert flaw.updated_dt == tzdatetime(2021, 12, 24)
+
+    @freeze_time(tzdatetime(2023, 10, 11))
+    def test_tracking_mixin_manager_auto_timestamps(self):
+        """
+        test that the auto_timestamps are handled as expected in TrackingMixinManager
+        """
+        # minimal valid Flaw data
+        kwargs = dict(
+            title="title",
+            cwe_id="CWE-1",
+            description="description",
+            impact=Impact.LOW,
+            component="curl",
+            source=FlawSource.INTERNET,
+            acl_read=self.get_acl_read(),
+            acl_write=self.get_acl_write(),
+            created_dt=tzdatetime(2000, 1, 1),  # different from now
+            updated_dt=tzdatetime(2000, 1, 1),  # different from now
+            reported_dt=tzdatetime(2000, 1, 1),
+            unembargo_dt=tzdatetime(2000, 1, 1),
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+        )
+
+        # timestamps should be auto rewritten to now
+        flaw = Flaw.objects.create(auto_timestamps=True, **kwargs)
+        assert flaw.created_dt == timezone.now()
+        assert flaw.updated_dt == timezone.now()
+
+        # timestamps should be preserved as provided
+        flaw = Flaw.objects.create(auto_timestamps=False, **kwargs)
+        assert flaw.created_dt == tzdatetime(2000, 1, 1)
+        assert flaw.updated_dt == tzdatetime(2000, 1, 1)
+
+        # the default behavior
+        # timestamps should be auto rewritten to now
+        flaw = Flaw.objects.create(**kwargs)
+        assert flaw.created_dt == timezone.now()
+        assert flaw.updated_dt == timezone.now()

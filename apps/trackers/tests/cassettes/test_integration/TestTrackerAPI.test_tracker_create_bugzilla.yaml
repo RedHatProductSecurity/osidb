@@ -1,0 +1,366 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://squid.corp.redhat.com:3128/rest/version
+  response:
+    body:
+      string: '{"version": "5.0.4.rh92"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '24'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 12 Sep 2023 14:53:42 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.64f06e68.1694530422.1c16447
+      x-rh-edge-request-id:
+      - 1c16447
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://squid.corp.redhat.com:3128/rest/user?ids=1
+  response:
+    body:
+      string: '{"users": [{"id": 1, "real_name": "Need Real Name", "name": "aander07@packetmaster.com",
+        "email": "aander07@packetmaster.com", "can_login": true}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '137'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 12 Sep 2023 14:53:42 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.64f06e68.1694530422.1c164b2
+      x-rh-edge-request-id:
+      - 1c164b2
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"product": "Red Hat Certification Program", "version": "1.0", "priority":
+      "urgent", "severity": "urgent", "blocks": ["2013494"], "component": "redhat-certification",
+      "description": "rhcertification-6 tracking bug for openssl: see the bugs linked
+      in the \"Blocks\" field of this bug for full details of the security issue(s).\n\nThis
+      bug is never intended to be made public, please put any public notes in the
+      blocked bugs.", "comment_is_private": false, "flags": [], "groups": ["devel"],
+      "keywords": ["Security", "SecurityTracking"], "summary": "[CISA Major Incident]
+      openssl: sample title [rhcertification-6]"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '612'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: POST
+    uri: https://squid.corp.redhat.com:3128/rest/bug
+  response:
+    body:
+      string: '{"id": 2017676}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '14'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 12 Sep 2023 14:53:43 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.64f06e68.1694530423.1c165e5
+      x-rh-edge-request-id:
+      - 1c165e5
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://squid.corp.redhat.com:3128/rest/version
+  response:
+    body:
+      string: '{"version": "5.0.4.rh92"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '24'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 12 Sep 2023 14:53:44 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.64f06e68.1694530424.1c16c6d
+      x-rh-edge-request-id:
+      - 1c16c6d
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://squid.corp.redhat.com:3128/rest/user?ids=1
+  response:
+    body:
+      string: '{"users": [{"can_login": true, "name": "aander07@packetmaster.com",
+        "email": "aander07@packetmaster.com", "id": 1, "real_name": "Need Real Name"}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '137'
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 12 Sep 2023 14:53:44 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.64f06e68.1694530424.1c16d13
+      x-rh-edge-request-id:
+      - 1c16d13
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://squid.corp.redhat.com:3128/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2017676
+  response:
+    body:
+      string: '{"total_matches": 1, "bugs": [{"cf_release_notes": "", "sub_components":
+        {}, "cf_major_incident": null, "version": ["1.0"], "qa_contact_detail": {"email":
+        "rhcert-qe@redhat.com", "name": "rhcert-qe@redhat.com", "insider": false,
+        "id": 408554, "partner": false, "real_name": "rhcert qe", "active": false},
+        "keywords": ["Security", "SecurityTracking"], "resolution": "", "is_creator_accessible":
+        true, "cf_pgm_internal": "", "cf_embargoed": null, "whiteboard": "", "assigned_to_detail":
+        {"name": "jweng@redhat.com", "email": "jweng@redhat.com", "active": true,
+        "partner": false, "real_name": "Jianwei Weng", "insider": true, "id": 283338},
+        "cf_internal_whiteboard": "", "qa_contact": "rhcert-qe@redhat.com", "blocks":
+        [2013494], "cf_doc_type": "No Doc Update", "url": "", "priority": "urgent",
+        "component": ["redhat-certification"], "external_bugs": [], "dupe_of": null,
+        "tags": [], "status": "NEW", "severity": "urgent", "cf_conditional_nak": [],
+        "cf_qa_whiteboard": "", "product": "Red Hat Certification Program", "op_sys":
+        "Unspecified", "creator_detail": {"active": true, "insider": true, "id": 412888,
+        "real_name": "Ondrej Soukup", "partner": false, "name": "osoukup@redhat.com",
+        "email": "osoukup@redhat.com"}, "description": "rhcertification-6 tracking
+        bug for openssl: see the bugs linked in the \"Blocks\" field of this bug for
+        full details of the security issue(s).\n\nThis bug is never intended to be
+        made public, please put any public notes in the blocked bugs.", "cc_detail":
+        [], "actual_time": 0, "docs_contact": "", "creation_time": "2023-09-12T14:53:43Z",
+        "id": 2017676, "cf_devel_whiteboard": "", "cf_qe_conditional_nak": [], "groups":
+        ["devel"], "cf_build_id": "", "cf_environment": "", "cf_cust_facing": "---",
+        "is_confirmed": true, "alias": [], "cf_verified": [], "cf_partner": [], "estimated_time":
+        0, "is_cc_accessible": true, "platform": "Unspecified", "depends_on": [],
+        "cf_pm_score": "0", "comments": [{"creator_id": 412888, "tags": [], "creator":
+        "osoukup@redhat.com", "id": 15664136, "is_private": false, "creation_time":
+        "2023-09-12T14:53:43Z", "text": "rhcertification-6 tracking bug for openssl:
+        see the bugs linked in the \"Blocks\" field of this bug for full details of
+        the security issue(s).\n\nThis bug is never intended to be made public, please
+        put any public notes in the blocked bugs.", "time": "2023-09-12T14:53:43Z",
+        "attachment_id": null, "count": 0, "bug_id": 2017676, "private_groups": []}],
+        "data_category": "Engineering", "summary": "[CISA Major Incident] openssl:
+        sample title [rhcertification-6]", "assigned_to": "jweng@redhat.com", "cf_fixed_in":
+        "", "remaining_time": 0, "creator": "osoukup@redhat.com", "deadline": null,
+        "is_open": true, "last_change_time": "2023-09-12T14:53:43Z", "cf_target_upstream_version":
+        "", "target_milestone": "---", "cf_clone_of": null, "cc": [], "flags": [{"setter":
+        "bugzilla@redhat.com", "is_active": 1, "id": 5237995, "creation_date": "2023-09-12T14:53:43Z",
+        "name": "requires_doc_text", "modification_date": "2023-09-12T14:53:43Z",
+        "status": "-", "type_id": 415}], "classification": "Red Hat", "cf_last_closed":
+        null, "target_release": ["---"]}], "limit": "20", "offset": 0}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 12 Sep 2023 14:53:45 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-frame-options:
+      - ALLOW-FROM=https://bugzilla.redhat.com/
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '2934'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.64f06e68.1694530425.1c16e4e
+      x-rh-edge-request-id:
+      - 1c16e4e
+    status:
+      code: 200
+      message: OK
+version: 1

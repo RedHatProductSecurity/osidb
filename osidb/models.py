@@ -2234,7 +2234,11 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         self.validate(raise_validation_error=kwargs.get("raise_validation_error", True))
 
         # check Bugzilla conditions are met
-        if SYNC_TO_BZ and bz_api_key is not None:
+        if (
+            SYNC_TO_BZ
+            and bz_api_key is not None
+            and self.type == self.TrackerType.BUGZILLA
+        ):
             # sync to Bugzilla
             self = TrackerSaver(self, bz_api_key=bz_api_key).save()
             # save in case a new Bugzilla ID was obtained
@@ -2249,7 +2253,11 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             btc.sync_tracker(self.external_system_id)
 
         # check Jira conditions are met
-        elif SYNC_TO_JIRA and jira_token is not None:
+        elif (
+            SYNC_TO_JIRA
+            and jira_token is not None
+            and self.type == self.TrackerType.JIRA
+        ):
             # sync to Jira
             self = TrackerSaver(self, jira_token=jira_token).save()
             # save in case a new Jira ID was obtained
@@ -2377,6 +2385,20 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             raise ValidationError(
                 f"Tracker type and BTS mismatch: {self.type} versus {ps_module.bts_name}"
             )
+
+    def _validate_tracker_duplicate(self):
+        """
+        validate that there is only one tracker with this update stream associated with each affect
+        """
+        for affect in self.affects.all():
+            if (
+                affect.trackers.filter(ps_update_stream=self.ps_update_stream).count()
+                > 1
+            ):
+                raise ValidationError(
+                    f"Tracker with the update stream {self.ps_update_stream} "
+                    f"is already associated with the affect {affect.uuid}"
+                )
 
     @property
     def aggregated_impact(self):

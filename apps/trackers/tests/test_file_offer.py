@@ -39,7 +39,13 @@ class TestTrackerSuggestions:
         ],
     )
     def test_trackers_file_offer_invalid(
-        self, affectedness, resolution, is_valid, user_token, auth_client, test_api_uri
+        self,
+        affectedness,
+        resolution,
+        is_valid,
+        user_token,
+        auth_client,
+        test_app_api_uri,
     ):
         """
         Test auto tracker auto filing defined in product
@@ -64,7 +70,7 @@ class TestTrackerSuggestions:
 
         headers = {"HTTP_JiraAuthentication": user_token}
         response = auth_client.post(
-            f"{test_api_uri}/file",
+            f"{test_app_api_uri}/file",
             data={"flaw_uuids": [flaw.uuid]},
             format="json",
             **headers,
@@ -83,7 +89,9 @@ class TestTrackerSuggestions:
             assert res["not_applicable"][0]["uuid"] == str(affect.uuid)
             assert len(res["modules_components"]) == 0
 
-    def test_trackers_file_offer_embargoed(self, user_token, auth_client, test_api_uri):
+    def test_trackers_file_offer_embargoed(
+        self, user_token, auth_client, test_app_api_uri
+    ):
         """
         Test auto tracker auto filing defined in product
         definition rules related to embargo status
@@ -127,7 +135,7 @@ class TestTrackerSuggestions:
 
         headers = {"HTTP_JiraAuthentication": user_token}
         response = auth_client.post(
-            f"{test_api_uri}/file",
+            f"{test_app_api_uri}/file",
             data={"flaw_uuids": [flaw.uuid, flaw_embargoed.uuid]},
             format="json",
             **headers,
@@ -142,7 +150,7 @@ class TestTrackerSuggestions:
             == "regular-stream-1"
         )
 
-    def test_trackers_file_offer_ubi(self, user_token, auth_client, test_api_uri):
+    def test_trackers_file_offer_ubi(self, user_token, auth_client, test_app_api_uri):
         """
         Test auto tracker auto filing defined in product
         definition rules related to ubi special rules
@@ -181,7 +189,7 @@ class TestTrackerSuggestions:
 
         headers = {"HTTP_JiraAuthentication": user_token}
         response = auth_client.post(
-            f"{test_api_uri}/file",
+            f"{test_app_api_uri}/file",
             data={"flaw_uuids": [flaw.uuid]},
             format="json",
             **headers,
@@ -202,7 +210,9 @@ class TestTrackerSuggestions:
         )
         assert "stream-2.1" in streams_dict and streams_dict["stream-2.1"]["selected"]
 
-    def test_trackers_file_offer_unacked(self, user_token, auth_client, test_api_uri):
+    def test_trackers_file_offer_unacked(
+        self, user_token, auth_client, test_app_api_uri
+    ):
         """
         Test auto tracker auto filing defined in product
         definition rules related to unacked_ps_update_stream flag
@@ -250,7 +260,7 @@ class TestTrackerSuggestions:
 
         headers = {"HTTP_JiraAuthentication": user_token}
         response = auth_client.post(
-            f"{test_api_uri}/file",
+            f"{test_app_api_uri}/file",
             data={"flaw_uuids": [flaw1.uuid, flaw2.uuid]},
             format="json",
             **headers,
@@ -296,7 +306,7 @@ class TestTrackerSuggestions:
 
         headers = {"HTTP_JiraAuthentication": user_token}
         response = auth_client.post(
-            f"{test_api_uri}/file",
+            f"{test_app_api_uri}/file",
             data={"flaw_uuids": [flaw3.uuid]},
             format="json",
             **headers,
