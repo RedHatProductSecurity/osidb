@@ -66,7 +66,9 @@ class CheckParser(metaclass=MetaCheckParser):
         for func in [
             cls.desc2property,
             cls.desc2not_property,
-            cls.decs2non_empty,
+            cls.desc2non_empty,
+            cls.desc2not_equals,
+            cls.desc2equals,
         ]:
             result = func(check_desc)
             if result is not None:
@@ -105,7 +107,7 @@ class CheckParser(metaclass=MetaCheckParser):
                 )
 
     @classmethod
-    def decs2non_empty(cls, check_desc):
+    def desc2non_empty(cls, check_desc):
         """attribute non-emptiness check"""
         if check_desc.startswith("has_"):
             attr = cls.map_attribute(check_desc[4:])
@@ -124,3 +126,35 @@ class CheckParser(metaclass=MetaCheckParser):
                         return field not in EMPTY_VALUES
 
                 return (message, has_element)
+
+    @classmethod
+    def desc2not_equals(cls, check_desc):
+        """attribute value check"""
+        if "_not_equals_" in check_desc:
+            attr, value = check_desc.split("_not_equals_", maxsplit=1)
+            attr = cls.map_attribute(attr)
+
+            if hasattr(cls.model, attr):
+                message = f"check that {cls.model.__name__} attribute {attr} has a value not equal to {value}"
+
+                def not_equals(instance):
+                    field = getattr(instance, attr).lower().replace(" ", "_")
+                    return field != value if not callable(field) else field() != value
+
+                return (message, not_equals)
+
+    @classmethod
+    def desc2equals(cls, check_desc):
+        """attribute value check"""
+        if "_equals_" in check_desc:
+            attr, value = check_desc.split("_equals_", maxsplit=1)
+            attr = cls.map_attribute(attr)
+
+            if hasattr(cls.model, attr):
+                message = f"check that {cls.model.__name__} attribute {attr} has a value equal to {value}"
+
+                def equals(instance):
+                    field = getattr(instance, attr).lower().replace(" ", "_")
+                    return field == value if not callable(field) else field() == value
+
+                return (message, equals)

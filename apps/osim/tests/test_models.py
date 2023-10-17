@@ -134,6 +134,34 @@ class TestCheck:
             flaw
         ), f'check for "{check.name}" should have failed, but passed.'
 
+    def test_equals_check(self):
+        """
+        test that check equals operand
+        """
+        flaw = FlawFactory(cwe_id="CWE-99")
+
+        check = Check("cwe equals CWE-99")
+        assert check(flaw), f'check for "{check.name}" failed.'
+
+        flaw = FlawFactory(cwe_id="CWE-100")
+        assert not check(
+            flaw
+        ), f'check for "{check.name}" should have failed, but passed.'
+
+    def test_not_equals_check(self):
+        """
+        test that check not equals operand
+        """
+        flaw = FlawFactory(cwe_id="CWE-100")
+
+        check = Check("cwe not equals CWE-99")
+        assert check(flaw), f'check for "{check.name}" failed.'
+
+        flaw = FlawFactory(cwe_id="CWE-99")
+        assert not check(
+            flaw
+        ), f'check for "{check.name}" should have failed, but passed.'
+
 
 class TestState:
     def test_empty_requirements(self):
