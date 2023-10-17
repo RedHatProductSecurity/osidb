@@ -96,16 +96,20 @@ class WorkflowModel(models.Model):
     class OSIMState(models.TextChoices):
         """allowable workflow states"""
 
-        DRAFT = "DRAFT"
         NEW = "NEW"
-        ANALYSIS = "ANALYSIS"
-        REVIEW = "REVIEW"
-        FIX = "FIX"
+        TRIAGE = "TRIAGE"
+        PRE_SECONDARY_ASSESSMENT = "PRE_SECONDARY_ASSESSMENT"
+        SECONDARY_ASSESSMENT = "SECONDARY_ASSESSMENT"
         DONE = "DONE"
+        REJECTED = "REJECTED"
 
     # workflow metadata
     osim_workflow = models.CharField(max_length=50, blank=True)
-    osim_state = models.CharField(choices=OSIMState.choices, max_length=10, blank=True)
+    osim_state = models.CharField(choices=OSIMState.choices, max_length=24, blank=True)
+    owner = models.CharField(max_length=60, blank=True)
+    group_key = models.CharField(max_length=60, blank=True)
+    task_key = models.CharField(max_length=60, blank=True)
+    team_id = models.CharField(max_length=8, blank=True)
 
     class Meta:
         abstract = True

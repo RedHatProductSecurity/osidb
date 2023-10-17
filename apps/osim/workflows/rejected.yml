@@ -1,0 +1,13 @@
+---
+name: REJECTED
+description: >
+  Reject vulnerability workflow.
+priority: 0
+conditions: []
+states:
+  - name: REJECTED
+    description: >
+      Task were rejected either by the queue captain or the analyst.
+    jira_state: Closed
+    jira_resolution: Won't Do
+    requirements: []

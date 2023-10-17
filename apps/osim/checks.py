@@ -37,6 +37,10 @@ class CheckParser(metaclass=MetaCheckParser):
         "is_major_incident": "is_major_incident_temp",
         "cve": "cve_id",
         "cwe": "cwe_id",
+        "group": "group_key",
+        "state": "osim_state",
+        "team": "team_id",
+        "trackers": "trackers_filed",
     }
 
     @classmethod

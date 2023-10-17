@@ -8015,12 +8015,12 @@ components:
             state:
               type: string
               enum:
-              - DRAFT
               - NEW
-              - ANALYSIS
-              - REVIEW
-              - FIX
+              - TRIAGE
+              - PRE_SECONDARY_ASSESSMENT
+              - SECONDARY_ASSESSMENT
               - DONE
+              - REJECTED
           readOnly: true
       required:
       - acknowledgments
@@ -8691,12 +8691,12 @@ components:
             state:
               type: string
               enum:
-              - DRAFT
               - NEW
-              - ANALYSIS
-              - REVIEW
-              - FIX
+              - TRIAGE
+              - PRE_SECONDARY_ASSESSMENT
+              - SECONDARY_ASSESSMENT
               - DONE
+              - REJECTED
           readOnly: true
       required:
       - acknowledgments

@@ -372,11 +372,11 @@ class TestWorkflowFramework:
     def test_classify_complete(self):
         """test flaw classification in both workflow and state"""
         state_new = {
-            "name": WorkflowModel.OSIMState.DRAFT,
+            "name": WorkflowModel.OSIMState.NEW,
             "requirements": [],
         }
         state_first = {
-            "name": WorkflowModel.OSIMState.ANALYSIS,
+            "name": WorkflowModel.OSIMState.TRIAGE,
             "requirements": ["has description"],
         }
         state_second = {
@@ -395,7 +395,7 @@ class TestWorkflowFramework:
         )
 
         state_not_affected = {
-            "name": WorkflowModel.OSIMState.REVIEW,
+            "name": WorkflowModel.OSIMState.REJECTED,
             "requirements": [],
         }
 
@@ -458,6 +458,50 @@ class TestFlaw:
 
     def test_classification(self):
         """test flaw classification property"""
+        state_new = {
+            "name": WorkflowModel.OSIMState.NEW,
+            "requirements": [],
+        }
+        state_first = {
+            "name": WorkflowModel.OSIMState.TRIAGE,
+            "requirements": ["has description"],
+        }
+        state_second = {
+            "name": WorkflowModel.OSIMState.DONE,
+            "requirements": ["has title"],
+        }
+
+        workflow_main = Workflow(
+            {
+                "name": "main workflow",
+                "description": "a three step workflow to test classification",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_new, state_first, state_second],
+            }
+        )
+
+        state_not_affected = {
+            "name": WorkflowModel.OSIMState.REJECTED,
+            "requirements": [],
+        }
+
+        workflow_reject = Workflow(
+            {
+                "name": "reject workflow",
+                "description": "a worflow for rejected flaws",
+                "priority": 1,
+                "conditions": ["has affects", "affects notaffected"],
+                "states": [state_not_affected],
+            }
+        )
+
+        workflow_framework = WorkflowFramework()
+        # remove yml workflows
+        workflow_framework._workflows = []
+        workflow_framework.register_workflow(workflow_main)
+        workflow_framework.register_workflow(workflow_reject)
+
         flaw = Flaw()
 
         # stored classification
@@ -468,7 +512,6 @@ class TestFlaw:
         old_computed_state = flaw.classify()["state"]
         assert flaw.osim_workflow == old_computed_workflow
         assert flaw.osim_state == old_computed_state
-
         # assing new and different classification
         for workflow in WorkflowFramework().workflows:
             if workflow.name != flaw.osim_workflow:
@@ -503,13 +546,13 @@ class TestFlaw:
 
         state_new = State(
             {
-                "name": WorkflowModel.OSIMState.DRAFT,
+                "name": WorkflowModel.OSIMState.NEW,
                 "requirements": [],
             }
         )
         state_first = State(
             {
-                "name": WorkflowModel.OSIMState.ANALYSIS,
+                "name": WorkflowModel.OSIMState.TRIAGE,
                 "requirements": ["has description"],
             }
         )

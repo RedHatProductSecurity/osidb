@@ -94,13 +94,13 @@ class TestEndpoints(object):
         workflow_framework = WorkflowFramework()
         state_new = State(
             {
-                "name": WorkflowModel.OSIMState.DRAFT,
+                "name": WorkflowModel.OSIMState.NEW,
                 "requirements": [],
             }
         )
         state_first = State(
             {
-                "name": WorkflowModel.OSIMState.ANALYSIS,
+                "name": WorkflowModel.OSIMState.TRIAGE,
                 "requirements": ["has description"],
             }
         )

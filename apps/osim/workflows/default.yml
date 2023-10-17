@@ -1,34 +1,52 @@
 ---
 name: DEFAULT
-description: default vulnerability analysis
-priority: 0
+description: Default vulnerability workflow.
+priority: 1
 conditions: []
 states:
-  - name: DRAFT
+  - name: NEW
+    description: >
+      A new ticket arrived from incoming queue without any validation
+      or analysis performed yet.
+    jira_state: New
+    jira_resolution: null
     requirements: []
 
-  - name: ANALYSIS
+  - name: TRIAGE
+    description: >
+      Queue captain has taken a ticket off the incoming queue and will
+      evalute if it should be rejected or qualified for further steps in
+      the workflow.
+    jira_state: Refinement
+    jira_resolution: null
+    requirements:
+      - has owner
+
+  - name: PRE_SECONDARY_ASSESSMENT
+    description: >
+      Task qualified for further work and has initial data filled, triage
+      trackers have been filled and product team has been identified.
+    jira_state: To Do
+    jira_resolution: null
     requirements:
       - has affects
-      - has description
+      - has impact
       - has source
+      - has team
       - has title
+      - has trackers
 
-  - name: REVIEW
+  - name: SECONDARY_ASSESSMENT
+    description: An analyst assigned the task to themselves.
+    jira_state: In Progress
+    jira_resolution: null
     requirements:
-      - affects resolved
-      - has cve
-      - has cwe
+      - has owner
 
-  - name: FIX
-    requirements:
-      - trackers filed
-
-  # you can freely comment as you wish
-  # maybe about that this is the final state
   - name: DONE
-    requirements:
-      # TODO embargoed is not model attribute any more but annotation
-      # so this currently errors out and we need to accout for the change
-      #- not embargoed
-      - trackers resolved
+    description: >
+      Task is done. We commonly expect that a CVE will be 
+      published, but it is not a requirement.
+    jira_state: Closed
+    jira_resolution: Done
+    requirements: []
