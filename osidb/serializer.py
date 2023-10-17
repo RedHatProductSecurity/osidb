@@ -250,7 +250,7 @@ class ErratumSerializer(
 
     et_id = serializers.IntegerField(read_only=True)
     advisory_name = serializers.CharField(read_only=True)
-    shipped_dt = serializers.DateTimeField(read_only=True)
+    shipped_dt = serializers.DateTimeField(read_only=True, allow_null=True)
 
     class Meta:
         """filter fields"""
