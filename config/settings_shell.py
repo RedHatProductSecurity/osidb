@@ -22,6 +22,10 @@ PUBLIC_WRITE_GROUP = "data-prodsec-write"
 EMBARGO_READ_GROUP = "data-topsecret"
 # Minimal group for write access of embargoed flaws in OSIDB
 EMBARGO_WRITE_GROUP = "data-topsecret-write"
+# Minimal group for read access of internal flaws in OSIDB
+INTERNAL_READ_GROUP = "data-internal-read"
+# Minimal group for write access of internal flaws in OSIDB
+INTERNAL_WRITE_GROUP = "data-internal-write"
 # Minimal group for managing the OSIDB service
 SERVICE_MANAGE_GROUP = "osidb-service-manage"
 

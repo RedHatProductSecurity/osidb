@@ -390,6 +390,25 @@ class ACLMixin(models.Model):
         self.set_acl_read(settings.EMBARGO_READ_GROUP)
         self.set_acl_write(settings.EMBARGO_WRITE_GROUP)
 
+    def set_internal(self):
+        """
+        Shortcut method for making an ACL-enabled entity internal.
+
+        Calling this method on an entity will **overwrite** its acl_read
+        and acl_write attributes to the default internal ones.
+
+        e.g.:
+            >>> my_flaw.acl_read
+            ... [UUID(...), UUID(...), UUID(...), UUID(...)]
+            >>> my_flaw.set_internal()
+            >>> # note that the acl_read have been completely replaced by the
+            >>> # internal ACLs only, other ones are not kept.
+            >>> my_flaw.acl_read
+            ... [UUID(...), UUID(...)]
+        """
+        self.set_acl_read(settings.INTERNAL_READ_GROUP)
+        self.set_acl_write(settings.INTERNAL_WRITE_GROUP)
+
     @cached_property
     def acls_public_read(self):
         """
@@ -419,18 +438,34 @@ class ACLMixin(models.Model):
         return {self.group2acl(settings.EMBARGO_WRITE_GROUP)}
 
     @cached_property
+    def acls_internal_read(self):
+        """
+        Get set of internal read ACLs
+        """
+        return {self.group2acl(settings.INTERNAL_READ_GROUP)}
+
+    @cached_property
+    def acls_internal_write(self):
+        """
+        Get set of internal write ACLs
+        """
+        return {self.group2acl(settings.INTERNAL_WRITE_GROUP)}
+
+    @cached_property
     def acls_read(self):
         """
         get set of read ACLs
         """
-        return self.acls_public_read | self.acls_embargo_read
+        return self.acls_public_read | self.acls_embargo_read | self.acls_internal_read
 
     @cached_property
     def acls_write(self):
         """
         get set of write ACLs
         """
-        return self.acls_public_write | self.acls_embargo_write
+        return (
+            self.acls_public_write | self.acls_embargo_write | self.acls_internal_write
+        )
 
     @cached_property
     def acls_public(self):
@@ -447,11 +482,18 @@ class ACLMixin(models.Model):
         return self.acls_embargo_read | self.acls_embargo_write
 
     @cached_property
+    def acls_internal(self):
+        """
+        Get set of internal ACLs
+        """
+        return self.acls_internal_read | self.acls_internal_write
+
+    @cached_property
     def acls_all(self):
         """
         get set of all ACLs
         """
-        return self.acls_read | self.acls_write
+        return self.acls_read | self.acls_write | self.acls_internal
 
     def _validate_acls_known(self):
         """

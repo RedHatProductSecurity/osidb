@@ -451,3 +451,13 @@ member: cn=jshepher,ou=users,dc=redhat,dc=com
 member: cn=osoukup,ou=users,dc=redhat,dc=com
 member: cn=atorresj,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
+
+# internal data
+dn: cn=data-internal-read,ou=users,dc=redhat,dc=com
+cn: data-internal-read
+objectclass: groupOfNames
+
+# internal data
+dn: cn=data-internal-write,ou=users,dc=redhat,dc=com
+cn: data-internal-write
+objectclass: groupOfNames
