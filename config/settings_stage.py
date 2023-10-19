@@ -27,6 +27,10 @@ PUBLIC_WRITE_GROUP = "osidb-stage-public-write"
 EMBARGO_READ_GROUP = "osidb-stage-embargo-read"
 # Minimal group for write access of embargoed flaws in OSIDB
 EMBARGO_WRITE_GROUP = "osidb-stage-embargo-write"
+# Minimal group for read access of internal flaws in OSIDB
+INTERNAL_READ_GROUP = "osidb-stage-internal-read"
+# Minimal group for write access of internal flaws in OSIDB
+INTERNAL_WRITE_GROUP = "osidb-stage-internal-write"
 # Minimal group for managing the OSIDB service
 SERVICE_MANAGE_GROUP = "osidb-stage-manage"
 

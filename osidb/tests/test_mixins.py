@@ -77,10 +77,7 @@ class TestACLMixin:
         """
         with pytest.raises(
             ValidationError,
-            match=(
-                "Unknown ACL group given - known are: data-prodsec, "
-                "data-prodsec-write, data-topsecret, data-topsecret-write"
-            ),
+            match=r"Unknown ACL group given - known are: .*",
         ):
             flaw = self.create_flaw(acl_read=acl_read, acl_write=acl_write, save=False)
             flaw._validate_acls_known()
@@ -205,27 +202,25 @@ class TestACLMixin:
         assert my_flaw.acl_write != original_acl_write
         assert len(my_flaw.acl_write) == 1
 
-    def test_set_public(self):
+    @pytest.mark.parametrize(
+        "acl_read,acl_write,visibility",
+        [
+            (settings.PUBLIC_READ_GROUPS, [settings.PUBLIC_WRITE_GROUP], "public"),
+            (
+                [settings.EMBARGO_READ_GROUP],
+                [settings.EMBARGO_WRITE_GROUP],
+                "embargoed",
+            ),
+            (
+                [settings.INTERNAL_READ_GROUP],
+                [settings.INTERNAL_WRITE_GROUP],
+                "internal",
+            ),
+        ],
+    )
+    def test_set_acls(self, acl_read, acl_write, visibility):
         """
-        Test that ACLMixin.set_public correctly sets public read and write ACLs.
-        """
-        my_flaw = self.create_flaw(acl_read=["foo"], acl_write=["bar"], save=False)
-        original_acl_read = my_flaw.acl_read
-        original_acl_write = my_flaw.acl_write
-        assert original_acl_read == [self.group2acl("foo")]
-        assert original_acl_write == [self.group2acl("bar")]
-
-        my_flaw.set_public()
-        assert my_flaw.acl_read != original_acl_read
-        assert my_flaw.acl_write != original_acl_write
-        assert my_flaw.acl_read == [
-            self.group2acl(g) for g in settings.PUBLIC_READ_GROUPS
-        ]
-        assert my_flaw.acl_write == [self.group2acl(settings.PUBLIC_WRITE_GROUP)]
-
-    def test_set_embargoed(self):
-        """
-        Test that ACLMixin.set_public correctly sets public read and write ACLs.
+        Test that ACLMixin.set_{public,embargoed,internal} works correctly.
         """
         my_flaw = self.create_flaw(acl_read=["foo"], acl_write=["bar"], save=False)
         original_acl_read = my_flaw.acl_read
@@ -233,11 +228,11 @@ class TestACLMixin:
         assert original_acl_read == [self.group2acl("foo")]
         assert original_acl_write == [self.group2acl("bar")]
 
-        my_flaw.set_embargoed()
+        getattr(my_flaw, f"set_{visibility}")()
         assert my_flaw.acl_read != original_acl_read
         assert my_flaw.acl_write != original_acl_write
-        assert my_flaw.acl_read == [self.group2acl(settings.EMBARGO_READ_GROUP)]
-        assert my_flaw.acl_write == [self.group2acl(settings.EMBARGO_WRITE_GROUP)]
+        assert my_flaw.acl_read == [self.group2acl(g) for g in acl_read]
+        assert my_flaw.acl_write == [self.group2acl(g) for g in acl_write]
 
 
 class TestTrackingMixin:

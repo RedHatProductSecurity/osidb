@@ -861,6 +861,8 @@ def forwards_func(...):
         settings.PUBLIC_WRITE_GROUP,
         settings.EMBARGO_READ_GROUP,
         settings.EMBARGO_WRITE_GROUP,
+        settings.INTERNAL_READ_GROUP,
+        settings.INTERNAL_WRITE_GROUP,
     ])
     # execute migration logic
     ...
