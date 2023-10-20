@@ -73,7 +73,5 @@ appropriately. Default ACL groups can be observed [here](../../config/settings_l
 # set permissions to public read-only access
 from django.conf import settings
 from osidb.core import set_user_acls
-set_user_acls(
-    settings.PUBLIC_READ_GROUPS
-)
+set_user_acls(settings.ALL_GROUPS)
 ```
