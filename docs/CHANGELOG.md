@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   /collectors/api/v1/status endpoint
 - fix PS contact model (OSIDB-1445)
 - fix schema to reflect Erratum shipped_dt to be nullable
+- Improve EPSS collector memory consumption
 
 ## [3.5.0] - 2023-10-09
 ### Added
