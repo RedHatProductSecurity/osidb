@@ -550,6 +550,9 @@ class ACLMixin(models.Model):
 
         else:
             for acl in self.acl_read + self.acl_write:
+                # TODO: this is a temporary solution for handling internal ACLs
+                if acl in self.acls_internal:
+                    continue
                 if acl not in self.acls_public:
                     raise ValidationError(
                         f"Unexpected ACL group in non-embargoed ACLs: {self.acl2group(acl)}"

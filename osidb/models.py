@@ -1501,6 +1501,37 @@ class Flaw(
             jtq.create_or_update_task(self)
 
 
+class Snippet(ACLMixin, AlertMixin, TrackingMixin):
+    """
+    Snippet stores data scraped by collectors. One or more snippets can either be linked
+    to an existing flaw or serve as a source for a new flaw.
+    """
+
+    class Source(models.TextChoices):
+        """
+        Sources should match collector names (i.e. "NVD" corresponds to NVD collector).
+        This class should be extended everytime a new collector is introduced.
+        """
+
+        NVD = "NVD"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # set internal ACLs
+        self.set_internal()
+
+    # internal primary key
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    source = models.CharField(choices=Source.choices, max_length=100)
+
+    # if possible, these values should correspond to attributes in Flaw
+    content = models.JSONField(default=dict)
+
+    # a flaw can have many snippets, and a snippet can have many flaws
+    flaws = models.ManyToManyField(Flaw, related_name="snippets", blank=True)
+
+
 class AffectManager(ACLMixinManager, TrackingMixinManager):
     """affect manager"""
 
