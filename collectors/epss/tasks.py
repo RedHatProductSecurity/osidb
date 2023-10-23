@@ -23,6 +23,7 @@ logger = get_task_logger(__name__)
 COLUMN_CVE = 0
 COLUMN_EPSS = 1
 EPSS_URL = "https://epss.cyentia.com/epss_scores-current.csv.gz"
+CHUNK_SIZE = 1000
 
 
 def download():
@@ -37,7 +38,7 @@ def process_data(compressed_file):
     reader = csv.reader(csv_data.split("\n"))
     rows = [r for r in reader if r][2:]  # Remove header and empty lines
 
-    for row in rows:
+    for i, row in enumerate(rows, start=1):
         cve = row[COLUMN_CVE]
         epss = float(row[COLUMN_EPSS])
         epss_objects.append(
@@ -47,22 +48,27 @@ def process_data(compressed_file):
                 epss=epss,
             )
         )
+        if i % CHUNK_SIZE == 0:
+            update_objects_with_flaws(epss_objects)  # Make links to flaws if they exist
+            yield epss_objects
+            epss_objects = []
 
     update_objects_with_flaws(epss_objects)  # Make links to flaws if they exist
-    return epss_objects
+    yield epss_objects
 
 
-def store_objects(epss_objects):
+def process_and_store(data):
+    # Do not use store_objects as it cannot handle chunks
     with transaction.atomic():  # Avoid having empty table accessible
         EPSS.objects.all().delete()  # Always load the data again, as it changes in time
-        EPSS.objects.bulk_create(epss_objects)
+        for objects in process_data(data):
+            EPSS.objects.bulk_create(objects)
 
 
 def epss_collector_main():
     set_exploit_collector_acls()
     data = download()
-    objects = process_data(data)
-    store_objects(objects)
+    process_and_store(data)
 
 
 @collector(
