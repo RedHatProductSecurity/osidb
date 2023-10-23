@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [3.5.1] - 2023-10-23
+### Fixed
+- fix PS contact model (OSIDB-1445)
+- Improve EPSS collector memory consumption
+
 ## [3.5.0] - 2023-10-09
 ### Added
 - Implement collector for ps-constants project (OSIDB-1199)
