@@ -11,8 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix incorrect type bool of is_up2date field in
   /collectors/api/v1/status endpoint
-- fix PS contact model (OSIDB-1445)
 - fix schema to reflect Erratum shipped_dt to be nullable
+
+## [3.5.1] - 2023-10-23
+### Fixed
+- fix PS contact model (OSIDB-1445)
 - Improve EPSS collector memory consumption
 
 ## [3.5.0] - 2023-10-09
