@@ -129,19 +129,3 @@ def private_source():
 @pytest.fixture
 def both_source():
     return FlawSource.GENTOO
-
-
-@pytest.fixture
-def ticket_contents():
-    return {
-        "name": "National Vulnerability Database",
-        "title": "CVE-2023-22435",
-        "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-22435",
-        "text": "Experion server may experience a DoS due to a stack overflow when handling a specially crafted message.\n\nhttps://process.honeywell.com",
-        "cwe": None,
-        "created_at": "2023-07-13T13:02:14.657200Z",
-        "last_changed": "2023-07-13T13:17:36.724385Z",
-        "cves": ["CVE-2023-22435"],
-        "cvss3": "",
-        "components": [],
-    }
