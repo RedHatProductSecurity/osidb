@@ -26,6 +26,15 @@ EMBARGO_WRITE_GROUP = "data-topsecret-write"
 INTERNAL_READ_GROUP = "data-internal-read"
 # Minimal group for write access of internal flaws in OSIDB
 INTERNAL_WRITE_GROUP = "data-internal-write"
+# Contains all non-admin groups
+ALL_GROUPS = [
+    *PUBLIC_READ_GROUPS,
+    PUBLIC_WRITE_GROUP,
+    EMBARGO_READ_GROUP,
+    EMBARGO_WRITE_GROUP,
+    INTERNAL_READ_GROUP,
+    INTERNAL_WRITE_GROUP,
+]
 # Minimal group for managing the OSIDB service
 SERVICE_MANAGE_GROUP = "osidb-service-manage"
 

@@ -32,14 +32,7 @@ class TrackerConvertor:
         self.tracker_data = self._normalize()
         # set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
         # celery workers should be able to read/write any information in order to fulfill their jobs
-        set_user_acls(
-            settings.PUBLIC_READ_GROUPS
-            + [
-                settings.PUBLIC_WRITE_GROUP,
-                settings.EMBARGO_READ_GROUP,
-                settings.EMBARGO_WRITE_GROUP,
-            ]
-        )
+        set_user_acls(settings.ALL_GROUPS)
 
     @property
     def type(self):

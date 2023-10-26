@@ -857,16 +857,10 @@ from django.conf import settings
 
 def forwards_func(...):
     # set up user acls so that we can read/write to the database
-    set_user_acls(settings.PUBLIC_READ_GROUPS + [
-        settings.PUBLIC_WRITE_GROUP,
-        settings.EMBARGO_READ_GROUP,
-        settings.EMBARGO_WRITE_GROUP,
-        settings.INTERNAL_READ_GROUP,
-        settings.INTERNAL_WRITE_GROUP,
-    ])
+    set_user_acls(settings.ALL_GROUPS)
     # execute migration logic
     ...
 ```
 
-The `setup_user_acls` is the important part here, you should apply it to both
+The `set_user_acls` is the important part here, you should apply it to both
 the forwards and backwards function before performing any database operations.

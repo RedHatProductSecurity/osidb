@@ -11,7 +11,6 @@ from requests_gssapi import HTTPSPNEGOAuth
 from osidb.core import set_user_acls
 from osidb.models import Erratum, Tracker
 
-from ..bzimport.constants import BZ_ENABLE_IMPORT_EMBARGOED
 from ..utils import BACKOFF_KWARGS, fatal_code
 from .constants import (
     ERRATA_TOOL_SERVER,
@@ -183,16 +182,8 @@ def search(query):
 
 def set_acls_for_et_collector() -> None:
     """Set the ACLs to allow embargo processing, if enabled on server"""
-    groups = settings.PUBLIC_READ_GROUPS + [settings.PUBLIC_WRITE_GROUP]
-
-    # Using embargo groups because ET collector must link errata to possibly-embargoed flaws
-    # Note that if an erratum has embargoed flaws / trackers, and below is not set, we will skip linking these
-    # The ET collector will not see the embargoed objects in the DB, so assumes they do not exist
-    if BZ_ENABLE_IMPORT_EMBARGOED:
-        groups += [settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP]
-
     # celery host is a different host then osidb-service so we need to set osidb.acl independently
     # to be able to CRUD database properly
     # READ_GROUPS and WRITE_GROUPS shouldn't contain overlapping groups
     # i.e. it's safe to add them together without deduplication.
-    set_user_acls(groups)
+    set_user_acls(settings.ALL_GROUPS)
