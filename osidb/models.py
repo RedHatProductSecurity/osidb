@@ -503,7 +503,7 @@ class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
     # from BZ description
     description = models.TextField()
 
-    # from doc_team summary
+    # from doc_text summary
     summary = models.TextField(blank=True)
 
     # if redhat cve-id then this is required, from srtnotes "statement"
@@ -516,7 +516,7 @@ class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
     # date when embargo is to be lifted, from srtnotes "public"
     unembargo_dt = models.DateTimeField(null=True, blank=True)
 
-    # reported source of flaw, from impactsrtnotes "source"
+    # reported source of flaw, from srtnotes "source"
     source = models.CharField(choices=FlawSource.choices, max_length=500, blank=True)
 
     # reported date, from srtnotes "reported"
@@ -728,7 +728,7 @@ class Flaw(
     # flaw severity, from srtnotes "impact"
     impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
 
-    # flaw component was originally a part of the Bugzilla sumary
+    # flaw component was originally a part of the Bugzilla summary
     # so the value may depend on how successfully it was parsed
     component = models.CharField(max_length=100, blank=True)
 
@@ -738,7 +738,7 @@ class Flaw(
     # from BZ description
     description = models.TextField()
 
-    # from doc_team summary
+    # from doc_text summary
     summary = models.TextField(blank=True)
 
     requires_summary = models.CharField(
