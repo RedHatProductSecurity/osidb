@@ -8,9 +8,6 @@ from .settings import *
 # django secret key provided by ansible vault
 SECRET_KEY = get_env("DJANGO_SECRET_KEY")
 
-SERVER_EMAIL = f"OSIDB Stage <{OSIDB_MAILING_LIST}>"
-DEFAULT_FROM_EMAIL = SERVER_EMAIL
-
 # We trust OpenShift's HAProxy to strip the X-Forwarded-Proto header and to set it to "https" if
 # the request came over HTTPS from the client to HAProxy.
 USE_X_FORWARDED_HOST = True
@@ -105,7 +102,7 @@ STATIC_URL = "/static/"
 # Celery settings
 
 REDIS_PASSWORD = get_env("OSIDB_REDIS_PASSWORD")
-CELERY_BROKER_URL = f"rediss://:{REDIS_PASSWORD}@redis:6379/"
+CELERY_BROKER_URL = CELERY_RESULT_BACKEND = f"rediss://:{REDIS_PASSWORD}@redis:6379/"
 CELERY_BROKER_USE_SSL = {
     "ssl_keyfile": "/opt/app-root/etc/redis/certs/osidb-redis.key",
     "ssl_certfile": "/opt/app-root/etc/redis/certs/osidb-redis.crt",
