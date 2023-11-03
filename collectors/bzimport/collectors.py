@@ -6,6 +6,7 @@ import time
 from typing import Union
 
 import bugzilla
+import requests
 from bugzilla.base import Bugzilla
 from celery.utils.log import get_task_logger
 from dateutil.relativedelta import relativedelta
@@ -172,6 +173,25 @@ class BugzillaQuerier(BugzillaConnector):
             key=lambda x: x[1],  # sort by ascending last change time
         )
 
+    def _run_query(self, query):
+        try:
+            return self.bz_conn.query(query)
+        except requests.exceptions.ConnectionError as e:
+            r: requests.PreparedRequest = e.request
+            # sanitize the headers
+            r.headers.pop("Authorization", None)
+            r.headers.pop("Cookie", None)
+
+            logger.error(
+                f"\n--------------------------------------------\n"
+                f"Method: {r.method}\n"
+                f"URL: {r.url}\n"
+                f"Headers: {r.headers}\n"
+                f"Body: {r.body}\n"
+                f"--------------------------------------------"
+            )
+            raise
+
     def run_query(self, query):
         """
         query for Bugzilla bugs
@@ -186,7 +206,7 @@ class BugzillaQuerier(BugzillaConnector):
         )
 
         while True:
-            query_result = self.bz_conn.query(updated_query)
+            query_result = self._run_query(updated_query)
             bugs.extend(
                 (
                     str(bug.id),
