@@ -1,9 +1,11 @@
 """
 define urls
 """
-from django.urls import include, path
+from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
+
+from apps.osim.api import promote
 
 from .api_views import (
     AffectCVSSView,
@@ -54,6 +56,10 @@ router.register(r"trackers", TrackerView)
 urlpatterns = [
     path("healthy", healthy),
     path("whoami", whoami),
+    re_path(
+        rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/promote$",
+        promote.as_view(),
+    ),
     path(f"api/{OSIDB_API_VERSION}/status", StatusView.as_view()),
     path(f"api/{OSIDB_API_VERSION}/manifest", ManifestView.as_view()),
     path(f"api/{OSIDB_API_VERSION}/", include(router.urls)),

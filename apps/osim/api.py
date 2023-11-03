@@ -5,10 +5,12 @@ OSIM API endpoints
 import logging
 
 from drf_spectacular.utils import OpenApiParameter, extend_schema
+from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .exceptions import OSIMException
 from .helpers import get_flaw_or_404, str2bool
 from .serializers import ClassificationWorkflowSerializer, WorkflowSerializer
 from .workflow import WorkflowFramework
@@ -67,6 +69,46 @@ class adjust(APIView):
                 "classification": flaw.classification,
             }
         )
+
+
+class promote(APIView):
+    """workflow promote API endpoint"""
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="Jira-Api-Key",
+                required=True,
+                type=str,
+                location=OpenApiParameter.HEADER,
+                description="User generated api key for Jira authentication.",
+            )
+        ]
+    )
+    def post(self, request, flaw_id):
+        """
+        workflow promotion API endpoint
+
+        try to adjust workflow classification of flaw to the next state available
+        return its workflow:state classification or errors if not possible to promote
+        """
+        logger.info(f"promoting flaw {flaw_id} workflow classification")
+        flaw = get_flaw_or_404(flaw_id)
+        try:
+            jira_token = request.META.get("HTTP_JIRA_API_KEY")
+            if not jira_token:
+                raise serializers.ValidationError(
+                    {"Jira-Api-Key": "This HTTP header is required."}
+                )
+            flaw.promote(jira_token=jira_token)
+            return Response(
+                {
+                    "flaw": flaw.pk,
+                    "classification": flaw.classification,
+                }
+            )
+        except OSIMException as e:
+            return Response({"errors": str(e)}, status=status.HTTP_409_CONFLICT)
 
 
 class classification(APIView):

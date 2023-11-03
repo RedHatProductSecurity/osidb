@@ -1,5 +1,6 @@
 import pytest
 
+from apps.osim.exceptions import LastStateException, MissingRequirementsException
 from apps.osim.models import Check, State, Workflow
 from apps.osim.workflow import WorkflowFramework, WorkflowModel
 from osidb.models import Affect, Flaw, FlawSource, Impact
@@ -610,3 +611,63 @@ class TestFlaw:
         classification = flaw.classification
         flaw.adjust_classification()
         assert classification == flaw.classification
+
+    def test_promote(self):
+        """test flaw state promotion after data change"""
+        workflow_framework = WorkflowFramework()
+        workflow_framework._workflows = []
+
+        state_new = {
+            "name": WorkflowModel.OSIMState.NEW,
+            "requirements": [],
+        }
+
+        state_first = {
+            "name": WorkflowModel.OSIMState.SECONDARY_ASSESSMENT,
+            "requirements": ["has cwe"],
+        }
+
+        state_second = {
+            "name": WorkflowModel.OSIMState.DONE,
+            "requirements": ["has summary"],
+        }
+
+        workflow = Workflow(
+            {
+                "name": "default workflow",
+                "description": "random description",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_new, state_first, state_second],
+            }
+        )
+        workflow_framework.register_workflow(workflow)
+
+        flaw = FlawFactory(cwe_id="", summary="")
+        AffectFactory(flaw=flaw)
+
+        assert flaw.classification["workflow"] == "default workflow"
+        assert flaw.classification["state"] == WorkflowModel.OSIMState.NEW
+
+        with pytest.raises(MissingRequirementsException, match="has cwe"):
+            flaw.promote()
+        assert flaw.classification["state"] == WorkflowModel.OSIMState.NEW
+
+        flaw.cwe_id = "CWE-1"
+        assert flaw.promote() is None
+        assert (
+            flaw.classification["state"] == WorkflowModel.OSIMState.SECONDARY_ASSESSMENT
+        )
+
+        with pytest.raises(MissingRequirementsException, match="has summary"):
+            flaw.promote()
+        assert (
+            flaw.classification["state"] == WorkflowModel.OSIMState.SECONDARY_ASSESSMENT
+        )
+
+        flaw.summary = "valid summary"
+        assert flaw.promote() is None
+        assert flaw.classification["state"] == WorkflowModel.OSIMState.DONE
+
+        with pytest.raises(LastStateException):
+            flaw.promote()

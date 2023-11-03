@@ -4773,6 +4773,47 @@ paths:
                   version:
                     type: string
           description: ''
+  /osidb/api/v1/flaws/{flaw_id}/promote:
+    post:
+      operationId: osidb_api_v1_flaws_promote_create
+      description: |-
+        workflow promotion API endpoint
+
+        try to adjust workflow classification of flaw to the next state available
+        return its workflow:state classification or errors if not possible to promote
+      parameters:
+      - in: header
+        name: Jira-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Jira authentication.
+        required: true
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
   /osidb/api/v1/flaws/{flaw_id}/references:
     get:
       operationId: osidb_api_v1_flaws_references_list

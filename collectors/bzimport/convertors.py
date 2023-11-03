@@ -426,13 +426,6 @@ class FlawSaver:
 
             self.link_trackers()
 
-            # when all related entities are available we also need
-            # to classify the created flaw however disable saving
-            # flaw in the classification adjustment and call the
-            # save afterwards since it will be only saved when
-            # the classification changes and thus some flaw
-            # changes done before may be lost
-            self.flaw.adjust_classification(save=False)
             # no automatic timestamps and validation exceptions
             # se explanation above for more details
             self.flaw.save(
