@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix incorrect type bool of is_up2date field in
   /collectors/api/v1/status endpoint
 - fix schema to reflect Erratum shipped_dt to be nullable
+- Remove exec from wrapper scripts
 
 ## [3.5.1] - 2023-10-23
 ### Fixed
