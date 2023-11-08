@@ -20,4 +20,4 @@ fi
 
 # start gunicorn
 pkill gunicorn || true
-exec gunicorn config.wsgi --config gunicorn_config.py --access-logfile $ACCESS_LOG_FILE
+gunicorn config.wsgi --config gunicorn_config.py --access-logfile $ACCESS_LOG_FILE
