@@ -21,6 +21,8 @@ testrunner.errata:
 	$(podman) exec -it testrunner tox -e unit-tests collectors/errata
 testrunner.framework:
 	$(podman) exec -it testrunner tox -e unit-tests collectors/framework
+testrunner.sla:
+	$(podman) exec -it testrunner tox -e unit-tests apps/sla
 testrunner.workflows:
 	$(podman) exec -it testrunner tox -e unit-tests apps/workflows
 testrunner.all-unit-tests:
