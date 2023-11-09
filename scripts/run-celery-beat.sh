@@ -23,4 +23,4 @@ echo
 # custom run script for starting osidb celery-beat service in osidb-stage and osidb-prod environments.
 
 rm -f /tmp/celery_beat.pid
-celery -A config beat
+exec celery -A config beat
