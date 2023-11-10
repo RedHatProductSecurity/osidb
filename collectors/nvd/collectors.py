@@ -6,9 +6,10 @@ from django.conf import settings
 from django.utils import timezone
 from nvdlib.classes import CVE
 
+from collectors.constants import SNIPPET_CREATION_ENABLED
 from collectors.framework.models import Collector
 from osidb.core import set_user_acls
-from osidb.models import Flaw, FlawCVSS
+from osidb.models import Flaw, FlawCVSS, Snippet
 
 logger = get_task_logger(__name__)
 
@@ -77,12 +78,47 @@ class NVDQuerier:
                 "vector": cvss_data.cvssData.vectorString,
             }
 
+        def get_cwes(data: CVE) -> Union[str, None]:
+            """
+            Return all CWEs (weaknesses) from `data`.
+            """
+            # depending on the data, the following attribute might not be present
+            if "weaknesses" not in data:
+                return None
+
+            cwes = set()
+            for cwe in data.weaknesses:
+                for i in cwe.description:
+                    if i.value not in ["NVD-CWE-Other", "NVD-CWE-noinfo"]:
+                        cwes.add(i.value)
+
+            return "|".join(sorted(cwes)) or None
+
+        def get_description(descriptions: list) -> Union[str, None]:
+            """
+            Return English description from `descriptions`.
+            """
+            return [d.value for d in descriptions if d.lang == "en"][0] or None
+
+        def get_references(data: CVE) -> list:
+            """
+            Return the source URL and all other URLs from `data`.
+            """
+            urls = [
+                {"type": "SOURCE", "url": f"https://nvd.nist.gov/vuln/detail/{data.id}"}
+            ]
+
+            for r in data.references:
+                urls.append({"type": "EXTERNAL", "url": r.url})
+
+            return urls
+
         result = []
         for vulnerability in vulnerabilities:
             if getattr(vulnerability, "vulnStatus", False) == "Rejected":
                 continue
 
-            # cvss metrics may not be present
+            # cvss metrics and CWEs may not be present
             result.append(
                 {
                     "cve": vulnerability.id,
@@ -90,6 +126,9 @@ class NVDQuerier:
                     # get CVSS 3.1 or CVSS 3.0 if 3.1 is not present
                     "cvss3": get_cvss_metric(vulnerability, "cvssMetricV31")
                     or get_cvss_metric(vulnerability, "cvssMetricV30"),
+                    "cwe_id": get_cwes(vulnerability),
+                    "description": get_description(vulnerability.descriptions),
+                    "references": get_references(vulnerability),
                 }
             )
 
@@ -101,6 +140,9 @@ class NVDCollector(Collector, NVDQuerier):
     NVD CVSS collector
     """
 
+    # snippet creation is disabled by default for now
+    snippet_creation_enabled = None
+
     # the NIST NVD CVE project started in 1999
     # https://nvd.nist.gov/general/cve-process
     BEGINNING = timezone.datetime(1999, 1, 1, tzinfo=timezone.get_current_timezone())
@@ -108,6 +150,13 @@ class NVDCollector(Collector, NVDQuerier):
     # the API period queries are limited to the window of 120 days
     # https://nvd.nist.gov/developers/vulnerabilities
     BATCH_PERIOD_DAYS = 100
+
+    def __init__(self):
+        """initiate collector"""
+        super().__init__()
+
+        if self.snippet_creation_enabled is None:
+            self.snippet_creation_enabled = SNIPPET_CREATION_ENABLED
 
     def get_batch(self) -> (dict, timezone.datetime):
         """
@@ -141,6 +190,7 @@ class NVDCollector(Collector, NVDQuerier):
         logger.info("Fetching NVD data")
         start_dt = timezone.now()
         desync = []
+        new_snippets = []
 
         # fetch data
         # by default for the next batch but can be overridden by a given CVE
@@ -150,6 +200,17 @@ class NVDCollector(Collector, NVDQuerier):
 
         # process data
         for item in batch_data:
+
+            if self.snippet_creation:
+                try:
+                    Snippet.objects.get(
+                        source=Snippet.Source.NVD, content__cve_ids=[item["cve"]]
+                    )
+                except Snippet.DoesNotExist:
+                    if True:  # todo: change this condition as described in OSIDB-1558
+                        self.create_snippet(item)
+                        new_snippets.append(item["cve"])
+
             try:
                 flaw = Flaw.objects.get(cve_id=item["cve"])
                 # update NVD CVSS2 or CVSS3 data if necessary
@@ -169,6 +230,11 @@ class NVDCollector(Collector, NVDQuerier):
             if desync
             else "No CVEs with desynced NVD CVSS."
         )
+        logger.info(
+            f"New snippets were created for the following CVEs: {', '.join(new_snippets)}"
+            if new_snippets
+            else "No new snippets."
+        )
 
         # do not update the collector metadata when ad-hoc collecting a given CVE
         if cve is not None:
@@ -182,6 +248,7 @@ class NVDCollector(Collector, NVDQuerier):
 
         msg = f"{self.name} is updated until {updated_until_dt}."
         msg += f" CVEs synced: {', '.join(desync)}" if desync else ""
+        msg += f" New snippets: {', '.join(new_snippets)}" if new_snippets else ""
 
         logger.info("NVD sync was successful.")
         return msg
@@ -210,6 +277,23 @@ class NVDCollector(Collector, NVDQuerier):
             if updated_cves
             else ""
         )
+
+    @staticmethod
+    def create_snippet(item: dict) -> None:
+        """
+        Create a new snippet based on `item`.
+        """
+        content = {
+            "cve_ids": [item["cve"]],
+            "description": item["description"],
+            "references": item["references"],
+            "cvss2": item["cvss2"],
+            "cvss3": item["cvss3"],
+            "cwe_id": item["cwe_id"],
+        }
+
+        snippet = Snippet(source=Snippet.Source.NVD, content=content)
+        snippet.save()
 
     @staticmethod
     def get_original_nvd_cvss(flaw: Flaw, cvss_version: str) -> Union[str, None]:

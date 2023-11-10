@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from collectors.framework.models import CollectorMetadata
 from collectors.nvd.collectors import NVDCollector
-from osidb.models import Flaw, FlawCVSS
+from osidb.models import Flaw, FlawCVSS, Snippet
 from osidb.tests.factories import FlawCVSSFactory, FlawFactory
 
 pytestmark = pytest.mark.integration
@@ -224,3 +224,67 @@ class TestNVDCollector:
                 assert flaw.cvss_scores.filter(version=version).first().vector == vector
             else:
                 assert flaw.cvss_scores.filter(version=version).first() is None
+
+    @pytest.mark.vcr
+    @pytest.mark.parametrize("has_snippet", [False, True])
+    def test_snippet(self, has_snippet):
+        """
+        Test that a snippet is created if it does not exist.
+        """
+        cve = "CVE-2017-9629"
+
+        snippet_content = {
+            "cve_ids": ["CVE-2017-9629"],
+            "cvss2": {
+                "score": 10.0,
+                "issuer": "nvd@nist.gov",
+                "vector": "AV:N/AC:L/Au:N/C:C/I:C/A:C",
+            },
+            "cvss3": {
+                "score": 9.8,
+                "issuer": "nvd@nist.gov",
+                "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+            },
+            "cwe_id": "CWE-119|CWE-121",
+            "description": "A Stack-Based Buffer Overflow issue was discovered in Schneider Electric Wonderware ArchestrA Logger, versions 2017.426.2307.1 and prior. The stack-based buffer overflow vulnerability has been identified, which may allow a remote attacker to execute arbitrary code in the context of a highly privileged account.",
+            "references": [
+                {
+                    "url": "https://nvd.nist.gov/vuln/detail/CVE-2017-9629",
+                    "type": "SOURCE",
+                },
+                {
+                    "url": "http://software.schneider-electric.com/pdf/security-bulletin/lfsec00000116/",
+                    "type": "EXTERNAL",
+                },
+                {"url": "http://www.securityfocus.com/bid/99488", "type": "EXTERNAL"},
+                {
+                    "url": "http://www.securitytracker.com/id/1038836",
+                    "type": "EXTERNAL",
+                },
+                {
+                    "url": "https://ics-cert.us-cert.gov/advisories/ICSA-17-187-04",
+                    "type": "EXTERNAL",
+                },
+            ],
+        }
+
+        # Default data
+        if has_snippet:
+            snippet = Snippet(source=Snippet.Source.NVD, content=snippet_content)
+            snippet.save()
+
+        nvdc = NVDCollector()
+        # snippet creation is disabled by default, so enable it
+        nvdc.snippet_creation_enabled = True
+        nvdc.collect(cve)
+
+        all_snippets = Snippet.objects.filter(
+            source=Snippet.Source.NVD, content__cve_ids=[cve]
+        )
+        snippet = all_snippets.first()
+
+        assert len(all_snippets) == 1
+        assert len(snippet.content) == 6
+
+        for key, value in snippet_content.items():
+            assert snippet.content[key] == value
