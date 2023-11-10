@@ -7,6 +7,20 @@ from pytz import timezone
 
 from apps.sla import time
 
+
+@pytest.mark.parametrize(
+    "dt,days,expected",
+    [
+        (datetime(2017, 8, 5, 15, 37, 55), 1, datetime(2017, 8, 6, 15, 37, 55)),
+        (datetime(2017, 8, 5), 10, datetime(2017, 8, 15)),
+        (datetime(2020, 1, 1, 10, 10, 10), 100, datetime(2020, 4, 10, 10, 10, 10)),
+        (datetime(2020, 1, 1), -2, datetime(2019, 12, 30)),
+    ],
+)
+def test_add_days(dt, days, expected):
+    assert expected == time.add_days(dt, days)
+
+
 ####################################################################
 # the stuff below was originally defined in prodsec Python library #
 # but was brought here to prevent the dependency to that old thing #

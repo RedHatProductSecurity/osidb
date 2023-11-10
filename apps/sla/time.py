@@ -4,12 +4,21 @@ custom time-related functions
 from django.utils.timezone import datetime, timedelta
 from pytz import timezone
 
+ONE_DAY = timedelta(days=1)
+
+
+def add_days(dt: datetime, days: int) -> datetime:
+    """
+    add the given number of days to the given date
+    """
+    return dt + ONE_DAY * days
+
+
 ####################################################################
 # the stuff below was originally defined in prodsec Python library #
 # but was brought here to prevent the dependency to that old thing #
 ####################################################################
 
-ONE_DAY = timedelta(days=1)
 EASTERN = timezone("US/Eastern")
 UTC = timezone("UTC")
 WEEKEND = (6, 7)  # Sat, Sun
