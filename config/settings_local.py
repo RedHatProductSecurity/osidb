@@ -6,20 +6,6 @@ from .settings import *
 # SECURITY WARNING: keep the secret key used in production/stage secret!
 SECRET_KEY = get_random_secret_key()  # pragma: allowlist secret
 
-# When testing email functionality locally, you can start a debugging SMTP server that
-# prints out the received emails with:
-# python -m smtpd -n -c DebuggingServer localhost:1025
-# with podman-compose add a service such as:
-#  osidb-mail:
-#    container_name: osidb-mail
-#    image: osidb
-#    command: python3 -m smtpd -n -c DebuggingServer localhost:1025
-#    ports:
-#      - "1025:1025"
-EMAIL_PORT = 1025
-EMAIL_HOST = "localhost"
-EMAIL_USE_TLS = False
-
 # Minimal group for read access of public flaws in OSIDB
 PUBLIC_READ_GROUPS = ["data-prodsec"]
 # Minimal group for write access of public flaws in OSIDB

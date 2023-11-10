@@ -48,7 +48,6 @@ celery[gevent]==5.2.7 \
     --hash=sha256:fafbd82934d30f8a004f81e8f7a062e31413a23d444be8ee3326553915958c6d
     # via
     #   -r requirements.in
-    #   django-celery-results
     #   flower
 certifi==2023.7.22 \
     --hash=sha256:539cc1d13202e33ca466e88b2807e29f4c13049d6d87031a3c110744495cb082 \
@@ -179,7 +178,6 @@ django==3.2.20 \
     # via
     #   -r requirements.in
     #   django-auth-ldap
-    #   django-celery-results
     #   django-cors-headers
     #   django-db
     #   django-deprecate-fields
@@ -194,10 +192,6 @@ django==3.2.20 \
 django-auth-ldap==3.0.0 \
     --hash=sha256:19ee19034f344d9efd07ed88d3187e256ec33ae39d6a47222083b89f7d35c5f6 \
     --hash=sha256:1f2d5c562d9ba9a5e9a64099ae9798e1a63840a11afe4d1c4a9c74121f066eaa
-    # via -r requirements.in
-django-celery-results==2.5.1 \
-    --hash=sha256:0da4cd5ecc049333e4524a23fcfc3460dfae91aa0a60f1fae4b6b2889c254e01 \
-    --hash=sha256:3ecb7147f773f34d0381bac6246337ce4cf88a2ea7b82774ed48e518b67bb8fd
     # via -r requirements.in
 django-contrib-postgres==0.0.1 \
     --hash=sha256:4c8b57efd93ed0a37ba6fb457c69993ef3f2a51c560c0dd7b1b3cfb78810b0ff

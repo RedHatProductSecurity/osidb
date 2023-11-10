@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   /collectors/api/v1/status endpoint
 - fix schema to reflect Erratum shipped_dt to be nullable
 
+### Removed
+- Remove daily monitoring email for failed tasks / collectors (OSIDB-1215)
+
 ## [3.5.1] - 2023-10-23
 ### Fixed
 - fix PS contact model (OSIDB-1445)
