@@ -57,3 +57,6 @@ DATABASES = {
         },
     }
 }
+
+STATIC_ROOT = "/opt/app-root/static/"
+STATIC_URL = "/static/"

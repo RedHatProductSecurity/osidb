@@ -10,7 +10,9 @@ class Command(BaseCommand):
     help = "Synchronizes a list of Bugzilla IDs to OSIDB"
 
     def add_arguments(self, parser):
-        parser.add_argument("bz_ids", nargs="+", type=int, help="List of bugzilla IDs")
+        parser.add_argument(
+            "bz_ids", nargs="+", type=str, help="List of bugzilla IDs or CVEs"
+        )
 
     def handle(self, *args, **options):
         if options["verbosity"] != 3:
@@ -22,7 +24,7 @@ class Command(BaseCommand):
                 ending="",
             )
             try:
-                fc.sync_flaw(str(bz_id))
+                fc.sync_flaw(bz_id)
             except Exception as e:
                 self.stdout.write(self.style.ERROR("FAIL"))
                 if options["verbosity"] == 2:
