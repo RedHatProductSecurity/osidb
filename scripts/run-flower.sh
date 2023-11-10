@@ -23,4 +23,4 @@ echo
 
 # custom run script for starting the flower monitoring tool for celery
 
-celery -A config flower
+exec celery -A config flower

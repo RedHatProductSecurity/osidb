@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 rm -f /tmp/celery_beat.pid
-celery -A config beat
+exec celery -A config beat
