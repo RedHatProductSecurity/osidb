@@ -11,6 +11,1353 @@ interactions:
       User-Agent:
       - python-requests/2.31.0
     method: GET
+    uri: https://gitlab.cee.redhat.com/prodsec-dev/ps-constants/-/raw/master/data/compliance_priority.yml?job=build
+  response:
+    body:
+      string: '# list of packages / components that are in the scope of the compliance
+        priority special handling and where a dedicated SLAs are applied
+
+        # separate list provided for each primary product, keys need to match ps module
+        names
+
+        # https://issues.redhat.com/browse/OSIDB-1316
+
+        # For any component from the below list in the particular product the following
+        SLA are applicable:
+
+        # Critical = 7 days
+
+        # Important = 21 days
+
+        # Moderate = 50 days
+
+        # Low = 180 days
+
+
+        rhel-8:
+
+        - acl
+
+        - adcli
+
+        - attr
+
+        - audit
+
+        - authselect
+
+        - avahi
+
+        - basesystem
+
+        - bash
+
+        - bash-completion
+
+        - bind
+
+        - binutils
+
+        - brotli
+
+        - bubblewrap
+
+        - bzip2
+
+        - c-ares
+
+        - ca-certificates
+
+        - checkpolicy
+
+        - chkconfig
+
+        - chrony
+
+        - cifs-utils
+
+        - clevis
+
+        - cloud-utils-growpart
+
+        - compat-openssl10
+
+        - conntrack-tools
+
+        - coreutils
+
+        - cpio
+
+        - cracklib
+
+        - cri-tools
+
+        - crypto-policies
+
+        - cryptsetup
+
+        - cups
+
+        - curl
+
+        - cyrus-sasl
+
+        - dbus
+
+        - dbus-glib
+
+        - dbus-python
+
+        - device-mapper-multipath
+
+        - device-mapper-persistent-data
+
+        - diffutils
+
+        - ding-libs
+
+        - dmidecode
+
+        - dnf
+
+        - dnf-plugins-core
+
+        - dnsmasq
+
+        - dosfstools
+
+        - dracut
+
+        - dtc
+
+        - e2fsprogs
+
+        - edk2
+
+        - efi-rpm-macros
+
+        - efibootmgr
+
+        - efivar
+
+        - elfutils
+
+        - emacs
+
+        - ethtool
+
+        - expat
+
+        - file
+
+        - filesystem
+
+        - findutils
+
+        - firewalld
+
+        - freetype
+
+        - fstrm
+
+        - fuse
+
+        - fwupd
+
+        - gawk
+
+        - gcab
+
+        - gcc
+
+        - gdb
+
+        - gdbm
+
+        - gdisk
+
+        - geolite2
+
+        - gettext
+
+        - git
+
+        - glib2
+
+        - glibc
+
+        - glusterfs
+
+        - gmp
+
+        - gnupg2
+
+        - gnutls
+
+        - gobject-introspection
+
+        - gpgme
+
+        - grep
+
+        - groff
+
+        - grub2
+
+        - gssproxy
+
+        - gzip
+
+        - haproxy
+
+        - hardlink
+
+        - hdparm
+
+        - hostname
+
+        - hwdata
+
+        - icu
+
+        - ima-evm-utils
+
+        - initscripts
+
+        - iproute
+
+        - iptables
+
+        - iputils
+
+        - ipxe
+
+        - irqbalance
+
+        - iscsi-initiator-utils
+
+        - isns-utils
+
+        - jansson
+
+        - jose
+
+        - jq
+
+        - json-c
+
+        - json-glib
+
+        - kata-containers
+
+        - kbd
+
+        - kernel
+
+        - kernel-rt
+
+        - kexec-tools
+
+        - keyutils
+
+        - kmod
+
+        - krb5
+
+        - langpacks
+
+        - less
+
+        - libaio
+
+        - libarchive
+
+        - libassuan
+
+        - libbpf
+
+        - libcap
+
+        - libcap-ng
+
+        - libcomps
+
+        - libcroco
+
+        - libdaemon
+
+        - libdb
+
+        - libdnf
+
+        - libdrm
+
+        - libedit
+
+        - libestr
+
+        - libevent
+
+        - libfastjson
+
+        - libffi
+
+        - libgcrypt
+
+        - libgpg-error
+
+        - libgudev
+
+        - libgusb
+
+        - libidn2
+
+        - libkcapi
+
+        - libksba
+
+        - libldb
+
+        - libmaxminddb
+
+        - libmetalink
+
+        - libmicrohttpd
+
+        - libmnl
+
+        - libmodulemd
+
+        - libmspack
+
+        - libndp
+
+        - libnet
+
+        - libnetfilter_conntrack
+
+        - libnetfilter_cthelper
+
+        - libnetfilter_cttimeout
+
+        - libnetfilter_queue
+
+        - libnfnetlink
+
+        - libnftnl
+
+        - libnl3
+
+        - libnsl2
+
+        - libpcap
+
+        - libpciaccess
+
+        - libpeas
+
+        - libpng
+
+        - libpsl
+
+        - libpwquality
+
+        - libqb
+
+        - librepo
+
+        - libreport
+
+        - librhsm
+
+        - librtas
+
+        - libseccomp
+
+        - libsecret
+
+        - libselinux
+
+        - libsemanage
+
+        - libsepol
+
+        - libsigsegv
+
+        - libsmbios
+
+        - libsolv
+
+        - libssh
+
+        - libtalloc
+
+        - libtasn1
+
+        - libtdb
+
+        - libteam
+
+        - libtevent
+
+        - libtirpc
+
+        - libtool
+
+        - libunistring
+
+        - libusbx
+
+        - libuser
+
+        - libutempter
+
+        - libverto
+
+        - libxcrypt
+
+        - libxkbcommon
+
+        - libxml2
+
+        - libxmlb
+
+        - libxslt
+
+        - libyaml
+
+        - linux-firmware
+
+        - lmdb
+
+        - logrotate
+
+        - lsof
+
+        - lua
+
+        - luksmeta
+
+        - lvm2
+
+        - lz4
+
+        - lzo
+
+        - make
+
+        - mdadm
+
+        - memstrack
+
+        - microcode_ctl
+
+        - microdnf
+
+        - mokutil
+
+        - mozjs60
+
+        - mpfr
+
+        - nano
+
+        - ncurses
+
+        - net-tools
+
+        - nettle
+
+        - NetworkManager
+
+        - newt
+
+        - nfs-utils
+
+        - nftables
+
+        - nghttp2
+
+        - nmap
+
+        - npth
+
+        - nss-altfiles
+
+        - numactl
+
+        - nvme-cli
+
+        - oniguruma
+
+        - open-vm-tools
+
+        - openldap
+
+        - openshift
+
+        - openshift-clients
+
+        - openssh
+
+        - openssl
+
+        - openssl-pkcs11
+
+        - os-prober
+
+        - ostree
+
+        - p11-kit
+
+        - pam
+
+        - passwd
+
+        - pciutils
+
+        - pcre
+
+        - pcre2
+
+        - perl
+
+        - perl-Carp
+
+        - perl-constant
+
+        - perl-Data-Dumper
+
+        - perl-Digest
+
+        - perl-Digest-MD5
+
+        - perl-Encode
+
+        - perl-Error
+
+        - perl-Exporter
+
+        - perl-File-Path
+
+        - perl-File-Temp
+
+        - perl-Getopt-Long
+
+        - perl-HTTP-Tiny
+
+        - perl-IO-Socket-IP
+
+        - perl-IO-Socket-SSL
+
+        - perl-libnet
+
+        - perl-MIME-Base64
+
+        - perl-Mozilla-CA
+
+        - perl-Net-SSLeay
+
+        - perl-parent
+
+        - perl-PathTools
+
+        - perl-Pod-Escapes
+
+        - perl-Pod-Perldoc
+
+        - perl-Pod-Simple
+
+        - perl-Pod-Usage
+
+        - perl-podlators
+
+        - perl-Scalar-List-Utils
+
+        - perl-Socket
+
+        - perl-Storable
+
+        - perl-Term-ANSIColor
+
+        - perl-Term-Cap
+
+        - perl-TermReadKey
+
+        - perl-Text-ParseWords
+
+        - perl-Text-Tabs+Wrap
+
+        - perl-threads
+
+        - perl-threads-shared
+
+        - perl-Time-Local
+
+        - perl-Unicode-Normalize
+
+        - perl-URI
+
+        - pigz
+
+        - pinentry
+
+        - pixman
+
+        - pkgconf
+
+        - pmdk
+
+        - policycoreutils
+
+        - polkit
+
+        - polkit-pkla-compat
+
+        - popt
+
+        - procps-ng
+
+        - protobuf
+
+        - protobuf-c
+
+        - psmisc
+
+        - publicsuffix-list
+
+        - pygobject3
+
+        - python-chardet
+
+        - python-dateutil
+
+        - python-decorator
+
+        - python-dmidecode
+
+        - python-ethtool
+
+        - python-idna
+
+        - python-iniparse
+
+        - python-inotify
+
+        - python-linux-procfs
+
+        - python-pip
+
+        - python-ply
+
+        - python-pysocks
+
+        - python-pyudev
+
+        - python-requests
+
+        - python-setuptools
+
+        - python-six
+
+        - python-systemd
+
+        - python-urllib3
+
+        - python3
+
+        - python36
+
+        - PyYAML
+
+        - qemu-kvm
+
+        - quota
+
+        - rdma-core
+
+        - readline
+
+        - redhat-release
+
+        - rootfiles
+
+        - rpcbind
+
+        - rpm
+
+        - rpm-ostree
+
+        - rsync
+
+        - rsyslog
+
+        - samba
+
+        - seabios
+
+        - sed
+
+        - selinux-policy
+
+        - setools
+
+        - setup
+
+        - sg3_utils
+
+        - sgabios
+
+        - shadow-utils
+
+        - shared-mime-info
+
+        - shim
+
+        - slang
+
+        - snappy
+
+        - socat
+
+        - sqlite
+
+        - squashfs-tools
+
+        - sssd
+
+        - stalld
+
+        - strace
+
+        - subscription-manager
+
+        - subscription-manager-rhsm-certificates
+
+        - sudo
+
+        - systemd
+
+        - tar
+
+        - tcpdump
+
+        - texinfo
+
+        - timedatex
+
+        - tmux
+
+        - tpm2-tools
+
+        - tpm2-tss
+
+        - tree
+
+        - trousers
+
+        - tuna
+
+        - tuned
+
+        - tzdata
+
+        - unbound
+
+        - usbguard
+
+        - usermode
+
+        - userspace-rcu
+
+        - util-linux
+
+        - vim
+
+        - virt-what
+
+        - WALinuxAgent
+
+        - wget
+
+        - which
+
+        - xfsprogs
+
+        - xkeyboard-config
+
+        - xmlsec1
+
+        - xz
+
+        - yajl
+
+        - zlib
+
+        - zstd
+
+
+        # below list is a represenation of the RHEL UBI9 rpm components
+
+        rhel-9:
+
+        - acl
+
+        - attr
+
+        - audit
+
+        - basesystem
+
+        - bash
+
+        - bzip2
+
+        - ca-certificates
+
+        - chkconfig
+
+        - coreutils
+
+        - cracklib
+
+        - crypto-policies
+
+        - curl
+
+        - cyrus-sasl
+
+        - dbus
+
+        - dbus-broker
+
+        - dbus-python
+
+        - dejavu-fonts
+
+        - dmidecode
+
+        - dnf
+
+        - dnf-plugins-core
+
+        - e2fsprogs
+
+        - elfutils
+
+        - expat
+
+        - file
+
+        - filesystem
+
+        - findutils
+
+        - fonts-rpm-macros
+
+        - gawk
+
+        - gcc
+
+        - gdb
+
+        - gdbm
+
+        - glib2
+
+        - glibc
+
+        - gmp
+
+        - gnupg2
+
+        - gnutls
+
+        - gobject-introspection
+
+        - gpgme
+
+        - grep
+
+        - gzip
+
+        - ima-evm-utils
+
+        - json-c
+
+        - json-glib
+
+        - keyutils
+
+        - kmod
+
+        - krb5
+
+        - langpacks
+
+        - libarchive
+
+        - libassuan
+
+        - libcap
+
+        - libcap-ng
+
+        - libcomps
+
+        - libdb
+
+        - libdnf
+
+        - libeconf
+
+        - libevent
+
+        - libffi
+
+        - libgcrypt
+
+        - libgpg-error
+
+        - libidn2
+
+        - libksba
+
+        - libmodulemd
+
+        - libnl3
+
+        - libpeas
+
+        - libpwquality
+
+        - librepo
+
+        - libreport
+
+        - librhsm
+
+        - libseccomp
+
+        - libselinux
+
+        - libsemanage
+
+        - libsepol
+
+        - libsigsegv
+
+        - libsolv
+
+        - libtasn1
+
+        - libunistring
+
+        - libusbx
+
+        - libuser
+
+        - libutempter
+
+        - libverto
+
+        - libxcrypt
+
+        - libxml2
+
+        - libyaml
+
+        - lua
+
+        - lz4
+
+        - microdnf
+
+        - mpfr
+
+        - ncurses
+
+        - nettle
+
+        - nghttp2
+
+        - npth
+
+        - openldap
+
+        - openssl
+
+        - p11-kit
+
+        - pam
+
+        - passwd
+
+        - pcre
+
+        - pcre2
+
+        - popt
+
+        - procps-ng
+
+        - pygobject3
+
+        - python-chardet
+
+        - python-dateutil
+
+        - python-decorator
+
+        - python-ethtool
+
+        - python-idna
+
+        - python-iniparse
+
+        - python-inotify
+
+        - python-pip
+
+        - python-pysocks
+
+        - python-requests
+
+        - python-setuptools
+
+        - python-six
+
+        - python-systemd
+
+        - python-urllib3
+
+        - python3.9
+
+        - readline
+
+        - redhat-release
+
+        - rootfiles
+
+        - rpm
+
+        - sed
+
+        - setup
+
+        - shadow-utils
+
+        - sqlite
+
+        - subscription-manager
+
+        - subscription-manager-rhsm-certificates
+
+        - systemd
+
+        - tar
+
+        - tpm2-tss
+
+        - tzdata
+
+        - usermode
+
+        - util-linux
+
+        - vim
+
+        - virt-what
+
+        - which
+
+        - xz
+
+        - zlib
+
+        - zstd
+
+
+        openshift-4:
+
+        - cluster-etcd-operator-container
+
+        - cluster-monitoring-operator-container
+
+        - cluster-network-operator-container
+
+        - cluster-node-tuning-operator-container
+
+        - conmon
+
+        - console-login-helper-messages
+
+        - container-selinux
+
+        - containernetworking-plugins
+
+        - containers-common
+
+        - coredns-container
+
+        - coreos-installer
+
+        - cri-o
+
+        - criu
+
+        - crun
+
+        - csi-attacher-container
+
+        - csi-livenessprobe-container
+
+        - csi-node-driver-registrar-container
+
+        - csi-provisioner-container
+
+        - fuse-overlayfs
+
+        - golang-github-openshift-oauth-proxy-container
+
+        - golang-github-prometheus-alertmanager-container
+
+        - golang-github-prometheus-node_exporter-container
+
+        - golang-github-prometheus-prometheus-container
+
+        - ignition
+
+        - kube-rbac-proxy-container
+
+        - kube-state-metrics-container
+
+        - libslirp
+
+        - marketplace-operator-container
+
+        - multus-cni-container
+
+        - oauth-server-container
+
+        - openshift-enterprise-builder-container
+
+        - openshift-enterprise-cli-container
+
+        - openshift-enterprise-console-container
+
+        - openshift-enterprise-console-operator-container
+
+        - openshift-enterprise-haproxy-router-container
+
+        - openshift-enterprise-hyperkube-container
+
+        - openshift-enterprise-registry-container
+
+        - openshift-state-metrics-container
+
+        - openvswitch-selinux-extra-policy
+
+        - openvswitch2.13
+
+        - openvswitch2.17
+
+        - operator-lifecycle-manager-container
+
+        - ose-aws-ebs-csi-driver-container
+
+        - ose-aws-ebs-csi-driver-operator-container
+
+        - ose-aws-pod-identity-webhook-container
+
+        - ose-cli-artifacts-container
+
+        - ose-cloud-credential-operator-container
+
+        - ose-cloud-network-config-controller-container
+
+        - ose-cluster-authentication-operator-container
+
+        - ose-cluster-autoscaler-operator-container
+
+        - ose-cluster-baremetal-operator-container
+
+        - ose-cluster-cloud-controller-manager-operator-container
+
+        - ose-cluster-config-operator-container
+
+        - ose-cluster-csi-snapshot-controller-operator-container
+
+        - ose-cluster-dns-operator-container
+
+        - ose-cluster-image-registry-operator-container
+
+        - ose-cluster-ingress-operator-container
+
+        - ose-cluster-kube-apiserver-operator-container
+
+        - ose-cluster-kube-controller-manager-operator-container
+
+        - ose-cluster-kube-scheduler-operator-container
+
+        - ose-cluster-kube-storage-version-migrator-operator-container
+
+        - ose-cluster-machine-approver-container
+
+        - ose-cluster-openshift-apiserver-operator-container
+
+        - ose-cluster-openshift-controller-manager-operator-container
+
+        - ose-cluster-samples-operator-container
+
+        - ose-cluster-storage-operator-container
+
+        - ose-csi-external-resizer-container
+
+        - ose-csi-external-snapshotter-container
+
+        - ose-csi-snapshot-controller-container
+
+        - ose-csi-snapshot-validation-webhook-container
+
+        - ose-etcd-container
+
+        - ose-insights-operator-container
+
+        - ose-kube-storage-version-migrator-container
+
+        - ose-machine-api-operator-container
+
+        - ose-machine-api-provider-aws-container
+
+        - ose-machine-config-operator-container
+
+        - ose-multus-admission-controller-container
+
+        - ose-network-metrics-daemon-container
+
+        - ose-node-container
+
+        - ose-oauth-apiserver-container
+
+        - ose-openshift-apiserver-container
+
+        - ose-openshift-controller-manager-container
+
+        - ose-prometheus-adapter-container
+
+        - ose-service-ca-operator-container
+
+        - ose-thanos-container
+
+        - podman
+
+        - prom-label-proxy-container
+
+        - prometheus-config-reloader-container
+
+        - prometheus-operator-admission-webhook-container
+
+        - prometheus-operator-container
+
+        - runc
+
+        - rust-afterburn
+
+        - rust-bootupd
+
+        - skopeo
+
+        - slirp4netns
+
+        - telemeter-container
+
+        - toolbox
+
+
+        fdp-el8-ovs:
+
+        - openvswitch-selinux-extra-policy
+
+        - openvswitch2.13
+
+        - openvswitch2.17
+
+
+        '
+    headers:
+      Cache-Control:
+      - max-age=60, public, must-revalidate, stale-while-revalidate=60, stale-if-error=300,
+        s-maxage=60
+      Connection:
+      - keep-alive
+      Content-Disposition:
+      - inline
+      Content-Length:
+      - '10067'
+      Content-Security-Policy:
+      - 'base-uri ''self''; child-src https://www.google.com/recaptcha/ https://www.recaptcha.net/
+        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
+        https://content-cloudresourcemanager.googleapis.com https://www.googletagmanager.com/ns.html
+        https://gitlab.cee.redhat.com/admin/ https://gitlab.cee.redhat.com/assets/
+        https://gitlab.cee.redhat.com/-/speedscope/index.html https://gitlab.cee.redhat.com/-/sandbox/
+        https://gitlab.cee.redhat.com/assets/ blob: data:; connect-src ''self'' wss://gitlab.cee.redhat.com;
+        default-src ''self''; font-src ''self'' https://fonts.gstatic.com/; form-action
+        ''self'' https: http:; frame-ancestors ''self''; frame-src ''self'' https://www.recaptcha.net/
+        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
+        https://content-cloudresourcemanager.googleapis.com *.redhat.com; img-src
+        * data: blob:; manifest-src ''self''; media-src ''self'' data: blob: http:
+        https:; object-src ''none''; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''
+        https://www.recaptcha.net https://apis.google.com ''nonce-n75Rp4KpsscQQFgaEC7D7Q=='';
+        style-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com *.redhat.com;
+        worker-src https://gitlab.cee.redhat.com/assets/ blob: data:'
+      Content-Type:
+      - text/plain; charset=utf-8
+      Date:
+      - Fri, 10 Nov 2023 16:28:07 GMT
+      Etag:
+      - '"b0cc8fed76256e02a011af62f49b3c66"'
+      Permissions-Policy:
+      - interest-cohort=()
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - nginx
+      Vary:
+      - Accept
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Gitlab-Meta:
+      - '{"correlation_id":"01HEX0ZTV9BJBVF27ZET9DWHND","version":"1"}'
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Request-Id:
+      - 01HEX0ZTV9BJBVF27ZET9DWHND
+      X-Runtime:
+      - '0.071759'
+      X-Ua-Compatible:
+      - IE=edge
+      X-Xss-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+    method: GET
     uri: https://gitlab.cee.redhat.com/prodsec-dev/ps-constants/-/raw/master/data/ubi_packages.yml?job=build
   response:
     body:
@@ -85,13 +1432,13 @@ interactions:
         https://content-cloudresourcemanager.googleapis.com *.redhat.com; img-src
         * data: blob:; manifest-src ''self''; media-src ''self'' data: blob: http:
         https:; object-src ''none''; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''
-        https://www.recaptcha.net https://apis.google.com ''nonce-/PV1APv1s0zuM5dl2yhrZA=='';
+        https://www.recaptcha.net https://apis.google.com ''nonce-YKh4wXKSnIdWnSbjr+ZKFg=='';
         style-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com *.redhat.com;
         worker-src https://gitlab.cee.redhat.com/assets/ blob: data:'
       Content-Type:
       - text/plain; charset=utf-8
       Date:
-      - Wed, 22 Nov 2023 07:50:33 GMT
+      - Fri, 10 Nov 2023 16:28:08 GMT
       Etag:
       - '"01f2463b30dfed8dc87e79c0532c5ae4"'
       Permissions-Policy:
@@ -109,13 +1456,13 @@ interactions:
       X-Frame-Options:
       - SAMEORIGIN
       X-Gitlab-Meta:
-      - '{"correlation_id":"01HFV04RP5NFJWV7E247J3N4GG","version":"1"}'
+      - '{"correlation_id":"01HEX0ZVR1663QAY4T3M6QZ0V5","version":"1"}'
       X-Permitted-Cross-Domain-Policies:
       - none
       X-Request-Id:
-      - 01HFV04RP5NFJWV7E247J3N4GG
+      - 01HEX0ZVR1663QAY4T3M6QZ0V5
       X-Runtime:
-      - '0.072498'
+      - '0.070016'
       X-Ua-Compatible:
       - IE=edge
       X-Xss-Protection:
@@ -204,13 +1551,13 @@ interactions:
         https://content-cloudresourcemanager.googleapis.com *.redhat.com; img-src
         * data: blob:; manifest-src ''self''; media-src ''self'' data: blob: http:
         https:; object-src ''none''; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''
-        https://www.recaptcha.net https://apis.google.com ''nonce-ephJeNziQaH+ZnaVz6UOPw=='';
+        https://www.recaptcha.net https://apis.google.com ''nonce-qHch9M8CyIvtkvIYNEnjSA=='';
         style-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com *.redhat.com;
         worker-src https://gitlab.cee.redhat.com/assets/ blob: data:'
       Content-Type:
       - text/plain; charset=utf-8
       Date:
-      - Wed, 22 Nov 2023 07:50:34 GMT
+      - Fri, 10 Nov 2023 16:28:09 GMT
       Etag:
       - '"e421bf00158b35d34131f5f4673f888e"'
       Permissions-Policy:
@@ -228,13 +1575,13 @@ interactions:
       X-Frame-Options:
       - SAMEORIGIN
       X-Gitlab-Meta:
-      - '{"correlation_id":"01HFV04S8Q1SR27QE6VNJ8YTWW","version":"1"}'
+      - '{"correlation_id":"01HEX0ZWR6GCY37W74GVGCQ8NW","version":"1"}'
       X-Permitted-Cross-Domain-Policies:
       - none
       X-Request-Id:
-      - 01HFV04S8Q1SR27QE6VNJ8YTWW
+      - 01HEX0ZWR6GCY37W74GVGCQ8NW
       X-Runtime:
-      - '0.079898'
+      - '0.069588'
       X-Ua-Compatible:
       - IE=edge
       X-Xss-Protection:

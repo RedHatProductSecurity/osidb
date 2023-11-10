@@ -3432,6 +3432,19 @@ class Profile(models.Model):
         return self.username
 
 
+class CompliancePriority(models.Model):
+    """
+    an instance of this model represents one
+    entry in PS constant compliance priority list
+    """
+
+    # internal primary key
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    ps_module = models.CharField(max_length=100)
+    ps_component = models.CharField(max_length=255)
+
+
 class UbiPackage(models.Model):
     """
     An instance of this model represents one
