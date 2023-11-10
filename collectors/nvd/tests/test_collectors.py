@@ -29,11 +29,11 @@ class TestNVDCollector:
 
         # test that the batch is correctly selected
         batch, period_end = nvdc.get_batch()
-        assert len(batch) == 300
+        assert len(batch) == 296
         assert period_end == timezone.datetime(2010, 4, 11, 0, 0, tzinfo=timezone.utc)
 
         # test that the batch collection works
-        # randomly select a few flaws - not all 300
+        # randomly select a few flaws - not all 296
         #
         # we do not test CVSS3 as these old flaws do not have it
         # but more recent batches are too huge (a few MB cassettes)
@@ -177,6 +177,14 @@ class TestNVDCollector:
                 [7.4, "CVSS:3.1/AV:L/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H"],
                 [6.8, "AV:N/AC:M/Au:N/C:P/I:P/A:P"],
                 [7.8, "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"],
+            ),
+            # removed CVSSv2
+            (
+                "CVE-2014-0148",
+                [6.8, "AV:N/AC:M/Au:N/C:P/I:P/A:P"],
+                [5.5, "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H"],
+                [None, None],
+                [5.5, "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H"],
             ),
         ],
     )
