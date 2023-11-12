@@ -62,6 +62,10 @@ class CheckParser(metaclass=MetaCheckParser):
             or None if no corresponding implementation
         """
         check_desc = check_desc.lower().replace(" ", "_")
+        # enable more human-readable negation
+        if check_desc.startswith("is_not_"):
+            check_desc = "not_is_" + check_desc[7:]
+        check_desc = check_desc.replace("_is_not_", "_not_is_")
 
         for func in [
             cls.desc2property,
