@@ -79,6 +79,8 @@ class CheckParser(metaclass=MetaCheckParser):
             cls.desc2property,
             cls.desc2not_property,
             cls.desc2non_empty,
+            # negative equality check must preceed the positive one
+            # because of the limitations of the naive syntax parsing
             cls.desc2not_equals,
             cls.desc2equals,
         ]:
@@ -124,7 +126,7 @@ class CheckParser(metaclass=MetaCheckParser):
         if check_desc.startswith("has_"):
             attr = cls.sanitize_attribute(check_desc[4:])
             if hasattr(cls.model, attr):
-                message = (
+                doc = (
                     f"check that {cls.model.__name__} attribute {attr} has a value set"
                 )
 
@@ -137,36 +139,49 @@ class CheckParser(metaclass=MetaCheckParser):
                     else:
                         return field not in EMPTY_VALUES
 
-                return (message, has_element)
-
-    @classmethod
-    def desc2not_equals(cls, check_desc):
-        """attribute value check"""
-        if "_not_equals_" in check_desc:
-            attr, value = check_desc.split("_not_equals_", maxsplit=1)
-            attr = cls.map_attribute(attr)
-
-            if hasattr(cls.model, attr):
-                message = f"check that {cls.model.__name__} attribute {attr} has a value not equal to {value}"
-
-                def not_equals(instance):
-                    field = getattr(instance, attr).lower().replace(" ", "_")
-                    return field != value if not callable(field) else field() != value
-
-                return (message, not_equals)
+                return (doc, has_element)
 
     @classmethod
     def desc2equals(cls, check_desc):
-        """attribute value check"""
-        if "_equals_" in check_desc:
-            attr, value = check_desc.split("_equals_", maxsplit=1)
-            attr = cls.map_attribute(attr)
+        """
+        attribute to literal value equality check
+
+        currently only supports string attributes
+        which values do not contain any spaces
+        """
+        if check_desc.count("_is_") == 1:
+            attr, value = check_desc.split("_is_")
+            attr = cls.sanitize_attribute(attr)
 
             if hasattr(cls.model, attr):
-                message = f"check that {cls.model.__name__} attribute {attr} has a value equal to {value}"
+                doc = f"check that {cls.model.__name__} attribute {attr} has a value equal to {value}"
 
-                def equals(instance):
-                    field = getattr(instance, attr).lower().replace(" ", "_")
-                    return field == value if not callable(field) else field() == value
+                # model fields with defined choices require uppercase letters
+                if getattr(getattr(getattr(cls.model, attr), "field"), "choices"):
+                    value = value.upper()
 
-                return (message, equals)
+                def compare_element(instance):
+                    field = getattr(instance, attr)
+                    return (field if not callable(field) else field()) == value
+
+                return (doc, compare_element)
+
+    @classmethod
+    def desc2not_equals(cls, check_desc):
+        """
+        negative attribute to literal value comparison check
+
+        currently only supports string attributes
+        which values do not contain any spaces
+        """
+        if check_desc.count("_not_is_") == 1:
+            check_desc = check_desc.replace("_not_is_", "_is_")
+
+            result = cls.desc2equals(check_desc)
+
+            if result is not None:
+                doc, func = result
+                return (
+                    f"negative of: {doc}",
+                    lambda instance: not func(instance),
+                )

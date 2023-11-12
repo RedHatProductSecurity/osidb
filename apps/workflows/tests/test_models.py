@@ -134,32 +134,76 @@ class TestCheck:
             flaw
         ), f'check for "{check.name}" should have failed, but passed.'
 
-    def test_equals_check(self):
+    @pytest.mark.parametrize(
+        "attribute,value,check_desc",
+        [
+            ("cve_id", "CVE-2000-12345", "CVE is CVE-2000-12345"),
+            ("cwe_id", "CWE-100", "CWE is CWE-100"),
+            ("impact", Impact.CRITICAL, "impact is critical"),
+            ("source", FlawSource.CUSTOMER, "source is customer"),
+            ("title", "whatever", "title is whatever"),
+        ],
+    )
+    def test_equals(self, attribute, value, check_desc):
         """
-        test that check equals operand
+        test equality check parsing and resolution
         """
-        flaw = FlawFactory(cwe_id="CWE-99")
+        flaw = FlawFactory()
+        setattr(flaw, attribute, value)
+        check = Check(check_desc)
 
-        check = Check("cwe equals CWE-99")
-        assert check(flaw), f'check for "{check.name}" failed.'
+        assert check.name == check_desc
+        # here we do a case insensitive check as there is
+        # a different case handling for the text choices
+        assert (
+            check.description.lower()
+            == f"check that Flaw attribute {attribute} has a value equal to {value}".lower()
+        )
+        assert check(flaw), f"Check failed: {check.name}"
 
-        flaw = FlawFactory(cwe_id="CWE-100")
+    def test_equals_failed(self):
+        """
+        test that equality check fails with unexpected value
+        """
+        check = Check("cwe is CWE-99")
         assert not check(
-            flaw
+            FlawFactory(cwe_id="CWE-100")
         ), f'check for "{check.name}" should have failed, but passed.'
 
-    def test_not_equals_check(self):
+    @pytest.mark.parametrize(
+        "attribute,value,not_value,check_desc",
+        [
+            ("cve_id", "CVE-2000-12345", "CVE-2000-3000", "CVE is not CVE-2000-3000"),
+            ("cwe_id", "CWE-100", "CWE-200", "CWE is not CWE-200"),
+            ("impact", Impact.CRITICAL, "low", "impact is not low"),
+            ("source", FlawSource.CUSTOMER, "internet", "source is not internet"),
+            ("title", "whatever", "banana", "title is not banana"),
+        ],
+    )
+    def test_not_equals(self, attribute, value, not_value, check_desc):
         """
-        test that check not equals operand
+        test negative equality check parsing and resolution
         """
-        flaw = FlawFactory(cwe_id="CWE-100")
+        flaw = FlawFactory()
+        setattr(flaw, attribute, value)
+        check = Check(check_desc)
 
-        check = Check("cwe not equals CWE-99")
-        assert check(flaw), f'check for "{check.name}" failed.'
+        assert check.name == check_desc
+        # here we do a case insensitive check as there is
+        # a different case handling for the text choices
+        assert (
+            check.description.lower()
+            == f"negative of: check that Flaw attribute {attribute} has a value equal to {not_value}".lower()
+        )
+        assert check(flaw), f"Check failed: {check.name}"
 
-        flaw = FlawFactory(cwe_id="CWE-99")
+    def test_not_equals_failed(self):
+        """
+        test that negative equality check fails with expected value
+        """
+        check = Check("cwe not is CWE-100")
         assert not check(
-            flaw
+            FlawFactory(cwe_id="CWE-100")
         ), f'check for "{check.name}" should have failed, but passed.'
 
 
