@@ -2056,6 +2056,16 @@ class Affect(
         ).exists()
 
     @property
+    def is_compliance_priority(self) -> bool:
+        """
+        check and return whether this affect module and component combination is compliance
+        priority which is defined in PS constance repo in compliance_priority.yml
+        """
+        return CompliancePriority.objects.filter(
+            ps_module=self.ps_module, ps_component=self.ps_component
+        ).exists()
+
+    @property
     def is_notaffected(self) -> bool:
         """
         check and return whether the given affect is set as not affected or not to be fixed
