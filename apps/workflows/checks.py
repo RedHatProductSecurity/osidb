@@ -52,6 +52,14 @@ class CheckParser(metaclass=MetaCheckParser):
         return attr
 
     @classmethod
+    def sanitize_attribute(cls, attr):
+        """
+        taking the raw attribute description
+        try to translate it to its real name
+        """
+        return cls.map_attribute(attr.lower())
+
+    @classmethod
     def parse(cls, check_desc):
         """
         based on the textual check description tries to find a corresponding implementation
@@ -61,7 +69,7 @@ class CheckParser(metaclass=MetaCheckParser):
             (check implementation doc text, check implementation)
             or None if no corresponding implementation
         """
-        check_desc = check_desc.lower().replace(" ", "_")
+        check_desc = check_desc.replace(" ", "_")
         # enable more human-readable negation
         if check_desc.startswith("is_not_"):
             check_desc = "not_is_" + check_desc[7:]
@@ -85,7 +93,7 @@ class CheckParser(metaclass=MetaCheckParser):
     @classmethod
     def desc2property(cls, check_desc):
         """native property check"""
-        check_desc = cls.map_attribute(check_desc)
+        check_desc = cls.sanitize_attribute(check_desc)
         if hasattr(cls.model, check_desc):
             func = getattr(cls.model, check_desc)
 
@@ -99,7 +107,7 @@ class CheckParser(metaclass=MetaCheckParser):
     def desc2not_property(cls, check_desc):
         """negative native property check"""
         if check_desc.startswith("not_"):
-            attr = cls.map_attribute(check_desc[4:])
+            attr = cls.sanitize_attribute(check_desc[4:])
 
             result = cls.desc2property(attr)
 
@@ -114,7 +122,7 @@ class CheckParser(metaclass=MetaCheckParser):
     def desc2non_empty(cls, check_desc):
         """attribute non-emptiness check"""
         if check_desc.startswith("has_"):
-            attr = cls.map_attribute(check_desc[4:])
+            attr = cls.sanitize_attribute(check_desc[4:])
             if hasattr(cls.model, attr):
                 message = (
                     f"check that {cls.model.__name__} attribute {attr} has a value set"
