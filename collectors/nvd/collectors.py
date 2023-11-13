@@ -201,7 +201,7 @@ class NVDCollector(Collector, NVDQuerier):
         # process data
         for item in batch_data:
 
-            if self.snippet_creation:
+            if self.snippet_creation_enabled:
                 try:
                     Snippet.objects.get(
                         source=Snippet.Source.NVD, content__cve_ids=[item["cve"]]
