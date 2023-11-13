@@ -17,9 +17,15 @@ class Check:
     what is parsed from the check description
     """
 
-    def __init__(self, check_desc):
+    def __init__(self, check_desc, cls=None):
+        """
+        instance initializer
+
+        the checked model class is optinally parametrized
+        when not provided the CheckParser default is used
+        """
         self.name = check_desc
-        self.description, self.body = CheckParser.parse(check_desc)
+        self.description, self.body = CheckParser(cls=cls).parse(check_desc)
 
     def __call__(self, instance):
         return bool(self.body(instance))

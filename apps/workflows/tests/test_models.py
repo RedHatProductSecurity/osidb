@@ -3,11 +3,12 @@ import pytest
 from apps.workflows.exceptions import LastStateException, MissingRequirementsException
 from apps.workflows.models import Check, State, Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
-from osidb.models import Affect, Flaw, FlawSource, Impact
+from osidb.models import Affect, Flaw, FlawReference, FlawSource, Impact
 from osidb.tests.factories import (
     AffectFactory,
     FlawCVSSFactory,
     FlawFactory,
+    FlawReferenceFactory,
     PackageFactory,
 )
 
@@ -205,6 +206,33 @@ class TestCheck:
         assert not check(
             FlawFactory(cwe_id="CWE-100")
         ), f'check for "{check.name}" should have failed, but passed.'
+
+    @pytest.mark.parametrize(
+        "cls,factory,field,value",
+        [
+            (Affect, AffectFactory, "impact", Impact.CRITICAL),
+            (Flaw, FlawFactory, "impact", Impact.CRITICAL),
+            (FlawReference, FlawReferenceFactory, "url", "http://example.com"),
+            # we should be theoretically able to apply this to an arbitrary model
+            # class so let us test just a few of them and assume it generally works
+        ],
+    )
+    def test_parametrized_model(self, cls, factory, field, value):
+        """
+        test that check model parametrization works correctly
+        """
+        instance = factory()
+        setattr(instance, field, value)
+        # non-emptyness check is very simple to define
+        # and it is enough here to use any type of check
+        check = Check(f"has {field}", cls)
+
+        assert check.name == f"has {field}"
+        assert (
+            check.description
+            == f"check that {cls.__name__} attribute {field} has a value set"
+        )
+        assert check(instance), f"Check failed: {check.name}"
 
 
 class TestState:
