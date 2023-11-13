@@ -823,6 +823,17 @@ class Flaw(
         choices=FlawMajorIncident.choices, max_length=20, blank=True
     )
 
+    @property
+    def major_incident_start_dt(self) -> timezone.datetime:
+        """
+        the moment when the Major Incident started
+        """
+        # TODO
+        # we currently do not have this information available
+        # so we assume that this was always Major Incident
+        if self.is_major_incident:
+            return self.reported_dt
+
     # non operational meta data
     meta_attr = HStoreField(default=dict)
 
