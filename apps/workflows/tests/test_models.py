@@ -3,13 +3,15 @@ import pytest
 from apps.workflows.exceptions import LastStateException, MissingRequirementsException
 from apps.workflows.models import Check, State, Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
-from osidb.models import Affect, Flaw, FlawReference, FlawSource, Impact
+from osidb.models import Affect, Flaw, FlawReference, FlawSource, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawCVSSFactory,
     FlawFactory,
     FlawReferenceFactory,
     PackageFactory,
+    PsModuleFactory,
+    TrackerFactory,
 )
 
 pytestmark = pytest.mark.unit
@@ -170,6 +172,27 @@ class TestCheck:
         assert not check(
             FlawFactory(cwe_id="CWE-100")
         ), f'check for "{check.name}" should have failed, but passed.'
+
+    def test_equals_text_choices_property(self):
+        """
+        test comparison check parsing and resolution
+        of the property returning TextChoices values
+        """
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        flaw = FlawFactory(embargoed=False, impact=Impact.LOW)
+        affect = AffectFactory(
+            flaw=flaw,
+            impact=None,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect], embargoed=False, type=Tracker.TrackerType.BUGZILLA
+        )
+
+        check = Check("aggregated impact is low", cls=Tracker)
+        assert check(tracker), f"Check failed: {check.name}"
 
     @pytest.mark.parametrize(
         "attribute,value,not_value,check_desc",

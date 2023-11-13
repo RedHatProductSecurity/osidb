@@ -22,6 +22,7 @@ class CheckParser:
         from osidb.models import Flaw
 
         self.model = Flaw if cls is None else cls
+        assert issubclass(self.model, models.Model)
 
     ATTRIBUTE_MAP = {
         "is_major_incident": "is_major_incident_temp",
@@ -32,6 +33,14 @@ class CheckParser:
         "team": "team_id",
         "trackers": "trackers_filed",
     }
+
+    # the list of properties which return text choices
+    #
+    # this cannot be easily inspected programatically
+    # but we need to account for the upper-case values
+    TEXT_CHOICES_PROPERTIES = [
+        "aggregated_impact",
+    ]
 
     def map_attribute(self, attr):
         """maps from external to internal attribute names"""
@@ -139,8 +148,20 @@ class CheckParser:
             if hasattr(self.model, attr):
                 doc = f"check that {self.model.__name__} attribute {attr} has a value equal to {value}"
 
+                def choices_field(model, name):
+                    """
+                    check and return whether the field given by
+                    name is a field with choices on the model
+                    """
+                    if name not in [f.name for f in model._meta.get_fields()]:
+                        return False
+                    return model._meta.get_field(name).choices is not None
+
                 # model fields with defined choices require uppercase letters
-                if getattr(getattr(getattr(self.model, attr), "field"), "choices"):
+                if (
+                    choices_field(self.model, attr)
+                    or attr in self.TEXT_CHOICES_PROPERTIES
+                ):
                     value = value.upper()
 
                 def compare_element(instance):
