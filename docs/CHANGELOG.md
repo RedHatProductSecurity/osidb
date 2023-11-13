@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Celery worker concurrency
 - Add new NVD option into FlawSource
 - Maximum Bugzilla and Jira connection age (OSIDB-1592, OSIDB-1593)
+- Implement SLA definition parsing and timestamp computation (OSIDB-1428)
 
 ### Fixed
 - Fix incorrect type bool of is_up2date field in

@@ -9,6 +9,12 @@ class SLAException(Exception):
     """
 
 
+class SLADefinitionError(SLAException):
+    """
+    exception class for SLA definition errors
+    """
+
+
 class SLAExecutionError(SLAException):
     """
     exception class for SLA execution errors
