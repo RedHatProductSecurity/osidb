@@ -8,6 +8,7 @@ from nvdlib.classes import CVE
 
 from collectors.constants import SNIPPET_CREATION_ENABLED
 from collectors.framework.models import Collector
+from collectors.keywords import should_create_snippet
 from osidb.core import set_user_acls
 from osidb.models import Flaw, FlawCVSS, Snippet
 
@@ -207,7 +208,7 @@ class NVDCollector(Collector, NVDQuerier):
                         source=Snippet.Source.NVD, content__cve_ids=[item["cve"]]
                     )
                 except Snippet.DoesNotExist:
-                    if True:  # todo: change this condition as described in OSIDB-1558
+                    if should_create_snippet(item["description"]):
                         self.create_snippet(item)
                         new_snippets.append(item["cve"])
 
