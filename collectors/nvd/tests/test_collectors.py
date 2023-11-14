@@ -225,46 +225,73 @@ class TestNVDCollector:
             else:
                 assert flaw.cvss_scores.filter(version=version).first() is None
 
+    @pytest.mark.default_cassette("TestNVDCollector.test_snippet.yaml")
     @pytest.mark.vcr
     @pytest.mark.parametrize("has_snippet", [False, True])
     def test_snippet(self, has_snippet):
         """
         Test that a snippet is created if it does not exist.
         """
-        cve = "CVE-2017-9629"
+        cve = "CVE-2017-7542"
 
         snippet_content = {
-            "cve_ids": ["CVE-2017-9629"],
+            "cve_ids": ["CVE-2017-7542"],
             "cvss2": {
-                "score": 10.0,
+                "score": 4.9,
                 "issuer": "nvd@nist.gov",
-                "vector": "AV:N/AC:L/Au:N/C:C/I:C/A:C",
+                "vector": "AV:L/AC:L/Au:N/C:N/I:N/A:C",
             },
             "cvss3": {
-                "score": 9.8,
+                "score": 5.5,
                 "issuer": "nvd@nist.gov",
-                "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                "vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
             },
-            "cwe_id": "CWE-119|CWE-121",
-            "description": "A Stack-Based Buffer Overflow issue was discovered in Schneider Electric Wonderware ArchestrA Logger, versions 2017.426.2307.1 and prior. The stack-based buffer overflow vulnerability has been identified, which may allow a remote attacker to execute arbitrary code in the context of a highly privileged account.",
+            "cwe_id": "CWE-190|CWE-835",
+            "description": "The ip6_find_1stfragopt function in net/ipv6/output_core.c in the Linux kernel through 4.12.3 allows local users to cause a denial of service (integer overflow and infinite loop) by leveraging the ability to open a raw socket.",
             "references": [
                 {
-                    "url": "https://nvd.nist.gov/vuln/detail/CVE-2017-9629",
+                    "url": "https://nvd.nist.gov/vuln/detail/CVE-2017-7542",
                     "type": "SOURCE",
                 },
                 {
-                    "url": "http://software.schneider-electric.com/pdf/security-bulletin/lfsec00000116/",
-                    "type": "EXTERNAL",
-                },
-                {"url": "http://www.securityfocus.com/bid/99488", "type": "EXTERNAL"},
-                {
-                    "url": "http://www.securitytracker.com/id/1038836",
+                    "url": "http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=6399f1fae4ec29fab5ec76070435555e256ca3a6",
                     "type": "EXTERNAL",
                 },
                 {
-                    "url": "https://ics-cert.us-cert.gov/advisories/ICSA-17-187-04",
+                    "url": "http://www.debian.org/security/2017/dsa-3927",
                     "type": "EXTERNAL",
                 },
+                {
+                    "url": "http://www.debian.org/security/2017/dsa-3945",
+                    "type": "EXTERNAL",
+                },
+                {"url": "http://www.securityfocus.com/bid/99953", "type": "EXTERNAL"},
+                {
+                    "url": "https://access.redhat.com/errata/RHSA-2017:2918",
+                    "type": "EXTERNAL",
+                },
+                {
+                    "url": "https://access.redhat.com/errata/RHSA-2017:2930",
+                    "type": "EXTERNAL",
+                },
+                {
+                    "url": "https://access.redhat.com/errata/RHSA-2017:2931",
+                    "type": "EXTERNAL",
+                },
+                {
+                    "url": "https://access.redhat.com/errata/RHSA-2018:0169",
+                    "type": "EXTERNAL",
+                },
+                {
+                    "url": "https://github.com/torvalds/linux/commit/6399f1fae4ec29fab5ec76070435555e256ca3a6",
+                    "type": "EXTERNAL",
+                },
+                {
+                    "url": "https://help.ecostruxureit.com/display/public/UADCE725/Security+fixes+in+StruxureWare+Data+Center+Expert+v7.6.0",
+                    "type": "EXTERNAL",
+                },
+                {"url": "https://usn.ubuntu.com/3583-1/", "type": "EXTERNAL"},
+                {"url": "https://usn.ubuntu.com/3583-2/", "type": "EXTERNAL"},
             ],
         }
 
