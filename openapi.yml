@@ -3135,6 +3135,7 @@ paths:
           enum:
           - ARTICLE
           - EXTERNAL
+          - SOURCE
       - in: query
         name: references__updated_dt
         schema:
@@ -4875,6 +4876,7 @@ paths:
           enum:
           - ARTICLE
           - EXTERNAL
+          - SOURCE
       - in: query
         name: updated_dt
         schema:
@@ -8824,6 +8826,7 @@ components:
       enum:
       - ARTICLE
       - EXTERNAL
+      - SOURCE
       type: string
     FlawReportData:
       type: object

@@ -2907,6 +2907,10 @@ class FlawReference(ACLMixin, BugzillaSyncMixin, TrackingMixin):
             Since these links are displayed on the CVE page of the flaw, we only
             want to include respectable sources (such as upstream advisories,
             analysis of security researches, etc.).
+
+        SOURCE:
+            A link from which we obtained information about a flaw.
+            This should be used mostly when converting Snippet to Flaw.
         """
 
         # NOTE: when moving or renaming this enum, please check and modify
@@ -2914,6 +2918,7 @@ class FlawReference(ACLMixin, BugzillaSyncMixin, TrackingMixin):
 
         ARTICLE = "ARTICLE"
         EXTERNAL = "EXTERNAL"
+        SOURCE = "SOURCE"
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

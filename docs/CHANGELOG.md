@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement writable tracker API (OSIDB-1180)
 - Limit Celery worker to fixed amount of tasks (OSIDB-1540)
 - Command for manual sync of Flaws now also accepts CVEs (OSIDB-1544)
+- Add new SOURCE option into FlawReferenceType (OSIDB-1556)
 
 ### Fixed
 - Fix incorrect type bool of is_up2date field in
