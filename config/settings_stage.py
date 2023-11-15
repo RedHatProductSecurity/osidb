@@ -142,7 +142,6 @@ if get_env("MPP", is_bool=True, default="False"):
         {
             "handlers": {
                 "celery": {
-                    "level": "WARNING",
                     "class": "logging.handlers.RotatingFileHandler",
                     "formatter": "verbose_celery",
                     "filename": "/var/log/stage-celery.log",

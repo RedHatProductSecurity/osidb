@@ -170,10 +170,14 @@ LOGGING = {
             "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         },
     },
+    "filters": {
+        "require_debug_true": {
+            "()": "django.utils.log.RequireDebugTrue",
+        },
+    },
     "handlers": {
         "console": {"class": "logging.StreamHandler", "formatter": "verbose"},
         "celery": {
-            "level": "WARNING",
             "class": "logging.StreamHandler",
             "formatter": "verbose_celery",
         },
@@ -224,6 +228,11 @@ LOGGING = {
                 "collectors.nvd",
                 "collectors.product_definitions",
             ]
+        },
+        "bugzilla": {
+            "level": "DEBUG",
+            "handlers": ["celery"],
+            "filters": ["require_debug_true"],
         },
     },
 }
