@@ -30,6 +30,9 @@ class TestBugzillaSaver:
                 "_bz_conn",
                 bugzilla.Bugzilla(url=BZ_URL, api_key="foo", force_rest=True),
             )
+            m.setattr(
+                bs, "_test_ignore_aging", True
+            )  # Ignore logic for connection aging
             m.setattr(bs, "check_collisions", lambda: None)
             m.setattr(bs.bz_conn, "update_bugs", update_bugs)
 

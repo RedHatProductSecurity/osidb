@@ -3,6 +3,7 @@ Bugzilla collector
 """
 import json
 import time
+from datetime import datetime
 from typing import Union
 
 import bugzilla
@@ -25,6 +26,7 @@ from .constants import (
     ANALYSIS_TASK_PRODUCT,
     BZ_API_KEY,
     BZ_DT_FMT,
+    BZ_MAX_CONNECTION_AGE,
     BZ_URL,
     PARALLEL_THREADS,
 )
@@ -40,6 +42,8 @@ class BugzillaConnector:
     # but allow the key substitution in the child classes
     _bz_api_key = BZ_API_KEY
     _bz_conn = None
+    _bz_conn_timestamp = None
+    _test_ignore_aging = False
 
     def create_bz_conn(self) -> Bugzilla:
         """create Bugzilla connection"""
@@ -57,9 +61,27 @@ class BugzillaConnector:
 
     @property
     def bz_conn(self) -> Bugzilla:
-        """get Bugzilla connection"""
-        if self._bz_conn is None:
+        """
+        Get Bugzilla connection
+
+        Create a new connection if it does not exist, or if it is older than BZ_MAX_CONNECTION_AGE.
+        Otherwise, reuse already created connection.
+        """
+        # Ignore connection aging logic in tests
+        if self._test_ignore_aging:
+            if self._bz_conn is None:
+                self._bz_conn = self.create_bz_conn()
+            return self._bz_conn
+
+        now = datetime.now()
+        connection_age = None
+        if self._bz_conn is not None and self._bz_conn_timestamp is not None:
+            connection_age = now - self._bz_conn_timestamp
+
+        if connection_age is None or connection_age > BZ_MAX_CONNECTION_AGE:
             self._bz_conn = self.create_bz_conn()
+            self._bz_conn_timestamp = now
+            logger.info(f"New BZ connection created, previous age {connection_age}")
 
         return self._bz_conn
 

@@ -1,11 +1,11 @@
-from functools import cache
+from datetime import datetime
 from typing import List, Tuple
 
 from django.utils import timezone
 from jira import JIRA, Issue
 from jira.exceptions import JIRAError
 
-from .constants import JIRA_DT_FMT, JIRA_SERVER, JIRA_TOKEN
+from .constants import JIRA_DT_FMT, JIRA_MAX_CONNECTION_AGE, JIRA_SERVER, JIRA_TOKEN
 from .exceptions import NonRecoverableJiraffeException
 
 
@@ -16,12 +16,13 @@ class JiraConnector:
 
     _jira_server = JIRA_SERVER
     _jira_token = JIRA_TOKEN
+    _jira_connections_cache = {}
+    _test_ignore_aging = False
 
     ###################
     # JIRA CONNECTION #
     ###################
     @staticmethod
-    @cache
     def _get_jira_connection(server: str, token: str) -> JIRA:
         """
         Returns the JIRA connection object on which to perform queries to the JIRA API.
@@ -35,7 +36,36 @@ class JiraConnector:
 
     @property
     def jira_conn(self) -> JIRA:
-        return self._get_jira_connection(self._jira_server, self._jira_token)
+        """
+        Get Jira connection
+
+        Create a new connection if it does not exist, or if it is older than
+        JIRA_MAX_CONNECTION_AGE. Otherwise, reuse already created connection.
+        """
+        from .collectors import logger  # Avoid circular import
+
+        now = datetime.now()
+        connection = None
+        connection_age = None
+        new_connection_needed = False
+        connection_id = self._jira_server, self._jira_token
+
+        if connection_id in self._jira_connections_cache:
+            connection, timestamp = self._jira_connections_cache[connection_id]
+            connection_age = timestamp - now
+            # Ignore connection aging logic in tests
+            if connection_age > JIRA_MAX_CONNECTION_AGE and not self._test_ignore_aging:
+                new_connection_needed = True
+        else:
+            new_connection_needed = True
+
+        if new_connection_needed:
+            connection = self._get_jira_connection(self._jira_server, self._jira_token)
+            timestamp = now
+            self._jira_connections_cache[connection_id] = (connection, timestamp)
+            logger.info(f"New Jira connection created, previous age {connection_age}")
+
+        return connection
 
 
 class JiraQuerier(JiraConnector):

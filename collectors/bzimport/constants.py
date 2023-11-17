@@ -4,12 +4,16 @@ bzimport constants
 these may eventually be refactored into config/settings
 
 """
+from datetime import timedelta
 
 from osidb.helpers import get_env
 
 # API KEY used when making Bugzilla REST calls
 BZ_API_KEY: str = get_env("BZIMPORT_BZ_API_KEY", default="")
 BZ_URL: str = get_env("BZIMPORT_BZ_URL", default="https://bugzilla.redhat.com")
+# Create new connection when its age is higher than specified value. Based on testing, idle
+# connection is dropped after ~10 minutes.
+BZ_MAX_CONNECTION_AGE = timedelta(minutes=1)
 
 # enable importing of embargoed data - used by CI, local dev and test envs which have no need to retrieve embargoed flaws
 BZ_ENABLE_IMPORT_EMBARGOED = get_env(
