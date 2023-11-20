@@ -2005,6 +2005,14 @@ class Affect(
                 )
 
     @property
+    def aggregated_impact(self):
+        """
+        this property simply gives the maximum impact
+        aggregated from the affect and the related flaw
+        """
+        return max(Impact(self.impact), Impact(self.flaw.impact))
+
+    @property
     def delegated_resolution(self):
         """affect delegated resolution based on resolutions of related trackers"""
         if not (
@@ -2505,11 +2513,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         """
         this property simply gives the maximum impact of the related entities
         """
-        return max(
-            Impact(impact)
-            for impact in [affect.impact for affect in self.affects.all()]
-            + [affect.flaw.impact for affect in self.affects.all()]
-        )
+        return max(affect.aggregated_impact for affect in self.affects.all())
 
     @property
     def bz_id(self):
