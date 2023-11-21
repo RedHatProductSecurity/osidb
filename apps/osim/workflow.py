@@ -261,3 +261,24 @@ class WorkflowModel(models.Model):
             return
 
         self.save(jira_token=jira_token)
+
+    def reject(self, save=True, jira_token=None):
+        """
+        this is the cannonical way of rejecting a flaw / task
+
+        This method will change instance state to rejected if all conditions are met
+
+        Raise exception if instance lacks requirements for the rejected state
+        """
+        reject_workflow = "REJECTED"
+        WorkflowFramework().validate_classification(
+            self, reject_workflow, WorkflowModel.OSIMState.REJECTED
+        )
+
+        self.osim_workflow = reject_workflow
+        self.osim_state = WorkflowModel.OSIMState.REJECTED
+
+        if not save:
+            return
+
+        self.save(jira_token=jira_token)

@@ -5189,6 +5189,58 @@ paths:
                   version:
                     type: string
           description: ''
+  /osidb/api/v1/flaws/{flaw_id}/reject:
+    post:
+      operationId: osidb_api_v1_flaws_reject_create
+      description: |-
+        workflow promotion API endpoint
+
+        try to reject a flaw / task
+      parameters:
+      - in: header
+        name: Jira-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Jira authentication.
+        required: true
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reject'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reject'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reject'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
   /osidb/api/v1/flaws/{id}:
     get:
       operationId: osidb_api_v1_flaws_retrieve
@@ -9418,6 +9470,14 @@ components:
       - eus
       - ps_update_stream
       - selected
+    Reject:
+      type: object
+      description: Task rejection serializer
+      properties:
+        reason:
+          type: string
+      required:
+      - reason
     RequiresSummaryEnum:
       enum:
       - REQUESTED
