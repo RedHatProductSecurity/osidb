@@ -7,21 +7,28 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='JiraProjectFields',
+            name="JiraProjectFields",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('project_key', models.CharField(max_length=50)),
-                ('field_id', models.CharField(max_length=50)),
-                ('field_name', models.CharField(max_length=50)),
-                ('allowed_values', models.JSONField(default=list)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("project_key", models.CharField(max_length=50)),
+                ("field_id", models.CharField(max_length=50)),
+                ("field_name", models.CharField(max_length=50)),
+                ("allowed_values", models.JSONField(default=list)),
             ],
             options={
-                'unique_together': {('project_key', 'field_name')},
+                "unique_together": {("project_key", "field_name")},
             },
         ),
     ]
