@@ -45,9 +45,9 @@ class TestWorkflows:
 
     def test_default_workflow_exists(self, workflows):
         """
-        test that there exists a default workflow with the lowest priority and empty conditions
+        test that there exists a default workflow with empty conditions
         """
-        assert not workflows[-1].conditions
+        assert any(not workflow.conditions for workflow in workflows)
 
     def test_non_empty_states(self, workflows):
         """test that every workflow has non-empty states"""

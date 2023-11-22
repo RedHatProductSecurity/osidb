@@ -4,6 +4,7 @@ from apps.osim.models import State, Workflow
 from apps.osim.serializers import WorkflowSerializer
 from apps.osim.urls import urlpatterns
 from apps.osim.workflow import WorkflowFramework, WorkflowModel
+from apps.taskman.service import JiraTaskmanQuerier
 from osidb.models import Flaw
 from osidb.tests.factories import AffectFactory, FlawFactory
 
@@ -94,13 +95,13 @@ class TestEndpoints(object):
         workflow_framework = WorkflowFramework()
         state_new = State(
             {
-                "name": WorkflowModel.OSIMState.DRAFT,
+                "name": WorkflowModel.OSIMState.NEW,
                 "requirements": [],
             }
         )
         state_first = State(
             {
-                "name": WorkflowModel.OSIMState.ANALYSIS,
+                "name": WorkflowModel.OSIMState.TRIAGE,
                 "requirements": ["has description"],
             }
         )
@@ -199,3 +200,175 @@ class TestEndpoints(object):
         flaw = FlawFactory()
         response = client.post(f"{test_api_uri}/workflows/{flaw.uuid}/adjust")
         assert response.status_code == 401
+
+    def test_promote_endpoint(self, auth_client, test_api_uri_osidb, user_token):
+        """test flaw state promotion after data change"""
+        workflow_framework = WorkflowFramework()
+        workflow_framework._workflows = []
+
+        state_new = {
+            "name": WorkflowModel.OSIMState.NEW,
+            "requirements": [],
+        }
+
+        state_first = {
+            "name": WorkflowModel.OSIMState.SECONDARY_ASSESSMENT,
+            "requirements": ["has cwe"],
+        }
+
+        state_second = {
+            "name": WorkflowModel.OSIMState.DONE,
+            "requirements": ["has summary"],
+        }
+
+        workflow = Workflow(
+            {
+                "name": "default workflow",
+                "description": "random description",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_new, state_first, state_second],
+            }
+        )
+        workflow_framework.register_workflow(workflow)
+
+        flaw = FlawFactory(cwe_id="", summary="")
+        AffectFactory(flaw=flaw)
+
+        assert flaw.classification["workflow"] == "default workflow"
+        assert flaw.classification["state"] == WorkflowModel.OSIMState.NEW
+        headers = {"HTTP_JIRA_API_KEY": user_token}
+        response = auth_client.post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response.status_code == 409
+        body = response.json()
+        assert "has cwe" in body["errors"]
+
+        flaw = Flaw.objects.get(pk=flaw.pk)
+        flaw.cwe_id = "CWE-1"
+        flaw.save()
+
+        response = auth_client.post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert (
+            body["classification"]["state"]
+            == WorkflowModel.OSIMState.SECONDARY_ASSESSMENT
+        )
+
+        flaw = Flaw.objects.get(pk=flaw.pk)
+        flaw.summary = "valid summary"
+        flaw.save()
+
+        response = auth_client.post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
+            data={},
+            format="json",
+            **headers,
+        )
+        flaw = Flaw.objects.get(pk=flaw.pk)
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["state"] == WorkflowModel.OSIMState.DONE
+
+        response = auth_client.post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response.status_code == 409
+        body = response.json()
+        assert "already in the last state" in body["errors"]
+
+    def test_reject_endpoint(
+        self,
+        monkeypatch,
+        auth_client,
+        test_api_uri_osidb,
+        user_token,
+    ):
+        """test flaw state promotion after data change"""
+
+        def mock_create_comment(self, issue_key: str, body: str):
+            return
+
+        monkeypatch.setattr(JiraTaskmanQuerier, "create_comment", mock_create_comment)
+
+        workflow_framework = WorkflowFramework()
+        workflow_framework._workflows = []
+
+        state_new = {
+            "name": WorkflowModel.OSIMState.NEW,
+            "requirements": [],
+        }
+
+        state_first = {
+            "name": WorkflowModel.OSIMState.SECONDARY_ASSESSMENT,
+            "requirements": ["has cwe"],
+        }
+
+        workflow = Workflow(
+            {
+                "name": "DEFAULT",
+                "description": "random description",
+                "priority": 1,
+                "conditions": [],
+                "states": [state_new, state_first],
+            }
+        )
+        state_reject = {
+            "name": WorkflowModel.OSIMState.REJECTED,
+            "requirements": [],
+        }
+        reject_workflow = Workflow(
+            {
+                "name": "REJECTED",
+                "description": "random description",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_reject],
+            }
+        )
+        workflow_framework.register_workflow(workflow)
+        workflow_framework.register_workflow(reject_workflow)
+
+        flaw = FlawFactory(cwe_id="")
+        AffectFactory(flaw=flaw)
+
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.OSIMState.NEW
+        headers = {"HTTP_JIRA_API_KEY": user_token}
+
+        response = auth_client.post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reject",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response.status_code == 400
+        flaw = Flaw.objects.get(pk=flaw.pk)
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.OSIMState.NEW
+
+        response = auth_client.post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reject",
+            data={"reason": "This was a spam."},
+            format="json",
+            **headers,
+        )
+
+        body = response.json()
+
+        assert response.status_code == 200
+        assert body["classification"]["workflow"] == "REJECTED"
+        assert body["classification"]["state"] == WorkflowModel.OSIMState.REJECTED

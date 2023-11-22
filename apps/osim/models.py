@@ -3,6 +3,7 @@ OSIM workflow model definitions
 """
 
 from .checks import CheckParser
+from .exceptions import MissingStateException
 
 
 class Check:
@@ -94,3 +95,36 @@ class Workflow:
                 break
             last = state
         return last
+
+    def validate_classification(self, instance, target) -> list[str]:
+        """
+        This method will evaluate if it is possible to classify the current
+        instance as a target state
+
+        Returns a list of the missing requirements or [] when transitions is possible
+
+        This method does NOT update the instance classification
+
+        """
+        target_state = None
+
+        for state in self.states:
+            if state.name == target:
+                target_state = state
+                break
+
+        if not target_state:
+            raise MissingStateException(
+                f"Target state ({state}) was not found in workflow ({self.name})."
+            )
+
+        not_met_requirements = []
+        for condition in self.conditions:
+            if not condition(instance):
+                not_met_requirements.append(condition.name)
+
+        for requirement in target_state.requirements:
+            if not requirement(instance):
+                not_met_requirements.append(requirement.name)
+
+        return not_met_requirements

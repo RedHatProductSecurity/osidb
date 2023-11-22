@@ -66,6 +66,12 @@ class ClassificationWorkflowSerializer(ClassificationSerializer, WorkflowSeriali
     states = ClassificationStateSerializer(many=True)
 
 
+class RejectSerializer(serializers.Serializer):
+    """Task rejection serializer"""
+
+    reason = serializers.CharField()
+
+
 class WorkflowModelSerializer(serializers.ModelSerializer):
 
     classification = serializers.SerializerMethodField()

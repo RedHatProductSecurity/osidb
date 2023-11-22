@@ -12,7 +12,13 @@ import yaml
 from django.db import models
 
 from .constants import WORKFLOW_DIR
-from .exceptions import WorkflowDefinitionError
+from .exceptions import (
+    LastStateException,
+    MissingRequirementsException,
+    MissingStateException,
+    MissingWorkflowException,
+    WorkflowDefinitionError,
+)
 from .helpers import singleton
 from .models import Workflow
 
@@ -89,6 +95,28 @@ class WorkflowFramework:
             if workflow.accepts(instance):
                 return (workflow, workflow.classify(instance)) if state else workflow
 
+    def validate_classification(self, instance, target_workflow, target_state):
+        """
+        This method will evaluate if it is possible to classify the current
+        instance as a target state
+
+        Raise exception if instance lacks requirements for the target state
+
+        This method does NOT update the flaw classification
+        """
+        for workflow in self.workflows:
+            if workflow.name == target_workflow:
+                not_met_reqs = workflow.validate_classification(instance, target_state)
+                if len(not_met_reqs) > 0:
+                    error_message = ",".join(not_met_reqs)
+                    error_message = f'Requirements for state "{target_state}" from "{target_workflow}" workflow are missing: [{error_message}].'
+                    raise MissingRequirementsException(error_message)
+                else:
+                    return
+        raise MissingStateException(
+            f"Workflow ({target_workflow}) was not found in WorkflowFramework."
+        )
+
 
 class WorkflowModel(models.Model):
     """workflow model base class"""
@@ -96,16 +124,20 @@ class WorkflowModel(models.Model):
     class OSIMState(models.TextChoices):
         """allowable workflow states"""
 
-        DRAFT = "DRAFT"
         NEW = "NEW"
-        ANALYSIS = "ANALYSIS"
-        REVIEW = "REVIEW"
-        FIX = "FIX"
+        TRIAGE = "TRIAGE"
+        PRE_SECONDARY_ASSESSMENT = "PRE_SECONDARY_ASSESSMENT"
+        SECONDARY_ASSESSMENT = "SECONDARY_ASSESSMENT"
         DONE = "DONE"
+        REJECTED = "REJECTED"
 
     # workflow metadata
     osim_workflow = models.CharField(max_length=50, blank=True)
-    osim_state = models.CharField(choices=OSIMState.choices, max_length=10, blank=True)
+    osim_state = models.CharField(choices=OSIMState.choices, max_length=24, blank=True)
+    owner = models.CharField(max_length=60, blank=True)
+    group_key = models.CharField(max_length=60, blank=True)
+    task_key = models.CharField(max_length=60, blank=True)
+    team_id = models.CharField(max_length=8, blank=True)
 
     class Meta:
         abstract = True
@@ -153,10 +185,10 @@ class WorkflowModel(models.Model):
 
     def adjust_classification(self, save=True):
         """
-        this is the cannonical way of changing classification
+        this method will identify and adjust to the higher state the instance can be
 
-        consider carefully when changing it different way
-        as it might get out of sync with the reality
+        this is the automatic way to update state, currently we are adopting a manual
+        state change, please consider using promote method from this mixin instead
 
         workflow model is by default saved on change which can be turned off by argument
         """
@@ -172,3 +204,81 @@ class WorkflowModel(models.Model):
             return
 
         self.save()
+
+    def validate_classification(self, target_workflow, target_state):
+        """
+        This method will evaluate if it is possible to classify the current
+        instance as a target state and raise exception if instance lacks
+        requirements for the target state
+
+        This method does NOT update the flaw classification
+        """
+        WorkflowFramework().validate_classification(self, target_workflow, target_state)
+
+    def promote(self, save=True, jira_token=None):
+        """
+        this is the cannonical way of changing classification
+
+        This method will change instance state to the next available state
+
+        Raise exception if instance lacks requirements for the target state
+        """
+        workflow_obj = None
+        workflows = WorkflowFramework().workflows
+        for workflow in workflows:
+            if workflow.name == self.osim_workflow:
+                workflow_obj = workflow
+                break
+
+        if not workflow_obj:
+            raise MissingWorkflowException(
+                f"Instance is classified with a non-registered workflow ({self.osim_workflow})."
+            )
+
+        state_obj = None
+        state_count = len(workflow_obj.states)
+        for i in range(state_count):
+            if workflow_obj.states[i].name == self.osim_state:
+                if i + 1 >= state_count:
+                    raise LastStateException(
+                        f"Instance is already in the last state ({self.osim_state}) from its workflow ({self.osim_workflow})."
+                    )
+                state_obj = workflow_obj.states[i + 1]
+                break
+
+        if not state_obj:
+            raise MissingStateException(
+                f"Instance is classified with a non-registered state ({self.osim_state})."
+            )
+
+        WorkflowFramework().validate_classification(
+            self, self.osim_workflow, state_obj.name
+        )
+
+        self.osim_state = state_obj.name
+
+        if not save:
+            return
+
+        self.save(jira_token=jira_token)
+
+    def reject(self, save=True, jira_token=None):
+        """
+        this is the cannonical way of rejecting a flaw / task
+
+        This method will change instance state to rejected if all conditions are met
+
+        Raise exception if instance lacks requirements for the rejected state
+        """
+        reject_workflow = "REJECTED"
+        WorkflowFramework().validate_classification(
+            self, reject_workflow, WorkflowModel.OSIMState.REJECTED
+        )
+
+        self.osim_workflow = reject_workflow
+        self.osim_state = WorkflowModel.OSIMState.REJECTED
+
+        if not save:
+            return
+
+        self.save(jira_token=jira_token)

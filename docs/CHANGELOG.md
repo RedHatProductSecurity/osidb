@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Deprecate various cvss fields in Flaw and Affect APIs (OSIDB-1105)
 - Update CORS policy to allow bugzilla-api-key request header (OSIDB-1425)
+- Change workflows to reflect current IR workflow (OSIDB-1319)
 
 ### Fixed
 - Fix schema wrongly showing status code for DELETE methods being 204
