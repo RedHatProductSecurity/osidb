@@ -2,8 +2,10 @@
 Bugzilla specific tracker test cases
 """
 from typing import Any, Dict
+from unittest.mock import mock_open, patch
 
 import pytest
+from django.utils.timezone import datetime, make_aware
 
 from apps.trackers.jira.query import JiraPriority, TrackerJiraQueryBuilder
 from apps.trackers.models import JiraProjectFields
@@ -136,6 +138,70 @@ class TestTrackerJiraQueryBuilder:
         assert "pscomponent:component" in labels
         assert "CVE-2000-2000" in labels
         assert len(labels) == 4
+
+    def test_generate_sla(self, clean_policies):
+        """
+        test that the query for the Jira SLA timestamps is generated correctly
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            reported_dt=make_aware(datetime(2000, 1, 1)),
+        )
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        JiraProjectFields(
+            project_key=ps_module.bts_key,
+            field_id="priority",
+            field_name="Priority",
+            allowed_values=[
+                "Blocker",
+                "Critical",
+                "Major",
+                "Normal",
+                "Minor",
+                "Undefined",
+            ],
+        ).save()
+        # this value is used in RH instance of Jira however
+        # it is always fetched from project meta anyway
+        target_start_id = "customfield_12313941"
+        JiraProjectFields(
+            project_key=ps_module.bts_key,
+            field_id=target_start_id,
+            field_name="Target start",
+        ).save()
+
+        sla_file = """
+---
+name: Not Embargoed
+description: suitable for whatever we find on the street
+conditions:
+  flaw:
+    - is not embargoed
+sla:
+  duration: 10
+  start: reported date
+  type: calendar days
+"""
+
+        with patch("builtins.open", mock_open(read_data=sla_file)):
+            query = TrackerJiraQueryBuilder(tracker).query
+
+        assert target_start_id in query["fields"]
+        assert query["fields"][target_start_id] == "2000-01-01T00:00:00+00:00"
+        assert "duedate" in query["fields"]
+        assert query["fields"]["duedate"] == "2000-01-11T00:00:00+00:00"
 
 
 def validate_minimum_key_value(minimum: Dict[str, Any], evaluated: Dict[str, Any]):
