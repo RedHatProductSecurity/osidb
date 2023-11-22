@@ -201,6 +201,11 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+# There are multiple possible memory leaks in Celery.
+# To work around these issues it is recommended to restart Celery workers after set number of tasks.
+# Setting maximum number of tasks per worked to 200 should restart Celery worker after ~1 hour.
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 200
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

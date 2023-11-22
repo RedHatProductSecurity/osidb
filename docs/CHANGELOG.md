@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
-- Limit Celery worker to fixed amount of tasks (OSIDB-1540)
+- Limit Celery worker to maximum amount of tasks (OSIDB-1540)
 
 ## [3.5.1] - 2023-10-23
 ### Fixed
