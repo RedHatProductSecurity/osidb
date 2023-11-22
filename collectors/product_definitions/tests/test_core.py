@@ -30,10 +30,9 @@ class TestProductDefinitionsCollection:
                 "cfme-5",
                 "cfme-6",
                 "rhint-dv-1",
-                "rhint-camel-k-1",
                 "rhint-debezium-1",
+                "rhint-debezium-2",
                 "rhint-serv-1",
-                "rhint-camel-quarkus-1",
                 "rhint-serv-2",
                 "rhint-operator-1",
                 "rhelsa-7",
@@ -200,11 +199,10 @@ class TestProductDefinitionsCollection:
         assert module1.active_ps_update_streams.all()
         assert module1.default_ps_update_streams.all()
         assert module2.ps_update_streams.all()
-        assert module2.active_ps_update_streams.all()
-        assert module2.default_ps_update_streams.all()
+        # cfme-5 has no active streams any more
+        assert not module2.active_ps_update_streams.all()
+        assert not module2.default_ps_update_streams.all()
 
         # check that unacked PS update stream is not omitted
         assert module1.unacked_ps_update_stream
         assert module1.unacked_ps_update_stream.first().name == "fuse-7"
-        assert module2.unacked_ps_update_stream
-        assert module2.unacked_ps_update_stream.first().name == "cfme-5"
