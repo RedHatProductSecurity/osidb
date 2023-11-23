@@ -24,5 +24,5 @@ echo
 # custom run script for starting osidb celery service in osidb-stage and osidb-prod environments.
 
 rm -f /tmp/celery_worker.pid
-exec celery -A config worker --pidfile /tmp/celery_worker.pid -f celery.log --loglevel DEBUG -P gevent --concurrency=1 -Q slow,fast -E --max-tasks-per-child=200
+exec celery -A config worker --pidfile /tmp/celery_worker.pid -f celery.log --loglevel DEBUG --concurrency=1 -Q slow,fast -E
 
