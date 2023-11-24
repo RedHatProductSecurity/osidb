@@ -1501,6 +1501,10 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         """
 
         NVD = "NVD"
+        FEED_PACKETSTORM = "Packet Storm Advisory Files"
+        FEED_NODEJS = "Node.js Vulnerability Reports"
+        FEED_CHROME = "Google Chrome Releases"
+        FEED_ELASTIC = "Elastic.co Security Announcements"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

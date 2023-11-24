@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "collectors.exploits_cisa",
     "collectors.exploits_exploitdb",
     "collectors.exploits_metasploit",
+    "collectors.feed",
     "collectors.nvd",
     "corsheaders",
 ]
@@ -228,6 +229,7 @@ LOGGING = {
                 "collectors.exploits_cisa",
                 "collectors.exploits_exploitdb",
                 "collectors.exploits_metasploit",
+                "collectors.feed",
                 "collectors.framework",
                 "collectors.jiraffe",
                 "collectors.nvd",

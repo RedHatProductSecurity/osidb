@@ -1,0 +1,76 @@
+---
+#
+# This file includes a list of RSS feeds from which we periodically pull
+# the latest entries. This file uses the YAML syntax.
+#
+# Each entry *must* include a URL (field name "url") from which the feed
+# entries are pulled, and if available a components list (field name
+# "components" containing a list of related components).
+#
+# Each entry *must* include a "meta" section with a "description" and
+# "reason" fields, the purpose of which is:
+#
+# - description: includes short information about the feed we are scraping.
+#
+# - reason: includes reasoning for why we are watching a particular feed.
+#
+# IMPORTANT: Do not modify existing feed names (e.g. "name: Ruby on Rails
+# Security"). These are used to identify snippets and perform special
+# actions on certain types of feed snippets.
+
+- url: https://rss.packetstormsecurity.com/files/tags/advisory
+  name: Packet Storm Advisory Files
+  entry_url_replace: [["/files", "/files/download"]]
+  entry_separate_links: true
+  source: internet
+  meta:
+  - description: "The Packet Storm Advisory Files feed includes security
+      advisories of various other Linux vendors."
+  - reason: "This list is a single source of all vendor advisories.
+      Rather than subscribing to feeds of all the vendors, we use
+      this feed."
+
+- url: https://nodejs.org/en/feed/vulnerability.xml
+  name: Node.js Vulnerability Reports
+  entry_text_in_html: true
+  entry_separate_links: true
+  source: internet
+  components:
+  - nodejs
+  - nodejs010-nodejs
+  meta:
+  - description: "The Node.js Vulnerability Reports feed contains
+      advisories released for Node.js by the Node.js Foundation."
+  - reason: "This feed is the best source of information to learn of new
+      Node.js vulnerabilities since we do not have a member of Product
+      Security in the Node.js upstream community."
+
+- url: https://feeds.feedburner.com/GoogleChromeReleases?format=xml
+  name: Google Chrome Releases
+  entry_text_in_html: true
+  # Google Chrome Releases: receives posts for all Chrome products and branches,
+  # but we're only interested in the Stable Channel updates. Skip the rest.
+  skip_entry_title_regex: ^((?!(.*?Stable Channel Update))|.*?Stable Channel Update for Chrome OS)
+  source: internet
+  components:
+  - chromium-browser
+  meta:
+  - description: "The Google Chrome Releases feed is a collection of
+      release notes that also include security advisories. It includes
+      advisories for various Google products; we are only interesting in
+      the Stable Channel Chrome updates."
+  - reason: "This feed is the best source of information to learn of new
+      Chrome vulnerabilities."
+
+- url: https://discuss.elastic.co/c/announcements/security-announcements.rss
+  name: Elastic.co Security Announcements
+  entry_text_in_html: true
+  source: internet
+  components:
+  - elasticsearch
+  - kibana
+  meta:
+  - description: Elastic security announcements
+  - reason: "Elastic components are included in OpenShift and possibly other products"
+  - contact: security@elastic.co
+  - last_contacted: N/A
