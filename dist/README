@@ -1,0 +1,18 @@
+These x86_64 RPM files were downloaded with the following commands:
+
+curl -L --output gpm-libs-1.20.7-17.el8.x86_64.rpm http://vault.centos.org/centos/8/AppStream/x86_64/os/Packages/gpm-libs-1.20.7-17.el8.x86_64.rpm
+
+curl -L --output elinks-0.12-0.58.pre6.el8.x86_64.rpm http://vault.centos.org/centos/8/PowerTools/x86_64/os/Packages/elinks-0.12-0.58.pre6.el8.x86_64.rpm
+
+The corresponding source packages were downloaded with the following commands:
+
+curl -L --output gpm-1.20.7-17.el8.src.rpm http://vault.centos.org/centos/8/AppStream/Source/SPackages/gpm-1.20.7-17.el8.src.rpm
+
+curl -L --output elinks-0.12-0.58.pre6.el8.src.rpm http://vault.centos.org/centos/8/PowerTools/Source/SPackages/elinks-0.12-0.58.pre6.el8.src.rpm
+
+COPYING:
+
+The files gpm-libs-1.20.7-17.el8.x86_64.rpm and gpm-1.20.7-17.el8.src.rpm are distributed under the license stored in the file COPYING_gpm.
+
+The files elinks-0.12-0.58.pre6.el8.x86_64.rpm and elinks-0.12-0.58.pre6.el8.src.rpm are distributed under the license stored in the file COPYING_elinks.
+

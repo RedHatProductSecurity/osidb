@@ -43,3 +43,5 @@ COPY ./devel-requirements.txt /opt/app-root/src/devel-requirements.txt
 RUN pip3 install -r /opt/app-root/src/devel-requirements.txt && \
     rm -f /opt/app-root/src/devel-requirements.txt
 COPY . /opt/app-root/src
+
+RUN cd dist && bash install_elinks.sh

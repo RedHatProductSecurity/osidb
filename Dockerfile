@@ -55,3 +55,5 @@ COPY . /opt/app-root/src
 
 RUN chgrp -R 0 /opt/app-root && \
     chmod -R g=u /opt/app-root
+
+RUN cd dist && bash install_elinks.sh
