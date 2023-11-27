@@ -3,6 +3,7 @@ Bugzilla collector
 """
 import json
 import time
+from datetime import datetime, timedelta
 from typing import Union
 
 import bugzilla
@@ -25,6 +26,7 @@ from .constants import (
     ANALYSIS_TASK_PRODUCT,
     BZ_API_KEY,
     BZ_DT_FMT,
+    BZ_MAX_CONNECTION_AGE,
     BZ_URL,
     PARALLEL_THREADS,
 )
@@ -39,7 +41,10 @@ class BugzillaConnector:
     # by default use the service key of the running instance
     # but allow the key substitution in the child classes
     _bz_api_key = BZ_API_KEY
-    _bz_conn = None
+
+    def __init__(self):
+        self._bz_conn = None
+        self._bz_conn_timestamp = None
 
     def create_bz_conn(self) -> Bugzilla:
         """create Bugzilla connection"""
@@ -57,9 +62,26 @@ class BugzillaConnector:
 
     @property
     def bz_conn(self) -> Bugzilla:
-        """get Bugzilla connection"""
+        """
+        Get Bugzilla connection
+
+        Create a new connection if it does not exist. If BZ_MAX_CONNECTION_AGE is set and the
+        connection is older, also create a new connection. Otherwise, reuse already created
+        connection.
+        """
         if self._bz_conn is None:
             self._bz_conn = self.create_bz_conn()
+            self._bz_conn_timestamp = datetime.now()
+            logger.info("New Bugzilla connection created, no previous connection")
+
+        elif BZ_MAX_CONNECTION_AGE is not None:
+            connection_age = datetime.now() - self._bz_conn_timestamp
+            if connection_age > timedelta(seconds=int(BZ_MAX_CONNECTION_AGE)):
+                self._bz_conn = self.create_bz_conn()
+                self._bz_conn_timestamp = datetime.now()
+                logger.info(
+                    f"New Bugzilla connection created, previous age {connection_age}"
+                )
 
         return self._bz_conn
 
@@ -278,7 +300,7 @@ class BugzillaQuerier(BugzillaConnector):
 TIMEZONE = timezone.get_current_timezone()
 
 
-class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
+class FlawCollector(Collector):
     """Bugzilla flaw collector"""
 
     # date before the first flaw was created
@@ -338,6 +360,27 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
         },
     ]
 
+    def __init__(self):
+        super().__init__()
+        self._bz_querier = None
+        self._jira_querier = None
+
+    @property
+    def bz_querier(self):
+        if self._bz_querier is None:
+            self._bz_querier = BugzillaQuerier()
+        return self._bz_querier
+
+    @property
+    def jira_querier(self):
+        if self._jira_querier is None:
+            self._jira_querier = JiraQuerier()
+        return self._jira_querier
+
+    def free_queriers(self):
+        self._bz_querier = None
+        self._jira_querier = None
+
     def end_period_heuristic(self, period_start):
         """
         very simple heuristic to optimize the batch period
@@ -386,7 +429,9 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
 
     def get_flaw_ids(self, updated_after=None, updated_before=None):
         """get flaw IDs with optional updated time restriction"""
-        return self.get_ids(self.query_all_flaws(), updated_after, updated_before)
+        return self.bz_querier.get_ids(
+            self.bz_querier.query_all_flaws(), updated_after, updated_before
+        )
 
     def get_flaw_bz_trackers(self, flaw_data: dict) -> list:
         """
@@ -399,7 +444,7 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
 
         for bz_id in flaw_data["depends_on"]:
             try:
-                bug = self.get_bug_data(bz_id)
+                bug = self.bz_querier.get_bug_data(bz_id)
                 # security tracking Bugzilla bug has always SecurityTracking keyword
                 # there may be any other non-tracker bugs in the depends_on field
                 if "SecurityTracking" in bug["keywords"]:
@@ -423,7 +468,7 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
 
         for jira_id in self.get_flaw_jira_tracker_ids(flaw_data):
             try:
-                jira_trackers.append(self.get_issue(jira_id))
+                jira_trackers.append(self.jira_querier.get_issue(jira_id))
             except Exception as e:
                 logger.exception(
                     f"Bugzilla flaw bug {flaw_data['id']} tracker import error: {str(e)}"
@@ -451,7 +496,7 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
         for bz_id in flaw_data["blocks"]:
             # we only care for product and assignee
             try:
-                bug = self.get_bug_data(
+                bug = self.bz_querier.get_bug_data(
                     bz_id, include_fields=["assigned_to", "product"]
                 )
             except IndexError:
@@ -470,9 +515,9 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
         """fetch-convert-save flaw with give Bugzilla ID"""
         # 1A) fetch flaw data
         try:
-            flaw_data = self.get_bug_data(flaw_id)
-            flaw_comments = self.get_bug_comments(flaw_id)
-            flaw_history = self.get_bug_history(flaw_id)
+            flaw_data = self.bz_querier.get_bug_data(flaw_id)
+            flaw_comments = self.bz_querier.get_bug_comments(flaw_id)
+            flaw_history = self.bz_querier.get_bug_history(flaw_id)
             flaw_task = self.get_flaw_task(flaw_data)
         except Exception as e:
             # fetching the data is prone to transient failures which are recoverable
@@ -544,6 +589,9 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
 
         self.store(complete=complete, updated_until_dt=new_updated_until_dt)
 
+        # Remove querier objects and close unneeded connection when collector task is finished
+        self.free_queriers()
+
         msg = f"{self.name} is updated until {new_updated_until_dt}:"
         msg += f" Successfully fetched: {', '.join(successes)}." if successes else ""
         msg += f" Unsuccessfully fetched: {', '.join(failures)}." if failures else ""
@@ -578,12 +626,25 @@ class FlawCollector(Collector, BugzillaQuerier, JiraQuerier):
             # TODO store error
 
 
-class BugzillaTrackerCollector(Collector, BugzillaQuerier):
+class BugzillaTrackerCollector(Collector):
 
     # version 0.0.1 of OSIDB was released on January 21st 2022
     BEGINNING = timezone.datetime(2022, 1, 21, tzinfo=timezone.get_current_timezone())
     BATCH_SIZE = 100
     BATCH_PERIOD = relativedelta(months=1)
+
+    def __init__(self):
+        super().__init__()
+        self._bz_querier = None
+
+    @property
+    def bz_querier(self):
+        if self._bz_querier is None:
+            self._bz_querier = BugzillaQuerier()
+        return self._bz_querier
+
+    def free_queriers(self):
+        self._bz_querier = None
 
     def query_all_trackers(self):
         """
@@ -599,8 +660,8 @@ class BugzillaTrackerCollector(Collector, BugzillaQuerier):
 
     def get_tracker_ids(self, updated_after=None, updated_before=None):
         return sorted(
-            self.run_query(
-                self.query_last_updated(
+            self.bz_querier.run_query(
+                self.bz_querier.query_last_updated(
                     self.query_all_trackers(),
                     updated_after,
                     updated_before,
@@ -628,7 +689,7 @@ class BugzillaTrackerCollector(Collector, BugzillaQuerier):
         """
         Fetch, convert and save a bugzilla tracker from a given Bugzilla ID.
         """
-        tracker_data = self.get_bug_data(tracker_id)
+        tracker_data = self.bz_querier.get_bug_data(tracker_id)
         # not passing an affect explicitly during periodic sync should be fine
         # - case A:
         #   tracker is new, will be created from FlawCollector with correct affect,
@@ -677,6 +738,9 @@ class BugzillaTrackerCollector(Collector, BugzillaQuerier):
 
         self.store(complete=complete, updated_until_dt=new_updated_until_dt)
 
+        # Remove querier objects and close unneeded connection when collector task is finished
+        self.free_queriers()
+
         msg = f"{self.name} is updated until {new_updated_until_dt}:"
         msg += f" Successfully fetched: {', '.join(successes)}." if successes else ""
         msg += f" Unsuccessfully fetched: {', '.join(failures)}." if failures else ""
@@ -684,11 +748,24 @@ class BugzillaTrackerCollector(Collector, BugzillaQuerier):
         return msg
 
 
-class MetadataCollector(Collector, BugzillaQuerier):
+class MetadataCollector(Collector):
     """
     Bugzilla metadata collector
     to collect data on Bugzilla products and components
     """
+
+    def __init__(self):
+        super().__init__()
+        self._bz_querier = None
+
+    @property
+    def bz_querier(self):
+        if self._bz_querier is None:
+            self._bz_querier = BugzillaQuerier()
+        return self._bz_querier
+
+    def free_queriers(self):
+        self._bz_querier = None
 
     def collect(self):
         """
@@ -707,7 +784,7 @@ class MetadataCollector(Collector, BugzillaQuerier):
         )
         for product_name in product_names:
             # we need to fetch the products one by one or the connection hangs
-            product = self.get_product_with_components(product_name)
+            product = self.bz_querier.get_product_with_components(product_name)
 
             if product is None:
                 continue
@@ -722,6 +799,9 @@ class MetadataCollector(Collector, BugzillaQuerier):
             ]
 
         self.update_metadata(products)
+
+        # Remove querier objects and close unneeded connection when collector task is finished
+        self.free_queriers()
 
         self.store(updated_until_dt=start_dt)
         logger.info(f"{self.name} is updated until {start_dt}")

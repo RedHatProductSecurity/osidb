@@ -12,11 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add new SOURCE option into FlawReferenceType (OSIDB-1556)
 - Add Celery worker concurrency
 - Add new NVD option into FlawSource
+- Maximum Bugzilla and Jira connection age (OSIDB-1592, OSIDB-1593)
 
 ### Fixed
 - Fix incorrect type bool of is_up2date field in
   /collectors/api/v1/status endpoint
 - fix schema to reflect Erratum shipped_dt to be nullable
+- Made Querier objects independent on Collector objects (OSIDB-1592, OSIDB-1593)
 
 ### Removed
 - Remove daily monitoring email for failed tasks / collectors (OSIDB-1215)

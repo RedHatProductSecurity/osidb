@@ -20,7 +20,7 @@ from .core import JiraQuerier
 logger = get_task_logger(__name__)
 
 
-class JiraTrackerCollector(Collector, JiraQuerier):
+class JiraTrackerCollector(Collector):
     """
     Jira tracker collector
     """
@@ -31,6 +31,19 @@ class JiraTrackerCollector(Collector, JiraQuerier):
     # or any restrictions on the maximum query period so we can be quite greedy
     BATCH_PERIOD_DAYS = 365
 
+    def __init__(self):
+        super().__init__()
+        self._jira_querier = None
+
+    @property
+    def jira_querier(self):
+        if self._jira_querier is None:
+            self._jira_querier = JiraQuerier()
+        return self._jira_querier
+
+    def free_queriers(self):
+        self._jira_querier = None
+
     def get_batch(self) -> (List[Issue], timezone.datetime):
         """
         get next batch of Jira trackers plus period_end timestamp
@@ -38,7 +51,10 @@ class JiraTrackerCollector(Collector, JiraQuerier):
         period_start = self.metadata.updated_until_dt or self.BEGINNING
         period_end = period_start + timezone.timedelta(days=self.BATCH_PERIOD_DAYS)
         # query for trackers in the period and return them together with the timestamp
-        return self.get_tracker_period(period_start, period_end), period_end
+        return (
+            self.jira_querier.get_tracker_period(period_start, period_end),
+            period_end,
+        )
 
     def collect(self, tracker_id: Union[str, None] = None) -> str:
         """
@@ -59,7 +75,7 @@ class JiraTrackerCollector(Collector, JiraQuerier):
         batch_data, period_end = (
             self.get_batch()
             if tracker_id is None
-            else ([self.get_issue(tracker_id)], None)
+            else ([self.jira_querier.get_issue(tracker_id)], None)
         )
 
         # process data
@@ -89,6 +105,9 @@ class JiraTrackerCollector(Collector, JiraQuerier):
         complete = start_dt == updated_until_dt or self.metadata.is_complete
         self.store(complete=complete, updated_until_dt=updated_until_dt)
 
+        # Remove querier objects and close unneeded connection when collector task is finished
+        self.free_queriers()
+
         msg = f"{self.name} is updated until {updated_until_dt}."
         msg += (
             f" Jira trackers updated: {', '.join(updated_trackers)}"
@@ -100,11 +119,24 @@ class JiraTrackerCollector(Collector, JiraQuerier):
         return msg
 
 
-class MetadataCollector(Collector, JiraQuerier):
+class MetadataCollector(Collector):
     """
     Jira metadata collector
     to collect data on Jira Project fields
     """
+
+    def __init__(self):
+        super().__init__()
+        self._jira_querier = None
+
+    @property
+    def jira_querier(self):
+        if self._jira_querier is None:
+            self._jira_querier = JiraQuerier()
+        return self._jira_querier
+
+    def free_queriers(self):
+        self._jira_querier = None
 
     def collect(self):
         """
@@ -124,7 +156,7 @@ class MetadataCollector(Collector, JiraQuerier):
         project_fields = {}
         for project in projects:
             try:
-                res = self.jira_conn._get_json(
+                res = self.jira_querier.jira_conn._get_json(
                     f"issue/createmeta/{project}/issuetypes/1"
                 )
                 project_fields[project] = res["values"]
@@ -142,6 +174,10 @@ class MetadataCollector(Collector, JiraQuerier):
         self.update_metadata(project_fields)
 
         self.store(updated_until_dt=start_dt)
+
+        # Remove querier objects and close unneeded connection when collector task is finished
+        self.free_queriers()
+
         logger.info(f"{self.name} is updated until {start_dt}")
         return f"{self.name} is updated until {start_dt}: {len(project_fields)} Jira projects' metadata fetched"
 

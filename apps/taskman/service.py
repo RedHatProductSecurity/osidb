@@ -60,6 +60,7 @@ class JiraTaskmanQuerier(JiraQuerier):
         Keyword arguments:
         token -- user token used in every request to Jira
         """
+        super().__init__()
         if not token:
             raise MissingJiraTokenException(
                 "User's Jira Token is required to perform this action."
