@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Limit Celery worker to maximum amount of tasks (OSIDB-1540)
 - Add Celery worker concurrency
+- Maximum Bugzilla and Jira connection age (OSIDB-1592, OSIDB-1593)
+
+### Fixed
+- Made Querier objects independent on Collector objects (OSIDB-1592, OSIDB-1593)
 
 ## [3.5.1] - 2023-10-23
 ### Fixed

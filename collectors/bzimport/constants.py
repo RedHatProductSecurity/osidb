@@ -26,3 +26,6 @@ BZ_DT_FMT = "%Y-%m-%dT%H:%M:%S%z"
 BZ_DT_FMT_HISTORY = "%Y-%m-%dT%H:%M:%SZ"
 
 FLAW_PLACEHOLDER_KEYWORD = "Tracking"
+
+# Maximum age of connection to Bugzilla in seconds, recommended value is 60
+BZ_MAX_CONNECTION_AGE = get_env("BZ_MAX_CONNECTION_AGE")
