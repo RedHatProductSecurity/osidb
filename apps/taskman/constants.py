@@ -14,4 +14,7 @@ SYNC_REQUIRED_FIELDS = [
     "cve_id",
     "impact",
     "is_embargoed",
+    "owner",
+    "team_id",
+    "workflow_state",
 ]

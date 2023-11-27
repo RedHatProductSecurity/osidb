@@ -29,8 +29,6 @@ urlpatterns = [
     path("osim/", include("apps.workflows.urls_deprecated")),
     # Workflows
     path("workflows/", include("apps.workflows.urls")),
-    # Task Manager
-    path("taskman/", include("apps.taskman.urls")),
     # collectors
     path("collectors/", include("collectors.framework.urls")),
     # data

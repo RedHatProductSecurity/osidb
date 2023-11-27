@@ -56,7 +56,7 @@ def pin_urls(monkeypatch) -> None:
     the tests should be immune to what .evn you build the testrunner with
     """
     monkeypatch.setenv("HTTPS_PROXY", "http://squid.corp.redhat.com:3128")
-    monkeypatch.setenv("JIRA_TASKMAN_URL", "https://issues.stage.redhat.com")
+    monkeypatch.setenv("JIRA_TASKMAN_URL", "https://issues.redhat.com")
 
 
 @pytest.fixture

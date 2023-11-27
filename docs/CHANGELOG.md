@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Remove daily monitoring email for failed tasks / collectors (OSIDB-1215)
+- Remove not used taskman APIs and services that has been intregated in OSIM (OSIDB-1321)
 
 ## [3.5.1] - 2023-10-23
 ### Fixed

@@ -36,11 +36,8 @@ class TestFlawModelIntegration(object):
 
         flaw1 = FlawFactory(cve_id="CVE-2020-8002")
         AffectFactory(flaw=flaw1)
-
-        # simulate that flaw was created in osidb, having a jira task associated
-        monkeypatch.setattr(
-            JiraTaskmanQuerier, "get_task_by_flaw", mock_get_task_existing
-        )
+        flaw1.task_key = "TASK-123"
+        flaw1.save()
 
         # no important changes requires no syncing
         assert flaw1.tasksync(jira_token=user_token) is None
@@ -50,16 +47,11 @@ class TestFlawModelIntegration(object):
         assert flaw1.tasksync(jira_token=user_token) is None
         assert sync_count == 1
 
-        # simulate that flaw was created by a collector, not having a jira task associated
-        monkeypatch.setattr(
-            JiraTaskmanQuerier, "get_task_by_flaw", mock_get_task_missing
-        )
-
         flaw2 = FlawFactory(cve_id="CVE-2020-8004")
         AffectFactory(flaw=flaw2)
-        flaw1.cve_id = "CVE-2020-8005"
-        assert flaw1.tasksync(jira_token=user_token) is None
-        # flaws created by collectors should not sync in jira
+        flaw2.cve_id = "CVE-2020-8005"
+        assert flaw2.tasksync(jira_token=user_token) is None
+        # flaws without task_key were created by collectors should not sync in jira
         assert sync_count == 1
 
     def test_syncing(self, monkeypatch, acl_read, acl_write, user_token):
@@ -72,9 +64,7 @@ class TestFlawModelIntegration(object):
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
         )
-        monkeypatch.setattr(
-            JiraTaskmanQuerier, "get_task_by_flaw", mock_get_task_existing
-        )
+
         monkeypatch.setattr(mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
 
         flaw = Flaw(
@@ -151,13 +141,13 @@ class TestFlawModelIntegration(object):
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
         )
-        monkeypatch.setattr(
-            JiraTaskmanQuerier, "get_task_by_flaw", mock_get_task_existing
-        )
+
         monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
 
         flaw = FlawFactory(embargoed=False, impact=Impact.IMPORTANT)
         AffectFactory(flaw=flaw)
+        flaw.task_key = "TASK-123"
+        flaw.save()
         response = auth_client.get(f"{test_osidb_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
 
