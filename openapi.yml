@@ -6628,6 +6628,7 @@ paths:
       - osim
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -6653,6 +6654,7 @@ paths:
       - osim
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -6698,6 +6700,7 @@ paths:
       - osim
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -6736,6 +6739,7 @@ paths:
       - osim
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -6762,6 +6766,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       - {}
+      deprecated: true
       responses:
         '200':
           content:
@@ -7387,6 +7392,165 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TrackerSuggestion'
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+  /workflows/:
+    get:
+      operationId: workflows_retrieve
+      description: index API endpoint listing available API endpoints
+      tags:
+      - workflows
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+  /workflows/api/v1:
+    get:
+      operationId: workflows_api_v1_retrieve
+      description: workflow info API endpoint
+      tags:
+      - workflows
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+  /workflows/api/v1/{id}:
+    get:
+      operationId: workflows_api_v1_retrieve_2
+      description: |-
+        workflow classification API endpoint
+
+        for flaw identified by UUID or CVE returns its workflow:state classification
+
+        params:
+
+            verbose - return also workflows with flaw classification
+                      which represents the reasoning of the result
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: verbose
+        schema:
+          type: boolean
+        description: Return also workflows with flaw classification which represents
+          the reasoning of the result.
+      tags:
+      - workflows
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+  /workflows/api/v1/{id}/adjust:
+    post:
+      operationId: workflows_api_v1_adjust_create
+      description: |-
+        workflow adjustion API endpoint
+
+        adjust workflow classification of flaw identified by UUID or CVE
+        and return its workflow:state classification (new if changed and old otherwise)
+
+        adjust operation is idempotent so when the classification
+        is already adjusted running it results in no operation
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - workflows
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+  /workflows/healthy:
+    get:
+      operationId: workflows_healthy_retrieve
+      description: unauthenticated health check API endpoint
+      tags:
+      - workflows
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
                 properties:
                   dt:
                     type: string

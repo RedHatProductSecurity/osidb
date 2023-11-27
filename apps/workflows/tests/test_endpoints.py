@@ -12,7 +12,7 @@ pytestmark = pytest.mark.unit
 
 
 class TestEndpoints(object):
-    # osim/
+    # workflows/
     def test_index_auth(self, auth_client, test_scheme_host):
         """test authenticated index API endpoint"""
         response = auth_client.get(f"{test_scheme_host}/")
@@ -25,16 +25,16 @@ class TestEndpoints(object):
         response = client.get(f"{test_scheme_host}/")
         assert response.status_code == 401
 
-    # osim/healthy
+    # workflows/healthy
     def test_health(self, client, test_scheme_host):
         """test health API endpoint"""
         response = client.get(f"{test_scheme_host}/healthy")
         assert response.status_code == 200
 
-    # osim/workflows
+    # workflows
     def test_workflows_auth(self, auth_client, test_api_uri):
         """test authenticated workflows API endpoint"""
-        response = auth_client.get(f"{test_api_uri}/workflows")
+        response = auth_client.get(f"{test_api_uri}")
         assert response.status_code == 200
         body = response.json()
         workflows = WorkflowSerializer(WorkflowFramework().workflows, many=True).data
@@ -42,24 +42,24 @@ class TestEndpoints(object):
 
     def test_workflows_no_auth(self, client, test_api_uri):
         """test authenticated workflows API endpoint without authenticating"""
-        response = client.get(f"{test_api_uri}/workflows")
+        response = client.get(f"{test_api_uri}")
         assert response.status_code == 401
 
     def test_workflows_cve(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint"""
         flaw = FlawFactory()
-        response = auth_client.get(f"{test_api_uri}/workflows/{flaw.cve_id}")
+        response = auth_client.get(f"{test_api_uri}/{flaw.cve_id}")
         assert response.status_code == 200
         body = response.json()
         assert body["flaw"] == str(flaw.uuid)
         assert "classification" in body
         assert "workflows" not in body
 
-    # osim/workflows/{flaw}
+    # workflows/{flaw}
     def test_workflows_uuid(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint"""
         flaw = FlawFactory()
-        response = auth_client.get(f"{test_api_uri}/workflows/{flaw.uuid}")
+        response = auth_client.get(f"{test_api_uri}/{flaw.uuid}")
         assert response.status_code == 200
         body = response.json()
         assert body["flaw"] == str(flaw.uuid)
@@ -69,7 +69,7 @@ class TestEndpoints(object):
     def test_workflows_uuid_verbose(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint with verbose parameter"""
         flaw = FlawFactory()
-        response = auth_client.get(f"{test_api_uri}/workflows/{flaw.uuid}?verbose=true")
+        response = auth_client.get(f"{test_api_uri}/{flaw.uuid}?verbose=true")
         assert response.status_code == 200
         body = response.json()
         assert body["flaw"] == str(flaw.uuid)
@@ -79,17 +79,17 @@ class TestEndpoints(object):
     def test_workflows_uuid_non_existing(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint with non-exising flaw"""
         response = auth_client.get(
-            f"{test_api_uri}/workflows/35d1ad45-0dba-41a3-bad6-5dd36d624ead"
+            f"{test_api_uri}/35d1ad45-0dba-41a3-bad6-5dd36d624ead"
         )
         assert response.status_code == 404
 
     def test_workflows_uuid_no_auth(self, client, test_api_uri):
         """test authenticated workflow classification API endpoint without authenticating"""
         flaw = FlawFactory()
-        response = client.get(f"{test_api_uri}/workflows/{flaw.uuid}")
+        response = client.get(f"{test_api_uri}/{flaw.uuid}")
         assert response.status_code == 401
 
-    # osim/workflows/{flaw}/adjust
+    # workflows/{flaw}/adjust
     def test_workflows_uuid_adjusting(self, auth_client, test_api_uri):
         """test flaw classification adjustion after metadata change"""
         workflow_framework = WorkflowFramework()
@@ -155,7 +155,7 @@ class TestEndpoints(object):
         flaw.major_incident_state = Flaw.FlawMajorIncident.NOVALUE
         flaw.save()
 
-        response = auth_client.post(f"{test_api_uri}/workflows/{flaw.uuid}/adjust")
+        response = auth_client.post(f"{test_api_uri}/{flaw.uuid}/adjust")
         assert response.status_code == 200
         body = response.json()
         assert body["flaw"] == str(flaw.uuid)
@@ -177,7 +177,7 @@ class TestEndpoints(object):
         test authenticated workflow classification adjusting API endpoint with no flaw modification
         """
         flaw = FlawFactory()
-        response = auth_client.post(f"{test_api_uri}/workflows/{flaw.uuid}/adjust")
+        response = auth_client.post(f"{test_api_uri}/{flaw.uuid}/adjust")
         assert response.status_code == 200
         body = response.json()
         assert body["flaw"] == str(flaw.uuid)
@@ -189,7 +189,7 @@ class TestEndpoints(object):
         test authenticated workflow classification adjusting API endpoint with non-exising flaw
         """
         response = auth_client.post(
-            f"{test_api_uri}/workflows/35d1ad45-0dba-41a3-bad6-5dd36d624ead/adjust"
+            f"{test_api_uri}/35d1ad45-0dba-41a3-bad6-5dd36d624ead/adjust"
         )
         assert response.status_code == 404
 
@@ -198,7 +198,7 @@ class TestEndpoints(object):
         test authenticated workflow classification adjusting API endpoint without authenticating
         """
         flaw = FlawFactory()
-        response = client.post(f"{test_api_uri}/workflows/{flaw.uuid}/adjust")
+        response = client.post(f"{test_api_uri}/{flaw.uuid}/adjust")
         assert response.status_code == 401
 
     def test_promote_endpoint(self, auth_client, test_api_uri_osidb, user_token):
