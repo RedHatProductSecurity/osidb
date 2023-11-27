@@ -9,13 +9,14 @@ from typing import Dict, List, Optional, Type
 
 import celery.states as celery_states
 import inflection
-from celery import Task, exceptions
+from celery import exceptions
 from celery.schedules import crontab
 from django.conf import settings
 from django.contrib.postgres import fields
 from django.db import models
 from django.utils import timezone
 from psqlextra.fields import HStoreField
+from rhubarb.tasks import LockableTask
 
 from config.celery import app
 from osidb.mixins import NullStrFieldsMixin
@@ -56,25 +57,6 @@ class CollectorFramework:
                 return True
 
         return False
-
-    @classmethod
-    def reset(cls, collector_name) -> None:
-        """
-        reset RUNNING collector to READY state
-
-        this is neccessary to be performed at every application start
-        as if there were any running collectors in the moment of shutdown
-        they are still recorded as running which is no more true
-        other states can be preserved no problem
-        """
-        collector_metadata = cls.collectors().get(collector_name)
-        if (
-            collector_metadata
-            and collector_metadata.is_running
-            and collector_metadata.is_due
-        ):
-            collector_metadata.collector_state = CollectorMetadata.CollectorState.READY
-            collector_metadata.save()
 
 
 class CollectorMetadata(NullStrFieldsMixin):
@@ -257,18 +239,12 @@ class CollectorMetadata(NullStrFieldsMixin):
         return True
 
 
-class Collector(Task):
+class Collector(LockableTask):
     """data collector base class"""
 
     # collector crontab schedule
     # defined in @collector decorator
     crontab = None
-
-    # collector metadata
-    # holds the all the collector metadata
-    # is persistent between application runs
-    # and enable inter-process access
-    metadata = None
 
     # central point of setting collector dry run mode
     # it influences the behavior of collector save method
@@ -323,9 +299,10 @@ class Collector(Task):
     # INSTANCE CREATION #
     #####################
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """initiate collector"""
         # load the stored collector metadata or create new if not stored
+        super().__init__(*args, **kwargs)
         self.metadata, _ = CollectorMetadata.objects.get_or_create(
             name=self.name,
             defaults={
@@ -436,15 +413,7 @@ class Collector(Task):
     # EXECEPTIONS #
     ###############
 
-    class CollectorRunning(exceptions.Retry):
-        """
-        exception raised when this collector is already running
-        to prevent duplicit run before the previous one finished
-        """
-
-        pass
-
-    class CollectorBlocked(exceptions.Retry):
+    class CollectorBlocked(exceptions.Ignore):
         """
         exception raised when this collector is blocked by unsatisfied dependencies
         to prevent undefined behavior with some required data not yet collected
@@ -458,32 +427,23 @@ class Collector(Task):
 
     def before_start(self, task_id, args, kwargs) -> None:
         """before run checks and actions"""
-        # TODO from here until we set the state to RUNNING
-        # it should ideally be a critical section concurrency-wise
-        # so we should use some kind of lock
-        #
-        # as it seems non-trivial in celery I am not going to do it now
-        # as with reasonable Collector period the race should be rare
-        # and there should be a single collector instance in celery anyway
-        # but let us keep it in mind as it can lead to something weird
-        # TODO: use celery-singleton like in SDEngine
-        #  just add base=Singleton to app.task() decorator
+        super().before_start(task_id, args, kwargs)
 
         # make sure we have fresh metadata first
         self.metadata.refresh_from_db()
 
-        # check whether not already running
-        if self.is_running:
-            msg = f"Collector {self.name} run skipped: Collector is already running"
-            logger.info(msg)
-            raise Collector.CollectorRunning(msg)
-
         # check whether we should wait
         if self.is_blocked:
+            # TODO: consider handling this at the scheduler level?
             self.metadata.collector_state = CollectorMetadata.CollectorState.BLOCKED
             self.metadata.save()
             msg = f"Collector {self.name} run skipped: Dependent collector data are not complete"
             logger.info(msg)
+            # Special case, exceptions.Ignore won't automatically trigger a lock release
+            self.release_lock()
+            # We need both of these so that Flower doesn't treat them as active
+            self.update_state(task_id, state="BLOCKED")
+            self.send_event("task-revoked")
             raise Collector.CollectorBlocked(msg)
 
         # before run actions
@@ -494,22 +454,18 @@ class Collector(Task):
 
     def on_success(self, retval, task_id, args, kwargs) -> None:
         """success handler"""
+        super().on_success(retval, task_id, args, kwargs)
         logger.info(f"Collector {self.name} run completed")
         self.metadata.error = ""
 
     def on_failure(self, exc, task_id, args, kwargs, einfo) -> None:
         """error handler"""
+        super().on_failure(exc, task_id, args, kwargs, einfo)
         logger.info(f"Collector {self.name} run failed: {exc}")
         self.metadata.error = str(exc)
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo) -> None:
         """general after run handler"""
-
-        # Collector task was terminated because other instance of it is
-        # already running, don't set the state to READY
-        if isinstance(retval, Collector.CollectorRunning):
-            return
-
         self.metadata.collector_state = CollectorMetadata.CollectorState.READY
         self.metadata.save()
 
@@ -539,11 +495,7 @@ def collector(
         if crontab is None:
             raise RuntimeError("Collector crontab must be defined")
 
-        # reset collector state in case it was shutdown while running
         name = Collector.get_name_from_entity(func)
-        # TODO this probably does not work
-        # due to being run in separate containers
-        CollectorFramework.reset(name)
 
         # register collector to celery beat
         settings.CELERY_BEAT_SCHEDULE[name] = {
