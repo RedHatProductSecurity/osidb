@@ -1,5 +1,5 @@
 """
-OSIM exceptions
+Workflows exceptions
 """
 
 

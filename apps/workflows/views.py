@@ -1,5 +1,5 @@
 """
-OSIM views
+Workflows views
 """
 
 import logging

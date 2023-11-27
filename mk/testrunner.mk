@@ -21,8 +21,8 @@ testrunner.errata:
 	$(podman) exec -it testrunner tox -e unit-tests collectors/errata
 testrunner.framework:
 	$(podman) exec -it testrunner tox -e unit-tests collectors/framework
-testrunner.osim:
-	$(podman) exec -it testrunner tox -e unit-tests apps/osim
+testrunner.workflows:
+	$(podman) exec -it testrunner tox -e unit-tests apps/workflows
 testrunner.all-unit-tests:
 	$(podman) exec -it testrunner tox -e unit-tests collectors/bzimport collectors/jiraffe collectors/product_definitions osidb
 testrunner.all-integration-tests:

@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     "osidb",
     "apps.bbsync",
     "apps.exploits",
-    "apps.osim",
+    "apps.workflows",
     "apps.trackers",
     "collectors.bzimport",
     "collectors.errata",
@@ -209,7 +209,7 @@ LOGGING = {
             for app_name in [
                 "apps.bbsync",
                 "apps.exploits",
-                "apps.osim",
+                "apps.workflows",
                 "apps.trackers",
             ]
         },
@@ -282,7 +282,7 @@ DEFAULT_REQUEST_TIMEOUT = get_env(
 )
 
 # sets the Access-Control-Allow-Origin response header
-# example value: ["https://osidb.example.com", "https://osim.example.com"]
+# example value: ["https://osidb.example.com", "https://workflows.example.com"]
 CORS_ALLOWED_ORIGINS = get_env("OSIDB_CORS_ALLOWED_ORIGINS", default="[]", is_json=True)
 # sets the Access-Control-Allow-Headers response header; lowercase
 CORS_ALLOW_HEADERS = (

@@ -3,7 +3,7 @@ import uuid
 import pytest
 from django.conf import settings
 
-from apps.osim.workflow import WorkflowModel
+from apps.workflows.workflow import WorkflowModel
 from osidb.core import generate_acls
 from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource, FlawType, Snippet
 

@@ -12,10 +12,10 @@ import subprocess
 
 import pytest
 
-from apps.osim.models import Workflow
-from apps.osim.serializers import WorkflowSerializer
-from apps.osim.urls import urlpatterns
-from apps.osim.workflow import WorkflowFramework, WorkflowModel
+from apps.workflows.models import Workflow
+from apps.workflows.serializers import WorkflowSerializer
+from apps.workflows.urls import urlpatterns
+from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.integration

@@ -1,5 +1,5 @@
 """
-OSIM models serializers
+Workflows models serializers
 """
 
 from drf_spectacular.utils import extend_schema_field

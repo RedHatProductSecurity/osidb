@@ -1,5 +1,5 @@
 """
-OSIM entity requirement check definition
+Workflows entity requirement check definition
 """
 import inspect
 

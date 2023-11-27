@@ -1,5 +1,5 @@
 """
-OSIM API endpoints
+Workflows API endpoints
 """
 
 import logging
@@ -39,7 +39,7 @@ class index(APIView):
         )
 
 
-# TODO do we need this when OSIM is baked into OSIDB service ?
+# TODO do we need this when Workflows is baked into OSIDB service ?
 class healthy(APIView):
     """unauthenticated health check API endpoint"""
 

@@ -1,7 +1,7 @@
 import pytest
 
-from apps.osim.constants import OSIM_API_VERSION
-from apps.osim.workflow import WorkflowFramework
+from apps.workflows.constants import OSIM_API_VERSION
+from apps.workflows.workflow import WorkflowFramework
 from osidb.helpers import get_env
 
 

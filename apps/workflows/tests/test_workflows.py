@@ -4,7 +4,7 @@ workflow definitions validation tests
 
 import pytest
 
-from apps.osim.workflow import WorkflowFramework, WorkflowModel
+from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 
 pytestmark = pytest.mark.unit
 

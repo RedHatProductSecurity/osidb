@@ -1,5 +1,5 @@
 """
-OSIM URLs
+Workflows URLs
 """
 
 import logging

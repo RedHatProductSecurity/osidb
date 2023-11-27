@@ -1,10 +1,10 @@
 import pytest
 
-from apps.osim.models import State, Workflow
-from apps.osim.serializers import WorkflowSerializer
-from apps.osim.urls import urlpatterns
-from apps.osim.workflow import WorkflowFramework, WorkflowModel
 from apps.taskman.service import JiraTaskmanQuerier
+from apps.workflows.models import State, Workflow
+from apps.workflows.serializers import WorkflowSerializer
+from apps.workflows.urls import urlpatterns
+from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from osidb.models import Flaw
 from osidb.tests.factories import AffectFactory, FlawFactory
 
