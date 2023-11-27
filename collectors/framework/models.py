@@ -11,13 +11,13 @@ import celery.states as celery_states
 import inflection
 from celery import Task, exceptions
 from celery.schedules import crontab
+from django.conf import settings
 from django.contrib.postgres import fields
 from django.db import models
 from django.utils import timezone
 from psqlextra.fields import HStoreField
 
 from config.celery import app
-from config.settings import CELERY_BEAT_SCHEDULE
 from osidb.mixins import NullStrFieldsMixin
 
 from .constants import COLLECTOR_DRY_RUN, CRONTAB_PARAMS_NAMES
@@ -546,7 +546,7 @@ def collector(
         CollectorFramework.reset(name)
 
         # register collector to celery beat
-        CELERY_BEAT_SCHEDULE[name] = {
+        settings.CELERY_BEAT_SCHEDULE[name] = {
             "task": name,
             "schedule": crontab,
         }
