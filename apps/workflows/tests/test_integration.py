@@ -220,11 +220,11 @@ class TestRestApi(object):
     def test_adjust(self, auth_client, test_api_uri):
         """test refreshing/adjusting a flaw state through API"""
         state_new = {
-            "name": WorkflowModel.OSIMState.NEW,
+            "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
         }
         state_first = {
-            "name": WorkflowModel.OSIMState.TRIAGE,
+            "name": WorkflowModel.WorkflowState.TRIAGE,
             "requirements": ["has cwe"],
         }
 
@@ -246,7 +246,7 @@ class TestRestApi(object):
         flaw.cwe_id = ""
         flaw.save(raise_validation_error=False)
         flaw.adjust_classification()
-        assert flaw.classification["state"] == WorkflowModel.OSIMState.NEW
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
 
         flaw.cwe_id = "CWE-1"
         flaw.save(raise_validation_error=False)
@@ -260,11 +260,13 @@ class TestRestApi(object):
 
         json_body = response.json()
         assert str(flaw.uuid) == json_body["flaw"]
-        assert WorkflowModel.OSIMState.TRIAGE == json_body["classification"]["state"]
+        assert (
+            WorkflowModel.WorkflowState.TRIAGE == json_body["classification"]["state"]
+        )
 
     def test_classification(self, auth_client, test_api_uri):
         state_new = {
-            "name": WorkflowModel.OSIMState.NEW,
+            "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
         }
 
@@ -295,7 +297,7 @@ class TestRestApi(object):
         assert "state" in json_body["classification"]
 
         assert json_body["classification"]["workflow"] == "main workflow"
-        assert json_body["classification"]["state"] == WorkflowModel.OSIMState.NEW
+        assert json_body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
 
     def test_workflows(self, auth_client, test_api_uri):
         response = auth_client.get(

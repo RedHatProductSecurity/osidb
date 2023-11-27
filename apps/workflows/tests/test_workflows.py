@@ -66,4 +66,4 @@ class TestWorkflows:
         """test that every state in a workflow has a name which is allowed"""
         for workflow in workflows:
             for state in workflow.states:
-                assert state.name in WorkflowModel.OSIMState.values
+                assert state.name in WorkflowModel.WorkflowState.values

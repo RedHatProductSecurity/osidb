@@ -401,15 +401,15 @@ class TestWorkflowFramework:
     def test_classify_complete(self):
         """test flaw classification in both workflow and state"""
         state_new = {
-            "name": WorkflowModel.OSIMState.NEW,
+            "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
         }
         state_first = {
-            "name": WorkflowModel.OSIMState.TRIAGE,
+            "name": WorkflowModel.WorkflowState.TRIAGE,
             "requirements": ["has description"],
         }
         state_second = {
-            "name": WorkflowModel.OSIMState.DONE,
+            "name": WorkflowModel.WorkflowState.DONE,
             "requirements": ["has title"],
         }
 
@@ -424,7 +424,7 @@ class TestWorkflowFramework:
         )
 
         state_not_affected = {
-            "name": WorkflowModel.OSIMState.REJECTED,
+            "name": WorkflowModel.WorkflowState.REJECTED,
             "requirements": [],
         }
 
@@ -482,21 +482,21 @@ class TestFlaw:
     def test_init(self):
         """test that flaw gets workflow:state assigned on creation"""
         flaw = Flaw()
-        assert flaw.osim_workflow
-        assert flaw.osim_state
+        assert flaw.workflow_name
+        assert flaw.workflow_state
 
     def test_classification(self):
         """test flaw classification property"""
         state_new = {
-            "name": WorkflowModel.OSIMState.NEW,
+            "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
         }
         state_first = {
-            "name": WorkflowModel.OSIMState.TRIAGE,
+            "name": WorkflowModel.WorkflowState.TRIAGE,
             "requirements": ["has description"],
         }
         state_second = {
-            "name": WorkflowModel.OSIMState.DONE,
+            "name": WorkflowModel.WorkflowState.DONE,
             "requirements": ["has title"],
         }
 
@@ -511,7 +511,7 @@ class TestFlaw:
         )
 
         state_not_affected = {
-            "name": WorkflowModel.OSIMState.REJECTED,
+            "name": WorkflowModel.WorkflowState.REJECTED,
             "requirements": [],
         }
 
@@ -534,18 +534,18 @@ class TestFlaw:
         flaw = Flaw()
 
         # stored classification
-        assert flaw.osim_workflow == flaw.classification["workflow"]
-        assert flaw.osim_state == flaw.classification["state"]
+        assert flaw.workflow_name == flaw.classification["workflow"]
+        assert flaw.workflow_state == flaw.classification["state"]
         # computed classification
         old_computed_workflow = flaw.classify()["workflow"]
         old_computed_state = flaw.classify()["state"]
-        assert flaw.osim_workflow == old_computed_workflow
-        assert flaw.osim_state == old_computed_state
+        assert flaw.workflow_name == old_computed_workflow
+        assert flaw.workflow_state == old_computed_state
         # assing new and different classification
         for workflow in WorkflowFramework().workflows:
-            if workflow.name != flaw.osim_workflow:
+            if workflow.name != flaw.workflow_name:
                 for state in workflow.states:
-                    if state.name != flaw.osim_state:
+                    if state.name != flaw.workflow_state:
                         new_stored_workflow = workflow.name
                         new_stored_state = state.name
                         flaw.classification = {
@@ -556,17 +556,17 @@ class TestFlaw:
                 break
 
         # stored classification has changed
-        assert flaw.osim_workflow == new_stored_workflow
-        assert flaw.osim_workflow == flaw.classification["workflow"]
-        assert flaw.osim_state == new_stored_state
-        assert flaw.osim_state == flaw.classification["state"]
+        assert flaw.workflow_name == new_stored_workflow
+        assert flaw.workflow_name == flaw.classification["workflow"]
+        assert flaw.workflow_state == new_stored_state
+        assert flaw.workflow_state == flaw.classification["state"]
         # computed classification has not changed
         new_computed_workflow = flaw.classify()["workflow"]
         new_computed_state = flaw.classify()["state"]
         assert old_computed_workflow == new_computed_workflow
         assert old_computed_state == new_computed_state
-        assert flaw.osim_workflow != new_computed_workflow
-        assert flaw.osim_state != new_computed_state
+        assert flaw.workflow_name != new_computed_workflow
+        assert flaw.workflow_state != new_computed_state
 
     def test_adjust(self):
         """test flaw classification adjustion after metadata change"""
@@ -575,19 +575,19 @@ class TestFlaw:
 
         state_new = State(
             {
-                "name": WorkflowModel.OSIMState.NEW,
+                "name": WorkflowModel.WorkflowState.NEW,
                 "requirements": [],
             }
         )
         state_first = State(
             {
-                "name": WorkflowModel.OSIMState.TRIAGE,
+                "name": WorkflowModel.WorkflowState.TRIAGE,
                 "requirements": ["has description"],
             }
         )
         state_second = State(
             {
-                "name": WorkflowModel.OSIMState.DONE,
+                "name": WorkflowModel.WorkflowState.DONE,
                 "requirements": ["has title"],
             }
         )
@@ -646,17 +646,17 @@ class TestFlaw:
         workflow_framework._workflows = []
 
         state_new = {
-            "name": WorkflowModel.OSIMState.NEW,
+            "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
         }
 
         state_first = {
-            "name": WorkflowModel.OSIMState.SECONDARY_ASSESSMENT,
+            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
             "requirements": ["has cwe"],
         }
 
         state_second = {
-            "name": WorkflowModel.OSIMState.DONE,
+            "name": WorkflowModel.WorkflowState.DONE,
             "requirements": ["has summary"],
         }
 
@@ -675,27 +675,29 @@ class TestFlaw:
         AffectFactory(flaw=flaw)
 
         assert flaw.classification["workflow"] == "default workflow"
-        assert flaw.classification["state"] == WorkflowModel.OSIMState.NEW
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
 
         with pytest.raises(MissingRequirementsException, match="has cwe"):
             flaw.promote()
-        assert flaw.classification["state"] == WorkflowModel.OSIMState.NEW
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
 
         flaw.cwe_id = "CWE-1"
         assert flaw.promote() is None
         assert (
-            flaw.classification["state"] == WorkflowModel.OSIMState.SECONDARY_ASSESSMENT
+            flaw.classification["state"]
+            == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
         )
 
         with pytest.raises(MissingRequirementsException, match="has summary"):
             flaw.promote()
         assert (
-            flaw.classification["state"] == WorkflowModel.OSIMState.SECONDARY_ASSESSMENT
+            flaw.classification["state"]
+            == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
         )
 
         flaw.summary = "valid summary"
         assert flaw.promote() is None
-        assert flaw.classification["state"] == WorkflowModel.OSIMState.DONE
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
 
         with pytest.raises(LastStateException):
             flaw.promote()

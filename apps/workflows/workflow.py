@@ -121,7 +121,7 @@ class WorkflowFramework:
 class WorkflowModel(models.Model):
     """workflow model base class"""
 
-    class OSIMState(models.TextChoices):
+    class WorkflowState(models.TextChoices):
         """allowable workflow states"""
 
         NEW = "NEW"
@@ -132,8 +132,10 @@ class WorkflowModel(models.Model):
         REJECTED = "REJECTED"
 
     # workflow metadata
-    osim_workflow = models.CharField(max_length=50, blank=True)
-    osim_state = models.CharField(choices=OSIMState.choices, max_length=24, blank=True)
+    workflow_name = models.CharField(max_length=50, blank=True)
+    workflow_state = models.CharField(
+        choices=WorkflowState.choices, max_length=24, blank=True
+    )
     owner = models.CharField(max_length=60, blank=True)
     group_key = models.CharField(max_length=60, blank=True)
     task_key = models.CharField(max_length=60, blank=True)
@@ -147,7 +149,7 @@ class WorkflowModel(models.Model):
         super().__init__(*args, **kwargs)
         # every workflow model has to be always classified and if it is not it means
         # that it is newly created one so we need to perform initial classification
-        if not all([self.osim_workflow, self.osim_state]):
+        if not all([self.workflow_name, self.workflow_state]):
             self.adjust_classification(save=False)
 
     def classify(self):
@@ -162,8 +164,8 @@ class WorkflowModel(models.Model):
     def classification(self):
         """stored workflow classification"""
         return {
-            "workflow": self.osim_workflow,
-            "state": self.osim_state,
+            "workflow": self.workflow_name,
+            "state": self.workflow_state,
         }
 
     @classification.setter
@@ -180,8 +182,8 @@ class WorkflowModel(models.Model):
         else:
             workflow, state = classification
 
-        self.osim_workflow = workflow if isinstance(workflow, str) else workflow.name
-        self.osim_state = state if isinstance(state, str) else state.name
+        self.workflow_name = workflow if isinstance(workflow, str) else workflow.name
+        self.workflow_state = state if isinstance(state, str) else state.name
 
     def adjust_classification(self, save=True):
         """
@@ -226,36 +228,36 @@ class WorkflowModel(models.Model):
         workflow_obj = None
         workflows = WorkflowFramework().workflows
         for workflow in workflows:
-            if workflow.name == self.osim_workflow:
+            if workflow.name == self.workflow_name:
                 workflow_obj = workflow
                 break
 
         if not workflow_obj:
             raise MissingWorkflowException(
-                f"Instance is classified with a non-registered workflow ({self.osim_workflow})."
+                f"Instance is classified with a non-registered workflow ({self.workflow_name})."
             )
 
         state_obj = None
         state_count = len(workflow_obj.states)
         for i in range(state_count):
-            if workflow_obj.states[i].name == self.osim_state:
+            if workflow_obj.states[i].name == self.workflow_state:
                 if i + 1 >= state_count:
                     raise LastStateException(
-                        f"Instance is already in the last state ({self.osim_state}) from its workflow ({self.osim_workflow})."
+                        f"Instance is already in the last state ({self.workflow_state}) from its workflow ({self.workflow_name})."
                     )
                 state_obj = workflow_obj.states[i + 1]
                 break
 
         if not state_obj:
             raise MissingStateException(
-                f"Instance is classified with a non-registered state ({self.osim_state})."
+                f"Instance is classified with a non-registered state ({self.workflow_state})."
             )
 
         WorkflowFramework().validate_classification(
-            self, self.osim_workflow, state_obj.name
+            self, self.workflow_name, state_obj.name
         )
 
-        self.osim_state = state_obj.name
+        self.workflow_state = state_obj.name
 
         if not save:
             return
@@ -272,11 +274,11 @@ class WorkflowModel(models.Model):
         """
         reject_workflow = "REJECTED"
         WorkflowFramework().validate_classification(
-            self, reject_workflow, WorkflowModel.OSIMState.REJECTED
+            self, reject_workflow, WorkflowModel.WorkflowState.REJECTED
         )
 
-        self.osim_workflow = reject_workflow
-        self.osim_state = WorkflowModel.OSIMState.REJECTED
+        self.workflow_name = reject_workflow
+        self.workflow_state = WorkflowModel.WorkflowState.REJECTED
 
         if not save:
             return

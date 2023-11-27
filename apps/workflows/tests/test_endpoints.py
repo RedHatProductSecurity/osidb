@@ -95,19 +95,19 @@ class TestEndpoints(object):
         workflow_framework = WorkflowFramework()
         state_new = State(
             {
-                "name": WorkflowModel.OSIMState.NEW,
+                "name": WorkflowModel.WorkflowState.NEW,
                 "requirements": [],
             }
         )
         state_first = State(
             {
-                "name": WorkflowModel.OSIMState.TRIAGE,
+                "name": WorkflowModel.WorkflowState.TRIAGE,
                 "requirements": ["has description"],
             }
         )
         state_second = State(
             {
-                "name": WorkflowModel.OSIMState.DONE,
+                "name": WorkflowModel.WorkflowState.DONE,
                 "requirements": ["has title"],
             }
         )
@@ -207,17 +207,17 @@ class TestEndpoints(object):
         workflow_framework._workflows = []
 
         state_new = {
-            "name": WorkflowModel.OSIMState.NEW,
+            "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
         }
 
         state_first = {
-            "name": WorkflowModel.OSIMState.SECONDARY_ASSESSMENT,
+            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
             "requirements": ["has cwe"],
         }
 
         state_second = {
-            "name": WorkflowModel.OSIMState.DONE,
+            "name": WorkflowModel.WorkflowState.DONE,
             "requirements": ["has summary"],
         }
 
@@ -236,7 +236,7 @@ class TestEndpoints(object):
         AffectFactory(flaw=flaw)
 
         assert flaw.classification["workflow"] == "default workflow"
-        assert flaw.classification["state"] == WorkflowModel.OSIMState.NEW
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
         headers = {"HTTP_JIRA_API_KEY": user_token}
         response = auth_client.post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
@@ -262,7 +262,7 @@ class TestEndpoints(object):
         body = response.json()
         assert (
             body["classification"]["state"]
-            == WorkflowModel.OSIMState.SECONDARY_ASSESSMENT
+            == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
         )
 
         flaw = Flaw.objects.get(pk=flaw.pk)
@@ -278,7 +278,7 @@ class TestEndpoints(object):
         flaw = Flaw.objects.get(pk=flaw.pk)
         assert response.status_code == 200
         body = response.json()
-        assert body["classification"]["state"] == WorkflowModel.OSIMState.DONE
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
 
         response = auth_client.post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
@@ -308,12 +308,12 @@ class TestEndpoints(object):
         workflow_framework._workflows = []
 
         state_new = {
-            "name": WorkflowModel.OSIMState.NEW,
+            "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
         }
 
         state_first = {
-            "name": WorkflowModel.OSIMState.SECONDARY_ASSESSMENT,
+            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
             "requirements": ["has cwe"],
         }
 
@@ -327,7 +327,7 @@ class TestEndpoints(object):
             }
         )
         state_reject = {
-            "name": WorkflowModel.OSIMState.REJECTED,
+            "name": WorkflowModel.WorkflowState.REJECTED,
             "requirements": [],
         }
         reject_workflow = Workflow(
@@ -346,7 +346,7 @@ class TestEndpoints(object):
         AffectFactory(flaw=flaw)
 
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.OSIMState.NEW
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
         headers = {"HTTP_JIRA_API_KEY": user_token}
 
         response = auth_client.post(
@@ -358,7 +358,7 @@ class TestEndpoints(object):
         assert response.status_code == 400
         flaw = Flaw.objects.get(pk=flaw.pk)
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.OSIMState.NEW
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
 
         response = auth_client.post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reject",
@@ -371,4 +371,4 @@ class TestEndpoints(object):
 
         assert response.status_code == 200
         assert body["classification"]["workflow"] == "REJECTED"
-        assert body["classification"]["state"] == WorkflowModel.OSIMState.REJECTED
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.REJECTED

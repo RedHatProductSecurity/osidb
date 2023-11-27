@@ -38,7 +38,7 @@ class CheckParser(metaclass=MetaCheckParser):
         "cve": "cve_id",
         "cwe": "cwe_id",
         "group": "group_key",
-        "state": "osim_state",
+        "state": "workflow_state",
         "team": "team_id",
         "trackers": "trackers_filed",
     }

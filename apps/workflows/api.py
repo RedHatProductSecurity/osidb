@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 
 from apps.taskman.service import JiraTaskmanQuerier
 
-from .exceptions import OSIMException
+from .exceptions import WorkflowsException
 from .helpers import get_flaw_or_404, str2bool
 from .serializers import (
     ClassificationWorkflowSerializer,
@@ -113,7 +113,7 @@ class promote(APIView):
                     "classification": flaw.classification,
                 }
             )
-        except OSIMException as e:
+        except WorkflowsException as e:
             return Response({"errors": str(e)}, status=status.HTTP_409_CONFLICT)
 
 
@@ -160,7 +160,7 @@ class reject(APIView):
                     "classification": flaw.classification,
                 }
             )
-        except OSIMException as e:
+        except WorkflowsException as e:
             return Response({"errors": str(e)}, status=status.HTTP_409_CONFLICT)
 
 

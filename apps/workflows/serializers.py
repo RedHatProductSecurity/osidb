@@ -88,7 +88,7 @@ class WorkflowModelSerializer(serializers.ModelSerializer):
                 "workflow": {"type": "string"},
                 "state": {
                     "type": "string",
-                    "enum": WorkflowModel.OSIMState.values,
+                    "enum": WorkflowModel.WorkflowState.values,
                 },
             },
         }
