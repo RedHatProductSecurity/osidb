@@ -44,6 +44,8 @@ jobs:
         credentials:
           username: ${{ secrets.QUAY_REGISTRY_USERNAME }}
           password: ${{ secrets.QUAY_REGISTRY_TOKEN }}
+      redis:
+        image: redis
     steps:
       - uses: actions/checkout@v3
       - name: Install required packages
