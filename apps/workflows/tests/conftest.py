@@ -1,6 +1,6 @@
 import pytest
 
-from apps.workflows.constants import OSIM_API_VERSION
+from apps.workflows.constants import WORKFLOWS_API_VERSION
 from apps.workflows.workflow import WorkflowFramework
 from osidb.helpers import get_env
 
@@ -35,7 +35,7 @@ def ldap_test_password():
 
 @pytest.fixture
 def test_scheme_host():
-    return "http://osidb-service:8000/osim"
+    return "http://osidb-service:8000/workflows"
 
 
 @pytest.fixture
@@ -45,7 +45,7 @@ def test_scheme_host_osidb():
 
 @pytest.fixture
 def api_version():
-    return OSIM_API_VERSION
+    return WORKFLOWS_API_VERSION
 
 
 @pytest.fixture
