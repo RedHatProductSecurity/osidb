@@ -22,6 +22,49 @@ from .utils import find_cves, find_cvss, find_cwes, html_to_text
 logger = logging.getLogger(__name__)
 
 
+###############################################################################
+#
+#
+#       8888888 8888888888 ,o888888o.     8 888888888o.          ,o888888o.
+#             8 8888    . 8888     `88.   8 8888    `^888.    . 8888     `88.
+#             8 8888   ,8 8888       `8b  8 8888        `88. ,8 8888       `8b
+#             8 8888   88 8888        `8b 8 8888         `88 88 8888        `8b
+#             8 8888   88 8888         88 8 8888          88 88 8888         88
+#             8 8888   88 8888         88 8 8888          88 88 8888         88
+#             8 8888   88 8888        ,8P 8 8888         ,88 88 8888        ,8P
+#             8 8888   `8 8888       ,8P  8 8888        ,88' `8 8888       ,8P
+#             8 8888    ` 8888     ,88'   8 8888    ,o88P'    ` 8888     ,88'
+#             8 8888       `8888888P'     8 888888888P'          `8888888P'
+#
+#
+# * TODO: Replace elinks with a Python-native solution if you don't want the
+#         added complexity of installing elinks into the container image.
+#         A possible approach is to use what's described in OSIDB-1454.
+#
+# * TODO: Pass new Snippets to Snippet.convert_snippet_to_flaws().
+#         See PR 388 for details.
+#
+# * TODO: Pass only those Snippets for conversion that have "create_flaws": True.
+#         The Snippet creation machinery just creates everything, but the
+#         "create_flaws": False snippets are just for internal bookkeeping.
+#
+# * TODO: Eliminate "create_flaws" field from the Snippet contents. The Snippet
+#         creation machinery ignores it anyway, so it's not necessary to waste
+#         space storing it.
+#
+# * TODO: Change the structure of Snippet contents based on current practices
+#         in other uses of Snippet. E.g. how CVSS is structured.
+#
+# * TODO: Generate one Snippet per CVE. So if a feed entry contains three CVEs,
+#         create three almost identical Snippets, each differing in just the CVE.
+#
+# * NOTE: These TODOs have been left in in order to not waste time on an
+#         approach that turned out to be probably not necessary anymore at the
+#         last moment.
+#
+###############################################################################
+
+
 class ConfigurationAdapter:
     def get_config(self):
         raise NotImplementedError
