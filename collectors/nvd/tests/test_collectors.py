@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from collectors.framework.models import CollectorMetadata
 from collectors.nvd.collectors import NVDCollector
-from osidb.models import Flaw, FlawCVSS, Snippet
+from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
 from osidb.tests.factories import FlawCVSSFactory, FlawFactory
 
 pytestmark = pytest.mark.integration
@@ -238,12 +238,12 @@ class TestNVDCollector:
             "cve_ids": ["CVE-2017-7542"],
             "cvss2": {
                 "score": 4.9,
-                "issuer": "nvd@nist.gov",
+                "issuer": FlawCVSS.CVSSIssuer.NIST,
                 "vector": "AV:L/AC:L/Au:N/C:N/I:N/A:C",
             },
             "cvss3": {
                 "score": 5.5,
-                "issuer": "nvd@nist.gov",
+                "issuer": FlawCVSS.CVSSIssuer.NIST,
                 "vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
             },
             "cwe_id": "CWE-190|CWE-835",
@@ -251,47 +251,53 @@ class TestNVDCollector:
             "references": [
                 {
                     "url": "https://nvd.nist.gov/vuln/detail/CVE-2017-7542",
-                    "type": "SOURCE",
+                    "type": FlawReference.FlawReferenceType.SOURCE,
                 },
                 {
                     "url": "http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=6399f1fae4ec29fab5ec76070435555e256ca3a6",
-                    "type": "EXTERNAL",
+                    "type": FlawReference.FlawReferenceType.EXTERNAL,
                 },
                 {
                     "url": "http://www.debian.org/security/2017/dsa-3927",
-                    "type": "EXTERNAL",
+                    "type": FlawReference.FlawReferenceType.EXTERNAL,
                 },
                 {
                     "url": "http://www.debian.org/security/2017/dsa-3945",
-                    "type": "EXTERNAL",
+                    "type": FlawReference.FlawReferenceType.EXTERNAL,
                 },
                 {"url": "http://www.securityfocus.com/bid/99953", "type": "EXTERNAL"},
                 {
                     "url": "https://access.redhat.com/errata/RHSA-2017:2918",
-                    "type": "EXTERNAL",
+                    "type": FlawReference.FlawReferenceType.EXTERNAL,
                 },
                 {
                     "url": "https://access.redhat.com/errata/RHSA-2017:2930",
-                    "type": "EXTERNAL",
+                    "type": FlawReference.FlawReferenceType.EXTERNAL,
                 },
                 {
                     "url": "https://access.redhat.com/errata/RHSA-2017:2931",
-                    "type": "EXTERNAL",
+                    "type": FlawReference.FlawReferenceType.EXTERNAL,
                 },
                 {
                     "url": "https://access.redhat.com/errata/RHSA-2018:0169",
-                    "type": "EXTERNAL",
+                    "type": FlawReference.FlawReferenceType.EXTERNAL,
                 },
                 {
                     "url": "https://github.com/torvalds/linux/commit/6399f1fae4ec29fab5ec76070435555e256ca3a6",
-                    "type": "EXTERNAL",
+                    "type": FlawReference.FlawReferenceType.EXTERNAL,
                 },
                 {
                     "url": "https://help.ecostruxureit.com/display/public/UADCE725/Security+fixes+in+StruxureWare+Data+Center+Expert+v7.6.0",
-                    "type": "EXTERNAL",
+                    "type": FlawReference.FlawReferenceType.EXTERNAL,
                 },
-                {"url": "https://usn.ubuntu.com/3583-1/", "type": "EXTERNAL"},
-                {"url": "https://usn.ubuntu.com/3583-2/", "type": "EXTERNAL"},
+                {
+                    "url": "https://usn.ubuntu.com/3583-1/",
+                    "type": FlawReference.FlawReferenceType.EXTERNAL,
+                },
+                {
+                    "url": "https://usn.ubuntu.com/3583-2/",
+                    "type": FlawReference.FlawReferenceType.EXTERNAL,
+                },
             ],
         }
 

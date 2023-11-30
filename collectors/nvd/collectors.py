@@ -10,7 +10,7 @@ from collectors.constants import SNIPPET_CREATION_ENABLED
 from collectors.framework.models import Collector
 from collectors.keywords import should_create_snippet
 from osidb.core import set_user_acls
-from osidb.models import Flaw, FlawCVSS, Snippet
+from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
 
 logger = get_task_logger(__name__)
 
@@ -74,7 +74,7 @@ class NVDQuerier:
                 return None
 
             return {
-                "issuer": cvss_data.source,
+                "issuer": FlawCVSS.CVSSIssuer.NIST,
                 "score": cvss_data.cvssData.baseScore,
                 "vector": cvss_data.cvssData.vectorString,
             }
@@ -106,11 +106,16 @@ class NVDQuerier:
             Return the source URL and all other URLs from `data`.
             """
             urls = [
-                {"type": "SOURCE", "url": f"https://nvd.nist.gov/vuln/detail/{data.id}"}
+                {
+                    "type": FlawReference.FlawReferenceType.SOURCE,
+                    "url": f"https://nvd.nist.gov/vuln/detail/{data.id}",
+                }
             ]
 
             for r in data.references:
-                urls.append({"type": "EXTERNAL", "url": r.url})
+                urls.append(
+                    {"type": FlawReference.FlawReferenceType.EXTERNAL, "url": r.url}
+                )
 
             return urls
 

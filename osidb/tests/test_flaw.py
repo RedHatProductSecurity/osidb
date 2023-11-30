@@ -2442,17 +2442,17 @@ class TestSnippet:
             "cve_id": "CVE-2023-0001",
             "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-0001",
             "cvss3": {
-                "issuer": "NIST",
+                "issuer": FlawCVSS.CVSSIssuer.NIST,
                 "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
             },
             "cwe_id": "CWE-116",
         }
 
-        snippet = Snippet(source="NVD", content=snippet_data)
+        snippet = Snippet(source=Snippet.Source.NVD, content=snippet_data)
         snippet.save()
 
         assert snippet
-        assert snippet.source == "NVD"
+        assert snippet.source == Snippet.Source.NVD
         assert snippet.content == snippet_data
         assert snippet.acl_read == [
             uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])
