@@ -13,6 +13,7 @@ from django.contrib.auth.models import User
 from django.contrib.postgres import fields
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.exceptions import (
+    FieldDoesNotExist,
     MultipleObjectsReturned,
     ObjectDoesNotExist,
     ValidationError,
@@ -277,6 +278,7 @@ class FlawSource(models.TextChoices):
     NETDEV = "NETDEV"
     NISCC = "NISCC"
     NOVALUE = ""
+    NVD = "NVD"
     OCERT = "OCERT"
     OPENOFFICE = "OPENOFFICE"  # OPENOFFICE.ORG
     OPENSSL = "OPENSSL"
@@ -451,6 +453,12 @@ class FlawSource(models.TextChoices):
             self.XEN,
         }
 
+    @property
+    def from_snippet(self):
+        return {
+            self.NVD,
+        }
+
     def is_private(self):
         """
         Returns True if the source is private, False otherwise.
@@ -474,6 +482,12 @@ class FlawSource(models.TextChoices):
         Returns True if the source is allowed (not historical), False otherwise.
         """
         return self in self.allowed
+
+    def is_from_snippet(self):
+        """
+        Returns True if the source is Snippet, False otherwise.
+        """
+        return self in self.from_snippet
 
 
 class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
@@ -1330,7 +1344,11 @@ class Flaw(
         """
         Checks that the flaw source is allowed (not historical).
         """
-        if self.source and not FlawSource(self.source).is_allowed():
+        if (
+            self.source
+            and not FlawSource(self.source).is_allowed()
+            and not FlawSource(self.source).is_from_snippet()
+        ):
             raise ValidationError("The flaw has a disallowed (historical) source.")
 
     def _validate_article_links_count_via_flaw(self):
@@ -1515,8 +1533,72 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
     # if possible, these values should correspond to attributes in Flaw
     content = models.JSONField(default=dict)
 
-    # a flaw can have many snippets, and a snippet can have many flaws
-    flaws = models.ManyToManyField(Flaw, related_name="snippets", blank=True)
+    # one flaw can have many snippets
+    flaw = models.ForeignKey(
+        Flaw, on_delete=models.CASCADE, related_name="snippets", blank=True, null=True
+    )
+
+    def convert_snippet_to_flaw(self) -> Union[Flaw, None]:
+        """
+        Creates a new flaw from the snippet's content if a flaw with the given cve_id
+        does not exist, and links them together. If a flaw already exists and does not
+        contain the snippet of the current source, the snippet will be linked to it.
+
+        Returns a flaw if it was newly created, None otherwise.
+        """
+        cve_id = self.content["cve_id"]
+        created_flaw = None
+
+        if not cve_id or not Flaw.objects.filter(cve_id=cve_id):
+            flaw = self._create_flaw()
+            created_flaw = flaw
+        else:
+            flaw = Flaw.objects.filter(cve_id=cve_id).first()
+
+        # links either a newly created or an already existing flaw to the snippet
+        self.flaw = flaw
+        self.save()
+
+        return created_flaw
+
+    def _create_flaw(self) -> Flaw:
+        """
+        Internal helper function to create a new flaw from the snippet's content. Any data
+        from the snippet's content that does not match the fields in Flaw will be ignored.
+
+        Returns a newly created flaw.
+        """
+        main_model = {}
+        related_models = {}
+
+        for key, value in self.content.items():
+            try:
+                field = Flaw._meta.get_field(key)
+
+                if field.is_relation:
+                    related_models[field.related_model] = value
+                elif field.model not in main_model:
+                    main_model[field.model] = {key: value}
+                else:
+                    main_model[field.model].update({key: value})
+            except FieldDoesNotExist:
+                # anything that does not match the fields in Flaw will be ignored
+                pass
+
+        shared_acl = {"acl_read": self.acl_read, "acl_write": self.acl_write}
+
+        # Flaw model has to be created first
+        model, data = [i for i in main_model.items()][0]
+        flaw = model(**data, **shared_acl)
+        flaw.save(raise_validation_error=False)
+
+        # creates related models (e.g. FlawCVSS)
+        for model, list_of_data in related_models.items():
+            for data in list_of_data:
+                related_model = model(flaw=flaw, **data, **shared_acl)
+                related_model.save()
+
+        return flaw
 
 
 class AffectManager(ACLMixinManager, TrackingMixinManager):

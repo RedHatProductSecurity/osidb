@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Command for manual sync of Flaws now also accepts CVEs (OSIDB-1544)
 - Add new SOURCE option into FlawReferenceType (OSIDB-1556)
 - Add Celery worker concurrency
+- Add new NVD option into FlawSource
 
 ### Fixed
 - Fix incorrect type bool of is_up2date field in

@@ -583,7 +583,7 @@ class ACLMixin(models.Model):
         """
         validate that the eventual parent flaw has the identical ACLs
         """
-        if hasattr(self, "flaw"):
+        if hasattr(self, "flaw") and self.flaw:
             if not self.is_embargoed == self.flaw.is_embargoed:
                 raise ValidationError(
                     "ACLs must correspond to the parrent flaw: "
