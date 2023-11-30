@@ -22,7 +22,6 @@ from osidb.models import (
     FlawSource,
     FlawType,
     Impact,
-    Snippet,
     Tracker,
 )
 from osidb.tests.factories import (
@@ -2431,40 +2430,3 @@ class TestFlawValidators:
         affect = AffectFactory(ps_module="test-ps-module", ps_component=ps_component)
 
         assert should_raise == bool("flaw_affects_unknown_component" in affect._alerts)
-
-
-class TestSnippet:
-    def test_create(self):
-        """
-        Tests the creation of snippets with and without a flaw.
-        """
-        snippet_data = {
-            "cve_id": "CVE-2023-0001",
-            "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-0001",
-            "cvss3": {
-                "issuer": FlawCVSS.CVSSIssuer.NIST,
-                "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
-            },
-            "cwe_id": "CWE-116",
-        }
-
-        snippet = Snippet(source=Snippet.Source.NVD, content=snippet_data)
-        snippet.save()
-
-        assert snippet
-        assert snippet.source == Snippet.Source.NVD
-        assert snippet.content == snippet_data
-        assert snippet.acl_read == [
-            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])
-        ]
-        assert snippet.acl_write == [
-            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
-        ]
-        assert snippet.flaws.count() == 0
-
-        flaw = FlawFactory(cve_id="CVE-2023-0001")
-        AffectFactory(flaw=flaw)
-        flaw.save()
-        snippet.flaws.add(flaw)
-
-        assert snippet.flaws.count() == 1

@@ -235,18 +235,22 @@ class TestNVDCollector:
         cve = "CVE-2017-7542"
 
         snippet_content = {
-            "cve_ids": ["CVE-2017-7542"],
-            "cvss2": {
-                "score": 4.9,
-                "issuer": FlawCVSS.CVSSIssuer.NIST,
-                "vector": "AV:L/AC:L/Au:N/C:N/I:N/A:C",
-            },
-            "cvss3": {
-                "score": 5.5,
-                "issuer": FlawCVSS.CVSSIssuer.NIST,
-                "vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
-            },
-            "cwe_id": "CWE-190|CWE-835",
+            "cve_id": cve,
+            "cvss_scores": [
+                {
+                    "score": 4.9,
+                    "issuer": FlawCVSS.CVSSIssuer.NIST,
+                    "vector": "AV:L/AC:L/Au:N/C:N/I:N/A:C",
+                    "version": FlawCVSS.CVSSVersion.VERSION2,
+                },
+                {
+                    "score": 5.5,
+                    "issuer": FlawCVSS.CVSSIssuer.NIST,
+                    "vector": "CVSS:3.0/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+                    "version": FlawCVSS.CVSSVersion.VERSION3,
+                },
+            ],
+            "cwe_id": "(CWE-190|CWE-835)",
             "description": "The ip6_find_1stfragopt function in net/ipv6/output_core.c in the Linux kernel through 4.12.3 allows local users to cause a denial of service (integer overflow and infinite loop) by leveraging the ability to open a raw socket.",
             "references": [
                 {
@@ -299,6 +303,8 @@ class TestNVDCollector:
                     "type": FlawReference.FlawReferenceType.EXTERNAL,
                 },
             ],
+            "source": Snippet.Source.NVD,
+            "title": "placeholder only, see description",
         }
 
         # Default data
@@ -312,12 +318,12 @@ class TestNVDCollector:
         nvdc.collect(cve)
 
         all_snippets = Snippet.objects.filter(
-            source=Snippet.Source.NVD, content__cve_ids=[cve]
+            source=Snippet.Source.NVD, content__cve_id=cve
         )
         snippet = all_snippets.first()
 
         assert len(all_snippets) == 1
-        assert len(snippet.content) == 6
+        assert len(snippet.content) == 7
 
         for key, value in snippet_content.items():
             assert snippet.content[key] == value

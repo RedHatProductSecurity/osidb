@@ -24,6 +24,13 @@ class NVDQuerier:
     uses nvdlib implementation to ease the logic
     """
 
+    # maps NVD values to FlawCVSS values
+    NVD_CVSS_MAP = {
+        "cvssMetricV2": FlawCVSS.CVSSVersion.VERSION2,
+        "cvssMetricV30": FlawCVSS.CVSSVersion.VERSION3,
+        "cvssMetricV31": FlawCVSS.CVSSVersion.VERSION3,
+    }
+
     def get(self, **params: dict) -> list:
         """
         run query request with nvdlib with the given parameters
@@ -77,6 +84,7 @@ class NVDQuerier:
                 "issuer": FlawCVSS.CVSSIssuer.NIST,
                 "score": cvss_data.cvssData.baseScore,
                 "vector": cvss_data.cvssData.vectorString,
+                "version": self.NVD_CVSS_MAP[version],
             }
 
         def get_cwes(data: CVE) -> Union[str, None]:
@@ -93,7 +101,13 @@ class NVDQuerier:
                     if i.value not in ["NVD-CWE-Other", "NVD-CWE-noinfo"]:
                         cwes.add(i.value)
 
-            return "|".join(sorted(cwes)) or None
+            if len(cwes) == 1:
+                return list(cwes)[0]
+            elif len(cwes) > 1:
+                # e.g. (CWE-190|CWE-835)
+                return f"({'|'.join(sorted(cwes))})"
+            else:
+                return None
 
         def get_description(descriptions: list) -> Union[str, None]:
             """
@@ -124,17 +138,27 @@ class NVDQuerier:
             if getattr(vulnerability, "vulnStatus", False) == "Rejected":
                 continue
 
-            # cvss metrics and CWEs may not be present
+            # the result structure should match the Flaw fields
+            # note that cvss metrics and CWEs may not be present in data
             result.append(
                 {
-                    "cve": vulnerability.id,
-                    "cvss2": get_cvss_metric(vulnerability, "cvssMetricV2"),
-                    # get CVSS 3.1 or CVSS 3.0 if 3.1 is not present
-                    "cvss3": get_cvss_metric(vulnerability, "cvssMetricV31")
-                    or get_cvss_metric(vulnerability, "cvssMetricV30"),
+                    "cve_id": vulnerability.id,
+                    "cvss_scores": list(
+                        filter(
+                            lambda x: x is not None,
+                            [
+                                get_cvss_metric(vulnerability, "cvssMetricV2"),
+                                # get CVSS 3.1 or CVSS 3.0 if 3.1 is not present
+                                get_cvss_metric(vulnerability, "cvssMetricV31")
+                                or get_cvss_metric(vulnerability, "cvssMetricV30"),
+                            ],
+                        )
+                    ),
                     "cwe_id": get_cwes(vulnerability),
                     "description": get_description(vulnerability.descriptions),
                     "references": get_references(vulnerability),
+                    "source": Snippet.Source.NVD,
+                    "title": "placeholder only, see description",
                 }
             )
 
@@ -206,25 +230,27 @@ class NVDCollector(Collector, NVDQuerier):
 
         # process data
         for item in batch_data:
+            cve_id = item["cve_id"]
 
             if self.snippet_creation_enabled:
                 try:
                     Snippet.objects.get(
-                        source=Snippet.Source.NVD, content__cve_ids=[item["cve"]]
+                        source=Snippet.Source.NVD, content__cve_id=cve_id
                     )
                 except Snippet.DoesNotExist:
                     if should_create_snippet(item["description"]):
-                        self.create_snippet(item)
-                        new_snippets.append(item["cve"])
+                        snippet = Snippet(source=Snippet.Source.NVD, content=item)
+                        snippet.save()
+                        new_snippets.append(cve_id)
 
             try:
-                flaw = Flaw.objects.get(cve_id=item["cve"])
+                flaw = Flaw.objects.get(cve_id=cve_id)
                 # update NVD CVSS2 or CVSS3 data if necessary
                 updated_in_flaw = self.update_cvss_via_flaw(flaw, item)
                 updated_in_flawcvss = self.update_cvss_via_flawcvss(flaw, item)
 
                 if updated_in_flaw or updated_in_flawcvss:
-                    desync.append(item["cve"])
+                    desync.append(cve_id)
                     # no automatic timestamps as those go from Bugzilla
                     # and no validation exceptions not to fail here
                     flaw.save(auto_timestamps=False, raise_validation_error=False)
@@ -285,23 +311,6 @@ class NVDCollector(Collector, NVDQuerier):
         )
 
     @staticmethod
-    def create_snippet(item: dict) -> None:
-        """
-        Create a new snippet based on `item`.
-        """
-        content = {
-            "cve_ids": [item["cve"]],
-            "description": item["description"],
-            "references": item["references"],
-            "cvss2": item["cvss2"],
-            "cvss3": item["cvss3"],
-            "cwe_id": item["cwe_id"],
-        }
-
-        snippet = Snippet(source=Snippet.Source.NVD, content=content)
-        snippet.save()
-
-    @staticmethod
     def get_original_nvd_cvss(flaw: Flaw, cvss_version: str) -> Union[str, None]:
         """
         Return NVD CVSS data stored in OSIDB from `flaw` for the given `cvss_version`.
@@ -318,18 +327,18 @@ class NVDCollector(Collector, NVDQuerier):
     def get_new_nvd_cvss(item: dict, cvss_version: str, vector_only: bool) -> str:
         """
         Return NVD CVSS data stored in NVD from `item` for the given `cvss_version`.
-        `cvss_version` can be of 2 values: cvss2, cvss3.
+        `cvss_version` is of FlawCVSS.CVSSVersion enum type.
 
         If `vector_only` is True, only vector is returned; score/vector otherwise.
         """
-        cvss = ""
-        if item[cvss_version]:
-            if vector_only:
-                cvss = item[cvss_version]["vector"]
-            else:
-                cvss = f"{item[cvss_version]['score']}/{item[cvss_version]['vector']}"
+        cvss = [i for i in item["cvss_scores"] if i["version"] == cvss_version]
 
-        return cvss
+        if not cvss:
+            return ""
+        elif vector_only:
+            return cvss[0]["vector"]
+        else:
+            return f"{cvss[0]['score']}/{cvss[0]['vector']}"
 
     def update_cvss_via_flaw(self, flaw: Flaw, item: dict) -> bool:
         """
@@ -338,8 +347,12 @@ class NVDCollector(Collector, NVDQuerier):
 
         Note that this method updates the old unused fields.
         """
-        new_cvss2 = self.get_new_nvd_cvss(item, "cvss2", vector_only=False)
-        new_cvss3 = self.get_new_nvd_cvss(item, "cvss3", vector_only=False)
+        new_cvss2 = self.get_new_nvd_cvss(
+            item, FlawCVSS.CVSSVersion.VERSION2, vector_only=False
+        )
+        new_cvss3 = self.get_new_nvd_cvss(
+            item, FlawCVSS.CVSSVersion.VERSION3, vector_only=False
+        )
 
         # update CVSS2 and CVSS3 if necessary
         if were_updated := (
@@ -361,8 +374,14 @@ class NVDCollector(Collector, NVDQuerier):
         original_cvss2 = self.get_original_nvd_cvss(flaw, FlawCVSS.CVSSVersion.VERSION2)
         original_cvss3 = self.get_original_nvd_cvss(flaw, FlawCVSS.CVSSVersion.VERSION3)
 
-        new_cvss2 = self.get_new_nvd_cvss(item, "cvss2", vector_only=True) or None
-        new_cvss3 = self.get_new_nvd_cvss(item, "cvss3", vector_only=True) or None
+        new_cvss2 = (
+            self.get_new_nvd_cvss(item, FlawCVSS.CVSSVersion.VERSION2, vector_only=True)
+            or None
+        )
+        new_cvss3 = (
+            self.get_new_nvd_cvss(item, FlawCVSS.CVSSVersion.VERSION3, vector_only=True)
+            or None
+        )
 
         # update CVSS2 and CVSS3 if necessary
         if were_updated := (

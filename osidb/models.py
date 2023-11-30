@@ -1515,8 +1515,10 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
     # if possible, these values should correspond to attributes in Flaw
     content = models.JSONField(default=dict)
 
-    # a flaw can have many snippets, and a snippet can have many flaws
-    flaws = models.ManyToManyField(Flaw, related_name="snippets", blank=True)
+    # one flaw can have many snippets
+    flaw = models.ForeignKey(
+        Flaw, on_delete=models.CASCADE, related_name="snippets", blank=True, null=True
+    )
 
 
 class AffectManager(ACLMixinManager, TrackingMixinManager):
