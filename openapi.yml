@@ -1158,6 +1158,7 @@ paths:
           - MUTTDEV
           - NETDEV
           - NISCC
+          - NVD
           - OCERT
           - OPENOFFICE
           - OPENSSL
@@ -3296,6 +3297,7 @@ paths:
           - MUTTDEV
           - NETDEV
           - NISCC
+          - NVD
           - OCERT
           - OPENOFFICE
           - OPENSSL
@@ -5942,6 +5944,7 @@ paths:
           - MUTTDEV
           - NETDEV
           - NISCC
+          - NVD
           - OCERT
           - OPENOFFICE
           - OPENSSL
@@ -7942,7 +7945,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/Source666Enum'
+          - $ref: '#/components/schemas/Source8d8Enum'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
@@ -8623,7 +8626,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/Source666Enum'
+          - $ref: '#/components/schemas/Source8d8Enum'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
@@ -9493,7 +9496,7 @@ components:
       - DELEGATED
       - WONTREPORT
       type: string
-    Source666Enum:
+    Source8d8Enum:
       enum:
       - ADOBE
       - APPLE
@@ -9547,6 +9550,7 @@ components:
       - MUTTDEV
       - NETDEV
       - NISCC
+      - NVD
       - OCERT
       - OPENOFFICE
       - OPENSSL
