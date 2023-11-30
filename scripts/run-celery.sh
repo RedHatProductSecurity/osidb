@@ -15,14 +15,5 @@ echo
 # Postgresql makes the port available after the db is available, but wait some more to be sure. This can be removed if the real pg_isready is used.
 sleep 2
 
-echo "Waiting for http://osidb-service:8000/osidb/healthy to become available"
-while ! ( { curl -f http://osidb-service:8000/osidb/healthy >/dev/null 2>&1 || exit 1 ; } ) ; do echo -n "." ; sleep 2 ; done
-echo
-
-
-
-# custom run script for starting osidb celery service in osidb-stage and osidb-prod environments.
-
-rm -f /tmp/celery_worker.pid
-exec celery -A config worker --pidfile /tmp/celery_worker.pid -f celery.log --loglevel DEBUG --concurrency=3 -Q slow,fast -E
-
+# Reuse existing standalone version
+exec ./scripts/run-celery-standalone.sh

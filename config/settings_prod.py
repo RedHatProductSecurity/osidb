@@ -103,13 +103,7 @@ STATIC_URL = "/static/"
 
 REDIS_PASSWORD = get_env("OSIDB_REDIS_PASSWORD")
 CELERY_BROKER_URL = CELERY_RESULT_BACKEND = f"rediss://:{REDIS_PASSWORD}@redis:6379/"
-CELERY_BROKER_USE_SSL = {
-    "ssl_keyfile": "/opt/app-root/etc/redis/certs/osidb-redis.key",
-    "ssl_certfile": "/opt/app-root/etc/redis/certs/osidb-redis.crt",
-    "ssl_ca_certs": "/opt/app-root/etc/redis/certs/osidb-redis-ca.crt",
-    "ssl_cert_reqs": ssl.CERT_REQUIRED,
-}
-CELERY_REDIS_BACKEND_USE_SSL = {
+CELERY_BROKER_USE_SSL = CELERY_REDIS_BACKEND_USE_SSL = CELERY_RHUBARB_BACKEND_KWARGS = {
     "ssl_keyfile": "/opt/app-root/etc/redis/certs/osidb-redis.key",
     "ssl_certfile": "/opt/app-root/etc/redis/certs/osidb-redis.crt",
     "ssl_ca_certs": "/opt/app-root/etc/redis/certs/osidb-redis-ca.crt",
