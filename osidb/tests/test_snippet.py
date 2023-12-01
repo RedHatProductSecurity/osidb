@@ -10,7 +10,7 @@ from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource, FlawType, Sn
 pytestmark = pytest.mark.unit
 
 
-def get_snippet(cve_id="CVE-2023-0001"):
+def get_nvd_snippet(cve_id="CVE-2023-0001"):
     """
     Example snippet getter with a customizable `cve_id`.
     """
@@ -36,7 +36,7 @@ def get_snippet(cve_id="CVE-2023-0001"):
         "title": "placeholder only, see description",
     }
 
-    snippet = Snippet(source=Snippet.Source.NVD, content=content)
+    snippet = Snippet(source=Snippet.Source.NVD, external_id=cve_id, content=content)
     snippet.save()
 
     return snippet
@@ -47,7 +47,7 @@ class TestSnippet:
         """
         Tests the creation of a snippet.
         """
-        snippet = get_snippet()
+        snippet = get_nvd_snippet()
 
         assert snippet
         assert snippet.acl_read == [
@@ -62,7 +62,7 @@ class TestSnippet:
         """
         Tests the creation of a flaw from a snippet.
         """
-        snippet = get_snippet()
+        snippet = get_nvd_snippet()
         content = snippet.content
 
         created_flaw = snippet._create_flaw()
@@ -106,17 +106,16 @@ class TestSnippet:
     @pytest.mark.parametrize(
         "cve_id,has_flaw,has_snippet",
         [
-            (None, False, False),
             ("CVE-2023-0001", False, False),
             ("CVE-2023-0001", True, False),
             ("CVE-2023-0001", True, True),
         ],
     )
-    def test_convert_snippet_to_flaw(self, cve_id, has_flaw, has_snippet):
+    def test_convert_nvd_snippet_to_flaw(self, cve_id, has_flaw, has_snippet):
         """
-        Tests the conversion of a snippet into a flaw and their linking.
+        Tests the conversion of a NVD snippet into a flaw and their linking.
         """
-        snippet = get_snippet(cve_id)
+        snippet = get_nvd_snippet(cve_id)
 
         if has_flaw:
             f = snippet._create_flaw()
@@ -124,7 +123,7 @@ class TestSnippet:
                 snippet.flaw = f
                 snippet.save()
 
-        snippet.convert_snippet_to_flaw()
+        snippet.convert_nvd_snippet_to_flaw()
 
         flaws = Flaw.objects.filter(cve_id=cve_id, source=FlawSource.NVD)
         assert flaws.count() == 1

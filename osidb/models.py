@@ -1518,7 +1518,7 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         This class should be extended everytime a new collector is introduced.
         """
 
-        NVD = "NVD"
+        NVD = "NVD"  # External ID for this source is a CVE ID.
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1529,6 +1529,9 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     source = models.CharField(choices=Source.choices, max_length=100)
+    # A unique ID of this snippet as it is defined in the external data source where the
+    # snippet was collected from.
+    external_id = models.CharField(max_length=200)
 
     # if possible, these values should correspond to attributes in Flaw
     content = models.JSONField(default=dict)
@@ -1538,7 +1541,14 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         Flaw, on_delete=models.CASCADE, related_name="snippets", blank=True, null=True
     )
 
-    def convert_snippet_to_flaw(self) -> Union[Flaw, None]:
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="unique_snippets", fields=["source", "external_id"]
+            ),
+        ]
+
+    def convert_nvd_snippet_to_flaw(self) -> Union[Flaw, None]:
         """
         Creates a new flaw from the snippet's content if a flaw with the given cve_id
         does not exist, and links them together. If a flaw already exists and does not
@@ -1546,14 +1556,13 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
 
         Returns a flaw if it was newly created, None otherwise.
         """
-        cve_id = self.content["cve_id"]
+        cve_id = self.external_id
         created_flaw = None
 
-        if not cve_id or not Flaw.objects.filter(cve_id=cve_id):
+        flaw = Flaw.objects.filter(cve_id=cve_id).first()
+        if not flaw:
             flaw = self._create_flaw()
             created_flaw = flaw
-        else:
-            flaw = Flaw.objects.filter(cve_id=cve_id).first()
 
         # links either a newly created or an already existing flaw to the snippet
         self.flaw = flaw

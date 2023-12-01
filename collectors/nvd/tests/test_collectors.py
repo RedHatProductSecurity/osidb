@@ -309,7 +309,9 @@ class TestNVDCollector:
 
         # Default data
         if has_snippet:
-            snippet = Snippet(source=Snippet.Source.NVD, content=snippet_content)
+            snippet = Snippet(
+                source=Snippet.Source.NVD, external_id=cve, content=snippet_content
+            )
             snippet.save()
 
         nvdc = NVDCollector()
@@ -318,7 +320,7 @@ class TestNVDCollector:
         nvdc.collect(cve)
 
         all_snippets = Snippet.objects.filter(
-            source=Snippet.Source.NVD, content__cve_id=cve
+            source=Snippet.Source.NVD, external_id=cve
         )
         snippet = all_snippets.first()
 
