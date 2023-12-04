@@ -218,7 +218,7 @@ class TestBZImportCollector:
 class TestBugzillaTrackerCollector:
     def test_jira_connection(self, flaw_collector):
         """Test that collector is able to instantiate a Jira connection object"""
-        assert flaw_collector.jira_conn
+        assert flaw_collector.jira_querier.jira_conn
 
     @pytest.mark.vcr
     def test_sync_tracker(self, bz_tracker_collector):
