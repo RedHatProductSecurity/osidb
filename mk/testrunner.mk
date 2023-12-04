@@ -39,3 +39,5 @@ testrunner.secrets:
 	$(podman) exec -it testrunner tox -e secrets
 testrunner.krb5-auth:
 	$(podman) exec -it testrunner tox -e krb5-auth
+testrunner.rls:
+	$(podman) exec -it testrunner tox -e rls

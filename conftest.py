@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.db.models.signals import (
     m2m_changed,
@@ -12,6 +13,7 @@ from django.db.models.signals import (
 from rest_framework.test import APIClient
 
 from osidb.constants import OSIDB_API_VERSION
+from osidb.core import set_user_acls
 
 
 def strip_private_bz_comments(body):
@@ -143,7 +145,7 @@ def tokens(ldap_test_username, ldap_test_password):
 # https://www.cameronmaske.com/muting-django-signals-with-a-pytest-fixture/
 @pytest.fixture(autouse=True)  # Automatically use in tests.
 def mute_signals(request):
-    # Skip applying, if marked with `enabled_signals`
+    # Skip applying, if marked with `enable_signals`
     if "enable_signals" in request.keywords:
         return
 
@@ -161,6 +163,14 @@ def mute_signals(request):
 
     # Called after a test has finished.
     request.addfinalizer(restore_signals)
+
+
+@pytest.fixture(autouse=True)
+def bypass_rls(db, request):
+    # Don't bypass if marked with `enable_rls`
+    if "enable_rls" in request.keywords:
+        return
+    set_user_acls(settings.ALL_GROUPS)
 
 
 @pytest.fixture
