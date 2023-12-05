@@ -324,7 +324,9 @@ class TestTrackerAPI:
         assert updated_dt != tracker.meta_attr["updated_dt"]
 
     @pytest.mark.vcr
-    def test_tracker_create_jira(self, auth_client, enable_jira_sync, test_api_uri):
+    def test_tracker_create_jira(
+        self, auth_client, enable_bugzilla_sync, enable_jira_sync, test_api_uri
+    ):
         """
         test the whole stack Jira tracker creation
         starting on the API and ending in Jira
@@ -348,6 +350,7 @@ class TestTrackerAPI:
             embargoed=False,
             impact=Impact.LOW,
             title="sample title",
+            updated_dt=timezone.datetime.strptime("2023-12-05T16:17:13Z", BZ_DT_FMT),
         )
         affect = AffectFactory(
             flaw=flaw,
@@ -395,6 +398,14 @@ class TestTrackerAPI:
         assert tracker.affects.count() == 1
         assert tracker.affects.first() == affect
         assert not tracker._alerts
+
+        # 5) reload the flaw and check that the tracker still links
+        #    to make sure that the SRT notes were properly updated
+        fc = FlawCollector()
+        fc.sync_flaw(flaw.bz_id)
+        assert tracker.affects.count() == 1
+        assert tracker.affects.first() == affect
+        assert tracker.affects.first().flaw == flaw
 
     @pytest.mark.vcr
     def test_tracker_update_jira(self, auth_client, enable_jira_sync, test_api_uri):

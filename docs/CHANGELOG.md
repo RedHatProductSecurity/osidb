@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement SLA definition parsing and timestamp computation (OSIDB-1428)
 - Implement tracker SLA start date setting (OSIDB-1393)
 - Implement tracker SLA end date setting (OSIDB-96)
+- Properly link Jira trackers to flaws on creation (OSIDB-1426)
 
 ### Fixed
 - Fix incorrect type bool of is_up2date field in

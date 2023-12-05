@@ -466,9 +466,12 @@ class TrackerSerializer(
 
     def create(self, validated_data):
         """
-        perform the ordinary instance create
-        with providing the API keys while saving
+        perform the tracker instance creation
         """
+        ############################
+        # 1) prepare prerequisites #
+        ############################
+
         # transform the embargoed status to the ACLs
         validated_data = ACLMixinSerializer.embargoed2acls(self, validated_data)
 
@@ -488,18 +491,49 @@ class TrackerSerializer(
             )
 
         affects = validated_data.pop("affects", [])
-        instance = self.Meta.model(**validated_data)
-        # first save the instance to the local DB only
-        # so we can make the links before the backend sync
-        instance.save()
-        for affect in affects:
-            instance.affects.add(affect)
+        tracker = self.Meta.model(**validated_data)
 
-        instance.save(
-            bz_api_key=self.get_bz_api_key(), jira_token=self.get_jira_token()
+        #########################
+        # 2) pre-create actions #
+        #########################
+
+        # create new tracker instance in the local DB first
+        # so we can create the links before the backend sync
+        tracker.save()
+        # create affect-tracker links
+        for affect in affects:
+            tracker.affects.add(affect)
+
+        #####################
+        # 3) create actions #
+        #####################
+
+        tracker.save(
+            # the serializer does not care for the backend system
+            # therefore at this point we simply require both secrets
+            bz_api_key=self.get_bz_api_key(),
+            jira_token=self.get_jira_token(),
         )
 
-        return instance
+        ##########################
+        # 4) post-create actions #
+        ##########################
+
+        # related flaws need to be saved to Bugzilla in order to update SRT notes with the new
+        # Jira tracker ID (Bugzilla trackers are linked naturally through Bugzilla relations)
+        if tracker.type == Tracker.TrackerType.JIRA:
+            for affect in affects:
+                # do not raise validation errors here as the flaw is not what the user touches
+                # which would make the errors hard to understand and cause the tracker to orphan
+                affect.flaw.save(
+                    bz_api_key=self.get_bz_api_key(), raise_validation_error=False
+                )
+
+        #####################
+        # 5) return created #
+        #####################
+
+        return tracker
 
     def update(self, instance, validated_data):
         """
