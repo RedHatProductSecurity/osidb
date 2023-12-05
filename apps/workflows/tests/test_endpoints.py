@@ -15,7 +15,7 @@ class TestEndpoints(object):
     # workflows/
     def test_index_auth(self, auth_client, test_scheme_host):
         """test authenticated index API endpoint"""
-        response = auth_client.get(f"{test_scheme_host}/")
+        response = auth_client().get(f"{test_scheme_host}/")
         assert response.status_code == 200
         body = response.json()
         assert body["index"] == [f"/{url.pattern}" for url in urlpatterns]
@@ -34,7 +34,7 @@ class TestEndpoints(object):
     # workflows
     def test_workflows_auth(self, auth_client, test_api_uri):
         """test authenticated workflows API endpoint"""
-        response = auth_client.get(f"{test_api_uri}")
+        response = auth_client().get(f"{test_api_uri}")
         assert response.status_code == 200
         body = response.json()
         workflows = WorkflowSerializer(WorkflowFramework().workflows, many=True).data
@@ -48,7 +48,7 @@ class TestEndpoints(object):
     def test_workflows_cve(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint"""
         flaw = FlawFactory()
-        response = auth_client.get(f"{test_api_uri}/{flaw.cve_id}")
+        response = auth_client().get(f"{test_api_uri}/{flaw.cve_id}")
         assert response.status_code == 200
         body = response.json()
         assert body["flaw"] == str(flaw.uuid)
@@ -59,7 +59,7 @@ class TestEndpoints(object):
     def test_workflows_uuid(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint"""
         flaw = FlawFactory()
-        response = auth_client.get(f"{test_api_uri}/{flaw.uuid}")
+        response = auth_client().get(f"{test_api_uri}/{flaw.uuid}")
         assert response.status_code == 200
         body = response.json()
         assert body["flaw"] == str(flaw.uuid)
@@ -69,7 +69,7 @@ class TestEndpoints(object):
     def test_workflows_uuid_verbose(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint with verbose parameter"""
         flaw = FlawFactory()
-        response = auth_client.get(f"{test_api_uri}/{flaw.uuid}?verbose=true")
+        response = auth_client().get(f"{test_api_uri}/{flaw.uuid}?verbose=true")
         assert response.status_code == 200
         body = response.json()
         assert body["flaw"] == str(flaw.uuid)
@@ -78,7 +78,7 @@ class TestEndpoints(object):
 
     def test_workflows_uuid_non_existing(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint with non-exising flaw"""
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/35d1ad45-0dba-41a3-bad6-5dd36d624ead"
         )
         assert response.status_code == 404
@@ -161,7 +161,7 @@ class TestEndpoints(object):
         flaw.major_incident_state = Flaw.FlawMajorIncident.NOVALUE
         flaw.save()
 
-        response = auth_client.post(f"{test_api_uri}/{flaw.uuid}/adjust")
+        response = auth_client().post(f"{test_api_uri}/{flaw.uuid}/adjust")
         assert response.status_code == 200
         body = response.json()
         assert body["flaw"] == str(flaw.uuid)
@@ -183,7 +183,7 @@ class TestEndpoints(object):
         test authenticated workflow classification adjusting API endpoint with no flaw modification
         """
         flaw = FlawFactory()
-        response = auth_client.post(f"{test_api_uri}/{flaw.uuid}/adjust")
+        response = auth_client().post(f"{test_api_uri}/{flaw.uuid}/adjust")
         assert response.status_code == 200
         body = response.json()
         assert body["flaw"] == str(flaw.uuid)
@@ -194,7 +194,7 @@ class TestEndpoints(object):
         """
         test authenticated workflow classification adjusting API endpoint with non-exising flaw
         """
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/35d1ad45-0dba-41a3-bad6-5dd36d624ead/adjust"
         )
         assert response.status_code == 404
@@ -250,7 +250,7 @@ class TestEndpoints(object):
         assert flaw.classification["workflow"] == "default workflow"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
         headers = {"HTTP_JIRA_API_KEY": user_token}
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
             format="json",
@@ -264,7 +264,7 @@ class TestEndpoints(object):
         flaw.cwe_id = "CWE-1"
         flaw.save()
 
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
             format="json",
@@ -281,7 +281,7 @@ class TestEndpoints(object):
         flaw.summary = "valid summary"
         flaw.save()
 
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
             format="json",
@@ -292,7 +292,7 @@ class TestEndpoints(object):
         body = response.json()
         assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
 
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
             format="json",
@@ -367,7 +367,7 @@ class TestEndpoints(object):
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
         headers = {"HTTP_JIRA_API_KEY": user_token}
 
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reject",
             data={},
             format="json",
@@ -378,7 +378,7 @@ class TestEndpoints(object):
         assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
 
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reject",
             data={"reason": "This was a spam."},
             format="json",

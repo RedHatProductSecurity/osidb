@@ -55,7 +55,7 @@ class TestBBSyncIntegration:
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/flaws",
             flaw_data,
             format="json",
@@ -65,7 +65,7 @@ class TestBBSyncIntegration:
         body = response.json()
         created_uuid = body["uuid"]
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{created_uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{created_uuid}")
         assert response.status_code == 200
         assert response.json()["cve_id"] == "CVE-2021-0773"
         assert response.json()["title"] == "Foo"
@@ -106,7 +106,7 @@ class TestBBSyncIntegration:
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
@@ -114,7 +114,7 @@ class TestBBSyncIntegration:
         )
         assert response.status_code == 200
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
         assert response.json()["title"] == "Bar"
 
@@ -156,7 +156,7 @@ class TestBBSyncIntegration:
             "updated_dt": flaw.updated_dt,
             "embargoed": False,
         }
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
@@ -164,7 +164,7 @@ class TestBBSyncIntegration:
         )
         assert response.status_code == 200
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
         assert response.json()["cve_id"] == "CVE-2000-3000"
 
@@ -206,7 +206,7 @@ class TestBBSyncIntegration:
             "updated_dt": flaw.updated_dt,
             "embargoed": False,
         }
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
@@ -214,7 +214,7 @@ class TestBBSyncIntegration:
         )
         assert response.status_code == 200
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
         assert response.json()["cve_id"] is None
 
@@ -265,7 +265,7 @@ class TestBBSyncIntegration:
             "unembargo_dt": None,
             "updated_dt": flaw.updated_dt,
         }
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
@@ -273,7 +273,7 @@ class TestBBSyncIntegration:
         )
         assert response.status_code == 200
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
         assert response.json()["unembargo_dt"] is None
 
@@ -304,7 +304,7 @@ class TestBBSyncIntegration:
             "resolution": "FIX",
             "embargoed": False,
         }
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/affects",
             affect_data,
             format="json",
@@ -314,7 +314,7 @@ class TestBBSyncIntegration:
         body = response.json()
         created_uuid = body["uuid"]
 
-        response = auth_client.get(f"{test_api_uri}/affects/{created_uuid}")
+        response = auth_client().get(f"{test_api_uri}/affects/{created_uuid}")
         assert response.status_code == 200
         assert response.json()["ps_module"] == "rhel-8"
         assert response.json()["ps_component"] == "kernel"
@@ -356,7 +356,7 @@ class TestBBSyncIntegration:
             "embargoed": False,
             "updated_dt": affect.updated_dt,
         }
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/affects/{affect.uuid}",
             affect_data,
             format="json",
@@ -364,7 +364,7 @@ class TestBBSyncIntegration:
         )
         assert response.status_code == 200
 
-        response = auth_client.get(f"{test_api_uri}/affects/{affect.uuid}")
+        response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
         assert response.json()["ps_module"] == "rhel-8"
         assert response.json()["ps_component"] == "kernel"
@@ -403,14 +403,14 @@ class TestBBSyncIntegration:
             ps_component="openssl",
         )
 
-        response = auth_client.delete(
+        response = auth_client().delete(
             f"{test_api_uri}/affects/{affect.uuid}",
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
         )
         assert response.status_code == 200
 
-        response = auth_client.get(f"{test_api_uri}/affects/{affect.uuid}")
+        response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == 404
 
     @pytest.mark.vcr(
@@ -428,7 +428,7 @@ class TestBBSyncIntegration:
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "embargoed": False,
         }
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/flaws",
             flaw_data,
             format="json",
@@ -493,7 +493,7 @@ class TestBBSyncIntegration:
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/flaws/{flaw1.uuid}",
             flaw_data,
             format="json",
@@ -560,7 +560,7 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         with pytest.raises(UnsaveableFlawError, match="Unable to remove a CVE ID"):
-            auth_client.put(
+            auth_client().put(
                 f"{test_api_uri}/flaws/{flaw1.uuid}",
                 flaw_data,
                 format="json",

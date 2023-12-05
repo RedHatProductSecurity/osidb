@@ -210,7 +210,7 @@ class TestTrackerAPI:
             "ps_update_stream": ps_update_stream.name,
             "status": "NEW",  # this one is mandatory even though ignored in the backend query for now
         }
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/trackers",
             tracker_data,
             format="json",
@@ -296,7 +296,7 @@ class TestTrackerAPI:
             "status": "NEW",  # this one is mandatory even though ignored in the backend query for now
             "updated_dt": updated_dt,
         }
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/trackers/{tracker.uuid}",
             tracker_data,
             format="json",
@@ -373,7 +373,7 @@ class TestTrackerAPI:
             "ps_update_stream": ps_update_stream.name,
             "status": "New",  # this one is mandatory even though ignored in the backend query for now
         }
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/trackers",
             tracker_data,
             format="json",
@@ -514,7 +514,7 @@ class TestTrackerAPI:
             "status": "New",  # this one is mandatory even though ignored in the backend query for now
             "updated_dt": updated_dt,
         }
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/trackers/{tracker.uuid}",
             tracker_data,
             format="json",

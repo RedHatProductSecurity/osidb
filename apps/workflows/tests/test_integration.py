@@ -198,7 +198,7 @@ class TestIntegration(object):
 class TestRestApi(object):
     def test_index(self, auth_client, test_scheme_host):
         """test access index API"""
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_scheme_host}/",
             data={},
             format="json",
@@ -210,7 +210,7 @@ class TestRestApi(object):
 
     def test_healthy(self, auth_client, test_scheme_host):
         """test access healthy API"""
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_scheme_host}/healthy",
             data={},
             format="json",
@@ -255,7 +255,7 @@ class TestRestApi(object):
         flaw.cwe_id = "CWE-1"
         flaw.save(raise_validation_error=False)
 
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/{flaw.uuid}/adjust",
             data={},
             format="json",
@@ -291,7 +291,7 @@ class TestRestApi(object):
         flaw = FlawFactory()
         AffectFactory(flaw=flaw)
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/{flaw.uuid}",
             data={},
             format="json",
@@ -306,7 +306,7 @@ class TestRestApi(object):
         assert json_body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
 
     def test_workflows(self, auth_client, test_api_uri):
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}",
             data={},
             format="json",

@@ -69,7 +69,7 @@ class TestTrackerSuggestions:
         )
 
         headers = {"HTTP_JiraAuthentication": user_token}
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_app_api_uri}/file",
             data={"flaw_uuids": [flaw.uuid]},
             format="json",
@@ -134,7 +134,7 @@ class TestTrackerSuggestions:
         )
 
         headers = {"HTTP_JiraAuthentication": user_token}
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_app_api_uri}/file",
             data={"flaw_uuids": [flaw.uuid, flaw_embargoed.uuid]},
             format="json",
@@ -188,7 +188,7 @@ class TestTrackerSuggestions:
         ).save()
 
         headers = {"HTTP_JiraAuthentication": user_token}
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_app_api_uri}/file",
             data={"flaw_uuids": [flaw.uuid]},
             format="json",
@@ -259,7 +259,7 @@ class TestTrackerSuggestions:
         ).save()
 
         headers = {"HTTP_JiraAuthentication": user_token}
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_app_api_uri}/file",
             data={"flaw_uuids": [flaw1.uuid, flaw2.uuid]},
             format="json",
@@ -305,7 +305,7 @@ class TestTrackerSuggestions:
         ).save()
 
         headers = {"HTTP_JiraAuthentication": user_token}
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_app_api_uri}/file",
             data={"flaw_uuids": [flaw3.uuid]},
             format="json",
