@@ -455,9 +455,13 @@ objectclass: groupOfNames
 # internal data
 dn: cn=data-internal-read,ou=users,dc=redhat,dc=com
 cn: data-internal-read
+member: cn=user01,ou=users,dc=redhat,dc=com
+member: cn=jfuller,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # internal data
 dn: cn=data-internal-write,ou=users,dc=redhat,dc=com
 cn: data-internal-write
+member: cn=user01,ou=users,dc=redhat,dc=com
+member: cn=jfuller,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
