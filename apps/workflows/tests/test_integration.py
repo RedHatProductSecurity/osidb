@@ -252,7 +252,7 @@ class TestRestApi(object):
         flaw.save(raise_validation_error=False)
 
         response = auth_client.post(
-            f"{test_api_uri}/workflows/{flaw.uuid}/adjust",
+            f"{test_api_uri}/{flaw.uuid}/adjust",
             data={},
             format="json",
         )
@@ -286,7 +286,7 @@ class TestRestApi(object):
         AffectFactory(flaw=flaw)
 
         response = auth_client.get(
-            f"{test_api_uri}/workflows/{flaw.uuid}",
+            f"{test_api_uri}/{flaw.uuid}",
             data={},
             format="json",
         )
@@ -301,11 +301,10 @@ class TestRestApi(object):
 
     def test_workflows(self, auth_client, test_api_uri):
         response = auth_client.get(
-            f"{test_api_uri}/workflows",
+            f"{test_api_uri}",
             data={},
             format="json",
         )
         json_body = response.json()
         workflows = WorkflowSerializer(WorkflowFramework().workflows, many=True).data
-
         assert json_body["workflows"] == workflows
