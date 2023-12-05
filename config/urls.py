@@ -25,8 +25,10 @@ urlpatterns = [
     path("", index.as_view(), name="index"),
     # Exploits
     path("exploits/", include("apps.exploits.urls")),
-    # OSIM
-    path("osim/", include("apps.osim.urls")),
+    # Osim - deprecated
+    path("osim/", include("apps.workflows.urls_deprecated")),
+    # Workflows
+    path("workflows/", include("apps.workflows.urls")),
     # Task Manager
     path("taskman/", include("apps.taskman.urls")),
     # collectors

@@ -16,9 +16,9 @@ from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
 from rest_framework import serializers
 
 from apps.bbsync.mixins import BugzillaSyncMixin
-from apps.osim.serializers import WorkflowModelSerializer
 from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FIELDS
 from apps.taskman.mixins import JiraTaskSyncMixin
+from apps.workflows.serializers import WorkflowModelSerializer
 
 from .core import generate_acls
 from .exceptions import DataInconsistencyException

@@ -31,10 +31,10 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
-from apps.osim.workflow import WorkflowModel
 from apps.taskman.constants import SYNC_REQUIRED_FIELDS
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.trackers.constants import SYNC_TO_JIRA
+from apps.workflows.workflow import WorkflowModel
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 
 from .helpers import deprecate_field as deprecate_field_custom

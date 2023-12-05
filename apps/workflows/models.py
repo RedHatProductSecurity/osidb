@@ -1,5 +1,5 @@
 """
-OSIM workflow model definitions
+Workflows model definitions
 """
 
 from .checks import CheckParser

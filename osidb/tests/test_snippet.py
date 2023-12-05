@@ -3,7 +3,7 @@ import uuid
 import pytest
 from django.conf import settings
 
-from apps.osim.workflow import WorkflowModel
+from apps.workflows.workflow import WorkflowModel
 from osidb.core import generate_acls
 from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource, FlawType, Snippet
 
@@ -76,7 +76,7 @@ class TestSnippet:
         assert flaw.cvss_scores.count() == 1
         assert flaw.cwe_id == content["cwe_id"]
         assert flaw.description == content["description"]
-        assert flaw.osim_state == WorkflowModel.OSIMState.NEW
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
         assert flaw.references.count() == 1
         assert flaw.snippets.count() == 0
         assert flaw.source == snippet.source

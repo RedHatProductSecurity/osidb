@@ -5,7 +5,7 @@ from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
-from apps.osim.api import promote, reject
+from apps.workflows.api import promote, reject
 
 from .api_views import (
     AffectCVSSView,

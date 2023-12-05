@@ -1,5 +1,5 @@
 """
-OSIM models serializers
+Workflows models serializers
 """
 
 from drf_spectacular.utils import extend_schema_field
@@ -88,7 +88,7 @@ class WorkflowModelSerializer(serializers.ModelSerializer):
                 "workflow": {"type": "string"},
                 "state": {
                     "type": "string",
-                    "enum": WorkflowModel.OSIMState.values,
+                    "enum": WorkflowModel.WorkflowState.values,
                 },
             },
         }

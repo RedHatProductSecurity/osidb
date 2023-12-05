@@ -56,7 +56,7 @@ Additional functionality is implemented by specialized [apps](apps/).
 
 * [bbsync](apps/bbsync/) Bugzilla Backwards Synchronization
 * [exploits](apps/exploits/)
-* [osim](apps/osim/) - Open Security Issue Manager
+* [workflows](apps/workflows/) - Open Security Issue Manager
 
 Various data sources are being collected by [collectors](collectors/).
 They are build on [collector framework](collectors/framework/).

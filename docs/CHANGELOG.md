@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix schema to reflect Erratum shipped_dt to be nullable
 - Made Querier objects independent on Collector objects (OSIDB-1592, OSIDB-1593)
 
+### Changed
+- Renamed OSIM module to Workflows (OSIDB-1395)
+
 ### Removed
 - Remove daily monitoring email for failed tasks / collectors (OSIDB-1215)
 
