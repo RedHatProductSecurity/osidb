@@ -1,5 +1,7 @@
 backoff
 celery[gevent]
+# alternative scheduler for celery
+celery-redbeat
 cvss
 django
 django-auth-ldap
