@@ -535,29 +535,59 @@ class TrackerSerializer(
 
         return tracker
 
-    def update(self, instance, validated_data):
+    def update(self, tracker, validated_data):
         """
-        perform the ordinary instance update
-        with providing the API keys while saving
+        perform the tracker instance update
         """
+        ############################
+        # 1) prepare prerequisites #
+        ############################
+
         # transform the embargoed status to the ACLs
         validated_data = ACLMixinSerializer.embargoed2acls(self, validated_data)
 
+        #########################
+        # 2) pre-update actions #
+        #########################
+
+        affects = set(tracker.affects.all())
         # update the relations by simply recreating them
         # which will both delete the old and add the new
-        instance.affects.clear()
+        tracker.affects.clear()
         for affect in validated_data.pop("affects", []):
-            instance.affects.add(affect)
+            tracker.affects.add(affect)
+
+        #####################
+        # 3) update actions #
+        #####################
 
         # update the attributes
         for attr, value in validated_data.items():
-            setattr(instance, attr, value)
+            setattr(tracker, attr, value)
 
-        instance.save(
-            bz_api_key=self.get_bz_api_key(), jira_token=self.get_jira_token()
-        )
+        tracker.save(bz_api_key=self.get_bz_api_key(), jira_token=self.get_jira_token())
 
-        return instance
+        ##########################
+        # 4) post-update actions #
+        ##########################
+
+        # related flaws need to be saved to Bugzilla in order to update
+        # SRT notes with both added and removed Jira tracker IDs
+        # (Bugzilla trackers are linked naturally through Bugzilla relations)
+        if tracker.type == Tracker.TrackerType.JIRA:
+            # iterate over both added and removed affects
+            for affect in affects ^ set(tracker.affects.all()):
+                # do not raise validation errors here as the flaw is not what the user touches
+                # which would make the errors hard to understand and cause the tracker to orphan
+                affect.flaw.save(
+                    bz_api_key=self.get_bz_api_key(), raise_validation_error=False
+                )
+
+        #####################
+        # 5) return updated #
+        #####################
+
+        return tracker
 
 
 @extend_schema_serializer(exclude_fields=["external_system_id"])
