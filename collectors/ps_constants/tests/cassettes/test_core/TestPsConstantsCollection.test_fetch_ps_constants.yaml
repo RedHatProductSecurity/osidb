@@ -11,589 +11,57 @@ interactions:
       User-Agent:
       - python-requests/2.31.0
     method: GET
-    uri: https://git.prodsec.redhat.com/devops/ps-constants/-/raw/master/data/ubi_packages.yml?job=build
+    uri: https://gitlab.cee.redhat.com/prodsec-dev/ps-constants/-/raw/master/data/ubi_packages.yml?job=build
   response:
     body:
-      string: '# list of packages / components in UBI images
-
-        # separate list provided for each RHEL version, keys need to match ps module
-
-        # names
-
-        # https://projects.engineering.redhat.com/browse/PSIRT-730
-
-        # https://projects.engineering.redhat.com/browse/PSDEVOPS-2076
-
-
-        rhel-8:
-
-        - acl
-
-        - attr
-
-        - audit
-
-        - basesystem
-
-        - bash
-
-        - brotli
-
-        - bzip2
-
-        - ca-certificates
-
-        - chkconfig
-
-        - coreutils
-
-        - cracklib
-
-        - crypto-policies
-
-        - cryptsetup
-
-        - curl
-
-        - cyrus-sasl
-
-        - dbus
-
-        - dbus-glib
-
-        - dbus-python
-
-        - dmidecode
-
-        - dnf
-
-        - dnf-plugins-core
-
-        - e2fsprogs
-
-        - elfutils
-
-        - expat
-
-        - file
-
-        - filesystem
-
-        - findutils
-
-        - gawk
-
-        - gcc
-
-        - gdb
-
-        - gdbm
-
-        - glib2
-
-        - glibc
-
-        - gmp
-
-        - gnupg2
-
-        - gnutls
-
-        - gobject-introspection
-
-        - gpgme
-
-        - grep
-
-        - gzip
-
-        - ima-evm-utils
-
-        - json-c
-
-        - json-glib
-
-        - keyutils
-
-        - kmod
-
-        - krb5
-
-        - langpacks
-
-        - libarchive
-
-        - libassuan
-
-        - libcap
-
-        - libcap-ng
-
-        - libcomps
-
-        - libdb
-
-        - libdnf
-
-        - libffi
-
-        - libgcrypt
-
-        - libgpg-error
-
-        - libidn2
-
-        - libksba
-
-        - libmodulemd
-
-        - libnl3
-
-        - libnsl2
-
-        - libpeas
-
-        - libpsl
-
-        - libpwquality
-
-        - librepo
-
-        - libreport
-
-        - librhsm
-
-        - libseccomp
-
-        - libselinux
-
-        - libsemanage
-
-        - libsepol
-
-        - libsigsegv
-
-        - libsolv
-
-        - libssh
-
-        - libtasn1
-
-        - libtirpc
-
-        - libunistring
-
-        - libusbx
-
-        - libuser
-
-        - libutempter
-
-        - libverto
-
-        - libxcrypt
-
-        - libxml2
-
-        - libyaml
-
-        - lua
-
-        - lvm2
-
-        - lz4
-
-        - microdnf
-
-        - mpfr
-
-        - ncurses
-
-        - nettle
-
-        - nghttp2
-
-        - npth
-
-        - openldap
-
-        - openssl
-
-        - p11-kit
-
-        - pam
-
-        - passwd
-
-        - pcre
-
-        - pcre2
-
-        - popt
-
-        - procps-ng
-
-        - publicsuffix-list
-
-        - pygobject3
-
-        - python-chardet
-
-        - python-dateutil
-
-        - python-decorator
-
-        - python-dmidecode
-
-        - python-ethtool
-
-        - python-idna
-
-        - python-iniparse
-
-        - python-inotify
-
-        - python-pip
-
-        - python-pysocks
-
-        - python-requests
-
-        - python-setuptools
-
-        - python-six
-
-        - python-systemd
-
-        - python-urllib3
-
-        - python3
-
-        - readline
-
-        - redhat-release
-
-        - rootfiles
-
-        - rpm
-
-        - sed
-
-        - setup
-
-        - shadow-utils
-
-        - sqlite
-
-        - subscription-manager
-
-        - systemd
-
-        - tar
-
-        - texinfo
-
-        - tpm2-tss
-
-        - tzdata
-
-        - usermode
-
-        - util-linux
-
-        - vim
-
-        - virt-what
-
-        - which
-
-        - xz
-
-        - zlib
-
-        - zstd
-
-
-        rhel-9:
-
-        - acl
-
-        - attr
-
-        - audit
-
-        - basesystem
-
-        - bash
-
-        - bzip2
-
-        - ca-certificates
-
-        - chkconfig
-
-        - coreutils
-
-        - cracklib
-
-        - crypto-policies
-
-        - curl
-
-        - cyrus-sasl
-
-        - dbus
-
-        - dbus-broker
-
-        - dbus-python
-
-        - dejavu-fonts
-
-        - dmidecode
-
-        - dnf
-
-        - dnf-plugins-core
-
-        - e2fsprogs
-
-        - elfutils
-
-        - expat
-
-        - file
-
-        - filesystem
-
-        - findutils
-
-        - fonts-rpm-macros
-
-        - gawk
-
-        - gcc
-
-        - gdb
-
-        - gdbm
-
-        - glib2
-
-        - glibc
-
-        - gmp
-
-        - gnupg2
-
-        - gnutls
-
-        - gobject-introspection
-
-        - gpgme
-
-        - grep
-
-        - gzip
-
-        - ima-evm-utils
-
-        - json-c
-
-        - json-glib
-
-        - keyutils
-
-        - kmod
-
-        - krb5
-
-        - langpacks
-
-        - libarchive
-
-        - libassuan
-
-        - libcap
-
-        - libcap-ng
-
-        - libcomps
-
-        - libdb
-
-        - libdnf
-
-        - libeconf
-
-        - libevent
-
-        - libffi
-
-        - libgcrypt
-
-        - libgpg-error
-
-        - libidn2
-
-        - libksba
-
-        - libmodulemd
-
-        - libnl3
-
-        - libpeas
-
-        - libpwquality
-
-        - librepo
-
-        - libreport
-
-        - librhsm
-
-        - libseccomp
-
-        - libselinux
-
-        - libsemanage
-
-        - libsepol
-
-        - libsigsegv
-
-        - libsolv
-
-        - libtasn1
-
-        - libunistring
-
-        - libusbx
-
-        - libuser
-
-        - libutempter
-
-        - libverto
-
-        - libxcrypt
-
-        - libxml2
-
-        - libyaml
-
-        - lua
-
-        - lz4
-
-        - microdnf
-
-        - mpfr
-
-        - ncurses
-
-        - nettle
-
-        - nghttp2
-
-        - npth
-
-        - openldap
-
-        - openssl
-
-        - p11-kit
-
-        - pam
-
-        - passwd
-
-        - pcre
-
-        - pcre2
-
-        - popt
-
-        - procps-ng
-
-        - pygobject3
-
-        - python-chardet
-
-        - python-dateutil
-
-        - python-decorator
-
-        - python-ethtool
-
-        - python-idna
-
-        - python-iniparse
-
-        - python-inotify
-
-        - python-pip
-
-        - python-pysocks
-
-        - python-requests
-
-        - python-setuptools
-
-        - python-six
-
-        - python-systemd
-
-        - python-urllib3
-
-        - python3.9
-
-        - readline
-
-        - redhat-release
-
-        - rootfiles
-
-        - rpm
-
-        - sed
-
-        - setup
-
-        - shadow-utils
-
-        - sqlite
-
-        - subscription-manager
-
-        - subscription-manager-rhsm-certificates
-
-        - systemd
-
-        - tar
-
-        - tpm2-tss
-
-        - tzdata
-
-        - usermode
-
-        - util-linux
-
-        - vim
-
-        - virt-what
-
-        - which
-
-        - xz
-
-        - zlib
-
-        - zstd
-
-
-        '
+      string: "# This list of packages is used to indicate the UBI flag in the SFM2.
+        \n# This list is NOT used to calculate SLA.\n\n\n# list of packages / components
+        in UBI images\n# separate list provided for each RHEL version, keys need to
+        match ps module\n# names\n# https://projects.engineering.redhat.com/browse/PSIRT-730\n#
+        https://projects.engineering.redhat.com/browse/PSDEVOPS-2076\n\nrhel-8:\n-
+        acl\n- attr\n- audit\n- basesystem\n- bash\n- brotli\n- bzip2\n- ca-certificates\n-
+        chkconfig\n- coreutils\n- cracklib\n- crypto-policies\n- cryptsetup\n- curl\n-
+        cyrus-sasl\n- dbus\n- dbus-glib\n- dbus-python\n- dmidecode\n- dnf\n- dnf-plugins-core\n-
+        e2fsprogs\n- elfutils\n- expat\n- file\n- filesystem\n- findutils\n- gawk\n-
+        gcc\n- gdb\n- gdbm\n- glib2\n- glibc\n- gmp\n- gnupg2\n- gnutls\n- gobject-introspection\n-
+        gpgme\n- grep\n- gzip\n- ima-evm-utils\n- json-c\n- json-glib\n- keyutils\n-
+        kmod\n- krb5\n- langpacks\n- libarchive\n- libassuan\n- libcap\n- libcap-ng\n-
+        libcomps\n- libdb\n- libdnf\n- libffi\n- libgcrypt\n- libgpg-error\n- libidn2\n-
+        libksba\n- libmodulemd\n- libnl3\n- libnsl2\n- libpeas\n- libpsl\n- libpwquality\n-
+        librepo\n- libreport\n- librhsm\n- libseccomp\n- libselinux\n- libsemanage\n-
+        libsepol\n- libsigsegv\n- libsolv\n- libssh\n- libtasn1\n- libtirpc\n- libunistring\n-
+        libusbx\n- libuser\n- libutempter\n- libverto\n- libxcrypt\n- libxml2\n- libyaml\n-
+        lua\n- lvm2\n- lz4\n- microdnf\n- mpfr\n- ncurses\n- nettle\n- nghttp2\n-
+        npth\n- openldap\n- openssl\n- p11-kit\n- pam\n- passwd\n- pcre\n- pcre2\n-
+        popt\n- procps-ng\n- publicsuffix-list\n- pygobject3\n- python-chardet\n-
+        python-dateutil\n- python-decorator\n- python-dmidecode\n- python-ethtool\n-
+        python-idna\n- python-iniparse\n- python-inotify\n- python-pip\n- python-pysocks\n-
+        python-requests\n- python-setuptools\n- python-six\n- python-systemd\n- python-urllib3\n-
+        python3\n- readline\n- redhat-release\n- rootfiles\n- rpm\n- sed\n- setup\n-
+        shadow-utils\n- sqlite\n- subscription-manager\n- systemd\n- tar\n- texinfo\n-
+        tpm2-tss\n- tzdata\n- usermode\n- util-linux\n- vim\n- virt-what\n- which\n-
+        xz\n- zlib\n- zstd\n\nrhel-9:\n- acl\n- attr\n- audit\n- basesystem\n- bash\n-
+        bzip2\n- ca-certificates\n- chkconfig\n- coreutils\n- cracklib\n- crypto-policies\n-
+        curl\n- cyrus-sasl\n- dbus\n- dbus-broker\n- dbus-python\n- dejavu-fonts\n-
+        dmidecode\n- dnf\n- dnf-plugins-core\n- e2fsprogs\n- elfutils\n- expat\n-
+        file\n- filesystem\n- findutils\n- fonts-rpm-macros\n- gawk\n- gcc\n- gdb\n-
+        gdbm\n- glib2\n- glibc\n- gmp\n- gnupg2\n- gnutls\n- gobject-introspection\n-
+        gpgme\n- grep\n- gzip\n- ima-evm-utils\n- json-c\n- json-glib\n- keyutils\n-
+        kmod\n- krb5\n- langpacks\n- libarchive\n- libassuan\n- libcap\n- libcap-ng\n-
+        libcomps\n- libdb\n- libdnf\n- libeconf\n- libevent\n- libffi\n- libgcrypt\n-
+        libgpg-error\n- libidn2\n- libksba\n- libmodulemd\n- libnl3\n- libpeas\n-
+        libpwquality\n- librepo\n- libreport\n- librhsm\n- libseccomp\n- libselinux\n-
+        libsemanage\n- libsepol\n- libsigsegv\n- libsolv\n- libtasn1\n- libunistring\n-
+        libusbx\n- libuser\n- libutempter\n- libverto\n- libxcrypt\n- libxml2\n- libyaml\n-
+        lua\n- lz4\n- microdnf\n- mpfr\n- ncurses\n- nettle\n- nghttp2\n- npth\n-
+        openldap\n- openssl\n- p11-kit\n- pam\n- passwd\n- pcre\n- pcre2\n- popt\n-
+        procps-ng\n- pygobject3\n- python-chardet\n- python-dateutil\n- python-decorator\n-
+        python-ethtool\n- python-idna\n- python-iniparse\n- python-inotify\n- python-pip\n-
+        python-pysocks\n- python-requests\n- python-setuptools\n- python-six\n- python-systemd\n-
+        python-urllib3\n- python3.9\n- readline\n- redhat-release\n- rootfiles\n-
+        rpm\n- sed\n- setup\n- shadow-utils\n- sqlite\n- subscription-manager\n- subscription-manager-rhsm-certificates\n-
+        systemd\n- tar\n- tpm2-tss\n- tzdata\n- usermode\n- util-linux\n- vim\n- virt-what\n-
+        which\n- xz\n- zlib\n- zstd\n\n"
     headers:
       Cache-Control:
       - max-age=60, public, must-revalidate, stale-while-revalidate=60, stale-if-error=300,
@@ -602,26 +70,37 @@ interactions:
       - keep-alive
       Content-Disposition:
       - inline
+      Content-Length:
+      - '3529'
       Content-Security-Policy:
-      - ''
+      - 'base-uri ''self''; child-src https://www.google.com/recaptcha/ https://www.recaptcha.net/
+        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
+        https://content-cloudresourcemanager.googleapis.com https://www.googletagmanager.com/ns.html
+        https://gitlab.cee.redhat.com/admin/ https://gitlab.cee.redhat.com/assets/
+        https://gitlab.cee.redhat.com/-/speedscope/index.html https://gitlab.cee.redhat.com/-/sandbox/
+        https://gitlab.cee.redhat.com/assets/ blob: data:; connect-src ''self'' wss://gitlab.cee.redhat.com;
+        default-src ''self''; font-src ''self'' https://fonts.gstatic.com/; form-action
+        ''self'' https: http:; frame-ancestors ''self''; frame-src ''self'' https://www.recaptcha.net/
+        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
+        https://content-cloudresourcemanager.googleapis.com *.redhat.com; img-src
+        * data: blob:; manifest-src ''self''; media-src ''self'' data: blob: http:
+        https:; object-src ''none''; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''
+        https://www.recaptcha.net https://apis.google.com ''nonce-/PV1APv1s0zuM5dl2yhrZA=='';
+        style-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com *.redhat.com;
+        worker-src https://gitlab.cee.redhat.com/assets/ blob: data:'
       Content-Type:
       - text/plain; charset=utf-8
       Date:
-      - Tue, 22 Aug 2023 22:57:41 GMT
+      - Wed, 22 Nov 2023 07:50:33 GMT
       Etag:
-      - W/"aa9eae444e3274a1cd0dae33faf92845"
+      - '"01f2463b30dfed8dc87e79c0532c5ae4"'
       Permissions-Policy:
       - interest-cohort=()
       Referrer-Policy:
       - strict-origin-when-cross-origin
       Server:
       - nginx
-      Strict-Transport-Security:
-      - max-age=63072000
-      Transfer-Encoding:
-      - chunked
       Vary:
-      - Accept-Encoding
       - Accept
       X-Content-Type-Options:
       - nosniff
@@ -630,19 +109,17 @@ interactions:
       X-Frame-Options:
       - SAMEORIGIN
       X-Gitlab-Meta:
-      - '{"correlation_id":"01H8FQFN6VBZ5XNMVEKP1V72CE","version":"1"}'
+      - '{"correlation_id":"01HFV04RP5NFJWV7E247J3N4GG","version":"1"}'
       X-Permitted-Cross-Domain-Policies:
       - none
       X-Request-Id:
-      - 01H8FQFN6VBZ5XNMVEKP1V72CE
+      - 01HFV04RP5NFJWV7E247J3N4GG
       X-Runtime:
-      - '0.094326'
+      - '0.072498'
       X-Ua-Compatible:
       - IE=edge
       X-Xss-Protection:
       - 1; mode=block
-      content-length:
-      - '3414'
     status:
       code: 200
       message: OK
@@ -658,7 +135,7 @@ interactions:
       User-Agent:
       - python-requests/2.31.0
     method: GET
-    uri: https://git.prodsec.redhat.com/devops/ps-constants/-/raw/master/data/special_consideration_packages.yml?job=build
+    uri: https://gitlab.cee.redhat.com/prodsec-dev/ps-constants/-/raw/master/data/special_consideration_packages.yml?job=build
   response:
     body:
       string: '# list of special consideration packages
@@ -712,26 +189,37 @@ interactions:
       - keep-alive
       Content-Disposition:
       - inline
+      Content-Length:
+      - '278'
       Content-Security-Policy:
-      - ''
+      - 'base-uri ''self''; child-src https://www.google.com/recaptcha/ https://www.recaptcha.net/
+        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
+        https://content-cloudresourcemanager.googleapis.com https://www.googletagmanager.com/ns.html
+        https://gitlab.cee.redhat.com/admin/ https://gitlab.cee.redhat.com/assets/
+        https://gitlab.cee.redhat.com/-/speedscope/index.html https://gitlab.cee.redhat.com/-/sandbox/
+        https://gitlab.cee.redhat.com/assets/ blob: data:; connect-src ''self'' wss://gitlab.cee.redhat.com;
+        default-src ''self''; font-src ''self'' https://fonts.gstatic.com/; form-action
+        ''self'' https: http:; frame-ancestors ''self''; frame-src ''self'' https://www.recaptcha.net/
+        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
+        https://content-cloudresourcemanager.googleapis.com *.redhat.com; img-src
+        * data: blob:; manifest-src ''self''; media-src ''self'' data: blob: http:
+        https:; object-src ''none''; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''
+        https://www.recaptcha.net https://apis.google.com ''nonce-ephJeNziQaH+ZnaVz6UOPw=='';
+        style-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com *.redhat.com;
+        worker-src https://gitlab.cee.redhat.com/assets/ blob: data:'
       Content-Type:
       - text/plain; charset=utf-8
       Date:
-      - Tue, 22 Aug 2023 22:57:41 GMT
+      - Wed, 22 Nov 2023 07:50:34 GMT
       Etag:
-      - W/"e421bf00158b35d34131f5f4673f888e"
+      - '"e421bf00158b35d34131f5f4673f888e"'
       Permissions-Policy:
       - interest-cohort=()
       Referrer-Policy:
       - strict-origin-when-cross-origin
       Server:
       - nginx
-      Strict-Transport-Security:
-      - max-age=63072000
-      Transfer-Encoding:
-      - chunked
       Vary:
-      - Accept-Encoding
       - Accept
       X-Content-Type-Options:
       - nosniff
@@ -740,19 +228,17 @@ interactions:
       X-Frame-Options:
       - SAMEORIGIN
       X-Gitlab-Meta:
-      - '{"correlation_id":"01H8FQFNF7Y0X38RE060HDQAES","version":"1"}'
+      - '{"correlation_id":"01HFV04S8Q1SR27QE6VNJ8YTWW","version":"1"}'
       X-Permitted-Cross-Domain-Policies:
       - none
       X-Request-Id:
-      - 01H8FQFNF7Y0X38RE060HDQAES
+      - 01HFV04S8Q1SR27QE6VNJ8YTWW
       X-Runtime:
-      - '0.080923'
+      - '0.079898'
       X-Ua-Compatible:
       - IE=edge
       X-Xss-Protection:
       - 1; mode=block
-      content-length:
-      - '278'
     status:
       code: 200
       message: OK

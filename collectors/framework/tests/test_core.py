@@ -118,28 +118,9 @@ class TestCollectorFramework:
             collector6_metadata.data_state = incomplete_data_state
             collector6_metadata.save()
 
-            assert test_collector5.apply().state == "RETRY"
+            assert test_collector5.apply().state == "IGNORED"
 
         collector6_metadata.data_state = CollectorMetadata.DataState.COMPLETE
         collector6_metadata.save()
 
         test_collector5.apply().get()
-
-    def test_only_one_collector_instance(self):
-        @collector(
-            crontab=crontab(minute="5"),
-        )
-        def test_collector7(collector_obj):
-            collector_obj.store(updated_until_dt=timezone.now())
-            return str(collector_obj.name)
-
-        test_collector7()
-
-        metadata = CollectorMetadata.objects.get(
-            name=f"{self.__module__}.test_collector7"
-        )
-        metadata.collector_state = CollectorMetadata.CollectorState.RUNNING
-        metadata.save()
-
-        for _ in range(5):
-            assert test_collector7.apply().state == "RETRY"

@@ -38,6 +38,7 @@ class BugzillaSaver(BugzillaQuerier):
         """
         init stuff
         """
+        super().__init__()
         self.instance = instance
         # substitute the default service Bugzilla API key
         # so the resulting Bugzilla audit log corresponds

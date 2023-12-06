@@ -50,6 +50,7 @@ celery[gevent]==5.2.7 \
     #   -r requirements.in
     #   django-celery-results
     #   flower
+    #   rhubarb
 certifi==2023.7.22 \
     --hash=sha256:539cc1d13202e33ca466e88b2807e29f4c13049d6d87031a3c110744495cb082 \
     --hash=sha256:92d6037539857d8206b8f6ae472e8b77db8058fec5937a1ef3f54304089edbb9
@@ -602,7 +603,9 @@ pyyaml==6.0 \
 redis[hiredis]==4.5.4 \
     --hash=sha256:2c19e6767c474f2e85167909061d525ed65bea9301c0770bb151e041b7ac89a2 \
     --hash=sha256:73ec35da4da267d6847e47f68730fdd5f62e2ca69e3ef5885c6a78a9374c3893
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   rhubarb
 requests==2.31.0 \
     --hash=sha256:58cd2187c01e70e6e26505bca751777aa9f2ee0b7f4300988b709f44e013003f \
     --hash=sha256:942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1
@@ -630,6 +633,9 @@ requests-toolbelt==0.9.1 \
     --hash=sha256:380606e1d10dc85c3bd47bf5a6095f815ec007be7a8b69c878507068df059e6f \
     --hash=sha256:968089d4584ad4ad7c171454f0a5c6dac23971e9472521ea3b6d49d610aa6fc0
     # via jira
+rhubarb @ https://github.com/RedHatProductSecurity/rhubarb/releases/download/0.1.0/rhubarb-0.1.0-py3-none-any.whl \
+    --hash=sha256:e1694364d26892ce521f09a5ac4ac264d8ade207b54ca9a77a2145c6cf42dc4d
+    # via -r requirements.in
 secretstorage==3.3.1 \
     --hash=sha256:422d82c36172d88d6a0ed5afdec956514b189ddbfb72fefab0c8a1cee4eaf71f \
     --hash=sha256:fd666c51a6bf200643495a04abb261f83229dcb6fd8472ec393df7ffc8b6f195

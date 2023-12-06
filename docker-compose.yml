@@ -123,38 +123,12 @@ services:
           -c ssl_key_file=/var/lib/postgresql/local-server.key
           -c config_file=/etc/postgresql/postgresql.conf
 
-
-    celery_host1:
-      container_name: celery_host1
-      hostname: celery_host1
+    celery:
       image: osidb-service
       command: ./scripts/run-celery.sh
-      volumes:
-        - ${PWD}:/opt/app-root/src:z
-      environment:
-        DJANGO_SETTINGS_MODULE: "config.settings_local"
-        OSIDB_DEBUG: ${OSIDB_DEBUG}
-        BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
-        BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
-        JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
-        JIRA_URL: ${JIRA_URL}
-        ET_URL: ${ET_URL}
-        PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
-      depends_on: ["osidb-data", "osidb-service", "redis"]
-      # See "NOTE about healthchecks":
-      # depends_on:
-      #   osidb-data:
-      #     condition: service_healthy
-      #   osidb-service:
-      #     condition: service_healthy
-      #   redis:
-      #     condition: service_started
-
-    celery_host2:
-      container_name: celery_host2
-      hostname: celery_host2
-      image: osidb-service
-      command: ./scripts/run-celery.sh
+      deploy:
+        mode: replicated
+        replicas: ${OSIDB_CELERY_WORKERS_NO:-2}
       volumes:
         - ${PWD}:/opt/app-root/src:z
       environment:

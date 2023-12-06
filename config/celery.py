@@ -14,12 +14,14 @@ def on_celery_setup_logging(**kwargs):
     pass
 
 
-@signals.worker_process_init.connect
-def configure_worker_greenthreads(*args, **kwargs):
-    from gevent import monkey
+# Commented out as we are not using gevent worker pools at the moment
 
-    monkey.patch_all()
-
-    from psycogreen import gevent
-
-    gevent.patch_psycopg()
+# @signals.worker_process_init.connect
+# def configure_worker_greenthreads(*args, **kwargs):
+#     from gevent import monkey
+#
+#     monkey.patch_all()
+#
+#     from psycogreen import gevent
+#
+#     gevent.patch_psycopg()

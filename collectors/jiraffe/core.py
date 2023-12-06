@@ -1,12 +1,15 @@
-from functools import cache
+from datetime import datetime, timedelta
 from typing import List, Tuple
 
+from celery.utils.log import get_task_logger
 from django.utils import timezone
 from jira import JIRA, Issue
 from jira.exceptions import JIRAError
 
-from .constants import JIRA_DT_FMT, JIRA_SERVER, JIRA_TOKEN
+from .constants import JIRA_DT_FMT, JIRA_MAX_CONNECTION_AGE, JIRA_SERVER, JIRA_TOKEN
 from .exceptions import NonRecoverableJiraffeException
+
+logger = get_task_logger(__name__)
 
 
 class JiraConnector:
@@ -17,25 +20,48 @@ class JiraConnector:
     _jira_server = JIRA_SERVER
     _jira_token = JIRA_TOKEN
 
+    def __init__(self):
+        self._jira_conn = None
+        self._jira_conn_timestamp = None
+
     ###################
     # JIRA CONNECTION #
     ###################
-    @staticmethod
-    @cache
-    def _get_jira_connection(server: str, token: str) -> JIRA:
+    def _get_jira_connection(self) -> JIRA:
         """
         Returns the JIRA connection object on which to perform queries to the JIRA API.
         """
         options = {
-            "server": server,
+            "server": self._jira_server,
             # avoid the JIRA lib auto-updating
             "check_update": False,
         }
-        return JIRA(options, token_auth=token, get_server_info=False)
+        return JIRA(options, token_auth=self._jira_token, get_server_info=False)
 
     @property
     def jira_conn(self) -> JIRA:
-        return self._get_jira_connection(self._jira_server, self._jira_token)
+        """
+        Get Jira connection
+
+        Create a new connection if it does not exist. If JIRA_MAX_CONNECTION_AGE is set and the
+        connection is older, also create a new connection. Otherwise, reuse already created
+        connection.
+        """
+        if self._jira_conn is None:
+            self._jira_conn = self._get_jira_connection()
+            self._jira_conn_timestamp = datetime.now()
+            logger.info("New Jira connection created, no previous connection")
+
+        elif JIRA_MAX_CONNECTION_AGE is not None:
+            connection_age = datetime.now() - self._jira_conn_timestamp
+            if connection_age > timedelta(seconds=int(JIRA_MAX_CONNECTION_AGE)):
+                self._jira_conn = self._get_jira_connection()
+                self._jira_conn_timestamp = datetime.now()
+                logger.info(
+                    f"New Jira connection created, previous age {connection_age}"
+                )
+
+        return self._jira_conn
 
 
 class JiraQuerier(JiraConnector):

@@ -24,6 +24,7 @@ class TrackerJiraSaver(JiraQuerier):
         Keyword arguments:
         token -- user token used in every request to Jira
         """
+        super().__init__()
         self.tracker = tracker
         self._jira_server = JIRA_SERVER
         self._jira_token = token
