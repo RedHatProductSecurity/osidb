@@ -219,8 +219,9 @@ class NVDCollector(Collector, NVDQuerier):
 
         logger.info("Fetching NVD data")
         start_dt = timezone.now()
-        desync = []
+        updated_flaws = []
         new_snippets = []
+        new_flaws = []
 
         # fetch data
         # by default for the next batch but can be overridden by a given CVE
@@ -232,9 +233,26 @@ class NVDCollector(Collector, NVDQuerier):
         for item in batch_data:
             cve_id = item["cve_id"]
 
+            # check if a flaw is already in DB, and if so, update CVSS if necessary
+            try:
+                flaw = Flaw.objects.get(cve_id=cve_id)
+                # update NVD CVSS2 or CVSS3 data if necessary
+                updated_in_flaw = self.update_cvss_via_flaw(flaw, item)
+                updated_in_flawcvss = self.update_cvss_via_flawcvss(flaw, item)
+
+                if updated_in_flaw or updated_in_flawcvss:
+                    updated_flaws.append(cve_id)
+                    # no automatic timestamps as those go from Bugzilla
+                    # and no validation exceptions not to fail here
+                    flaw.save(auto_timestamps=False, raise_validation_error=False)
+            except Flaw.DoesNotExist:
+                pass
+
+            # create a new snippet with a flaw (if it does not exist) and link them
+            snippet = None
             if self.snippet_creation_enabled:
                 try:
-                    Snippet.objects.get(
+                    snippet = Snippet.objects.get(
                         source=Snippet.Source.NVD, content__cve_id=cve_id
                     )
                 except Snippet.DoesNotExist:
@@ -243,30 +261,16 @@ class NVDCollector(Collector, NVDQuerier):
                         snippet.save()
                         new_snippets.append(cve_id)
 
-            try:
-                flaw = Flaw.objects.get(cve_id=cve_id)
-                # update NVD CVSS2 or CVSS3 data if necessary
-                updated_in_flaw = self.update_cvss_via_flaw(flaw, item)
-                updated_in_flawcvss = self.update_cvss_via_flawcvss(flaw, item)
+                if snippet and snippet.convert_snippet_to_flaw():
+                    new_flaws.append(cve_id)
 
-                if updated_in_flaw or updated_in_flawcvss:
-                    desync.append(cve_id)
-                    # no automatic timestamps as those go from Bugzilla
-                    # and no validation exceptions not to fail here
-                    flaw.save(auto_timestamps=False, raise_validation_error=False)
-            except Flaw.DoesNotExist:
-                pass
-
-        logger.info(
-            f"NVD CVSS scores were updated for the following CVEs: {', '.join(desync)}"
-            if desync
-            else "No CVEs with desynced NVD CVSS."
+        changes = (
+            f"Updated CVEs due to changes in CVSS scores assigned by NIST: "
+            f"{', '.join(updated_flaws) if updated_flaws else 'none'}. "
+            f"Created snippets: {', '.join(new_snippets) if new_snippets else 'none'}. "
+            f"Created CVEs from snippets: {', '.join(new_flaws) if new_flaws else 'none'}."
         )
-        logger.info(
-            f"New snippets were created for the following CVEs: {', '.join(new_snippets)}"
-            if new_snippets
-            else "No new snippets."
-        )
+        logger.info(changes)
 
         # do not update the collector metadata when ad-hoc collecting a given CVE
         if cve is not None:
@@ -278,9 +282,7 @@ class NVDCollector(Collector, NVDQuerier):
         complete = start_dt == updated_until_dt or self.metadata.is_complete
         self.store(complete=complete, updated_until_dt=updated_until_dt)
 
-        msg = f"{self.name} is updated until {updated_until_dt}."
-        msg += f" CVEs synced: {', '.join(desync)}" if desync else ""
-        msg += f" New snippets: {', '.join(new_snippets)}" if new_snippets else ""
+        msg = f"{self.name} is updated until {updated_until_dt}. {changes}"
 
         logger.info("NVD sync was successful.")
         return msg

@@ -2,6 +2,7 @@ import uuid
 
 import pytest
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 from apps.workflows.workflow import WorkflowModel
 from osidb.core import generate_acls
@@ -57,6 +58,22 @@ class TestSnippet:
             uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
         ]
         assert Snippet.objects.count() == 1
+
+    def test_snippet_with_wrong_acls(self):
+        """
+        Tests that a snippet with non-internal ACLs raises an error.
+        """
+        snippet = get_snippet()
+
+        snippet.acl_read = [
+            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+        ]
+        snippet.acl_write = [
+            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_WRITE_GROUP])
+        ]
+
+        with pytest.raises(ValidationError, match="Snippet must have internal ACLs."):
+            snippet.save()
 
     def test_create_flaw_from_snippet(self):
         """

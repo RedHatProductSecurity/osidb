@@ -17,7 +17,7 @@ interactions:
   response:
     body:
       string: '{"resultsPerPage": 1, "startIndex": 0, "totalResults": 1, "format":
-        "NVD_CVE", "version": "2.0", "timestamp": "2023-11-14T14:03:39.513", "vulnerabilities":
+        "NVD_CVE", "version": "2.0", "timestamp": "2023-12-07T16:50:54.380", "vulnerabilities":
         [{"cve": {"id": "CVE-2017-7542", "sourceIdentifier": "secalert@redhat.com",
         "published": "2017-07-21T16:29:00.393", "lastModified": "2023-02-12T23:30:40.070",
         "vulnStatus": "Modified", "descriptions": [{"lang": "en", "value": "The ip6_find_1stfragopt
@@ -78,7 +78,7 @@ interactions:
       content-type:
       - application/json
       date:
-      - Tue, 14 Nov 2023 14:03:58 GMT
+      - Thu, 07 Dec 2023 16:50:53 GMT
       strict-transport-security:
       - max-age=31536000
       vary:

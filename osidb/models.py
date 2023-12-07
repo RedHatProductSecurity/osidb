@@ -1609,6 +1609,14 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
 
         return flaw
 
+    def _validate_acl_identical_to_parent_flaw(self) -> None:
+        """
+        No validations are run for snippet's flaw as its ACLs can be different.
+        However, snippet should always have internal ACLs.
+        """
+        if {self.acl_read[0], self.acl_write[0]} != self.acls_internal:
+            raise ValidationError("Snippet must have internal ACLs.")
+
 
 class AffectManager(ACLMixinManager, TrackingMixinManager):
     """affect manager"""
