@@ -97,18 +97,24 @@ class TestEndpoints(object):
             {
                 "name": WorkflowModel.WorkflowState.NEW,
                 "requirements": [],
+                "jira_state": "New",
+                "jira_resolution": None,
             }
         )
         state_first = State(
             {
                 "name": WorkflowModel.WorkflowState.TRIAGE,
                 "requirements": ["has description"],
+                "jira_state": "To Do",
+                "jira_resolution": None,
             }
         )
         state_second = State(
             {
                 "name": WorkflowModel.WorkflowState.DONE,
                 "requirements": ["has title"],
+                "jira_state": "In Progress",
+                "jira_resolution": None,
             }
         )
 
@@ -209,16 +215,22 @@ class TestEndpoints(object):
         state_new = {
             "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
         }
 
         state_first = {
             "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
             "requirements": ["has cwe"],
+            "jira_state": "To Do",
+            "jira_resolution": None,
         }
 
         state_second = {
             "name": WorkflowModel.WorkflowState.DONE,
             "requirements": ["has summary"],
+            "jira_state": "In Progress",
+            "jira_resolution": None,
         }
 
         workflow = Workflow(
@@ -310,11 +322,15 @@ class TestEndpoints(object):
         state_new = {
             "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
         }
 
         state_first = {
             "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
             "requirements": ["has cwe"],
+            "jira_state": "To Do",
+            "jira_resolution": None,
         }
 
         workflow = Workflow(
@@ -329,6 +345,8 @@ class TestEndpoints(object):
         state_reject = {
             "name": WorkflowModel.WorkflowState.REJECTED,
             "requirements": [],
+            "jira_state": "Closed",
+            "jira_resolution": "Won't Do",
         }
         reject_workflow = Workflow(
             {

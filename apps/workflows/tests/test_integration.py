@@ -222,10 +222,14 @@ class TestRestApi(object):
         state_new = {
             "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
         }
         state_first = {
             "name": WorkflowModel.WorkflowState.TRIAGE,
             "requirements": ["has cwe"],
+            "jira_state": "To Do",
+            "jira_resolution": None,
         }
 
         workflow_main = Workflow(
@@ -268,6 +272,8 @@ class TestRestApi(object):
         state_new = {
             "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
         }
 
         workflow_main = Workflow(
