@@ -1500,10 +1500,8 @@ class Flaw(
         try:
             old_flaw = Flaw.objects.get(uuid=self.uuid)
 
-            jira_task_request = jtq.get_task_by_flaw(self.uuid)
-
             # the flaw exists but the task doesn't, not an OSIDB-authored flaw -- no-op
-            if jira_task_request.status_code != 200:
+            if not old_flaw.task_key:
                 return
 
             # we're handling an existing OSIDB-authored flaw -- update

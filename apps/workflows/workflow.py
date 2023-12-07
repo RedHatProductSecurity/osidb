@@ -117,6 +117,20 @@ class WorkflowFramework:
             f"Workflow ({target_workflow}) was not found in WorkflowFramework."
         )
 
+    def jira_status(self, instance):
+        """
+        Given a instance, return expected jira status and resolution
+        """
+        for workflow in self.workflows:
+            if workflow.name == instance.workflow_name:
+                for state in workflow.states:
+                    if state.name == instance.workflow_state:
+                        return state.jira_state, state.jira_resolution
+
+        raise MissingStateException(
+            f"Combination of workflow ({instance.workflow_name}) and state ({instance.workflow_state}) was not found in WorkflowFramework."
+        )
+
 
 class WorkflowModel(models.Model):
     """workflow model base class"""
@@ -284,3 +298,6 @@ class WorkflowModel(models.Model):
             return
 
         self.save(jira_token=jira_token)
+
+    def jira_status(self):
+        return WorkflowFramework().jira_status(self)

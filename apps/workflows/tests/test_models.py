@@ -265,6 +265,8 @@ class TestState:
             {
                 "name": "random name",
                 "requirements": [],
+                "jira_state": "New",
+                "jira_resolution": None,
             }
         )
         flaw = FlawFactory()  # random flaw
@@ -285,6 +287,8 @@ class TestState:
             {
                 "name": "random name",
                 "requirements": requirements,
+                "jira_state": "To do",
+                "jira_resolution": None,
             }
         )
         flaw = FlawFactory()
@@ -412,9 +416,21 @@ class TestWorkflow:
         state_new = {
             "name": "new",
             "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
         }
-        state_first = {"name": "first state", "requirements": ["has description"]}
-        state_second = {"name": "second state", "requirements": ["has title"]}
+        state_first = {
+            "name": "first state",
+            "requirements": ["has description"],
+            "jira_state": "To Do",
+            "jira_resolution": None,
+        }
+        state_second = {
+            "name": "second state",
+            "requirements": ["has title"],
+            "jira_state": "In Progress",
+            "jira_resolution": None,
+        }
 
         workflow = Workflow(
             {
@@ -449,10 +465,14 @@ class TestWorkflowFramework:
         new_low = {
             "name": "new low priority state",
             "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
         }
         new_high = {
             "name": "new high priority state",
             "requirements": [],
+            "jira_state": "To Do",
+            "jira_resolution": None,
         }
 
         workflow_low = Workflow(
@@ -498,14 +518,20 @@ class TestWorkflowFramework:
         state_new = {
             "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
         }
         state_first = {
             "name": WorkflowModel.WorkflowState.TRIAGE,
             "requirements": ["has description"],
+            "jira_state": "To Do",
+            "jira_resolution": None,
         }
         state_second = {
             "name": WorkflowModel.WorkflowState.DONE,
             "requirements": ["has title"],
+            "jira_state": "Refinement",
+            "jira_resolution": None,
         }
 
         workflow_main = Workflow(
@@ -521,6 +547,8 @@ class TestWorkflowFramework:
         state_not_affected = {
             "name": WorkflowModel.WorkflowState.REJECTED,
             "requirements": [],
+            "jira_state": "Done",
+            "jira_resolution": "Won't Do",
         }
 
         workflow_reject = Workflow(
@@ -585,14 +613,20 @@ class TestFlaw:
         state_new = {
             "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
         }
         state_first = {
             "name": WorkflowModel.WorkflowState.TRIAGE,
             "requirements": ["has description"],
+            "jira_state": "In Progress",
+            "jira_resolution": None,
         }
         state_second = {
             "name": WorkflowModel.WorkflowState.DONE,
             "requirements": ["has title"],
+            "jira_state": "Refinement",
+            "jira_resolution": None,
         }
 
         workflow_main = Workflow(
@@ -608,6 +642,8 @@ class TestFlaw:
         state_not_affected = {
             "name": WorkflowModel.WorkflowState.REJECTED,
             "requirements": [],
+            "jira_state": "Closed",
+            "jira_resolution": "Won't Do",
         }
 
         workflow_reject = Workflow(
@@ -671,18 +707,24 @@ class TestFlaw:
         state_new = State(
             {
                 "name": WorkflowModel.WorkflowState.NEW,
+                "jira_state": "New",
+                "jira_resolution": None,
                 "requirements": [],
             }
         )
         state_first = State(
             {
                 "name": WorkflowModel.WorkflowState.TRIAGE,
+                "jira_state": "To Do",
+                "jira_resolution": None,
                 "requirements": ["has description"],
             }
         )
         state_second = State(
             {
                 "name": WorkflowModel.WorkflowState.DONE,
+                "jira_state": "In Progress",
+                "jira_resolution": None,
                 "requirements": ["has title"],
             }
         )
@@ -743,16 +785,22 @@ class TestFlaw:
         state_new = {
             "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
         }
 
         state_first = {
             "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
             "requirements": ["has cwe"],
+            "jira_state": "To Do",
+            "jira_resolution": None,
         }
 
         state_second = {
             "name": WorkflowModel.WorkflowState.DONE,
             "requirements": ["has summary"],
+            "jira_state": "Refinement",
+            "jira_resolution": None,
         }
 
         workflow = Workflow(

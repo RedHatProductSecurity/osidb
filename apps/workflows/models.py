@@ -48,6 +48,8 @@ class State:
 
     def __init__(self, state_desc):
         self.name = state_desc["name"]
+        self.jira_state = state_desc["jira_state"]
+        self.jira_resolution = state_desc["jira_resolution"]
         self.requirements = [
             Check(requirement_desc) for requirement_desc in state_desc["requirements"]
         ]
