@@ -1528,6 +1528,7 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         """
 
         NVD = "NVD"
+        OSV = "OSV"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -2168,6 +2169,7 @@ class CVSS(ACLMixin, BugzillaSyncMixin, TrackingMixin):
     class CVSSIssuer(models.TextChoices):
         REDHAT = "RH", "Red Hat"
         NIST = "NIST", "NIST"
+        OSV = "OSV", "OSV"
 
     CVSS_HANDLES = {CVSSVersion.VERSION2: CVSS2, CVSSVersion.VERSION3: CVSS3}
 

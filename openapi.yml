@@ -855,6 +855,7 @@ paths:
           type: string
           enum:
           - NIST
+          - OSV
           - RH
       - in: query
         name: cvss_scores__score
@@ -1726,6 +1727,7 @@ paths:
           type: string
           enum:
           - NIST
+          - OSV
           - RH
       - name: limit
         required: false
@@ -2787,6 +2789,7 @@ paths:
           type: string
           enum:
           - NIST
+          - OSV
           - RH
       - in: query
         name: cvss_scores__score
@@ -4155,6 +4158,7 @@ paths:
           type: string
           enum:
           - NIST
+          - OSV
           - RH
       - name: limit
         required: false
@@ -8564,6 +8568,7 @@ components:
       enum:
       - RH
       - NIST
+      - OSV
       type: string
     MajorIncidentStateEnum:
       enum:
