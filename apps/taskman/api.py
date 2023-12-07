@@ -190,7 +190,7 @@ class task_flaw(GenericAPIView):
         flaw = Flaw.objects.get(uuid=flaw_uuid)
         return JiraTaskmanQuerier(
             token=request.headers.get("Jira-Api-Key")
-        ).create_or_update_task(flaw=flaw, fail_if_exists=True)
+        ).create_or_update_task(flaw=flaw)
 
     @extend_schema(
         description="Update a task in Jira from a Flaw",
@@ -201,7 +201,7 @@ class task_flaw(GenericAPIView):
         flaw = Flaw.objects.get(uuid=flaw_uuid)
         return JiraTaskmanQuerier(
             token=request.headers.get("Jira-Api-Key")
-        ).create_or_update_task(flaw=flaw, fail_if_exists=False)
+        ).create_or_update_task(flaw=flaw)
 
 
 @jira_token_description

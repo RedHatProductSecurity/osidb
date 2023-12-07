@@ -9,13 +9,23 @@ from django.db import models
 from jira.exceptions import JIRAError
 from rest_framework.response import Response
 
+from apps.trackers.jira.query import JiraPriority
 from collectors.jiraffe.core import JiraQuerier
-from osidb.models import Affect, Flaw, PsProduct
+from osidb.models import Affect, Flaw, Impact, PsProduct
 
 from .constants import JIRA_TASKMAN_PROJECT_KEY, JIRA_TASKMAN_URL
 from .exceptions import MissingJiraTokenException
 
 logger = logging.getLogger(__name__)
+
+# mapping task management Jira project
+IMPACT_TO_JIRA_PRIORITY = {
+    Impact.CRITICAL: JiraPriority.CRITICAL,
+    Impact.IMPORTANT: JiraPriority.MAJOR,
+    Impact.MODERATE: JiraPriority.NORMAL,
+    Impact.LOW: JiraPriority.MINOR,
+    Impact.NOVALUE: JiraPriority.UNDEFINED,
+}
 
 
 class TaskStatus(models.TextChoices):
@@ -92,63 +102,55 @@ class JiraTaskmanQuerier(JiraQuerier):
         except JIRAError as e:
             return Response(data=e.response.json(), status=e.status_code)
 
-    def create_or_update_task(self, flaw: Flaw, fail_if_exists=False) -> Response:
-        """Creates a task using Flaw data"""
-        task = self.get_task_by_flaw(flaw_uuid=flaw.uuid).data
-        if fail_if_exists and task:
-            res = {
-                "error": "Task representing this flaw already exists",
-                "existing_task": task,
-            }
-            return Response(data=res, status=409)
-
-        modules = flaw.affects.values_list("ps_module", flat=True).distinct()
-        products = PsProduct.objects.filter(ps_modules__name__in=modules)
-        labels = [f"flawuuid:{str(flaw.uuid)}", f"impact:{flaw.impact}"]
-        for product in products:
-            if product.team:
-                labels.append(f"team:{product.team}")
-        if flaw.is_major_incident_temp():
-            labels.append("major_incident")
-        if not flaw.cve_id or flaw.cve_id in flaw.title:
-            summary = flaw.title
-        else:
-            summary = f"{flaw.cve_id} {flaw.title}"
+    def create_or_update_task(self, flaw: Flaw) -> Response:
+        """Creates or updates a task using Flaw data"""
+        data = self._generate_task_data(flaw)
+        data["fields"]["issuetype"]["id"] = self.jira_conn.issue_type_by_name(
+            "Story"
+        ).id
+        data["fields"]["project"]["id"] = self.jira_conn.project(
+            JIRA_TASKMAN_PROJECT_KEY
+        ).id
 
         try:
-            if task:
-                data = {
-                    "fields": {
-                        "summary": summary,
-                        "description": flaw.description,
-                        "labels": labels,
-                    }
-                }
-                url = f"{self.jira_conn._get_url('issue')}/{task['key']}"
-                self.jira_conn._session.put(url, json.dumps(data))
-                return Response(
-                    data=self.jira_conn.issue(task["key"]).raw,
-                    status=200,
-                )
-            else:
-                data = {
-                    "fields": {
-                        "issuetype": {
-                            "id": self.jira_conn.issue_type_by_name("Story").id
-                        },
-                        "project": {
-                            "id": self.jira_conn.project(JIRA_TASKMAN_PROJECT_KEY).id
-                        },
-                        "summary": summary,
-                        "description": flaw.description,
-                        "labels": labels,
-                    }
-                }
-
+            if not flaw.task_key:  # create task
                 issue = self.jira_conn.create_issue(
                     fields=data["fields"], prefetch=True
                 )
+                flaw.task_key = issue.key
+                flaw.save()
+                if flaw.team_id:  # Jira don't allow setting team during creation
+                    return self.create_or_update_task(flaw)
                 return Response(data=issue.raw, status=201)
+            else:  # task exists; update
+                url = f"{self.jira_conn._get_url('issue')}/{flaw.task_key}"
+                if flaw.team_id:
+                    data["fields"]["customfield_12313240"] = flaw.team_id
+                self.jira_conn._session.put(url, json.dumps(data))
+
+                status, resolution = flaw.jira_status()
+                issue = self.jira_conn.issue(flaw.task_key).raw
+                if (
+                    (resolution and not issue["fields"]["resolution"])
+                    or (
+                        issue["fields"]["resolution"]
+                        and issue["fields"]["resolution"]["name"] != resolution
+                    )
+                    or status != issue["fields"]["status"]["name"]
+                ):
+                    resolution_data = (
+                        {"resolution": {"name": resolution}} if resolution else {}
+                    )
+                    self.jira_conn.transition_issue(
+                        issue=flaw.task_key,
+                        transition=status,
+                        **resolution_data,
+                    )
+                    return Response(
+                        data=self.jira_conn.issue(flaw.task_key).raw,
+                        status=200,
+                    )
+                return Response(data=issue, status=200)
         except JIRAError as e:
             return Response(data=e.response.json(), status=e.status_code)
 
@@ -286,3 +288,34 @@ class JiraTaskmanQuerier(JiraQuerier):
             )
         except JIRAError as e:
             return Response(data=e.response.json(), status=e.status_code)
+
+    def _generate_task_data(self, flaw: Flaw):
+        modules = flaw.affects.values_list("ps_module", flat=True).distinct()
+        products = PsProduct.objects.filter(ps_modules__name__in=modules)
+        labels = [f"flawuuid:{str(flaw.uuid)}", f"impact:{flaw.impact}"]
+        for product in products:
+            if product.team:
+                labels.append(f"team:{product.team}")
+        if flaw.is_major_incident_temp():
+            labels.append("major_incident")
+        if not flaw.cve_id or flaw.cve_id in flaw.title:
+            summary = flaw.title
+        else:
+            summary = f"{flaw.cve_id} {flaw.title}"
+
+        data = {
+            "fields": {
+                "issuetype": {},
+                "project": {},
+                "summary": summary,
+                "description": flaw.description,
+                "labels": labels,
+                "priority": {"name": IMPACT_TO_JIRA_PRIORITY[flaw.impact]},
+            }
+        }
+        if flaw.owner:
+            data["fields"]["assignee"] = {"name": flaw.owner}
+        if flaw.group_key:
+            data["fields"]["customfield_12311140"] = flaw.group_key
+
+        return data

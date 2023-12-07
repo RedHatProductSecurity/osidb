@@ -26,7 +26,7 @@ class TestFlawModelIntegration(object):
         """ """
         sync_count = 0
 
-        def mock_create_or_update_task(self, flaw, fail_if_exists=False):
+        def mock_create_or_update_task(self, flaw):
             nonlocal sync_count
             sync_count += 1
 
@@ -65,7 +65,7 @@ class TestFlawModelIntegration(object):
     def test_syncing(self, monkeypatch, acl_read, acl_write, user_token):
         sync_count = 0
 
-        def mock_create_or_update_task(self, flaw, fail_if_exists=False):
+        def mock_create_or_update_task(self, flaw):
             nonlocal sync_count
             sync_count += 1
 
@@ -106,7 +106,7 @@ class TestFlawModelIntegration(object):
     ):
         sync_count = 0
 
-        def mock_create_or_update_task(self, flaw, fail_if_exists=False):
+        def mock_create_or_update_task(self, flaw):
             nonlocal sync_count
             sync_count += 1
 
@@ -144,7 +144,7 @@ class TestFlawModelIntegration(object):
     ):
         sync_count = 0
 
-        def mock_create_or_update_task(self, flaw, fail_if_exists=False):
+        def mock_create_or_update_task(self, flaw):
             nonlocal sync_count
             sync_count += 1
 

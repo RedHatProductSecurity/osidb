@@ -31,7 +31,7 @@ class TestTaskmanService(object):
         AffectFactory(flaw=flaw)
         taskman = JiraTaskmanQuerier(token=user_token)
 
-        response1 = taskman.create_or_update_task(flaw=flaw, fail_if_exists=True)
+        response1 = taskman.create_or_update_task(flaw=flaw)
         assert response1.status_code == 201
 
         response2 = taskman.get_task(response1.data["id"])
@@ -52,15 +52,11 @@ class TestTaskmanService(object):
         flaw.title = new_title
         flaw.save()
 
-        response6 = taskman.create_or_update_task(flaw=flaw, fail_if_exists=True)
-        assert response6.status_code == 409
-        assert response6.data["existing_task"]["fields"]["summary"] == old_title
+        response6 = taskman.create_or_update_task(flaw=flaw)
+        assert response6.status_code == 200
 
-        response7 = taskman.create_or_update_task(flaw=flaw, fail_if_exists=False)
-        assert response7.status_code == 200
-
-        response8 = taskman.get_task_by_flaw(flaw.uuid)
-        assert response8.data["fields"]["summary"] == new_title
+        response7 = taskman.get_task_by_flaw(flaw.uuid)
+        assert response7.data["fields"]["summary"] == new_title
 
     @pytest.mark.vcr
     def test_update_task_status(self, user_token):
@@ -76,7 +72,6 @@ class TestTaskmanService(object):
         assert response1.status_code == 201
 
         response2 = taskman.get_task_by_flaw(flaw.uuid)
-
         response3 = taskman.update_task_status(
             response2.data["key"], TaskStatus.IN_PROGRESS
         )
@@ -98,6 +93,7 @@ class TestTaskmanService(object):
         """
         # Remove randomness to reuse VCR every possible time
         flaw = FlawFactory(embargoed=False, uuid="99cce9ba-829d-4933-b4c1-44533d819e77")
+        AffectFactory(flaw=flaw)
         taskman = JiraTaskmanQuerier(token=user_token)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
@@ -122,6 +118,7 @@ class TestTaskmanService(object):
         flaw1 = FlawFactory(
             embargoed=False, uuid="f49b20b2-b9ba-47d7-bf17-b7685f484f51"
         )
+        AffectFactory(flaw=flaw1)
         taskman = JiraTaskmanQuerier(token=user_token)
         response1 = taskman.create_or_update_task(flaw=flaw1)
         assert response1.status_code == 201
@@ -129,6 +126,7 @@ class TestTaskmanService(object):
         flaw2 = FlawFactory(
             embargoed=False, uuid="8c502e80-768d-4534-bb02-4db747611319"
         )
+        AffectFactory(flaw=flaw2)
         response2 = taskman.create_or_update_task(flaw=flaw2)
         assert response2.status_code == 201
 
@@ -160,9 +158,11 @@ class TestTaskmanService(object):
         flaw1 = FlawFactory(
             embargoed=False, uuid="ef810d00-8415-453a-89f6-96a1c72fd2f7"
         )
+        AffectFactory(flaw=flaw1)
         flaw2 = FlawFactory(
             embargoed=False, uuid="60e979cf-7d85-4687-b04f-9252d31e4778"
         )
+        AffectFactory(flaw=flaw2)
         taskman = JiraTaskmanQuerier(token=user_token)
 
         response1 = taskman.create_or_update_task(flaw=flaw1)
