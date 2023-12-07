@@ -1693,7 +1693,7 @@ class TestEndpoints(object):
         )
         if fails:
             assert response.status_code == 400
-            assert "ACLs must correspond to the parrent flaw:" in str(response.content)
+            assert "ACLs must correspond to the parent flaw:" in str(response.content)
 
         else:
             assert response.status_code == 201
