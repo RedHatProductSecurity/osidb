@@ -253,11 +253,13 @@ class NVDCollector(Collector, NVDQuerier):
             if self.snippet_creation_enabled:
                 try:
                     snippet = Snippet.objects.get(
-                        source=Snippet.Source.NVD, content__cve_id=cve_id
+                        source=Snippet.Source.NVD, external_id=cve_id
                     )
                 except Snippet.DoesNotExist:
                     if should_create_snippet(item["description"]):
-                        snippet = Snippet(source=Snippet.Source.NVD, content=item)
+                        snippet = Snippet(
+                            source=Snippet.Source.NVD, external_id=cve_id, content=item
+                        )
                         snippet.save()
                         new_snippets.append(cve_id)
 
