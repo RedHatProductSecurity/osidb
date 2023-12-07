@@ -48,7 +48,7 @@ def datetime_with_tz():
 
 @pytest.fixture
 def good_cve_id():
-    return "CVE-1970-101010"
+    return "CVE-2000-101010"
 
 
 @pytest.fixture
