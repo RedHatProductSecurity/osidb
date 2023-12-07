@@ -11,7 +11,7 @@ from apps.trackers.save import TrackerSaver
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from collectors.bzimport.collectors import FlawCollector
 from collectors.bzimport.constants import BZ_DT_FMT
-from osidb.models import Affect, Impact, Tracker
+from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -324,7 +324,9 @@ class TestTrackerAPI:
         assert updated_dt != tracker.meta_attr["updated_dt"]
 
     @pytest.mark.vcr
-    def test_tracker_create_jira(self, auth_client, enable_jira_sync, test_api_uri):
+    def test_tracker_create_jira(
+        self, auth_client, enable_bugzilla_sync, enable_jira_sync, test_api_uri
+    ):
         """
         test the whole stack Jira tracker creation
         starting on the API and ending in Jira
@@ -348,6 +350,7 @@ class TestTrackerAPI:
             embargoed=False,
             impact=Impact.LOW,
             title="sample title",
+            updated_dt=timezone.datetime.strptime("2023-12-05T16:17:13Z", BZ_DT_FMT),
         )
         affect = AffectFactory(
             flaw=flaw,
@@ -396,8 +399,18 @@ class TestTrackerAPI:
         assert tracker.affects.first() == affect
         assert not tracker._alerts
 
+        # 5) reload the flaw and check that the tracker still links
+        #    to make sure that the SRT notes were properly updated
+        fc = FlawCollector()
+        fc.sync_flaw(flaw.bz_id)
+        assert tracker.affects.count() == 1
+        assert tracker.affects.first() == affect
+        assert tracker.affects.first().flaw == flaw
+
     @pytest.mark.vcr
-    def test_tracker_update_jira(self, auth_client, enable_jira_sync, test_api_uri):
+    def test_tracker_update_jira(
+        self, auth_client, enable_bugzilla_sync, enable_jira_sync, test_api_uri
+    ):
         """
         test the whole stack Jira tracker update
         starting on the API and ending in Jira
@@ -420,25 +433,61 @@ class TestTrackerAPI:
             ps_module=ps_module,
             version="4.9",
         )
-        flaw = FlawFactory(
+        JiraProjectFieldsFactory(
+            project_key="OSIDB",
+            field_id="priority",
+            allowed_values=[JiraPriority.MINOR],
+        )
+        # flaw to keep linked
+        flaw1 = FlawFactory(
             bz_id="1997880",
             cve_id=None,
             embargoed=False,
             impact=Impact.LOW,
             title="sample title",
+            updated_dt=timezone.datetime.strptime("2023-12-06T16:33:42Z", BZ_DT_FMT),
         )
-        affect = AffectFactory(
-            flaw=flaw,
+        affect1 = AffectFactory(
+            flaw=flaw1,
             ps_module=ps_module.name,
             ps_component="openshift",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
-            impact=flaw.impact,
+            impact=flaw1.impact,
         )
-        JiraProjectFieldsFactory(
-            project_key="OSIDB",
-            field_id="priority",
-            allowed_values=[JiraPriority.MINOR],
+        # flaw to unlink
+        flaw2 = FlawFactory(
+            bz_id="1988648",
+            cve_id=None,
+            embargoed=False,
+            impact=Impact.LOW,
+            title="sample title",
+            updated_dt=timezone.datetime.strptime("2023-12-06T17:07:51Z", BZ_DT_FMT),
+        )
+        affect2 = AffectFactory(
+            flaw=flaw2,
+            ps_module=ps_module.name,
+            ps_component="openshift",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            impact=flaw2.impact,
+        )
+        # flaw to link
+        flaw3 = FlawFactory(
+            bz_id="1984541",
+            cve_id=None,
+            embargoed=False,
+            impact=Impact.LOW,
+            title="sample title",
+            updated_dt=timezone.datetime.strptime("2023-12-06T17:07:39Z", BZ_DT_FMT),
+        )
+        affect3 = AffectFactory(
+            flaw=flaw3,
+            ps_module=ps_module.name,
+            ps_component="openshift",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            impact=flaw3.impact,
         )
 
         # 2) define a tracker model instance
@@ -446,9 +495,9 @@ class TestTrackerAPI:
         tracker_id = "OSIDB-920"
         updated_dt = "2020-01-01T00:00:00Z"  # TODO no mid-air collision detection
         tracker = TrackerFactory(
-            affects=[affect],
+            affects=[affect1, affect2],
             bz_id=tracker_id,
-            embargoed=flaw.embargoed,
+            embargoed=flaw1.embargoed,
             ps_update_stream=ps_update_stream1.name,
             type=Tracker.TrackerType.JIRA,
             updated_dt=timezone.datetime.strptime(updated_dt, BZ_DT_FMT),
@@ -456,8 +505,11 @@ class TestTrackerAPI:
 
         # 3) update tracker in OSIDB and Bugzilla
         tracker_data = {
-            "affects": [affect.uuid],
-            "embargoed": flaw.embargoed,
+            "affects": [
+                affect1.uuid,
+                affect3.uuid,
+            ],  # affect2 removed and affect3 added
+            "embargoed": flaw1.embargoed,
             "ps_update_stream": ps_update_stream2.name,  # new value
             "status": "New",  # this one is mandatory even though ignored in the backend query for now
             "updated_dt": updated_dt,
@@ -482,9 +534,30 @@ class TestTrackerAPI:
         assert tracker.ps_update_stream == ps_update_stream2.name
         assert tracker.status == "New"
         assert not tracker.resolution
-        assert tracker.affects.count() == 1
-        assert tracker.affects.first() == affect
+        assert tracker.affects.count() == 2
+        assert affect1 in tracker.affects.all()
+        assert affect3 in tracker.affects.all()
         assert not tracker._alerts
 
         # 6) check that the update actually happened
         assert updated_dt != tracker.updated_dt
+
+        # 7) reload the flaws and check that the tracker links remain as
+        #    expected to make sure that the SRT notes were properly updated
+        fc = FlawCollector()
+        fc.sync_flaw(flaw1.bz_id)
+        fc.sync_flaw(flaw2.bz_id)
+        fc.sync_flaw(flaw3.bz_id)
+        flaw1 = Flaw.objects.get(uuid=flaw1.uuid)
+        flaw2 = Flaw.objects.get(uuid=flaw2.uuid)
+        flaw3 = Flaw.objects.get(uuid=flaw3.uuid)
+        tracker = Tracker.objects.get(uuid=tracker.uuid)
+        assert tracker.affects.count() == 2
+        assert flaw1.affects.count() == 1
+        assert flaw1.affects.first().trackers.count() == 1
+        assert flaw1.affects.first().trackers.first().uuid == tracker.uuid
+        assert flaw2.affects.count() == 1
+        assert not flaw2.affects.first().trackers.exists()
+        assert flaw3.affects.count() == 1
+        assert flaw3.affects.first().trackers.count() == 1
+        assert flaw3.affects.first().trackers.first().uuid == tracker.uuid

@@ -78,8 +78,10 @@ def enable_bugzilla_sync(monkeypatch) -> None:
     """
     enable the sync to Bugzilla
     """
+    import apps.bbsync.mixins as mixins
     import osidb.models as models
 
+    monkeypatch.setattr(mixins, "SYNC_TO_BZ", True)
     monkeypatch.setattr(models, "SYNC_TO_BZ", True)
 
 
