@@ -34,7 +34,7 @@ class TestLDAPCommunication:
         user_info = get_user_info(valid_user_username)
         dn, attrs = user_info
         assert dn == f"cn={valid_user_username},ou=users,dc=redhat,dc=com"
-        assert attrs["sn"][0].decode() == "Torres"
+        assert attrs["sn"][0].decode() == "Perlis"
 
     def test_user_info_valid_service(self, valid_service_username):
         user_info = get_user_info(valid_service_username)

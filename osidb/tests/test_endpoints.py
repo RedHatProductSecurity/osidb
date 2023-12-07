@@ -1656,7 +1656,7 @@ class TestEndpoints(object):
     def test_whoami(self, auth_client, root_url):
         res = auth_client().get(f"{root_url}/osidb/whoami").json()
         assert res["username"] == "testuser"
-        assert res["email"] == "silenceawarning"
+        assert res["email"] == "monke@banana.com"
         assert "data-prodsec" in res["groups"]
         assert res["profile"] is None
 
