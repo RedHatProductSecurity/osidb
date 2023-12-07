@@ -219,7 +219,7 @@ class NVDCollector(Collector, NVDQuerier):
 
         logger.info("Fetching NVD data")
         start_dt = timezone.now()
-        desync = []
+        updated_flaws = []
         new_snippets = []
 
         # fetch data
@@ -250,23 +250,19 @@ class NVDCollector(Collector, NVDQuerier):
                 updated_in_flawcvss = self.update_cvss_via_flawcvss(flaw, item)
 
                 if updated_in_flaw or updated_in_flawcvss:
-                    desync.append(cve_id)
+                    updated_flaws.append(cve_id)
                     # no automatic timestamps as those go from Bugzilla
                     # and no validation exceptions not to fail here
                     flaw.save(auto_timestamps=False, raise_validation_error=False)
             except Flaw.DoesNotExist:
                 pass
 
-        logger.info(
-            f"NVD CVSS scores were updated for the following CVEs: {', '.join(desync)}"
-            if desync
-            else "No CVEs with desynced NVD CVSS."
+        changes = (
+            f"Updated CVEs due to changes in CVSS scores assigned by NIST: "
+            f"{', '.join(updated_flaws) if updated_flaws else 'none'}. "
+            f"Created snippets: {', '.join(new_snippets) if new_snippets else 'none'}."
         )
-        logger.info(
-            f"New snippets were created for the following CVEs: {', '.join(new_snippets)}"
-            if new_snippets
-            else "No new snippets."
-        )
+        logger.info(changes)
 
         # do not update the collector metadata when ad-hoc collecting a given CVE
         if cve is not None:
@@ -278,9 +274,7 @@ class NVDCollector(Collector, NVDQuerier):
         complete = start_dt == updated_until_dt or self.metadata.is_complete
         self.store(complete=complete, updated_until_dt=updated_until_dt)
 
-        msg = f"{self.name} is updated until {updated_until_dt}."
-        msg += f" CVEs synced: {', '.join(desync)}" if desync else ""
-        msg += f" New snippets: {', '.join(new_snippets)}" if new_snippets else ""
+        msg = f"{self.name} is updated until {updated_until_dt}. {changes}"
 
         logger.info("NVD sync was successful.")
         return msg
