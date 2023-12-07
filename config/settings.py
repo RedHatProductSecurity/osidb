@@ -47,8 +47,9 @@ INSTALLED_APPS = [
     "osidb",
     "apps.bbsync",
     "apps.exploits",
-    "apps.workflows",
+    "apps.sla",
     "apps.trackers",
+    "apps.workflows",
     "collectors.bzimport",
     "collectors.errata",
     "collectors.framework",
@@ -209,8 +210,9 @@ LOGGING = {
             for app_name in [
                 "apps.bbsync",
                 "apps.exploits",
-                "apps.workflows",
+                "apps.sla",
                 "apps.trackers",
+                "apps.workflows",
             ]
         },
         # Collectors loggers

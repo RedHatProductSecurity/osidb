@@ -6,11 +6,12 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 from collectors.framework.models import collector
-from osidb.models import SpecialConsiderationPackage, UbiPackage
+from osidb.models import CompliancePriority, SpecialConsiderationPackage, UbiPackage
 
 from .constants import PS_CONSTANTS_REPO_BRANCH, PS_CONSTANTS_REPO_URL
 from .core import (
     fetch_ps_constants,
+    sync_compliance_priority,
     sync_special_consideration_packages,
     sync_ubi_packages,
 )
@@ -42,12 +43,16 @@ PS_CONSTANTS_BASE_URL = "/".join(
     # TODO: Use django_celery_beat which has PeriodicTask with IntervalSchedule
     #  What we use here is equivalent to PeriodicTask with CrontabSchedule
     crontab=crontab(minute="49", hour="*/5"),
-    data_models=[SpecialConsiderationPackage, UbiPackage],
+    data_models=[CompliancePriority, SpecialConsiderationPackage, UbiPackage],
 )
 def ps_constants_collector(collector_obj) -> str:
     """ps constants collector"""
 
     # Fetch raw yml data from GitLab
+    url = "/".join((PS_CONSTANTS_BASE_URL, "compliance_priority.yml"))
+    logger.info(f"Fetching PS Constants (compliance priority) from '{url}'")
+    compliance_priority = fetch_ps_constants(url)
+
     url = "/".join((PS_CONSTANTS_BASE_URL, "ubi_packages.yml"))
     logger.info(f"Fetching PS Constants (Ubi Packages) from '{url}'")
     ubi_packages = fetch_ps_constants(url)
@@ -59,11 +64,13 @@ def ps_constants_collector(collector_obj) -> str:
     logger.info(
         (
             f"Fetched ubi packages for {len(ubi_packages)} RHEL major versions "
-            f"and {len(sc_packages)} special consideration packages. "
+            f"and {len(sc_packages)} special consideration packages "
+            f"and compliance priority data. "
             f"Going to sync."
         )
     )
 
+    sync_compliance_priority(compliance_priority)
     sync_ubi_packages(ubi_packages)
     sync_special_consideration_packages(sc_packages)
 

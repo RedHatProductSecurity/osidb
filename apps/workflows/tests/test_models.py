@@ -3,12 +3,15 @@ import pytest
 from apps.workflows.exceptions import LastStateException, MissingRequirementsException
 from apps.workflows.models import Check, State, Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
-from osidb.models import Affect, Flaw, FlawSource, Impact
+from osidb.models import Affect, Flaw, FlawReference, FlawSource, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawCVSSFactory,
     FlawFactory,
+    FlawReferenceFactory,
     PackageFactory,
+    PsModuleFactory,
+    TrackerFactory,
 )
 
 pytestmark = pytest.mark.unit
@@ -134,33 +137,125 @@ class TestCheck:
             flaw
         ), f'check for "{check.name}" should have failed, but passed.'
 
-    def test_equals_check(self):
+    @pytest.mark.parametrize(
+        "attribute,value,check_desc",
+        [
+            ("cve_id", "CVE-2000-12345", "CVE is CVE-2000-12345"),
+            ("cwe_id", "CWE-100", "CWE is CWE-100"),
+            ("impact", Impact.CRITICAL, "impact is critical"),
+            ("source", FlawSource.CUSTOMER, "source is customer"),
+            ("title", "whatever", "title is whatever"),
+        ],
+    )
+    def test_equals(self, attribute, value, check_desc):
         """
-        test that check equals operand
+        test equality check parsing and resolution
         """
-        flaw = FlawFactory(cwe_id="CWE-99")
+        flaw = FlawFactory()
+        setattr(flaw, attribute, value)
+        check = Check(check_desc)
 
-        check = Check("cwe equals CWE-99")
-        assert check(flaw), f'check for "{check.name}" failed.'
+        assert check.name == check_desc
+        # here we do a case insensitive check as there is
+        # a different case handling for the text choices
+        assert (
+            check.description.lower()
+            == f"check that Flaw attribute {attribute} has a value equal to {value}".lower()
+        )
+        assert check(flaw), f"Check failed: {check.name}"
 
-        flaw = FlawFactory(cwe_id="CWE-100")
+    def test_equals_failed(self):
+        """
+        test that equality check fails with unexpected value
+        """
+        check = Check("cwe is CWE-99")
         assert not check(
-            flaw
+            FlawFactory(cwe_id="CWE-100")
         ), f'check for "{check.name}" should have failed, but passed.'
 
-    def test_not_equals_check(self):
+    def test_equals_text_choices_property(self):
         """
-        test that check not equals operand
+        test comparison check parsing and resolution
+        of the property returning TextChoices values
         """
-        flaw = FlawFactory(cwe_id="CWE-100")
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        flaw = FlawFactory(embargoed=False, impact=Impact.LOW)
+        affect = AffectFactory(
+            flaw=flaw,
+            impact=None,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect], embargoed=False, type=Tracker.TrackerType.BUGZILLA
+        )
 
-        check = Check("cwe not equals CWE-99")
-        assert check(flaw), f'check for "{check.name}" failed.'
+        check = Check("aggregated impact is low", cls=Tracker)
+        assert check(tracker), f"Check failed: {check.name}"
 
-        flaw = FlawFactory(cwe_id="CWE-99")
+    @pytest.mark.parametrize(
+        "attribute,value,not_value,check_desc",
+        [
+            ("cve_id", "CVE-2000-12345", "CVE-2000-3000", "CVE is not CVE-2000-3000"),
+            ("cwe_id", "CWE-100", "CWE-200", "CWE is not CWE-200"),
+            ("impact", Impact.CRITICAL, "low", "impact is not low"),
+            ("source", FlawSource.CUSTOMER, "internet", "source is not internet"),
+            ("title", "whatever", "banana", "title is not banana"),
+        ],
+    )
+    def test_not_equals(self, attribute, value, not_value, check_desc):
+        """
+        test negative equality check parsing and resolution
+        """
+        flaw = FlawFactory()
+        setattr(flaw, attribute, value)
+        check = Check(check_desc)
+
+        assert check.name == check_desc
+        # here we do a case insensitive check as there is
+        # a different case handling for the text choices
+        assert (
+            check.description.lower()
+            == f"negative of: check that Flaw attribute {attribute} has a value equal to {not_value}".lower()
+        )
+        assert check(flaw), f"Check failed: {check.name}"
+
+    def test_not_equals_failed(self):
+        """
+        test that negative equality check fails with expected value
+        """
+        check = Check("cwe not is CWE-100")
         assert not check(
-            flaw
+            FlawFactory(cwe_id="CWE-100")
         ), f'check for "{check.name}" should have failed, but passed.'
+
+    @pytest.mark.parametrize(
+        "cls,factory,field,value",
+        [
+            (Affect, AffectFactory, "impact", Impact.CRITICAL),
+            (Flaw, FlawFactory, "impact", Impact.CRITICAL),
+            (FlawReference, FlawReferenceFactory, "url", "http://example.com"),
+            # we should be theoretically able to apply this to an arbitrary model
+            # class so let us test just a few of them and assume it generally works
+        ],
+    )
+    def test_parametrized_model(self, cls, factory, field, value):
+        """
+        test that check model parametrization works correctly
+        """
+        instance = factory()
+        setattr(instance, field, value)
+        # non-emptyness check is very simple to define
+        # and it is enough here to use any type of check
+        check = Check(f"has {field}", cls)
+
+        assert check.name == f"has {field}"
+        assert (
+            check.description
+            == f"check that {cls.__name__} attribute {field} has a value set"
+        )
+        assert check(instance), f"Check failed: {check.name}"
 
 
 class TestState:

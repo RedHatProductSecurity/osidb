@@ -1,5 +1,6 @@
 import pytest
 
+from apps.sla.framework import SLAFramework
 from apps.trackers.constants import TRACKERS_API_VERSION
 from osidb.models import Tracker
 
@@ -90,3 +91,20 @@ def enable_jira_sync(monkeypatch) -> None:
     import osidb.models as models
 
     monkeypatch.setattr(models, "SYNC_TO_JIRA", True)
+
+
+@pytest.fixture()
+def clean_policies():
+    """
+    clean SLA framework before and after every test
+
+        * before so it is not mixed with some leftovers
+        * after so we do not leave any leftovers
+
+    if we do it only before or only after the tests might behave differently
+    when run in batch than when run alone so better to be safe then sorry
+    """
+    sla_framework = SLAFramework()
+    sla_framework._policies = []
+    yield  # run test here
+    sla_framework._policies = []

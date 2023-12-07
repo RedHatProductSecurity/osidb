@@ -4,6 +4,7 @@ Jira tracker query generation module
 import logging
 from functools import cached_property
 
+from apps.sla.framework import SLAFramework
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import NoPriorityAvailableError
 from apps.trackers.models import JiraProjectFields
@@ -72,9 +73,9 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         self.generate_base()
         self.generate_priority()
-        self.generate_deadline()
         self.generate_description()
         self.generate_labels()
+        self.generate_sla()
         self.generate_summary()
 
     def generate_base(self):
@@ -104,13 +105,6 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
             f"{self.impact}; allowed Jira priority values are: {', '.join(allowed_values)}"
         )
 
-    def generate_deadline(self):
-        """
-        generate query for Bugzilla deadline
-        """
-        # TODO SLA module
-        pass
-
     def generate_description(self):
         """
         generates query for the tracker description
@@ -132,6 +126,25 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
                 "flaw__cve_id", flat=True
             )
         )
+
+    def generate_sla(self):
+        """
+        generate query for Jira SLA timestamps
+        """
+        sla_framework = SLAFramework()
+        sla_context = sla_framework.classify(self.tracker)
+        # the tracker may or may not be under SLA
+        if sla_context.sla is not None:
+            self._query["fields"]["duedate"] = sla_context.end.isoformat()
+            # check that Target start field is present
+            # and eventually get its custom field ID
+            target_start = JiraProjectFields.objects.filter(
+                project_key=self.ps_module.bts_key, field_name="Target start"
+            )
+            if target_start.exists():
+                self._query["fields"][
+                    target_start.first().field_id
+                ] = sla_context.start.isoformat()
 
     def generate_summary(self):
         """

@@ -823,6 +823,17 @@ class Flaw(
         choices=FlawMajorIncident.choices, max_length=20, blank=True
     )
 
+    @property
+    def major_incident_start_dt(self) -> timezone.datetime:
+        """
+        the moment when the Major Incident started
+        """
+        # TODO
+        # we currently do not have this information available
+        # so we assume that this was always Major Incident
+        if self.is_major_incident:
+            return self.reported_dt
+
     # non operational meta data
     meta_attr = HStoreField(default=dict)
 
@@ -2005,6 +2016,14 @@ class Affect(
                 )
 
     @property
+    def aggregated_impact(self):
+        """
+        this property simply gives the maximum impact
+        aggregated from the affect and the related flaw
+        """
+        return max(Impact(self.impact), Impact(self.flaw.impact))
+
+    @property
     def delegated_resolution(self):
         """affect delegated resolution based on resolutions of related trackers"""
         if not (
@@ -2045,6 +2064,16 @@ class Affect(
         """
         return PsModule.objects.filter(
             name=self.ps_module, ps_product__business_unit="Community"
+        ).exists()
+
+    @property
+    def is_compliance_priority(self) -> bool:
+        """
+        check and return whether this affect module and component combination is compliance
+        priority which is defined in PS constance repo in compliance_priority.yml
+        """
+        return CompliancePriority.objects.filter(
+            ps_module=self.ps_module, ps_component=self.ps_component
         ).exists()
 
     @property
@@ -2505,11 +2534,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         """
         this property simply gives the maximum impact of the related entities
         """
-        return max(
-            Impact(impact)
-            for impact in [affect.impact for affect in self.affects.all()]
-            + [affect.flaw.impact for affect in self.affects.all()]
-        )
+        return max(affect.aggregated_impact for affect in self.affects.all())
 
     @property
     def bz_id(self):
@@ -3426,6 +3451,19 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.username
+
+
+class CompliancePriority(models.Model):
+    """
+    an instance of this model represents one
+    entry in PS constant compliance priority list
+    """
+
+    # internal primary key
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    ps_module = models.CharField(max_length=100)
+    ps_component = models.CharField(max_length=255)
 
 
 class UbiPackage(models.Model):

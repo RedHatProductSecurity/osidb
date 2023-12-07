@@ -1,7 +1,10 @@
 """
 Bugzilla specific tracker test cases
 """
+from unittest.mock import mock_open, patch
+
 import pytest
+from django.utils.timezone import datetime, make_aware
 
 from apps.bbsync.constants import RHSCL_BTS_KEY
 from apps.bbsync.exceptions import ProductDataError
@@ -53,6 +56,46 @@ class TestTrackerBugzillaQueryBuilder:
 
         assert "blocks" in query
         assert sorted(query["blocks"]) == sorted(flaw_ids)
+
+    def test_generate_deadline(self, clean_policies):
+        """
+        test that the tracker deadline query is properly generated
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            reported_dt=make_aware(datetime(2000, 1, 1)),
+        )
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        sla_file = """
+---
+name: Not Embargoed
+description: suitable for whatever we find on the street
+conditions:
+  flaw:
+    - is not embargoed
+sla:
+  duration: 10
+  start: reported date
+  type: calendar days
+"""
+
+        with patch("builtins.open", mock_open(read_data=sla_file)):
+            query = TrackerBugzillaQueryBuilder(tracker).query
+
+        assert "deadline" in query
+        assert query["deadline"] == "2000-01-11"
 
     @pytest.mark.parametrize(
         "ps_component,component_overrides,bz_component",
