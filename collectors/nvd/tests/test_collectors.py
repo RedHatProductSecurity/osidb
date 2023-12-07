@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from collectors.framework.models import CollectorMetadata
 from collectors.nvd.collectors import NVDCollector
-from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
+from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource, Snippet
 from osidb.tests.factories import FlawCVSSFactory, FlawFactory
 
 pytestmark = pytest.mark.integration
@@ -225,17 +225,23 @@ class TestNVDCollector:
             else:
                 assert flaw.cvss_scores.filter(version=version).first() is None
 
-    @pytest.mark.default_cassette("TestNVDCollector.test_snippet.yaml")
+    @pytest.mark.default_cassette("TestNVDCollector.test_snippet_and_flaw_created.yaml")
     @pytest.mark.vcr
-    @pytest.mark.parametrize("has_snippet", [False, True])
-    def test_snippet(self, has_snippet):
+    @pytest.mark.parametrize(
+        "has_flaw,has_snippet",
+        [
+            (False, False),
+            (True, False),
+            (True, True),
+            # (True, False) cannot happen (if a snippet is present, a flaw must be too)
+        ],
+    )
+    def test_snippet_and_flaw_created(self, has_flaw, has_snippet):
         """
-        Test that a snippet is created if it does not exist.
+        Test that a snippet and flaw are created if they do not exist.
         """
-        cve = "CVE-2017-7542"
-
         snippet_content = {
-            "cve_id": cve,
+            "cve_id": "CVE-2017-7542",
             "cvss_scores": [
                 {
                     "score": 4.9,
@@ -306,24 +312,55 @@ class TestNVDCollector:
             "source": Snippet.Source.NVD,
             "title": "placeholder only, see description",
         }
+        cve_id = snippet_content["cve_id"]
 
         # Default data
+        if has_flaw:
+            FlawFactory(cve_id=cve_id, source=FlawSource.NVD)
+
         if has_snippet:
-            snippet = Snippet(source=Snippet.Source.NVD, content=snippet_content)
-            snippet.save()
+            s = Snippet(source=Snippet.Source.NVD, content=snippet_content)
+            s.save()
 
         nvdc = NVDCollector()
         # snippet creation is disabled by default, so enable it
         nvdc.snippet_creation_enabled = True
-        nvdc.collect(cve)
+        nvdc.collect(cve_id)
 
-        all_snippets = Snippet.objects.filter(
-            source=Snippet.Source.NVD, content__cve_id=cve
+        snippets = Snippet.objects.filter(
+            content__cve_id=cve_id, source=Snippet.Source.NVD
         )
-        snippet = all_snippets.first()
+        snippet = snippets.first()
 
-        assert len(all_snippets) == 1
-        assert len(snippet.content) == 7
+        flaws = Flaw.objects.filter(cve_id=cve_id, source=FlawSource.NVD)
+        flaw = flaws.first()
 
-        for key, value in snippet_content.items():
-            assert snippet.content[key] == value
+        assert len(snippets) == len(flaws) == 1
+        assert snippet.flaw == flaw
+        assert flaw.snippets.count() == 1
+        assert flaw.snippets.first() == snippet
+
+    @pytest.mark.vcr
+    @pytest.mark.parametrize(
+        "cve_id,snippet_enabled",
+        [
+            # CVE complies with the keywords check, but snippet creation is disabled
+            ("CVE-2017-9627", False),
+            # snippet creation is enabled, but CVE does not comply with the keywords check
+            ("CVE-2017-9629", True),
+        ],
+    )
+    def test_snippet_and_flaw_not_created(self, cve_id, snippet_enabled):
+        """
+        Test that a snippet and flaw are not created.
+        """
+        nvdc = NVDCollector()
+        nvdc.snippet_creation_enabled = snippet_enabled
+        nvdc.collect(cve_id)
+
+        snippets = Snippet.objects.filter(
+            content__cve_id=cve_id, source=Snippet.Source.NVD
+        )
+        flaws = Flaw.objects.filter(cve_id=cve_id, source=FlawSource.NVD)
+
+        assert len(snippets) == len(flaws) == 0
