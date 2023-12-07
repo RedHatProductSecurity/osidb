@@ -131,7 +131,8 @@ build:
 venv:
 	@echo ">Creating venv for local development environment"
 	python3.9 -m venv venv
-	source venv/bin/activate && pip install wheel && pip install -r requirements.txt -r devel-requirements.txt $$([ -f local-requirements.txt ] && echo '-r local-requirements.txt')
+	# --no-deps is a workaround to https://github.com/pypa/pip/issues/9644, see tox.ini for more info
+	source venv/bin/activate && pip install wheel && pip install -r requirements.txt -r devel-requirements.txt $$([ -f local-requirements.txt ] && echo '-r local-requirements.txt') --no-deps
 
 
 #***********************************
