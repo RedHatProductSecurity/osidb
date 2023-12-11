@@ -220,9 +220,7 @@ class TestBBSyncIntegration:
 
     @pytest.mark.vcr
     @freeze_time(timezone.datetime(2023, 5, 26))
-    def test_flaw_update_remove_unembargo_dt(
-        self, auth_client, embargo_access, test_api_uri
-    ):
+    def test_flaw_update_remove_unembargo_dt(self, auth_client, test_api_uri):
         """
         test removing unembargo_dt from an embargoed flaw
         """

@@ -1,10 +1,12 @@
 import pytest
+from django.conf import settings
 
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.models import State, Workflow
 from apps.workflows.serializers import WorkflowSerializer
 from apps.workflows.urls import urlpatterns
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
+from osidb.core import set_user_acls
 from osidb.models import Flaw
 from osidb.tests.factories import AffectFactory, FlawFactory
 
@@ -374,6 +376,8 @@ class TestEndpoints(object):
             **headers,
         )
         assert response.status_code == 400
+        # must reset ACLs to access Flaw
+        set_user_acls(settings.ALL_GROUPS)
         flaw = Flaw.objects.get(pk=flaw.pk)
         assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW

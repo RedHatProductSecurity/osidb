@@ -37,6 +37,36 @@ uid: testuser
 uidnumber: 1000
 userpassword: password
 
+dn: cn=anon,ou=users,dc=redhat,dc=com
+cn: Anonymous
+cn: anon
+gidnumber: 1001
+givenName: Anonymous
+homedirectory: /home/anon
+mail: anon@ymous.com
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: Fool
+uid: anon
+uidnumber: 1001
+userpassword: password
+
+dn: cn=pubread,ou=users,dc=redhat,dc=com
+cn: PublicRead
+cn: pubread
+gidnumber: 1002
+givenName: Robert
+homedirectory: /home/pubread
+mail: pubread@redhat.com
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: California
+uid: pubread
+uidnumber: 1002
+userpassword: password
+
 #################
 # Service accounts
 #################
@@ -70,6 +100,8 @@ objectclass: groupOfNames
 dn: cn=active,ou=users,dc=redhat,dc=com
 cn: active
 member: cn=testuser,ou=users,dc=redhat,dc=com
+member: cn=anon,ou=users,dc=redhat,dc=com
+member: cn=pubread,ou=users,dc=redhat,dc=com
 member: cn=testservice,ou=serviceaccounts,dc=redhat,dc=com
 objectclass: groupOfNames
 
@@ -81,6 +113,7 @@ objectclass: groupOfNames
 dn: cn=data-prodsec,ou=users,dc=redhat,dc=com
 cn: data-prodsec
 member: cn=testuser,ou=users,dc=redhat,dc=com
+member: cn=pubread,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # prodsec data write

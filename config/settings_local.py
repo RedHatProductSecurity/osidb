@@ -60,10 +60,10 @@ AUTH_LDAP_USER_ATTR_MAP = {
     "email": "mail",
 }
 
-AUTH_LDAP_REQUIRE_GROUP = f"cn={PUBLIC_READ_GROUPS[0]},ou=users,dc=redhat,dc=com"
+AUTH_LDAP_REQUIRE_GROUP = "cn=active,ou=users,dc=redhat,dc=com"
 
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    "is_active": f"cn={PUBLIC_READ_GROUPS[0]},ou=users,dc=redhat,dc=com",
+    "is_active": "cn=active,ou=users,dc=redhat,dc=com",
     "is_staff": f"cn={SERVICE_MANAGE_GROUP},ou=users,dc=redhat,dc=com",
     "is_superuser": f"cn={SERVICE_MANAGE_GROUP},ou=users,dc=redhat,dc=com",
 }

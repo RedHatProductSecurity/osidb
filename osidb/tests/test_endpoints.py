@@ -4,7 +4,6 @@ from typing import Set, Union
 
 import pytest
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import datetime
@@ -15,7 +14,7 @@ from rest_framework.test import APIClient
 
 from osidb.filters import FlawFilter
 
-from ..core import generate_acls
+from ..core import generate_acls, set_user_acls
 from ..helpers import ensure_list
 from ..models import (
     Affect,
@@ -1207,6 +1206,8 @@ class TestEndpoints(object):
         assert "refresh" in body
         token = body["access"]
 
+        # reset ACLs
+        set_user_acls(settings.ALL_GROUPS)
         flaw1 = FlawFactory.build(
             major_incident_state=Flaw.FlawMajorIncident.APPROVED,
             requires_summary=Flaw.FlawRequiresSummary.APPROVED,
@@ -1367,7 +1368,6 @@ class TestEndpoints(object):
     def test_flaw_update_cve(
         self,
         auth_client,
-        embargo_access,
         test_api_uri,
         embargoed,
         old_cve_id,
@@ -1458,7 +1458,6 @@ class TestEndpoints(object):
     def test_flaw_update_enembargo_dt(
         self,
         auth_client,
-        embargo_access,
         test_api_uri,
         embargoed,
         old_date,
@@ -1672,7 +1671,6 @@ class TestEndpoints(object):
     def test_affect_create(
         self,
         auth_client,
-        embargo_access,
         test_api_uri,
         flaw_embargo,
         affect_embargo,
@@ -1712,7 +1710,7 @@ class TestEndpoints(object):
             assert body["ps_module"] == "rhacm-2"
 
     @pytest.mark.parametrize("embargoed", [False, True])
-    def test_affect_update(self, auth_client, embargo_access, test_api_uri, embargoed):
+    def test_affect_update(self, auth_client, test_api_uri, embargoed):
         """
         Test the update of Affect records via a REST API PUT request.
         """
@@ -1755,7 +1753,7 @@ class TestEndpoints(object):
         response = auth_client().get(affect_url)
         assert response.status_code == 404
 
-    def test_flawacknowledgment_create(self, auth_client, embargo_access, test_api_uri):
+    def test_flawacknowledgment_create(self, auth_client, test_api_uri):
         """
         Test the creation of FlawAcknowledgment records via a REST API POST request.
         """
@@ -1793,7 +1791,7 @@ class TestEndpoints(object):
         assert response.status_code == status.HTTP_200_OK
         assert response.data["uuid"] == acknowledgment_uuid
 
-    def test_flawacknowledgment_update(self, auth_client, embargo_access, test_api_uri):
+    def test_flawacknowledgment_update(self, auth_client, test_api_uri):
         """
         Test the update of FlawAcknowledgment records via a REST API PUT request.
         """
@@ -1820,7 +1818,7 @@ class TestEndpoints(object):
         assert response.status_code == status.HTTP_200_OK
         assert response.data["name"] == "Jon A"
 
-    def test_flawacknowledgment_delete(self, auth_client, embargo_access, test_api_uri):
+    def test_flawacknowledgment_delete(self, auth_client, test_api_uri):
         """
         Test the deletion of FlawAcknowledgment records via a REST API DELETE request.
         """
@@ -1840,7 +1838,7 @@ class TestEndpoints(object):
         assert response.status_code == status.HTTP_200_OK
         assert FlawAcknowledgment.objects.count() == 0
 
-    def test_flawreference_create(self, auth_client, embargo_access, test_api_uri):
+    def test_flawreference_create(self, auth_client, test_api_uri):
         """
         Test the creation of FlawReference records via a REST API POST request.
         """
@@ -1878,7 +1876,7 @@ class TestEndpoints(object):
         assert response.status_code == status.HTTP_200_OK
         assert response.data["uuid"] == reference_uuid
 
-    def test_flawreference_update(self, auth_client, embargo_access, test_api_uri):
+    def test_flawreference_update(self, auth_client, test_api_uri):
         """
         Test the update of FlawReference records via a REST API PUT request.
         """
@@ -1904,7 +1902,7 @@ class TestEndpoints(object):
         assert response.status_code == status.HTTP_200_OK
         assert response.data["url"] == "https://httpd.apache.org/link456"
 
-    def test_flawreference_delete(self, auth_client, embargo_access, test_api_uri):
+    def test_flawreference_delete(self, auth_client, test_api_uri):
         """
         Test the deletion of FlawReference records via a REST API DELETE request.
         """
@@ -1922,7 +1920,7 @@ class TestEndpoints(object):
         assert FlawReference.objects.count() == 0
 
     @pytest.mark.enable_signals
-    def test_flawcvss_create(self, auth_client, embargo_access, test_api_uri):
+    def test_flawcvss_create(self, auth_client, test_api_uri):
         """
         Test the creation of FlawCVSS records via a REST API POST request.
         """
@@ -1959,7 +1957,7 @@ class TestEndpoints(object):
         assert response.data["uuid"] == cvss_uuid
 
     @pytest.mark.enable_signals
-    def test_flawcvss_update(self, auth_client, embargo_access, test_api_uri):
+    def test_flawcvss_update(self, auth_client, test_api_uri):
         """
         Test the update of FlawCVSS records via a REST API PUT request.
         """
@@ -1986,7 +1984,7 @@ class TestEndpoints(object):
         assert response.data["comment"] == "text"
 
     @pytest.mark.enable_signals
-    def test_flawcvss_delete(self, auth_client, embargo_access, test_api_uri):
+    def test_flawcvss_delete(self, auth_client, test_api_uri):
         """
         Test the deletion of FlawCVSS records via a REST API DELETE request.
         """
@@ -2004,7 +2002,7 @@ class TestEndpoints(object):
         assert FlawCVSS.objects.count() == 0
 
     @pytest.mark.enable_signals
-    def test_affectcvss_create(self, auth_client, embargo_access, test_api_uri):
+    def test_affectcvss_create(self, auth_client, test_api_uri):
         """
         Test the creation of AffectCVSS records via a REST API POST request.
         """
@@ -2042,7 +2040,7 @@ class TestEndpoints(object):
         assert response.data["uuid"] == cvss_uuid
 
     @pytest.mark.enable_signals
-    def test_affectcvss_update(self, auth_client, embargo_access, test_api_uri):
+    def test_affectcvss_update(self, auth_client, test_api_uri):
         """
         Test the update of AffectCVSS records via a REST API PUT request.
         """
@@ -2071,7 +2069,7 @@ class TestEndpoints(object):
         assert response.data["comment"] == "text"
 
     @pytest.mark.enable_signals
-    def test_affectcvss_delete(self, auth_client, embargo_access, test_api_uri):
+    def test_affectcvss_delete(self, auth_client, test_api_uri):
         """
         Test the deletion of AffectCVSS records via a REST API DELETE request.
         """
@@ -2089,9 +2087,7 @@ class TestEndpoints(object):
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])
-    def test_tracker_create(
-        self, auth_client, embargo_access, test_api_uri, embargoed, bts_name
-    ):
+    def test_tracker_create(self, auth_client, test_api_uri, embargoed, bts_name):
         """
         Test the creation of Tracker records via a REST API POST request.
         """
@@ -2128,9 +2124,7 @@ class TestEndpoints(object):
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])
-    def test_tracker_update(
-        self, auth_client, embargo_access, test_api_uri, embargoed, bts_name
-    ):
+    def test_tracker_update(self, auth_client, test_api_uri, embargoed, bts_name):
         """
         Test the update of Tracker records via a REST API PUT request.
         """
@@ -2164,9 +2158,7 @@ class TestEndpoints(object):
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])
-    def test_tracker_update_link(
-        self, auth_client, embargo_access, test_api_uri, embargoed, bts_name
-    ):
+    def test_tracker_update_link(self, auth_client, test_api_uri, embargoed, bts_name):
         """
         Test the update of Tracker records via a REST API PUT request.
         """
@@ -2236,7 +2228,7 @@ class TestEndpoints(object):
         # with the authoritative sources of the tracker data
         assert response.status_code == 405
 
-    def test_packageversions_filter(self, auth_client, embargo_access, test_api_uri):
+    def test_packageversions_filter(self, auth_client, test_api_uri):
         """
         Test the non-trivial parts of FlawPackageVersionFilter via REST API GET requests.
         """
@@ -2326,7 +2318,7 @@ class TestEndpoints(object):
         response_vers2.add(response.data["results"][1]["versions"][1]["version"])
         assert response_vers2 == expected_vers
 
-    def test_packageversions_create(self, auth_client, embargo_access, test_api_uri):
+    def test_packageversions_create(self, auth_client, test_api_uri):
         """
         Test the creation of Package and PackageVer records via a REST API PUT request.
         """
@@ -2385,9 +2377,7 @@ class TestEndpoints(object):
             False,
         ],
     )
-    def test_packageversions_update(
-        self, auth_client, embargo_access, test_api_uri, correct_timestamp
-    ):
+    def test_packageversions_update(self, auth_client, test_api_uri, correct_timestamp):
         """
         Test the update of Package and PackageVer records via a REST API PUT request.
         """
@@ -2489,7 +2479,7 @@ class TestEndpoints(object):
             returned_data = extract_packages_versions(response)
             assert returned_data == GROUND_STATE
 
-    def test_packageversions_delete(self, auth_client, embargo_access, test_api_uri):
+    def test_packageversions_delete(self, auth_client, test_api_uri):
         """
         Test the deletion of Package and PackageVer records via a REST API PUT request.
         """
@@ -2541,7 +2531,7 @@ class TestEndpointsACLs:
         ],
     )
     def test_flaw_create(
-        self, auth_client, embargo_access, test_api_uri, embargoed, acl_read, acl_write
+        self, auth_client, test_api_uri, embargoed, acl_read, acl_write
     ):
         """
         test proper embargo status and ACLs when creating a flaw by sending a POST request
@@ -2585,7 +2575,12 @@ class TestEndpointsACLs:
         ],
     )
     def test_flaw_update(
-        self, auth_client, embargo_access, test_api_uri, embargoed, acl_read, acl_write
+        self,
+        auth_client,
+        test_api_uri,
+        embargoed,
+        acl_read,
+        acl_write,
     ):
         """
         test proper embargo status and ACLs when updating a flaw by sending a PUT request
@@ -2655,11 +2650,6 @@ class TestEndpointsACLs:
         """
         test that creating a Flaw is rejected when the ACL contains a group the user is not a member of
         """
-        # restrict the user to the public read and write access
-        User.objects.get(username="testuser").groups.exclude(
-            name__in=["data-prodsec", "data-prodsec-write"]
-        ).delete()
-
         flaw_data = {
             "title": "EMBARGOED Foo",
             "description": "test",
@@ -2669,7 +2659,9 @@ class TestEndpointsACLs:
             "embargoed": True,
             "bz_api_key": "SECRET",
         }
-        response = auth_client().post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        response = auth_client("anon").post(
+            f"{test_api_uri}/flaws", flaw_data, format="json"
+        )
         assert response.status_code == 400
         assert (
             "Cannot provide access for the LDAP group without being a member: data-topsecret"
@@ -2683,15 +2675,10 @@ class TestEndpointsACLs:
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
 
-        # restrict the user to the public read-only access
-        User.objects.get(username="testuser").groups.exclude(
-            name="data-prodsec"
-        ).delete()
-
         response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
 
-        response = auth_client().put(
+        response = auth_client("pubread").put(
             f"{test_api_uri}/flaws/{flaw.uuid}",
             {
                 "title": f"{flaw.title} appended test title",
