@@ -16,10 +16,10 @@ from osidb.tests.factories import (
     FlawReferenceFactory,
 )
 from osidb.tests.models import (
-    TestAlertModel,
-    TestAlertModelBasic,
-    TestComparableTextChoices_1,
-    TestComparableTextChoices_2,
+    AlertModel,
+    AlertModelBasic,
+    ComparableTextChoices_1,
+    ComparableTextChoices_2,
 )
 
 pytestmark = pytest.mark.unit
@@ -94,7 +94,7 @@ class TestCore(object):
 class TestModelDefinitions:
     @isolate_apps("tests")
     def test_creation_empty_alerts(self):
-        m = TestAlertModelBasic()
+        m = AlertModelBasic()
         m.save()
 
         assert m._alerts == {}
@@ -105,7 +105,7 @@ class TestModelDefinitions:
         Tests that when calling validate() method, all existing alerts
         are deleted, and new ones are created and stored.
         """
-        m = TestAlertModel()
+        m = AlertModel()
         m.alert("original_alert", "This is an alert from the previous run.")
         assert "original_alert" in m._alerts
 
@@ -122,7 +122,7 @@ class TestModelDefinitions:
 
     @isolate_apps("tests")
     def test_alert_incorrect_type(self):
-        m = TestAlertModel()
+        m = AlertModel()
         with pytest.raises(ValueError) as e:
             m.alert("my_error", "This is a weird error", _type="weird")
         assert "Alert type 'weird' is not valid" in str(e)
@@ -140,12 +140,8 @@ class TestModelDefinitions:
 
 class TestComparableTextChoices:
     def test_incomparable(self):
-        instance1 = TestComparableTextChoices_1(
-            TestComparableTextChoices_1.get_choices()[0]
-        )
-        instance2 = TestComparableTextChoices_2(
-            TestComparableTextChoices_2.get_choices()[0]
-        )
+        instance1 = ComparableTextChoices_1(ComparableTextChoices_1.get_choices()[0])
+        instance2 = ComparableTextChoices_2(ComparableTextChoices_2.get_choices()[0])
 
         # even without equality being defined
         # Python can decide this on identiy

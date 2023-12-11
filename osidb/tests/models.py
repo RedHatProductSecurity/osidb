@@ -2,11 +2,11 @@ from osidb.mixins import AlertMixin
 from osidb.models import ComparableTextChoices
 
 
-class TestAlertModelBasic(AlertMixin):
+class AlertModelBasic(AlertMixin):
     pass
 
 
-class TestAlertModel(AlertMixin):
+class AlertModel(AlertMixin):
     def _validate_test(self):
         """
         Creates a new alert when validate() method runs.
@@ -14,9 +14,9 @@ class TestAlertModel(AlertMixin):
         self.alert("new_alert", "This is a new alert.")
 
 
-class TestComparableTextChoices_1(ComparableTextChoices):
+class ComparableTextChoices_1(ComparableTextChoices):
     TEST = "TEST"
 
 
-class TestComparableTextChoices_2(ComparableTextChoices):
+class ComparableTextChoices_2(ComparableTextChoices):
     TEST = "TEST"
