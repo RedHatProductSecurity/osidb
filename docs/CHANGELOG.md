@@ -7,12 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Implement writable tracker API (OSIDB-1180)
-- Limit Celery worker to maximum amount of tasks (OSIDB-1540)
 - Command for manual sync of Flaws now also accepts CVEs (OSIDB-1544)
 - Add new SOURCE option into FlawReferenceType (OSIDB-1556)
-- Add Celery worker concurrency
 - Add new NVD option into FlawSource
-- Maximum Bugzilla and Jira connection age (OSIDB-1592, OSIDB-1593)
 - Implement SLA definition parsing and timestamp computation (OSIDB-1428)
 - Implement tracker SLA start date setting (OSIDB-1393)
 - Implement tracker SLA end date setting (OSIDB-96)
@@ -22,7 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix incorrect type bool of is_up2date field in
   /collectors/api/v1/status endpoint
 - fix schema to reflect Erratum shipped_dt to be nullable
-- Made Querier objects independent on Collector objects (OSIDB-1592, OSIDB-1593)
 
 ### Changed
 - Renamed OSIM module to Workflows (OSIDB-1395)
@@ -30,6 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Remove daily monitoring email for failed tasks / collectors (OSIDB-1215)
 - Remove not used taskman APIs and services that has been intregated in OSIM (OSIDB-1321)
+
+## [3.5.2] - 2023-12-06
+### Added
+- Limit Celery worker to maximum amount of tasks (OSIDB-1540)
+- Add Celery worker concurrency
+- Maximum Bugzilla and Jira connection age (OSIDB-1592, OSIDB-1593)
+
+### Fixed
+- Made Querier objects independent on Collector objects (OSIDB-1592, OSIDB-1593)
 
 ## [3.5.1] - 2023-10-23
 ### Fixed
