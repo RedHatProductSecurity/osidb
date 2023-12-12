@@ -72,8 +72,8 @@ AUTH_LDAP_USER_FLAGS_BY_GROUP = {
 DATABASES = {
     "default": {
         "NAME": "osidb",
-        "USER": "postgres",
-        "PASSWORD": "test",
+        "USER": "osidb_app_user",
+        "PASSWORD": "passw0rd",
         "HOST": "postgres",
         "PORT": "5432",
         "ENGINE": "psqlextra.backend",
