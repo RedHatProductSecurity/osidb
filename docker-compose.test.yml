@@ -12,9 +12,9 @@ services:
         - LDAP_ROOT=dc=redhat,dc=com
         - LDAP_ADMIN_USERNAME=admin
         - LDAP_ADMIN_PASSWORD=adminpassword
+        - BITNAMI_DEBUG=true
       volumes:
         - ${PWD}/etc/openldap:/ldifs:z
-      depends_on: ["osidb-data"]
       # See "NOTE about healthchecks" in docker-compose.yml:
       # depends_on:
       #   osidb-data:

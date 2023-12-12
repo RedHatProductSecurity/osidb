@@ -126,9 +126,12 @@ def test_api_uri(test_scheme_host, api_version):
 
 @pytest.fixture
 def auth_client(ldap_test_username, ldap_test_password):
-    client = TokenClient()
-    client.login(ldap_test_username, ldap_test_password)
-    return client
+    def clientify(as_user=ldap_test_username):
+        client = TokenClient()
+        client.login(as_user, ldap_test_password)
+        return client
+
+    return clientify
 
 
 @pytest.fixture
@@ -171,13 +174,3 @@ def bypass_rls(db, request):
     if "enable_rls" in request.keywords:
         return
     set_user_acls(settings.ALL_GROUPS)
-
-
-@pytest.fixture
-def embargo_access():
-    """
-    provide embargo access to the testuser
-    """
-    group = Group(name="data-topsecret-write")
-    group.save()
-    User.objects.get(username="testuser").groups.add(group)

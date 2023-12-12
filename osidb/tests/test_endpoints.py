@@ -4,7 +4,6 @@ from typing import Set, Union
 
 import pytest
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import datetime
@@ -15,7 +14,7 @@ from rest_framework.test import APIClient
 
 from osidb.filters import FlawFilter
 
-from ..core import generate_acls
+from ..core import generate_acls, set_user_acls
 from ..helpers import ensure_list
 from ..models import (
     Affect,
@@ -71,7 +70,7 @@ class TestEndpoints(object):
     def test_status(self, auth_client, test_api_uri):
         """test access to osidb service status endpoint"""
 
-        response = auth_client.get(f"{test_api_uri}/status")
+        response = auth_client().get(f"{test_api_uri}/status")
         assert response.status_code == 200
         body = response.json()
         assert body["osidb_data"]["flaw_count"] == 0
@@ -79,7 +78,7 @@ class TestEndpoints(object):
     def test_manifest(self, auth_client, test_api_uri):
         """test access to osidb package manifest endpoint"""
 
-        response = auth_client.get(f"{test_api_uri}/manifest")
+        response = auth_client().get(f"{test_api_uri}/manifest")
         assert response.status_code == 200
         packages = response.json()["packages"]
         assert all(
@@ -99,14 +98,14 @@ class TestEndpoints(object):
 
         flaw1 = FlawFactory()
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
         assert response.status_code == 200
 
         flaw = Flaw.objects.get(cve_id=flaw1.cve_id)
         FlawCommentFactory(flaw=flaw)
         FlawCommentFactory(flaw=flaw)
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
         assert response.status_code == 200
 
         body = response.json()
@@ -118,13 +117,13 @@ class TestEndpoints(object):
         # Source must be private in order for validation to pass.
         flaw = FlawFactory(source=FlawSource.CUSTOMER)
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.cve_id}")
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["acknowledgments"]) == 0
 
         FlawAcknowledgmentFactory(flaw=flaw)
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.cve_id}")
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["acknowledgments"]) == 1
 
@@ -132,13 +131,13 @@ class TestEndpoints(object):
         """retrieve specific flaw with flawreferences from endpoint"""
         flaw = FlawFactory()
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.cve_id}")
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["references"]) == 0
 
         FlawReferenceFactory(flaw=flaw)
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.cve_id}")
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["references"]) == 1
 
@@ -147,13 +146,13 @@ class TestEndpoints(object):
         """retrieve specific flaw with flawcvss from endpoint"""
         flaw = FlawFactory()
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["cvss_scores"]) == 0
 
         FlawCVSSFactory(flaw=flaw)
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["cvss_scores"]) == 1
 
@@ -162,13 +161,13 @@ class TestEndpoints(object):
         """retrieve specific affect with affectcvss from endpoint"""
         affect = AffectFactory()
 
-        response = auth_client.get(f"{test_api_uri}/affects/{affect.uuid}")
+        response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["cvss_scores"]) == 0
 
         AffectCVSSFactory(affect=affect)
 
-        response = auth_client.get(f"{test_api_uri}/affects/{affect.uuid}")
+        response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["cvss_scores"]) == 1
 
@@ -195,7 +194,7 @@ class TestEndpoints(object):
         assert flaw1.save() is None
         assert flaw1.requires_summary == Flaw.FlawRequiresSummary.APPROVED
         FlawCommentFactory(flaw=flaw1)
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
         assert response.status_code == 200
         body = response.json()
         assert body["major_incident_state"] == Flaw.FlawMajorIncident.APPROVED
@@ -205,14 +204,14 @@ class TestEndpoints(object):
     def test_list_flaws(self, auth_client, test_api_uri):
         """retrieve list of flaws from endpoint"""
 
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
 
         FlawFactory()
 
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -224,7 +223,7 @@ class TestEndpoints(object):
         datetime_with_tz,
     ):
         """retrieve list of flaws from endpoint"""
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -237,7 +236,7 @@ class TestEndpoints(object):
             "+00:00", "Z"
         )  # Plus must be percent-encoded to be parsed correctly by Django
         # The IR Dashboard team uses timestamps ending in Z, test this value to avoid regressions that break dashboard
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_str}")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_after={future_str}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -249,7 +248,7 @@ class TestEndpoints(object):
         datetime_with_tz,
     ):
         """retrieve list of flaws from endpoint"""
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -262,7 +261,7 @@ class TestEndpoints(object):
             "+00:00", "Z"
         )  # Plus must be percent-encoded to be parsed correctly by Django
         # The IR Dashboard team uses timestamps ending in Z, test this value to avoid regressions that break dashboard
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_str}")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_before={past_str}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -274,7 +273,7 @@ class TestEndpoints(object):
         datetime_with_tz,
     ):
         """retrieve list of flaws from endpoint"""
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -285,7 +284,7 @@ class TestEndpoints(object):
         future_str = f"{datetime_with_tz + timedelta(days=1)}"
         past_str = past_str.replace("+00:00", "Z")
         future_str = future_str.replace("+00:00", "Z")
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws?changed_after={past_str}&changed_before={future_str}"
         )
         assert response.status_code == 200
@@ -296,7 +295,7 @@ class TestEndpoints(object):
 
     def test_list_flaws_filters(self, auth_client, test_api_uri):
         """retrieve list of flaws from endpoint"""
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -304,7 +303,7 @@ class TestEndpoints(object):
         flaw = FlawFactory()
 
         for field_filter in FlawFilter.get_fields():
-            response = auth_client.get(f"{test_api_uri}/flaws?{field_filter}=0")
+            response = auth_client().get(f"{test_api_uri}/flaws?{field_filter}=0")
             if response.status_code == 200:
                 assert response.json()["count"] == 0 or getattr(flaw, field_filter) == 0
                 # There can be either no match or a matching boolean value
@@ -333,7 +332,7 @@ class TestEndpoints(object):
         future_dt = datetime(2021, 11, 27)
 
         # first check that we cannot get anything by querying any flaws changed after future_dt
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_after={future_dt}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -348,7 +347,7 @@ class TestEndpoints(object):
         )
 
         # we should get a result now
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_after={future_dt}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -359,7 +358,7 @@ class TestEndpoints(object):
         affect = AffectFactory()
         future_dt = datetime(2021, 11, 27)
 
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_after={future_dt}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -371,7 +370,7 @@ class TestEndpoints(object):
             timezone.get_current_timezone()
         )
 
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_after={future_dt}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -384,7 +383,7 @@ class TestEndpoints(object):
         affect2 = AffectFactory(flaw=flaw)
         future_dt = datetime(2021, 11, 27)
 
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_after={future_dt}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -397,7 +396,7 @@ class TestEndpoints(object):
                 timezone.get_current_timezone()
             )
 
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_after={future_dt}")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_after={future_dt}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -423,7 +422,7 @@ class TestEndpoints(object):
         past_dt = datetime(2019, 11, 27)
 
         # first check that we cannot get anything by querying any flaws changed after future_dt
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_before={past_dt}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -436,7 +435,7 @@ class TestEndpoints(object):
         assert tracker.updated_dt == past_dt.astimezone(timezone.get_current_timezone())
 
         # we should get a result now
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_before={past_dt}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -448,7 +447,7 @@ class TestEndpoints(object):
         affect = AffectFactory(flaw=flaw, updated_dt=datetime(2021, 11, 23))
         past_dt = datetime(2019, 11, 27)
 
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_before={past_dt}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -458,7 +457,7 @@ class TestEndpoints(object):
             affect.save()
         assert affect.updated_dt == past_dt.astimezone(timezone.get_current_timezone())
 
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_before={past_dt}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -497,7 +496,7 @@ class TestEndpoints(object):
         past_dt = datetime(2019, 11, 27)
 
         # first check that we cannot get anything by querying any flaws changed after future_dt
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_before={past_dt}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -513,7 +512,7 @@ class TestEndpoints(object):
             )
 
         # we should get a result now
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_before={past_dt}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -521,7 +520,7 @@ class TestEndpoints(object):
 
     def test_list_flaws_filter_by_bz_id(self, auth_client, test_api_uri):
         """retrieve list of flaws from endpoint"""
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -530,13 +529,13 @@ class TestEndpoints(object):
 
         FlawFactory(meta_attr=meta_attr)
 
-        response = auth_client.get(f"{test_api_uri}/flaws?bz_id={meta_attr['bz_id']}")
+        response = auth_client().get(f"{test_api_uri}/flaws?bz_id={meta_attr['bz_id']}")
         assert response.status_code == 200
         assert response.json()["count"] == 1
 
     def test_list_flaws_invalid(self, auth_client, test_api_uri, datetime_with_tz):
         """retrieve list of flaws from endpoint"""
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -547,7 +546,7 @@ class TestEndpoints(object):
         future_str = f"{datetime_with_tz + timedelta(days=1)}"
         past_str = past_str.replace("+00:00", "Z")
         future_str = future_str.replace("+00:00", "Z")
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws?changed_after={future_str}&changed_before={past_str}"
         )
         assert response.status_code == 200
@@ -556,21 +555,21 @@ class TestEndpoints(object):
             body["count"] == 0
         )  # No Flaws that were changed after a future date AND before a past date
 
-        response = auth_client.get(f"{test_api_uri}/flaws?changed_after=")
+        response = auth_client().get(f"{test_api_uri}/flaws?changed_after=")
         assert response.status_code == 200
         body = response.json()
         assert (
             body["count"] == 1
         )  # Parameter is not used for filtering if no value was provided
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws?changed_not_at_all=&changed2=-1&changed3"
         )
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1  # Unrecognized parameters are ignored
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws?changed_after=2021-09-31%2025:70:70XYZ"
         )
         assert response.status_code == 400
@@ -590,7 +589,7 @@ class TestEndpoints(object):
 
     def test_list_flaws_exclude_fields(self, auth_client, test_api_uri):
         """retrieve list of flaws from endpoint with excluded fields"""
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -620,7 +619,7 @@ class TestEndpoints(object):
             + [f"affects.trackers.{field}" for field in tracker_exclude_fields]
         )
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws?exclude_fields={exclude_fields_param}"
         )
         assert response.status_code == 200
@@ -640,7 +639,7 @@ class TestEndpoints(object):
 
     def test_list_flaws_include_fields(self, auth_client, test_api_uri):
         """retrieve list of flaws from endpoint"""
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -670,7 +669,7 @@ class TestEndpoints(object):
             + [f"affects.trackers.{field}" for field in tracker_include_fields]
         )
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws?include_fields={include_fields_param}"
         )
         assert response.status_code == 200
@@ -700,7 +699,7 @@ class TestEndpoints(object):
         retrieve list of flaws from endpoint with included
         fields only in nested serializers
         """
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -726,7 +725,7 @@ class TestEndpoints(object):
             [f"affects.{field}" for field in affect_include_fields]
         )
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws?include_fields={include_fields_param}"
         )
         assert response.status_code == 200
@@ -747,7 +746,7 @@ class TestEndpoints(object):
 
     def test_list_flaws_include_and_exclude_fields(self, auth_client, test_api_uri):
         """retrieve list of flaws from endpoint"""
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -787,7 +786,7 @@ class TestEndpoints(object):
             + [f"affects.trackers.{field}" for field in tracker_exclude_fields]
         )
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws?include_fields={include_fields_param}&exclude_fields={exclude_fields_param}"
         )
         assert response.status_code == 200
@@ -816,7 +815,7 @@ class TestEndpoints(object):
         """retrieve single flaw from endpoint"""
         flaw = FlawFactory()
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.cve_id}")
         assert response.status_code == 200
 
     def test_list_retrieve_multiple_flaws_by_cve_id(self, auth_client, test_api_uri):
@@ -824,13 +823,13 @@ class TestEndpoints(object):
         flaw1 = FlawFactory()
         flaw2 = FlawFactory()
 
-        response = auth_client.get(f"{test_api_uri}/flaws?cve_id={flaw1.cve_id}")
+        response = auth_client().get(f"{test_api_uri}/flaws?cve_id={flaw1.cve_id}")
         body = response.json()
         assert body["count"] == 1
         assert "meta" in body["results"][0]
         assert "affects" in body["results"][0]
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws?cve_id={flaw1.cve_id},{flaw2.cve_id}"
         )
         assert response.status_code == 200
@@ -857,7 +856,7 @@ class TestEndpoints(object):
         for _ in range(2):
             FlawFactory(meta_attr={f"test_key_{i}": "test" for i in range(5)})
 
-        response = auth_client.get(f"{test_api_uri}/flaws?{query_params}")
+        response = auth_client().get(f"{test_api_uri}/flaws?{query_params}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 2
@@ -930,7 +929,7 @@ class TestEndpoints(object):
                     type=Tracker.TrackerType.BUGZILLA,
                 )
 
-        response = auth_client.get(f"{test_api_uri}/flaws?{query_params}")
+        response = auth_client().get(f"{test_api_uri}/flaws?{query_params}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 2
@@ -967,7 +966,9 @@ class TestEndpoints(object):
         """retrieve specific flaw with various meta_attr keys"""
         flaw = FlawFactory(meta_attr={f"test_key_{i}": "test" for i in range(5)})
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}?{query_params}")
+        response = auth_client().get(
+            f"{test_api_uri}/flaws/{flaw.cve_id}?{query_params}"
+        )
         assert response.status_code == 200
         body = response.json()
 
@@ -1037,7 +1038,9 @@ class TestEndpoints(object):
                 type=Tracker.TrackerType.BUGZILLA,
             )
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}?{query_params}")
+        response = auth_client().get(
+            f"{test_api_uri}/flaws/{flaw.cve_id}?{query_params}"
+        )
         assert response.status_code == 200
         flaw = response.json()
 
@@ -1076,7 +1079,7 @@ class TestEndpoints(object):
             FlawMetaFactory(type="CHECKLIST", flaw=flaw)
             FlawMetaFactory(type="NEED_INFO", flaw=flaw)
 
-        response = auth_client.get(f"{test_api_uri}/flaws?{query_params}")
+        response = auth_client().get(f"{test_api_uri}/flaws?{query_params}")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 2
@@ -1109,7 +1112,9 @@ class TestEndpoints(object):
         FlawMetaFactory(type="CHECKLIST", flaw=flaw)
         FlawMetaFactory(type="NEED_INFO", flaw=flaw)
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}?{query_params}")
+        response = auth_client().get(
+            f"{test_api_uri}/flaws/{flaw.cve_id}?{query_params}"
+        )
         assert response.status_code == 200
         body = response.json()
 
@@ -1124,7 +1129,7 @@ class TestEndpoints(object):
         package_versions = PackageFactory()
         PackageVerFactory(package=package_versions)
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{package_versions.flaw.cve_id}"
         )
         assert response.status_code == 200
@@ -1141,7 +1146,7 @@ class TestEndpoints(object):
         """retrieve flaw with classification data"""
         flaw = FlawFactory()  # random flaw
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.cve_id}")
         assert response.status_code == 200
         body = response.json()
 
@@ -1169,7 +1174,7 @@ class TestEndpoints(object):
             type=Tracker.TrackerType.BUGZILLA,
         )
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.cve_id}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.cve_id}")
         assert response.status_code == 200
         body = response.json()
         assert "affects" in body
@@ -1194,13 +1199,15 @@ class TestEndpoints(object):
 
         # get token
         post_data = {"username": ldap_test_username, "password": ldap_test_password}
-        response = auth_client.post(f"{root_url}/auth/token", post_data)
+        response = auth_client().post(f"{root_url}/auth/token", post_data)
         assert response.status_code == 200
         body = response.json()
         assert "access" in body
         assert "refresh" in body
         token = body["access"]
 
+        # reset ACLs
+        set_user_acls(settings.ALL_GROUPS)
         flaw1 = FlawFactory.build(
             major_incident_state=Flaw.FlawMajorIncident.APPROVED,
             requires_summary=Flaw.FlawRequiresSummary.APPROVED,
@@ -1250,7 +1257,7 @@ class TestEndpoints(object):
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/flaws",
             flaw_data,
             format="json",
@@ -1260,7 +1267,7 @@ class TestEndpoints(object):
         body = response.json()
         created_uuid = body["uuid"]
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{created_uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{created_uuid}")
         assert response.status_code == 200
         assert response.json()["cve_id"] == "CVE-2021-0666"
         assert response.json()["component"] == "curl"
@@ -1284,7 +1291,7 @@ class TestEndpoints(object):
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/flaws",
             flaw_data,
             format="json",
@@ -1294,13 +1301,13 @@ class TestEndpoints(object):
         body = response.json()
         created_uuid = body["uuid"]
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{created_uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{created_uuid}")
         assert response.status_code == 200
         assert response.json()["cve_id"] is None
 
         # let's try creating another one without cve_id to make sure the
         # unique=True constraint doesn't jump (I don't trust django)
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/flaws",
             flaw_data,
             format="json",
@@ -1310,7 +1317,7 @@ class TestEndpoints(object):
         body = response.json()
         new_uuid = body["uuid"]
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{new_uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{new_uuid}")
         assert response.status_code == 200
         body = response.json()
         assert response.json()["cve_id"] is None
@@ -1323,11 +1330,11 @@ class TestEndpoints(object):
         """
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
         original_body = response.json()
 
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/flaws/{flaw.uuid}",
             {
                 "uuid": flaw.uuid,
@@ -1361,7 +1368,6 @@ class TestEndpoints(object):
     def test_flaw_update_cve(
         self,
         auth_client,
-        embargo_access,
         test_api_uri,
         embargoed,
         old_cve_id,
@@ -1372,13 +1378,13 @@ class TestEndpoints(object):
         """
         flaw = FlawFactory(embargoed=embargoed, cve_id=old_cve_id)
         AffectFactory(flaw=flaw)
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
         body = response.json()
         assert body["embargoed"] == embargoed
         assert body["cve_id"] == old_cve_id
 
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/flaws/{flaw.uuid}",
             {
                 "cve_id": new_cve_id,
@@ -1452,7 +1458,6 @@ class TestEndpoints(object):
     def test_flaw_update_enembargo_dt(
         self,
         auth_client,
-        embargo_access,
         test_api_uri,
         embargoed,
         old_date,
@@ -1470,7 +1475,7 @@ class TestEndpoints(object):
         flaw.save(raise_validation_error=False)
         AffectFactory(flaw=flaw)
 
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/flaws/{flaw.uuid}",
             {
                 "title": flaw.title,
@@ -1498,7 +1503,7 @@ class TestEndpoints(object):
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
 
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/flaws/{flaw.uuid}",
             {
                 "uuid": flaw.uuid,
@@ -1529,13 +1534,13 @@ class TestEndpoints(object):
         def new_flaw():
             flaw = FlawFactory(embargoed=False)
             AffectFactory(flaw=flaw)
-            response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+            response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
             assert not FlawComment._base_manager.filter(flaw=flaw).exists()
             return flaw
 
         def get_response(flaw, new_comment):
-            return auth_client.post(
+            return auth_client().post(
                 f"{test_api_uri}/flaws/{flaw.uuid}/comments",
                 {
                     "order": 1,
@@ -1571,10 +1576,10 @@ class TestEndpoints(object):
         Test that deleting a Flaw by sending a DELETE request works.
         """
         flaw = FlawFactory()
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
 
-        response = auth_client.delete(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().delete(f"{test_api_uri}/flaws/{flaw.uuid}")
         # this HTTP method is not allowed until we leave Bugzilla and
         # define the conditions under which a flaw can be deleted
         assert response.status_code == 405
@@ -1627,7 +1632,7 @@ class TestEndpoints(object):
         affect_ids = {str(affect.uuid) for affect in affects_with_trackers_to_fetch}
         tracker_ids = {str(tracker.external_system_id) for tracker in trackers_to_fetch}
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws?tracker_ids={','.join(tracker_ids)}"
         )
         assert response.status_code == 200
@@ -1648,9 +1653,9 @@ class TestEndpoints(object):
         assert fetched_tracker_ids == tracker_ids
 
     def test_whoami(self, auth_client, root_url):
-        res = auth_client.get(f"{root_url}/osidb/whoami").json()
+        res = auth_client().get(f"{root_url}/osidb/whoami").json()
         assert res["username"] == "testuser"
-        assert res["email"] == "silenceawarning"
+        assert res["email"] == "monke@banana.com"
         assert "data-prodsec" in res["groups"]
         assert res["profile"] is None
 
@@ -1666,7 +1671,6 @@ class TestEndpoints(object):
     def test_affect_create(
         self,
         auth_client,
-        embargo_access,
         test_api_uri,
         flaw_embargo,
         affect_embargo,
@@ -1685,7 +1689,7 @@ class TestEndpoints(object):
             "ps_component": "curl",
             "embargoed": affect_embargo,
         }
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/affects",
             affect_data,
             format="json",
@@ -1700,23 +1704,23 @@ class TestEndpoints(object):
             body = response.json()
             created_uuid = body["uuid"]
 
-            response = auth_client.get(f"{test_api_uri}/affects/{created_uuid}")
+            response = auth_client().get(f"{test_api_uri}/affects/{created_uuid}")
             assert response.status_code == 200
             body = response.json()
             assert body["ps_module"] == "rhacm-2"
 
     @pytest.mark.parametrize("embargoed", [False, True])
-    def test_affect_update(self, auth_client, embargo_access, test_api_uri, embargoed):
+    def test_affect_update(self, auth_client, test_api_uri, embargoed):
         """
         Test the update of Affect records via a REST API PUT request.
         """
         flaw = FlawFactory(embargoed=embargoed)
         affect = AffectFactory(flaw=flaw)
-        response = auth_client.get(f"{test_api_uri}/affects/{affect.uuid}")
+        response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
         original_body = response.json()
 
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/affects/{affect.uuid}",
             {
                 **original_body,
@@ -1740,16 +1744,16 @@ class TestEndpoints(object):
         affect = AffectFactory(flaw=flaw)
 
         affect_url = f"{test_api_uri}/affects/{affect.uuid}"
-        response = auth_client.get(affect_url)
+        response = auth_client().get(affect_url)
         assert response.status_code == 200
 
-        response = auth_client.delete(affect_url, HTTP_BUGZILLA_API_KEY="SECRET")
+        response = auth_client().delete(affect_url, HTTP_BUGZILLA_API_KEY="SECRET")
         assert response.status_code == 200
 
-        response = auth_client.get(affect_url)
+        response = auth_client().get(affect_url)
         assert response.status_code == 404
 
-    def test_flawacknowledgment_create(self, auth_client, embargo_access, test_api_uri):
+    def test_flawacknowledgment_create(self, auth_client, test_api_uri):
         """
         Test the creation of FlawAcknowledgment records via a REST API POST request.
         """
@@ -1764,7 +1768,7 @@ class TestEndpoints(object):
         }
 
         # Tests "POST" on flaws/{uuid}/acknowledgments
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments",
             flawacknowledgment_data,
             format="json",
@@ -1774,20 +1778,20 @@ class TestEndpoints(object):
         acknowledgment_uuid = response.data["uuid"]
 
         # Tests "GET" on flaws/{uuid}/acknowledgments
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments"
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["count"] == 1
 
         # Tests "GET" on flaws/{uuid}/acknowledgments/{uuid}
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments/{acknowledgment_uuid}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.data["uuid"] == acknowledgment_uuid
 
-    def test_flawacknowledgment_update(self, auth_client, embargo_access, test_api_uri):
+    def test_flawacknowledgment_update(self, auth_client, test_api_uri):
         """
         Test the update of FlawAcknowledgment records via a REST API PUT request.
         """
@@ -1795,7 +1799,7 @@ class TestEndpoints(object):
         flaw = FlawFactory(source=FlawSource.CUSTOMER)
         flawacknowledgment = FlawAcknowledgmentFactory(flaw=flaw)
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments/{flawacknowledgment.uuid}"
         )
         assert response.status_code == status.HTTP_200_OK
@@ -1805,7 +1809,7 @@ class TestEndpoints(object):
         updated_data["name"] = "Jon A"
 
         # Tests "PUT" on flaws/{uuid}/acknowledgments/{uuid}
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments/{flawacknowledgment.uuid}",
             {**updated_data},
             format="json",
@@ -1814,7 +1818,7 @@ class TestEndpoints(object):
         assert response.status_code == status.HTTP_200_OK
         assert response.data["name"] == "Jon A"
 
-    def test_flawacknowledgment_delete(self, auth_client, embargo_access, test_api_uri):
+    def test_flawacknowledgment_delete(self, auth_client, test_api_uri):
         """
         Test the deletion of FlawAcknowledgment records via a REST API DELETE request.
         """
@@ -1826,15 +1830,15 @@ class TestEndpoints(object):
         AffectFactory(flaw=flaw)
 
         url = f"{test_api_uri}/flaws/{str(flaw.uuid)}/acknowledgments/{flawacknowledgment.uuid}"
-        response = auth_client.get(url)
+        response = auth_client().get(url)
         assert response.status_code == status.HTTP_200_OK
 
         # Tests "DELETE" on flaws/{uuid}/acknowledgments/{uuid}
-        response = auth_client.delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
+        response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
         assert response.status_code == status.HTTP_200_OK
         assert FlawAcknowledgment.objects.count() == 0
 
-    def test_flawreference_create(self, auth_client, embargo_access, test_api_uri):
+    def test_flawreference_create(self, auth_client, test_api_uri):
         """
         Test the creation of FlawReference records via a REST API POST request.
         """
@@ -1849,7 +1853,7 @@ class TestEndpoints(object):
         }
 
         # Tests "POST" on flaws/{uuid}/references
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/references",
             flawreference_data,
             format="json",
@@ -1859,25 +1863,27 @@ class TestEndpoints(object):
         reference_uuid = response.data["uuid"]
 
         # Tests "GET" on flaws/{uuid}/references
-        response = auth_client.get(f"{test_api_uri}/flaws/{str(flaw.uuid)}/references")
+        response = auth_client().get(
+            f"{test_api_uri}/flaws/{str(flaw.uuid)}/references"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["count"] == 1
 
         # Tests "GET" on flaws/{uuid}/references/{uuid}
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/references/{reference_uuid}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.data["uuid"] == reference_uuid
 
-    def test_flawreference_update(self, auth_client, embargo_access, test_api_uri):
+    def test_flawreference_update(self, auth_client, test_api_uri):
         """
         Test the update of FlawReference records via a REST API PUT request.
         """
         flaw = FlawFactory()
         flawreference = FlawReferenceFactory(flaw=flaw)
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/references/{flawreference.uuid}"
         )
         assert response.status_code == status.HTTP_200_OK
@@ -1887,7 +1893,7 @@ class TestEndpoints(object):
         updated_data["url"] = "https://httpd.apache.org/link456"
 
         # Tests "PUT" on flaws/{uuid}/references/{uuid}
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/references/{flawreference.uuid}",
             {**updated_data},
             format="json",
@@ -1896,7 +1902,7 @@ class TestEndpoints(object):
         assert response.status_code == status.HTTP_200_OK
         assert response.data["url"] == "https://httpd.apache.org/link456"
 
-    def test_flawreference_delete(self, auth_client, embargo_access, test_api_uri):
+    def test_flawreference_delete(self, auth_client, test_api_uri):
         """
         Test the deletion of FlawReference records via a REST API DELETE request.
         """
@@ -1905,16 +1911,16 @@ class TestEndpoints(object):
         AffectFactory(flaw=flaw)
 
         url = f"{test_api_uri}/flaws/{str(flaw.uuid)}/references/{flawreference.uuid}"
-        response = auth_client.get(url)
+        response = auth_client().get(url)
         assert response.status_code == status.HTTP_200_OK
 
         # Tests "DELETE" on flaws/{uuid}/references/{uuid}
-        response = auth_client.delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
+        response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
         assert response.status_code == status.HTTP_200_OK
         assert FlawReference.objects.count() == 0
 
     @pytest.mark.enable_signals
-    def test_flawcvss_create(self, auth_client, embargo_access, test_api_uri):
+    def test_flawcvss_create(self, auth_client, test_api_uri):
         """
         Test the creation of FlawCVSS records via a REST API POST request.
         """
@@ -1927,7 +1933,7 @@ class TestEndpoints(object):
         }
 
         # Tests "POST" on flaws/{uuid}/cvss_scores
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores",
             data=cvss_data,
             format="json",
@@ -1937,26 +1943,28 @@ class TestEndpoints(object):
         cvss_uuid = response.data["uuid"]
 
         # Tests "GET" on flaws/{uuid}/cvss_scores
-        response = auth_client.get(f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores")
+        response = auth_client().get(
+            f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores"
+        )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["count"] == 1
 
         # Tests "GET" on flaws/{uuid}/cvss_scores/{uuid}
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores/{cvss_uuid}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.data["uuid"] == cvss_uuid
 
     @pytest.mark.enable_signals
-    def test_flawcvss_update(self, auth_client, embargo_access, test_api_uri):
+    def test_flawcvss_update(self, auth_client, test_api_uri):
         """
         Test the update of FlawCVSS records via a REST API PUT request.
         """
         flaw = FlawFactory()
         cvss = FlawCVSSFactory(flaw=flaw, issuer=FlawCVSS.CVSSIssuer.REDHAT, comment="")
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores/{cvss.uuid}"
         )
         assert response.status_code == status.HTTP_200_OK
@@ -1966,7 +1974,7 @@ class TestEndpoints(object):
         updated_data["comment"] = "text"
 
         # Tests "PUT" on flaws/{uuid}/cvss_scores/{uuid}
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores/{cvss.uuid}",
             data=updated_data,
             format="json",
@@ -1976,7 +1984,7 @@ class TestEndpoints(object):
         assert response.data["comment"] == "text"
 
     @pytest.mark.enable_signals
-    def test_flawcvss_delete(self, auth_client, embargo_access, test_api_uri):
+    def test_flawcvss_delete(self, auth_client, test_api_uri):
         """
         Test the deletion of FlawCVSS records via a REST API DELETE request.
         """
@@ -1985,16 +1993,16 @@ class TestEndpoints(object):
         cvss = FlawCVSSFactory(flaw=flaw)
 
         url = f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores/{cvss.uuid}"
-        response = auth_client.get(url)
+        response = auth_client().get(url)
         assert response.status_code == status.HTTP_200_OK
 
         # Tests "DELETE" on flaws/{uuid}/cvss_scores/{uuid}
-        response = auth_client.delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
+        response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
         assert response.status_code == status.HTTP_200_OK
         assert FlawCVSS.objects.count() == 0
 
     @pytest.mark.enable_signals
-    def test_affectcvss_create(self, auth_client, embargo_access, test_api_uri):
+    def test_affectcvss_create(self, auth_client, test_api_uri):
         """
         Test the creation of AffectCVSS records via a REST API POST request.
         """
@@ -2008,7 +2016,7 @@ class TestEndpoints(object):
         }
 
         # Tests "POST" on affects/{uuid}/cvss_scores
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores",
             data=cvss_data,
             format="json",
@@ -2018,21 +2026,21 @@ class TestEndpoints(object):
         cvss_uuid = response.data["uuid"]
 
         # Tests "GET" on affects/{uuid}/cvss_scores
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores"
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["count"] == 1
 
         # Tests "GET" on affects/{uuid}/cvss_scores/{uuid}
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss_uuid}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.data["uuid"] == cvss_uuid
 
     @pytest.mark.enable_signals
-    def test_affectcvss_update(self, auth_client, embargo_access, test_api_uri):
+    def test_affectcvss_update(self, auth_client, test_api_uri):
         """
         Test the update of AffectCVSS records via a REST API PUT request.
         """
@@ -2041,7 +2049,7 @@ class TestEndpoints(object):
             affect=affect, issuer=AffectCVSS.CVSSIssuer.REDHAT, comment=""
         )
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}"
         )
         assert response.status_code == status.HTTP_200_OK
@@ -2051,7 +2059,7 @@ class TestEndpoints(object):
         updated_data["comment"] = "text"
 
         # Tests "PUT" on affects/{uuid}/cvss_scores/{uuid}
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}",
             data=updated_data,
             format="json",
@@ -2061,7 +2069,7 @@ class TestEndpoints(object):
         assert response.data["comment"] == "text"
 
     @pytest.mark.enable_signals
-    def test_affectcvss_delete(self, auth_client, embargo_access, test_api_uri):
+    def test_affectcvss_delete(self, auth_client, test_api_uri):
         """
         Test the deletion of AffectCVSS records via a REST API DELETE request.
         """
@@ -2069,19 +2077,17 @@ class TestEndpoints(object):
         cvss = AffectCVSSFactory(affect=affect)
 
         url = f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}"
-        response = auth_client.get(url)
+        response = auth_client().get(url)
         assert response.status_code == status.HTTP_200_OK
 
         # Tests "DELETE" on affects/{uuid}/cvss_scores/{uuid}
-        response = auth_client.delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
+        response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
         assert response.status_code == status.HTTP_200_OK
         assert AffectCVSS.objects.count() == 0
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])
-    def test_tracker_create(
-        self, auth_client, embargo_access, test_api_uri, embargoed, bts_name
-    ):
+    def test_tracker_create(self, auth_client, test_api_uri, embargoed, bts_name):
         """
         Test the creation of Tracker records via a REST API POST request.
         """
@@ -2102,7 +2108,7 @@ class TestEndpoints(object):
             "ps_update_stream": ps_update_stream.name,
             "status": "TEST",  # this one is mandatory
         }
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/trackers",
             tracker_data,
             format="json",
@@ -2118,9 +2124,7 @@ class TestEndpoints(object):
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])
-    def test_tracker_update(
-        self, auth_client, embargo_access, test_api_uri, embargoed, bts_name
-    ):
+    def test_tracker_update(self, auth_client, test_api_uri, embargoed, bts_name):
         """
         Test the update of Tracker records via a REST API PUT request.
         """
@@ -2136,11 +2140,11 @@ class TestEndpoints(object):
             embargoed=affect.flaw.embargoed,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
-        response = auth_client.get(f"{test_api_uri}/trackers/{tracker.uuid}")
+        response = auth_client().get(f"{test_api_uri}/trackers/{tracker.uuid}")
         assert response.status_code == 200
         original_body = response.json()
 
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/trackers/{tracker.uuid}",
             {
                 **original_body,
@@ -2154,9 +2158,7 @@ class TestEndpoints(object):
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])
-    def test_tracker_update_link(
-        self, auth_client, embargo_access, test_api_uri, embargoed, bts_name
-    ):
+    def test_tracker_update_link(self, auth_client, test_api_uri, embargoed, bts_name):
         """
         Test the update of Tracker records via a REST API PUT request.
         """
@@ -2179,13 +2181,13 @@ class TestEndpoints(object):
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
-        response = auth_client.get(f"{test_api_uri}/trackers/{tracker.uuid}")
+        response = auth_client().get(f"{test_api_uri}/trackers/{tracker.uuid}")
         assert response.status_code == 200
         original_body = response.json()
         assert affect1.uuid in response.data["affects"]
         assert affect2.uuid not in response.data["affects"]
 
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/trackers/{tracker.uuid}",
             {
                 **original_body,
@@ -2218,15 +2220,15 @@ class TestEndpoints(object):
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
         tracker_url = f"{test_api_uri}/trackers/{tracker.uuid}"
-        response = auth_client.get(tracker_url)
+        response = auth_client().get(tracker_url)
         assert response.status_code == 200
 
-        response = auth_client.delete(tracker_url)
+        response = auth_client().delete(tracker_url)
         # this HTTP method is not allowed until we integrate
         # with the authoritative sources of the tracker data
         assert response.status_code == 405
 
-    def test_packageversions_filter(self, auth_client, embargo_access, test_api_uri):
+    def test_packageversions_filter(self, auth_client, test_api_uri):
         """
         Test the non-trivial parts of FlawPackageVersionFilter via REST API GET requests.
         """
@@ -2243,7 +2245,7 @@ class TestEndpoints(object):
         version3 = PackageVerFactory(package=package_versions3, version="3.4.5.6")
 
         # Only the package matching the filtered version is returned
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/package_versions?versions__version={version3.version}"
         )
         assert response.status_code == status.HTTP_200_OK
@@ -2256,7 +2258,7 @@ class TestEndpoints(object):
         # filter, even if the filter is for a single version.
         # Filters are chained with logical AND (only 1 package is returned even though that version
         # matches 2 packages).
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/package_versions?package={package_versions1.package}&versions__version={version1a.version}"
         )
         assert response.status_code == status.HTTP_200_OK
@@ -2291,7 +2293,7 @@ class TestEndpoints(object):
         )
 
         # All packages that have the specified version are returned, including their other versions.
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/package_versions?versions__version={version2b.version}"
         )
         assert response.status_code == status.HTTP_200_OK
@@ -2316,7 +2318,7 @@ class TestEndpoints(object):
         response_vers2.add(response.data["results"][1]["versions"][1]["version"])
         assert response_vers2 == expected_vers
 
-    def test_packageversions_create(self, auth_client, embargo_access, test_api_uri):
+    def test_packageversions_create(self, auth_client, test_api_uri):
         """
         Test the creation of Package and PackageVer records via a REST API PUT request.
         """
@@ -2340,7 +2342,7 @@ class TestEndpoints(object):
         }
 
         # Tests "POST" on flaws/{uuid}/package_versions
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/package_versions",
             packageversions_data,
             format="json",
@@ -2350,14 +2352,14 @@ class TestEndpoints(object):
         packageversion_uuid = response.data["uuid"]
 
         # Tests "GET" on flaws/{uuid}/package_versions
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/package_versions"
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["count"] == 1
 
         # Tests "GET" on flaws/{uuid}/package_versions/{uuid}
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/package_versions/{packageversion_uuid}"
         )
         assert response.status_code == status.HTTP_200_OK
@@ -2375,9 +2377,7 @@ class TestEndpoints(object):
             False,
         ],
     )
-    def test_packageversions_update(
-        self, auth_client, embargo_access, test_api_uri, correct_timestamp
-    ):
+    def test_packageversions_update(self, auth_client, test_api_uri, correct_timestamp):
         """
         Test the update of Package and PackageVer records via a REST API PUT request.
         """
@@ -2414,7 +2414,7 @@ class TestEndpoints(object):
         package_versions3.save()
 
         # Test that the ground state before modifications is correctly represented via API
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/package_versions"
         )
         assert response.status_code == status.HTTP_200_OK
@@ -2424,7 +2424,7 @@ class TestEndpoints(object):
 
         url = f"{test_api_uri}/flaws/{str(flaw.uuid)}/package_versions/{package_versions3.uuid}"
 
-        response = auth_client.get(url)
+        response = auth_client().get(url)
         assert response.status_code == status.HTTP_200_OK
 
         # Reusing the response for the next query so as to get the correct updated_dt
@@ -2441,7 +2441,7 @@ class TestEndpoints(object):
         ]
 
         # Tests "PUT" on flaws/{uuid}/package_versions
-        response = auth_client.put(
+        response = auth_client().put(
             url,
             {**updated_data},
             format="json",
@@ -2454,7 +2454,7 @@ class TestEndpoints(object):
 
             # Test that the "fobr" package was deleted and the version list
             # of the "foobar" package was replaced according to the request.
-            response = auth_client.get(
+            response = auth_client().get(
                 f"{test_api_uri}/flaws/{str(flaw.uuid)}/package_versions"
             )
             assert response.status_code == status.HTTP_200_OK
@@ -2471,7 +2471,7 @@ class TestEndpoints(object):
             assert response.status_code == status.HTTP_400_BAD_REQUEST
 
             # Test that no changes were made
-            response = auth_client.get(
+            response = auth_client().get(
                 f"{test_api_uri}/flaws/{str(flaw.uuid)}/package_versions"
             )
             assert response.status_code == status.HTTP_200_OK
@@ -2479,7 +2479,7 @@ class TestEndpoints(object):
             returned_data = extract_packages_versions(response)
             assert returned_data == GROUND_STATE
 
-    def test_packageversions_delete(self, auth_client, embargo_access, test_api_uri):
+    def test_packageversions_delete(self, auth_client, test_api_uri):
         """
         Test the deletion of Package and PackageVer records via a REST API PUT request.
         """
@@ -2493,7 +2493,7 @@ class TestEndpoints(object):
         PackageVerFactory(package=package_versions1, version="2.3.4.5")
 
         # Tests "GET" on flaws/{uuid}/package_versions
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/package_versions"
         )
         assert response.status_code == status.HTTP_200_OK
@@ -2503,7 +2503,7 @@ class TestEndpoints(object):
         assert PackageVer.objects.all().count() == 2
 
         # Tests "DELETE" on flaws/{uuid}/package_versions/{uuid}
-        response = auth_client.delete(
+        response = auth_client().delete(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/package_versions/{package_versions1.uuid}",
             HTTP_BUGZILLA_API_KEY="SECRET",
         )
@@ -2531,7 +2531,7 @@ class TestEndpointsACLs:
         ],
     )
     def test_flaw_create(
-        self, auth_client, embargo_access, test_api_uri, embargoed, acl_read, acl_write
+        self, auth_client, test_api_uri, embargoed, acl_read, acl_write
     ):
         """
         test proper embargo status and ACLs when creating a flaw by sending a POST request
@@ -2548,7 +2548,7 @@ class TestEndpointsACLs:
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": embargoed,
         }
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_api_uri}/flaws",
             flaw_data,
             format="json",
@@ -2562,7 +2562,7 @@ class TestEndpointsACLs:
         assert flaw.acl_read == self.hash_acl(acl_read)
         assert flaw.acl_write == self.hash_acl(acl_write)
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{created_uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{created_uuid}")
         assert response.status_code == 200
         assert response.json()["embargoed"] == embargoed
         assert response.json()["mitigation"] == "mitigation"
@@ -2575,7 +2575,12 @@ class TestEndpointsACLs:
         ],
     )
     def test_flaw_update(
-        self, auth_client, embargo_access, test_api_uri, embargoed, acl_read, acl_write
+        self,
+        auth_client,
+        test_api_uri,
+        embargoed,
+        acl_read,
+        acl_write,
     ):
         """
         test proper embargo status and ACLs when updating a flaw by sending a PUT request
@@ -2584,12 +2589,12 @@ class TestEndpointsACLs:
         flaw = FlawFactory(embargoed=embargoed)
         AffectFactory(flaw=flaw)
 
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
         original_body = response.json()
         assert original_body["embargoed"] == embargoed
 
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/flaws/{flaw.uuid}",
             {
                 "title": f"{flaw.title} appended test title",
@@ -2624,7 +2629,7 @@ class TestEndpointsACLs:
 
         # the unembargo must happen after the unembargo moment passed
         with freeze_time(future_dt):
-            response = auth_client.put(
+            response = auth_client().put(
                 f"{test_api_uri}/flaws/{flaw.uuid}",
                 {
                     "title": flaw.title.replace("EMBARGOED", "").strip(),
@@ -2645,11 +2650,6 @@ class TestEndpointsACLs:
         """
         test that creating a Flaw is rejected when the ACL contains a group the user is not a member of
         """
-        # restrict the user to the public read and write access
-        User.objects.get(username="testuser").groups.exclude(
-            name__in=["data-prodsec", "data-prodsec-write"]
-        ).delete()
-
         flaw_data = {
             "title": "EMBARGOED Foo",
             "description": "test",
@@ -2659,7 +2659,9 @@ class TestEndpointsACLs:
             "embargoed": True,
             "bz_api_key": "SECRET",
         }
-        response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        response = auth_client("anon").post(
+            f"{test_api_uri}/flaws", flaw_data, format="json"
+        )
         assert response.status_code == 400
         assert (
             "Cannot provide access for the LDAP group without being a member: data-topsecret"
@@ -2673,15 +2675,10 @@ class TestEndpointsACLs:
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
 
-        # restrict the user to the public read-only access
-        User.objects.get(username="testuser").groups.exclude(
-            name="data-prodsec"
-        ).delete()
-
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
 
-        response = auth_client.put(
+        response = auth_client("pubread").put(
             f"{test_api_uri}/flaws/{flaw.uuid}",
             {
                 "title": f"{flaw.title} appended test title",
@@ -2732,7 +2729,7 @@ class TestEndpointsAtomicity:
             # make the Flaw.save to fail randomly
             m.setattr(Flaw, "save", failure_factory)
 
-            response = auth_client.delete(
+            response = auth_client().delete(
                 f"{test_api_uri}/affects/{affect.uuid}", HTTP_BUGZILLA_API_KEY="SECRET"
             )
             assert response.status_code == 400
@@ -2768,7 +2765,7 @@ class TestEndpointsAtomicity:
             db_settings["default"]["ATOMIC_REQUESTS"] = False
             m.setattr(settings, "DATABASES", db_settings)
 
-            response = auth_client.delete(
+            response = auth_client().delete(
                 f"{test_api_uri}/affects/{affect.uuid}", HTTP_BUGZILLA_API_KEY="SECRET"
             )
             assert response.status_code == 400
@@ -2795,7 +2792,7 @@ class TestEndpointsBZAPIKey:
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
-        response = auth_client.post(f"{test_api_uri}/flaws", flaw_data, format="json")
+        response = auth_client().post(f"{test_api_uri}/flaws", flaw_data, format="json")
         assert response.status_code == 400
         assert '"Bugzilla-Api-Key":"This HTTP header is required."' in str(
             response.content
@@ -2807,10 +2804,10 @@ class TestEndpointsBZAPIKey:
         """
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
-        response = auth_client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
 
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_api_uri}/flaws/{flaw.uuid}",
             {
                 "title": f"{flaw.title} appended test title",

@@ -30,7 +30,7 @@ def backend():
 
 @pytest.fixture
 def valid_user_username():
-    return "atorresj"
+    return "testuser"
 
 
 @pytest.fixture

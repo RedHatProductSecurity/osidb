@@ -12,7 +12,7 @@ pytestmark = pytest.mark.unit
 class TestSearch:
     def test_search_flaws_on_create(self, auth_client, test_api_uri):
         """Test Flaw text-search vectors for each text field are created when Flaw is inserted"""
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -25,22 +25,22 @@ class TestSearch:
             embargoed=False,
         )
 
-        response = auth_client.get(f"{test_api_uri}/flaws?search=title")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=title")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
 
-        response = auth_client.get(f"{test_api_uri}/flaws?search=description")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=description")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
 
-        response = auth_client.get(f"{test_api_uri}/flaws?search=summary")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=summary")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
 
-        response = auth_client.get(f"{test_api_uri}/flaws?search=statement")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=statement")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -53,7 +53,7 @@ class TestSearch:
         datetime_with_tz,
     ):
         """Test Flaw text-search vectors are updated when corresponding fields are updated"""
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -96,7 +96,7 @@ class TestSearch:
         assert flaw.save() is None
         AffectFactory(flaw=flaw)
 
-        response = auth_client.get(f"{test_api_uri}/flaws?search=title")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=title")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -104,12 +104,12 @@ class TestSearch:
         flaw.title = "NOMORETITLE"
         assert flaw.save() is None
 
-        response = auth_client.get(f"{test_api_uri}/flaws?search=title")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=title")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
 
-        response = auth_client.get(f"{test_api_uri}/flaws?search=description")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=description")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -117,12 +117,12 @@ class TestSearch:
         flaw.description = "NOMOREDESCRIPTION"
         assert flaw.save() is None
 
-        response = auth_client.get(f"{test_api_uri}/flaws?search=description")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=description")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
 
-        response = auth_client.get(f"{test_api_uri}/flaws?search=summary")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=summary")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -130,12 +130,12 @@ class TestSearch:
         flaw.summary = "NOMORESUMMARY"
         assert flaw.save() is None
 
-        response = auth_client.get(f"{test_api_uri}/flaws?search=summary")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=summary")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
 
-        response = auth_client.get(f"{test_api_uri}/flaws?search=statement")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=statement")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -143,14 +143,14 @@ class TestSearch:
         flaw.statement = "NOMORESTATEMENT"
         assert flaw.save() is None
 
-        response = auth_client.get(f"{test_api_uri}/flaws?search=statement")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=statement")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
 
     def test_search_flaws_rankings(self, auth_client, test_api_uri):
         """Test Flaw search results are ranked based on relevance, weighted based on which field matched"""
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -171,7 +171,7 @@ class TestSearch:
 
         FlawFactory(statement="words")
 
-        response = auth_client.get(
+        response = auth_client().get(
             f"{test_api_uri}/flaws?search=word"  # Full-text search for "word" in any text field
         )
         assert response.status_code == 200
@@ -194,7 +194,7 @@ class TestSearch:
 
     def test_search_flaws_on_particular_columns(self, auth_client, test_api_uri):
         """Test Flaws can be searched based on a specified text column instead of all text columns"""
-        response = auth_client.get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -208,22 +208,22 @@ class TestSearch:
         )
 
         # Full-text search only in title column
-        response = auth_client.get(f"{test_api_uri}/flaws?title=title")
+        response = auth_client().get(f"{test_api_uri}/flaws?title=title")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
 
-        response = auth_client.get(f"{test_api_uri}/flaws?description=description")
+        response = auth_client().get(f"{test_api_uri}/flaws?description=description")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
 
-        response = auth_client.get(f"{test_api_uri}/flaws?summary=summary")
+        response = auth_client().get(f"{test_api_uri}/flaws?summary=summary")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
 
-        response = auth_client.get(f"{test_api_uri}/flaws?statement=statement")
+        response = auth_client().get(f"{test_api_uri}/flaws?statement=statement")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1

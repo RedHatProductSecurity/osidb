@@ -119,7 +119,7 @@ class TestFlawModelIntegration(object):
             "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
-        response = auth_client.post(
+        response = auth_client().post(
             f"{test_osidb_api_uri}/flaws",
             flaw_data,
             format="json",
@@ -148,10 +148,10 @@ class TestFlawModelIntegration(object):
         AffectFactory(flaw=flaw)
         flaw.task_key = "TASK-123"
         flaw.save()
-        response = auth_client.get(f"{test_osidb_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().get(f"{test_osidb_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
 
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_osidb_api_uri}/flaws/{flaw.uuid}",
             {
                 "uuid": flaw.uuid,
@@ -173,7 +173,7 @@ class TestFlawModelIntegration(object):
         assert sync_count == 0
 
         flaw = Flaw.objects.get(uuid=flaw.uuid)
-        response = auth_client.put(
+        response = auth_client().put(
             f"{test_osidb_api_uri}/flaws/{flaw.uuid}",
             {
                 "uuid": flaw.uuid,
