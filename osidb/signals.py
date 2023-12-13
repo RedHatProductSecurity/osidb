@@ -38,7 +38,7 @@ def get_jira_user_id(email: str) -> str:
     jira_url = get_env("JIRA_URL", "https://issues.redhat.com")
     try:
         jira_api = JIRA(
-            {
+            options={
                 "server": jira_url,
                 # avoid auto-updating the lib
                 "check_update": False,

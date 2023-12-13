@@ -36,7 +36,7 @@ class TestUsers:
         jira_url = get_env("JIRA_URL", "https://issues.redhat.com")
         bz_api = Bugzilla(bz_url, api_key=bz_token, force_rest=True)
         jira_api = JIRA(
-            {
+            options={
                 "server": jira_url,
                 # avoid auto-updating the lib
                 "check_update": False,
