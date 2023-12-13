@@ -170,9 +170,6 @@ class NVDCollector(Collector, NVDQuerier):
     NVD CVSS collector
     """
 
-    # snippet creation is disabled by default for now
-    snippet_creation_enabled = None
-
     # the NIST NVD CVE project started in 1999
     # https://nvd.nist.gov/general/cve-process
     BEGINNING = timezone.datetime(1999, 1, 1, tzinfo=timezone.get_current_timezone())
@@ -184,9 +181,6 @@ class NVDCollector(Collector, NVDQuerier):
     def __init__(self):
         """initiate collector"""
         super().__init__()
-
-        if self.snippet_creation_enabled is None:
-            self.snippet_creation_enabled = SNIPPET_CREATION_ENABLED
 
     def get_batch(self) -> (dict, timezone.datetime):
         """
@@ -250,7 +244,7 @@ class NVDCollector(Collector, NVDQuerier):
 
             # create a new snippet with a flaw (if it does not exist) and link them
             snippet = None
-            if self.snippet_creation_enabled:
+            if SNIPPET_CREATION_ENABLED:
                 try:
                     snippet = Snippet.objects.get(
                         source=Snippet.Source.NVD, content__cve_id=cve_id
