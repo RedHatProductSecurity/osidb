@@ -13,14 +13,14 @@ pytestmark = pytest.mark.integration
 
 
 class TestIntegration(object):
-    def test_healthy_with_curl(self, command_curl, test_scheme_host):
+    def test_healthy_with_curl(self, command_curl, live_server):
         """access healthy using curl"""
         cmd = [
             command_curl,
             "-v",
             "-H",
             "Content-type: application/json",
-            f"{test_scheme_host}/healthy",
+            f"{live_server.url}/osidb/healthy",
         ]
         curl_result = subprocess.run(
             cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE
@@ -32,7 +32,7 @@ class TestIntegration(object):
     def test_status_with_curl(
         self,
         command_curl,
-        test_api_uri,
+        live_server,
     ):
         """access status api using curl"""
         cmd = [
@@ -40,7 +40,7 @@ class TestIntegration(object):
             "-v",
             "-H",
             "Content-type: application/json",
-            f"{test_api_uri}/status",
+            f"{live_server.url}/osidb/api/v1/status",
         ]
         curl_result = subprocess.run(
             cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE
@@ -52,7 +52,7 @@ class TestIntegration(object):
     def test_flaws_with_curl(
         self,
         command_curl,
-        test_api_uri,
+        live_server,
     ):
         """access status api using curl"""
         cmd = [
@@ -60,7 +60,7 @@ class TestIntegration(object):
             "-v",
             "-H",
             "Content-type: application/json",
-            f"{test_api_uri}/flaws",
+            f"{live_server.url}/osidb/api/v1/flaws",
         ]
         curl_result = subprocess.run(
             cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE

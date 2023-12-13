@@ -2730,10 +2730,12 @@ class TestEndpointsAtomicity:
             m.setattr(Flaw, "save", failure_factory)
 
             response = auth_client().delete(
-                f"{test_api_uri}/affects/{affect.uuid}", HTTP_BUGZILLA_API_KEY="SECRET"
+                f"{test_api_uri}/affects/{affect.uuid}",
+                HTTP_BUGZILLA_API_KEY="SECRET",
             )
             assert response.status_code == 400
 
+        set_user_acls(settings.ALL_GROUPS)
         # check that no affect was deleted
         assert Affect.objects.count() == 2
 
