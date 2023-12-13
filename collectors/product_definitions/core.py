@@ -2,6 +2,7 @@ from typing import Tuple
 
 import requests
 from django.conf import settings
+from django.utils.timezone import datetime, make_aware
 from requests_gssapi import HTTPSPNEGOAuth
 
 from osidb.helpers import ensure_list, get_model_fields
@@ -137,6 +138,14 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
             # TODO note that the following is probably incorrect somehow as
             # we're attempting to set multiple related objects with string
             # values but Django doesn't seem to care?
+
+            # convert string date to an object aware of a given time zone
+            for supported_dt in ["supported_from_dt", "supported_until_dt"]:
+                if date := filtered_module_data.get(supported_dt):
+                    filtered_module_data[supported_dt] = make_aware(
+                        datetime.strptime(date, "%Y-%m-%d")
+                    )
+
             ps_module, _ = PsModule.objects.update_or_create(
                 name=module_name,
                 defaults={"ps_product": ps_product, **filtered_module_data},

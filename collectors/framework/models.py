@@ -3,7 +3,6 @@ collector framework models
 """
 import logging
 import re
-from datetime import datetime
 from functools import wraps
 from typing import Dict, List, Optional, Type
 
@@ -449,7 +448,7 @@ class Collector(LockableTask):
         # before run actions
         logger.info(f"Collector {self.name} run initiated")
         self.metadata.collector_state = CollectorMetadata.CollectorState.RUNNING
-        self.metadata.last_run_dt = datetime.now()
+        self.metadata.last_run_dt = timezone.now()
         self.metadata.save()
 
     def on_success(self, retval, task_id, args, kwargs) -> None:
