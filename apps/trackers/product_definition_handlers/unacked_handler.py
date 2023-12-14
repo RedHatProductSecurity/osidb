@@ -6,7 +6,7 @@ from .base import ProductDefinitionHandler
 class UnackedHandler(ProductDefinitionHandler):
     def get_offer(self, affect: Affect, impact: Impact, ps_module: PsModule, offers):
 
-        unacked_preselected = not affect.flaw.is_major_incident and impact in [
+        unacked_preselected = not affect.flaw.is_major_incident_temp() and impact in [
             Impact.MODERATE,
             Impact.LOW,
         ]
