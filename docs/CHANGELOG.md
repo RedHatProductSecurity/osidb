@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix incorrect type bool of is_up2date field in
   /collectors/api/v1/status endpoint
 - fix schema to reflect Erratum shipped_dt to be nullable
+- Ensured serializer db calls are read_only
 
 ### Changed
 - Renamed OSIM module to Workflows (OSIDB-1395)
