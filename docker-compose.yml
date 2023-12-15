@@ -68,21 +68,21 @@ services:
       ports:
         - "8000:8000"
       environment:
-        OSIDB_DEBUG: ${OSIDB_DEBUG}
-        DJANGO_SETTINGS_MODULE: "config.settings_local"
+        BBSYNC_SYNC_TO_BZ: ${BBSYNC_SYNC_TO_BZ}
         BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
         BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
-        JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
-        JIRA_URL: ${JIRA_URL}
+        DJANGO_SETTINGS_MODULE: "config.settings_local"
         ET_URL: ${ET_URL}
-        PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
-        PS_CONSTANTS_URL: ${PS_CONSTANTS_URL}
-        BBSYNC_SYNC_TO_BZ: ${BBSYNC_SYNC_TO_BZ}
-        JIRA_TASKMAN_URL: ${JIRA_TASKMAN_URL}
-        JIRA_TASKMAN_PROJECT_KEY: ${JIRA_TASKMAN_PROJECT_KEY}
         HTTPS_TASKMAN_PROXY: ${HTTPS_TASKMAN_PROXY}
+        JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
+        JIRA_TASKMAN_PROJECT_KEY: ${JIRA_TASKMAN_PROJECT_KEY}
+        JIRA_TASKMAN_URL: ${JIRA_TASKMAN_URL}
+        JIRA_URL: ${JIRA_URL}
         OSIDB_CORS_ALLOWED_ORIGINS: ${OSIDB_CORS_ALLOWED_ORIGINS}
         OSIDB_CORS_ALLOW_HEADERS: ${OSIDB_CORS_ALLOW_HEADERS}
+        OSIDB_DEBUG: ${OSIDB_DEBUG}
+        PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
+        PS_CONSTANTS_URL: ${PS_CONSTANTS_URL}
         SNIPPET_CREATION: ${SNIPPET_CREATION}
       command: ./scripts/setup-osidb-service.sh
       volumes:
@@ -103,13 +103,13 @@ services:
       hostname: osidb-data
       container_name: osidb-data
       environment:
-        POSTGRES_DB: osidb
-        POSTGRES_USER: osidb_admin_user
-        POSTGRES_PASSWORD: passw0rd
         # Default connection parameter values
         PGDATABASE: osidb
-        PGUSER: osidb_admin_user
         PGPASSWORD: passw0rd
+        PGUSER: osidb_admin_user
+        POSTGRES_DB: osidb
+        POSTGRES_PASSWORD: passw0rd
+        POSTGRES_USER: osidb_admin_user
       volumes:
         - pg-data:/var/lib/postgresql/data
         - ${PWD}/etc/pg/postgresql.conf:/etc/postgresql/postgresql.conf:z
@@ -134,13 +134,13 @@ services:
       volumes:
         - ${PWD}:/opt/app-root/src:z
       environment:
-        DJANGO_SETTINGS_MODULE: "config.settings_local"
-        OSIDB_DEBUG: ${OSIDB_DEBUG}
         BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
         BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
+        DJANGO_SETTINGS_MODULE: "config.settings_local"
+        ET_URL: ${ET_URL}
         JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
         JIRA_URL: ${JIRA_URL}
-        ET_URL: ${ET_URL}
+        OSIDB_DEBUG: ${OSIDB_DEBUG}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
@@ -160,13 +160,13 @@ services:
       volumes:
         - ${PWD}:/opt/app-root/src:z
       environment:
-        DJANGO_SETTINGS_MODULE: "config.settings_local"
-        OSIDB_DEBUG: ${OSIDB_DEBUG}
         BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
         BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
+        DJANGO_SETTINGS_MODULE: "config.settings_local"
+        ET_URL: ${ET_URL}
         JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
         JIRA_URL: ${JIRA_URL}
-        ET_URL: ${ET_URL}
+        OSIDB_DEBUG: ${OSIDB_DEBUG}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
@@ -189,8 +189,8 @@ services:
         - ${PWD}:/opt/app-root/src:z
       environment:
         DJANGO_SETTINGS_MODULE: "config.settings_local"
-        OSIDB_DEBUG: ${OSIDB_DEBUG}
         ET_URL: ${ET_URL}
+        OSIDB_DEBUG: ${OSIDB_DEBUG}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
       depends_on: ["redis", "osidb-data"]
 
