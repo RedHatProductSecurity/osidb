@@ -84,6 +84,7 @@ services:
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
         PS_CONSTANTS_URL: ${PS_CONSTANTS_URL}
         SNIPPET_CREATION: ${SNIPPET_CREATION}
+        TRACKERS_SYNC_TO_JIRA: ${TRACKERS_SYNC_TO_JIRA}
       command: ./scripts/setup-osidb-service.sh
       volumes:
         - ${PWD}:/opt/app-root/src:z
