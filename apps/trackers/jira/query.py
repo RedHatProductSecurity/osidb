@@ -77,6 +77,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         self.generate_labels()
         self.generate_sla()
         self.generate_summary()
+        self.generate_versions()
 
     def generate_base(self):
         self._query = {
@@ -151,3 +152,16 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         Generates the summary of a tracker
         """
         self._query["fields"]["summary"] = self.summary
+
+    def generate_versions(self):
+        """
+        generates the versions
+        """
+        versions = JiraProjectFields.objects.filter(
+            project_key=self.ps_module.bts_key, field_name="Affects Version/s"
+        )
+        # project may or may not support versions so it is optional
+        if versions.exists() and self.ps_update_stream.version is not None:
+            self._query["fields"]["versions"] = [
+                {"name": self.ps_update_stream.version}
+            ]

@@ -55,6 +55,12 @@ class TestTrackerJiraQueryBuilder:
             ],
         )
         field.save()
+        JiraProjectFields(
+            project_key="FOOPROJECT",
+            field_id="versions",
+            field_name="Affects Version/s",
+            allowed_values=["1.2.3"],
+        ).save()
         expected1 = {
             "fields": {
                 "priority": {"name": expected_impact},
@@ -66,6 +72,9 @@ class TestTrackerJiraQueryBuilder:
                     "pscomponent:foo-component",
                     "SecurityTracking",
                     "Security",
+                ],
+                "versions": [
+                    {"name": "1.2.3"},
                 ],
             }
         }
@@ -87,7 +96,9 @@ class TestTrackerJiraQueryBuilder:
         ps_module = PsModuleFactory(
             name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
         )
-        stream = PsUpdateStreamFactory(ps_module=ps_module, name="bar-1.2.3")
+        stream = PsUpdateStreamFactory(
+            ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
+        )
         tracker = TrackerFactory(
             affects=[affect],
             type=Tracker.TrackerType.JIRA,
