@@ -831,7 +831,7 @@ class Flaw(
         # TODO
         # we currently do not have this information available
         # so we assume that this was always Major Incident
-        if self.is_major_incident:
+        if self.is_major_incident_temp():
             return self.reported_dt
 
     # non operational meta data

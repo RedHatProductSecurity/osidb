@@ -184,7 +184,7 @@ class TestMetadataCollector:
         ps_module = PsModuleFactory(
             bts_name="jira",
             bts_key="OSIM",
-            supported_until_dt=timezone.datetime(2020, 12, 12),
+            supported_until_dt=timezone.make_aware(timezone.datetime(2020, 12, 12)),
         )
         PsUpdateStreamFactory(ps_module=ps_module)
 

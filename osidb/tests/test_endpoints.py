@@ -6,7 +6,7 @@ import pytest
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.timezone import datetime
+from django.utils.timezone import datetime, make_aware
 from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
@@ -405,7 +405,7 @@ class TestEndpoints(object):
     @freeze_time(datetime(2021, 11, 23))
     def test_changed_before_from_tracker(self, auth_client, test_api_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
-        flaw = FlawFactory(updated_dt=datetime(2021, 11, 23))
+        flaw = FlawFactory(updated_dt=make_aware(datetime(2021, 11, 23)))
         affect = AffectFactory(
             flaw=flaw,
             ps_module=ps_module.name,
@@ -443,7 +443,7 @@ class TestEndpoints(object):
 
     @freeze_time(datetime(2021, 11, 23))
     def test_changed_before_from_affect(self, auth_client, test_api_uri):
-        flaw = FlawFactory(updated_dt=datetime(2021, 11, 23))
+        flaw = FlawFactory(updated_dt=make_aware(datetime(2021, 11, 23)))
         affect = AffectFactory(flaw=flaw, updated_dt=datetime(2021, 11, 23))
         past_dt = datetime(2019, 11, 27)
 
@@ -466,7 +466,7 @@ class TestEndpoints(object):
     @freeze_time(datetime(2021, 11, 23))
     def test_changed_before_from_multi_tracker(self, auth_client, test_api_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
-        flaw = FlawFactory(updated_dt=datetime(2021, 11, 23))
+        flaw = FlawFactory(updated_dt=make_aware(datetime(2021, 11, 23)))
         affect1 = AffectFactory(
             flaw=flaw,
             ps_module=ps_module.name,

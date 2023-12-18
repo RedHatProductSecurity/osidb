@@ -31,12 +31,15 @@ class JiraConnector:
         """
         Returns the JIRA connection object on which to perform queries to the JIRA API.
         """
-        options = {
-            "server": self._jira_server,
-            # avoid the JIRA lib auto-updating
-            "check_update": False,
-        }
-        return JIRA(options, token_auth=self._jira_token, get_server_info=False)
+        return JIRA(
+            options={
+                "server": self._jira_server,
+                # avoid the JIRA lib auto-updating
+                "check_update": False,
+            },
+            token_auth=self._jira_token,
+            get_server_info=False,
+        )
 
     @property
     def jira_conn(self) -> JIRA:
