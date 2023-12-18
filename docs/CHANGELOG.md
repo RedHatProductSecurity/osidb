@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Renamed OSIM module to Workflows (OSIDB-1395)
+- Change settings to allow regex in CORS policy in stage environment (OSIDB-1737)
 
 ### Removed
 - Remove daily monitoring email for failed tasks / collectors (OSIDB-1215)
