@@ -86,22 +86,22 @@ class TestGenerateBasics:
         "cve_id1,cve_id2,embargoed,summary",
         [
             (
-                "CVE-1000-12345",
+                "CVE-2000-12345",
+                "CVE-2000-12346",
+                False,
+                "CVE-2000-12345 CVE-2000-12346 space: cucumber",
+            ),
+            (
+                "CVE-2000-12346",
                 "CVE-2000-12345",
                 False,
-                "CVE-1000-12345 CVE-2000-12345 space: cucumber",
+                "CVE-2000-12345 CVE-2000-12346 space: cucumber",
             ),
             (
                 "CVE-2000-12345",
-                "CVE-1000-12345",
+                "CVE-2001-1234",
                 False,
-                "CVE-1000-12345 CVE-2000-12345 space: cucumber",
-            ),
-            (
-                "CVE-1000-12345",
-                "CVE-2000-1234",
-                False,
-                "CVE-1000-12345 CVE-2000-1234 space: cucumber",
+                "CVE-2000-12345 CVE-2001-1234 space: cucumber",
             ),
             (
                 "CVE-2000-12345",
@@ -116,10 +116,10 @@ class TestGenerateBasics:
                 "CVE-2000-99999 CVE-2000-123456 space: cucumber",
             ),
             (
-                "CVE-1000-12345",
                 "CVE-2000-12345",
+                "CVE-2000-12346",
                 True,
-                "EMBARGOED CVE-1000-12345 CVE-2000-12345 space: cucumber",
+                "EMBARGOED CVE-2000-12345 CVE-2000-12346 space: cucumber",
             ),
         ],
     )

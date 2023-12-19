@@ -319,8 +319,10 @@ class TestNVDCollector:
             FlawFactory(cve_id=cve_id, source=FlawSource.NVD)
 
         if has_snippet:
-            s = Snippet(source=Snippet.Source.NVD, content=snippet_content)
-            s.save()
+            snippet = Snippet(
+                source=Snippet.Source.NVD, external_id=cve_id, content=snippet_content
+            )
+            snippet.save()
 
         nvdc = NVDCollector()
         # snippet creation is disabled by default, so enable it

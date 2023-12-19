@@ -37,7 +37,7 @@ def get_snippet(cve_id="CVE-2023-0001"):
         "title": "placeholder only, see description",
     }
 
-    snippet = Snippet(source=Snippet.Source.NVD, content=content)
+    snippet = Snippet(source=Snippet.Source.NVD, external_id=cve_id, content=content)
     snippet.save()
 
     return snippet
@@ -123,7 +123,6 @@ class TestSnippet:
     @pytest.mark.parametrize(
         "cve_id,has_flaw,has_snippet",
         [
-            (None, False, False),
             ("CVE-2023-0001", False, False),
             ("CVE-2023-0001", True, False),
             ("CVE-2023-0001", True, True),

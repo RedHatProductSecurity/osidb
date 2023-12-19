@@ -1528,6 +1528,7 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         """
 
         NVD = "NVD"
+        OSV = "OSV"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1536,6 +1537,9 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # A unique ID of this snippet as it is defined in the external data source where the
+    # snippet was collected from.
+    external_id = models.CharField(max_length=200)
 
     source = models.CharField(choices=Source.choices, max_length=100)
 
@@ -1546,6 +1550,13 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
     flaw = models.ForeignKey(
         Flaw, on_delete=models.CASCADE, related_name="snippets", blank=True, null=True
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="unique_snippets", fields=["source", "external_id"]
+            ),
+        ]
 
     def convert_snippet_to_flaw(self) -> Union[Flaw, None]:
         """
@@ -2158,6 +2169,7 @@ class CVSS(ACLMixin, BugzillaSyncMixin, TrackingMixin):
     class CVSSIssuer(models.TextChoices):
         REDHAT = "RH", "Red Hat"
         NIST = "NIST", "NIST"
+        OSV = "OSV", "OSV"
 
     CVSS_HANDLES = {CVSSVersion.VERSION2: CVSS2, CVSSVersion.VERSION3: CVSS3}
 

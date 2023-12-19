@@ -1,0 +1,60 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+    method: GET
+    uri: https://api.osv.dev/v1/vulns/PYSEC-2022-245
+  response:
+    body:
+      string: '{"id": "PYSEC-2022-245", "details": "An issue was discovered in the
+        HTTP FileResponse class in Django 3.2 before 3.2.15 and 4.0 before 4.0.7.
+        An application is vulnerable to a reflected file download (RFD) attack that
+        sets the Content-Disposition header of a FileResponse when the filename is
+        derived from user-supplied input.", "aliases": ["BIT-django-2022-36359", "CVE-2022-36359",
+        "CVE-2022-45442", "GHSA-2x8x-jmrp-phxw", "GHSA-8x94-hmjh-97hq"], "modified":
+        "2023-12-06T01:02:30.144615Z", "published": "2022-08-03T14:15:00Z", "references":
+        [{"type": "WEB", "url": "https://docs.djangoproject.com/en/4.0/releases/security/"},
+        {"type": "ARTICLE", "url": "https://www.djangoproject.com/weblog/2022/aug/03/security-releases/"},
+        {"type": "WEB", "url": "https://groups.google.com/g/django-announce/c/8cz--gvaJr4"},
+        {"type": "WEB", "url": "http://www.openwall.com/lists/oss-security/2022/08/03/1"},
+        {"type": "ADVISORY", "url": "https://github.com/advisories/GHSA-8x94-hmjh-97hq"}],
+        "affected": [{"package": {"name": "django", "ecosystem": "PyPI", "purl": "pkg:pypi/django"},
+        "ranges": [{"type": "ECOSYSTEM", "events": [{"introduced": "3.2"}, {"fixed":
+        "3.2.15"}, {"introduced": "4.0"}, {"fixed": "4.0.7"}]}], "versions": ["3.2",
+        "3.2.1", "3.2.10", "3.2.11", "3.2.12", "3.2.13", "3.2.14", "3.2.2", "3.2.3",
+        "3.2.4", "3.2.5", "3.2.6", "3.2.7", "3.2.8", "3.2.9", "4.0", "4.0.1", "4.0.2",
+        "4.0.3", "4.0.4", "4.0.5", "4.0.6"], "database_specific": {"source": "https://github.com/pypa/advisory-database/blob/main/vulns/django/PYSEC-2022-245.yaml"}}],
+        "schema_version": "1.6.0"}'
+    headers:
+      Content-Length:
+      - '1485'
+      Date:
+      - Tue, 19 Dec 2023 09:08:43 GMT
+      Server:
+      - Google Frontend
+      X-Cloud-Trace-Context:
+      - 9ffeac71f269c38744ff13e61e4aacac
+      alt-svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      content-type:
+      - application/json
+      grpc-accept-encoding:
+      - identity, deflate, gzip
+      grpc-message:
+      - ''
+      grpc-status:
+      - '0'
+      x-envoy-decorator-operation:
+      - ingress GetVulnById
+    status:
+      code: 200
+      message: OK
+version: 1

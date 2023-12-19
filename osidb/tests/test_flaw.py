@@ -226,7 +226,7 @@ class TestFlaw:
         assert acknowledgment2 in all_acknowledgments
 
         vuln_2 = Flaw(
-            cve_id="CVE-1970-12345",
+            cve_id="CVE-2000-12345",
             cwe_id="CWE-1",
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
@@ -481,7 +481,7 @@ class TestFlaw:
     def test_flaw_queryset(self, datetime_with_tz):
         """retrieve flaw manager queryset"""
         flaw = Flaw(
-            cve_id="CVE-1970-12345",
+            cve_id="CVE-2000-12345",
             cwe_id="CWE-1",
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
