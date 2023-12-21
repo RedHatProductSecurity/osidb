@@ -13,11 +13,11 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.26.0
+      - python-requests/2.31.0
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://issues.redhat.com/rest/api/2/issue/AA-863
+    uri: https://example.com/rest/api/2/issue/AA-863
   response:
     body:
       string: '{"errorMessages": ["Issue Does Not Exist"], "errors": {}}'
@@ -26,19 +26,23 @@ interactions:
       - max-age=0, no-cache, no-store
       Connection:
       - keep-alive
-      Content-Security-Policy:
-      - sandbox
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Fri, 21 Apr 2023 08:37:57 GMT
+      - Tue, 09 Jan 2024 12:18:14 GMT
       Expires:
-      - Fri, 21 Apr 2023 08:37:57 GMT
+      - Tue, 09 Jan 2024 12:18:14 GMT
       Pragma:
       - no-cache
+      Retry-After:
+      - '0'
       Vary:
       - User-Agent
       - Accept-Encoding
+      X-RateLimit-Limit:
+      - '-1'
+      X-RateLimit-Remaining:
+      - '9223372036854775807'
       content-length:
       - '54'
       referrer-policy:
@@ -46,21 +50,25 @@ interactions:
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-prod-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 517x19778012x20
+      - 738x172872x1
       x-asessionid:
-      - 1sdrzsg
+      - 6la66f
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
+      x-ratelimit-fillrate:
+      - '-1'
+      x-ratelimit-interval-seconds:
+      - '1'
       x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
+      - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.a1477b5c.1682066277.1ef87bc
+      - 0.b685d817.1704802694.2f18c873
       x-rh-edge-request-id:
-      - 1ef87bc
+      - 2f18c873
       x-seraph-loginreason:
       - OK
       x-xss-protection:
