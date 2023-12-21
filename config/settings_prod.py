@@ -156,3 +156,9 @@ if get_env("MPP", is_bool=True, default="False"):
             }
         }
     )
+
+# sets the Access-Control-Allow-Origin response header - accepts literal strings
+# example value: ["https://osidb.example.com", "https://workflows.example.com"]
+CORS_ALLOWED_ORIGINS = get_env("OSIDB_CORS_ALLOWED_ORIGINS", default="[]", is_json=True)
+# removes default config that allows regex
+CORS_ALLOWED_ORIGIN_REGEXES = []
