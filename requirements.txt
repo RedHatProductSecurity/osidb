@@ -461,8 +461,8 @@ markdown==3.3.6 \
     --hash=sha256:76df8ae32294ec39dcf89340382882dfa12975f87f45c3ed1ecdb1e8cefc7006 \
     --hash=sha256:9923332318f843411e9932237530df53162e29dc7a4e2b91e35764583c46c9a3
     # via -r requirements.in
-nvdlib==0.7.3 \
-    --hash=sha256:2f0171c7f40e4d465157b17dcfc9a3da08a3460f6db4d1d0240640f863eda125
+nvdlib==0.7.6 \
+    --hash=sha256:0eadcbc774ef34f5e1b620640c2d26c56a3fecc050fdf00655e7aa9747722514
     # via -r requirements.in
 oauthlib==3.2.2 \
     --hash=sha256:8139f29aac13e25d502680e9e19963e83f16838d48a0d71c287fe40e7067fbca \
