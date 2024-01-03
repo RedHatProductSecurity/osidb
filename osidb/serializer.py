@@ -830,7 +830,7 @@ class AffectSerializer(
         }
 
         serializer = TrackerSerializer(
-            instance=obj.trackers.all(), many=True, context=context
+            instance=obj.trackers.all(), many=True, read_only=True, context=context
         )
         return serializer.data
 
@@ -1291,7 +1291,9 @@ class FlawSerializer(
                     trackers__external_system_id__in=tracker_ids.split(",")
                 )
 
-        serializer = AffectSerializer(instance=affects, many=True, context=context)
+        serializer = AffectSerializer(
+            instance=affects, many=True, read_only=True, context=context
+        )
         return serializer.data
 
     @extend_schema_field(MetaSerializer(many=True))
@@ -1307,7 +1309,7 @@ class FlawSerializer(
                     meta_type.upper() for meta_type in list(flaw_meta_types)
                 ]
                 meta = meta.filter(type__in=flaw_meta_types)
-        serializer = MetaSerializer(instance=meta, many=True)
+        serializer = MetaSerializer(instance=meta, many=True, read_only=True)
         return serializer.data
 
     class Meta:
