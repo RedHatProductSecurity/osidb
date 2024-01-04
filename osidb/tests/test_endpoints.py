@@ -241,6 +241,7 @@ class TestEndpoints(object):
         body = response.json()
         assert body["count"] == 0
 
+    @pytest.mark.enable_signals
     def test_list_flaws_changed_before(
         self,
         auth_client,
@@ -266,6 +267,7 @@ class TestEndpoints(object):
         body = response.json()
         assert body["count"] == 0
 
+    @pytest.mark.enable_signals
     def test_list_flaws_changed_before_and_after(
         self,
         auth_client,
@@ -317,6 +319,7 @@ class TestEndpoints(object):
                 raise Exception("Unexpected response code - must be 200 or 400")
 
     @freeze_time(datetime(2021, 11, 23))
+    @pytest.mark.enable_signals
     def test_changed_after_from_tracker(self, auth_client, test_api_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
         affect = AffectFactory(
@@ -354,8 +357,10 @@ class TestEndpoints(object):
         assert body["results"][0]["uuid"] == str(tracker.affects.first().flaw.uuid)
 
     @freeze_time(datetime(2021, 11, 23))
+    @pytest.mark.enable_signals
     def test_changed_after_from_affect(self, auth_client, test_api_uri):
-        affect = AffectFactory()
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw)
         future_dt = datetime(2021, 11, 27)
 
         response = auth_client().get(f"{test_api_uri}/flaws?changed_after={future_dt}")
@@ -377,6 +382,7 @@ class TestEndpoints(object):
         assert body["results"][0]["uuid"] == str(affect.flaw.uuid)
 
     @freeze_time(datetime(2021, 11, 23))
+    @pytest.mark.enable_signals
     def test_changed_after_from_multi_affect(self, auth_client, test_api_uri):
         flaw = FlawFactory()
         affect1 = AffectFactory(flaw=flaw)
@@ -403,9 +409,14 @@ class TestEndpoints(object):
         assert body["results"][0]["uuid"] == str(affect.flaw.uuid)
 
     @freeze_time(datetime(2021, 11, 23))
+    @pytest.mark.enable_signals
     def test_changed_before_from_tracker(self, auth_client, test_api_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
-        flaw = FlawFactory(updated_dt=make_aware(datetime(2021, 11, 23)))
+        flaw = FlawFactory(
+            unembargo_dt=make_aware(datetime(2001, 11, 23)),
+            embargoed=False,
+            reported_dt=make_aware(datetime(2001, 11, 23)),
+        )
         affect = AffectFactory(
             flaw=flaw,
             ps_module=ps_module.name,
@@ -442,8 +453,13 @@ class TestEndpoints(object):
         assert body["results"][0]["uuid"] == str(tracker.affects.first().flaw.uuid)
 
     @freeze_time(datetime(2021, 11, 23))
+    @pytest.mark.enable_signals
     def test_changed_before_from_affect(self, auth_client, test_api_uri):
-        flaw = FlawFactory(updated_dt=make_aware(datetime(2021, 11, 23)))
+        flaw = FlawFactory(
+            unembargo_dt=make_aware(datetime(2001, 11, 23)),
+            embargoed=False,
+            reported_dt=make_aware(datetime(2001, 11, 23)),
+        )
         affect = AffectFactory(flaw=flaw, updated_dt=datetime(2021, 11, 23))
         past_dt = datetime(2019, 11, 27)
 
@@ -464,9 +480,14 @@ class TestEndpoints(object):
         assert body["results"][0]["uuid"] == str(affect.flaw.uuid)
 
     @freeze_time(datetime(2021, 11, 23))
+    @pytest.mark.enable_signals
     def test_changed_before_from_multi_tracker(self, auth_client, test_api_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
-        flaw = FlawFactory(updated_dt=make_aware(datetime(2021, 11, 23)))
+        flaw = FlawFactory(
+            unembargo_dt=make_aware(datetime(2001, 11, 23)),
+            embargoed=False,
+            reported_dt=make_aware(datetime(2001, 11, 23)),
+        )
         affect1 = AffectFactory(
             flaw=flaw,
             ps_module=ps_module.name,

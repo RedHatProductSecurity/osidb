@@ -2,7 +2,6 @@
 Implement filters for OSIDB REST API results
 """
 
-from django.db.models import Q
 from django_filters.rest_framework import (
     BaseInFilter,
     BooleanFilter,
@@ -116,21 +115,13 @@ class FlawFilter(DistinctFilterSet):
         """
         Returns a Flaw if it or any of its affects/trackers have been updated after `value`
         """
-        return queryset.filter(
-            Q(updated_dt__gte=value)
-            | Q(affects__updated_dt__gte=value)
-            | Q(affects__trackers__updated_dt__gte=value)
-        ).distinct()
+        return queryset.filter(local_updated_dt__gte=value)
 
     def changed_before_filter(self, queryset, name, value):
         """
         Returns a Flaw if it or any of its affects/trackers have been updated before `value`
         """
-        return queryset.filter(
-            Q(updated_dt__lte=value)
-            | Q(affects__updated_dt__lte=value)
-            | Q(affects__trackers__updated_dt__lte=value)
-        ).distinct()
+        return queryset.filter(local_updated_dt__lte=value)
 
     def is_major_incident_filter(self, queryset, name, value):
         """
