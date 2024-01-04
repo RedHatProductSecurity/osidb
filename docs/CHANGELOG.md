@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   /collectors/api/v1/status endpoint
 - fix schema to reflect Erratum shipped_dt to be nullable
 - Ensured serializer db calls are read_only
+- Expose git commit id via OPENSHIFT_BUILD_COMMIT env var
 
 ### Changed
 - Renamed OSIM module to Workflows (OSIDB-1395)
