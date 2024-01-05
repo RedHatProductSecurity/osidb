@@ -9,6 +9,8 @@
 .PHONY : start-local
 start-local: check-venv generate_local_pg_tls_cert compose-up restart_django_foreground
 
+.PHONY : start-local-gunicorn
+start-local-gunicorn: check-venv generate_local_pg_tls_cert compose-up start_gunicorn_fg
 
 #***********************************
 ### Start only the postgresql container, for those local development usecases where anything else is not needed
@@ -82,6 +84,13 @@ restart_django_foreground:
 	@sleep 0.5
 	$(podman) exec -it osidb-service pkill -f "python3 manage.py runserver"
 	$(podman) exec -it osidb-service python3 manage.py runserver 0.0.0.0:8000
+
+.PHONY : start_gunicorn_fg
+start_gunicorn_fg:
+	@echo ">Note that after CTRL+C, django server will restart in the background, as long as osidb-service is running."
+	@sleep 0.5
+	$(podman) exec -it osidb-service pkill -f "python3 manage.py runserver"
+	$(podman) exec -it osidb-service gunicorn config.wsgi --config gunicorn_config.py
 
 
 #***********************************
