@@ -34,6 +34,7 @@ from .models import (
     FlawCVSS,
     FlawMeta,
     FlawReference,
+    Impact,
     Package,
     PackageVer,
     Profile,
@@ -1203,6 +1204,8 @@ class FlawSerializer(
     WorkflowModelSerializer,
     IncludeExcludeFieldsMixin,
     IncludeMetaAttrMixin,
+    BugzillaAPIKeyMixin,
+    JiraAPIKeyMixin,
 ):
     """serialize flaw model"""
 
@@ -1358,6 +1361,112 @@ class FlawSerializer(
             + TrackingMixinSerializer.Meta.fields
             + WorkflowModelSerializer.Meta.fields
         )
+
+    def update(self, new_flaw, validated_data):
+        """
+        perform the flaw instance update
+        with any necessary extra actions
+        """
+        #########################
+        # 1) pre-update actions #
+        #########################
+
+        # store the old flaw for the later comparison
+        old_flaw = Flaw.objects.get(uuid=new_flaw.uuid)
+
+        #####################
+        # 2) update actions #
+        #####################
+
+        # perform regular flaw update
+        new_flaw = super().update(new_flaw, validated_data)
+
+        ##########################
+        # 3) post-update actions #
+        ##########################
+
+        # update trackers if needed
+        self.update_trackers(old_flaw, new_flaw)
+
+        #####################
+        # 4) return updated #
+        #####################
+
+        return new_flaw
+
+    def update_trackers(self, old_flaw, new_flaw):
+        """
+        update the related trackers if needed
+        """
+        # this could be turned into a general
+        # helper if it was needed also elsewhere
+        def differs(instance1, instance2, attributes):
+            """
+            boolean check whether the given instances
+            have any differences in the given attributes
+
+            the caller is responsible for making sure that
+            the given instances really have the attributes
+            """
+            for attribute in attributes:
+                if getattr(instance1, attribute) != getattr(instance2, attribute):
+                    return True
+            return False
+
+        def mi_differs(flaw1, flaw2):
+            """
+            boolean check whether the given flaws
+            differ in MI value in an important way
+            """
+            if not differs(flaw1, flaw2, ["major_incident_state"]):
+                return False
+
+            # we only care for a change from or to some of the approved states
+            return bool(
+                {flaw1.major_incident_state, flaw2.major_incident_state}.intersection(
+                    [
+                        Flaw.FlawMajorIncident.APPROVED,
+                        Flaw.FlawMajorIncident.CISA_APPROVED,
+                    ]
+                )
+            )
+
+        # TODO
+        # unembargo is more complicated
+        # and will be covered separately
+
+        # we only need to sync the trackers when crucial attributes change
+        # plus in the case of the impact we only care for the increase
+        # plus in the case of the MI we care for specific changes only
+        #
+        # the crucial attributes are those influencing the SLA deadline plus the CVE ID
+        if (
+            not differs(old_flaw, new_flaw, ["cve_id", "unembargo_dt"])
+            and not mi_differs(old_flaw, new_flaw)
+            and Impact(old_flaw.impact) >= Impact(new_flaw.impact)
+        ):
+            return
+
+        for affect in new_flaw.affects.all():
+            # no tracker updates for community affects
+            # because it was requested not to spam them
+            if affect.is_community:
+                continue
+
+            for tracker in affect.trackers.all():
+                # no tracker updates for the closed ones
+                # because we consider these already done
+                if tracker.is_closed:
+                    continue
+
+                # perform the tracker update
+                # could be done async eventually
+                tracker.save(
+                    # the serializer does not care for the backend system
+                    # therefore at this point we simply require both secrets
+                    bz_api_key=self.get_bz_api_key(),
+                    jira_token=self.get_jira_token(),
+                )
 
 
 @extend_schema_serializer(exclude_fields=["updated_dt"])
