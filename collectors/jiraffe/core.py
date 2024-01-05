@@ -6,6 +6,8 @@ from django.utils import timezone
 from jira import JIRA, Issue
 from jira.exceptions import JIRAError
 
+from osidb.helpers import get_env
+
 from .constants import JIRA_DT_FMT, JIRA_MAX_CONNECTION_AGE, JIRA_SERVER, JIRA_TOKEN
 from .exceptions import NonRecoverableJiraffeException
 
@@ -31,6 +33,13 @@ class JiraConnector:
         """
         Returns the JIRA connection object on which to perform queries to the JIRA API.
         """
+
+        # Quick workaround for bug with ignored HTTPS_TASKMAN_PROXY
+        # See PR188 and PR214 and how no proxy is passed to JIRA().
+        # Needs a systemic fix including reworking monkeypatch.setenv("HTTPS_PROXY", ...
+        https_proxy = get_env("HTTPS_TASKMAN_PROXY")
+        proxies_workaround = {"proxies": {"https": https_proxy}} if https_proxy else {}
+
         return JIRA(
             options={
                 "server": self._jira_server,
@@ -39,6 +48,7 @@ class JiraConnector:
             },
             token_auth=self._jira_token,
             get_server_info=False,
+            **proxies_workaround,
         )
 
     @property

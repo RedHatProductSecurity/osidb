@@ -37,6 +37,13 @@ def get_jira_user_id(email: str) -> str:
     auth_token = get_env("JIRA_AUTH_TOKEN")
     jira_url = get_env("JIRA_URL", "https://issues.redhat.com")
     try:
+
+        # Quick workaround for bug with ignored HTTPS_TASKMAN_PROXY
+        # See PR188 and PR214 and how no proxy is passed to JIRA().
+        # Needs a systemic fix including reworking monkeypatch.setenv("HTTPS_PROXY", ...
+        https_proxy = get_env("HTTPS_TASKMAN_PROXY")
+        proxies_workaround = {"proxies": {"https": https_proxy}} if https_proxy else {}
+
         jira_api = JIRA(
             options={
                 "server": jira_url,
@@ -45,6 +52,7 @@ def get_jira_user_id(email: str) -> str:
             },
             token_auth=auth_token,
             get_server_info=False,
+            **proxies_workaround,
         )
         users = jira_api.search_users([email])
     except Exception:
