@@ -75,8 +75,9 @@ class FlawFactory(factory.django.DjangoModelFactory):
     cwe_id = factory.Faker("random_element", elements=["CWE-1", ""])
     type = factory.Faker("random_element", elements=list(FlawType))
     created_dt = factory.Faker("date_time", tzinfo=UTC)
-    reported_dt = factory.Faker("date_time", tzinfo=UTC)
-    updated_dt = factory.Faker("date_time", tzinfo=UTC)
+    reported_dt = factory.LazyAttribute(lambda f: f.created_dt)
+    updated_dt = factory.LazyAttribute(lambda f: f.created_dt)
+    local_updated_dt = factory.LazyAttribute(lambda f: f.created_dt)
     impact = factory.Faker(
         "random_element", elements=list(set(Impact) - {Impact.NOVALUE})
     )
