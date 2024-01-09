@@ -11,1280 +11,136 @@ interactions:
       User-Agent:
       - python-requests/2.31.0
     method: GET
-    uri: https://gitlab.cee.redhat.com/prodsec-dev/ps-constants/-/raw/master/data/compliance_priority.yml?job=build
+    uri: https://example.com/prodsec-dev/ps-constants/-/raw/master/data/compliance_priority.yml?job=build
   response:
     body:
-      string: '# list of packages / components that are in the scope of the compliance
-        priority special handling and where a dedicated SLAs are applied
-
-        # separate list provided for each primary product, keys need to match ps module
-        names
-
-        # https://issues.redhat.com/browse/OSIDB-1316
-
-        # For any component from the below list in the particular product the following
-        SLA are applicable:
-
-        # Critical = 7 days
-
-        # Important = 21 days
-
-        # Moderate = 50 days
-
-        # Low = 180 days
-
-
-        rhel-8:
-
-        - acl
-
-        - adcli
-
-        - attr
-
-        - audit
-
-        - authselect
-
-        - avahi
-
-        - basesystem
-
-        - bash
-
-        - bash-completion
-
-        - bind
-
-        - binutils
-
-        - brotli
-
-        - bubblewrap
-
-        - bzip2
-
-        - c-ares
-
-        - ca-certificates
-
-        - checkpolicy
-
-        - chkconfig
-
-        - chrony
-
-        - cifs-utils
-
-        - clevis
-
-        - cloud-utils-growpart
-
-        - compat-openssl10
-
-        - conntrack-tools
-
-        - coreutils
-
-        - cpio
-
-        - cracklib
-
-        - cri-tools
-
-        - crypto-policies
-
-        - cryptsetup
-
-        - cups
-
-        - curl
-
-        - cyrus-sasl
-
-        - dbus
-
-        - dbus-glib
-
-        - dbus-python
-
-        - device-mapper-multipath
-
-        - device-mapper-persistent-data
-
-        - diffutils
-
-        - ding-libs
-
-        - dmidecode
-
-        - dnf
-
-        - dnf-plugins-core
-
-        - dnsmasq
-
-        - dosfstools
-
-        - dracut
-
-        - dtc
-
-        - e2fsprogs
-
-        - edk2
-
-        - efi-rpm-macros
-
-        - efibootmgr
-
-        - efivar
-
-        - elfutils
-
-        - emacs
-
-        - ethtool
-
-        - expat
-
-        - file
-
-        - filesystem
-
-        - findutils
-
-        - firewalld
-
-        - freetype
-
-        - fstrm
-
-        - fuse
-
-        - fwupd
-
-        - gawk
-
-        - gcab
-
-        - gcc
-
-        - gdb
-
-        - gdbm
-
-        - gdisk
-
-        - geolite2
-
-        - gettext
-
-        - git
-
-        - glib2
-
-        - glibc
-
-        - glusterfs
-
-        - gmp
-
-        - gnupg2
-
-        - gnutls
-
-        - gobject-introspection
-
-        - gpgme
-
-        - grep
-
-        - groff
-
-        - grub2
-
-        - gssproxy
-
-        - gzip
-
-        - haproxy
-
-        - hardlink
-
-        - hdparm
-
-        - hostname
-
-        - hwdata
-
-        - icu
-
-        - ima-evm-utils
-
-        - initscripts
-
-        - iproute
-
-        - iptables
-
-        - iputils
-
-        - ipxe
-
-        - irqbalance
-
-        - iscsi-initiator-utils
-
-        - isns-utils
-
-        - jansson
-
-        - jose
-
-        - jq
-
-        - json-c
-
-        - json-glib
-
-        - kata-containers
-
-        - kbd
-
-        - kernel
-
-        - kernel-rt
-
-        - kexec-tools
-
-        - keyutils
-
-        - kmod
-
-        - krb5
-
-        - langpacks
-
-        - less
-
-        - libaio
-
-        - libarchive
-
-        - libassuan
-
-        - libbpf
-
-        - libcap
-
-        - libcap-ng
-
-        - libcomps
-
-        - libcroco
-
-        - libdaemon
-
-        - libdb
-
-        - libdnf
-
-        - libdrm
-
-        - libedit
-
-        - libestr
-
-        - libevent
-
-        - libfastjson
-
-        - libffi
-
-        - libgcrypt
-
-        - libgpg-error
-
-        - libgudev
-
-        - libgusb
-
-        - libidn2
-
-        - libkcapi
-
-        - libksba
-
-        - libldb
-
-        - libmaxminddb
-
-        - libmetalink
-
-        - libmicrohttpd
-
-        - libmnl
-
-        - libmodulemd
-
-        - libmspack
-
-        - libndp
-
-        - libnet
-
-        - libnetfilter_conntrack
-
-        - libnetfilter_cthelper
-
-        - libnetfilter_cttimeout
-
-        - libnetfilter_queue
-
-        - libnfnetlink
-
-        - libnftnl
-
-        - libnl3
-
-        - libnsl2
-
-        - libpcap
-
-        - libpciaccess
-
-        - libpeas
-
-        - libpng
-
-        - libpsl
-
-        - libpwquality
-
-        - libqb
-
-        - librepo
-
-        - libreport
-
-        - librhsm
-
-        - librtas
-
-        - libseccomp
-
-        - libsecret
-
-        - libselinux
-
-        - libsemanage
-
-        - libsepol
-
-        - libsigsegv
-
-        - libsmbios
-
-        - libsolv
-
-        - libssh
-
-        - libtalloc
-
-        - libtasn1
-
-        - libtdb
-
-        - libteam
-
-        - libtevent
-
-        - libtirpc
-
-        - libtool
-
-        - libunistring
-
-        - libusbx
-
-        - libuser
-
-        - libutempter
-
-        - libverto
-
-        - libxcrypt
-
-        - libxkbcommon
-
-        - libxml2
-
-        - libxmlb
-
-        - libxslt
-
-        - libyaml
-
-        - linux-firmware
-
-        - lmdb
-
-        - logrotate
-
-        - lsof
-
-        - lua
-
-        - luksmeta
-
-        - lvm2
-
-        - lz4
-
-        - lzo
-
-        - make
-
-        - mdadm
-
-        - memstrack
-
-        - microcode_ctl
-
-        - microdnf
-
-        - mokutil
-
-        - mozjs60
-
-        - mpfr
-
-        - nano
-
-        - ncurses
-
-        - net-tools
-
-        - nettle
-
-        - NetworkManager
-
-        - newt
-
-        - nfs-utils
-
-        - nftables
-
-        - nghttp2
-
-        - nmap
-
-        - npth
-
-        - nss-altfiles
-
-        - numactl
-
-        - nvme-cli
-
-        - oniguruma
-
-        - open-vm-tools
-
-        - openldap
-
-        - openshift
-
-        - openshift-clients
-
-        - openssh
-
-        - openssl
-
-        - openssl-pkcs11
-
-        - os-prober
-
-        - ostree
-
-        - p11-kit
-
-        - pam
-
-        - passwd
-
-        - pciutils
-
-        - pcre
-
-        - pcre2
-
-        - perl
-
-        - perl-Carp
-
-        - perl-constant
-
-        - perl-Data-Dumper
-
-        - perl-Digest
-
-        - perl-Digest-MD5
-
-        - perl-Encode
-
-        - perl-Error
-
-        - perl-Exporter
-
-        - perl-File-Path
-
-        - perl-File-Temp
-
-        - perl-Getopt-Long
-
-        - perl-HTTP-Tiny
-
-        - perl-IO-Socket-IP
-
-        - perl-IO-Socket-SSL
-
-        - perl-libnet
-
-        - perl-MIME-Base64
-
-        - perl-Mozilla-CA
-
-        - perl-Net-SSLeay
-
-        - perl-parent
-
-        - perl-PathTools
-
-        - perl-Pod-Escapes
-
-        - perl-Pod-Perldoc
-
-        - perl-Pod-Simple
-
-        - perl-Pod-Usage
-
-        - perl-podlators
-
-        - perl-Scalar-List-Utils
-
-        - perl-Socket
-
-        - perl-Storable
-
-        - perl-Term-ANSIColor
-
-        - perl-Term-Cap
-
-        - perl-TermReadKey
-
-        - perl-Text-ParseWords
-
-        - perl-Text-Tabs+Wrap
-
-        - perl-threads
-
-        - perl-threads-shared
-
-        - perl-Time-Local
-
-        - perl-Unicode-Normalize
-
-        - perl-URI
-
-        - pigz
-
-        - pinentry
-
-        - pixman
-
-        - pkgconf
-
-        - pmdk
-
-        - policycoreutils
-
-        - polkit
-
-        - polkit-pkla-compat
-
-        - popt
-
-        - procps-ng
-
-        - protobuf
-
-        - protobuf-c
-
-        - psmisc
-
-        - publicsuffix-list
-
-        - pygobject3
-
-        - python-chardet
-
-        - python-dateutil
-
-        - python-decorator
-
-        - python-dmidecode
-
-        - python-ethtool
-
-        - python-idna
-
-        - python-iniparse
-
-        - python-inotify
-
-        - python-linux-procfs
-
-        - python-pip
-
-        - python-ply
-
-        - python-pysocks
-
-        - python-pyudev
-
-        - python-requests
-
-        - python-setuptools
-
-        - python-six
-
-        - python-systemd
-
-        - python-urllib3
-
-        - python3
-
-        - python36
-
-        - PyYAML
-
-        - qemu-kvm
-
-        - quota
-
-        - rdma-core
-
-        - readline
-
-        - redhat-release
-
-        - rootfiles
-
-        - rpcbind
-
-        - rpm
-
-        - rpm-ostree
-
-        - rsync
-
-        - rsyslog
-
-        - samba
-
-        - seabios
-
-        - sed
-
-        - selinux-policy
-
-        - setools
-
-        - setup
-
-        - sg3_utils
-
-        - sgabios
-
-        - shadow-utils
-
-        - shared-mime-info
-
-        - shim
-
-        - slang
-
-        - snappy
-
-        - socat
-
-        - sqlite
-
-        - squashfs-tools
-
-        - sssd
-
-        - stalld
-
-        - strace
-
-        - subscription-manager
-
-        - subscription-manager-rhsm-certificates
-
-        - sudo
-
-        - systemd
-
-        - tar
-
-        - tcpdump
-
-        - texinfo
-
-        - timedatex
-
-        - tmux
-
-        - tpm2-tools
-
-        - tpm2-tss
-
-        - tree
-
-        - trousers
-
-        - tuna
-
-        - tuned
-
-        - tzdata
-
-        - unbound
-
-        - usbguard
-
-        - usermode
-
-        - userspace-rcu
-
-        - util-linux
-
-        - vim
-
-        - virt-what
-
-        - WALinuxAgent
-
-        - wget
-
-        - which
-
-        - xfsprogs
-
-        - xkeyboard-config
-
-        - xmlsec1
-
-        - xz
-
-        - yajl
-
-        - zlib
-
-        - zstd
-
-
-        # below list is a represenation of the RHEL UBI9 rpm components
-
-        rhel-9:
-
-        - acl
-
-        - attr
-
-        - audit
-
-        - basesystem
-
-        - bash
-
-        - bzip2
-
-        - ca-certificates
-
-        - chkconfig
-
-        - coreutils
-
-        - cracklib
-
-        - crypto-policies
-
-        - curl
-
-        - cyrus-sasl
-
-        - dbus
-
-        - dbus-broker
-
-        - dbus-python
-
-        - dejavu-fonts
-
-        - dmidecode
-
-        - dnf
-
-        - dnf-plugins-core
-
-        - e2fsprogs
-
-        - elfutils
-
-        - expat
-
-        - file
-
-        - filesystem
-
-        - findutils
-
-        - fonts-rpm-macros
-
-        - gawk
-
-        - gcc
-
-        - gdb
-
-        - gdbm
-
-        - glib2
-
-        - glibc
-
-        - gmp
-
-        - gnupg2
-
-        - gnutls
-
-        - gobject-introspection
-
-        - gpgme
-
-        - grep
-
-        - gzip
-
-        - ima-evm-utils
-
-        - json-c
-
-        - json-glib
-
-        - keyutils
-
-        - kmod
-
-        - krb5
-
-        - langpacks
-
-        - libarchive
-
-        - libassuan
-
-        - libcap
-
-        - libcap-ng
-
-        - libcomps
-
-        - libdb
-
-        - libdnf
-
-        - libeconf
-
-        - libevent
-
-        - libffi
-
-        - libgcrypt
-
-        - libgpg-error
-
-        - libidn2
-
-        - libksba
-
-        - libmodulemd
-
-        - libnl3
-
-        - libpeas
-
-        - libpwquality
-
-        - librepo
-
-        - libreport
-
-        - librhsm
-
-        - libseccomp
-
-        - libselinux
-
-        - libsemanage
-
-        - libsepol
-
-        - libsigsegv
-
-        - libsolv
-
-        - libtasn1
-
-        - libunistring
-
-        - libusbx
-
-        - libuser
-
-        - libutempter
-
-        - libverto
-
-        - libxcrypt
-
-        - libxml2
-
-        - libyaml
-
-        - lua
-
-        - lz4
-
-        - microdnf
-
-        - mpfr
-
-        - ncurses
-
-        - nettle
-
-        - nghttp2
-
-        - npth
-
-        - openldap
-
-        - openssl
-
-        - p11-kit
-
-        - pam
-
-        - passwd
-
-        - pcre
-
-        - pcre2
-
-        - popt
-
-        - procps-ng
-
-        - pygobject3
-
-        - python-chardet
-
-        - python-dateutil
-
-        - python-decorator
-
-        - python-ethtool
-
-        - python-idna
-
-        - python-iniparse
-
-        - python-inotify
-
-        - python-pip
-
-        - python-pysocks
-
-        - python-requests
-
-        - python-setuptools
-
-        - python-six
-
-        - python-systemd
-
-        - python-urllib3
-
-        - python3.9
-
-        - readline
-
-        - redhat-release
-
-        - rootfiles
-
-        - rpm
-
-        - sed
-
-        - setup
-
-        - shadow-utils
-
-        - sqlite
-
-        - subscription-manager
-
-        - subscription-manager-rhsm-certificates
-
-        - systemd
-
-        - tar
-
-        - tpm2-tss
-
-        - tzdata
-
-        - usermode
-
-        - util-linux
-
-        - vim
-
-        - virt-what
-
-        - which
-
-        - xz
-
-        - zlib
-
-        - zstd
-
-
-        openshift-4:
-
-        - cluster-etcd-operator-container
-
-        - cluster-monitoring-operator-container
-
-        - cluster-network-operator-container
-
-        - cluster-node-tuning-operator-container
-
-        - conmon
-
-        - console-login-helper-messages
-
-        - container-selinux
-
-        - containernetworking-plugins
-
-        - containers-common
-
-        - coredns-container
-
-        - coreos-installer
-
-        - cri-o
-
-        - criu
-
-        - crun
-
-        - csi-attacher-container
-
-        - csi-livenessprobe-container
-
-        - csi-node-driver-registrar-container
-
-        - csi-provisioner-container
-
-        - fuse-overlayfs
-
-        - golang-github-openshift-oauth-proxy-container
-
-        - golang-github-prometheus-alertmanager-container
-
-        - golang-github-prometheus-node_exporter-container
-
-        - golang-github-prometheus-prometheus-container
-
-        - ignition
-
-        - kube-rbac-proxy-container
-
-        - kube-state-metrics-container
-
-        - libslirp
-
-        - marketplace-operator-container
-
-        - multus-cni-container
-
-        - oauth-server-container
-
-        - openshift-enterprise-builder-container
-
-        - openshift-enterprise-cli-container
-
-        - openshift-enterprise-console-container
-
-        - openshift-enterprise-console-operator-container
-
-        - openshift-enterprise-haproxy-router-container
-
-        - openshift-enterprise-hyperkube-container
-
-        - openshift-enterprise-registry-container
-
-        - openshift-state-metrics-container
-
-        - openvswitch-selinux-extra-policy
-
-        - openvswitch2.13
-
-        - openvswitch2.17
-
-        - operator-lifecycle-manager-container
-
-        - ose-aws-ebs-csi-driver-container
-
-        - ose-aws-ebs-csi-driver-operator-container
-
-        - ose-aws-pod-identity-webhook-container
-
-        - ose-cli-artifacts-container
-
-        - ose-cloud-credential-operator-container
-
-        - ose-cloud-network-config-controller-container
-
-        - ose-cluster-authentication-operator-container
-
-        - ose-cluster-autoscaler-operator-container
-
-        - ose-cluster-baremetal-operator-container
-
-        - ose-cluster-cloud-controller-manager-operator-container
-
-        - ose-cluster-config-operator-container
-
-        - ose-cluster-csi-snapshot-controller-operator-container
-
-        - ose-cluster-dns-operator-container
-
-        - ose-cluster-image-registry-operator-container
-
-        - ose-cluster-ingress-operator-container
-
-        - ose-cluster-kube-apiserver-operator-container
-
-        - ose-cluster-kube-controller-manager-operator-container
-
-        - ose-cluster-kube-scheduler-operator-container
-
-        - ose-cluster-kube-storage-version-migrator-operator-container
-
-        - ose-cluster-machine-approver-container
-
-        - ose-cluster-openshift-apiserver-operator-container
-
-        - ose-cluster-openshift-controller-manager-operator-container
-
-        - ose-cluster-samples-operator-container
-
-        - ose-cluster-storage-operator-container
-
-        - ose-csi-external-resizer-container
-
-        - ose-csi-external-snapshotter-container
-
-        - ose-csi-snapshot-controller-container
-
-        - ose-csi-snapshot-validation-webhook-container
-
-        - ose-etcd-container
-
-        - ose-insights-operator-container
-
-        - ose-kube-storage-version-migrator-container
-
-        - ose-machine-api-operator-container
-
-        - ose-machine-api-provider-aws-container
-
-        - ose-machine-config-operator-container
-
-        - ose-multus-admission-controller-container
-
-        - ose-network-metrics-daemon-container
-
-        - ose-node-container
-
-        - ose-oauth-apiserver-container
-
-        - ose-openshift-apiserver-container
-
-        - ose-openshift-controller-manager-container
-
-        - ose-prometheus-adapter-container
-
-        - ose-service-ca-operator-container
-
-        - ose-thanos-container
-
-        - podman
-
-        - prom-label-proxy-container
-
-        - prometheus-config-reloader-container
-
-        - prometheus-operator-admission-webhook-container
-
-        - prometheus-operator-container
-
-        - runc
-
-        - rust-afterburn
-
-        - rust-bootupd
-
-        - skopeo
-
-        - slirp4netns
-
-        - telemeter-container
-
-        - toolbox
-
-
-        fdp-el8-ovs:
-
-        - openvswitch-selinux-extra-policy
-
-        - openvswitch2.13
-
-        - openvswitch2.17
-
-
-        '
+      string: "# list of packages / components that are in the scope of the compliance
+        priority special handling and where a dedicated SLAs are applied\n# separate
+        list provided for each primary product, keys need to match ps module names\n#
+        https://example.com/browse/OSIDB-1316\n# For any component from the below
+        list in the particular product the following SLA are applicable:\n# Critical
+        = 7 days\n# Important = 21 days\n# Moderate = 50 days\n# Low = 180 days\n#\n#
+        File structure based on the rhel8 example:\n#\n# rhel-8:  (name of the ps_module)\n#
+        \  components:  (list of the components, can be left empty as components:
+        [] what would mean ALL components in that ps_module)\n#   streams: (list of
+        product streams where the compliance priority rules will be applied, this
+        object CANNOT be empty)\n#\n# The key values (ps_module) must be unique across
+        this document, duplicates are not allowed.\n#\n\nrhel-8:\n  components:\n
+        \ - acl\n  - adcli\n  - attr\n  - audit\n  - authselect\n  - avahi\n  - basesystem\n
+        \ - bash\n  - bash-completion\n  - bind\n  - binutils\n  - brotli\n  - bubblewrap\n
+        \ - bzip2\n  - c-ares\n  - ca-certificates\n  - checkpolicy\n  - chkconfig\n
+        \ - chrony\n  - cifs-utils\n  - clevis\n  - cloud-utils-growpart\n  - compat-openssl10\n
+        \ - conntrack-tools\n  - coreutils\n  - cpio\n  - cracklib\n  - cri-tools\n
+        \ - crypto-policies\n  - cryptsetup\n  - cups\n  - curl\n  - cyrus-sasl\n
+        \ - dbus\n  - dbus-glib\n  - dbus-python\n  - device-mapper-multipath\n  -
+        device-mapper-persistent-data\n  - diffutils\n  - ding-libs\n  - dmidecode\n
+        \ - dnf\n  - dnf-plugins-core\n  - dnsmasq\n  - dosfstools\n  - dracut\n  -
+        dtc\n  - e2fsprogs\n  - edk2\n  - efi-rpm-macros\n  - efibootmgr\n  - efivar\n
+        \ - elfutils\n  - emacs\n  - ethtool\n  - expat\n  - file\n  - filesystem\n
+        \ - findutils\n  - firewalld\n  - freetype\n  - fstrm\n  - fuse\n  - fwupd\n
+        \ - gawk\n  - gcab\n  - gcc\n  - gdb\n  - gdbm\n  - gdisk\n  - geolite2\n
+        \ - gettext\n  - git\n  - glib2\n  - glibc\n  - glusterfs\n  - gmp\n  - gnupg2\n
+        \ - gnutls\n  - gobject-introspection\n  - gpgme\n  - grep\n  - groff\n  -
+        grub2\n  - gssproxy\n  - gzip\n  - haproxy\n  - hardlink\n  - hdparm\n  -
+        hostname\n  - hwdata\n  - icu\n  - ima-evm-utils\n  - initscripts\n  - iproute\n
+        \ - iptables\n  - iputils\n  - ipxe\n  - irqbalance\n  - iscsi-initiator-utils\n
+        \ - isns-utils\n  - jansson\n  - jose\n  - jq\n  - json-c\n  - json-glib\n
+        \ - kata-containers\n  - kbd\n  - kernel\n  - kexec-tools\n  - keyutils\n
+        \ - kmod\n  - krb5\n  - langpacks\n  - less\n  - libaio\n  - libarchive\n
+        \ - libassuan\n  - libbpf\n  - libcap\n  - libcap-ng\n  - libcomps\n  - libcroco\n
+        \ - libdaemon\n  - libdb\n  - libdnf\n  - libdrm\n  - libedit\n  - libestr\n
+        \ - libevent\n  - libfastjson\n  - libffi\n  - libgcrypt\n  - libgpg-error\n
+        \ - libgudev\n  - libgusb\n  - libidn2\n  - libkcapi\n  - libksba\n  - libldb\n
+        \ - libmaxminddb\n  - libmetalink\n  - libmicrohttpd\n  - libmnl\n  - libmodulemd\n
+        \ - libmspack\n  - libndp\n  - libnet\n  - libnetfilter_conntrack\n  - libnetfilter_cthelper\n
+        \ - libnetfilter_cttimeout\n  - libnetfilter_queue\n  - libnfnetlink\n  -
+        libnftnl\n  - libnl3\n  - libnsl2\n  - libpcap\n  - libpciaccess\n  - libpeas\n
+        \ - libpng\n  - libpsl\n  - libpwquality\n  - libqb\n  - librepo\n  - libreport\n
+        \ - librhsm\n  - librtas\n  - libseccomp\n  - libsecret\n  - libselinux\n
+        \ - libsemanage\n  - libsepol\n  - libsigsegv\n  - libsmbios\n  - libsolv\n
+        \ - libssh\n  - libtalloc\n  - libtasn1\n  - libtdb\n  - libteam\n  - libtevent\n
+        \ - libtirpc\n  - libtool\n  - libunistring\n  - libusbx\n  - libuser\n  -
+        libutempter\n  - libverto\n  - libxcrypt\n  - libxkbcommon\n  - libxml2\n
+        \ - libxmlb\n  - libxslt\n  - libyaml\n  - linux-firmware\n  - lmdb\n  - logrotate\n
+        \ - lsof\n  - lua\n  - luksmeta\n  - lvm2\n  - lz4\n  - lzo\n  - make\n  -
+        mdadm\n  - memstrack\n  - microcode_ctl\n  - microdnf\n  - mokutil\n  - mozjs60\n
+        \ - mpfr\n  - nano\n  - ncurses\n  - net-tools\n  - nettle\n  - NetworkManager\n
+        \ - newt\n  - nfs-utils\n  - nftables\n  - nghttp2\n  - nmap\n  - npth\n  -
+        nss-altfiles\n  - numactl\n  - nvme-cli\n  - oniguruma\n  - open-vm-tools\n
+        \ - openldap\n  - openshift\n  - openshift-clients\n  - openssh\n  - openssl\n
+        \ - openssl-pkcs11\n  - os-prober\n  - ostree\n  - p11-kit\n  - pam\n  - passwd\n
+        \ - pciutils\n  - pcre\n  - pcre2\n  - perl\n  - perl-Carp\n  - perl-constant\n
+        \ - perl-Data-Dumper\n  - perl-Digest\n  - perl-Digest-MD5\n  - perl-Encode\n
+        \ - perl-Error\n  - perl-Exporter\n  - perl-File-Path\n  - perl-File-Temp\n
+        \ - perl-Getopt-Long\n  - perl-HTTP-Tiny\n  - perl-IO-Socket-IP\n  - perl-IO-Socket-SSL\n
+        \ - perl-libnet\n  - perl-MIME-Base64\n  - perl-Mozilla-CA\n  - perl-Net-SSLeay\n
+        \ - perl-parent\n  - perl-PathTools\n  - perl-Pod-Escapes\n  - perl-Pod-Perldoc\n
+        \ - perl-Pod-Simple\n  - perl-Pod-Usage\n  - perl-podlators\n  - perl-Scalar-List-Utils\n
+        \ - perl-Socket\n  - perl-Storable\n  - perl-Term-ANSIColor\n  - perl-Term-Cap\n
+        \ - perl-TermReadKey\n  - perl-Text-ParseWords\n  - perl-Text-Tabs+Wrap\n
+        \ - perl-threads\n  - perl-threads-shared\n  - perl-Time-Local\n  - perl-Unicode-Normalize\n
+        \ - perl-URI\n  - pigz\n  - pinentry\n  - pixman\n  - pkgconf\n  - pmdk\n
+        \ - policycoreutils\n  - polkit\n  - polkit-pkla-compat\n  - popt\n  - procps-ng\n
+        \ - protobuf\n  - protobuf-c\n  - psmisc\n  - publicsuffix-list\n  - pygobject3\n
+        \ - python-chardet\n  - python-dateutil\n  - python-decorator\n  - python-dmidecode\n
+        \ - python-ethtool\n  - python-idna\n  - python-iniparse\n  - python-inotify\n
+        \ - python-linux-procfs\n  - python-pip\n  - python-ply\n  - python-pysocks\n
+        \ - python-pyudev\n  - python-requests\n  - python-setuptools\n  - python-six\n
+        \ - python-systemd\n  - python-urllib3\n  - python3\n  - python36\n  - PyYAML\n
+        \ - qemu-kvm\n  - quota\n  - rdma-core\n  - readline\n  - redhat-release\n
+        \ - rootfiles\n  - rpcbind\n  - rpm\n  - rpm-ostree\n  - rsync\n  - rsyslog\n
+        \ - samba\n  - seabios\n  - sed\n  - selinux-policy\n  - setools\n  - setup\n
+        \ - sg3_utils\n  - sgabios\n  - shadow-utils\n  - shared-mime-info\n  - shim\n
+        \ - slang\n  - snappy\n  - socat\n  - sqlite\n  - squashfs-tools\n  - sssd\n
+        \ - stalld\n  - strace\n  - subscription-manager\n  - subscription-manager-rhsm-certificates\n
+        \ - sudo\n  - systemd\n  - tar\n  - tcpdump\n  - texinfo\n  - timedatex\n
+        \ - tmux\n  - tpm2-tools\n  - tpm2-tss\n  - tree\n  - trousers\n  - tuna\n
+        \ - tuned\n  - tzdata\n  - unbound\n  - usbguard\n  - usermode\n  - userspace-rcu\n
+        \ - util-linux\n  - vim\n  - virt-what\n  - WALinuxAgent\n  - wget\n  - which\n
+        \ - xfsprogs\n  - xkeyboard-config\n  - xmlsec1\n  - xz\n  - yajl\n  - zlib\n
+        \ - zstd\n  streams:\n  - rhel-8.6.0.z\n  - rhel-8.9.0.z\n\nopenshift-4:\n
+        \ components:\n  - cluster-etcd-operator-container\n  - cluster-monitoring-operator-container\n
+        \ - cluster-network-operator-container\n  - cluster-node-tuning-operator-container\n
+        \ - conmon\n  - console-login-helper-messages\n  - container-selinux\n  -
+        containernetworking-plugins\n  - containers-common\n  - coredns-container\n
+        \ - coreos-installer\n  - cri-o\n  - criu\n  - crun\n  - csi-attacher-container\n
+        \ - csi-livenessprobe-container\n  - csi-node-driver-registrar-container\n
+        \ - csi-provisioner-container\n  - fuse-overlayfs\n  - golang-github-openshift-oauth-proxy-container\n
+        \ - golang-github-prometheus-alertmanager-container\n  - golang-github-prometheus-node_exporter-container\n
+        \ - golang-github-prometheus-prometheus-container\n  - ignition\n  - kube-rbac-proxy-container\n
+        \ - kube-state-metrics-container\n  - libslirp\n  - marketplace-operator-container\n
+        \ - multus-cni-container\n  - oauth-server-container\n  - openshift-enterprise-builder-container\n
+        \ - openshift-enterprise-cli-container\n  - openshift-enterprise-console-container\n
+        \ - openshift-enterprise-console-operator-container\n  - openshift-enterprise-haproxy-router-container\n
+        \ - openshift-enterprise-hyperkube-container\n  - openshift-enterprise-registry-container\n
+        \ - openshift-state-metrics-container\n  - openvswitch-selinux-extra-policy\n
+        \ - openvswitch2.13\n  - openvswitch2.17\n  - operator-lifecycle-manager-container\n
+        \ - ose-aws-ebs-csi-driver-container\n  - ose-aws-ebs-csi-driver-operator-container\n
+        \ - ose-aws-pod-identity-webhook-container\n  - ose-cli-artifacts-container\n
+        \ - ose-cloud-credential-operator-container\n  - ose-cloud-network-config-controller-container\n
+        \ - ose-cluster-authentication-operator-container\n  - ose-cluster-autoscaler-operator-container\n
+        \ - ose-cluster-baremetal-operator-container\n  - ose-cluster-cloud-controller-manager-operator-container\n
+        \ - ose-cluster-config-operator-container\n  - ose-cluster-csi-snapshot-controller-operator-container\n
+        \ - ose-cluster-dns-operator-container\n  - ose-cluster-image-registry-operator-container\n
+        \ - ose-cluster-ingress-operator-container\n  - ose-cluster-kube-apiserver-operator-container\n
+        \ - ose-cluster-kube-controller-manager-operator-container\n  - ose-cluster-kube-scheduler-operator-container\n
+        \ - ose-cluster-kube-storage-version-migrator-operator-container\n  - ose-cluster-machine-approver-container\n
+        \ - ose-cluster-openshift-apiserver-operator-container\n  - ose-cluster-openshift-controller-manager-operator-container\n
+        \ - ose-cluster-samples-operator-container\n  - ose-cluster-storage-operator-container\n
+        \ - ose-csi-external-resizer-container\n  - ose-csi-external-snapshotter-container\n
+        \ - ose-csi-snapshot-controller-container\n  - ose-csi-snapshot-validation-webhook-container\n
+        \ - ose-etcd-container\n  - ose-insights-operator-container\n  - ose-kube-storage-version-migrator-container\n
+        \ - ose-machine-api-operator-container\n  - ose-machine-api-provider-aws-container\n
+        \ - ose-machine-config-operator-container\n  - ose-multus-admission-controller-container\n
+        \ - ose-network-metrics-daemon-container\n  - ose-node-container\n  - ose-oauth-apiserver-container\n
+        \ - ose-openshift-apiserver-container\n  - ose-openshift-controller-manager-container\n
+        \ - ose-prometheus-adapter-container\n  - ose-service-ca-operator-container\n
+        \ - ose-thanos-container\n  - podman\n  - prom-label-proxy-container\n  -
+        prometheus-config-reloader-container\n  - prometheus-operator-admission-webhook-container\n
+        \ - prometheus-operator-container\n  - runc\n  - rust-afterburn\n  - rust-bootupd\n
+        \ - skopeo\n  - slirp4netns\n  - telemeter-container\n  - toolbox\n  streams:\n
+        \ - openshift-4.11.z\n\nfdp-el8-ovs:\n  components:\n  - openvswitch-selinux-extra-policy\n
+        \ - openvswitch2.13\n  - openvswitch2.17\n  streams:\n  - fdp-el8-ovs\n\n"
     headers:
       Cache-Control:
       - max-age=60, public, must-revalidate, stale-while-revalidate=60, stale-if-error=300,
@@ -1294,35 +150,21 @@ interactions:
       Content-Disposition:
       - inline
       Content-Length:
-      - '10067'
-      Content-Security-Policy:
-      - 'base-uri ''self''; child-src https://www.google.com/recaptcha/ https://www.recaptcha.net/
-        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
-        https://content-cloudresourcemanager.googleapis.com https://www.googletagmanager.com/ns.html
-        https://gitlab.cee.redhat.com/admin/ https://gitlab.cee.redhat.com/assets/
-        https://gitlab.cee.redhat.com/-/speedscope/index.html https://gitlab.cee.redhat.com/-/sandbox/
-        https://gitlab.cee.redhat.com/assets/ blob: data:; connect-src ''self'' wss://gitlab.cee.redhat.com;
-        default-src ''self''; font-src ''self'' https://fonts.gstatic.com/; form-action
-        ''self'' https: http:; frame-ancestors ''self''; frame-src ''self'' https://www.recaptcha.net/
-        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
-        https://content-cloudresourcemanager.googleapis.com *.redhat.com; img-src
-        * data: blob:; manifest-src ''self''; media-src ''self'' data: blob: http:
-        https:; object-src ''none''; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''
-        https://www.recaptcha.net https://apis.google.com ''nonce-n75Rp4KpsscQQFgaEC7D7Q=='';
-        style-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com *.redhat.com;
-        worker-src https://gitlab.cee.redhat.com/assets/ blob: data:'
+      - '9953'
       Content-Type:
       - text/plain; charset=utf-8
       Date:
-      - Fri, 10 Nov 2023 16:28:07 GMT
+      - Tue, 13 Feb 2024 12:56:00 GMT
       Etag:
-      - '"b0cc8fed76256e02a011af62f49b3c66"'
+      - '"691674dff94cdf5454ca44b2e77757ce"'
       Permissions-Policy:
       - interest-cohort=()
       Referrer-Policy:
       - strict-origin-when-cross-origin
       Server:
       - nginx
+      Strict-Transport-Security:
+      - max-age=63072000
       Vary:
       - Accept
       X-Content-Type-Options:
@@ -1332,13 +174,13 @@ interactions:
       X-Frame-Options:
       - SAMEORIGIN
       X-Gitlab-Meta:
-      - '{"correlation_id":"01HEX0ZTV9BJBVF27ZET9DWHND","version":"1"}'
+      - '{"correlation_id":"01HPH8KPXM17CTG2TMY3E21AJ5","version":"1"}'
       X-Permitted-Cross-Domain-Policies:
       - none
       X-Request-Id:
-      - 01HEX0ZTV9BJBVF27ZET9DWHND
+      - 01HPH8KPXM17CTG2TMY3E21AJ5
       X-Runtime:
-      - '0.071759'
+      - '0.069873'
       X-Ua-Compatible:
       - IE=edge
       X-Xss-Protection:
@@ -1358,7 +200,7 @@ interactions:
       User-Agent:
       - python-requests/2.31.0
     method: GET
-    uri: https://gitlab.cee.redhat.com/prodsec-dev/ps-constants/-/raw/master/data/contract_priority.yml?job=build
+    uri: https://example.com/prodsec-dev/ps-constants/-/raw/master/data/contract_priority.yml?job=build
   response:
     body:
       string: '# list of update streams that are in the scope of the contract priority
@@ -1366,7 +208,7 @@ interactions:
 
         # keys need to match PS update stream names from product definitions
 
-        # https://issues.redhat.com/browse/OSIDB-1707
+        # https://example.com/browse/OSIDB-1707
 
         #
 
@@ -1396,26 +238,10 @@ interactions:
       - inline
       Content-Length:
       - '390'
-      Content-Security-Policy:
-      - 'base-uri ''self''; child-src https://www.google.com/recaptcha/ https://www.recaptcha.net/
-        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
-        https://content-cloudresourcemanager.googleapis.com https://www.googletagmanager.com/ns.html
-        https://gitlab.cee.redhat.com/admin/ https://gitlab.cee.redhat.com/assets/
-        https://gitlab.cee.redhat.com/-/speedscope/index.html https://gitlab.cee.redhat.com/-/sandbox/
-        https://gitlab.cee.redhat.com/assets/ blob: data:; connect-src ''self'' wss://gitlab.cee.redhat.com;
-        default-src ''self''; font-src ''self'' https://fonts.gstatic.com/; form-action
-        ''self'' https: http:; frame-ancestors ''self''; frame-src ''self'' https://www.recaptcha.net/
-        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
-        https://content-cloudresourcemanager.googleapis.com *.redhat.com; img-src
-        * data: blob:; manifest-src ''self''; media-src ''self'' data: blob: http:
-        https:; object-src ''none''; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''
-        https://www.recaptcha.net https://apis.google.com ''nonce-hAHEazPwuuQbvP8nXEOePg=='';
-        style-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com *.redhat.com;
-        worker-src https://gitlab.cee.redhat.com/assets/ blob: data:'
       Content-Type:
       - text/plain; charset=utf-8
       Date:
-      - Tue, 30 Jan 2024 14:40:10 GMT
+      - Tue, 13 Feb 2024 12:56:00 GMT
       Etag:
       - '"b213fc4391a512d06e735dc7a67b3d91"'
       Permissions-Policy:
@@ -1435,13 +261,13 @@ interactions:
       X-Frame-Options:
       - SAMEORIGIN
       X-Gitlab-Meta:
-      - '{"correlation_id":"01HNDD0CXYMFTYA74CMEF0PETB","version":"1"}'
+      - '{"correlation_id":"01HPH8KQ66G3HRAY5TN17C3957","version":"1"}'
       X-Permitted-Cross-Domain-Policies:
       - none
       X-Request-Id:
-      - 01HNDD0CXYMFTYA74CMEF0PETB
+      - 01HPH8KQ66G3HRAY5TN17C3957
       X-Runtime:
-      - '0.074905'
+      - '0.075541'
       X-Ua-Compatible:
       - IE=edge
       X-Xss-Protection:
@@ -1461,14 +287,13 @@ interactions:
       User-Agent:
       - python-requests/2.31.0
     method: GET
-    uri: https://gitlab.cee.redhat.com/prodsec-dev/ps-constants/-/raw/master/data/ubi_packages.yml?job=build
+    uri: https://example.com/prodsec-dev/ps-constants/-/raw/master/data/ubi_packages.yml?job=build
   response:
     body:
       string: "# This list of packages is used to indicate the UBI flag in the SFM2.
         \n# This list is NOT used to calculate SLA.\n\n\n# list of packages / components
         in UBI images\n# separate list provided for each RHEL version, keys need to
-        match ps module\n# names\n# https://projects.engineering.redhat.com/browse/PSIRT-730\n#
-        https://projects.engineering.redhat.com/browse/PSDEVOPS-2076\n\nrhel-8:\n-
+        match ps module\n# names\n# https://example.com/browse/PSIRT-730\n# https://example.com/browse/PSDEVOPS-2076\n\nrhel-8:\n-
         acl\n- attr\n- audit\n- basesystem\n- bash\n- brotli\n- bzip2\n- ca-certificates\n-
         chkconfig\n- coreutils\n- cracklib\n- crypto-policies\n- cryptsetup\n- curl\n-
         cyrus-sasl\n- dbus\n- dbus-glib\n- dbus-python\n- dmidecode\n- dnf\n- dnf-plugins-core\n-
@@ -1484,29 +309,29 @@ interactions:
         lua\n- lvm2\n- lz4\n- microdnf\n- mpfr\n- ncurses\n- nettle\n- nghttp2\n-
         npth\n- openldap\n- openssl\n- p11-kit\n- pam\n- passwd\n- pcre\n- pcre2\n-
         popt\n- procps-ng\n- publicsuffix-list\n- pygobject3\n- python-chardet\n-
-        python-dateutil\n- python-decorator\n- python-dmidecode\n- python-ethtool\n-
-        python-idna\n- python-iniparse\n- python-inotify\n- python-pip\n- python-pysocks\n-
-        python-requests\n- python-setuptools\n- python-six\n- python-systemd\n- python-urllib3\n-
-        python3\n- readline\n- redhat-release\n- rootfiles\n- rpm\n- sed\n- setup\n-
-        shadow-utils\n- sqlite\n- subscription-manager\n- systemd\n- tar\n- texinfo\n-
-        tpm2-tss\n- tzdata\n- usermode\n- util-linux\n- vim\n- virt-what\n- which\n-
-        xz\n- zlib\n- zstd\n\nrhel-9:\n- acl\n- attr\n- audit\n- basesystem\n- bash\n-
-        bzip2\n- ca-certificates\n- chkconfig\n- coreutils\n- cracklib\n- crypto-policies\n-
+        python-dateutil\n- python-decorator\n- python-ethtool\n- python-idna\n- python-iniparse\n-
+        python-inotify\n- python-pip\n- python-pysocks\n- python-requests\n- python-setuptools\n-
+        python-six\n- python-systemd\n- python-urllib3\n- python3\n- readline\n- redhat-release\n-
+        rootfiles\n- rpm\n- sed\n- setup\n- shadow-utils\n- sqlite\n- subscription-manager\n-
+        subscription-manager-rhsm-certificates\n- systemd\n- tar\n- texinfo\n- tpm2-tss\n-
+        tzdata\n- usermode\n- util-linux\n- vim\n- virt-what\n- which\n- xz\n- zlib\n-
+        zstd\n\nrhel-9:\n- acl\n- attr\n- audit\n- basesystem\n- bash\n- bzip2\n-
+        ca-certificates\n- chkconfig\n- coreutils\n- cracklib\n- crypto-policies\n-
         curl\n- cyrus-sasl\n- dbus\n- dbus-broker\n- dbus-python\n- dejavu-fonts\n-
         dmidecode\n- dnf\n- dnf-plugins-core\n- e2fsprogs\n- elfutils\n- expat\n-
         file\n- filesystem\n- findutils\n- fonts-rpm-macros\n- gawk\n- gcc\n- gdb\n-
         gdbm\n- glib2\n- glibc\n- gmp\n- gnupg2\n- gnutls\n- gobject-introspection\n-
-        gpgme\n- grep\n- gzip\n- ima-evm-utils\n- json-c\n- json-glib\n- keyutils\n-
-        kmod\n- krb5\n- langpacks\n- libarchive\n- libassuan\n- libcap\n- libcap-ng\n-
-        libcomps\n- libdb\n- libdnf\n- libeconf\n- libevent\n- libffi\n- libgcrypt\n-
-        libgpg-error\n- libidn2\n- libksba\n- libmodulemd\n- libnl3\n- libpeas\n-
-        libpwquality\n- librepo\n- libreport\n- librhsm\n- libseccomp\n- libselinux\n-
-        libsemanage\n- libsepol\n- libsigsegv\n- libsolv\n- libtasn1\n- libunistring\n-
-        libusbx\n- libuser\n- libutempter\n- libverto\n- libxcrypt\n- libxml2\n- libyaml\n-
-        lua\n- lz4\n- microdnf\n- mpfr\n- ncurses\n- nettle\n- nghttp2\n- npth\n-
-        openldap\n- openssl\n- p11-kit\n- pam\n- passwd\n- pcre\n- pcre2\n- popt\n-
-        procps-ng\n- pygobject3\n- python-chardet\n- python-dateutil\n- python-decorator\n-
-        python-ethtool\n- python-idna\n- python-iniparse\n- python-inotify\n- python-pip\n-
+        gpgme\n- grep\n- gzip\n- ima-evm-utils\n- iproute\n- json-c\n- json-glib\n-
+        keyutils\n- kmod\n- krb5\n- langpacks\n- libarchive\n- libassuan\n- libbpf\n-
+        libcap\n- libcap-ng\n- libcomps\n- libdb\n- libdnf\n- libeconf\n- libevent\n-
+        libffi\n- libgcrypt\n- libgpg-error\n- libidn2\n- libksba\n- libmnl\n- libmodulemd\n-
+        libpeas\n- libpwquality\n- librepo\n- libreport\n- librhsm\n- libseccomp\n-
+        libselinux\n- libsemanage\n- libsepol\n- libsigsegv\n- libsolv\n- libtasn1\n-
+        libunistring\n- libusbx\n- libuser\n- libutempter\n- libverto\n- libxcrypt\n-
+        libxml2\n- libyaml\n- lua\n- lz4\n- microdnf\n- mpfr\n- ncurses\n- nettle\n-
+        nghttp2\n- npth\n- openldap\n- openssl\n- p11-kit\n- pam\n- passwd\n- pcre\n-
+        pcre2\n- popt\n- procps-ng\n- psmisc\n- pygobject3\n- python-chardet\n- python-dateutil\n-
+        python-decorator\n- python-idna\n- python-iniparse\n- python-inotify\n- python-pip\n-
         python-pysocks\n- python-requests\n- python-setuptools\n- python-six\n- python-systemd\n-
         python-urllib3\n- python3.9\n- readline\n- redhat-release\n- rootfiles\n-
         rpm\n- sed\n- setup\n- shadow-utils\n- sqlite\n- subscription-manager\n- subscription-manager-rhsm-certificates\n-
@@ -1521,35 +346,21 @@ interactions:
       Content-Disposition:
       - inline
       Content-Length:
-      - '3529'
-      Content-Security-Policy:
-      - 'base-uri ''self''; child-src https://www.google.com/recaptcha/ https://www.recaptcha.net/
-        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
-        https://content-cloudresourcemanager.googleapis.com https://www.googletagmanager.com/ns.html
-        https://gitlab.cee.redhat.com/admin/ https://gitlab.cee.redhat.com/assets/
-        https://gitlab.cee.redhat.com/-/speedscope/index.html https://gitlab.cee.redhat.com/-/sandbox/
-        https://gitlab.cee.redhat.com/assets/ blob: data:; connect-src ''self'' wss://gitlab.cee.redhat.com;
-        default-src ''self''; font-src ''self'' https://fonts.gstatic.com/; form-action
-        ''self'' https: http:; frame-ancestors ''self''; frame-src ''self'' https://www.recaptcha.net/
-        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
-        https://content-cloudresourcemanager.googleapis.com *.redhat.com; img-src
-        * data: blob:; manifest-src ''self''; media-src ''self'' data: blob: http:
-        https:; object-src ''none''; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''
-        https://www.recaptcha.net https://apis.google.com ''nonce-YKh4wXKSnIdWnSbjr+ZKFg=='';
-        style-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com *.redhat.com;
-        worker-src https://gitlab.cee.redhat.com/assets/ blob: data:'
+      - '3562'
       Content-Type:
       - text/plain; charset=utf-8
       Date:
-      - Fri, 10 Nov 2023 16:28:08 GMT
+      - Tue, 13 Feb 2024 12:56:00 GMT
       Etag:
-      - '"01f2463b30dfed8dc87e79c0532c5ae4"'
+      - '"4ce2e18af50d11b4c912fd6d020ee9db"'
       Permissions-Policy:
       - interest-cohort=()
       Referrer-Policy:
       - strict-origin-when-cross-origin
       Server:
       - nginx
+      Strict-Transport-Security:
+      - max-age=63072000
       Vary:
       - Accept
       X-Content-Type-Options:
@@ -1559,13 +370,13 @@ interactions:
       X-Frame-Options:
       - SAMEORIGIN
       X-Gitlab-Meta:
-      - '{"correlation_id":"01HEX0ZVR1663QAY4T3M6QZ0V5","version":"1"}'
+      - '{"correlation_id":"01HPH8KQD92Q1RYCE663KDGS5R","version":"1"}'
       X-Permitted-Cross-Domain-Policies:
       - none
       X-Request-Id:
-      - 01HEX0ZVR1663QAY4T3M6QZ0V5
+      - 01HPH8KQD92Q1RYCE663KDGS5R
       X-Runtime:
-      - '0.070016'
+      - '0.078394'
       X-Ua-Compatible:
       - IE=edge
       X-Xss-Protection:
@@ -1585,12 +396,12 @@ interactions:
       User-Agent:
       - python-requests/2.31.0
     method: GET
-    uri: https://gitlab.cee.redhat.com/prodsec-dev/ps-constants/-/raw/master/data/special_consideration_packages.yml?job=build
+    uri: https://example.com/prodsec-dev/ps-constants/-/raw/master/data/special_consideration_packages.yml?job=build
   response:
     body:
       string: '# list of special consideration packages
 
-        # https://docs.engineering.redhat.com/pages/viewpage.action?pageId=93525528
+        # https://example.com/pages/viewpage.action?pageId=93525528
 
         - bind
 
@@ -1641,26 +452,10 @@ interactions:
       - inline
       Content-Length:
       - '278'
-      Content-Security-Policy:
-      - 'base-uri ''self''; child-src https://www.google.com/recaptcha/ https://www.recaptcha.net/
-        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
-        https://content-cloudresourcemanager.googleapis.com https://www.googletagmanager.com/ns.html
-        https://gitlab.cee.redhat.com/admin/ https://gitlab.cee.redhat.com/assets/
-        https://gitlab.cee.redhat.com/-/speedscope/index.html https://gitlab.cee.redhat.com/-/sandbox/
-        https://gitlab.cee.redhat.com/assets/ blob: data:; connect-src ''self'' wss://gitlab.cee.redhat.com;
-        default-src ''self''; font-src ''self'' https://fonts.gstatic.com/; form-action
-        ''self'' https: http:; frame-ancestors ''self''; frame-src ''self'' https://www.recaptcha.net/
-        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
-        https://content-cloudresourcemanager.googleapis.com *.redhat.com; img-src
-        * data: blob:; manifest-src ''self''; media-src ''self'' data: blob: http:
-        https:; object-src ''none''; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''
-        https://www.recaptcha.net https://apis.google.com ''nonce-qHch9M8CyIvtkvIYNEnjSA=='';
-        style-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com *.redhat.com;
-        worker-src https://gitlab.cee.redhat.com/assets/ blob: data:'
       Content-Type:
       - text/plain; charset=utf-8
       Date:
-      - Fri, 10 Nov 2023 16:28:09 GMT
+      - Tue, 13 Feb 2024 12:56:01 GMT
       Etag:
       - '"e421bf00158b35d34131f5f4673f888e"'
       Permissions-Policy:
@@ -1669,6 +464,8 @@ interactions:
       - strict-origin-when-cross-origin
       Server:
       - nginx
+      Strict-Transport-Security:
+      - max-age=63072000
       Vary:
       - Accept
       X-Content-Type-Options:
@@ -1678,13 +475,13 @@ interactions:
       X-Frame-Options:
       - SAMEORIGIN
       X-Gitlab-Meta:
-      - '{"correlation_id":"01HEX0ZWR6GCY37W74GVGCQ8NW","version":"1"}'
+      - '{"correlation_id":"01HPH8KQNGEDPGB6EYC7FKK9E0","version":"1"}'
       X-Permitted-Cross-Domain-Policies:
       - none
       X-Request-Id:
-      - 01HEX0ZWR6GCY37W74GVGCQ8NW
+      - 01HPH8KQNGEDPGB6EYC7FKK9E0
       X-Runtime:
-      - '0.069588'
+      - '0.079549'
       X-Ua-Compatible:
       - IE=edge
       X-Xss-Protection:
