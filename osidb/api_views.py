@@ -423,7 +423,19 @@ def include_exclude_fields_extend_schema_view(
     ),
 )
 class FlawView(ModelViewSet):
-    queryset = Flaw.objects.prefetch_related("affects", "affects__trackers").all()
+    queryset = Flaw.objects.prefetch_related(
+        "acknowledgments",
+        "affects",
+        "affects__cvss_scores",
+        "affects__trackers",
+        "affects__trackers__errata",
+        "affects__trackers__affects",
+        "comments",
+        "cvss_scores",
+        "meta",
+        "package_versions",
+        "references",
+    ).all()
     serializer_class = FlawSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = FlawFilter
@@ -711,7 +723,12 @@ class FlawPackageVersionView(
     ),
 )
 class AffectView(SubFlawViewDestroyMixin, ModelViewSet):
-    queryset = Affect.objects.all()
+    queryset = Affect.objects.prefetch_related(
+        "cvss_scores",
+        "trackers",
+        "trackers__errata",
+        "trackers__affects",
+    ).all()
     serializer_class = AffectSerializer
     filterset_class = AffectFilter
     http_method_names = get_valid_http_methods(ModelViewSet)
@@ -800,7 +817,7 @@ class AffectCVSSView(ModelViewSet):
     ),
 )
 class TrackerView(ModelViewSet):
-    queryset = Tracker.objects.all()
+    queryset = Tracker.objects.prefetch_related("errata", "affects").all()
     serializer_class = TrackerSerializer
     filterset_class = TrackerFilter
     http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])
