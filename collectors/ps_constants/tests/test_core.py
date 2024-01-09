@@ -53,8 +53,11 @@ class TestPsConstantsCollection:
         assert "rhel-8" in compliance_priority
         assert sorted(compliance_priority.keys()) == [
             "fdp-el8-ovs",
+            "ocp-tools-4",
             "openshift-4",
+            "rhbk",
             "rhel-8",
+            "rhel-9",
         ]
 
         url = "/".join((ps_constant_base_url, "contract_priority.yml"))
