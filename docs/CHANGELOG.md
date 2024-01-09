@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement tracker SLA end date setting (OSIDB-96)
 - Properly link Jira trackers to flaws on creation and update (OSIDB-1426)
 - Add OSV collector (OSIDB-677)
+- Added GIN indexes for Row Based Security performance
 
 ### Fixed
 - Fix incorrect type bool of is_up2date field in
