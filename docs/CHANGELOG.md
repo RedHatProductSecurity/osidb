@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement tracker SLA end date setting (OSIDB-96)
 - Properly link Jira trackers to flaws on creation and update (OSIDB-1426)
 - Add OSV collector (OSIDB-677)
-- Added GIN indexes for Row Based Security performance
+- Added GIN indexes for Row Based Security performance on models
 - Added MAX_CONNS to django db conf to enable better concurrency
 
 ### Fixed

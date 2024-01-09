@@ -11,6 +11,7 @@ from typing import Union
 from cvss import CVSS2, CVSS3, CVSSError
 from django.contrib.auth.models import User
 from django.contrib.postgres import fields
+from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.exceptions import (
     FieldDoesNotExist,
@@ -853,6 +854,7 @@ class Flaw(
         )
         indexes = TrackingMixin.Meta.indexes + [
             models.Index(fields=["-cve_id"]),
+            GinIndex(fields=["acl_read"]),
         ]
 
     def __str__(self):
@@ -1771,6 +1773,7 @@ class Affect(
         indexes = TrackingMixin.Meta.indexes + [
             models.Index(fields=["flaw", "ps_module"]),
             models.Index(fields=["flaw", "ps_component"]),
+            GinIndex(fields=["acl_read"]),
         ]
 
     # objects = AffectManager()
@@ -2239,6 +2242,9 @@ class FlawCVSS(CVSS):
                 fields=["flaw", "version", "issuer"], name="unique CVSS of a Flaw"
             ),
         ]
+        indexes = TrackingMixin.Meta.indexes + [
+            GinIndex(fields=["acl_read"]),
+        ]
 
     def bzsync(self, *args, bz_api_key, **kwargs):
         """
@@ -2261,6 +2267,9 @@ class AffectCVSS(CVSS):
             models.UniqueConstraint(
                 fields=["affect", "version", "issuer"], name="unique CVSS of an Affect"
             ),
+        ]
+        indexes = TrackingMixin.Meta.indexes + [
+            GinIndex(fields=["acl_read"]),
         ]
 
     def bzsync(self, *args, bz_api_key, **kwargs):
@@ -2355,6 +2364,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         unique_together = ["type", "external_system_id"]
         indexes = TrackingMixin.Meta.indexes + [
             models.Index(fields=["external_system_id"]),
+            GinIndex(fields=["acl_read"]),
         ]
 
     objects = TrackerManager()
@@ -2751,6 +2761,10 @@ class FlawMeta(AlertMixin, TrackingMixin, ACLMixin):
 
         verbose_name = "FlawMeta"
 
+        indexes = TrackingMixin.Meta.indexes + [
+            GinIndex(fields=["acl_read"]),
+        ]
+
     def __str__(self):
         return str(self.uuid)
 
@@ -2897,6 +2911,10 @@ class FlawComment(
             "created_dt",
         )
 
+        indexes = TrackingMixin.Meta.indexes + [
+            GinIndex(fields=["acl_read"]),
+        ]
+
     def bzsync(self, *args, bz_api_key=None, **kwargs):
         """
         Bugzilla sync of the FlawComment instance and of the related Flaw instance.
@@ -2970,6 +2988,9 @@ class FlawAcknowledgment(ACLMixin, BugzillaSyncMixin, TrackingMixin):
         """define meta"""
 
         unique_together = ["flaw", "name", "affiliation"]
+        indexes = TrackingMixin.Meta.indexes + [
+            GinIndex(fields=["acl_read"]),
+        ]
 
     def _validate_public_source_no_ack(self):
         """
@@ -3070,6 +3091,10 @@ class FlawReference(ACLMixin, BugzillaSyncMixin, TrackingMixin):
         """define meta"""
 
         unique_together = ["flaw", "url"]
+
+        indexes = TrackingMixin.Meta.indexes + [
+            GinIndex(fields=["acl_read"]),
+        ]
 
     def _validate_article_link(self):
         """
@@ -3242,6 +3267,13 @@ class Package(ACLMixin, BugzillaSyncMixin, TrackingMixin):
         self.save()
         # needs to be synced through flaw
         self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
+
+    class Meta:
+        """define meta"""
+
+        indexes = TrackingMixin.Meta.indexes + [
+            GinIndex(fields=["acl_read"]),
+        ]
 
 
 class PackageVer(models.Model):
