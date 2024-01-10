@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement tracker SLA end date setting (OSIDB-96)
 - Properly link Jira trackers to flaws on creation and update (OSIDB-1426)
 - Add OSV collector (OSIDB-677)
+- Added GIN indexes for Row Based Security performance on models
+- Added MAX_CONNS to django db conf to enable better concurrency
 
 ### Fixed
 - Fix incorrect type bool of is_up2date field in
@@ -26,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Renamed OSIM module to Workflows (OSIDB-1395)
 - Change settings to allow regex in CORS policy in stage environment (OSIDB-1737)
+- Enhanced prefetches on Flaw, Affect, and Tracker api querysets
+- Change default pg configs 
 
 ### Removed
 - Remove daily monitoring email for failed tasks / collectors (OSIDB-1215)
