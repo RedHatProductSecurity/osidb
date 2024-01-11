@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change settings to allow regex in CORS policy in stage environment (OSIDB-1737)
 - Enhanced prefetches on Flaw, Affect, and Tracker api querysets
 - Change default pg configs 
+- Adjust CONN_MAX_AGE and CONN_MAX_CONNS to maintain a minimal pool of idle db conns (OSIDB-1620)
 
 ### Removed
 - Remove daily monitoring email for failed tasks / collectors (OSIDB-1215)
