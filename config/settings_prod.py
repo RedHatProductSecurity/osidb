@@ -93,7 +93,7 @@ DATABASES = {
             # the database or role level in managed databases such as AWS RDS
             "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000",
         },
-        "CONN_MAX_AGE": 300,
+        "CONN_MAX_AGE": 120,
     }
 }
 
