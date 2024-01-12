@@ -7707,6 +7707,18 @@ components:
               - DONE
               - REJECTED
           readOnly: true
+        group_key:
+          type: string
+          maxLength: 60
+        owner:
+          type: string
+          maxLength: 60
+        task_key:
+          type: string
+          maxLength: 60
+        team_id:
+          type: string
+          maxLength: 8
       required:
       - acknowledgments
       - affects
@@ -8383,6 +8395,18 @@ components:
               - DONE
               - REJECTED
           readOnly: true
+        group_key:
+          type: string
+          maxLength: 60
+        owner:
+          type: string
+          maxLength: 60
+        task_key:
+          type: string
+          maxLength: 60
+        team_id:
+          type: string
+          maxLength: 8
       required:
       - acknowledgments
       - affects

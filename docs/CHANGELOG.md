@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add OSV collector (OSIDB-677)
 - Added GIN indexes for Row Based Security performance on models
 - Added MAX_CONNS to django db conf to enable better concurrency
+- Workflow fields added into Flaw endpoints (OSIDB-1819)
 
 ### Fixed
 - Fix incorrect type bool of is_up2date field in

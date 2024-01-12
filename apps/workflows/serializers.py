@@ -78,7 +78,7 @@ class WorkflowModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WorkflowModel
-        fields = ["classification"]
+        fields = ["classification", "group_key", "owner", "task_key", "team_id"]
         abstract = True
 
     @extend_schema_field(
