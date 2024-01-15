@@ -842,6 +842,8 @@ class Flaw(
         choices=FlawNistCvssValidation.choices, max_length=20, blank=True
     )
 
+    local_updated_dt = models.DateTimeField(default=timezone.now)
+
     class Meta:
         """define meta"""
 
@@ -855,6 +857,7 @@ class Flaw(
         indexes = TrackingMixin.Meta.indexes + [
             models.Index(fields=["-cve_id"]),
             GinIndex(fields=["acl_read"]),
+            models.Index(fields=["-local_updated_dt"]),
         ]
 
     def __str__(self):

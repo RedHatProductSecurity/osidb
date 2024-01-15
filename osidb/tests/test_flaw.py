@@ -527,6 +527,32 @@ class TestFlaw:
 
         assert Flaw.objects.fts_search("title")
 
+    @pytest.mark.enable_signals
+    def test_local_updated_dt(self):
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        f = FlawFactory(embargoed=False)
+        assert f.local_updated_dt > f.updated_dt
+
+        with freeze_time(tzdatetime(2077, 1, 1, 13, 39, 0)):
+            a = AffectFactory(
+                flaw=f,
+                created_dt=timezone.now(),
+                ps_module=ps_module.name,
+                ps_component="component",
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+            )
+            assert f.local_updated_dt == timezone.now()
+
+        with freeze_time(tzdatetime(3333, 3, 3, 3, 3, 3)):
+            _ = TrackerFactory(
+                affects=(a,),
+                created_dt=timezone.now(),
+                type=Tracker.TrackerType.BUGZILLA,
+                embargoed=f.embargoed,
+            )
+            f.refresh_from_db()
+            assert f.local_updated_dt == timezone.now()
+
 
 class TestImpact:
     @pytest.mark.parametrize(

@@ -56,3 +56,12 @@ services:
         SNIPPET_CREATION: ${SNIPPET_CREATION}
       volumes:
         - ${PWD}:/opt/app-root/src:z
+
+    locust:
+      container_name: locust
+      image: docker.io/locustio/locust:2.20.1
+      ports:
+        - '9000:8089'
+      volumes:
+        - ${PWD}/perf/main.py:/mnt/locust/main.py:z
+      command: -f /mnt/locust/main.py -H http://osidb-service:8000 --web-host 0.0.0.0 --modern-ui ChangedIncludeFlawsUser
