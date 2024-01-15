@@ -783,6 +783,7 @@ class AffectCVSSPutSerializer(AffectCVSSSerializer):
 class AffectSerializer(
     ACLMixinSerializer,
     BugzillaSyncMixinSerializer,
+    JiraAPIKeyMixin,
     TrackingMixinSerializer,
     IncludeExcludeFieldsMixin,
     IncludeMetaAttrMixin,
@@ -861,6 +862,66 @@ class AffectSerializer(
             + ACLMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
         )
+
+    def update(self, affect, validated_data):
+        """
+        perform the tracker instance update
+        """
+
+        # NOTE: This overrides update() behavior provided by mixins, but mostly
+        #       mirrors the mixins. If mixins change, this method must be updated.
+        # NOTE: Look at TrackerSerializer.update() and
+        #       FlawPackageVersionSerializerMixin.update() for similar ways of
+        #       interposing actions within the mixins' update() MRO & flow.
+
+        ############################
+        # 1) prepare prerequisites #
+        ############################
+
+        # From ACLMixinSerializer.update()
+        validated_data = self.embargoed2acls(validated_data)
+
+        #########################
+        # 2) pre-update actions #
+        #########################
+
+        old_affectedness = affect.affectedness
+
+        #####################
+        # 3) update actions #
+        #####################
+
+        # From BugzillaSyncMixinSerializer.update()
+        for attr, value in validated_data.items():
+            setattr(affect, attr, value)
+
+        # From BugzillaBareSyncMixinSerializer.update()
+        affect.save(bz_api_key=self.get_bz_api_key())
+
+        ##########################
+        # 4) post-update actions #
+        ##########################
+
+        # When an affect goes from NEW affectedness to something else, any related tracker
+        # must have its validation-requested label removed, if it had one.
+        # Since the label is not stored in osidb, removal is done by regenerating the label
+        # by re-saving the tracker.
+
+        if old_affectedness == Affect.AffectAffectedness.NEW != affect.affectedness:
+            for tracker in affect.trackers.filter(type=Tracker.TrackerType.JIRA):
+                # do not raise validation errors here as the tracker is not what the user touches
+                # which would make the errors hard to understand
+                tracker.save(
+                    bz_api_key=self.get_bz_api_key(),
+                    jira_token=self.get_jira_token(),
+                    raise_validation_error=False,
+                )
+
+        #####################
+        # 5) return updated #
+        #####################
+
+        return affect
 
 
 @extend_schema_serializer(exclude_fields=["updated_dt"])

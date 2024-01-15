@@ -150,6 +150,109 @@ class TestTrackerJiraQueryBuilder:
         assert "CVE-2000-2000" in labels
         assert len(labels) == 4
 
+    @pytest.mark.parametrize(
+        "external_system_id, affectedness, preexisting_val_req_lbl, result_val_req_lbl",
+        [
+            # New tracker with NEW affect gets the label added on save.
+            (None, Affect.AffectAffectedness.NEW, None, True),
+            # New tracker with non-NEW affect doesn't get the label added on save.
+            (None, Affect.AffectAffectedness.AFFECTED, None, False),
+            # Existing tracker with the label already present keeps it after update
+            # when its affects are NEW.
+            ("JIRA-123", Affect.AffectAffectedness.NEW, True, True),
+            # Existing tracker with the label already present doesn't keep it after update
+            # when its affects are not NEW.
+            ("JIRA-123", Affect.AffectAffectedness.AFFECTED, True, False),
+            # Existing tracker without the label present gets the label added if all
+            # its affects are NEW.
+            ("JIRA-123", Affect.AffectAffectedness.NEW, False, True),
+            # Existing tracker without the label already present doesn't get the label added
+            # if all its affects are not NEW.
+            ("JIRA-123", Affect.AffectAffectedness.AFFECTED, False, False),
+        ],
+    )
+    def test_generate_label_validation_requested(
+        self,
+        external_system_id,
+        affectedness,
+        preexisting_val_req_lbl,
+        result_val_req_lbl,
+    ):
+        """
+        test that the validation-requested label in the Jira query is generated correctly
+        """
+        flaw1 = FlawFactory(cve_id="CVE-2000-2000")
+        flaw2 = FlawFactory(embargoed=flaw1.embargoed, cve_id=None)
+        ps_module = PsModuleFactory(bts_name="jboss")
+        affect1 = AffectFactory(
+            flaw=flaw1,
+            ps_module=ps_module.name,
+            ps_component="component",
+            affectedness=affectedness,
+            resolution=Affect.AffectResolution.DEFER,
+        )
+        affect2 = AffectFactory(
+            flaw=flaw2,
+            ps_module=ps_module.name,
+            ps_component="component",
+            affectedness=affectedness,
+            resolution=Affect.AffectResolution.DEFER,
+        )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        if not external_system_id:
+            # New tracker being created
+            meta_attr = {"test": 1}
+        else:
+            # Existing tracker supposedly being updated
+            if preexisting_val_req_lbl:
+                meta_attr = {
+                    "labels": [
+                        "CVE-2000-0000",
+                        "Security",
+                        "SecurityTracking",
+                        "pscomponent:component",
+                        "validation-requested",
+                    ]
+                }
+            else:
+                meta_attr = {
+                    "labels": [
+                        "CVE-2000-0000",
+                        "Security",
+                        "SecurityTracking",
+                        "pscomponent:component",
+                    ]
+                }
+        tracker = TrackerFactory(
+            affects=[affect1, affect2],
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=ps_update_stream.name,
+            embargoed=flaw1.is_embargoed,
+            external_system_id=external_system_id,
+            meta_attr=meta_attr,
+        )
+
+        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder._query = {"fields": {}}
+        query_builder.generate_labels()
+
+        labels = query_builder.query["fields"]["labels"]
+        assert "SecurityTracking" in labels
+        assert "Security" in labels
+        assert "pscomponent:component" in labels
+        assert "CVE-2000-2000" in labels
+        if result_val_req_lbl:
+            assert "validation-requested" in labels
+            assert len(labels) == 5
+        else:
+            assert "validation-requested" not in labels
+            assert len(labels) == 4
+
+        # NOTE: In real usage, this query is sent to Jira and it overwrites the list of
+        # labels stored in Jira, so if the label is not generated anymore, it effectively
+        # deletes it from Jira.
+
     def test_generate_sla(self, clean_policies):
         """
         test that the query for the Jira SLA timestamps is generated correctly

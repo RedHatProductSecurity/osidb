@@ -8,7 +8,7 @@ from apps.sla.framework import SLAFramework
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import NoPriorityAvailableError
 from apps.trackers.models import JiraProjectFields
-from osidb.models import Impact
+from osidb.models import Affect, Impact
 
 logger = logging.getLogger(__name__)
 
@@ -127,6 +127,12 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
                 "flaw__cve_id", flat=True
             )
         )
+
+        # If all affects are NEW, add label validation-requested.
+        if set(self.tracker.affects.all().values_list("affectedness", flat=True)) == {
+            Affect.AffectAffectedness.NEW
+        }:
+            self._query["fields"]["labels"].append("validation-requested")
 
     def generate_sla(self):
         """
