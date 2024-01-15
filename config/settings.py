@@ -228,7 +228,6 @@ LOGGING = {
                 "collectors.bzimport",
                 "collectors.epss",
                 "collectors.errata",
-                "collectors.example",
                 "collectors.exploits_cisa",
                 "collectors.exploits_exploitdb",
                 "collectors.exploits_metasploit",
