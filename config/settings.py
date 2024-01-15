@@ -48,7 +48,9 @@ INSTALLED_APPS = [
     "collectors.framework",
     "collectors.jiraffe",
     "collectors.nvd",
+    "collectors.osv",
     "collectors.product_definitions",
+    "collectors.ps_constants",
     "corsheaders",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -233,7 +235,9 @@ LOGGING = {
                 "collectors.framework",
                 "collectors.jiraffe",
                 "collectors.nvd",
+                "collectors.osv",
                 "collectors.product_definitions",
+                "collectors.ps_constants",
             ]
         },
         "bugzilla": {
