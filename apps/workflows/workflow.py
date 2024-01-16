@@ -158,14 +158,6 @@ class WorkflowModel(models.Model):
     class Meta:
         abstract = True
 
-    def __init__(self, *args, **kwargs):
-        """initiate workflow model"""
-        super().__init__(*args, **kwargs)
-        # every workflow model has to be always classified and if it is not it means
-        # that it is newly created one so we need to perform initial classification
-        if not all([self.workflow_name, self.workflow_state]):
-            self.adjust_classification(save=False)
-
     def classify(self):
         """computed workflow classification"""
         workflow, state = WorkflowFramework().classify(self)

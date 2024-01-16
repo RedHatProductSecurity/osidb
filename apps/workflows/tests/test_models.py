@@ -602,12 +602,14 @@ class TestWorkflowFramework:
 
 
 class TestFlaw:
+    @pytest.mark.enable_signals
     def test_init(self):
         """test that flaw gets workflow:state assigned on creation"""
-        flaw = Flaw()
+        flaw = FlawFactory()
         assert flaw.workflow_name
         assert flaw.workflow_state
 
+    @pytest.mark.enable_signals
     def test_classification(self):
         """test flaw classification property"""
         state_new = {
@@ -662,7 +664,7 @@ class TestFlaw:
         workflow_framework.register_workflow(workflow_main)
         workflow_framework.register_workflow(workflow_reject)
 
-        flaw = Flaw()
+        flaw = FlawFactory()
 
         # stored classification
         assert flaw.workflow_name == flaw.classification["workflow"]
@@ -699,6 +701,7 @@ class TestFlaw:
         assert flaw.workflow_name != new_computed_workflow
         assert flaw.workflow_state != new_computed_state
 
+    @pytest.mark.enable_signals
     def test_adjust(self):
         """test flaw classification adjustion after metadata change"""
         workflow_framework = WorkflowFramework()
@@ -770,6 +773,7 @@ class TestFlaw:
 
         assert flaw.classification["workflow"] == "default workflow"
 
+    @pytest.mark.enable_signals
     def test_adjust_no_change(self):
         """test that adjusting classification has no effect without flaw modification"""
         flaw = FlawFactory()  # random flaw
@@ -777,6 +781,7 @@ class TestFlaw:
         flaw.adjust_classification()
         assert classification == flaw.classification
 
+    @pytest.mark.enable_signals
     def test_promote(self):
         """test flaw state promotion after data change"""
         workflow_framework = WorkflowFramework()

@@ -92,6 +92,7 @@ class TestEndpoints(object):
         assert response.status_code == 401
 
     # workflows/{flaw}/adjust
+    @pytest.mark.enable_signals
     def test_workflows_uuid_adjusting(self, auth_client, test_api_uri):
         """test flaw classification adjustion after metadata change"""
         workflow_framework = WorkflowFramework()
@@ -180,6 +181,7 @@ class TestEndpoints(object):
             "state": "DONE",
         }
 
+    @pytest.mark.enable_signals
     def test_workflows_uuid_adjusting_no_modification(self, auth_client, test_api_uri):
         """
         test authenticated workflow classification adjusting API endpoint with no flaw modification
@@ -209,6 +211,7 @@ class TestEndpoints(object):
         response = client.post(f"{test_api_uri}/{flaw.uuid}/adjust")
         assert response.status_code == 401
 
+    @pytest.mark.enable_signals
     def test_promote_endpoint(self, auth_client, test_api_uri_osidb, user_token):
         """test flaw state promotion after data change"""
         workflow_framework = WorkflowFramework()
@@ -304,6 +307,7 @@ class TestEndpoints(object):
         body = response.json()
         assert "already in the last state" in body["errors"]
 
+    @pytest.mark.enable_signals
     def test_reject_endpoint(
         self,
         monkeypatch,

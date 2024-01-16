@@ -22,6 +22,7 @@ class TestTaskmanService(object):
         assert JiraTaskmanQuerier(token=user_token).jira_conn
 
     @pytest.mark.vcr
+    @pytest.mark.enable_signals
     def test_create_or_update_task(self, user_token):
         """
         Test that service is able to create and update regular fields, team, assignment and status

@@ -50,6 +50,7 @@ class TestSnippet:
         assert snippet.acl_write == internal_write_groups
         assert Snippet.objects.count() == 1
 
+    @pytest.mark.enable_signals
     def test_create_flaw_from_snippet(
         self, internal_read_groups, internal_write_groups
     ):
