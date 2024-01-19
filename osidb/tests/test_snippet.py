@@ -1,5 +1,4 @@
 import pytest
-from django.core.exceptions import ValidationError
 
 from apps.workflows.workflow import WorkflowModel
 from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource, FlawType, Snippet
@@ -50,20 +49,6 @@ class TestSnippet:
         assert snippet.acl_read == internal_read_groups
         assert snippet.acl_write == internal_write_groups
         assert Snippet.objects.count() == 1
-
-    def test_snippet_with_wrong_acls(
-        self, embargoed_read_groups, embargoed_write_groups
-    ):
-        """
-        Tests that a snippet with non-internal ACLs raises an error.
-        """
-        snippet = get_snippet()
-
-        snippet.acl_read = embargoed_read_groups
-        snippet.acl_write = embargoed_write_groups
-
-        with pytest.raises(ValidationError, match="Snippet must have internal ACLs."):
-            snippet.save()
 
     def test_create_flaw_from_snippet(
         self, internal_read_groups, internal_write_groups

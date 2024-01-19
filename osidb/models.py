@@ -1535,10 +1535,10 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         NVD = "NVD"
         OSV = "OSV"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def save(self, *args, **kwargs):
         # set internal ACLs
         self.set_internal()
+        super().save(*args, **kwargs)
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -1627,11 +1627,10 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
 
     def _validate_acl_identical_to_parent_flaw(self) -> None:
         """
-        No validations are run for snippet's flaw as its ACLs can be different.
+        No ACL validations are run for snippet's flaw as its ACLs can be different.
         However, snippet should always have internal ACLs.
         """
-        if {self.acl_read[0], self.acl_write[0]} != self.acls_internal:
-            raise ValidationError("Snippet must have internal ACLs.")
+        pass
 
 
 class AffectManager(ACLMixinManager, TrackingMixinManager):
