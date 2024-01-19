@@ -317,6 +317,10 @@ class TestEndpointsAtomicity:
             )
             assert response.status_code == 400
 
+            # revert DB settings as it is not done automatically
+            db_settings["default"]["ATOMIC_REQUESTS"] = True
+            m.setattr(settings, "DATABASES", db_settings)
+
         # check that the affect was deleted
         # even though the HTTP request failed
         assert Affect.objects.count() == 1
