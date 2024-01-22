@@ -1,8 +1,17 @@
+from unittest.mock import patch
+
 import pytest
 from rest_framework import status
 
-from osidb.models import Affect, AffectCVSS
-from osidb.tests.factories import AffectCVSSFactory, AffectFactory, FlawFactory
+from osidb.models import Affect, AffectCVSS, Tracker
+from osidb.tests.factories import (
+    AffectCVSSFactory,
+    AffectFactory,
+    FlawFactory,
+    PsModuleFactory,
+    PsProductFactory,
+    TrackerFactory,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -205,3 +214,185 @@ class TestEndpointsAffects:
         response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
         assert response.status_code == status.HTTP_200_OK
         assert AffectCVSS.objects.count() == 0
+
+
+class TestEndpointsAffectsUpdateTrackers:
+    """
+    tests of consecutive tracker update trigger
+    which may result from /affects endpoint PUT calls
+    """
+
+    def test_filter(self, auth_client, test_api_uri):
+        """
+        test that the tracker update is triggered when expected only
+        """
+        flaw = FlawFactory(impact="LOW")
+        ps_product1 = PsProductFactory(business_unit="Corporate")
+        ps_module1 = PsModuleFactory(ps_product=ps_product1)
+        affect1 = AffectFactory(
+            flaw=flaw,
+            impact="LOW",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module1.name,
+        )
+        tracker1 = TrackerFactory(
+            affects=[affect1],
+            embargoed=flaw.embargoed,
+            status="NEW",
+            type=Tracker.BTS2TYPE[ps_module1.bts_name],
+        )
+        TrackerFactory(
+            affects=[affect1],
+            embargoed=flaw.embargoed,
+            status="CLOSED",  # already resolved
+            type=Tracker.BTS2TYPE[ps_module1.bts_name],
+        )
+        # one more community affect-tracker context
+        ps_product2 = PsProductFactory(business_unit="Community")
+        ps_module2 = PsModuleFactory(ps_product=ps_product2)
+        affect2 = AffectFactory(
+            flaw=flaw,
+            impact="LOW",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module2.name,
+        )
+        TrackerFactory(
+            affects=[affect2],
+            embargoed=flaw.embargoed,
+            status="NEW",
+            type=Tracker.BTS2TYPE[ps_module2.bts_name],
+        )
+
+        affect1_data = {
+            "embargoed": flaw.embargoed,
+            "flaw": flaw.uuid,
+            "impact": "MODERATE",  # tracker update trigger
+            "ps_component": affect1.ps_component,
+            "ps_module": affect1.ps_module,
+            "updated_dt": affect1.updated_dt,
+        }
+        affect2_data = {
+            "embargoed": flaw.embargoed,
+            "flaw": flaw.uuid,
+            "impact": "MODERATE",  # tracker update trigger
+            "ps_component": affect2.ps_component,
+            "ps_module": affect2.ps_module,
+            "updated_dt": affect2.updated_dt,
+        }
+
+        # enable autospec to get self as part of the method call args
+        with patch.object(Tracker, "save", autospec=True) as mock_save:
+            response = auth_client().put(
+                f"{test_api_uri}/affects/{affect1.uuid}",
+                affect1_data,
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+            assert response.status_code == status.HTTP_200_OK
+            assert mock_save.call_count == 1  # only non-closed and non-community
+            assert [tracker1.uuid] == [
+                args[0][0].uuid for args in mock_save.call_args_list
+            ]
+            response = auth_client().put(
+                f"{test_api_uri}/affects/{affect2.uuid}",
+                affect2_data,
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+            assert response.status_code == status.HTTP_200_OK
+            assert mock_save.call_count == 1  # no change
+
+    @pytest.mark.parametrize(
+        "to_create,to_update,triggered",
+        [
+            (
+                {"cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"},
+                {"cvss3": "2.2/CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:L/I:N/A:N"},
+                False,
+            ),
+            ({"impact": "IMPORTANT"}, {"impact": "LOW"}, False),
+            ({"impact": "MODERATE"}, {"impact": "IMPORTANT"}, True),
+            ({"ps_component": "ssh"}, {"ps_component": "bash"}, True),
+        ],
+    )
+    def test_trigger(self, auth_client, test_api_uri, to_create, to_update, triggered):
+        """
+        test that the tracker update is triggered when expected only
+        """
+        flaw = FlawFactory(impact="LOW")
+        ps_module = PsModuleFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+            **to_create,
+        )
+        TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.embargoed,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        affect_data = {
+            "embargoed": flaw.embargoed,
+            "flaw": flaw.uuid,
+            "ps_component": affect.ps_component,
+            "ps_module": affect.ps_module,
+            "updated_dt": affect.updated_dt,
+        }
+        for attribute, value in to_update.items():
+            affect_data[attribute] = value
+
+        with patch.object(Tracker, "save") as mock_save:
+            response = auth_client().put(
+                f"{test_api_uri}/affects/{affect.uuid}",
+                affect_data,
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+            assert response.status_code == status.HTTP_200_OK
+            assert mock_save.called == triggered
+
+    def test_trigger_affect_flaw_change(self, auth_client, test_api_uri):
+        """
+        test that the tracker update is triggered when an affect-flaw link is modified
+        """
+        flaw1 = FlawFactory()
+        ps_module = PsModuleFactory()
+        affect = AffectFactory(
+            flaw=flaw1,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.FIX,
+            ps_module=ps_module.name,
+        )
+        TrackerFactory(
+            affects=[affect],
+            embargoed=flaw1.embargoed,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        flaw2 = FlawFactory(embargoed=flaw1.embargoed)
+        affect_data = {
+            "embargoed": flaw2.embargoed,
+            "flaw": flaw2.uuid,  # re-link the affect
+            "ps_component": affect.ps_component,
+            "ps_module": affect.ps_module,
+            "updated_dt": affect.updated_dt,
+        }
+
+        with patch.object(Tracker, "save") as mock_save:
+            response = auth_client().put(
+                f"{test_api_uri}/affects/{affect.uuid}",
+                affect_data,
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+            assert response.status_code == status.HTTP_200_OK
+            assert mock_save.called
