@@ -177,22 +177,23 @@ class TestJiraTrackerCollector:
 class TestMetadataCollector:
     @freeze_time(timezone.datetime(2015, 12, 12))
     @pytest.mark.vcr
-    def test_collect(self, pin_urls):
+    @pytest.mark.parametrize("project_key,fields_count", [("RHEL", 120), ("OSIM", 20)])
+    def test_collect(self, pin_urls, project_key, fields_count):
         """
         Test that collector is able to get metadata from Jira projects
         """
         ps_module = PsModuleFactory(
             bts_name="jira",
-            bts_key="OSIM",
+            bts_key=project_key,
             supported_until_dt=timezone.make_aware(timezone.datetime(2020, 12, 12)),
         )
         PsUpdateStreamFactory(ps_module=ps_module)
 
-        osim_fields = JiraProjectFields.objects.filter(project_key="OSIM")
-        assert len(osim_fields) == 0
+        project_fields = JiraProjectFields.objects.filter(project_key=project_key)
+        assert len(project_fields) == 0
 
         mc = MetadataCollector()
         mc.collect()
 
-        osim_fields = JiraProjectFields.objects.filter(project_key="OSIM")
-        assert len(osim_fields) > 1
+        project_fields = JiraProjectFields.objects.filter(project_key=project_key)
+        assert len(project_fields) == fields_count

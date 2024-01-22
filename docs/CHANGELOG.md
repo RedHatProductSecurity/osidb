@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix schema to reflect Erratum shipped_dt to be nullable
 - Ensured serializer db calls are read_only
 - Expose git commit id via OPENSHIFT_BUILD_COMMIT env var
+- Fix Jira metadata collector to get all pages from a query (OSIDB-1124)
 
 ### Changed
 - Renamed OSIM module to Workflows (OSIDB-1395)

@@ -155,11 +155,19 @@ class MetadataCollector(Collector):
 
         project_fields = {}
         for project in projects:
+            page_size = 100
+            start_at = 0
+            is_last = False
             try:
-                res = self.jira_querier.jira_conn._get_json(
-                    f"issue/createmeta/{project}/issuetypes/1"
-                )
-                project_fields[project] = res["values"]
+                project_fields[project] = []
+                while not is_last:
+                    res = self.jira_querier.jira_conn._get_json(
+                        f"issue/createmeta/{project}/issuetypes/1?startAt={start_at}&maxResults={page_size}"
+                    )
+                    project_fields[project].extend(res["values"])
+                    page_size = res["maxResults"]
+                    start_at += page_size
+                    is_last = res["isLast"]
             except JIRAError as e:
                 if e.status_code == 400:
                     print(e.response)

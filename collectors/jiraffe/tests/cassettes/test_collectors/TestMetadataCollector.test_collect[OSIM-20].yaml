@@ -1,0 +1,183 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*.*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.31.0
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/createmeta/OSIM/issuetypes/1?maxResults=100&startAt=0
+  response:
+    body:
+      string: '{"maxResults": 100, "startAt": 0, "total": 20, "isLast": true, "values":
+        [{"required": true, "schema": {"type": "issuetype", "system": "issuetype"},
+        "name": "Issue Type", "fieldId": "issuetype", "hasDefaultValue": false, "operations":
+        [], "allowedValues": [{"self": "https://issues.stage.redhat.com/rest/api/2/issuetype/1",
+        "id": "1", "description": "A problem which impairs or prevents the functions
+        of the product.", "iconUrl": "https://issues.stage.redhat.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        "name": "Bug", "subtask": false, "avatarId": 13263}]}, {"required": true,
+        "schema": {"type": "string", "system": "summary"}, "name": "Summary", "fieldId":
+        "summary", "hasDefaultValue": false, "operations": ["set"]}, {"required":
+        false, "schema": {"type": "string", "system": "description"}, "name": "Description",
+        "fieldId": "description", "hasDefaultValue": false, "operations": ["set"]},
+        {"required": false, "schema": {"type": "array", "items": "component", "system":
+        "components"}, "name": "Component/s", "fieldId": "components", "hasDefaultValue":
+        false, "operations": ["add", "set", "remove"], "allowedValues": []}, {"required":
+        true, "schema": {"type": "user", "system": "reporter"}, "name": "Reporter",
+        "fieldId": "reporter", "autoCompleteUrl": "https://issues.stage.redhat.com/rest/api/latest/user/search?username=",
+        "hasDefaultValue": false, "operations": ["set"]}, {"required": false, "schema":
+        {"type": "array", "items": "version", "system": "versions"}, "name": "Affects
+        Version/s", "fieldId": "versions", "hasDefaultValue": false, "operations":
+        ["set", "add", "remove"], "allowedValues": []}, {"required": false, "schema":
+        {"type": "option", "custom": "com.atlassian.jira.plugin.system.customfieldtypes:select",
+        "customId": 12316142}, "name": "Severity", "fieldId": "customfield_12316142",
+        "hasDefaultValue": false, "operations": ["set"], "allowedValues": [{"self":
+        "https://issues.stage.redhat.com/rest/api/2/customFieldOption/26750", "value":
+        "Critical", "id": "26750", "disabled": false}, {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/26751",
+        "value": "Important", "id": "26751", "disabled": false}, {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/26752",
+        "value": "Moderate", "id": "26752", "disabled": false}, {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/26753",
+        "value": "Low", "id": "26753", "disabled": false}, {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/26754",
+        "value": "Informational", "id": "26754", "disabled": false}, {"self": "https://issues.stage.redhat.com/rest/api/2/customFieldOption/31860",
+        "value": "None", "id": "31860", "disabled": false}]}, {"required": false,
+        "schema": {"type": "securitylevel", "system": "security"}, "name": "Security
+        Level", "fieldId": "security", "hasDefaultValue": false, "operations": ["set"],
+        "allowedValues": [{"self": "https://issues.stage.redhat.com/rest/api/2/securitylevel/11690",
+        "id": "11690", "description": "Restricts access to Product Security and the
+        people involved in resolving the issue. Only Product Security can remove this
+        level once applied.", "name": "Embargoed Security Issue"}, {"self": "https://issues.stage.redhat.com/rest/api/2/securitylevel/11697",
+        "id": "11697", "description": "Restricts access to Red Hat employees. This
+        information should not be shared with customers or external entities.", "name":
+        "Red Hat Employee"}, {"self": "https://issues.stage.redhat.com/rest/api/2/securitylevel/11694",
+        "id": "11694", "description": "Restricts access to Red Hat employees who are
+        approved to view product development information.", "name": "Red Hat Engineering
+        Authorized"}, {"self": "https://issues.stage.redhat.com/rest/api/2/securitylevel/11693",
+        "id": "11693", "description": "Restricts access to Red Hat employees who are
+        approved to see partner confidential information and partner users associated
+        with the issue.\r\n", "name": "Red Hat Partner"}, {"self": "https://issues.stage.redhat.com/rest/api/2/securitylevel/11695",
+        "id": "11695", "description": "Restricts access to project administrators
+        and users who are involved in resolving the issue.", "name": "Restricted"},
+        {"self": "https://issues.stage.redhat.com/rest/api/2/securitylevel/11696",
+        "id": "11696", "description": "Restricts access to users assigned to project
+        roles and users who are involved in resolving the issue.", "name": "Team"}]},
+        {"required": false, "schema": {"type": "array", "items": "string", "system":
+        "labels"}, "name": "Labels", "fieldId": "labels", "autoCompleteUrl": "https://issues.stage.redhat.com/rest/api/1.0/labels/suggest?query=",
+        "hasDefaultValue": false, "operations": ["add", "set", "remove"]}, {"required":
+        false, "schema": {"type": "array", "items": "issuelinks", "system": "issuelinks"},
+        "name": "Linked Issues", "fieldId": "issuelinks", "autoCompleteUrl": "https://issues.stage.redhat.com/rest/api/2/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true&currentIssueKey=null&query=",
+        "hasDefaultValue": false, "operations": ["add"]}, {"required": false, "schema":
+        {"type": "array", "items": "attachment", "system": "attachment"}, "name":
+        "Attachment", "fieldId": "attachment", "hasDefaultValue": false, "operations":
+        []}, {"required": false, "schema": {"type": "date", "system": "duedate"},
+        "name": "Due Date", "fieldId": "duedate", "hasDefaultValue": false, "operations":
+        ["set"]}, {"required": false, "schema": {"type": "date", "custom": "com.atlassian.jpo:jpo-custom-field-baseline-start",
+        "customId": 12313941}, "name": "Target start", "fieldId": "customfield_12313941",
+        "hasDefaultValue": false, "operations": ["set"]}, {"required": false, "schema":
+        {"type": "date", "custom": "com.atlassian.jpo:jpo-custom-field-baseline-end",
+        "customId": 12313942}, "name": "Target end", "fieldId": "customfield_12313942",
+        "hasDefaultValue": false, "operations": ["set"]}, {"required": false, "schema":
+        {"type": "priority", "system": "priority"}, "name": "Priority", "fieldId":
+        "priority", "hasDefaultValue": true, "operations": ["set"], "allowedValues":
+        [{"self": "https://issues.stage.redhat.com/rest/api/2/priority/1", "iconUrl":
+        "https://issues.stage.redhat.com/images/icons/priorities/blocker.svg", "name":
+        "Blocker", "id": "1"}, {"self": "https://issues.stage.redhat.com/rest/api/2/priority/2",
+        "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/critical.svg",
+        "name": "Critical", "id": "2"}, {"self": "https://issues.stage.redhat.com/rest/api/2/priority/3",
+        "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/major.svg",
+        "name": "Major", "id": "3"}, {"self": "https://issues.stage.redhat.com/rest/api/2/priority/10200",
+        "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/medium.svg",
+        "name": "Normal", "id": "10200"}, {"self": "https://issues.stage.redhat.com/rest/api/2/priority/4",
+        "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/minor.svg",
+        "name": "Minor", "id": "4"}, {"self": "https://issues.stage.redhat.com/rest/api/2/priority/10300",
+        "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/trivial.svg",
+        "name": "Undefined", "id": "10300"}], "defaultValue": {"self": "https://issues.stage.redhat.com/rest/api/2/priority/10300",
+        "iconUrl": "https://issues.stage.redhat.com/images/icons/priorities/trivial.svg",
+        "name": "Undefined", "id": "10300"}}, {"required": false, "schema": {"type":
+        "array", "items": "user", "custom": "com.atlassian.jira.plugin.system.customfieldtypes:multiuserpicker",
+        "customId": 12315950}, "name": "Contributors", "fieldId": "customfield_12315950",
+        "autoCompleteUrl": "https://issues.stage.redhat.com/rest/api/1.0/users/picker?fieldName=customfield_12315950&query=",
+        "hasDefaultValue": false, "operations": ["add", "set", "remove"]}, {"required":
+        false, "schema": {"type": "array", "items": "version", "system": "fixVersions"},
+        "name": "Fix Version/s", "fieldId": "fixVersions", "hasDefaultValue": false,
+        "operations": ["set", "add", "remove"], "allowedValues": []}, {"required":
+        false, "schema": {"type": "string", "system": "environment"}, "name": "Environment",
+        "fieldId": "environment", "hasDefaultValue": false, "operations": ["set"]},
+        {"required": false, "schema": {"type": "user", "system": "assignee"}, "name":
+        "Assignee", "fieldId": "assignee", "autoCompleteUrl": "https://issues.stage.redhat.com/rest/api/latest/user/assignable/search?issueKey=null&username=",
+        "hasDefaultValue": false, "operations": ["set"]}, {"required": true, "schema":
+        {"type": "project", "system": "project"}, "name": "Project", "fieldId": "project",
+        "hasDefaultValue": false, "operations": ["set"], "allowedValues": [{"self":
+        "https://issues.stage.redhat.com/rest/api/2/project/12337520", "id": "12337520",
+        "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey": "software",
+        "avatarUrls": {"48x48": "https://issues.stage.redhat.com/secure/projectavatar?pid=12337520&avatarId=12560",
+        "24x24": "https://issues.stage.redhat.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
+        "16x16": "https://issues.stage.redhat.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
+        "32x32": "https://issues.stage.redhat.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}}]}]}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - sandbox
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Wed, 17 Jan 2024 12:04:47 GMT
+      Expires:
+      - Wed, 17 Jan 2024 12:04:47 GMT
+      Pragma:
+      - no-cache
+      Retry-After:
+      - '0'
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-RateLimit-Limit:
+      - '-1'
+      X-RateLimit-Remaining:
+      - '9223372036854775807'
+      content-length:
+      - '8703'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-dc-stg-mpp-0
+      x-arequestid:
+      - 724x63934x1
+      x-asessionid:
+      - 1fge31m
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-ratelimit-fillrate:
+      - '-1'
+      x-ratelimit-interval-seconds:
+      - '1'
+      x-rh-edge-cache-status:
+      - NotCacheable from child
+      x-rh-edge-reference-id:
+      - 0.b685d817.1705493087.3afd140
+      x-rh-edge-request-id:
+      - 3afd140
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1
