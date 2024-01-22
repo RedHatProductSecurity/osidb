@@ -493,7 +493,7 @@ class ACLMixin(models.Model):
         """
         get set of all ACLs
         """
-        return self.acls_read | self.acls_write | self.acls_internal
+        return self.acls_read | self.acls_write
 
     def _validate_acls_known(self):
         """

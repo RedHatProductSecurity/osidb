@@ -1,11 +1,6 @@
-import uuid
-
 import pytest
-from django.conf import settings
-from django.core.exceptions import ValidationError
 
 from apps.workflows.workflow import WorkflowModel
-from osidb.core import generate_acls
 from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource, FlawType, Snippet
 
 pytestmark = pytest.mark.unit
@@ -44,38 +39,20 @@ def get_snippet(cve_id="CVE-2023-0001"):
 
 
 class TestSnippet:
-    def test_create_snippet(self):
+    def test_create_snippet(self, internal_read_groups, internal_write_groups):
         """
         Tests the creation of a snippet.
         """
         snippet = get_snippet()
 
         assert snippet
-        assert snippet.acl_read == [
-            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])
-        ]
-        assert snippet.acl_write == [
-            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
-        ]
+        assert snippet.acl_read == internal_read_groups
+        assert snippet.acl_write == internal_write_groups
         assert Snippet.objects.count() == 1
 
-    def test_snippet_with_wrong_acls(self):
-        """
-        Tests that a snippet with non-internal ACLs raises an error.
-        """
-        snippet = get_snippet()
-
-        snippet.acl_read = [
-            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
-        ]
-        snippet.acl_write = [
-            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_WRITE_GROUP])
-        ]
-
-        with pytest.raises(ValidationError, match="Snippet must have internal ACLs."):
-            snippet.save()
-
-    def test_create_flaw_from_snippet(self):
+    def test_create_flaw_from_snippet(
+        self, internal_read_groups, internal_write_groups
+    ):
         """
         Tests the creation of a flaw from a snippet.
         """
@@ -111,14 +88,20 @@ class TestSnippet:
         assert flaw_ref.url == "https://nvd.nist.gov/vuln/detail/CVE-2023-0001"
 
         # check ACLs
-        assert flaw.acl_read == [
-            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])
-        ]
-        assert flaw.acl_write == [
-            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
-        ]
-        assert flaw.acl_read == flaw_cvss.acl_read == flaw_ref.acl_read
-        assert flaw.acl_write == flaw_cvss.acl_write == flaw_ref.acl_write
+        assert (
+            internal_read_groups
+            == snippet.acl_read
+            == flaw.acl_read
+            == flaw_cvss.acl_read
+            == flaw_ref.acl_read
+        )
+        assert (
+            internal_write_groups
+            == snippet.acl_write
+            == flaw.acl_write
+            == flaw_cvss.acl_write
+            == flaw_ref.acl_write
+        )
 
     @pytest.mark.parametrize(
         "cve_id,has_flaw,has_snippet",

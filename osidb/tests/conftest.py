@@ -29,7 +29,7 @@ def enable_db_access_for_all_tests(db):
 
 @pytest.fixture
 def root_url():
-    return "http://osdib-service:8000"
+    return "http://osidb-service:8000"
 
 
 @pytest.fixture
@@ -57,43 +57,33 @@ def good_cve_id2():
 
 
 @pytest.fixture
-def public_read_group():
-    return generate_acls(settings.PUBLIC_READ_GROUPS)
+def public_read_groups():
+    return [uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_READ_GROUPS)]
 
 
 @pytest.fixture
-def embargo_read_group():
-    return generate_acls([settings.EMBARGO_READ_GROUP])
+def embargoed_read_groups():
+    return [uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])]
 
 
 @pytest.fixture
-def public_read_groups(public_read_group):
-    return [uuid.UUID(acl) for acl in public_read_group]
+def internal_read_groups():
+    return [uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])]
 
 
 @pytest.fixture
-def embargoed_read_groups(embargo_read_group):
-    return [uuid.UUID(acl) for acl in embargo_read_group]
+def public_write_groups():
+    return [uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_WRITE_GROUP])]
 
 
 @pytest.fixture
-def public_write_group():
-    return generate_acls([settings.PUBLIC_WRITE_GROUP])
+def embargoed_write_groups():
+    return [uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_WRITE_GROUP])]
 
 
 @pytest.fixture
-def embargo_write_group():
-    return generate_acls([settings.EMBARGO_WRITE_GROUP])
-
-
-@pytest.fixture
-def public_write_groups(public_write_group):
-    return [uuid.UUID(acl) for acl in public_write_group]
-
-
-@pytest.fixture
-def embargoed_write_groups(embargo_write_group):
-    return [uuid.UUID(acl) for acl in embargo_write_group]
+def internal_write_groups():
+    return [uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])]
 
 
 @pytest.fixture
