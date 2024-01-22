@@ -22,7 +22,7 @@ from apps.workflows.serializers import WorkflowModelSerializer
 
 from .core import generate_acls
 from .exceptions import DataInconsistencyException
-from .helpers import ensure_list
+from .helpers import differ, ensure_list
 from .mixins import ACLMixin, TrackingMixin
 from .models import (
     Affect,
@@ -1459,27 +1459,13 @@ class FlawSerializer(
         """
         update the related trackers if needed
         """
-        # this could be turned into a general
-        # helper if it was needed also elsewhere
-        def differs(instance1, instance2, attributes):
-            """
-            boolean check whether the given instances
-            have any differences in the given attributes
 
-            the caller is responsible for making sure that
-            the given instances really have the attributes
-            """
-            for attribute in attributes:
-                if getattr(instance1, attribute) != getattr(instance2, attribute):
-                    return True
-            return False
-
-        def mi_differs(flaw1, flaw2):
+        def mi_differ(flaw1, flaw2):
             """
             boolean check whether the given flaws
             differ in MI value in an important way
             """
-            if not differs(flaw1, flaw2, ["major_incident_state"]):
+            if not differ(flaw1, flaw2, ["major_incident_state"]):
                 return False
 
             # we only care for a change from or to some of the approved states
@@ -1502,8 +1488,8 @@ class FlawSerializer(
         #
         # the crucial attributes are those influencing the SLA deadline plus the CVE ID
         if (
-            not differs(old_flaw, new_flaw, ["cve_id", "unembargo_dt"])
-            and not mi_differs(old_flaw, new_flaw)
+            not differ(old_flaw, new_flaw, ["cve_id", "unembargo_dt"])
+            and not mi_differ(old_flaw, new_flaw)
             and Impact(old_flaw.impact) >= Impact(new_flaw.impact)
         ):
             return

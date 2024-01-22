@@ -29,6 +29,20 @@ def cve_id_comparator(cve_id: str) -> tuple[int, int]:
     return int(year), int(seq)
 
 
+def differ(instance1, instance2, attributes):
+    """
+    boolean check whether the given instances
+    have any differences in the given attributes
+
+    the caller is responsible for making sure that
+    the given instances really have the attributes
+    """
+    for attribute in attributes:
+        if getattr(instance1, attribute) != getattr(instance2, attribute):
+            return True
+    return False
+
+
 def ensure_list(item):
     """
     helper to ensure that the item is list
