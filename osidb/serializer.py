@@ -787,6 +787,8 @@ class AffectSerializer(
     TrackingMixinSerializer,
     IncludeExcludeFieldsMixin,
     IncludeMetaAttrMixin,
+    BugzillaAPIKeyMixin,
+    JiraAPIKeyMixin,
 ):
     """Affect serializer"""
 

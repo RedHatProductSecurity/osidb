@@ -683,6 +683,7 @@ class FlawPackageVersionView(
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
 @bz_api_key_extend_schema_view
+@jira_api_key_extend_schema_view
 @extend_schema_view(
     create=extend_schema(
         request=AffectPostSerializer,
