@@ -778,6 +778,32 @@ class TestEndpointsFlaws:
                 for tracker_field in tracker_include_fields:
                     assert tracker_field in tracker
 
+    def test_list_flaws_include_fields_relation(self, auth_client, test_api_uri):
+        """
+        Test that passing a reverse FK relationship field to include_fields works.
+
+        A reverse FK is when in Model B, a FK to Model A is defined, by default
+        the name of such field would be <field_name>_set.
+
+        Since the include_fields filter accepts such fields, we must ensure that
+        they are properly tested.
+        """
+        response = auth_client().get(f"{test_api_uri}/flaws")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
+
+        affect = AffectFactory()
+        AffectFactory(flaw=affect.flaw)
+
+        response = auth_client().get(f"{test_api_uri}/flaws?include_fields=affects")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        # only one key should be present, affects
+        assert len(body["results"][0]) == 1
+        assert list(body["results"][0].keys()) == ["affects"]
+
     def test_retrieve_specific_flaw(self, auth_client, test_api_uri):
         """retrieve single flaw from endpoint"""
         flaw = FlawFactory()
