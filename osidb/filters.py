@@ -2,6 +2,7 @@
 Implement filters for OSIDB REST API results
 """
 
+from django.core.exceptions import FieldDoesNotExist
 from django_filters.rest_framework import (
     BaseInFilter,
     BooleanFilter,
@@ -70,7 +71,95 @@ class DistinctFilterSet(FilterSet):
                     filter_.distinct = True
 
 
-class FlawFilter(DistinctFilterSet):
+class IncludeFieldsFilterSet(FilterSet):
+    include_fields = CharFilter(method="include_fields_filter")
+
+    def _preprocess_fields(self, value):
+        """
+        Converts a comma-separated list of fields into an ORM-friendly format.
+
+        A list of fields passed-in to a filter will look something like:
+            cve_id,affects.uuid,affects.trackers.resolution
+
+        This method converts such a string into a Python list like so:
+            ["cve_id", "affects__uuid", "affects__trackers__resolution"]
+        """
+        return value.replace(".", "__").split(",")
+
+    def _filter_fields(self, fields):
+        """
+        Given a set of field names, returns a set of relations and valid fields.
+
+        The argument `fields` can contain any number of user-provided fields,
+        these fields may not exist, or they may be properties or any other
+        kind of virtual/computed field. Since the goal of these field names
+        would be to use them in SQL, we need to make sure to only return
+        database-persisted fields, and optionally relations.
+
+        The result of this method can be safely passed down to
+        prefetch_related() / only() / defer().
+        """
+        prefetch_set = set()
+        field_set = set()
+        for fname in list(fields):
+            try:
+                # check that the field actually exists
+                field = self._meta.model._meta.get_field(fname)
+            except FieldDoesNotExist:
+                continue
+            if not field.concrete:
+                # a field is concrete if it has a column in the database, we don't
+                # want non-concrete fields as we cannot filter them via SQL
+                if field.is_relation:
+                    # related fields are somewhat exceptional in that while we
+                    # cannot use them in only(), we can prefetch them
+                    prefetch_set.add(fname)
+                continue
+            field_set.add(fname)
+        return prefetch_set, field_set
+
+    def include_fields_filter(self, queryset, name, value):
+        """
+        Optimizes a view's QuerySet based on user input.
+
+        This filter will attempt to optimize a given view's queryset based on an
+        allowlist of fields (value parameter) provided by the user in order to
+        improve performance.
+
+        It does so by leveraging the prefetch_related() and only() QuerySet
+        methods, this solution is not perfect and should probably not be
+        improved further as it can get very complicated very quickly.
+
+        This filter does not use `select_related` for FK relations as the usage
+        of FKs in OSIDB endpoints is seldom used.
+        """
+        all_fields = set()
+        to_prefetch = set()
+        # we want to convert e.g. foo.id to foo__id, so that it's easier to use
+        # with Django's QuerySet.prefetch_related() method directly
+        fields = self._preprocess_fields(value)
+        for field in fields:
+            if "__" in field:
+                # must use rsplit as the field can contain multiple relationship
+                # traversals such as affects__trackers__foo, so we should prefetch
+                # affects__trackers but we cannot fetch the affects__trackers__foo
+                # field as `only()` only supports fields in the current model
+                rel = field.rsplit("__", 1)[0]
+                to_prefetch.add(rel)
+                continue
+            all_fields.add(field)
+        # must verify that the requested fields are database-persisted fields,
+        # properties, descriptors and related fields will yield errors
+        prefetch, valid_fields = self._filter_fields(all_fields)
+        to_prefetch |= prefetch
+        return (
+            queryset.prefetch_related(None)
+            .prefetch_related(*list(to_prefetch))
+            .only(*list(valid_fields))
+        )
+
+
+class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet):
     """
     Class that filters queries to FlawList view / API endpoint based on Flaw fields (currently only supports updated_dt)
     """
@@ -274,7 +363,7 @@ class FlawFilter(DistinctFilterSet):
     # This would cause a circular import, so instead we define there + import here and set the property
 
 
-class AffectFilter(DistinctFilterSet):
+class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet):
 
     DISTINCT_FIELDS_PREFIXES = ("flaw__", "affects__")
 
@@ -387,7 +476,7 @@ class AffectFilter(DistinctFilterSet):
     order = OrderingFilter(fields=Meta.fields.keys())
 
 
-class TrackerFilter(DistinctFilterSet):
+class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet):
 
     DISTINCT_FIELDS_PREFIXES = ("affects__",)
 
@@ -491,7 +580,7 @@ class TrackerFilter(DistinctFilterSet):
     order = OrderingFilter(fields=Meta.fields.keys())
 
 
-class FlawAcknowledgmentFilter(FilterSet):
+class FlawAcknowledgmentFilter(IncludeFieldsFilterSet):
     class Meta:
         model = FlawAcknowledgment
         fields = {
@@ -510,7 +599,7 @@ class FlawAcknowledgmentFilter(FilterSet):
         }
 
 
-class FlawCommentFilter(FilterSet):
+class FlawCommentFilter(IncludeFieldsFilterSet):
     class Meta:
         model = FlawComment
         fields = {
@@ -520,7 +609,7 @@ class FlawCommentFilter(FilterSet):
         }
 
 
-class FlawCVSSFilter(FilterSet):
+class FlawCVSSFilter(IncludeFieldsFilterSet):
     cvss_version = CharFilter(field_name="version")
 
     class Meta:
@@ -542,7 +631,7 @@ class FlawCVSSFilter(FilterSet):
         }
 
 
-class FlawReferenceFilter(FilterSet):
+class FlawReferenceFilter(IncludeFieldsFilterSet):
     class Meta:
         model = FlawReference
         fields = {
@@ -561,7 +650,7 @@ class FlawReferenceFilter(FilterSet):
         }
 
 
-class AffectCVSSFilter(FilterSet):
+class AffectCVSSFilter(IncludeFieldsFilterSet):
     cvss_version = CharFilter(field_name="version")
 
     class Meta:
@@ -583,7 +672,7 @@ class AffectCVSSFilter(FilterSet):
         }
 
 
-class FlawPackageVersionFilter(FilterSet):
+class FlawPackageVersionFilter(IncludeFieldsFilterSet):
     class Meta:
         model = Package
         fields = {
