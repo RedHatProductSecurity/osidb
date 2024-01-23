@@ -911,6 +911,11 @@ class AffectSerializer(
         #
         # in the case of PS module we cannot auto-adjust the trackers
         # since we simply cannot guess which PS update stream is correct
+        #
+        # in the case of impact we should ideally check whether the increase actually
+        # increases the tracker aggregated impact (in cases of multi-flaw trackers)
+        # but that drastically increases the code complexity and brings only a little
+        # value - would prevent a rare extra update attempt without any real effect
         if not differ(old_affect, new_affect, ["flaw", "ps_component"]) and Impact(
             old_affect.impact
         ) >= Impact(new_affect.impact):
@@ -1511,6 +1516,11 @@ class FlawSerializer(
         # plus in the case of the MI we care for specific changes only
         #
         # the crucial attributes are those influencing the SLA deadline plus the CVE ID
+        #
+        # in the case of impact we should ideally check whether the increase actually
+        # increases the tracker aggregated impact (in cases of multi-flaw trackers)
+        # but that drastically increases the code complexity and brings only a little
+        # value - would prevent a rare extra update attempt without any real effect
         if (
             not differ(old_flaw, new_flaw, ["cve_id", "unembargo_dt"])
             and not mi_differ(old_flaw, new_flaw)
