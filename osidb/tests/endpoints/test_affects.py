@@ -96,6 +96,7 @@ class TestEndpointsAffects:
             },
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
         body = response.json()
