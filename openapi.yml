@@ -927,7 +927,21 @@ paths:
       - in: query
         name: flaw__component
         schema:
-          type: string
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: flaw__components
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: flaw__created_dt
         schema:
@@ -1314,7 +1328,7 @@ paths:
             - -cvss_scores__updated_dt
             - -cvss_scores__uuid
             - -cvss_scores__vector
-            - -flaw__component
+            - -flaw__components
             - -flaw__created_dt
             - -flaw__cve_id
             - -flaw__cvss2
@@ -1359,7 +1373,7 @@ paths:
             - cvss_scores__updated_dt
             - cvss_scores__uuid
             - cvss_scores__vector
-            - flaw__component
+            - flaw__components
             - flaw__created_dt
             - flaw__cve_id
             - flaw__cvss2
@@ -2635,7 +2649,21 @@ paths:
       - in: query
         name: component
         schema:
-          type: string
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: components
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: created_dt
         schema:
@@ -3001,7 +3029,7 @@ paths:
             - -affects__type
             - -affects__updated_dt
             - -affects__uuid
-            - -component
+            - -components
             - -created_dt
             - -cve_id
             - -cvss2
@@ -3067,7 +3095,7 @@ paths:
             - affects__type
             - affects__updated_dt
             - affects__uuid
-            - component
+            - components
             - created_dt
             - cve_id
             - cvss2
@@ -5758,7 +5786,21 @@ paths:
       - in: query
         name: affects__flaw__component
         schema:
-          type: string
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: affects__flaw__components
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: affects__flaw__created_dt
         schema:
@@ -6266,7 +6308,7 @@ paths:
             - -affects__cvss2_score
             - -affects__cvss3
             - -affects__cvss3_score
-            - -affects__flaw__component
+            - -affects__flaw__components
             - -affects__flaw__created_dt
             - -affects__flaw__cve_id
             - -affects__flaw__cvss2
@@ -6304,7 +6346,7 @@ paths:
             - affects__cvss2_score
             - affects__cvss3
             - affects__cvss3_score
-            - affects__flaw__component
+            - affects__flaw__components
             - affects__flaw__created_dt
             - affects__flaw__cve_id
             - affects__flaw__cvss2
@@ -7597,7 +7639,12 @@ components:
           - $ref: '#/components/schemas/BlankEnum'
         component:
           type: string
-          maxLength: 100
+          deprecated: true
+        components:
+          type: array
+          items:
+            type: string
+            maxLength: 100
         title:
           type: string
         trackers:
@@ -8341,7 +8388,12 @@ components:
           - $ref: '#/components/schemas/BlankEnum'
         component:
           type: string
-          maxLength: 100
+          deprecated: true
+        components:
+          type: array
+          items:
+            type: string
+            maxLength: 100
         title:
           type: string
         trackers:

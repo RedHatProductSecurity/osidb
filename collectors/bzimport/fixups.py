@@ -218,18 +218,18 @@ class FlawFixer:
         # try to strip CVE IDs possibly followed by three dots
         title = re.sub(r"^(CVE-[0-9]{4}-[0-9]+\s*)+\.*\s*", "", title)
 
-        # strip component name followed by colon
-        component_regex = r"^\s*([^\s]+\s+)*([^\s]+):"
-        component_match = re.match(component_regex, title)
-        component = ""
-        if component_match:
-            component = component_match.group(2)
-            title = re.sub(component_regex, "", title)
-        else:
+        component_res = re.search(r"\s*([^\s]+:)", title)
+        components = []
+        while component_res:
+            title = title[component_res.span()[1] :].strip()
+            components.append(component_res.group()[:-1].strip())
+            component_res = re.search(r"^\s*([^\s]+:)", title)
+
+        if not components:
             self.errors.append("no component")
 
         # store flaw component
-        self.flaw_obj.component = component
+        self.flaw_obj.components = components
 
         # strip any whitespace
         title = title.strip()

@@ -24,101 +24,119 @@ class TestAffectFixer:
 
 class TestFlawFixer:
     @pytest.mark.parametrize(
-        "summary,title,component",
+        "summary,title,component,components",
         [
             (
                 "carbon: cheesecake",
                 "cheesecake",
                 "carbon",
+                ["carbon"],
             ),
             (
                 "EMBARGOED carbon: cheesecake",
                 "cheesecake",
                 "carbon",
+                ["carbon"],
             ),
             (
                 "CVE-2000-12345 CVE-3000-12345 carbon: cheesecake",
                 "cheesecake",
                 "carbon",
+                ["carbon"],
             ),
             (
                 "EMBARGOED CVE-3000-12345 carbon: cheesecake",
                 "cheesecake",
                 "carbon",
+                ["carbon"],
             ),
             (
                 "radioactive carbon: cheesecake",
                 "cheesecake",
                 "carbon",
+                ["carbon"],
             ),
             (
                 "radioactive carbon : cheesecake",
                 "radioactive carbon : cheesecake",
                 "",
+                [],
             ),
             (
                 "carbon cheesecake:",
                 "",
                 "cheesecake",
+                ["cheesecake"],
             ),
             (
                 "carbon cheesecake",
                 "carbon cheesecake",
                 "",
+                [],
             ),
             (
                 "EMBARGOED",
                 "",
                 "",
+                [],
             ),
             (
                 "CVE-2000-12345 CVE-3000-12345",
                 "",
                 "",
+                [],
             ),
             (
                 "EMBARGOED CVE-2000-12345 CVE-3000-12345",
                 "",
                 "",
+                [],
             ),
             (
                 "EMBARGOED:",
                 ":",
                 "",
+                [],
             ),
             (
                 "radioactive: carbon: cheesecake:",
                 "",
                 "cheesecake",
+                ["radioactive", "carbon", "cheesecake"],
             ),
             (
                 "radioactive: carbon: cheesecake",
                 "cheesecake",
                 "carbon",
+                ["radioactive", "carbon"],
             ),
             (
                 "   carbon:   cheesecake   ",
                 "cheesecake",
                 "carbon",
+                ["carbon"],
             ),
             (
                 "TRIAGE carbon: cheesecake",
                 "cheesecake",
                 "carbon",
+                ["carbon"],
             ),
             (
                 "TRIAGE-CVE-2000-12345 carbon: cheesecake",
                 "cheesecake",
                 "carbon",
+                ["carbon"],
             ),
             (
                 "EMBARGOED TRIAGE carbon: cheesecake",
                 "cheesecake",
                 "carbon",
+                ["carbon"],
             ),
         ],
     )
-    def test_fix_title(self, summary, title, component):
+    def test_fix_title(self, summary, title, component, components):
         """
         test title fixup which performs mapping from Bugzilla summary
         it not only sets the correct flaw title but also the component
@@ -128,3 +146,6 @@ class TestFlawFixer:
         flaw_fixer.fix_title()
         assert flaw.title == title
         assert flaw.component == component
+        assert len(components) == len(flaw.components)
+        for comp in components:
+            assert comp in flaw.components

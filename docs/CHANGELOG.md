@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change default pg configs 
 - Adjust CONN_MAX_AGE and CONN_MAX_CONNS to maintain a minimal pool of idle db conns (OSIDB-1620)
 - Tracker status field is read-only (OSIDB-1780)
+- Change Bugzilla collector and Flaw model to allow multiple components in bz_summary (OSIDB-1420)
 
 ### Removed
 - Remove daily monitoring email for failed tasks / collectors (OSIDB-1215)
