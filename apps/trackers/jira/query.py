@@ -9,6 +9,7 @@ from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import NoPriorityAvailableError
 from apps.trackers.models import JiraProjectFields
 from osidb.models import Affect, Impact
+from osidb.validators import CVE_RE_STR
 
 logger = logging.getLogger(__name__)
 
@@ -112,21 +113,37 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         self._query["fields"]["description"] = self.description
 
-    # TODO we should not delete other labels
-    # because the engineeting may use them
     def generate_labels(self):
         """
         generate query for Jira labels
         """
+
+        all_existing_labels = self.tracker.meta_attr.get("labels", [])
+
+        # These labels are from elsewhere than this method and preserved with their ordering intact.
+        # Because the engineering may use them.
+        labels_to_preserve = [
+            lbl
+            for lbl in all_existing_labels
+            if not (
+                # Labels matching this condition will be recreated as needed.
+                lbl.startswith("pscomponent:")
+                or lbl in ["SecurityTracking", "Security", "validation-requested"]
+                or CVE_RE_STR.match(lbl)
+            )
+        ]
+
         self._query["fields"]["labels"] = [
+            *labels_to_preserve,
             "SecurityTracking",
             "Security",
             f"pscomponent:{self.ps_component}",
-        ] + list(  # add all linked non-empty CVE IDs
-            self.tracker.affects.exclude(flaw__cve_id__isnull=True).values_list(
-                "flaw__cve_id", flat=True
-            )
-        )
+            *list(  # add all linked non-empty CVE IDs
+                self.tracker.affects.exclude(flaw__cve_id__isnull=True).values_list(
+                    "flaw__cve_id", flat=True
+                )
+            ),
+        ]
 
         # If all affects are NEW, add label validation-requested.
         if set(self.tracker.affects.all().values_list("affectedness", flat=True)) == {
