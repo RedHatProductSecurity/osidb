@@ -97,8 +97,7 @@ class FlawFactory(BaseFactory):
     impact = factory.Faker(
         "random_element", elements=list(set(Impact) - {Impact.NOVALUE})
     )
-    # max_nb_chars is the approximate length of generated text
-    component = factory.Faker("text", max_nb_chars=50)
+    components = factory.List([factory.Faker("word") for _ in range(3)])
     description = factory.LazyAttribute(lambda c: f"Description for {c.cve_id}")
     title = factory.Maybe(
         "embargoed",
