@@ -217,6 +217,9 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
 
     cve_id = CharInFilter(field_name="cve_id")
 
+    component = CharInFilter(method="component_filter")
+    components = CharInFilter(field_name="components", lookup_expr="contains")
+
     changed_after = DateTimeFilter(
         field_name="updated_dt", method="changed_after_filter"
     )
@@ -282,6 +285,15 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
             ]
         )
 
+    def component_filter(self, queryset, name, value):
+        """
+        Based on the `value`, returns all Flaws which contains all components listed separated by colon.
+        This enables retro compactibility with deprecated field `component`.
+        """
+        if value:
+            return queryset.filter(components__contains=value)
+        return queryset
+
     class Meta:
         """
         Class that defines some Filter properties. Can be used to auto-generate filters, but param names are less useful
@@ -315,7 +327,7 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
             "cvss3_score": ["exact", "lt"] + LT_GT_LOOKUP_EXPRS + LTE_GTE_LOOKUP_EXPRS,
             "nvd_cvss2": ["exact"],
             "nvd_cvss3": ["exact"],
-            "component": ["exact"],
+            "components": ["exact"],
             "major_incident_state": ["exact"],
             "requires_summary": ["exact"],
             "nist_cvss_validation": ["exact"],
@@ -428,6 +440,12 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
     flaw__embargoed = BooleanFilter(field_name="flaw__embargoed")
     flaw__is_major_incident = BooleanFilter(method="is_major_incident_filter")
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
+    flaw__component = CharInFilter(
+        field_name="flaw__components", lookup_expr="contains"
+    )
+    flaw__components = CharInFilter(
+        field_name="flaw__components", lookup_expr="contains"
+    )
 
     def is_major_incident_filter(self, queryset, name, value):
         """
@@ -497,7 +515,7 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
             + LTE_GTE_LOOKUP_EXPRS,
             "flaw__nvd_cvss2": ["exact"],
             "flaw__nvd_cvss3": ["exact"],
-            "flaw__component": ["exact"],
+            "flaw__components": ["exact"],
             # Tracker fields
             "trackers__uuid": ["exact"],
             "trackers__type": ["exact"],
@@ -540,6 +558,12 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
     affects__embargoed = BooleanFilter(field_name="affects__embargoed")
     affects__flaw__embargoed = BooleanFilter(field_name="flaw__embargoed")
     affects__flaw__is_major_incident = BooleanFilter(method="is_major_incident_filter")
+    affects__flaw__component = CharInFilter(
+        field_name="affects__flaw__components", lookup_expr="contains"
+    )
+    affects__flaw__components = CharInFilter(
+        field_name="affects__flaw__components", lookup_expr="contains"
+    )
 
     def is_major_incident_filter(self, queryset, name, value):
         """
@@ -630,7 +654,7 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
             + LTE_GTE_LOOKUP_EXPRS,
             "affects__flaw__nvd_cvss2": ["exact"],
             "affects__flaw__nvd_cvss3": ["exact"],
-            "affects__flaw__component": ["exact"],
+            "affects__flaw__components": ["exact"],
         }
 
     order = OrderingFilter(fields=Meta.fields.keys())

@@ -499,6 +499,39 @@ class TestEndpointsFlaws:
         assert body["count"] == 1
         assert body["results"][0]["uuid"] == str(tracker.affects.first().flaw.uuid)
 
+    def test_list_flaws_filter_by_components(self, auth_client, test_api_uri):
+        """retrieve list of flaws from endpoint"""
+        response = auth_client().get(f"{test_api_uri}/flaws")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
+
+        FlawFactory(components=["test-component"])
+        FlawFactory(components=["test-component", "other-component"])
+        FlawFactory(
+            components=["test-component", "other-component", "different-component"]
+        )
+
+        response = auth_client().get(f"{test_api_uri}/flaws?components=test-component")
+        assert response.status_code == 200
+        assert response.json()["count"] == 3
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?components=test-component,other-component"
+        )
+        assert response.status_code == 200
+        assert response.json()["count"] == 2
+
+        response = auth_client().get(f"{test_api_uri}/flaws?components=other-component")
+        assert response.status_code == 200
+        assert response.json()["count"] == 2
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?component=different-component"
+        )
+        assert response.status_code == 200
+        assert response.json()["count"] == 1
+
     def test_list_flaws_filter_by_bz_id(self, auth_client, test_api_uri):
         """retrieve list of flaws from endpoint"""
         response = auth_client().get(f"{test_api_uri}/flaws")
