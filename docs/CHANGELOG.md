@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Workflow fields added into Flaw endpoints (OSIDB-1819)
 - Implement after-flaw-update tracker update mechanism (OSIDB-97)
 - Add label verification-requested to jira trackers with NEW affects (OSIDB-1185)
+- Implement after-affect-update tracker update mechanism (OSIDB-97)
 
 ### Fixed
 - Fix incorrect type bool of is_up2date field in
