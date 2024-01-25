@@ -110,7 +110,74 @@ class TestTrackerJiraQueryBuilder:
         quer_builder.generate()
         validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
 
-    def test_generate_labels(self):
+    @pytest.mark.parametrize(
+        "meta, expected_labels",
+        [
+            (
+                {"test": 1},
+                [
+                    "SecurityTracking",
+                    "Security",
+                    "pscomponent:component",
+                    "CVE-2000-2000",
+                ],
+            ),
+            (
+                {
+                    "labels": [
+                        "CVE-2000-2000",
+                        "SecurityTracking",
+                        "pscomponent:component",
+                        "Security",
+                        "validation-requested",
+                    ]
+                },
+                [
+                    "SecurityTracking",
+                    "Security",
+                    "pscomponent:component",
+                    "CVE-2000-2000",
+                ],
+            ),
+            (
+                {"labels": []},
+                [
+                    "SecurityTracking",
+                    "Security",
+                    "pscomponent:component",
+                    "CVE-2000-2000",
+                ],
+            ),
+            (
+                {
+                    "labels": [
+                        "CVE-2000-2000",
+                        "Security",
+                        "foobar",
+                        "CVE-2000-0001",
+                        "CVE-1",
+                        "SecurityTracking",
+                        "foobaz",
+                        "pscomponent:component",
+                        "pscomponent:foobar",
+                        "foobaa",
+                        "validation-requested",
+                    ]
+                },
+                [
+                    "foobar",
+                    "CVE-1",
+                    "foobaz",
+                    "foobaa",
+                    "SecurityTracking",
+                    "Security",
+                    "pscomponent:component",
+                    "CVE-2000-2000",
+                ],
+            ),
+        ],
+    )
+    def test_generate_labels(self, meta, expected_labels):
         """
         test that the query for the Jira labels is generated correctly
         """
@@ -137,6 +204,7 @@ class TestTrackerJiraQueryBuilder:
             type=Tracker.TrackerType.JIRA,
             ps_update_stream=ps_update_stream.name,
             embargoed=flaw1.is_embargoed,
+            meta_attr=meta,
         )
 
         query_builder = TrackerJiraQueryBuilder(tracker)
@@ -148,7 +216,8 @@ class TestTrackerJiraQueryBuilder:
         assert "Security" in labels
         assert "pscomponent:component" in labels
         assert "CVE-2000-2000" in labels
-        assert len(labels) == 4
+        assert len(labels) == len(expected_labels)
+        assert labels == expected_labels
 
     @pytest.mark.parametrize(
         "external_system_id, affectedness, preexisting_val_req_lbl, result_val_req_lbl",
@@ -208,7 +277,7 @@ class TestTrackerJiraQueryBuilder:
             if preexisting_val_req_lbl:
                 meta_attr = {
                     "labels": [
-                        "CVE-2000-0000",
+                        "CVE-2000-2000",
                         "Security",
                         "SecurityTracking",
                         "pscomponent:component",
@@ -218,7 +287,7 @@ class TestTrackerJiraQueryBuilder:
             else:
                 meta_attr = {
                     "labels": [
-                        "CVE-2000-0000",
+                        "CVE-2000-2000",
                         "Security",
                         "SecurityTracking",
                         "pscomponent:component",
