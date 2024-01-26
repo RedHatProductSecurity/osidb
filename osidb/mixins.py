@@ -1,6 +1,7 @@
 import uuid
 from enum import Enum
 from functools import cached_property
+from itertools import chain
 
 from django.conf import settings
 from django.contrib.postgres import fields
@@ -592,3 +593,49 @@ class ACLMixin(models.Model):
 
     class Meta:
         abstract = True
+
+    def unembargo(self):
+        """
+        unembargo the whole instance context internally
+
+        in the Bugzilla world a lot of OSIDB entities are actually parts
+        of the flaw bug and we will update them by a single query afterwards
+        """
+        # not every related model class has
+        # to have the same visibility logic
+        if not self.is_embargoed:
+            return
+
+        # allow individual model class special handling
+        # which is specifically important in multi-relations
+        if hasattr(self, "can_unembargo") and not self.can_unembargo():
+            return
+
+        # unembargo
+        self.set_public()
+
+        kwargs = {}
+        if issubclass(type(self), AlertMixin):
+            # suppress the validation errors as we expect that during
+            # the update the parent and child ACLs will not equal
+            kwargs["raise_validation_error"] = False
+        if issubclass(type(self), TrackingMixin):
+            # do not auto-update the updated_dt timestamp as the
+            # followup update would fail on a mid-air collision
+            kwargs["auto_timestamps"] = False
+
+        self.save(**kwargs)
+
+        # chain all the related instances as we
+        # only care for the ACLs which are unified
+        for related_instance in chain.from_iterable(
+            getattr(self, name).all()
+            for name in [
+                related.related_name
+                for related in self._meta.related_objects
+                # only the models with ACLs are subject of this
+                if issubclass(related.related_model, ACLMixin)
+            ]
+        ):
+            # continue deeper into the related context
+            related_instance.unembargo()
