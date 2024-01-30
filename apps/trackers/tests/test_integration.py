@@ -208,7 +208,6 @@ class TestTrackerAPI:
             "affects": [affect.uuid],
             "embargoed": flaw.embargoed,
             "ps_update_stream": ps_update_stream.name,
-            "status": "NEW",  # this one is mandatory even though ignored in the backend query for now
         }
         response = auth_client().post(
             f"{test_api_uri}/trackers",
@@ -371,7 +370,6 @@ class TestTrackerAPI:
             "affects": [affect.uuid],
             "embargoed": flaw.embargoed,
             "ps_update_stream": ps_update_stream.name,
-            "status": "New",  # this one is mandatory even though ignored in the backend query for now
         }
         response = auth_client().post(
             f"{test_api_uri}/trackers",

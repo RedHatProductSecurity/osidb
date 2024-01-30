@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced prefetches on Flaw, Affect, and Tracker api querysets
 - Change default pg configs 
 - Adjust CONN_MAX_AGE and CONN_MAX_CONNS to maintain a minimal pool of idle db conns (OSIDB-1620)
+- Tracker status field is read-only (OSIDB-1780)
 
 ### Removed
 - Remove daily monitoring email for failed tasks / collectors (OSIDB-1215)

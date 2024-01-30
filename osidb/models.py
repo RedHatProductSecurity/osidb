@@ -2344,8 +2344,9 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     external_system_id = models.CharField(max_length=100, blank=True)
 
     # BTS status:resolution context
-    # the values are dependent on the BTS
-    status = models.CharField(max_length=100)
+    # The values are dependent on the BTS.
+    # Blank on creation until first jiraffe sync from Jira.
+    status = models.CharField(max_length=100, blank=True)
     resolution = models.CharField(max_length=100, blank=True)
     ps_update_stream = models.CharField(max_length=100, blank=True)
 

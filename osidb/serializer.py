@@ -462,6 +462,7 @@ class TrackerSerializer(
         )
         read_only_fields = [
             "external_system_id",
+            "status",
             "type",
         ]
 

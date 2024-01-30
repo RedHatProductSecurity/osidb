@@ -38,7 +38,6 @@ class TestEndpointsTrackers:
             "affects": [affect.uuid],
             "embargoed": embargoed,
             "ps_update_stream": ps_update_stream.name,
-            "status": "TEST",  # this one is mandatory
         }
         response = auth_client().post(
             f"{test_api_uri}/trackers",

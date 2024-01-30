@@ -9200,7 +9200,7 @@ components:
           maxLength: 100
         status:
           type: string
-          maxLength: 100
+          readOnly: true
         resolution:
           type: string
           maxLength: 100
@@ -9275,7 +9275,7 @@ components:
           maxLength: 100
         status:
           type: string
-          maxLength: 100
+          readOnly: true
         resolution:
           type: string
           maxLength: 100
@@ -9326,7 +9326,6 @@ components:
           maxLength: 100
       required:
       - external_system_id
-      - status
       - type
     TrackerSuggestion:
       type: object
