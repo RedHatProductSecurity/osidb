@@ -9,7 +9,7 @@ from django.utils.timezone import datetime, make_aware
 
 from apps.trackers.jira.query import JiraPriority, TrackerJiraQueryBuilder
 from apps.trackers.models import JiraProjectFields
-from osidb.models import Affect, Flaw, Impact, Tracker
+from osidb.models import Affect, ContractPriority, Flaw, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -218,6 +218,42 @@ class TestTrackerJiraQueryBuilder:
         assert "CVE-2000-2000" in labels
         assert len(labels) == len(expected_labels)
         assert labels == expected_labels
+
+    def test_generate_label_contract_priority(self):
+        """
+        test that the query for the Jira label contract-priority is generated correctly
+        """
+        flaw1 = FlawFactory(cve_id="CVE-2000-2000")
+        ps_module = PsModuleFactory(bts_name="jboss")
+        affect1 = AffectFactory(
+            flaw=flaw1,
+            ps_module=ps_module.name,
+            ps_component="component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        ContractPriority(
+            ps_module=ps_module.name, ps_component=affect1.ps_component
+        ).save()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        tracker = TrackerFactory(
+            affects=[affect1],
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=ps_update_stream.name,
+            embargoed=flaw1.is_embargoed,
+        )
+
+        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder._query = {"fields": {}}
+        query_builder.generate_labels()
+
+        labels = query_builder.query["fields"]["labels"]
+        assert "contract-priority" in labels
+        assert "SecurityTracking" in labels
+        assert "Security" in labels
+        assert "pscomponent:component" in labels
+        assert "CVE-2000-2000" in labels
+        assert len(labels) == 5
 
     @pytest.mark.parametrize(
         "external_system_id, affectedness, preexisting_val_req_lbl, result_val_req_lbl",

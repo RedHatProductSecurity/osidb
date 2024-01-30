@@ -2099,6 +2099,16 @@ class Affect(
         ).exists()
 
     @property
+    def is_contract_priority(self) -> bool:
+        """
+        check and return whether this affect module and component combination is contract
+        priority which is defined in PS constants repo in contract_priority.yml
+        """
+        return ContractPriority.objects.filter(
+            ps_module=self.ps_module, ps_component=self.ps_component
+        ).exists()
+
+    @property
     def is_notaffected(self) -> bool:
         """
         check and return whether the given affect is set as not affected or not to be fixed
@@ -3510,6 +3520,19 @@ class CompliancePriority(models.Model):
     """
     an instance of this model represents one
     entry in PS constant compliance priority list
+    """
+
+    # internal primary key
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    ps_module = models.CharField(max_length=100)
+    ps_component = models.CharField(max_length=255)
+
+
+class ContractPriority(models.Model):
+    """
+    an instance of this model represents one
+    entry in PS constant contract priority list
     """
 
     # internal primary key
