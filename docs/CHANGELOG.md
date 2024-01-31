@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add label verification-requested to jira trackers with NEW affects (OSIDB-1185)
 - Implement after-affect-update tracker update mechanism (OSIDB-97)
 - Keep jira tracker labels added by people or other tools (OSIDB-1440)
+- Add label contract-priority to jira trackers based on ps-constants contract_priority.yml (OSIDB-1709)
 
 ### Fixed
 - Fix incorrect type bool of is_up2date field in

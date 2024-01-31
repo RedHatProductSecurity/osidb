@@ -4,7 +4,12 @@ from django.conf import settings
 from django.db import transaction
 from requests_gssapi import HTTPSPNEGOAuth
 
-from osidb.models import CompliancePriority, SpecialConsiderationPackage, UbiPackage
+from osidb.models import (
+    CompliancePriority,
+    ContractPriority,
+    SpecialConsiderationPackage,
+    UbiPackage,
+)
 
 
 def fetch_ps_constants(url):
@@ -32,6 +37,17 @@ def sync_compliance_priority(source_dict):
     for ps_module, ps_component_list in source_dict.items():
         for ps_component in ps_component_list:
             CompliancePriority(ps_module=ps_module, ps_component=ps_component).save()
+
+
+@transaction.atomic
+def sync_contract_priority(source_dict):
+    """
+    sync contract priority data
+    """
+    ContractPriority.objects.all().delete()
+    for ps_module, ps_component_list in source_dict.items():
+        for ps_component in ps_component_list:
+            ContractPriority(ps_module=ps_module, ps_component=ps_component).save()
 
 
 @transaction.atomic

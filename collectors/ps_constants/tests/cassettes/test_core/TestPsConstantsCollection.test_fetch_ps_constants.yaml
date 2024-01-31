@@ -1358,6 +1358,109 @@ interactions:
       User-Agent:
       - python-requests/2.31.0
     method: GET
+    uri: https://gitlab.cee.redhat.com/prodsec-dev/ps-constants/-/raw/master/data/contract_priority.yml?job=build
+  response:
+    body:
+      string: '# list of update streams that are in the scope of the contract priority
+        special handling
+
+        # keys need to match PS update stream names from product definitions
+
+        # https://issues.redhat.com/browse/OSIDB-1707
+
+        #
+
+        # when creating a tracker with any PS update stream from the below list we
+        add contract-priority Jira label
+
+
+        openshift-4:
+
+        - openshift-4.12.z
+
+        - openshift-4.14.z
+
+
+        rhel-8:
+
+        - rhel-8.8.0.z
+
+        '
+    headers:
+      Cache-Control:
+      - max-age=60, public, must-revalidate, stale-while-revalidate=60, stale-if-error=300,
+        s-maxage=60
+      Connection:
+      - keep-alive
+      Content-Disposition:
+      - inline
+      Content-Length:
+      - '390'
+      Content-Security-Policy:
+      - 'base-uri ''self''; child-src https://www.google.com/recaptcha/ https://www.recaptcha.net/
+        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
+        https://content-cloudresourcemanager.googleapis.com https://www.googletagmanager.com/ns.html
+        https://gitlab.cee.redhat.com/admin/ https://gitlab.cee.redhat.com/assets/
+        https://gitlab.cee.redhat.com/-/speedscope/index.html https://gitlab.cee.redhat.com/-/sandbox/
+        https://gitlab.cee.redhat.com/assets/ blob: data:; connect-src ''self'' wss://gitlab.cee.redhat.com;
+        default-src ''self''; font-src ''self'' https://fonts.gstatic.com/; form-action
+        ''self'' https: http:; frame-ancestors ''self''; frame-src ''self'' https://www.recaptcha.net/
+        https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com
+        https://content-cloudresourcemanager.googleapis.com *.redhat.com; img-src
+        * data: blob:; manifest-src ''self''; media-src ''self'' data: blob: http:
+        https:; object-src ''none''; script-src ''self'' ''unsafe-inline'' ''unsafe-eval''
+        https://www.recaptcha.net https://apis.google.com ''nonce-hAHEazPwuuQbvP8nXEOePg=='';
+        style-src ''self'' ''unsafe-inline'' https://fonts.googleapis.com *.redhat.com;
+        worker-src https://gitlab.cee.redhat.com/assets/ blob: data:'
+      Content-Type:
+      - text/plain; charset=utf-8
+      Date:
+      - Tue, 30 Jan 2024 14:40:10 GMT
+      Etag:
+      - '"b213fc4391a512d06e735dc7a67b3d91"'
+      Permissions-Policy:
+      - interest-cohort=()
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=63072000
+      Vary:
+      - Accept
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Gitlab-Meta:
+      - '{"correlation_id":"01HNDD0CXYMFTYA74CMEF0PETB","version":"1"}'
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Request-Id:
+      - 01HNDD0CXYMFTYA74CMEF0PETB
+      X-Runtime:
+      - '0.074905'
+      X-Ua-Compatible:
+      - IE=edge
+      X-Xss-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+    method: GET
     uri: https://gitlab.cee.redhat.com/prodsec-dev/ps-constants/-/raw/master/data/ubi_packages.yml?job=build
   response:
     body:
