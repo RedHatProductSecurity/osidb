@@ -1,6 +1,7 @@
 """
 Jira tracker query generation module
 """
+import json
 import logging
 from functools import cached_property
 
@@ -118,7 +119,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         generate query for Jira labels
         """
 
-        all_existing_labels = self.tracker.meta_attr.get("labels", [])
+        all_existing_labels = json.loads(self.tracker.meta_attr.get("labels", "[]"))
 
         # These labels are from elsewhere than this method and preserved with their ordering intact.
         # Because the engineering may use them.

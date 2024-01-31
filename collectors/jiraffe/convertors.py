@@ -1,6 +1,7 @@
 """
 transform Jira issue into OSIDB tracker model
 """
+import json
 import uuid
 from functools import cached_property
 
@@ -114,7 +115,7 @@ class JiraTrackerConvertor(TrackerConvertor):
 
         return {
             "external_system_id": self._raw.key,
-            "labels": self._raw.fields.labels,
+            "labels": json.dumps(self._raw.fields.labels),
             "owner": self.get_field_attr(self._raw, "assignee", "displayName"),
             # QE Assignee corresponds to customfield_12316243
             # in RH Jira which is a field of schema type user
