@@ -1,6 +1,7 @@
 """
 Bugzilla specific tracker test cases
 """
+import json
 from typing import Any, Dict
 from unittest.mock import mock_open, patch
 
@@ -123,16 +124,12 @@ class TestTrackerJiraQueryBuilder:
                 ],
             ),
             (
+                # Labels stored as str, as happens in HStoreField
                 {
-                    "labels": [
-                        "CVE-2000-2000",
-                        "SecurityTracking",
-                        "pscomponent:component",
-                        "Security",
-                        "validation-requested",
-                    ]
+                    "labels": '["CVE-2000-2000", "SecurityTracking", "pscomponent:component", "Security", "validation-requested", "custom_label"]'
                 },
                 [
+                    "custom_label",
                     "SecurityTracking",
                     "Security",
                     "pscomponent:component",
@@ -181,6 +178,10 @@ class TestTrackerJiraQueryBuilder:
         """
         test that the query for the Jira labels is generated correctly
         """
+        if "labels" in meta and not isinstance(meta["labels"], str):
+            # Do what jiraffe/convertors.py::JiraTrackerConvertor._normalize normally does
+            # when saving meta_attr (improve readability of pytest parameters).
+            meta["labels"] = json.dumps(meta["labels"])
         flaw1 = FlawFactory(cve_id="CVE-2000-2000")
         flaw2 = FlawFactory(embargoed=flaw1.embargoed, cve_id=None)
         ps_module = PsModuleFactory(bts_name="jboss")
@@ -312,22 +313,11 @@ class TestTrackerJiraQueryBuilder:
             # Existing tracker supposedly being updated
             if preexisting_val_req_lbl:
                 meta_attr = {
-                    "labels": [
-                        "CVE-2000-2000",
-                        "Security",
-                        "SecurityTracking",
-                        "pscomponent:component",
-                        "validation-requested",
-                    ]
+                    "labels": '["CVE-2000-2000", "Security", "SecurityTracking", "pscomponent:component", "validation-requested"]'
                 }
             else:
                 meta_attr = {
-                    "labels": [
-                        "CVE-2000-2000",
-                        "Security",
-                        "SecurityTracking",
-                        "pscomponent:component",
-                    ]
+                    "labels": '["CVE-2000-2000", "Security", "SecurityTracking", "pscomponent:component"]'
                 }
         tracker = TrackerFactory(
             affects=[affect1, affect2],
