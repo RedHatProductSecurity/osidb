@@ -82,7 +82,7 @@ def update_local_updated_dt_flaw(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Affect)
 def update_local_updated_dt_affect(sender, instance, **kwargs):
-    instance.flaw.save(raise_validation_error=False)
+    instance.flaw.save(auto_timestamps=False, raise_validation_error=False)
 
 
 @receiver(post_save, sender=Tracker)
@@ -92,4 +92,4 @@ def update_local_updated_dt_tracker(sender, instance, **kwargs):
     for affect in instance.affects.all():
         flaws.add(affect.flaw)
     for flaw in list(flaws):
-        flaw.save(raise_validation_error=False)
+        flaw.save(auto_timestamps=False, raise_validation_error=False)

@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [3.6.1] - 2024-02-01
+### Fixed
+- Fix issue with Flaw updates through collector (OSIDB-2050)
+
 ## [3.6.0] - 2024-01-31
 ### Added
 - Implement writable tracker API (OSIDB-1180)
