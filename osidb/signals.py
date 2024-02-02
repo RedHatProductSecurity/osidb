@@ -89,7 +89,12 @@ def update_local_updated_dt_affect(sender, instance, **kwargs):
 @receiver(m2m_changed, sender=Tracker.affects.through)
 def update_local_updated_dt_tracker(sender, instance, **kwargs):
     flaws = set()
-    for affect in instance.affects.all():
-        flaws.add(affect.flaw)
+    # /!\ in the case of an m2m_changed signal, instance can be either a
+    # Tracker or an Affect object, see Django docs on m2m_changed signal
+    if isinstance(instance, Affect):
+        flaws.add(instance.flaw)
+    else:
+        for affect in instance.affects.all():
+            flaws.add(affect.flaw)
     for flaw in list(flaws):
         flaw.save(auto_timestamps=False, raise_validation_error=False)
