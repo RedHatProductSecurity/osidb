@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [3.6.2] - 2024-02-02
 ### Fixed
 - Fix issue with tracker updates through Affect objects (OSIDB-2059)
 - Ensure invalid fields passed to include_fields filter are ignored (OSIDB-2048)
