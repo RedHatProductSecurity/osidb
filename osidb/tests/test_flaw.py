@@ -553,6 +553,27 @@ class TestFlaw:
             f.refresh_from_db()
             assert f.local_updated_dt == timezone.now()
 
+    @pytest.mark.enable_signals
+    def test_local_updated_dt_inverse_relationship(self):
+        f = FlawFactory(embargoed=False)
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        a = AffectFactory(
+            flaw=f,
+            ps_module=ps_module.name,
+            ps_component="component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+        )
+        t = TrackerFactory(
+            affects=(a,),
+            type=Tracker.TrackerType.BUGZILLA,
+            embargoed=f.embargoed,
+        )
+        og_local_updated_dt = f.local_updated_dt
+        # try updating trackers from the affect (inverse relationship)
+        # it should not fail and update the timestamp correctly
+        a.trackers.remove(t)
+        assert Flaw.objects.first().local_updated_dt > og_local_updated_dt
+
 
 class TestImpact:
     @pytest.mark.parametrize(

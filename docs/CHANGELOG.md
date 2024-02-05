@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [3.6.2] - 2024-02-02
+### Fixed
+- Fix issue with tracker updates through Affect objects (OSIDB-2059)
+- Ensure invalid fields passed to include_fields filter are ignored (OSIDB-2048)
+
 ## [3.6.1] - 2024-02-01
 ### Fixed
 - Fix issue with Flaw updates through collector (OSIDB-2050)
