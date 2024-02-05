@@ -804,6 +804,27 @@ class TestEndpointsFlaws:
         assert len(body["results"][0]) == 1
         assert list(body["results"][0].keys()) == ["affects"]
 
+    @pytest.mark.parametrize("filter", ["include_fields", "exclude_fields"])
+    @pytest.mark.parametrize("fields", ["__placeholder_field", "cve_id__id"])
+    def test_list_flaws_garbage_in_filter(
+        self, auth_client, test_api_uri, filter, fields
+    ):
+        """
+        Test that passing invalid fields to the include_fields filter simply
+        ignores the invalid fields and still returns a valid response.
+        """
+        response = auth_client().get(f"{test_api_uri}/flaws")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
+
+        FlawFactory(embargoed=False)
+
+        response = auth_client().get(f"{test_api_uri}/flaws?{filter}={fields}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+
     def test_retrieve_specific_flaw(self, auth_client, test_api_uri):
         """retrieve single flaw from endpoint"""
         flaw = FlawFactory()

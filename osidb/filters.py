@@ -92,9 +92,9 @@ class IncludeFieldsFilterSet(FilterSet):
 
         The argument `fields` can contain any number of user-provided fields,
         these fields may not exist, or they may be properties or any other
-        kind of virtual/computed field. Since the goal of these field names
-        would be to use them in SQL, we need to make sure to only return
-        database-persisted fields, and optionally relations.
+        kind of virtual, computed or relation field. Since the goal of these
+        field names would be to use them in SQL, we need to make sure to only
+        return database-persisted fields, and optionally relations.
 
         The result of this method can be safely passed down to
         prefetch_related() / only() / defer().
@@ -102,6 +102,27 @@ class IncludeFieldsFilterSet(FilterSet):
         prefetch_set = set()
         field_set = set()
         for fname in list(fields):
+            relation = fname
+            if "__" in fname:
+                # in the case of something like affects__trackers, we must
+                # ensure that:
+                # 1. the base field, in this case affects, is a valid model field
+                # 2. the whole field relation is not passed to only() (field_set)
+                # 3. the whole field relation is passed to prefetch_related
+                #    (prefetch_set)
+                # this guarantees that invalid fields such as __foo or
+                # affectos__trackers (typo in base field) are handled properly.
+                # note that something like affects__trackeros (typo in the N+1
+                # relationship) is already ignored by Django.
+                # the following code will check the existence of the base
+                # relationship field and further down we'll prefetch the full
+                # relationship (relation variable)
+                fname = fname.split("__")[0]
+                # we cannot prefetch e.g. affects__trackers__ps_component
+                # this means that this won't be performant if we only pass
+                # affects__trackers to include_fields, we'll consider this
+                # a limitation of these filters.
+                relation = relation.rsplit("__", 1)[0]
             try:
                 # check that the field actually exists
                 field = self._meta.model._meta.get_field(fname)
@@ -112,8 +133,11 @@ class IncludeFieldsFilterSet(FilterSet):
                 # want non-concrete fields as we cannot filter them via SQL
                 if field.is_relation:
                     # related fields are somewhat exceptional in that while we
-                    # cannot use them in only(), we can prefetch them
-                    prefetch_set.add(fname)
+                    # cannot use them in only(), we can prefetch them, here we'll
+                    # either add the relation if the field passed in contains
+                    # multiple relationship traversal e.g. affects__trackers
+                    # or just the fname e.g. affects
+                    prefetch_set.add(relation)
                 continue
             field_set.add(fname)
         return prefetch_set, field_set
@@ -133,25 +157,12 @@ class IncludeFieldsFilterSet(FilterSet):
         This filter does not use `select_related` for FK relations as the usage
         of FKs in OSIDB endpoints is seldom used.
         """
-        all_fields = set()
-        to_prefetch = set()
         # we want to convert e.g. foo.id to foo__id, so that it's easier to use
         # with Django's QuerySet.prefetch_related() method directly
         fields = self._preprocess_fields(value)
-        for field in fields:
-            if "__" in field:
-                # must use rsplit as the field can contain multiple relationship
-                # traversals such as affects__trackers__foo, so we should prefetch
-                # affects__trackers but we cannot fetch the affects__trackers__foo
-                # field as `only()` only supports fields in the current model
-                rel = field.rsplit("__", 1)[0]
-                to_prefetch.add(rel)
-                continue
-            all_fields.add(field)
         # must verify that the requested fields are database-persisted fields,
         # properties, descriptors and related fields will yield errors
-        prefetch, valid_fields = self._filter_fields(all_fields)
-        to_prefetch |= prefetch
+        to_prefetch, valid_fields = self._filter_fields(fields)
         return (
             queryset.prefetch_related(None)
             .prefetch_related(*list(to_prefetch))
