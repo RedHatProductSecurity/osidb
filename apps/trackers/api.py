@@ -11,6 +11,7 @@ from .product_definition_handlers.base import ProductDefinitionRules
 from .serializer import FlawUUIDListSerializer, TrackerSuggestionSerializer
 
 
+# TODO study
 class TrackerFileSuggestionView(APIView):
     @extend_schema(
         request=FlawUUIDListSerializer,
@@ -82,6 +83,7 @@ class TrackerFileSuggestionView(APIView):
                         "aus": False,
                         "eus": False,
                     }
+                # TODO study
                 offers = ProductDefinitionRules().file_tracker_offers(
                     affect, impact, ps_module, offers
                 )

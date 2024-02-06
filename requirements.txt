@@ -601,6 +601,10 @@ pyyaml==6.0 \
     # via
     #   -r requirements.in
     #   drf-spectacular
+q==2.7 \
+    --hash=sha256:8388a3ef7e79b3b6224189e44ddba8dc1a6e9ed3212ce96f83f6056fa532459c \
+    --hash=sha256:8e0b792f6658ab9e1133b5ea17af1b530530e60124cf9743bc0fa051b8c64f4e
+    # via -r requirements.in
 redis[hiredis]==4.5.4 \
     --hash=sha256:2c19e6767c474f2e85167909061d525ed65bea9301c0770bb151e041b7ac89a2 \
     --hash=sha256:73ec35da4da267d6847e47f68730fdd5f62e2ca69e3ef5885c6a78a9374c3893

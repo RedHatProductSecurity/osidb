@@ -13,6 +13,19 @@ class UBIHandler(ProductDefinitionHandler):
 
     def __init__(self) -> None:
         self.UBI_OVERRIDES = [Impact.MODERATE]
+        self.FEDRAMP_OVERRIDES = [
+            Impact.MODERATE
+        ]  # TODO maybe create a separate handler?
+        # TODO / NOTE / THOUGHTS
+        # - SFM2 has trackers_file_offer as a single function, but OSIDB has
+        #   - TrackerFileSuggestionView
+        #   - product_definition_handlers
+        #     - base (seems to run all handlers)
+        #     - ubi_handler
+        #     - unacked_handler
+        #   - TrackerFileSuggestionView.post (seems to do the beginning of sfm2's TrackerFileSuggestionView)
+        #   - FEDRAMP_OVERRIDES probably needs a new fedramp_handler
+        #   - The logic around unacked seems to be different - need deeper understanding to understand differences and similarities.
 
     def has_ubi_packages(ps_module: PsModule, affect: Affect) -> bool:
         """check weheter a ps_module has ubi packages given a target PsUpdateStream name"""
@@ -21,6 +34,7 @@ class UBIHandler(ProductDefinitionHandler):
         packages = UbiPackage.objects.filter(name=affect.ps_component)
         return bool(packages)
 
+    # TODO study
     def get_offer(self, affect: Affect, impact: Impact, ps_module: PsModule, offers):
         is_ubi = UBIHandler.has_ubi_packages(ps_module, affect)
 
