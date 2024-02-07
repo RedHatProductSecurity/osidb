@@ -2,6 +2,7 @@
 tracker common functionality test cases
 """
 import pytest
+from django.utils import timezone
 
 from apps.trackers.common import TrackerQueryBuilder
 from osidb.models import Affect, Flaw, Tracker
@@ -474,6 +475,9 @@ until the embargo has lifted. Please post the patch only to the \
                     resolution=Affect.AffectResolution.DELEGATED,
                     ps_module=ps_module.name,
                     ps_component="large-component",
+                    # created datetime defines the query result
+                    # ordering which is later reflected in description
+                    created_dt=timezone.datetime(2000 + idx, 1, 1, tzinfo=timezone.utc),
                 )
             )
 

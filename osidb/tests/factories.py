@@ -41,7 +41,22 @@ DATA_PRODSEC_ACL_WRITE = uuid.uuid5(
 )
 
 
-class FlawFactory(factory.django.DjangoModelFactory):
+class BaseFactory(factory.django.DjangoModelFactory):
+    """
+    base test factory overriding DjangoModelFactory where necessary
+    """
+
+    @classmethod
+    def _after_postgeneration(cls, instance, create, results=None):
+        """
+        the original implementation is not really compatible with TrackingMixin
+        https://github.com/FactoryBoy/factory_boy/blob/3.2.1/factory/django.py#L173
+        """
+        if create and results:
+            instance.save(auto_timestamps=False)
+
+
+class FlawFactory(BaseFactory):
     class Meta:
         model = Flaw
 
@@ -206,18 +221,13 @@ class FlawFactory(factory.django.DjangoModelFactory):
         instance creation
         with saving to DB
         """
-        # turn of automatic timestamps
-        # so we can explicitly assign them
-        kwargs["auto_timestamps"] = False
         # bz_id is not a real model attribute
         # it is just a shortcut to set it in the meta_attr
         kwargs.pop("bz_id", None)
-        # embargoed is not a real model attribute but annotation so it is read-only
-        # but we want preserve it as writable factory attribute as it is easier to work with
-        # than with ACLs so we need to remove it for the flaw creation and emulate annotation
-        embargoed = kwargs.pop("embargoed")
-        flaw = super()._create(model_class, *args, **kwargs)
-        flaw.embargoed = embargoed
+        flaw = cls._build(model_class, *args, **kwargs)
+        # turn of automatic timestamps
+        # so we can explicitly assign them
+        flaw.save(auto_timestamps=False)
         return flaw
 
     @classmethod
@@ -261,7 +271,7 @@ class FlawFactory(factory.django.DjangoModelFactory):
     #             self.affects.add(affect)
 
 
-class AffectFactory(factory.django.DjangoModelFactory):
+class AffectFactory(BaseFactory):
     class Meta:
         model = Affect
         django_get_or_create = ("flaw", "ps_module", "ps_component")
@@ -298,10 +308,11 @@ class AffectFactory(factory.django.DjangoModelFactory):
         instance creation
         with saving to DB
         """
+        affect = cls._build(model_class, *args, **kwargs)
         # turn of automatic timestamps
         # so we can explicitly assign them
-        kwargs["auto_timestamps"] = False
-        return super()._create(model_class, *args, **kwargs)
+        affect.save(auto_timestamps=False)
+        return affect
 
 
 class FlawCommentFactory(factory.django.DjangoModelFactory):
@@ -498,7 +509,7 @@ class PsUpdateStreamFactory(factory.django.DjangoModelFactory):
     unacked_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
 
 
-class TrackerFactory(factory.django.DjangoModelFactory):
+class TrackerFactory(BaseFactory):
     class Meta:
         model = Tracker
         django_get_or_create = ("type", "external_system_id")
@@ -545,6 +556,9 @@ class TrackerFactory(factory.django.DjangoModelFactory):
 
     meta_attr = {"test": "1"}
 
+    created_dt = factory.Faker("date_time", tzinfo=UTC)
+    updated_dt = factory.LazyAttribute(lambda f: f.created_dt)
+
     @factory.post_generation
     def affects(self, create, extracted, **kwargs):
         if not create:
@@ -560,15 +574,10 @@ class TrackerFactory(factory.django.DjangoModelFactory):
         instance creation
         with saving to DB
         """
+        tracker = cls._build(model_class, *args, **kwargs)
         # turn of automatic timestamps
         # so we can explicitly assign them
-        kwargs["auto_timestamps"] = False
-        # embargoed is not a real model attribute but annotation so it is read-only
-        # but we want preserve it as writable factory attribute as it is easier to work with
-        # than with ACLs so we need to remove it for the tracker creation and emulate annotation
-        embargoed = kwargs.pop("embargoed")
-        tracker = super()._create(model_class, *args, **kwargs)
-        tracker.embargoed = embargoed
+        tracker.save(auto_timestamps=False)
         return tracker
 
     @classmethod

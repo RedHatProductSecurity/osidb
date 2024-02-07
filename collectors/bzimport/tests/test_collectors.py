@@ -267,19 +267,20 @@ class TestBugzillaTrackerCollector:
         PsModuleFactory(bts_name="bugzilla", name="module")
         PsUpdateStreamFactory(name="update-stream")
 
+        affect = AffectFactory.create(
+            flaw__embargoed=False,
+            affectedness=Affect.AffectAffectedness.NEW,
+            ps_module="module",
+        )
         creation_dt = datetime(2011, 1, 1, tzinfo=timezone.utc)
-        with freeze_time(creation_dt):
-            affect = AffectFactory.create(
-                flaw__embargoed=False,
-                affectedness=Affect.AffectAffectedness.NEW,
-                ps_module="module",
-            )
-            TrackerFactory.create(
-                affects=(affect,),
-                external_system_id="577404",
-                type=Tracker.TrackerType.BUGZILLA,
-                embargoed=affect.flaw.is_embargoed,
-            )
+        TrackerFactory.create(
+            affects=(affect,),
+            external_system_id="577404",
+            type=Tracker.TrackerType.BUGZILLA,
+            embargoed=affect.flaw.is_embargoed,
+            created_dt=creation_dt,
+            updated_dt=creation_dt,
+        )
 
         tracker = Tracker.objects.first()
         assert tracker.created_dt == creation_dt
