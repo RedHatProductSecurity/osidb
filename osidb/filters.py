@@ -71,9 +71,7 @@ class DistinctFilterSet(FilterSet):
                     filter_.distinct = True
 
 
-class IncludeFieldsFilterSet(FilterSet):
-    include_fields = CharFilter(method="include_fields_filter")
-
+class SparseFieldsFilterSet(FilterSet):
     def _preprocess_fields(self, value):
         """
         Converts a comma-separated list of fields into an ORM-friendly format.
@@ -142,6 +140,10 @@ class IncludeFieldsFilterSet(FilterSet):
             field_set.add(fname)
         return prefetch_set, field_set
 
+
+class IncludeFieldsFilterSet(SparseFieldsFilterSet):
+    include_fields = CharFilter(method="include_fields_filter")
+
     def include_fields_filter(self, queryset, name, value):
         """
         Optimizes a view's QuerySet based on user input.
@@ -170,7 +172,32 @@ class IncludeFieldsFilterSet(FilterSet):
         )
 
 
-class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet):
+class ExcludeFieldsFilterSet(SparseFieldsFilterSet):
+    exclude_fields = CharFilter(method="exclude_fields_filter")
+
+    def exclude_fields_filter(self, queryset, name, value):
+        """
+        Optimizes a view's QuerySet based on user input.
+
+        This filter will attempt to optimize a given view's queryset based on an
+        denylist of fields provided by the user in order to improve performance.
+
+        It does so by leveraging the prefetch_related() and defer() QuerySet
+        methods, this solution is not perfect and should probably not be
+        improved further as it can get very complicated very quickly.
+
+        This filter does not use `select_related` for FK relations as the usage
+        of FKs in OSIDB endpoints is seldom used.
+        """
+        fields = self._preprocess_fields(value)
+        # note: we could attempt to optimize the prefetched fields but it is
+        # a lot more complicated than the case for include_fields (which is
+        # not perfect as it is), so the prefetch_set has been left as-is.
+        _, valid_fields = self._filter_fields(fields)
+        return queryset.defer(*list(valid_fields))
+
+
+class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
     """
     Class that filters queries to FlawList view / API endpoint based on Flaw fields (currently only supports updated_dt)
     """
@@ -374,7 +401,7 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet):
     # This would cause a circular import, so instead we define there + import here and set the property
 
 
-class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet):
+class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
 
     DISTINCT_FIELDS_PREFIXES = ("flaw__", "affects__")
 
@@ -487,7 +514,7 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet):
     order = OrderingFilter(fields=Meta.fields.keys())
 
 
-class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet):
+class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
 
     DISTINCT_FIELDS_PREFIXES = ("affects__",)
 
@@ -591,7 +618,7 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet):
     order = OrderingFilter(fields=Meta.fields.keys())
 
 
-class FlawAcknowledgmentFilter(IncludeFieldsFilterSet):
+class FlawAcknowledgmentFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
     class Meta:
         model = FlawAcknowledgment
         fields = {
@@ -610,7 +637,7 @@ class FlawAcknowledgmentFilter(IncludeFieldsFilterSet):
         }
 
 
-class FlawCommentFilter(IncludeFieldsFilterSet):
+class FlawCommentFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
     class Meta:
         model = FlawComment
         fields = {
@@ -620,7 +647,7 @@ class FlawCommentFilter(IncludeFieldsFilterSet):
         }
 
 
-class FlawCVSSFilter(IncludeFieldsFilterSet):
+class FlawCVSSFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
     cvss_version = CharFilter(field_name="version")
 
     class Meta:
@@ -642,7 +669,7 @@ class FlawCVSSFilter(IncludeFieldsFilterSet):
         }
 
 
-class FlawReferenceFilter(IncludeFieldsFilterSet):
+class FlawReferenceFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
     class Meta:
         model = FlawReference
         fields = {
@@ -661,7 +688,7 @@ class FlawReferenceFilter(IncludeFieldsFilterSet):
         }
 
 
-class AffectCVSSFilter(IncludeFieldsFilterSet):
+class AffectCVSSFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
     cvss_version = CharFilter(field_name="version")
 
     class Meta:
@@ -683,7 +710,7 @@ class AffectCVSSFilter(IncludeFieldsFilterSet):
         }
 
 
-class FlawPackageVersionFilter(IncludeFieldsFilterSet):
+class FlawPackageVersionFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
     class Meta:
         model = Package
         fields = {
