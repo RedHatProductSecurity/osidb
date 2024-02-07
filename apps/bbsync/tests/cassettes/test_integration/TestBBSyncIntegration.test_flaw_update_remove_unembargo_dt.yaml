@@ -13,7 +13,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/version
+    uri: https://example.com/rest/version
   response:
     body:
       string: '{"version": "5.0.4.rh86"}'
@@ -38,8 +38,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -65,7 +63,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/user?ids=1
+    uri: https://example.com/rest/user?ids=1
   response:
     body:
       string: '{"users": [{"email": "aander07@packetmaster.com", "real_name": "Need
@@ -92,8 +90,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -119,7 +115,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2012106&include_fields=id&include_fields=last_change_time
+    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2012106&include_fields=id&include_fields=last_change_time
   response:
     body:
       string: '{"total_matches": 1, "limit": "20", "bugs": [{"last_change_time": "2023-05-26T13:10:44Z",
@@ -145,8 +141,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -185,7 +179,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: PUT
-    uri: https://bugzilla.redhat.com/rest/bug/2012106
+    uri: https://example.com/rest/bug/2012106
   response:
     body:
       string: '{"bugs": [{"last_change_time": "2023-05-26T13:18:26Z", "changes": {"cf_release_notes":
@@ -223,8 +217,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -252,7 +244,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/version
+    uri: https://example.com/rest/version
   response:
     body:
       string: '{"version": "5.0.4.rh86"}'
@@ -277,8 +269,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -304,7 +294,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/user?ids=1
+    uri: https://example.com/rest/user?ids=1
   response:
     body:
       string: '{"users": [{"id": 1, "real_name": "Need Real Name", "can_login": true,
@@ -330,8 +320,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -357,7 +345,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2012106
+    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2012106
   response:
     body:
       string: '{"bugs": [{"cf_release_notes": "something got wrong in my shower",
@@ -419,8 +407,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -448,7 +434,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2012106
+    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2012106
   response:
     body:
       string: '{"total_matches": 1, "limit": "20", "offset": 0, "bugs": [{"cf_devel_whiteboard":
@@ -510,8 +496,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -539,7 +523,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/bug/2012106/comment
+    uri: https://example.com/rest/bug/2012106/comment
   response:
     body:
       string: '{"bugs": {"2012106": {"comments": [{"tags": [], "id": 15560485, "time":
@@ -568,8 +552,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
