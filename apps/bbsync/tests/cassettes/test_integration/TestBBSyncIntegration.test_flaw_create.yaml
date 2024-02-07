@@ -13,7 +13,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/version
+    uri: https://example.com/rest/version
   response:
     body:
       string: '{"version": "5.0.4.rh84"}'
@@ -38,8 +38,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -65,7 +63,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/user?ids=1
+    uri: https://example.com/rest/user?ids=1
   response:
     body:
       string: '{"users": [{"can_login": true, "id": 1, "real_name": "Need Real Name",
@@ -91,8 +89,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -127,7 +123,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: POST
-    uri: https://bugzilla.redhat.com/rest/bug
+    uri: https://example.com/rest/bug
   response:
     body:
       string: '{"id": 2009341}'
@@ -152,8 +148,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -179,7 +173,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/version
+    uri: https://example.com/rest/version
   response:
     body:
       string: '{"version": "5.0.4.rh84"}'
@@ -204,8 +198,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -231,7 +223,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/user?ids=1
+    uri: https://example.com/rest/user?ids=1
   response:
     body:
       string: '{"users": [{"can_login": true, "name": "aander07@packetmaster.com",
@@ -258,8 +250,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -285,7 +275,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2009341
+    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2009341
   response:
     body:
       string: '{"limit": "20", "total_matches": 1, "offset": 0, "bugs": [{"id": 2009341,
@@ -338,8 +328,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -367,7 +355,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2009341
+    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2009341
   response:
     body:
       string: '{"bugs": [{"is_creator_accessible": true, "docs_contact": "", "classification":
@@ -420,8 +408,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -449,7 +435,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/bug/2009341/comment
+    uri: https://example.com/rest/bug/2009341/comment
   response:
     body:
       string: '{"comments": {}, "bugs": {"2009341": {"comments": [{"tags": [], "creator_id":
@@ -477,8 +463,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
