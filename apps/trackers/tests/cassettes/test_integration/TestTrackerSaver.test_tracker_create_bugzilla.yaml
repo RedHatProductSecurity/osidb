@@ -38,8 +38,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -91,8 +89,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -152,8 +148,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -204,8 +198,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -257,8 +249,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -368,8 +358,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -481,8 +469,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -542,8 +528,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -600,8 +584,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -690,8 +672,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
