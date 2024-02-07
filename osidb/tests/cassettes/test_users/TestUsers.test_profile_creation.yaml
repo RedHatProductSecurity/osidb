@@ -13,7 +13,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/version
+    uri: https://example.com/rest/version
   response:
     body:
       string: '{"version":"5.0.4.rh69"}'
@@ -40,8 +40,6 @@ interactions:
       - Accept-Encoding,User-Agent
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -69,7 +67,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/user?match=atorresj%40redhat.com
+    uri: https://example.com/rest/user?match=atorresj%40redhat.com
   response:
     body:
       string: '{"users":[{"email":"atorresj@redhat.com","can_login":true,"saved_searches":[],"real_name":"Adrian
@@ -97,8 +95,6 @@ interactions:
       - Accept-Encoding,User-Agent
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -130,10 +126,10 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://issues.redhat.com/rest/api/2/user/search?includeActive=True&includeInactive=False&maxResults=50&username=atorresj%40redhat.com
+    uri: https://example.com/rest/api/2/user/search?includeActive=True&includeInactive=False&maxResults=50&username=atorresj%40redhat.com
   response:
     body:
-      string: '[{"self":"https://issues.redhat.com/rest/api/2/user?username=atorresj@redhat.com","key":"JIRAUSER173566","name":"atorresj@redhat.com","emailAddress":"atorresj@redhat.com","avatarUrls":{"48x48":"https://issues.redhat.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078","24x24":"https://issues.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078","16x16":"https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078","32x32":"https://issues.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},"displayName":"Adrian
+      string: '[{"self":"https://example.com/rest/api/2/user?username=atorresj@redhat.com","key":"JIRAUSER173566","name":"atorresj@redhat.com","emailAddress":"atorresj@redhat.com","avatarUrls":{"48x48":"https://example.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078","24x24":"https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078","16x16":"https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078","32x32":"https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},"displayName":"Adrian
         Torres Justo","active":true,"deleted":false,"timeZone":"Europe/Brussels","locale":"en_US"}]'
     headers:
       Cache-Control:
@@ -196,7 +192,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/version
+    uri: https://example.com/rest/version
   response:
     body:
       string: '{"version":"5.0.4.rh69"}'
@@ -223,8 +219,6 @@ interactions:
       - Accept-Encoding,User-Agent
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -252,7 +246,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/user?names=atorresj%40redhat.com
+    uri: https://example.com/rest/user?names=atorresj%40redhat.com
   response:
     body:
       string: '{"users":[{"saved_reports":[],"email":"atorresj@redhat.com","can_login":true,"name":"atorresj@redhat.com","saved_searches":[],"id":467417,"real_name":"Adrian
@@ -280,8 +274,6 @@ interactions:
       - Accept-Encoding,User-Agent
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -313,10 +305,10 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://issues.redhat.com/rest/api/2/user?username=atorresj%40redhat.com
+    uri: https://example.com/rest/api/2/user?username=atorresj%40redhat.com
   response:
     body:
-      string: '{"self":"https://issues.redhat.com/rest/api/2/user?username=atorresj@redhat.com","key":"JIRAUSER173566","name":"atorresj@redhat.com","emailAddress":"atorresj@redhat.com","avatarUrls":{"48x48":"https://issues.redhat.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078","24x24":"https://issues.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078","16x16":"https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078","32x32":"https://issues.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},"displayName":"Adrian
+      string: '{"self":"https://example.com/rest/api/2/user?username=atorresj@redhat.com","key":"JIRAUSER173566","name":"atorresj@redhat.com","emailAddress":"atorresj@redhat.com","avatarUrls":{"48x48":"https://example.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078","24x24":"https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078","16x16":"https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078","32x32":"https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},"displayName":"Adrian
         Torres Justo","active":true,"deleted":false,"timeZone":"Europe/Brussels","locale":"en_US","groups":{"size":10,"items":[]},"applicationRoles":{"size":1,"items":[]},"expand":"groups,applicationRoles"}'
     headers:
       Cache-Control:
