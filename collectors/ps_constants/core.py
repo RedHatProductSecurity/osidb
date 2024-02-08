@@ -45,9 +45,12 @@ def sync_contract_priority(source_dict):
     sync contract priority data
     """
     ContractPriority.objects.all().delete()
-    for ps_module, ps_component_list in source_dict.items():
-        for ps_component in ps_component_list:
-            ContractPriority(ps_module=ps_module, ps_component=ps_component).save()
+    # ps_update_stream is unique across all ps_modules in the hierarchy of product
+    # definitions so there's no need to store ps_module, although it is in the
+    # source yaml for human readability.
+    for ps_update_streams in source_dict.values():
+        for ps_update_stream in ps_update_streams:
+            ContractPriority(ps_update_stream=ps_update_stream).save()
 
 
 @transaction.atomic

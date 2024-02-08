@@ -19,12 +19,12 @@ pytestmark = pytest.mark.unit
 
 SAMPLE_DATA = {
     "rhel-1": [
-        "test-package",
-        "another-package",
+        "test1",
+        "another1",
     ],
     "rhel-2": [
-        "test-package",
-        "another-package",
+        "test2",
+        "another2",
     ],
 }
 
@@ -56,23 +56,24 @@ class TestPsConstantsCollection:
         """
         test collector compliance priority data sync
         """
+        # The meaning of SAMPLE_DATA here is {"module": ["component"]}.
         sync_compliance_priority(SAMPLE_DATA)
 
         assert CompliancePriority.objects.all().count() == 4
         assert CompliancePriority.objects.filter(ps_module="rhel-1").count() == 2
-        assert (
-            CompliancePriority.objects.filter(ps_component="test-package").count() == 2
-        )
+        assert CompliancePriority.objects.filter(ps_component="test1").count() == 1
+        assert CompliancePriority.objects.filter(ps_component="test2").count() == 1
 
     def test_sync_contract_priority(self):
         """
         test collector contract priority data sync
         """
+        # The meaning of SAMPLE_DATA here is {"module": ["update stream"]}.
         sync_contract_priority(SAMPLE_DATA)
 
         assert ContractPriority.objects.all().count() == 4
-        assert ContractPriority.objects.filter(ps_module="rhel-1").count() == 2
-        assert ContractPriority.objects.filter(ps_component="test-package").count() == 2
+        assert ContractPriority.objects.filter(ps_update_stream="test1").count() == 1
+        assert ContractPriority.objects.filter(ps_update_stream="test2").count() == 1
 
     def test_sync_ubi_packages(self):
         """Check collector can correctly sync ubi data in database"""

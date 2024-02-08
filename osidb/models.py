@@ -2099,16 +2099,6 @@ class Affect(
         ).exists()
 
     @property
-    def is_contract_priority(self) -> bool:
-        """
-        check and return whether this affect module and component combination is contract
-        priority which is defined in PS constants repo in contract_priority.yml
-        """
-        return ContractPriority.objects.filter(
-            ps_module=self.ps_module, ps_component=self.ps_component
-        ).exists()
-
-    @property
     def is_notaffected(self) -> bool:
         """
         check and return whether the given affect is set as not affected or not to be fixed
@@ -2664,6 +2654,16 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         # TODO this is only a placeholder for now
         # it is to be determined and implemented
         return False
+
+    @property
+    def is_contract_priority(self) -> bool:
+        """
+        check and return whether this affect module and update stream combination is contract
+        priority which is defined in PS constants repo in contract_priority.yml
+        """
+        return ContractPriority.objects.filter(
+            ps_update_stream=self.ps_update_stream
+        ).exists()
 
 
 class ErratumManager(TrackingMixinManager):
@@ -3538,8 +3538,7 @@ class ContractPriority(models.Model):
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    ps_module = models.CharField(max_length=100)
-    ps_component = models.CharField(max_length=255)
+    ps_update_stream = models.CharField(max_length=100)
 
 
 class UbiPackage(models.Model):
