@@ -153,10 +153,8 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
             self._query["fields"]["labels"].append("validation-requested")
 
         # If at least one affect has is_contract_priority, add label contract-priority
-        for affect in self.tracker.affects.all():
-            if affect.is_contract_priority:
-                self._query["fields"]["labels"].append("contract-priority")
-                break
+        if self.tracker.is_contract_priority:
+            self._query["fields"]["labels"].append("contract-priority")
 
     def generate_sla(self):
         """
