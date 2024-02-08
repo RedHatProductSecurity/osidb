@@ -29,7 +29,7 @@ interactions:
       Content-Length:
       - '24'
       Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.stage.redhat.com
+      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
@@ -80,7 +80,7 @@ interactions:
       Content-Length:
       - '137'
       Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.stage.redhat.com
+      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
@@ -139,7 +139,7 @@ interactions:
       Content-Length:
       - '14'
       Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.stage.redhat.com
+      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
@@ -189,7 +189,7 @@ interactions:
       Content-Length:
       - '24'
       Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.stage.redhat.com
+      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
@@ -241,7 +241,7 @@ interactions:
       Content-Length:
       - '137'
       Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.stage.redhat.com
+      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
@@ -317,7 +317,7 @@ interactions:
       Connection:
       - keep-alive
       Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.stage.redhat.com
+      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
@@ -397,7 +397,7 @@ interactions:
       Connection:
       - keep-alive
       Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.stage.redhat.com
+      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
@@ -454,7 +454,7 @@ interactions:
       Content-Length:
       - '277'
       Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.stage.redhat.com
+      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
