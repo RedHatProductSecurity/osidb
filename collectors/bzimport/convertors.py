@@ -168,7 +168,8 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
             "resolution": self._raw["resolution"],
             "created_dt": self._raw["creation_time"],
             "updated_dt": self._raw["last_change_time"],
-            "blocks": self._raw["blocks"],
+            "blocks": json.dumps(self._raw["blocks"]),
+            "groups": json.dumps(self._raw["groups"]),
         }
 
 
