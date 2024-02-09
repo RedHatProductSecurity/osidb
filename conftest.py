@@ -206,3 +206,25 @@ def bypass_rls(db, request):
     if "enable_rls" in request.keywords:
         return
     set_user_acls(settings.ALL_GROUPS)
+
+
+@pytest.fixture
+def enable_bugzilla_sync(monkeypatch) -> None:
+    """
+    enable the sync to Bugzilla
+    """
+    import apps.bbsync.mixins as mixins
+    import osidb.models as models
+
+    monkeypatch.setattr(mixins, "SYNC_TO_BZ", True)
+    monkeypatch.setattr(models, "SYNC_TO_BZ", True)
+
+
+@pytest.fixture
+def enable_jira_sync(monkeypatch) -> None:
+    """
+    enable the sync to Jira
+    """
+    import osidb.models as models
+
+    monkeypatch.setattr(models, "SYNC_TO_JIRA", True)
