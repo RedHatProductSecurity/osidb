@@ -147,6 +147,17 @@ class TestBZImportCollector:
         assert Tracker.objects.count() != 0
 
     @pytest.mark.vcr
+    def test_sync_embargoed_flaw(self, flaw_collector):
+        """
+        test that an embargoed flaw loaded from Bugzilla is preserved as embargoed
+        """
+        flaw_id = "1984057"
+        assert Flaw.objects.count() == 0
+        flaw_collector.sync_flaw(flaw_id)
+        assert Flaw.objects.filter(meta_attr__bz_id=flaw_id).exists()
+        assert Flaw.objects.get(meta_attr__bz_id=flaw_id).is_embargoed
+
+    @pytest.mark.vcr
     def test_empty_affiliation(self, flaw_collector):
         """
         test that syncing a flaw with an acknowledgment with an empty (null) affilitation works
@@ -238,6 +249,18 @@ class TestBugzillaTrackerCollector:
         # no affect, thus this should be empty
         assert list(tracker.affects.all()) == []
         assert tracker.ps_update_stream == "update-stream"
+
+    @pytest.mark.vcr
+    def test_sync_embargoed_tracker(self, bz_tracker_collector):
+        """
+        test that an embargoed tracker loaded from Bugzilla is preserved as embargoed
+        reproducer for https://issues.redhat.com/browse/OSIDB-2118
+        """
+        tracker_id = "1984058"
+        assert Tracker.objects.count() == 0
+        bz_tracker_collector.sync_tracker(tracker_id)
+        assert Tracker.objects.filter(external_system_id=tracker_id).exists()
+        assert Tracker.objects.get(external_system_id=tracker_id).is_embargoed
 
     @pytest.mark.vcr
     def test_sync_with_affect(self, bz_tracker_collector):

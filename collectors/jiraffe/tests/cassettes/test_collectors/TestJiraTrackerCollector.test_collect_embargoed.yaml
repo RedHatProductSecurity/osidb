@@ -1,0 +1,282 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*.*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.31.0
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://issues.redhat.com/rest/api/2/issue/RHEL-12102
+  response:
+    body:
+      string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+        "id": "15555376", "self": "https://issues.redhat.com/rest/api/2/issue/15555376",
+        "key": "RHEL-12102", "fields": {"customfield_12322243": null, "customfield_12322244":
+        null, "customfield_12318141": null, "customfield_12322640": null, "customfield_12322241":
+        null, "fixVersions": [], "resolution": null, "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@536e659c[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3094f991[overall=PullRequestOverallBean{stateCount=0,
+        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@37477d6d[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@20084265[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@58bece84[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@62659c2b[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6e45291f[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@cbc45d8[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@22586025[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@6c922481[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2b58f5dd[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@4524f7eb[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
+        "customfield_12317334": null, "customfield_12324140": null, "customfield_12315950":
+        [{"self": "https://issues.redhat.com/rest/api/2/user?username=rhel-process-autobot",
+        "name": "rhel-process-autobot", "key": "rhel-process-autobot", "emailAddress":
+        "rhel-process-autobot+redhat.com", "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=rhel-process-autobot&avatarId=27863",
+        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=rhel-process-autobot&avatarId=27863",
+        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=rhel-process-autobot&avatarId=27863",
+        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=rhel-process-autobot&avatarId=27863"},
+        "displayName": "RHEL Jira bot", "active": true, "timeZone": "GMT"}, {"self":
+        "https://issues.redhat.com/rest/api/2/user?username=watson-automation",
+        "name": "watson-automation", "key": "JIRAUSER208889", "emailAddress": "watson-tool-maintainers@redhat.com",
+        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/d01ede95989eb5f38054dce9e54ea87f?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/d01ede95989eb5f38054dce9e54ea87f?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/d01ede95989eb5f38054dce9e54ea87f?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/d01ede95989eb5f38054dce9e54ea87f?d=mm&s=32"},
+        "displayName": "Watson Automation", "active": true, "timeZone": "America/New_York"}],
+        "customfield_12310940": null, "customfield_12321440": null, "lastViewed":
+        "2024-02-09T08:19:07.455+0000", "customfield_12321040": null, "customfield_12317340":
+        null, "customfield_12317341": null, "customfield_12323341": null, "customfield_12319640":
+        null, "customfield_12317342": null, "customfield_12313140": null, "customfield_12315041":
+        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/12953",
+        "value": "Not Started", "id": "12953", "disabled": false}, "priority": {"self":
+        "https://issues.redhat.com/rest/api/2/priority/4", "iconUrl": "https://issues.redhat.com/images/icons/priorities/minor.svg",
+        "name": "Minor", "id": "4"}, "labels": ["CVE-2004-2493", "Security", "SecurityTracking",
+        "flaw:bz#1984642", "pscomponent:openssl"], "customfield_12311641": null, "customfield_12311240":
+        null, "aggregatetimeoriginalestimate": null, "timeestimate": null, "versions":
+        [{"self": "https://issues.redhat.com/rest/api/2/version/12407280", "id":
+        "12407280", "description": "PPSync [release:2479]", "name": "rhel-8.10.0",
+        "archived": false, "released": false}], "customfield_12317343": null, "issuelinks":
+        [], "customfield_12317345": null, "assignee": {"self": "https://issues.redhat.com/rest/api/2/user?username=dbelyavs%40redhat.com",
+        "name": "dbelyavs@redhat.com", "key": "dbelyavs", "emailAddress": "dbelyavs@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=dbelyavs&avatarId=29694",
+        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=dbelyavs&avatarId=29694",
+        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=dbelyavs&avatarId=29694",
+        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=dbelyavs&avatarId=29694"},
+        "displayName": "Dmitry Belyavskiy", "active": true, "timeZone": "Europe/Prague"},
+        "customfield_12317347": null, "customfield_12317348": null, "customfield_12313942":
+        null, "customfield_12313941": "2000-01-01", "status": {"self": "https://issues.redhat.com/rest/api/2/status/10016",
+        "description": "Initial creation status. Implies nothing yet and should be
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.redhat.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/2",
+        "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
+        [{"self": "https://issues.redhat.com/rest/api/2/component/12379295",
+        "id": "12379295", "name": "openssl", "description": " A general purpose cryptography
+        library with TLS implementation"}], "customfield_12324240": null, "customfield_12320841":
+        null, "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
+        null, "customfield_12320842": null, "customfield_12310243": null, "aggregatetimeestimate":
+        null, "customfield_12317278": null, "customfield_12317313": null, "customfield_12316348":
+        null, "customfield_12321540": null, "creator": {"self": "https://issues.redhat.com/rest/api/2/user?username=osoukup%40redhat.com",
+        "name": "osoukup@redhat.com", "key": "osoukup", "emailAddress": "osoukup+redhat.com",
+        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17283",
+        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17283",
+        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17283",
+        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17283"},
+        "displayName": "Ondrej Soukup", "active": true, "timeZone": "Europe/Prague"},
+        "customfield_12321541": null, "subtasks": [], "customfield_12319740": null,
+        "customfield_12321140": null, "customfield_12323440": null, "customfield_12315141":
+        {"self": "https://issues.redhat.com/rest/api/2/user?username=dbelyavs%40redhat.com",
+        "name": "dbelyavs@redhat.com", "key": "dbelyavs", "emailAddress": "dbelyavs@redhat.com",
+        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=dbelyavs&avatarId=29694",
+        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=dbelyavs&avatarId=29694",
+        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=dbelyavs&avatarId=29694",
+        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=dbelyavs&avatarId=29694"},
+        "displayName": "Dmitry Belyavskiy", "active": true, "timeZone": "Europe/Prague"},
+        "customfield_12320851": [{"self": "https://issues.redhat.com/rest/api/2/customFieldOption/27798",
+        "value": "ssg_security", "id": "27798", "disabled": false}], "reporter": {"self":
+        "https://issues.redhat.com/rest/api/2/user?username=osoukup%40redhat.com",
+        "name": "osoukup@redhat.com", "key": "osoukup", "emailAddress": "osoukup+redhat.com",
+        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17283",
+        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17283",
+        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17283",
+        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17283"},
+        "displayName": "Ondrej Soukup", "active": true, "timeZone": "Europe/Prague"},
+        "customfield_12320850": null, "aggregateprogress": {"progress": 0, "total":
+        0}, "customfield_12315542": null, "customfield_12315948": {"self": "https://issues.redhat.com/rest/api/2/user?username=qe-baseos-security",
+        "name": "qe-baseos-security", "key": "qe-baseos-security", "emailAddress":
+        "qe-baseos-security@redhat.com", "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/2ee14bf6ad75088a55d7e1f3f0fdaddd?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/2ee14bf6ad75088a55d7e1f3f0fdaddd?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/2ee14bf6ad75088a55d7e1f3f0fdaddd?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/2ee14bf6ad75088a55d7e1f3f0fdaddd?d=mm&s=32"},
+        "displayName": "SSG Security QE", "active": true, "timeZone": "Europe/Prague"},
+        "customfield_12313240": null, "customfield_12319742": null, "progress": {"progress":
+        0, "total": 0}, "customfield_12323040": null, "votes": {"self": "https://issues.redhat.com/rest/api/2/issue/RHEL-12102/votes",
+        "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
+        "total": 0, "worklogs": []}, "customfield_12319743": null, "archivedby": null,
+        "customfield_12315940": null, "customfield_12317843": null, "issuetype": {"self":
+        "https://issues.redhat.com/rest/api/2/issuetype/1", "id": "1", "description":
+        "A problem which impairs or prevents the functions of the product.", "iconUrl":
+        "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        "name": "Bug", "subtask": false, "avatarId": 13263}, "customfield_12317370":
+        null, "customfield_12318341": null, "customfield_12317372": null, "customfield_12317374":
+        null, "timespent": null, "customfield_12320940": null, "project": {"self":
+        "https://issues.redhat.com/rest/api/2/project/12332745", "id": "12332745",
+        "key": "RHEL", "name": "RHEL", "projectTypeKey": "software", "avatarUrls":
+        {"48x48": "https://issues.redhat.com/secure/projectavatar?pid=12332745&avatarId=17271",
+        "24x24": "https://issues.redhat.com/secure/projectavatar?size=small&pid=12332745&avatarId=17271",
+        "16x16": "https://issues.redhat.com/secure/projectavatar?size=xsmall&pid=12332745&avatarId=17271",
+        "32x32": "https://issues.redhat.com/secure/projectavatar?size=medium&pid=12332745&avatarId=17271"},
+        "projectCategory": {"self": "https://issues.redhat.com/rest/api/2/projectCategory/10630",
+        "id": "10630", "description": "These are projects which will be migrated to
+        Red hat Jira (issues.redhat.com)", "name": "Product Development-RHEL"}}, "customfield_12320944":
+        null, "aggregatetimespent": null, "customfield_12310220": null, "customfield_12310183":
+        null, "resolutiondate": null, "workratio": -1, "customfield_12316840": null,
+        "customfield_12317379": null, "customfield_12316841": null, "customfield_12317259":
+        [{"self": "https://issues.redhat.com/rest/api/2/customFieldOption/15257",
+        "value": "sst_security_crypto", "id": "15257", "disabled": false}], "customfield_12319040":
+        null, "watches": {"self": "https://issues.redhat.com/rest/api/2/issue/RHEL-12102/watchers",
+        "watchCount": 1, "isWatching": false}, "customfield_12319286": {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/30765",
+        "value": "Unspecified", "id": "30765", "disabled": false}, "customfield_12323140":
+        null, "created": "2024-02-06T14:10:27.818+0000", "customfield_12321240": null,
+        "customfield_12320948": {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/27850",
+        "value": "Needs Review", "id": "27850", "disabled": false}, "customfield_12320947":
+        [{"self": "https://issues.redhat.com/rest/api/2/customFieldOption/27714",
+        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        null, "updated": "2024-02-06T14:10:34.320+0000", "customfield_12311840": null,
+        "customfield_12322143": null, "customfield_12322140": null, "customfield_12316142":
+        null, "customfield_12322141": null, "customfield_12324441": null, "customfield_12322142":
+        null, "timeoriginalestimate": null, "description": "Security Tracking Issue\n\nDo
+        not make this issue public.\n\nImpact: Low\nReported Date: 01-Jan-2000\nPM
+        Fix/Wontfix Decision By: 07-Mar-2024\nResolve Bug By: 29-Jun-2000\n\nIn case
+        the dates above are already past, please evaluate this bug in your next prioritization
+        review and make a decision then. Remember to explicitly set CLOSED:WONTFIX
+        (in Bugzilla) or Closed:Won''t Do (in Jira) if you decide not to fix this
+        bug.\n\nPlease review this tracker and its impact on your product or service,
+        as soon as possible. The trackers are filed WITHOUT in-depth analysis as the
+        vulnerability has a Low or Moderate severity impact on this product or service.
+        For more details, please refer to following confluence page - https://docs.engineering.redhat.com/x/3e_3EQ\n\nPlease
+        see the Security Errata Policy for further details: https://docs.engineering.redhat.com/x/9kKpDw\n\nNOTE
+        THIS ISSUE IS CURRENTLY EMBARGOED, DO NOT MAKE PUBLIC COMMITS OR COMMENTS
+        ABOUT THIS ISSUE.\n\nWARNING: NOTICE THAT CHANGING THE SECURITY LEVEL FROM
+        \"SECURITY ISSUE\" TO \"RED HAT INTERNAL\" MAY BREAK THE EMBARGO.\n\nFlaw:\n-----\n\nEMBARGOED
+        CVE-2004-2493 test: totally descriptive\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1984642\n\ntest\n",
+        "customfield_12322148": null, "timetracking": {}, "security": {"self": "https://issues.redhat.com/rest/api/2/securitylevel/11690",
+        "id": "11690", "description": "Restricts access to Product Security and the
+        people involved in resolving the issue. Only Product Security can remove this
+        level once applied.", "name": "Embargoed Security Issue"}, "attachment": [],
+        "customfield_12316542": {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/14655",
+        "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
+        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/14657",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12324040":
+        null, "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
+        "summary": "EMBARGOED CVE-2004-2493 openssl: test: totally descriptive [rhel-8]",
+        "customfield_12323640": null, "customfield_12323642": null, "customfield_12317360":
+        null, "customfield_12323641": null, "customfield_12318450": null, "customfield_12323242":
+        null, "customfield_12313040": null, "customfield_12323647": [{"self": "https://issues.redhat.com/rest/api/2/customFieldOption/34754",
+        "value": "en-US (English)", "id": "34754", "disabled": false}], "customfield_12323649":
+        null, "customfield_12321740": null, "customfield_12323644": null, "customfield_12323643":
+        null, "customfield_12323646": null, "customfield_12323645": null, "environment":
+        null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
+        "0.0", "duedate": "2000-06-29", "customfield_12311140": null, "customfield_12319940":
+        null, "customfield_12317366": null, "comment": {"comments": [{"self": "https://issues.redhat.com/rest/api/2/issue/15555376/comment/23239392",
+        "id": "23239392", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=autobot-jira-api",
+        "name": "autobot-jira-api", "key": "autobot-jira-api", "emailAddress": "pme-bot@redhat.com",
+        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=32"},
+        "displayName": "pme bot", "active": true, "timeZone": "GMT"}, "body": "\n                    h4.
+        Found errors for component \u201copenssl\u201d while setting the following
+        fields according to [ownership mapping information in the source repository|https://gitlab.cee.redhat.com/bugzilla-data/components/-/blob/main/RHEL8/openssl]:\n\n                    {quote}\n                    *
+        Watchers: user \u201ccllang@redhat.com\u201d found inactive in Jira based
+        on the email address \u201ccllang@redhat.com\u201d provided in the repository.
+        \n\n                    {quote}\n                ", "updateAuthor": {"self":
+        "https://issues.redhat.com/rest/api/2/user?username=autobot-jira-api",
+        "name": "autobot-jira-api", "key": "autobot-jira-api", "emailAddress": "pme-bot@redhat.com",
+        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=48",
+        "24x24": "https://www.gravatar.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=24",
+        "16x16": "https://www.gravatar.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=16",
+        "32x32": "https://www.gravatar.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=32"},
+        "displayName": "pme bot", "active": true, "timeZone": "GMT"}, "created": "2024-02-06T14:10:29.639+0000",
+        "updated": "2024-02-06T14:10:29.639+0000", "visibility": {"type": "group",
+        "value": "Red Hat Employee"}}, {"self": "https://issues.redhat.com/rest/api/2/issue/15555376/comment/23239393",
+        "id": "23239393", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=rhn-support-ceverson",
+        "name": "rhn-support-ceverson", "key": "ceverson", "emailAddress": "ceverson+redhat.com",
+        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=ceverson&avatarId=30564",
+        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=ceverson&avatarId=30564",
+        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=ceverson&avatarId=30564",
+        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=ceverson&avatarId=30564"},
+        "displayName": "Clark Everson", "active": true, "timeZone": "America/New_York"},
+        "body": "Issue watchers: Dmitry Belyavskiy, Ondrej Soukup", "updateAuthor":
+        {"self": "https://issues.redhat.com/rest/api/2/user?username=rhn-support-ceverson",
+        "name": "rhn-support-ceverson", "key": "ceverson", "emailAddress": "ceverson+redhat.com",
+        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=ceverson&avatarId=30564",
+        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=ceverson&avatarId=30564",
+        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=ceverson&avatarId=30564",
+        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=ceverson&avatarId=30564"},
+        "displayName": "Clark Everson", "active": true, "timeZone": "America/New_York"},
+        "created": "2024-02-06T14:10:34.320+0000", "updated": "2024-02-06T14:10:34.320+0000",
+        "visibility": {"type": "group", "value": "Red Hat Employee"}}], "maxResults":
+        2, "total": 2, "startAt": 0}, "customfield_12310213": null, "customfield_12311940":
+        "1|zctmp8:"}}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Security-Policy:
+      - sandbox
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Fri, 09 Feb 2024 08:22:16 GMT
+      Expires:
+      - Fri, 09 Feb 2024 08:22:16 GMT
+      Pragma:
+      - no-cache
+      Retry-After:
+      - '0'
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-RateLimit-Limit:
+      - '-1'
+      X-RateLimit-Remaining:
+      - '9223372036854775807'
+      content-length:
+      - '19945'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-dc-stg-mpp-1
+      x-arequestid:
+      - 502x560008x1
+      x-asessionid:
+      - 1smu3ci
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-ratelimit-fillrate:
+      - '-1'
+      x-ratelimit-interval-seconds:
+      - '1'
+      x-rh-edge-cache-status:
+      - NotCacheable from child
+      x-rh-edge-reference-id:
+      - 0.a5361060.1707466936.e5e848d3
+      x-rh-edge-request-id:
+      - e5e848d3
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1
