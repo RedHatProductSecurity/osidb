@@ -1,3 +1,4 @@
+import json
 import logging
 
 from apps.bbsync.cc import AffectCCBuilder, RHSCLAffectCCBuilder
@@ -217,8 +218,13 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
 
         # otherwise we provide the differences
         else:
-            # TODO we change the tracker groups on unembargo only
-            pass
+            add_flaw_groups, remove_flaw_groups = self._lists2diffs(
+                groups, json.loads(self.old_tracker.meta_attr.get("groups", "[]"))
+            )
+            self._query["groups"] = {
+                "add": add_flaw_groups,
+                "remove": remove_flaw_groups,
+            }
 
     def generate_keywords(self):
         """
