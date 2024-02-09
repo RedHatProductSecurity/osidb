@@ -8,7 +8,7 @@ from nvdlib.classes import CVE
 
 from collectors.constants import SNIPPET_CREATION_ENABLED
 from collectors.framework.models import Collector
-from collectors.keywords import should_create_snippet
+from collectors.nvd.keywords import should_create_snippet
 from osidb.core import set_user_acls
 from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
 
