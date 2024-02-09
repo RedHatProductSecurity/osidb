@@ -139,14 +139,15 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
         """
         Bugzilla ID
         """
-        return self.tracker_data["id"]
+        return self.bug["id"]
 
     @property
     def bug(self):
         """
-        generic bug used in mixin context means tracker data here
+        generic bug used in mixin context
+        means the raw tracker data here
         """
-        return self.tracker_data
+        return self._raw
 
     def _normalize(self) -> dict:
         """
