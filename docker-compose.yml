@@ -144,6 +144,7 @@ services:
         JIRA_URL: ${JIRA_URL}
         OSIDB_DEBUG: ${OSIDB_DEBUG}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
+        PS_CONSTANTS_URL: ${PS_CONSTANTS_URL}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
       # depends_on:
@@ -170,6 +171,7 @@ services:
         JIRA_URL: ${JIRA_URL}
         OSIDB_DEBUG: ${OSIDB_DEBUG}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
+        PS_CONSTANTS_URL: ${PS_CONSTANTS_URL}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
       # depends_on:

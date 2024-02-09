@@ -111,9 +111,9 @@ coverage[toml]==6.1.2 \
     # via
     #   coverage
     #   pytest-cov
-detect-secrets==1.1.0 \
-    --hash=sha256:68250b31bc108f665f05f0ecfb34f92423280e48e65adbb887fdf721ed909627 \
-    --hash=sha256:be8cca3dc65f6fd637f5dec9f583f1cf4a680dc1a580b3d2e65a5ac7a277456a
+detect-secrets==1.4.0 \
+    --hash=sha256:d08ecabeee8b68c0acb0e8a354fb98d822a653f6ed05e520cead4c6fc1fc02cd \
+    --hash=sha256:d56787e339758cef48c9ccd6692f7a094b9963c979c9813580b0169e41132833
     # via -r devel-requirements.in
 distlib==0.3.3 \
     --hash=sha256:c8b54e8454e5bf6237cc84c20e8264c3e991e824ef27e8f1e81049867d861e31 \
