@@ -63,7 +63,11 @@ TRACKERS_SYNC_TO_JIRA=1
 
 # Run taskman tests behind a proxy (optional)
 # This variable is only necessary if rewriting the taskman cassettes locally and using the Stage Red Hat JIRA instance, which requires a proxy to be accessed.
+# Some tests apply the HTTPS_PROXY variable hardcoded in respective conftest files.
 HTTPS_TASKMAN_PROXY="http://foo.bar"
+
+# This variable is only necessary when using osidb locally and using the Stage Red Hat JIRA instance, which requires a proxy to be accessed. The jira library detects this env variable and uses it automatically.
+HTTPS_PROXY="http://foo.bar"
 
 # OSIDB CORS URLs
 OSIDB_CORS_ALLOWED_ORIGINS='["http://localhost:8000", "http://127.0.0.1:8000", "http://0.0.0.0:8000"]'
