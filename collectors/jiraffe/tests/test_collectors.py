@@ -93,6 +93,18 @@ class TestJiraTrackerCollector:
         assert collector.is_complete
 
     @pytest.mark.vcr
+    def test_collect_embargoed(self):
+        """
+        test that an embargoed tracker loaded from Jira is preserved as embargoed
+        """
+        tracker_id = "RHEL-12102"
+        assert Tracker.objects.count() == 0
+        collector = JiraTrackerCollector()
+        collector.collect(tracker_id)
+        assert Tracker.objects.filter(external_system_id=tracker_id).exists()
+        assert Tracker.objects.get(external_system_id=tracker_id).is_embargoed
+
+    @pytest.mark.vcr
     def test_collect_id(self):
         """
         test collecting a Jira issue specified by the given ID
