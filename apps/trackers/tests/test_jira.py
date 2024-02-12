@@ -233,9 +233,6 @@ class TestTrackerJiraQueryBuilder:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
-        ContractPriority(
-            ps_module=ps_module.name, ps_component=affect1.ps_component
-        ).save()
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect1],
@@ -243,6 +240,7 @@ class TestTrackerJiraQueryBuilder:
             ps_update_stream=ps_update_stream.name,
             embargoed=flaw1.is_embargoed,
         )
+        ContractPriority(ps_update_stream=ps_update_stream.name).save()
 
         query_builder = TrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
