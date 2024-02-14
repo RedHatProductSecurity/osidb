@@ -13,7 +13,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/version
+    uri: https://example.com/rest/version
   response:
     body:
       string: '{"version":"5.0.4.rh69"}'
@@ -40,8 +40,6 @@ interactions:
       - Accept-Encoding,User-Agent
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -69,7 +67,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/user?match=foobarbaz%40example.com
+    uri: https://example.com/rest/user?match=foobarbaz%40example.com
   response:
     body:
       string: '{"users":[]}'
@@ -96,8 +94,6 @@ interactions:
       - Accept-Encoding,User-Agent
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -129,7 +125,7 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://issues.redhat.com/rest/api/2/user/search?includeActive=True&includeInactive=False&maxResults=50&username=foobarbaz%40example.com
+    uri: https://example.com/rest/api/2/user/search?includeActive=True&includeInactive=False&maxResults=50&username=foobarbaz%40example.com
   response:
     body:
       string: '[]'

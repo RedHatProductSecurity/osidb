@@ -2,8 +2,8 @@ interactions:
 - request:
     body: '{"fields": {"issuetype": {"name": "Bug"}, "project": {"key": "OSIDB"},
       "priority": {"name": "Minor"}, "description": "Public Security Tracking Issue\n\nFlaws:\n------\n\nsample
-      title\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1997880\n\nDescription
-      for None\n\nsample title\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1984541\n\nDescription
+      title\nhttps://example.com/show_bug.cgi?id=1997880\n\nDescription
+      for None\n\nsample title\nhttps://example.com/show_bug.cgi?id=1984541\n\nDescription
       for None\n\n~~~", "labels": ["SecurityTracking", "Security", "pscomponent:openshift"],
       "summary": "[Major Incident] openshift: various flaws [openshift-4.9.z]"}, "key":
       "OSIDB-920"}'
@@ -103,32 +103,32 @@ interactions:
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "15283457", "self": "https://issues.redhat.com/rest/api/2/issue/15283457",
-        "key": "OSIDB-920", "fields": {"issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/1",
+        "id": "15283457", "self": "https://example.com/rest/api/2/issue/15283457",
+        "key": "OSIDB-920", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/1",
         "id": "1", "description": "A problem which impairs or prevents the functions
-        of the product.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        of the product.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
         "name": "Bug", "subtask": false, "avatarId": 13263}, "customfield_12322244":
         null, "customfield_12318341": {"id": "14816704", "key": "OSIDB-412", "self":
-        "https://issues.redhat.com/rest/api/2/issue/14816704", "fields": {"summary":
-        "OSIDB- Backlog", "status": {"self": "https://issues.redhat.com/rest/api/2/status/10016",
+        "https://example.com/rest/api/2/issue/14816704", "fields": {"summary":
+        "OSIDB- Backlog", "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
-        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.redhat.com/images/icons/statuses/generic.png",
-        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/2",
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "priority":
-        {"self": "https://issues.redhat.com/rest/api/2/priority/10200", "iconUrl":
-        "https://issues.redhat.com/images/icons/priorities/medium.svg", "name":
-        "Normal", "id": "10200"}, "issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/10700",
+        {"self": "https://example.com/rest/api/2/priority/10200", "iconUrl":
+        "https://example.com/images/icons/priorities/medium.svg", "name":
+        "Normal", "id": "10200"}, "issuetype": {"self": "https://example.com/rest/api/2/issuetype/10700",
         "id": "10700", "description": "Capability or a well-defined set of functionality
         that delivers business value. Features can include additions or changes to
         existing functionality. Features can easily span multiple teams, and potentially
-        multiple releases.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype",
+        multiple releases.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype",
         "name": "Feature", "subtask": false, "avatarId": 13271}}}, "timespent": null,
-        "customfield_12320940": null, "project": {"self": "https://issues.redhat.com/rest/api/2/project/12332734",
+        "customfield_12320940": null, "project": {"self": "https://example.com/rest/api/2/project/12332734",
         "id": "12332734", "key": "OSIDB", "name": "Open Security Issue Database",
-        "projectTypeKey": "software", "avatarUrls": {"48x48": "https://issues.redhat.com/secure/projectavatar?pid=12332734&avatarId=10010",
-        "24x24": "https://issues.redhat.com/secure/projectavatar?size=small&pid=12332734&avatarId=10010",
-        "16x16": "https://issues.redhat.com/secure/projectavatar?size=xsmall&pid=12332734&avatarId=10010",
-        "32x32": "https://issues.redhat.com/secure/projectavatar?size=medium&pid=12332734&avatarId=10010"}},
+        "projectTypeKey": "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12332734&avatarId=10010",
+        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12332734&avatarId=10010",
+        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12332734&avatarId=10010",
+        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12332734&avatarId=10010"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
         "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@55202ef7[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2aef3903[overall=PullRequestOverallBean{stateCount=0,
@@ -142,51 +142,51 @@ interactions:
         "customfield_12310183": null, "resolutiondate": null, "workratio": -1, "customfield_12316840":
         null, "customfield_12317379": null, "customfield_12315950": null, "customfield_12316841":
         null, "customfield_12310940": null, "customfield_12319040": null, "lastViewed":
-        "2023-12-06T16:56:20.528+0000", "watches": {"self": "https://issues.redhat.com/rest/api/2/issue/OSIDB-920/watchers",
+        "2023-12-06T16:56:20.528+0000", "watches": {"self": "https://example.com/rest/api/2/issue/OSIDB-920/watchers",
         "watchCount": 2, "isWatching": false}, "created": "2023-05-26T13:54:09.520+0000",
         "customfield_12321240": null, "customfield_12313140": null, "priority": {"self":
-        "https://issues.redhat.com/rest/api/2/priority/4", "iconUrl": "https://issues.redhat.com/images/icons/priorities/minor.svg",
+        "https://example.com/rest/api/2/priority/4", "iconUrl": "https://example.com/images/icons/priorities/minor.svg",
         "name": "Minor", "id": "4"}, "labels": ["Security", "SecurityTracking", "pscomponent:openshift"],
-        "customfield_12320947": [{"self": "https://issues.redhat.com/rest/api/2/customFieldOption/27714",
+        "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
-        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/27705",
+        {"self": "https://example.com/rest/api/2/customFieldOption/27705",
         "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
         null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
         null, "updated": "2023-12-06T17:07:34.813+0000", "customfield_12313942": null,
-        "customfield_12313941": null, "status": {"self": "https://issues.redhat.com/rest/api/2/status/10016",
+        "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
-        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.redhat.com/images/icons/statuses/generic.png",
-        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/2",
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
-        [{"self": "https://issues.redhat.com/rest/api/2/component/12367567",
+        [{"self": "https://example.com/rest/api/2/component/12367567",
         "id": "12367567", "name": "osidb"}], "customfield_12316142": null, "timeoriginalestimate":
         null, "description": "Public Security Tracking Issue\n\nFlaws:\n------\n\nsample
-        title\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1997880\n\nDescription
-        for None\n\nsample title\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1984541\n\nDescription
+        title\nhttps://example.com/show_bug.cgi?id=1997880\n\nDescription
+        for None\n\nsample title\nhttps://example.com/show_bug.cgi?id=1984541\n\nDescription
         for None\n\n~~~", "customfield_12314040": null, "customfield_12320844": null,
         "archiveddate": null, "timetracking": {}, "customfield_12320842": null, "customfield_12310243":
         3.0, "attachment": [], "aggregatetimeestimate": null, "customfield_12316542":
-        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/14655",
+        {"self": "https://example.com/rest/api/2/customFieldOption/14655",
         "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
-        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/14657",
+        {"self": "https://example.com/rest/api/2/customFieldOption/14657",
         "value": "False", "id": "14657", "disabled": false}, "customfield_12317313":
         null, "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
         "summary": "[Major Incident] openshift: various flaws [openshift-4.9.z]",
         "customfield_12323640": null, "customfield_12323642": null, "creator": {"self":
-        "https://issues.redhat.com/rest/api/2/user?username=atorresj%40redhat.com",
+        "https://example.com/rest/api/2/user?username=atorresj%40redhat.com",
         "name": "atorresj@redhat.com", "key": "JIRAUSER173566", "emailAddress": "atorresj@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
         "displayName": "Adrian Torres Justo", "active": true, "timeZone": "Europe/Brussels"},
         "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "customfield_12323647": null, "reporter": {"self": "https://issues.redhat.com/rest/api/2/user?username=atorresj%40redhat.com",
+        "customfield_12323647": null, "reporter": {"self": "https://example.com/rest/api/2/user?username=atorresj%40redhat.com",
         "name": "atorresj@redhat.com", "key": "JIRAUSER173566", "emailAddress": "atorresj@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
         "displayName": "Adrian Torres Justo", "active": true, "timeZone": "Europe/Brussels"},
         "customfield_12320850": null, "aggregateprogress": {"progress": 0, "total":
         0}, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
@@ -194,42 +194,42 @@ interactions:
         null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
         "0.0", "customfield_12313240": null, "duedate": null, "customfield_12311140":
         "OSIDB-6", "customfield_12319742": null, "progress": {"progress": 0, "total":
-        0}, "comment": {"comments": [{"self": "https://issues.redhat.com/rest/api/2/issue/15283457/comment/22407250",
-        "id": "22407250", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        0}, "comment": {"comments": [{"self": "https://example.com/rest/api/2/issue/15283457/comment/22407250",
+        "id": "22407250", "author": {"self": "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "body": "Needs to be done alongside setting up new collectors for Assembler.",
-        "updateAuthor": {"self": "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        "updateAuthor": {"self": "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "created": "2023-06-06T09:38:22.556+0000", "updated": "2023-06-06T09:38:22.556+0000"},
-        {"self": "https://issues.redhat.com/rest/api/2/issue/15283457/comment/23025362",
-        "id": "23025362", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        {"self": "https://example.com/rest/api/2/issue/15283457/comment/23025362",
+        "id": "23025362", "author": {"self": "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "body": "[~atorresj@redhat.com] - should we move this to the Assembler epic
         so that it does not get forgotten at a later point?", "updateAuthor": {"self":
-        "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "created": "2023-09-14T15:23:10.629+0000", "updated": "2023-09-14T15:23:10.629+0000"}],
-        "maxResults": 2, "total": 2, "startAt": 0}, "votes": {"self": "https://issues.redhat.com/rest/api/2/issue/OSIDB-920/votes",
+        "maxResults": 2, "total": 2, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIDB-920/votes",
         "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
         "total": 0, "worklogs": []}, "customfield_12319743": null, "customfield_12310213":
         null, "archivedby": null, "customfield_12311940": "1|zbo868:"}}'
@@ -329,8 +329,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -383,8 +381,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -437,8 +433,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -517,8 +511,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -571,8 +563,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -624,8 +614,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -734,8 +722,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -845,8 +831,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -903,8 +887,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -961,8 +943,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -1071,8 +1051,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -1125,8 +1103,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -1178,8 +1154,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -1231,8 +1205,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -1314,8 +1286,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -1368,8 +1338,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -1421,8 +1389,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -1514,8 +1480,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -1608,8 +1572,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -1666,8 +1628,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -1735,8 +1695,8 @@ interactions:
         "Red Hat", "cf_pm_score": "0", "cf_deadline": null, "external_bugs": [{"ext_bz_bug_id":
         "OAMG-7110", "id": 1852524, "ext_description": "None", "is_migration_link":
         0, "ext_priority": "None", "bug_id": 1992365, "ext_status": "None", "type":
-        {"must_send": 0, "url": "https://issues.redhat.com/", "id": 55, "description":
-        "Red Hat Issue Tracker", "full_url": "https://issues.redhat.com/browse/%id%",
+        {"must_send": 0, "url": "https://example.com/", "id": 55, "description":
+        "Red Hat Issue Tracker", "full_url": "https://example.com/browse/%id%",
         "send_once": 0, "type": "JIRA", "can_send": 0, "can_get": 1}, "ext_bz_id":
         55}], "creation_time": "2022-02-09T09:56:11Z", "cf_build_id": "", "priority":
         "medium", "cf_target_upstream_version": "", "cf_conditional_nak": [], "cf_qe_conditional_nak":
@@ -1795,8 +1755,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -1837,14 +1795,14 @@ interactions:
         "qe-baseos-security@redhat.com", "cf_major_incident": null, "cc": ["dbelyavs@redhat.com",
         "mpawar@redhat.com"], "cf_qa_whiteboard": "", "depends_on": [], "cf_internal_whiteboard":
         "", "external_bugs": [{"ext_bz_bug_id": "REST-371", "ext_priority": "None",
-        "type": {"full_url": "https://issues.redhat.com/browse/%id%", "id": 55, "can_get":
+        "type": {"full_url": "https://example.com/browse/%id%", "id": 55, "can_get":
         1, "type": "JIRA", "can_send": 0, "must_send": 0, "send_once": 0, "description":
-        "Red Hat Issue Tracker", "url": "https://issues.redhat.com/"}, "ext_description":
+        "Red Hat Issue Tracker", "url": "https://example.com/"}, "ext_description":
         "None", "ext_status": "None", "ext_bz_id": 55, "id": 1839240, "bug_id": 1984543,
         "is_migration_link": 0}, {"ext_priority": "None", "ext_bz_bug_id": "RHELPLAN-102965",
         "ext_description": "None", "type": {"send_once": 0, "must_send": 0, "can_send":
-        0, "url": "https://issues.redhat.com/", "description": "Red Hat Issue Tracker",
-        "id": 55, "full_url": "https://issues.redhat.com/browse/%id%", "type": "JIRA",
+        0, "url": "https://example.com/", "description": "Red Hat Issue Tracker",
+        "id": 55, "full_url": "https://example.com/browse/%id%", "type": "JIRA",
         "can_get": 1}, "ext_bz_id": 55, "ext_status": "None", "id": 1842168, "bug_id":
         1984543, "is_migration_link": 0}], "id": 1984543, "priority": "low", "cf_doc_type":
         "No Doc Update", "target_milestone": "beta", "estimated_time": 0, "assigned_to":
@@ -1947,8 +1905,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -1984,32 +1940,32 @@ interactions:
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "15283457", "self": "https://issues.redhat.com/rest/api/2/issue/15283457",
-        "key": "OSIDB-920", "fields": {"issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/1",
+        "id": "15283457", "self": "https://example.com/rest/api/2/issue/15283457",
+        "key": "OSIDB-920", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/1",
         "id": "1", "description": "A problem which impairs or prevents the functions
-        of the product.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        of the product.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
         "name": "Bug", "subtask": false, "avatarId": 13263}, "customfield_12322244":
         null, "customfield_12318341": {"id": "14816704", "key": "OSIDB-412", "self":
-        "https://issues.redhat.com/rest/api/2/issue/14816704", "fields": {"summary":
-        "OSIDB- Backlog", "status": {"self": "https://issues.redhat.com/rest/api/2/status/10016",
+        "https://example.com/rest/api/2/issue/14816704", "fields": {"summary":
+        "OSIDB- Backlog", "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
-        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.redhat.com/images/icons/statuses/generic.png",
-        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/2",
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "priority":
-        {"self": "https://issues.redhat.com/rest/api/2/priority/10200", "iconUrl":
-        "https://issues.redhat.com/images/icons/priorities/medium.svg", "name":
-        "Normal", "id": "10200"}, "issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/10700",
+        {"self": "https://example.com/rest/api/2/priority/10200", "iconUrl":
+        "https://example.com/images/icons/priorities/medium.svg", "name":
+        "Normal", "id": "10200"}, "issuetype": {"self": "https://example.com/rest/api/2/issuetype/10700",
         "id": "10700", "description": "Capability or a well-defined set of functionality
         that delivers business value. Features can include additions or changes to
         existing functionality. Features can easily span multiple teams, and potentially
-        multiple releases.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype",
+        multiple releases.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype",
         "name": "Feature", "subtask": false, "avatarId": 13271}}}, "timespent": null,
-        "customfield_12320940": null, "project": {"self": "https://issues.redhat.com/rest/api/2/project/12332734",
+        "customfield_12320940": null, "project": {"self": "https://example.com/rest/api/2/project/12332734",
         "id": "12332734", "key": "OSIDB", "name": "Open Security Issue Database",
-        "projectTypeKey": "software", "avatarUrls": {"48x48": "https://issues.redhat.com/secure/projectavatar?pid=12332734&avatarId=10010",
-        "24x24": "https://issues.redhat.com/secure/projectavatar?size=small&pid=12332734&avatarId=10010",
-        "16x16": "https://issues.redhat.com/secure/projectavatar?size=xsmall&pid=12332734&avatarId=10010",
-        "32x32": "https://issues.redhat.com/secure/projectavatar?size=medium&pid=12332734&avatarId=10010"}},
+        "projectTypeKey": "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12332734&avatarId=10010",
+        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12332734&avatarId=10010",
+        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12332734&avatarId=10010",
+        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12332734&avatarId=10010"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
         "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@6e4e11c8[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6c758699[overall=PullRequestOverallBean{stateCount=0,
@@ -2023,51 +1979,51 @@ interactions:
         "customfield_12310183": null, "resolutiondate": null, "workratio": -1, "customfield_12316840":
         null, "customfield_12317379": null, "customfield_12315950": null, "customfield_12316841":
         null, "customfield_12310940": null, "customfield_12319040": null, "lastViewed":
-        "2023-12-06T15:11:13.335+0000", "watches": {"self": "https://issues.redhat.com/rest/api/2/issue/OSIDB-920/watchers",
+        "2023-12-06T15:11:13.335+0000", "watches": {"self": "https://example.com/rest/api/2/issue/OSIDB-920/watchers",
         "watchCount": 2, "isWatching": false}, "created": "2023-05-26T13:54:09.520+0000",
         "customfield_12321240": null, "customfield_12313140": null, "priority": {"self":
-        "https://issues.redhat.com/rest/api/2/priority/4", "iconUrl": "https://issues.redhat.com/images/icons/priorities/minor.svg",
+        "https://example.com/rest/api/2/priority/4", "iconUrl": "https://example.com/images/icons/priorities/minor.svg",
         "name": "Minor", "id": "4"}, "labels": ["Security", "SecurityTracking", "pscomponent:openshift"],
-        "customfield_12320947": [{"self": "https://issues.redhat.com/rest/api/2/customFieldOption/27714",
+        "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
-        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/27705",
+        {"self": "https://example.com/rest/api/2/customFieldOption/27705",
         "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
         null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
         null, "updated": "2023-12-06T17:07:34.813+0000", "customfield_12313942": null,
-        "customfield_12313941": null, "status": {"self": "https://issues.redhat.com/rest/api/2/status/10016",
+        "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
-        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.redhat.com/images/icons/statuses/generic.png",
-        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/2",
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
-        [{"self": "https://issues.redhat.com/rest/api/2/component/12367567",
+        [{"self": "https://example.com/rest/api/2/component/12367567",
         "id": "12367567", "name": "osidb"}], "customfield_12316142": null, "timeoriginalestimate":
         null, "description": "Public Security Tracking Issue\n\nFlaws:\n------\n\nsample
-        title\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1997880\n\nDescription
-        for None\n\nsample title\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1984541\n\nDescription
+        title\nhttps://example.com/show_bug.cgi?id=1997880\n\nDescription
+        for None\n\nsample title\nhttps://example.com/show_bug.cgi?id=1984541\n\nDescription
         for None\n\n~~~", "customfield_12314040": null, "customfield_12320844": null,
         "archiveddate": null, "timetracking": {}, "customfield_12320842": null, "customfield_12310243":
         3.0, "attachment": [], "aggregatetimeestimate": null, "customfield_12316542":
-        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/14655",
+        {"self": "https://example.com/rest/api/2/customFieldOption/14655",
         "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
-        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/14657",
+        {"self": "https://example.com/rest/api/2/customFieldOption/14657",
         "value": "False", "id": "14657", "disabled": false}, "customfield_12317313":
         null, "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
         "summary": "[Major Incident] openshift: various flaws [openshift-4.9.z]",
         "customfield_12323640": null, "customfield_12323642": null, "creator": {"self":
-        "https://issues.redhat.com/rest/api/2/user?username=atorresj%40redhat.com",
+        "https://example.com/rest/api/2/user?username=atorresj%40redhat.com",
         "name": "atorresj@redhat.com", "key": "JIRAUSER173566", "emailAddress": "atorresj@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
         "displayName": "Adrian Torres Justo", "active": true, "timeZone": "Europe/Brussels"},
         "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "customfield_12323647": null, "reporter": {"self": "https://issues.redhat.com/rest/api/2/user?username=atorresj%40redhat.com",
+        "customfield_12323647": null, "reporter": {"self": "https://example.com/rest/api/2/user?username=atorresj%40redhat.com",
         "name": "atorresj@redhat.com", "key": "JIRAUSER173566", "emailAddress": "atorresj@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
         "displayName": "Adrian Torres Justo", "active": true, "timeZone": "Europe/Brussels"},
         "customfield_12320850": null, "aggregateprogress": {"progress": 0, "total":
         0}, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
@@ -2075,42 +2031,42 @@ interactions:
         null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
         "0.0", "customfield_12313240": null, "duedate": null, "customfield_12311140":
         "OSIDB-6", "customfield_12319742": null, "progress": {"progress": 0, "total":
-        0}, "comment": {"comments": [{"self": "https://issues.redhat.com/rest/api/2/issue/15283457/comment/22407250",
-        "id": "22407250", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        0}, "comment": {"comments": [{"self": "https://example.com/rest/api/2/issue/15283457/comment/22407250",
+        "id": "22407250", "author": {"self": "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "body": "Needs to be done alongside setting up new collectors for Assembler.",
-        "updateAuthor": {"self": "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        "updateAuthor": {"self": "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "created": "2023-06-06T09:38:22.556+0000", "updated": "2023-06-06T09:38:22.556+0000"},
-        {"self": "https://issues.redhat.com/rest/api/2/issue/15283457/comment/23025362",
-        "id": "23025362", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        {"self": "https://example.com/rest/api/2/issue/15283457/comment/23025362",
+        "id": "23025362", "author": {"self": "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "body": "[~atorresj@redhat.com] - should we move this to the Assembler epic
         so that it does not get forgotten at a later point?", "updateAuthor": {"self":
-        "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "created": "2023-09-14T15:23:10.629+0000", "updated": "2023-09-14T15:23:10.629+0000"}],
-        "maxResults": 2, "total": 2, "startAt": 0}, "votes": {"self": "https://issues.redhat.com/rest/api/2/issue/OSIDB-920/votes",
+        "maxResults": 2, "total": 2, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIDB-920/votes",
         "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
         "total": 0, "worklogs": []}, "customfield_12319743": null, "customfield_12310213":
         null, "archivedby": null, "customfield_12311940": "1|zbo868:"}}'
@@ -2210,8 +2166,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -2263,8 +2217,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -2366,8 +2318,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -2471,8 +2421,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -2529,8 +2477,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -2566,32 +2512,32 @@ interactions:
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "15283457", "self": "https://issues.redhat.com/rest/api/2/issue/15283457",
-        "key": "OSIDB-920", "fields": {"issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/1",
+        "id": "15283457", "self": "https://example.com/rest/api/2/issue/15283457",
+        "key": "OSIDB-920", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/1",
         "id": "1", "description": "A problem which impairs or prevents the functions
-        of the product.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        of the product.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
         "name": "Bug", "subtask": false, "avatarId": 13263}, "customfield_12322244":
         null, "customfield_12318341": {"id": "14816704", "key": "OSIDB-412", "self":
-        "https://issues.redhat.com/rest/api/2/issue/14816704", "fields": {"summary":
-        "OSIDB- Backlog", "status": {"self": "https://issues.redhat.com/rest/api/2/status/10016",
+        "https://example.com/rest/api/2/issue/14816704", "fields": {"summary":
+        "OSIDB- Backlog", "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
-        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.redhat.com/images/icons/statuses/generic.png",
-        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/2",
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "priority":
-        {"self": "https://issues.redhat.com/rest/api/2/priority/10200", "iconUrl":
-        "https://issues.redhat.com/images/icons/priorities/medium.svg", "name":
-        "Normal", "id": "10200"}, "issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/10700",
+        {"self": "https://example.com/rest/api/2/priority/10200", "iconUrl":
+        "https://example.com/images/icons/priorities/medium.svg", "name":
+        "Normal", "id": "10200"}, "issuetype": {"self": "https://example.com/rest/api/2/issuetype/10700",
         "id": "10700", "description": "Capability or a well-defined set of functionality
         that delivers business value. Features can include additions or changes to
         existing functionality. Features can easily span multiple teams, and potentially
-        multiple releases.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype",
+        multiple releases.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype",
         "name": "Feature", "subtask": false, "avatarId": 13271}}}, "timespent": null,
-        "customfield_12320940": null, "project": {"self": "https://issues.redhat.com/rest/api/2/project/12332734",
+        "customfield_12320940": null, "project": {"self": "https://example.com/rest/api/2/project/12332734",
         "id": "12332734", "key": "OSIDB", "name": "Open Security Issue Database",
-        "projectTypeKey": "software", "avatarUrls": {"48x48": "https://issues.redhat.com/secure/projectavatar?pid=12332734&avatarId=10010",
-        "24x24": "https://issues.redhat.com/secure/projectavatar?size=small&pid=12332734&avatarId=10010",
-        "16x16": "https://issues.redhat.com/secure/projectavatar?size=xsmall&pid=12332734&avatarId=10010",
-        "32x32": "https://issues.redhat.com/secure/projectavatar?size=medium&pid=12332734&avatarId=10010"}},
+        "projectTypeKey": "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12332734&avatarId=10010",
+        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12332734&avatarId=10010",
+        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12332734&avatarId=10010",
+        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12332734&avatarId=10010"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
         "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@5e478d31[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@18b9a76e[overall=PullRequestOverallBean{stateCount=0,
@@ -2605,51 +2551,51 @@ interactions:
         "customfield_12310183": null, "resolutiondate": null, "workratio": -1, "customfield_12316840":
         null, "customfield_12317379": null, "customfield_12315950": null, "customfield_12316841":
         null, "customfield_12310940": null, "customfield_12319040": null, "lastViewed":
-        "2023-12-06T16:56:20.528+0000", "watches": {"self": "https://issues.redhat.com/rest/api/2/issue/OSIDB-920/watchers",
+        "2023-12-06T16:56:20.528+0000", "watches": {"self": "https://example.com/rest/api/2/issue/OSIDB-920/watchers",
         "watchCount": 2, "isWatching": false}, "created": "2023-05-26T13:54:09.520+0000",
         "customfield_12321240": null, "customfield_12313140": null, "priority": {"self":
-        "https://issues.redhat.com/rest/api/2/priority/4", "iconUrl": "https://issues.redhat.com/images/icons/priorities/minor.svg",
+        "https://example.com/rest/api/2/priority/4", "iconUrl": "https://example.com/images/icons/priorities/minor.svg",
         "name": "Minor", "id": "4"}, "labels": ["Security", "SecurityTracking", "pscomponent:openshift"],
-        "customfield_12320947": [{"self": "https://issues.redhat.com/rest/api/2/customFieldOption/27714",
+        "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
-        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/27705",
+        {"self": "https://example.com/rest/api/2/customFieldOption/27705",
         "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
         null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
         null, "updated": "2023-12-06T17:07:34.813+0000", "customfield_12313942": null,
-        "customfield_12313941": null, "status": {"self": "https://issues.redhat.com/rest/api/2/status/10016",
+        "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
-        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.redhat.com/images/icons/statuses/generic.png",
-        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/2",
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
-        [{"self": "https://issues.redhat.com/rest/api/2/component/12367567",
+        [{"self": "https://example.com/rest/api/2/component/12367567",
         "id": "12367567", "name": "osidb"}], "customfield_12316142": null, "timeoriginalestimate":
         null, "description": "Public Security Tracking Issue\n\nFlaws:\n------\n\nsample
-        title\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1997880\n\nDescription
-        for None\n\nsample title\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1984541\n\nDescription
+        title\nhttps://example.com/show_bug.cgi?id=1997880\n\nDescription
+        for None\n\nsample title\nhttps://example.com/show_bug.cgi?id=1984541\n\nDescription
         for None\n\n~~~", "customfield_12314040": null, "customfield_12320844": null,
         "archiveddate": null, "timetracking": {}, "customfield_12320842": null, "customfield_12310243":
         3.0, "attachment": [], "aggregatetimeestimate": null, "customfield_12316542":
-        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/14655",
+        {"self": "https://example.com/rest/api/2/customFieldOption/14655",
         "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
-        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/14657",
+        {"self": "https://example.com/rest/api/2/customFieldOption/14657",
         "value": "False", "id": "14657", "disabled": false}, "customfield_12317313":
         null, "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
         "summary": "[Major Incident] openshift: various flaws [openshift-4.9.z]",
         "customfield_12323640": null, "customfield_12323642": null, "creator": {"self":
-        "https://issues.redhat.com/rest/api/2/user?username=atorresj%40redhat.com",
+        "https://example.com/rest/api/2/user?username=atorresj%40redhat.com",
         "name": "atorresj@redhat.com", "key": "JIRAUSER173566", "emailAddress": "atorresj@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
         "displayName": "Adrian Torres Justo", "active": true, "timeZone": "Europe/Brussels"},
         "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "customfield_12323647": null, "reporter": {"self": "https://issues.redhat.com/rest/api/2/user?username=atorresj%40redhat.com",
+        "customfield_12323647": null, "reporter": {"self": "https://example.com/rest/api/2/user?username=atorresj%40redhat.com",
         "name": "atorresj@redhat.com", "key": "JIRAUSER173566", "emailAddress": "atorresj@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
         "displayName": "Adrian Torres Justo", "active": true, "timeZone": "Europe/Brussels"},
         "customfield_12320850": null, "aggregateprogress": {"progress": 0, "total":
         0}, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
@@ -2657,42 +2603,42 @@ interactions:
         null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
         "0.0", "customfield_12313240": null, "duedate": null, "customfield_12311140":
         "OSIDB-6", "customfield_12319742": null, "progress": {"progress": 0, "total":
-        0}, "comment": {"comments": [{"self": "https://issues.redhat.com/rest/api/2/issue/15283457/comment/22407250",
-        "id": "22407250", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        0}, "comment": {"comments": [{"self": "https://example.com/rest/api/2/issue/15283457/comment/22407250",
+        "id": "22407250", "author": {"self": "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "body": "Needs to be done alongside setting up new collectors for Assembler.",
-        "updateAuthor": {"self": "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        "updateAuthor": {"self": "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "created": "2023-06-06T09:38:22.556+0000", "updated": "2023-06-06T09:38:22.556+0000"},
-        {"self": "https://issues.redhat.com/rest/api/2/issue/15283457/comment/23025362",
-        "id": "23025362", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        {"self": "https://example.com/rest/api/2/issue/15283457/comment/23025362",
+        "id": "23025362", "author": {"self": "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "body": "[~atorresj@redhat.com] - should we move this to the Assembler epic
         so that it does not get forgotten at a later point?", "updateAuthor": {"self":
-        "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "created": "2023-09-14T15:23:10.629+0000", "updated": "2023-09-14T15:23:10.629+0000"}],
-        "maxResults": 2, "total": 2, "startAt": 0}, "votes": {"self": "https://issues.redhat.com/rest/api/2/issue/OSIDB-920/votes",
+        "maxResults": 2, "total": 2, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIDB-920/votes",
         "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
         "total": 0, "worklogs": []}, "customfield_12319743": null, "customfield_12310213":
         null, "archivedby": null, "customfield_12311940": "1|zbo868:"}}'
@@ -2849,8 +2795,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -2960,8 +2904,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -3018,8 +2960,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -3076,8 +3016,6 @@ interactions:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
@@ -3186,8 +3124,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -3281,8 +3217,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -3376,8 +3310,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -3434,8 +3366,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -3525,9 +3455,9 @@ interactions:
         ["---"], "assigned_to": "nobody@redhat.com", "target_milestone": "beta", "estimated_time":
         0, "cf_doc_type": "No Doc Update", "priority": "medium", "id": 1992365, "external_bugs":
         [{"id": 1852524, "ext_status": "None", "ext_bz_id": 55, "type": {"description":
-        "Red Hat Issue Tracker", "url": "https://issues.redhat.com/", "must_send":
+        "Red Hat Issue Tracker", "url": "https://example.com/", "must_send":
         0, "can_send": 0, "send_once": 0, "can_get": 1, "type": "JIRA", "full_url":
-        "https://issues.redhat.com/browse/%id%", "id": 55}, "ext_description": "None",
+        "https://example.com/browse/%id%", "id": 55}, "ext_description": "None",
         "ext_bz_bug_id": "OAMG-7110", "ext_priority": "None", "is_migration_link":
         0, "bug_id": 1992365}], "creator": "osoukup@redhat.com", "resolution": "",
         "op_sys": "Unspecified", "blocks": [1984541], "cf_approved_release": "", "cf_type":
@@ -3561,8 +3491,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -3636,12 +3564,12 @@ interactions:
         some: flaw [rhel-8]", "cf_epm_ptl": null, "creation_time": "2021-09-13T09:12:28Z",
         "external_bugs": [{"ext_priority": "None", "is_migration_link": 0, "ext_status":
         "None", "type": {"can_get": 1, "type": "JIRA", "can_send": 0, "send_once":
-        0, "full_url": "https://issues.redhat.com/browse/%id%", "description": "Red
-        Hat Issue Tracker", "must_send": 0, "url": "https://issues.redhat.com/", "id":
+        0, "full_url": "https://example.com/browse/%id%", "description": "Red
+        Hat Issue Tracker", "must_send": 0, "url": "https://example.com/", "id":
         55}, "ext_bz_id": 55, "bug_id": 1984543, "ext_bz_bug_id": "REST-371", "id":
         1839240, "ext_description": "None"}, {"ext_bz_bug_id": "RHELPLAN-102965",
         "id": 1842168, "ext_description": "None", "ext_priority": "None", "is_migration_link":
-        0, "type": {"full_url": "https://issues.redhat.com/browse/%id%", "url": "https://issues.redhat.com/",
+        0, "type": {"full_url": "https://example.com/browse/%id%", "url": "https://example.com/",
         "id": 55, "must_send": 0, "description": "Red Hat Issue Tracker", "can_send":
         0, "type": "JIRA", "can_get": 1, "send_once": 0}, "ext_status": "None", "ext_bz_id":
         55, "bug_id": 1984543}], "cf_target_upstream_version": "", "priority": "low",
@@ -3714,8 +3642,6 @@ interactions:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
@@ -3751,32 +3677,32 @@ interactions:
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "15283457", "self": "https://issues.redhat.com/rest/api/2/issue/15283457",
-        "key": "OSIDB-920", "fields": {"issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/1",
+        "id": "15283457", "self": "https://example.com/rest/api/2/issue/15283457",
+        "key": "OSIDB-920", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/1",
         "id": "1", "description": "A problem which impairs or prevents the functions
-        of the product.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        of the product.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
         "name": "Bug", "subtask": false, "avatarId": 13263}, "customfield_12322244":
         null, "customfield_12318341": {"id": "14816704", "key": "OSIDB-412", "self":
-        "https://issues.redhat.com/rest/api/2/issue/14816704", "fields": {"summary":
-        "OSIDB- Backlog", "status": {"self": "https://issues.redhat.com/rest/api/2/status/10016",
+        "https://example.com/rest/api/2/issue/14816704", "fields": {"summary":
+        "OSIDB- Backlog", "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
-        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.redhat.com/images/icons/statuses/generic.png",
-        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/2",
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "priority":
-        {"self": "https://issues.redhat.com/rest/api/2/priority/10200", "iconUrl":
-        "https://issues.redhat.com/images/icons/priorities/medium.svg", "name":
-        "Normal", "id": "10200"}, "issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/10700",
+        {"self": "https://example.com/rest/api/2/priority/10200", "iconUrl":
+        "https://example.com/images/icons/priorities/medium.svg", "name":
+        "Normal", "id": "10200"}, "issuetype": {"self": "https://example.com/rest/api/2/issuetype/10700",
         "id": "10700", "description": "Capability or a well-defined set of functionality
         that delivers business value. Features can include additions or changes to
         existing functionality. Features can easily span multiple teams, and potentially
-        multiple releases.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype",
+        multiple releases.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype",
         "name": "Feature", "subtask": false, "avatarId": 13271}}}, "timespent": null,
-        "customfield_12320940": null, "project": {"self": "https://issues.redhat.com/rest/api/2/project/12332734",
+        "customfield_12320940": null, "project": {"self": "https://example.com/rest/api/2/project/12332734",
         "id": "12332734", "key": "OSIDB", "name": "Open Security Issue Database",
-        "projectTypeKey": "software", "avatarUrls": {"48x48": "https://issues.redhat.com/secure/projectavatar?pid=12332734&avatarId=10010",
-        "24x24": "https://issues.redhat.com/secure/projectavatar?size=small&pid=12332734&avatarId=10010",
-        "16x16": "https://issues.redhat.com/secure/projectavatar?size=xsmall&pid=12332734&avatarId=10010",
-        "32x32": "https://issues.redhat.com/secure/projectavatar?size=medium&pid=12332734&avatarId=10010"}},
+        "projectTypeKey": "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12332734&avatarId=10010",
+        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12332734&avatarId=10010",
+        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12332734&avatarId=10010",
+        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12332734&avatarId=10010"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
         "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@66f0162d[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@bf9b136[overall=PullRequestOverallBean{stateCount=0,
@@ -3790,51 +3716,51 @@ interactions:
         "customfield_12310183": null, "resolutiondate": null, "workratio": -1, "customfield_12316840":
         null, "customfield_12317379": null, "customfield_12315950": null, "customfield_12316841":
         null, "customfield_12310940": null, "customfield_12319040": null, "lastViewed":
-        "2023-12-06T16:56:20.528+0000", "watches": {"self": "https://issues.redhat.com/rest/api/2/issue/OSIDB-920/watchers",
+        "2023-12-06T16:56:20.528+0000", "watches": {"self": "https://example.com/rest/api/2/issue/OSIDB-920/watchers",
         "watchCount": 2, "isWatching": false}, "created": "2023-05-26T13:54:09.520+0000",
         "customfield_12321240": null, "customfield_12313140": null, "priority": {"self":
-        "https://issues.redhat.com/rest/api/2/priority/4", "iconUrl": "https://issues.redhat.com/images/icons/priorities/minor.svg",
+        "https://example.com/rest/api/2/priority/4", "iconUrl": "https://example.com/images/icons/priorities/minor.svg",
         "name": "Minor", "id": "4"}, "labels": ["Security", "SecurityTracking", "pscomponent:openshift"],
-        "customfield_12320947": [{"self": "https://issues.redhat.com/rest/api/2/customFieldOption/27714",
+        "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
-        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/27705",
+        {"self": "https://example.com/rest/api/2/customFieldOption/27705",
         "value": "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
         null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
         null, "updated": "2023-12-06T17:07:34.813+0000", "customfield_12313942": null,
-        "customfield_12313941": null, "status": {"self": "https://issues.redhat.com/rest/api/2/status/10016",
+        "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
-        very short lived; also can be a Bugzilla status.", "iconUrl": "https://issues.redhat.com/images/icons/statuses/generic.png",
-        "name": "New", "id": "10016", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/2",
+        very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
-        [{"self": "https://issues.redhat.com/rest/api/2/component/12367567",
+        [{"self": "https://example.com/rest/api/2/component/12367567",
         "id": "12367567", "name": "osidb"}], "customfield_12316142": null, "timeoriginalestimate":
         null, "description": "Public Security Tracking Issue\n\nFlaws:\n------\n\nsample
-        title\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1997880\n\nDescription
-        for None\n\nsample title\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1984541\n\nDescription
+        title\nhttps://example.com/show_bug.cgi?id=1997880\n\nDescription
+        for None\n\nsample title\nhttps://example.com/show_bug.cgi?id=1984541\n\nDescription
         for None\n\n~~~", "customfield_12314040": null, "customfield_12320844": null,
         "archiveddate": null, "timetracking": {}, "customfield_12320842": null, "customfield_12310243":
         3.0, "attachment": [], "aggregatetimeestimate": null, "customfield_12316542":
-        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/14655",
+        {"self": "https://example.com/rest/api/2/customFieldOption/14655",
         "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
-        {"self": "https://issues.redhat.com/rest/api/2/customFieldOption/14657",
+        {"self": "https://example.com/rest/api/2/customFieldOption/14657",
         "value": "False", "id": "14657", "disabled": false}, "customfield_12317313":
         null, "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
         "summary": "[Major Incident] openshift: various flaws [openshift-4.9.z]",
         "customfield_12323640": null, "customfield_12323642": null, "creator": {"self":
-        "https://issues.redhat.com/rest/api/2/user?username=atorresj%40redhat.com",
+        "https://example.com/rest/api/2/user?username=atorresj%40redhat.com",
         "name": "atorresj@redhat.com", "key": "JIRAUSER173566", "emailAddress": "atorresj@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
         "displayName": "Adrian Torres Justo", "active": true, "timeZone": "Europe/Brussels"},
         "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "customfield_12323647": null, "reporter": {"self": "https://issues.redhat.com/rest/api/2/user?username=atorresj%40redhat.com",
+        "customfield_12323647": null, "reporter": {"self": "https://example.com/rest/api/2/user?username=atorresj%40redhat.com",
         "name": "atorresj@redhat.com", "key": "JIRAUSER173566", "emailAddress": "atorresj@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER173566&avatarId=35078",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER173566&avatarId=35078",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER173566&avatarId=35078",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER173566&avatarId=35078"},
         "displayName": "Adrian Torres Justo", "active": true, "timeZone": "Europe/Brussels"},
         "customfield_12320850": null, "aggregateprogress": {"progress": 0, "total":
         0}, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
@@ -3842,42 +3768,42 @@ interactions:
         null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
         "0.0", "customfield_12313240": null, "duedate": null, "customfield_12311140":
         "OSIDB-6", "customfield_12319742": null, "progress": {"progress": 0, "total":
-        0}, "comment": {"comments": [{"self": "https://issues.redhat.com/rest/api/2/issue/15283457/comment/22407250",
-        "id": "22407250", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        0}, "comment": {"comments": [{"self": "https://example.com/rest/api/2/issue/15283457/comment/22407250",
+        "id": "22407250", "author": {"self": "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "body": "Needs to be done alongside setting up new collectors for Assembler.",
-        "updateAuthor": {"self": "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        "updateAuthor": {"self": "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "created": "2023-06-06T09:38:22.556+0000", "updated": "2023-06-06T09:38:22.556+0000"},
-        {"self": "https://issues.redhat.com/rest/api/2/issue/15283457/comment/23025362",
-        "id": "23025362", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        {"self": "https://example.com/rest/api/2/issue/15283457/comment/23025362",
+        "id": "23025362", "author": {"self": "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "body": "[~atorresj@redhat.com] - should we move this to the Assembler epic
         so that it does not get forgotten at a later point?", "updateAuthor": {"self":
-        "https://issues.redhat.com/rest/api/2/user?username=rh-ee-znovacek",
+        "https://example.com/rest/api/2/user?username=rh-ee-znovacek",
         "name": "rh-ee-znovacek", "key": "JIRAUSER191853", "emailAddress": "znovacek@redhat.com",
-        "avatarUrls": {"48x48": "https://issues.redhat.com/secure/useravatar?avatarId=17290",
-        "24x24": "https://issues.redhat.com/secure/useravatar?size=small&avatarId=17290",
-        "16x16": "https://issues.redhat.com/secure/useravatar?size=xsmall&avatarId=17290",
-        "32x32": "https://issues.redhat.com/secure/useravatar?size=medium&avatarId=17290"},
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17290",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17290",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17290",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17290"},
         "displayName": "Zdenek Novacek", "active": true, "timeZone": "Europe/Prague"},
         "created": "2023-09-14T15:23:10.629+0000", "updated": "2023-09-14T15:23:10.629+0000"}],
-        "maxResults": 2, "total": 2, "startAt": 0}, "votes": {"self": "https://issues.redhat.com/rest/api/2/issue/OSIDB-920/votes",
+        "maxResults": 2, "total": 2, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIDB-920/votes",
         "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
         "total": 0, "worklogs": []}, "customfield_12319743": null, "customfield_12310213":
         null, "archivedby": null, "customfield_12311940": "1|zbo868:"}}'

@@ -466,7 +466,7 @@ interactions:
         denegaci\u00f3n de servicio (ca\u00edda de la aplicaci\u00f3n) o posiblemente
         ejecutar c\u00f3digo arbitrario a trav\u00e9s de un fichero .WAV modificado."}],
         "vendorComments": [{"organization": "Red Hat", "comment": "Red Hat is aware
-        of this issue and is tracking it via the following bug:\nhttps://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=479966\n\nThe
+        of this issue and is tracking it via the following bug:\nhttps://example.com/bugzilla/show_bug.cgi?id=479966\n\nThe
         Red Hat Security Response Team has rated this issue as having low\nsecurity
         impact, a future update may address this flaw. More\ninformation regarding
         issue severity can be found here:\nhttp://www.redhat.com/security/updates/classification/",
@@ -2829,7 +2829,7 @@ interactions:
         "matchCriteriaId": "D519F093-C7E2-4F98-B64E-457B41FC52F8"}, {"vulnerable":
         true, "criteria": "cpe:2.3:a:fedoraproject:sssd:0.99.1:*:*:*:*:*:*:*", "matchCriteriaId":
         "F978466E-8AEA-4FA8-AD0F-2798CD5EEF03"}]}]}], "references": [{"url": "http://www.securityfocus.com/bid/37747",
-        "source": "secalert@redhat.com"}, {"url": "https://bugzilla.redhat.com/show_bug.cgi?id=553233",
+        "source": "secalert@redhat.com"}, {"url": "https://example.com/show_bug.cgi?id=553233",
         "source": "secalert@redhat.com"}, {"url": "https://fedorahosted.org/sssd/wiki/Releases/Notes-1.0.1",
         "source": "secalert@redhat.com", "tags": ["Patch"]}]}}, {"cve": {"id": "CVE-2010-0322",
         "sourceIdentifier": "cve@mitre.org", "published": "2010-01-15T19:30:00.473",
@@ -5194,7 +5194,7 @@ interactions:
         "tags": ["Vendor Advisory"]}, {"url": "http://git.tuxfamily.org/chrony/chrony.git/?p=gitroot/chrony/chrony.git;a=commit;h=7864c7a70ce00369194e734eb2842ecc5f8db531",
         "source": "secalert@redhat.com"}, {"url": "http://www.debian.org/security/2010/dsa-1992",
         "source": "secalert@redhat.com"}, {"url": "http://www.securityfocus.com/bid/38106",
-        "source": "secalert@redhat.com", "tags": ["Patch"]}, {"url": "https://bugzilla.redhat.com/show_bug.cgi?id=555367",
+        "source": "secalert@redhat.com", "tags": ["Patch"]}, {"url": "https://example.com/show_bug.cgi?id=555367",
         "source": "secalert@redhat.com"}]}}, {"cve": {"id": "CVE-2010-0293", "sourceIdentifier":
         "secalert@redhat.com", "published": "2010-02-08T20:30:01.233", "lastModified":
         "2010-02-09T05:00:00.000", "vulnStatus": "Analyzed", "descriptions": [{"lang":
@@ -5238,7 +5238,7 @@ interactions:
         "tags": ["Vendor Advisory"]}, {"url": "http://git.tuxfamily.org/chrony/chrony.git/?p=gitroot/chrony/chrony.git;a=commit;h=2f63cf448560fdb96b80d8488aae6a15b802a753",
         "source": "secalert@redhat.com"}, {"url": "http://www.debian.org/security/2010/dsa-1992",
         "source": "secalert@redhat.com"}, {"url": "http://www.securityfocus.com/bid/38106",
-        "source": "secalert@redhat.com"}, {"url": "https://bugzilla.redhat.com/show_bug.cgi?id=555367",
+        "source": "secalert@redhat.com"}, {"url": "https://example.com/show_bug.cgi?id=555367",
         "source": "secalert@redhat.com"}]}}, {"cve": {"id": "CVE-2010-0294", "sourceIdentifier":
         "secalert@redhat.com", "published": "2010-02-08T20:30:01.263", "lastModified":
         "2010-02-09T05:00:00.000", "vulnStatus": "Analyzed", "descriptions": [{"lang":
@@ -5282,7 +5282,7 @@ interactions:
         "tags": ["Patch", "Vendor Advisory"]}, {"url": "http://git.tuxfamily.org/chrony/chrony.git/?p=gitroot/chrony/chrony.git;a=commit;h=0b710499f994823bd938fc6895f097eefb9cc59f",
         "source": "secalert@redhat.com"}, {"url": "http://www.debian.org/security/2010/dsa-1992",
         "source": "secalert@redhat.com"}, {"url": "http://www.securityfocus.com/bid/38106",
-        "source": "secalert@redhat.com", "tags": ["Patch"]}, {"url": "https://bugzilla.redhat.com/show_bug.cgi?id=555367",
+        "source": "secalert@redhat.com", "tags": ["Patch"]}, {"url": "https://example.com/show_bug.cgi?id=555367",
         "source": "secalert@redhat.com"}]}}, {"cve": {"id": "CVE-2010-0409", "sourceIdentifier":
         "secalert@redhat.com", "published": "2010-02-08T21:30:00.373", "lastModified":
         "2010-03-31T05:41:32.500", "vulnStatus": "Modified", "descriptions": [{"lang":
@@ -5331,7 +5331,7 @@ interactions:
         "source": "secalert@redhat.com"}, {"url": "http://lists.opensuse.org/opensuse-security-announce/2010-03/msg00004.html",
         "source": "secalert@redhat.com"}, {"url": "http://www.openwall.com/lists/oss-security/2010/02/03/2",
         "source": "secalert@redhat.com"}, {"url": "http://www.openwall.com/lists/oss-security/2010/02/03/4",
-        "source": "secalert@redhat.com"}, {"url": "https://bugzilla.redhat.com/show_bug.cgi?id=561457",
+        "source": "secalert@redhat.com"}, {"url": "https://example.com/show_bug.cgi?id=561457",
         "source": "secalert@redhat.com"}]}}, {"cve": {"id": "CVE-2010-0561", "sourceIdentifier":
         "cve@mitre.org", "published": "2010-02-08T21:30:00.453", "lastModified": "2010-02-09T05:00:00.000",
         "vulnStatus": "Analyzed", "descriptions": [{"lang": "en", "value": "Integer
@@ -5714,7 +5714,7 @@ interactions:
         "source": "secalert@redhat.com"}, {"url": "http://www.securityfocus.com/bid/38149",
         "source": "secalert@redhat.com"}, {"url": "http://www.ubuntu.com/usn/USN-898-1",
         "source": "secalert@redhat.com"}, {"url": "https://bugzilla.gnome.org/show_bug.cgi?id=609337",
-        "source": "secalert@redhat.com"}, {"url": "https://bugzilla.redhat.com/show_bug.cgi?id=562217",
+        "source": "secalert@redhat.com"}, {"url": "https://example.com/show_bug.cgi?id=562217",
         "source": "secalert@redhat.com"}]}}, {"cve": {"id": "CVE-2009-4642", "sourceIdentifier":
         "cve@mitre.org", "published": "2010-02-11T21:30:00.627", "lastModified": "2010-03-22T04:00:00.000",
         "vulnStatus": "Analyzed", "descriptions": [{"lang": "en", "value": "gnome-screensaver
@@ -13026,7 +13026,7 @@ interactions:
         denegaci\u00f3n de servicio (ca\u00edda de la aplicaci\u00f3n) o posiblemente
         ejecutar c\u00f3digo arbitrario a trav\u00e9s de un fichero .WAV modificado."}],
         "vendorComments": [{"organization": "Red Hat", "comment": "Red Hat is aware
-        of this issue and is tracking it via the following bug:\nhttps://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=479966\n\nThe
+        of this issue and is tracking it via the following bug:\nhttps://example.com/bugzilla/show_bug.cgi?id=479966\n\nThe
         Red Hat Security Response Team has rated this issue as having low\nsecurity
         impact, a future update may address this flaw. More\ninformation regarding
         issue severity can be found here:\nhttp://www.redhat.com/security/updates/classification/",
@@ -15389,7 +15389,7 @@ interactions:
         "matchCriteriaId": "D519F093-C7E2-4F98-B64E-457B41FC52F8"}, {"vulnerable":
         true, "criteria": "cpe:2.3:a:fedoraproject:sssd:0.99.1:*:*:*:*:*:*:*", "matchCriteriaId":
         "F978466E-8AEA-4FA8-AD0F-2798CD5EEF03"}]}]}], "references": [{"url": "http://www.securityfocus.com/bid/37747",
-        "source": "secalert@redhat.com"}, {"url": "https://bugzilla.redhat.com/show_bug.cgi?id=553233",
+        "source": "secalert@redhat.com"}, {"url": "https://example.com/show_bug.cgi?id=553233",
         "source": "secalert@redhat.com"}, {"url": "https://fedorahosted.org/sssd/wiki/Releases/Notes-1.0.1",
         "source": "secalert@redhat.com", "tags": ["Patch"]}]}}, {"cve": {"id": "CVE-2010-0322",
         "sourceIdentifier": "cve@mitre.org", "published": "2010-01-15T19:30:00.473",
@@ -17754,7 +17754,7 @@ interactions:
         "tags": ["Vendor Advisory"]}, {"url": "http://git.tuxfamily.org/chrony/chrony.git/?p=gitroot/chrony/chrony.git;a=commit;h=7864c7a70ce00369194e734eb2842ecc5f8db531",
         "source": "secalert@redhat.com"}, {"url": "http://www.debian.org/security/2010/dsa-1992",
         "source": "secalert@redhat.com"}, {"url": "http://www.securityfocus.com/bid/38106",
-        "source": "secalert@redhat.com", "tags": ["Patch"]}, {"url": "https://bugzilla.redhat.com/show_bug.cgi?id=555367",
+        "source": "secalert@redhat.com", "tags": ["Patch"]}, {"url": "https://example.com/show_bug.cgi?id=555367",
         "source": "secalert@redhat.com"}]}}, {"cve": {"id": "CVE-2010-0293", "sourceIdentifier":
         "secalert@redhat.com", "published": "2010-02-08T20:30:01.233", "lastModified":
         "2010-02-09T05:00:00.000", "vulnStatus": "Analyzed", "descriptions": [{"lang":
@@ -17798,7 +17798,7 @@ interactions:
         "tags": ["Vendor Advisory"]}, {"url": "http://git.tuxfamily.org/chrony/chrony.git/?p=gitroot/chrony/chrony.git;a=commit;h=2f63cf448560fdb96b80d8488aae6a15b802a753",
         "source": "secalert@redhat.com"}, {"url": "http://www.debian.org/security/2010/dsa-1992",
         "source": "secalert@redhat.com"}, {"url": "http://www.securityfocus.com/bid/38106",
-        "source": "secalert@redhat.com"}, {"url": "https://bugzilla.redhat.com/show_bug.cgi?id=555367",
+        "source": "secalert@redhat.com"}, {"url": "https://example.com/show_bug.cgi?id=555367",
         "source": "secalert@redhat.com"}]}}, {"cve": {"id": "CVE-2010-0294", "sourceIdentifier":
         "secalert@redhat.com", "published": "2010-02-08T20:30:01.263", "lastModified":
         "2010-02-09T05:00:00.000", "vulnStatus": "Analyzed", "descriptions": [{"lang":
@@ -17842,7 +17842,7 @@ interactions:
         "tags": ["Patch", "Vendor Advisory"]}, {"url": "http://git.tuxfamily.org/chrony/chrony.git/?p=gitroot/chrony/chrony.git;a=commit;h=0b710499f994823bd938fc6895f097eefb9cc59f",
         "source": "secalert@redhat.com"}, {"url": "http://www.debian.org/security/2010/dsa-1992",
         "source": "secalert@redhat.com"}, {"url": "http://www.securityfocus.com/bid/38106",
-        "source": "secalert@redhat.com", "tags": ["Patch"]}, {"url": "https://bugzilla.redhat.com/show_bug.cgi?id=555367",
+        "source": "secalert@redhat.com", "tags": ["Patch"]}, {"url": "https://example.com/show_bug.cgi?id=555367",
         "source": "secalert@redhat.com"}]}}, {"cve": {"id": "CVE-2010-0409", "sourceIdentifier":
         "secalert@redhat.com", "published": "2010-02-08T21:30:00.373", "lastModified":
         "2010-03-31T05:41:32.500", "vulnStatus": "Modified", "descriptions": [{"lang":
@@ -17891,7 +17891,7 @@ interactions:
         "source": "secalert@redhat.com"}, {"url": "http://lists.opensuse.org/opensuse-security-announce/2010-03/msg00004.html",
         "source": "secalert@redhat.com"}, {"url": "http://www.openwall.com/lists/oss-security/2010/02/03/2",
         "source": "secalert@redhat.com"}, {"url": "http://www.openwall.com/lists/oss-security/2010/02/03/4",
-        "source": "secalert@redhat.com"}, {"url": "https://bugzilla.redhat.com/show_bug.cgi?id=561457",
+        "source": "secalert@redhat.com"}, {"url": "https://example.com/show_bug.cgi?id=561457",
         "source": "secalert@redhat.com"}]}}, {"cve": {"id": "CVE-2010-0561", "sourceIdentifier":
         "cve@mitre.org", "published": "2010-02-08T21:30:00.453", "lastModified": "2010-02-09T05:00:00.000",
         "vulnStatus": "Analyzed", "descriptions": [{"lang": "en", "value": "Integer
@@ -18274,7 +18274,7 @@ interactions:
         "source": "secalert@redhat.com"}, {"url": "http://www.securityfocus.com/bid/38149",
         "source": "secalert@redhat.com"}, {"url": "http://www.ubuntu.com/usn/USN-898-1",
         "source": "secalert@redhat.com"}, {"url": "https://bugzilla.gnome.org/show_bug.cgi?id=609337",
-        "source": "secalert@redhat.com"}, {"url": "https://bugzilla.redhat.com/show_bug.cgi?id=562217",
+        "source": "secalert@redhat.com"}, {"url": "https://example.com/show_bug.cgi?id=562217",
         "source": "secalert@redhat.com"}]}}, {"cve": {"id": "CVE-2009-4642", "sourceIdentifier":
         "cve@mitre.org", "published": "2010-02-11T21:30:00.627", "lastModified": "2010-03-22T04:00:00.000",
         "vulnStatus": "Analyzed", "descriptions": [{"lang": "en", "value": "gnome-screensaver

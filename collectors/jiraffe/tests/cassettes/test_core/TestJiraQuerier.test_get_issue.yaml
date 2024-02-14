@@ -13,140 +13,140 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.26.0
+      - python-requests/2.31.0
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://issues.redhat.com/rest/api/2/issue/ENTESB-8726
+    uri: https://example.com/rest/api/2/issue/ENTESB-8726
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "12746639", "self": "https://issues.redhat.com/rest/api/2/issue/12746639",
+        "id": "12746639", "self": "https://example.com/rest/api/2/issue/12746639",
         "key": "ENTESB-8726", "fields": {"customfield_12322244": null, "fixVersions":
-        [{"self": "https://issues.redhat.com/rest/api/2/version/12324810", "id": "12324810",
+        [{"self": "https://example.com/rest/api/2/version/12324810", "id": "12324810",
         "description": "", "name": "fuse-7.0", "archived": false, "released": true,
-        "releaseDate": "2018-05-23"}], "resolution": {"self": "https://issues.redhat.com/rest/api/2/resolution/1",
+        "releaseDate": "2018-05-23"}], "resolution": {"self": "https://example.com/rest/api/2/resolution/1",
         "id": "1", "description": "This issue is closed, and complete.", "name": "Done"},
-        "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@78b7b2e1[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7e4a4a73[overall=PullRequestOverallBean{stateCount=0,
+        "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@3c66af7e[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@78433749[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@76a34b18[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@5a169e6d[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@644232fa[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@61b85ed6[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@daf3272[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@63a4205c[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@16840b30[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@35e9a9d8[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@41a131b5[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@3c55f1d[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3bd6987e[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@5a4e0932[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5951ae88[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@7dd763d1[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@72cd117d[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@5860818f[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@c9151e5[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@4a9e724d[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@50c2d49a[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@c725bf4[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
         "customfield_12312442": null, "customfield_12312848": null, "customfield_12315950":
         null, "customfield_12317338": null, "customfield_12310940": null, "lastViewed":
-        "2023-04-19T10:32:37.658+0000", "customfield_12313140": null, "priority":
-        {"self": "https://issues.redhat.com/rest/api/2/priority/4", "iconUrl": "https://issues.redhat.com/images/icons/priorities/minor.svg",
-        "name": "Minor", "id": "4"}, "labels": ["CVE-2016-5002", "Security", "SecurityTracking",
+        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/4",
+        "iconUrl": "https://example.com/images/icons/priorities/minor.svg", "name":
+        "Minor", "id": "4"}, "labels": ["CVE-2016-5002", "Security", "SecurityTracking",
         "pscomponent:xmlrpc-common"], "customfield_12311244": null, "customfield_12311640":
-        [{"self": "https://issues.redhat.com/rest/api/2/customFieldOption/10650",
-        "value": "This issue is security relevant", "id": "10650", "disabled": false}],
-        "customfield_12311641": [{"self": "https://issues.redhat.com/rest/api/2/user?username=hooman_b2455",
-        "name": "hooman_b2455", "key": "hooman_b2455", "emailAddress": "hghasemb@redhat.com",
-        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
-        "24x24": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
-        "16x16": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
-        "32x32": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
+        [{"self": "https://example.com/rest/api/2/customFieldOption/10650", "value":
+        "This issue is security relevant", "id": "10650", "disabled": false}], "customfield_12311641":
+        [{"self": "https://example.com/rest/api/2/user?username=hooman_b2455", "name":
+        "hooman_b2455", "key": "hooman_b2455", "emailAddress": "hghasemb@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
+        "24x24": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
+        "16x16": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
+        "32x32": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
         "displayName": "Hooman Broujerdi", "active": false, "timeZone": "Australia/Sydney"}],
         "customfield_12313145": null, "customfield_12311242": null, "customfield_12311243":
         null, "customfield_12311240": null, "aggregatetimeoriginalestimate": null,
-        "timeestimate": null, "versions": [{"self": "https://issues.redhat.com/rest/api/2/version/12337860",
+        "timeestimate": null, "versions": [{"self": "https://example.com/rest/api/2/version/12337860",
         "id": "12337860", "description": "", "name": "FIS 2.0", "archived": false,
         "released": true, "releaseDate": "2017-02-21"}], "customfield_12311241": null,
-        "customfield_12310031": null, "issuelinks": [{"id": "12541061", "self": "https://issues.redhat.com/rest/api/2/issueLink/12541061",
+        "customfield_12310031": null, "issuelinks": [{"id": "12541061", "self": "https://example.com/rest/api/2/issueLink/12541061",
         "type": {"id": "12310001", "name": "Related", "inward": "is related to", "outward":
-        "relates to", "self": "https://issues.redhat.com/rest/api/2/issueLinkType/12310001"},
-        "inwardIssue": {"id": "12746647", "key": "ENTESB-8301", "self": "https://issues.redhat.com/rest/api/2/issue/12746647",
+        "relates to", "self": "https://example.com/rest/api/2/issueLinkType/12310001"},
+        "inwardIssue": {"id": "12746647", "key": "ENTESB-8301", "self": "https://example.com/rest/api/2/issue/12746647",
         "fields": {"summary": "CVE-2016-5004 xmlrpc-common: xmlrpc: XSS in Content-Encoding
-        HTTP header of xmlrpc [fis-2.0]", "status": {"self": "https://issues.redhat.com/rest/api/2/status/6",
+        HTTP header of xmlrpc [fis-2.0]", "status": {"self": "https://example.com/rest/api/2/status/6",
         "description": "The issue is closed. See the resolution for context regarding
-        why (for example Done, Abandoned, Duplicate, etc)", "iconUrl": "https://issues.redhat.com/images/icons/statuses/closed.png",
-        "name": "Closed", "id": "6", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/3",
+        why (for example Done, Abandoned, Duplicate, etc)", "iconUrl": "https://example.com/images/icons/statuses/closed.png",
+        "name": "Closed", "id": "6", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/3",
         "id": 3, "key": "done", "colorName": "success", "name": "Done"}}, "priority":
-        {"self": "https://issues.redhat.com/rest/api/2/priority/4", "iconUrl": "https://issues.redhat.com/images/icons/priorities/minor.svg",
-        "name": "Minor", "id": "4"}, "issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/1",
+        {"self": "https://example.com/rest/api/2/priority/4", "iconUrl": "https://example.com/images/icons/priorities/minor.svg",
+        "name": "Minor", "id": "4"}, "issuetype": {"self": "https://example.com/rest/api/2/issuetype/1",
         "id": "1", "description": "A problem which impairs or prevents the functions
-        of the product.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        of the product.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
         "name": "Bug", "subtask": false, "avatarId": 13263}}}}, {"id": "12541062",
-        "self": "https://issues.redhat.com/rest/api/2/issueLink/12541062", "type":
-        {"id": "12310001", "name": "Related", "inward": "is related to", "outward":
-        "relates to", "self": "https://issues.redhat.com/rest/api/2/issueLinkType/12310001"},
-        "inwardIssue": {"id": "12746643", "key": "ENTESB-8635", "self": "https://issues.redhat.com/rest/api/2/issue/12746643",
+        "self": "https://example.com/rest/api/2/issueLink/12541062", "type": {"id":
+        "12310001", "name": "Related", "inward": "is related to", "outward": "relates
+        to", "self": "https://example.com/rest/api/2/issueLinkType/12310001"}, "inwardIssue":
+        {"id": "12746643", "key": "ENTESB-8635", "self": "https://example.com/rest/api/2/issue/12746643",
         "fields": {"summary": "CVE-2016-5003 xmlrpc-common: xmlrpc: Deserialization
         of untrusted Java object through <ex:serializable> tag [fis-2.0]", "status":
-        {"self": "https://issues.redhat.com/rest/api/2/status/6", "description": "The
-        issue is closed. See the resolution for context regarding why (for example
-        Done, Abandoned, Duplicate, etc)", "iconUrl": "https://issues.redhat.com/images/icons/statuses/closed.png",
-        "name": "Closed", "id": "6", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/3",
+        {"self": "https://example.com/rest/api/2/status/6", "description": "The issue
+        is closed. See the resolution for context regarding why (for example Done,
+        Abandoned, Duplicate, etc)", "iconUrl": "https://example.com/images/icons/statuses/closed.png",
+        "name": "Closed", "id": "6", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/3",
         "id": 3, "key": "done", "colorName": "success", "name": "Done"}}, "priority":
-        {"self": "https://issues.redhat.com/rest/api/2/priority/4", "iconUrl": "https://issues.redhat.com/images/icons/priorities/minor.svg",
-        "name": "Minor", "id": "4"}, "issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/1",
+        {"self": "https://example.com/rest/api/2/priority/4", "iconUrl": "https://example.com/images/icons/priorities/minor.svg",
+        "name": "Minor", "id": "4"}, "issuetype": {"self": "https://example.com/rest/api/2/issuetype/1",
         "id": "1", "description": "A problem which impairs or prevents the functions
-        of the product.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        of the product.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
         "name": "Bug", "subtask": false, "avatarId": 13263}}}}], "assignee": null,
         "customfield_12313942": null, "customfield_12313941": null, "status": {"self":
-        "https://issues.redhat.com/rest/api/2/status/6", "description": "The issue
-        is closed. See the resolution for context regarding why (for example Done,
-        Abandoned, Duplicate, etc)", "iconUrl": "https://issues.redhat.com/images/icons/statuses/closed.png",
-        "name": "Closed", "id": "6", "statusCategory": {"self": "https://issues.redhat.com/rest/api/2/statuscategory/3",
+        "https://example.com/rest/api/2/status/6", "description": "The issue is closed.
+        See the resolution for context regarding why (for example Done, Abandoned,
+        Duplicate, etc)", "iconUrl": "https://example.com/images/icons/statuses/closed.png",
+        "name": "Closed", "id": "6", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/3",
         "id": 3, "key": "done", "colorName": "success", "name": "Done"}}, "components":
-        [{"self": "https://issues.redhat.com/rest/api/2/component/12328959", "id":
-        "12328959", "name": "FIS-Productization Pipeline"}], "customfield_12316340":
-        null, "customfield_12316341": null, "customfield_12310080": {"self": "https://issues.redhat.com/rest/api/2/user?username=tturek%40redhat.com",
+        [{"self": "https://example.com/rest/api/2/component/12328959", "id": "12328959",
+        "name": "FIS-Productization Pipeline"}], "customfield_12316340": null, "customfield_12316341":
+        null, "customfield_12310080": {"self": "https://example.com/rest/api/2/user?username=tturek%40redhat.com",
         "name": "tturek@redhat.com", "key": "tturek", "emailAddress": "tturek@redhat.com",
-        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=48",
-        "24x24": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=24",
-        "16x16": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=16",
-        "32x32": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=32"},
-        "displayName": "Tomas Turek", "active": true, "timeZone": "Europe/Berlin"},
+        "avatarUrls": {"48x48": "https://example.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=48",
+        "24x24": "https://example.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=24",
+        "16x16": "https://example.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=16",
+        "32x32": "https://example.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=32"},
+        "displayName": "Tomas Turek", "active": false, "timeZone": "Europe/Berlin"},
         "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
         null, "customfield_12320842": null, "customfield_12310120": null, "customfield_12310243":
         null, "aggregatetimeestimate": null, "customfield_12316342": null, "customfield_12316740":
         null, "customfield_12317313": null, "customfield_12317317": null, "creator":
-        {"self": "https://issues.redhat.com/rest/api/2/user?username=hooman_b2455",
-        "name": "hooman_b2455", "key": "hooman_b2455", "emailAddress": "hghasemb@redhat.com",
-        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
-        "24x24": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
-        "16x16": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
-        "32x32": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
+        {"self": "https://example.com/rest/api/2/user?username=hooman_b2455", "name":
+        "hooman_b2455", "key": "hooman_b2455", "emailAddress": "hghasemb@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
+        "24x24": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
+        "16x16": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
+        "32x32": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
         "displayName": "Hooman Broujerdi", "active": false, "timeZone": "Australia/Sydney"},
         "subtasks": [], "customfield_12321140": null, "customfield_12310091": null,
-        "customfield_12310090": null, "reporter": {"self": "https://issues.redhat.com/rest/api/2/user?username=hooman_b2455",
+        "customfield_12310090": null, "reporter": {"self": "https://example.com/rest/api/2/user?username=hooman_b2455",
         "name": "hooman_b2455", "key": "hooman_b2455", "emailAddress": "hghasemb@redhat.com",
-        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
-        "24x24": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
-        "16x16": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
-        "32x32": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
+        "avatarUrls": {"48x48": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
+        "24x24": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
+        "16x16": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
+        "32x32": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
         "displayName": "Hooman Broujerdi", "active": false, "timeZone": "Australia/Sydney"},
         "customfield_12320850": null, "customfield_12310092": null, "aggregateprogress":
         {"progress": 0, "total": 0}, "customfield_12310010": null, "customfield_12315542":
         null, "customfield_12315948": null, "customfield_12315541": null, "customfield_12313240":
         null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
-        "votes": {"self": "https://issues.redhat.com/rest/api/2/issue/ENTESB-8726/votes",
+        "votes": {"self": "https://example.com/rest/api/2/issue/ENTESB-8726/votes",
         "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
         "total": 0, "worklogs": []}, "customfield_12317841": "<div> <progress  style=\"vertical-align:middle;
         max-width: 60%;\" value=\"\" min=\"0\" max=\"100\">%</progress> % </div>",
         "customfield_12319743": null, "customfield_12317842": null, "archivedby":
-        null, "issuetype": {"self": "https://issues.redhat.com/rest/api/2/issuetype/1",
+        null, "issuetype": {"self": "https://example.com/rest/api/2/issuetype/1",
         "id": "1", "description": "A problem which impairs or prevents the functions
-        of the product.", "iconUrl": "https://issues.redhat.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        of the product.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
         "name": "Bug", "subtask": false, "avatarId": 13263}, "customfield_12318341":
         null, "timespent": null, "customfield_12320940": null, "project": {"self":
-        "https://issues.redhat.com/rest/api/2/project/12314570", "id": "12314570",
-        "key": "ENTESB", "name": "Red Hat Fuse", "projectTypeKey": "software", "avatarUrls":
-        {"48x48": "https://issues.redhat.com/secure/projectavatar?pid=12314570&avatarId=24473",
-        "24x24": "https://issues.redhat.com/secure/projectavatar?size=small&pid=12314570&avatarId=24473",
-        "16x16": "https://issues.redhat.com/secure/projectavatar?size=xsmall&pid=12314570&avatarId=24473",
-        "32x32": "https://issues.redhat.com/secure/projectavatar?size=medium&pid=12314570&avatarId=24473"},
-        "projectCategory": {"self": "https://issues.redhat.com/rest/api/2/projectCategory/10130",
+        "https://example.com/rest/api/2/project/12314570", "id": "12314570", "key":
+        "ENTESB", "name": "Red Hat Fuse", "projectTypeKey": "software", "avatarUrls":
+        {"48x48": "https://example.com/secure/projectavatar?pid=12314570&avatarId=24473",
+        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12314570&avatarId=24473",
+        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12314570&avatarId=24473",
+        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12314570&avatarId=24473"},
+        "projectCategory": {"self": "https://example.com/rest/api/2/projectCategory/10130",
         "id": "10130", "description": "Active projects migrated from Fusesource issue
         tracker", "name": "Fuse"}}, "customfield_12320944": null, "aggregatetimespent":
         null, "customfield_12310220": null, "customfield_12310183": null, "resolutiondate":
         "2018-04-26T15:49:30.000+0000", "workratio": -1, "customfield_12316840": null,
         "customfield_12317379": null, "customfield_12316841": null, "customfield_12319040":
-        null, "watches": {"self": "https://issues.redhat.com/rest/api/2/issue/ENTESB-8726/watchers",
+        null, "watches": {"self": "https://example.com/rest/api/2/issue/ENTESB-8726/watchers",
         "watchCount": 1, "isWatching": false}, "created": "2018-04-24T01:02:47.000+0000",
         "customfield_12321240": null, "customfield_12310110": null, "customfield_12320947":
         null, "customfield_12320946": null, "customfield_12315640": null, "customfield_12317302":
@@ -156,85 +156,88 @@ interactions:
         bug is subject to the Security Errata Policy.\n\nThe overall impact of the
         blocking security issue(s) is Moderate. Based on this impact, this bug must
         be resolved by 24-May-2017. \n\nPlease refer to the Security Errata Policy
-        documentation for further details: https://docs.prodsec.redhat.com/policy-guide/#policy-errata\n\nFlaw:\n-----\n\nCVE-2016-5002
-        xmlrpc: XML external entity vulnerability SSRF via a crafted DTD\nhttps://bugzilla.redhat.com/show_bug.cgi?id=1508110\n\nXML
+        documentation for further details: https://example.com/policy-guide/#policy-errata\n\nFlaw:\n-----\n\nCVE-2016-5002
+        xmlrpc: XML external entity vulnerability SSRF via a crafted DTD\nhttps://example.com/show_bug.cgi?id=1508110\n\nXML
         external entity (XXE) vulnerability in the Apache XML-RPC (aka ws-xmlrpc)
         library 3.1.3, as used in Apache Archiva, allows remote attackers to conduct
-        server-side request forgery (SSRF) attacks via a crafted DTD.\n\nReferences:\n\nhttp://www.openwall.com/lists/oss-security/2016/07/12/5\nhttps://0ang3el.blogspot.in/2016/07/beware-of-ws-xmlrpc-library-in-your.html\n",
-        "timetracking": {}, "customfield_12310440": ["https://bugzilla.redhat.com/show_bug.cgi?id=1508110"],
-        "security": {"self": "https://issues.redhat.com/rest/api/2/securitylevel/11697",
-        "id": "11697", "description": "Red Hat Employee and Contractors only", "name":
+        server-side request forgery (SSRF) attacks via a crafted DTD.\n\nReferences:\n\nhttp://example.com/lists/oss-security/2016/07/12/5\nhttps://example.com/2016/07/beware-of-ws-xmlrpc-library-in-your.html\n",
+        "timetracking": {}, "customfield_12310440": ["https://example.com/show_bug.cgi?id=1508110"],
+        "security": {"self": "https://example.com/rest/api/2/securitylevel/11697",
+        "id": "11697", "description": "Restricts access to Red Hat employees. This
+        information should not be shared with customers or external entities.", "name":
         "Red Hat Employee"}, "attachment": [], "customfield_12312340": null, "customfield_12316542":
         null, "customfield_12316543": null, "customfield_12316544": null, "customfield_12310840":
         "9223372036854775807", "summary": "CVE-2016-5002 xmlrpc-common: xmlrpc: XML
-        external entity vulnerability SSRF via a crafted DTD [fis-2.0]", "customfield_12310211":
-        null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
-        "0.0", "duedate": "2017-05-24", "customfield_12311140": null, "comment": {"comments":
-        [{"self": "https://issues.redhat.com/rest/api/2/issue/12746639/comment/13565743",
-        "id": "13565743", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=hooman_b2455",
+        external entity vulnerability SSRF via a crafted DTD [fis-2.0]", "customfield_12323640":
+        null, "customfield_12323642": null, "customfield_12323641": null, "customfield_12323647":
+        null, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
+        null, "customfield_12323645": null, "customfield_12315740": null, "customfield_12313441":
+        "", "customfield_12313440": "0.0", "duedate": "2017-05-24", "customfield_12311140":
+        null, "comment": {"comments": [{"self": "https://example.com/rest/api/2/issue/12746639/comment/13565743",
+        "id": "13565743", "author": {"self": "https://example.com/rest/api/2/user?username=hooman_b2455",
         "name": "hooman_b2455", "key": "hooman_b2455", "emailAddress": "hghasemb@redhat.com",
-        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
-        "24x24": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
-        "16x16": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
-        "32x32": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
+        "avatarUrls": {"48x48": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
+        "24x24": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
+        "16x16": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
+        "32x32": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
         "displayName": "Hooman Broujerdi", "active": false, "timeZone": "Australia/Sydney"},
-        "body": "Added involved users: [~hghasemb]", "updateAuthor": {"self": "https://issues.redhat.com/rest/api/2/user?username=hooman_b2455",
+        "body": "Added involved users: [~hghasemb]", "updateAuthor": {"self": "https://example.com/rest/api/2/user?username=hooman_b2455",
         "name": "hooman_b2455", "key": "hooman_b2455", "emailAddress": "hghasemb@redhat.com",
-        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
-        "24x24": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
-        "16x16": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
-        "32x32": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
+        "avatarUrls": {"48x48": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
+        "24x24": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
+        "16x16": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
+        "32x32": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
         "displayName": "Hooman Broujerdi", "active": false, "timeZone": "Australia/Sydney"},
         "created": "2018-04-24T01:02:49.000+0000", "updated": "2018-04-24T01:02:49.000+0000",
-        "visibility": {"type": "group", "value": "Red Hat Employee"}}, {"self": "https://issues.redhat.com/rest/api/2/issue/12746639/comment/13565746",
-        "id": "13565746", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=hooman_b2455",
+        "visibility": {"type": "group", "value": "Red Hat Employee"}}, {"self": "https://example.com/rest/api/2/issue/12746639/comment/13565746",
+        "id": "13565746", "author": {"self": "https://example.com/rest/api/2/user?username=hooman_b2455",
         "name": "hooman_b2455", "key": "hooman_b2455", "emailAddress": "hghasemb@redhat.com",
-        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
-        "24x24": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
-        "16x16": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
-        "32x32": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
+        "avatarUrls": {"48x48": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
+        "24x24": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
+        "16x16": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
+        "32x32": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
         "displayName": "Hooman Broujerdi", "active": false, "timeZone": "Australia/Sydney"},
         "body": "xmlrpc library seems to have been discontinued by apache, last version
         of released is xmlrpc-common-3.1.3.jar which we ship in FIS BOM and is vulnerable.",
-        "updateAuthor": {"self": "https://issues.redhat.com/rest/api/2/user?username=hooman_b2455",
+        "updateAuthor": {"self": "https://example.com/rest/api/2/user?username=hooman_b2455",
         "name": "hooman_b2455", "key": "hooman_b2455", "emailAddress": "hghasemb@redhat.com",
-        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
-        "24x24": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
-        "16x16": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
-        "32x32": "https://www.gravatar.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
+        "avatarUrls": {"48x48": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=48",
+        "24x24": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=24",
+        "16x16": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=16",
+        "32x32": "https://example.com/avatar/da925ac88432a45bad4da3709e032c00?d=mm&s=32"},
         "displayName": "Hooman Broujerdi", "active": false, "timeZone": "Australia/Sydney"},
         "created": "2018-04-24T01:08:50.000+0000", "updated": "2018-04-24T01:08:50.000+0000",
-        "visibility": {"type": "group", "value": "Red Hat Employee"}}, {"self": "https://issues.redhat.com/rest/api/2/issue/12746639/comment/13567820",
-        "id": "13567820", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=tcunning%40redhat.com",
+        "visibility": {"type": "group", "value": "Red Hat Employee"}}, {"self": "https://example.com/rest/api/2/issue/12746639/comment/13567820",
+        "id": "13567820", "author": {"self": "https://example.com/rest/api/2/user?username=tcunning%40redhat.com",
         "name": "tcunning@redhat.com", "key": "tcunning", "emailAddress": "tcunning@redhat.com",
-        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=48",
-        "24x24": "https://www.gravatar.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=24",
-        "16x16": "https://www.gravatar.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=16",
-        "32x32": "https://www.gravatar.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=32"},
-        "displayName": "Thomas Cunningham", "active": true, "timeZone": "UTC"}, "body":
-        "Handled in ENTESB-8040", "updateAuthor": {"self": "https://issues.redhat.com/rest/api/2/user?username=tcunning%40redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=48",
+        "24x24": "https://example.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=24",
+        "16x16": "https://example.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=16",
+        "32x32": "https://example.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=32"},
+        "displayName": "Thomas Cunningham", "active": true, "timeZone": "GMT"}, "body":
+        "Handled in ENTESB-8040", "updateAuthor": {"self": "https://example.com/rest/api/2/user?username=tcunning%40redhat.com",
         "name": "tcunning@redhat.com", "key": "tcunning", "emailAddress": "tcunning@redhat.com",
-        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=48",
-        "24x24": "https://www.gravatar.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=24",
-        "16x16": "https://www.gravatar.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=16",
-        "32x32": "https://www.gravatar.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=32"},
-        "displayName": "Thomas Cunningham", "active": true, "timeZone": "UTC"}, "created":
+        "avatarUrls": {"48x48": "https://example.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=48",
+        "24x24": "https://example.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=24",
+        "16x16": "https://example.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=16",
+        "32x32": "https://example.com/avatar/da5a9421b2b0223e14ffe4be4b393c83?d=mm&s=32"},
+        "displayName": "Thomas Cunningham", "active": true, "timeZone": "GMT"}, "created":
         "2018-04-26T15:49:30.000+0000", "updated": "2018-04-26T15:49:30.000+0000",
-        "visibility": {"type": "group", "value": "Red Hat Employee"}}, {"self": "https://issues.redhat.com/rest/api/2/issue/12746639/comment/13576811",
-        "id": "13576811", "author": {"self": "https://issues.redhat.com/rest/api/2/user?username=tturek%40redhat.com",
+        "visibility": {"type": "group", "value": "Red Hat Employee"}}, {"self": "https://example.com/rest/api/2/issue/12746639/comment/13576811",
+        "id": "13576811", "author": {"self": "https://example.com/rest/api/2/user?username=tturek%40redhat.com",
         "name": "tturek@redhat.com", "key": "tturek", "emailAddress": "tturek@redhat.com",
-        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=48",
-        "24x24": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=24",
-        "16x16": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=16",
-        "32x32": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=32"},
-        "displayName": "Tomas Turek", "active": true, "timeZone": "Europe/Berlin"},
-        "body": "Verified with Fuse 7 CR2", "updateAuthor": {"self": "https://issues.redhat.com/rest/api/2/user?username=tturek%40redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=48",
+        "24x24": "https://example.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=24",
+        "16x16": "https://example.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=16",
+        "32x32": "https://example.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=32"},
+        "displayName": "Tomas Turek", "active": false, "timeZone": "Europe/Berlin"},
+        "body": "Verified with Fuse 7 CR2", "updateAuthor": {"self": "https://example.com/rest/api/2/user?username=tturek%40redhat.com",
         "name": "tturek@redhat.com", "key": "tturek", "emailAddress": "tturek@redhat.com",
-        "avatarUrls": {"48x48": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=48",
-        "24x24": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=24",
-        "16x16": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=16",
-        "32x32": "https://www.gravatar.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=32"},
-        "displayName": "Tomas Turek", "active": true, "timeZone": "Europe/Berlin"},
+        "avatarUrls": {"48x48": "https://example.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=48",
+        "24x24": "https://example.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=24",
+        "16x16": "https://example.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=16",
+        "32x32": "https://example.com/avatar/ebbfe05f8c3b09d48b64c6efa1626f8d?d=mm&s=32"},
+        "displayName": "Tomas Turek", "active": false, "timeZone": "Europe/Berlin"},
         "created": "2018-05-15T11:10:37.000+0000", "updated": "2018-05-15T11:10:37.000+0000"}],
         "maxResults": 4, "total": 4, "startAt": 0}, "customfield_12310213": null,
         "customfield_12311941": null, "customfield_12311940": "1|hzx9d3:"}}'
@@ -243,41 +246,49 @@ interactions:
       - max-age=0, no-cache, no-store
       Connection:
       - keep-alive
-      Content-Security-Policy:
-      - sandbox
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 19 Apr 2023 10:32:39 GMT
+      - Tue, 09 Jan 2024 12:18:13 GMT
       Expires:
-      - Wed, 19 Apr 2023 10:32:39 GMT
+      - Tue, 09 Jan 2024 12:18:13 GMT
       Pragma:
       - no-cache
+      Retry-After:
+      - '0'
       Vary:
       - User-Agent
       - Accept-Encoding
+      X-RateLimit-Limit:
+      - '-1'
+      X-RateLimit-Remaining:
+      - '9223372036854775807'
       content-length:
-      - '20986'
+      - '21583'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-prod-0
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 632x16341974x3
+      - 738x172871x1
       x-asessionid:
-      - 1o8tvp4
+      - 196zsxu
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
+      x-ratelimit-fillrate:
+      - '-1'
+      x-ratelimit-interval-seconds:
+      - '1'
       x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
+      - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.88477b5c.1681900359.25406af7
+      - 0.c585d817.1704802693.1d71d4
       x-rh-edge-request-id:
-      - 25406af7
+      - 1d71d4
       x-seraph-loginreason:
       - OK
       x-xss-protection:

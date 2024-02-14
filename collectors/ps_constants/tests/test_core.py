@@ -35,8 +35,8 @@ class TestPsConstantsCollection:
         """Check collector is capable of pull data from gitlab"""
         url = "/".join((ps_constant_base_url, "compliance_priority.yml"))
         compliance_priority = fetch_ps_constants(url)
-        assert "rhel-9" in compliance_priority
-        assert len(compliance_priority["rhel-9"]) > 0
+        assert "rhel-8" in compliance_priority
+        assert len(compliance_priority["rhel-8"]) > 0
 
         url = "/".join((ps_constant_base_url, "contract_priority.yml"))
         contract_priority = fetch_ps_constants(url)

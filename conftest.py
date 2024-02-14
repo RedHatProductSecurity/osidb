@@ -1,4 +1,5 @@
 import json
+import re
 
 import pytest
 from django.conf import settings
@@ -14,6 +15,9 @@ from rest_framework.test import APIClient
 
 from osidb.constants import OSIDB_API_VERSION
 from osidb.core import set_user_acls
+
+# matches base urls starting with http / https until the first slash after the protocol
+base_url_pattern = re.compile(r"(https?://)[^/]+")
 
 
 def strip_private_bz_comments(body):
@@ -57,6 +61,9 @@ def clean_product_definitions_contacts(body):
 def filter_response(response):
     response["headers"].pop("Set-Cookie", None)
     response["headers"].pop("x-ausername", None)
+    response["headers"].pop("Content-Security-Policy", None)
+    response["headers"].pop("X-frame-options", None)
+
     try:
         response["body"]["string"] = strip_private_bz_comments(
             response["body"]["string"]
@@ -69,6 +76,30 @@ def filter_response(response):
     return response
 
 
+def remove_host_request(request):
+    request.uri = re.sub(base_url_pattern, "https://example.com", request.uri)
+    return request
+
+
+def remove_host_response(response):
+    body_string = re.sub(
+        base_url_pattern,
+        "https://example.com",
+        response["body"]["string"].decode("utf-8"),
+    )
+    response["body"]["string"] = body_string.encode("utf-8")
+
+    # redirected requests need Location header
+    original_locations = response["headers"].get("Location", [])
+    if original_locations:
+        locations = []
+        for location in original_locations:
+            locations.append(re.sub(base_url_pattern, "https://example.com", location))
+        response["headers"]["Location"] = locations
+
+    return response
+
+
 @pytest.fixture(scope="session")
 def vcr_config():
     return {
@@ -76,7 +107,8 @@ def vcr_config():
             "Authorization",
             "Cookie",
         ],
-        "before_record_response": filter_response,
+        "before_record_request": [remove_host_request],
+        "before_record_response": [remove_host_response, filter_response],
         "filter_query_parameters": [
             "Bugzilla_api_key",
         ],
