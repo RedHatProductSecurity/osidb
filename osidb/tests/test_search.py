@@ -205,6 +205,20 @@ class TestSearch:
             summary="summary",
             embargoed=False,
             statement="statement",
+            team_id=1234,
+            owner="example@redhat.com",
+            workflow_state="TRIAGE",
+        )
+
+        FlawFactory(
+            title="other summary",
+            description="this is a flaw",
+            summary="spooky flaw",
+            embargoed=False,
+            statement="other",
+            team_id=1235,
+            owner="example_two@redhat.com",
+            workflow_state="NEW",
         )
 
         # Full-text search only in title column
@@ -224,6 +238,21 @@ class TestSearch:
         assert body["count"] == 1
 
         response = auth_client().get(f"{test_api_uri}/flaws?statement=statement")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+
+        response = auth_client().get(f"{test_api_uri}/flaws?team_id=1234")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+
+        response = auth_client().get(f"{test_api_uri}/flaws?owner=example@redhat.com")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+
+        response = auth_client().get(f"{test_api_uri}/flaws?workflow_state=TRIAGE")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1

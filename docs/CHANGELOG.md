@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - Ignore hosts on VCR recording (OSIDB-1678)
+- Included workflow fields in OpenAPI document for filtering (OSIDB-2083)
 
 ## [3.6.2] - 2024-02-02
 ### Fixed
