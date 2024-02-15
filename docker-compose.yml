@@ -196,6 +196,7 @@ services:
         ET_URL: ${ET_URL}
         OSIDB_DEBUG: ${OSIDB_DEBUG}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
+        PS_CONSTANTS_URL: ${PS_CONSTANTS_URL}
       depends_on: ["redis", "osidb-data"]
 
     redis:
