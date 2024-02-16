@@ -226,7 +226,7 @@ class TestNVDCollector:
             else:
                 assert flaw.cvss_scores.filter(version=version).first() is None
 
-    # NOTE: cassette updates may be required to comply with keywords
+    # NOTE: cassette updates may be required to comply with keywords and published date
     @pytest.mark.enable_signals
     @pytest.mark.default_cassette("TestNVDCollector.test_snippet_and_flaw_created.yaml")
     @pytest.mark.vcr
@@ -269,13 +269,14 @@ class TestNVDCollector:
             ],
             "source": Snippet.Source.NVD,
             "title": "placeholder only, see description",
+            "published_in_nvd": "2024-01-21T16:29:00.393Z",
         }
         cve_id = snippet_content["cve_id"]
 
         # Default data
         if has_flaw:
             data = dict(snippet_content)
-            for i in ["cvss_scores", "references"]:
+            for i in ["cvss_scores", "references", "published_in_nvd"]:
                 data.pop(i)
 
             f = FlawFactory(
@@ -298,6 +299,8 @@ class TestNVDCollector:
         nvdc = NVDCollector()
         # snippet creation is disabled by default, so enable it
         nvdc.snippet_creation_enabled = True
+        # when start date is set to None, all snippets are collected
+        nvdc.snippet_creation_start_date = None
         nvdc.collect(cve_id)
 
         flaws = Flaw.objects.filter(cve_id=cve_id, source=FlawSource.NVD)
@@ -348,15 +351,17 @@ class TestNVDCollector:
         assert snippet.external_id == cve_id
         assert snippet.source == snippet_content["source"]
 
-    # NOTE: cassette updates may be required to comply with keywords
+    # NOTE: cassette updates may be required to comply with keywords and published date
     @pytest.mark.vcr
     @pytest.mark.parametrize(
         "cve_id,snippet_enabled",
         [
-            # snippet creation disabled (passing keywords)
+            # snippet creation disabled (non-historical data, passing keywords)
             ("CVE-2017-9627", False),
-            # non-passing keywords (snippet creation enabled)
+            # non-passing keywords (non-historical data, snippet creation enabled)
             ("CVE-2017-9629", True),
+            # historical data (passing keywords, snippet creation enabled)
+            ("CVE-2017-9630", True),
         ],
     )
     def test_snippet_and_flaw_not_created(self, cve_id, snippet_enabled):
@@ -365,6 +370,9 @@ class TestNVDCollector:
         """
         nvdc = NVDCollector()
         nvdc.snippet_creation_enabled = snippet_enabled
+        nvdc.snippet_creation_start_date = timezone.make_aware(
+            timezone.datetime(2024, 1, 1)
+        )
         nvdc.collect(cve_id)
 
         snippets = Snippet.objects.filter(

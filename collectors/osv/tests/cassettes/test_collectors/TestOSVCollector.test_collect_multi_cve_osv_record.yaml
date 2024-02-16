@@ -20,7 +20,7 @@ interactions:
         sets the Content-Disposition header of a FileResponse when the filename is
         derived from user-supplied input.", "aliases": ["BIT-django-2022-36359", "CVE-2022-36359",
         "CVE-2022-45442", "GHSA-2x8x-jmrp-phxw", "GHSA-8x94-hmjh-97hq"], "modified":
-        "2023-12-06T01:02:30.144615Z", "published": "2022-08-03T14:15:00Z", "references":
+        "2023-12-06T01:02:30.144615Z", "published": "2024-01-03T14:15:00Z", "references":
         [{"type": "WEB", "url": "https://docs.djangoproject.com/en/4.0/releases/security/"},
         {"type": "ARTICLE", "url": "https://www.djangoproject.com/weblog/2022/aug/03/security-releases/"},
         {"type": "WEB", "url": "https://groups.google.com/g/django-announce/c/8cz--gvaJr4"},
