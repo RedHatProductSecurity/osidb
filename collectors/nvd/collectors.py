@@ -3,10 +3,10 @@ from typing import Union
 import nvdlib
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.utils import timezone
+from django.utils import dateparse, timezone
 from nvdlib.classes import CVE
 
-from collectors.constants import SNIPPET_CREATION_ENABLED
+from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_START_DATE
 from collectors.framework.models import Collector
 from collectors.nvd.keywords import should_create_snippet
 from osidb.core import set_user_acls
@@ -159,6 +159,8 @@ class NVDQuerier:
                     "references": get_references(vulnerability),
                     "source": Snippet.Source.NVD,
                     "title": "placeholder only, see description",
+                    # required for ignoring historical data
+                    "published_in_nvd": f"{vulnerability.published}Z",
                 }
             )
 
@@ -172,6 +174,10 @@ class NVDCollector(Collector, NVDQuerier):
 
     # snippet creation is disabled by default for now
     snippet_creation_enabled = None
+
+    # when the start date is set to None, all snippets are collected
+    # when set to a datetime object, only snippets created after that date are collected
+    snippet_creation_start_date = SNIPPET_CREATION_START_DATE
 
     # the NIST NVD CVE project started in 1999
     # https://nvd.nist.gov/general/cve-process
@@ -251,6 +257,12 @@ class NVDCollector(Collector, NVDQuerier):
             # create a new snippet with a flaw (if it does not exist) and link them
             snippet = None
             if self.snippet_creation_enabled:
+                if self.snippet_creation_start_date and (
+                    self.snippet_creation_start_date
+                    >= dateparse.parse_datetime(item["published_in_nvd"])
+                ):
+                    continue
+
                 try:
                     snippet = Snippet.objects.get(
                         source=Snippet.Source.NVD, external_id=cve_id

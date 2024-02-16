@@ -19,7 +19,7 @@ interactions:
       string: '{"resultsPerPage": 1, "startIndex": 0, "totalResults": 1, "format":
         "NVD_CVE", "version": "2.0", "timestamp": "2023-12-07T16:50:54.380", "vulnerabilities":
         [{"cve": {"id": "CVE-2017-7542", "sourceIdentifier": "secalert@redhat.com",
-        "published": "2017-07-21T16:29:00.393", "lastModified": "2023-02-12T23:30:40.070",
+        "published": "2024-01-21T16:29:00.393", "lastModified": "2023-02-12T23:30:40.070",
         "vulnStatus": "Modified", "descriptions": [{"lang": "en", "value": "The ip6_find_1stfragopt
         function allows local users to cause a denial of service."}, {"lang": "es", "value":
         "La funci\u00f3n ip6_find_1stfragopt en el archivo net/ipv6/output_core.c

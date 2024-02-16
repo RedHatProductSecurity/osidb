@@ -13,6 +13,7 @@ from typing import Any, List, Type, Union
 
 from celery._state import get_current_task
 from django.db import models
+from django.utils.timezone import datetime, make_aware
 from django_deprecate_fields import DeprecatedField, logger
 
 from .exceptions import OSIDBException
@@ -78,6 +79,12 @@ def get_env(
         value = json.loads(value)
 
     return value
+
+
+def get_env_date(key: str) -> Union[datetime, None]:
+    """get a date environment variable of the ISO format (YYYY-MM-DD)"""
+    if value := getenv(key):
+        return make_aware(datetime.fromisoformat(value))
 
 
 def get_unique_meta_attr_keys(model: Type[models.Model]) -> List[str]:
