@@ -56,7 +56,7 @@ class TestEmbargo(object):
             cwe_id="CWE-1",
             type="VULNERABILITY",
             impact="LOW",
-            component="kernel",
+            components=["kernel"],
             source=source,
             title="some description",
             description="test",

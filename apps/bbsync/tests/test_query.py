@@ -77,7 +77,7 @@ class TestGenerateBasics:
         test generating of summary
         """
         flaw = FlawFactory(
-            component=component,
+            components=[component],
             cve_id=cve_id,
             embargoed=embargoed,
             title=title,
@@ -134,13 +134,13 @@ class TestGenerateBasics:
         component = "space"
         title = "cucumber"
         FlawFactory(
-            component=component,
+            components=[component],
             cve_id=cve_id1,
             embargoed=embargoed,
             title=title,
         )
         flaw = FlawFactory(
-            component=component,
+            components=[component],
             cve_id=cve_id2,
             embargoed=embargoed,
             title=title,
@@ -155,7 +155,7 @@ class TestGenerateBasics:
         OSIDB-902 reproducer
         """
         flaw = FlawFactory(
-            component="hammer",
+            components=["hammer"],
             cve_id="",
             embargoed=False,
             title="is too heavy",
@@ -172,7 +172,7 @@ class TestGenerateBasics:
         OSIDB-909 reproducer
         """
         flaw = FlawFactory(
-            component="hammer",
+            components=["hammer"],
             cve_id="CVE-2000-1000",
             embargoed=False,
             title="is too heavy",
