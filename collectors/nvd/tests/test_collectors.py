@@ -1,10 +1,11 @@
 import pytest
 from django.utils import timezone
 
+from apps.workflows.workflow import WorkflowModel
 from collectors.framework.models import CollectorMetadata
 from collectors.nvd.collectors import NVDCollector
-from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource, Snippet
-from osidb.tests.factories import FlawCVSSFactory, FlawFactory
+from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource, FlawType, Snippet
+from osidb.tests.factories import FlawCVSSFactory, FlawFactory, FlawReferenceFactory
 
 pytestmark = pytest.mark.integration
 
@@ -225,6 +226,8 @@ class TestNVDCollector:
             else:
                 assert flaw.cvss_scores.filter(version=version).first() is None
 
+    # NOTE: cassette updates may be required to comply with keywords and published date
+    @pytest.mark.enable_signals
     @pytest.mark.default_cassette("TestNVDCollector.test_snippet_and_flaw_created.yaml")
     @pytest.mark.vcr
     @pytest.mark.parametrize(
@@ -236,19 +239,15 @@ class TestNVDCollector:
             # (True, False) cannot happen (if a snippet is present, a flaw must be too)
         ],
     )
-    def test_snippet_and_flaw_created(self, has_flaw, has_snippet):
+    def test_snippet_and_flaw_created(
+        self, has_flaw, has_snippet, internal_read_groups, internal_write_groups
+    ):
         """
         Test that a snippet and flaw are created if they do not exist.
         """
         snippet_content = {
             "cve_id": "CVE-2017-7542",
             "cvss_scores": [
-                {
-                    "score": 4.9,
-                    "issuer": FlawCVSS.CVSSIssuer.NIST,
-                    "vector": "AV:L/AC:L/Au:N/C:N/I:N/A:C",
-                    "version": FlawCVSS.CVSSVersion.VERSION2,
-                },
                 {
                     "score": 5.5,
                     "issuer": FlawCVSS.CVSSIssuer.NIST,
@@ -257,66 +256,39 @@ class TestNVDCollector:
                 },
             ],
             "cwe_id": "(CWE-190|CWE-835)",
-            "description": "The ip6_find_1stfragopt function in net/ipv6/output_core.c in the Linux kernel through 4.12.3 allows local users to cause a denial of service (integer overflow and infinite loop) by leveraging the ability to open a raw socket.",
+            "description": "The ip6_find_1stfragopt function allows local users to cause a denial of service.",
             "references": [
                 {
                     "url": "https://nvd.nist.gov/vuln/detail/CVE-2017-7542",
                     "type": FlawReference.FlawReferenceType.SOURCE,
                 },
                 {
-                    "url": "http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=6399f1fae4ec29fab5ec76070435555e256ca3a6",
-                    "type": FlawReference.FlawReferenceType.EXTERNAL,
-                },
-                {
-                    "url": "http://www.debian.org/security/2017/dsa-3927",
-                    "type": FlawReference.FlawReferenceType.EXTERNAL,
-                },
-                {
-                    "url": "http://www.debian.org/security/2017/dsa-3945",
-                    "type": FlawReference.FlawReferenceType.EXTERNAL,
-                },
-                {"url": "http://www.securityfocus.com/bid/99953", "type": "EXTERNAL"},
-                {
-                    "url": "https://access.redhat.com/errata/RHSA-2017:2918",
-                    "type": FlawReference.FlawReferenceType.EXTERNAL,
-                },
-                {
-                    "url": "https://access.redhat.com/errata/RHSA-2017:2930",
-                    "type": FlawReference.FlawReferenceType.EXTERNAL,
-                },
-                {
-                    "url": "https://access.redhat.com/errata/RHSA-2017:2931",
-                    "type": FlawReference.FlawReferenceType.EXTERNAL,
-                },
-                {
-                    "url": "https://access.redhat.com/errata/RHSA-2018:0169",
-                    "type": FlawReference.FlawReferenceType.EXTERNAL,
-                },
-                {
-                    "url": "https://github.com/torvalds/linux/commit/6399f1fae4ec29fab5ec76070435555e256ca3a6",
-                    "type": FlawReference.FlawReferenceType.EXTERNAL,
-                },
-                {
-                    "url": "https://help.ecostruxureit.com/display/public/UADCE725/Security+fixes+in+StruxureWare+Data+Center+Expert+v7.6.0",
-                    "type": FlawReference.FlawReferenceType.EXTERNAL,
-                },
-                {
-                    "url": "https://usn.ubuntu.com/3583-1/",
-                    "type": FlawReference.FlawReferenceType.EXTERNAL,
-                },
-                {
-                    "url": "https://usn.ubuntu.com/3583-2/",
+                    "url": "https://example.com/security/2017/dsa-3927",
                     "type": FlawReference.FlawReferenceType.EXTERNAL,
                 },
             ],
             "source": Snippet.Source.NVD,
             "title": "placeholder only, see description",
+            "published_in_nvd": "2024-01-21T16:29:00.393Z",
         }
         cve_id = snippet_content["cve_id"]
 
         # Default data
         if has_flaw:
-            FlawFactory(cve_id=cve_id, source=FlawSource.NVD)
+            data = dict(snippet_content)
+            for i in ["cvss_scores", "references", "published_in_nvd"]:
+                data.pop(i)
+
+            f = FlawFactory(
+                **data,
+                type=FlawType.VULNERABILITY,
+                embargoed=False,
+                acl_write=internal_write_groups,
+                acl_read=internal_read_groups,
+            )
+            FlawCVSSFactory(flaw=f, **snippet_content["cvss_scores"][0])
+            for i in snippet_content["references"]:
+                FlawReferenceFactory(flaw=f, **i)
 
         if has_snippet:
             snippet = Snippet(
@@ -327,29 +299,69 @@ class TestNVDCollector:
         nvdc = NVDCollector()
         # snippet creation is disabled by default, so enable it
         nvdc.snippet_creation_enabled = True
+        # when start date is set to None, all snippets are collected
+        nvdc.snippet_creation_start_date = None
         nvdc.collect(cve_id)
-
-        snippets = Snippet.objects.filter(
-            content__cve_id=cve_id, source=Snippet.Source.NVD
-        )
-        snippet = snippets.first()
 
         flaws = Flaw.objects.filter(cve_id=cve_id, source=FlawSource.NVD)
         flaw = flaws.first()
 
-        assert len(snippets) == len(flaws) == 1
-        assert snippet.flaw == flaw
+        snippets = Snippet.objects.filter(external_id=cve_id, source=Snippet.Source.NVD)
+        snippet = snippets.first()
+
+        assert len(flaws) == len(snippets) == 1
+        assert flaw.cvss_scores.count() == len(snippet_content["cvss_scores"]) == 1
+        assert flaw.references.count() == len(snippet_content["references"]) == 2
         assert flaw.snippets.count() == 1
         assert flaw.snippets.first() == snippet
+        assert snippet.flaw == flaw
 
+        # Check Flaw
+        assert flaw.acl_read == internal_read_groups
+        assert flaw.acl_write == internal_write_groups
+        assert flaw.cve_id == cve_id
+        assert flaw.cwe_id == snippet_content["cwe_id"]
+        assert flaw.description == snippet_content["description"]
+        assert flaw.source == snippet_content["source"]
+        assert flaw.title == snippet_content["title"]
+        assert flaw.type == FlawType.VULNERABILITY
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
+
+        # Check FlawCVSS
+        cvss = flaw.cvss_scores.first()
+        assert cvss.acl_read == internal_read_groups
+        assert cvss.acl_write == internal_write_groups
+        assert {
+            "issuer": cvss.issuer,
+            "score": cvss.score,
+            "vector": cvss.vector,
+            "version": cvss.version,
+        } in snippet_content["cvss_scores"]
+
+        # Check FlawReference
+        for i in flaw.references.all():
+            assert i.acl_read == internal_read_groups
+            assert i.acl_write == internal_write_groups
+            assert {"type": i.type, "url": i.url} in snippet_content["references"]
+
+        # Check Snippet
+        assert snippet.acl_read == internal_read_groups
+        assert snippet.acl_write == internal_write_groups
+        assert snippet.content == snippet_content
+        assert snippet.external_id == cve_id
+        assert snippet.source == snippet_content["source"]
+
+    # NOTE: cassette updates may be required to comply with keywords and published date
     @pytest.mark.vcr
     @pytest.mark.parametrize(
         "cve_id,snippet_enabled",
         [
-            # CVE complies with the keywords check, but snippet creation is disabled
+            # snippet creation disabled (non-historical data, passing keywords)
             ("CVE-2017-9627", False),
-            # snippet creation is enabled, but CVE does not comply with the keywords check
+            # non-passing keywords (non-historical data, snippet creation enabled)
             ("CVE-2017-9629", True),
+            # historical data (passing keywords, snippet creation enabled)
+            ("CVE-2017-9630", True),
         ],
     )
     def test_snippet_and_flaw_not_created(self, cve_id, snippet_enabled):
@@ -358,6 +370,9 @@ class TestNVDCollector:
         """
         nvdc = NVDCollector()
         nvdc.snippet_creation_enabled = snippet_enabled
+        nvdc.snippet_creation_start_date = timezone.make_aware(
+            timezone.datetime(2024, 1, 1)
+        )
         nvdc.collect(cve_id)
 
         snippets = Snippet.objects.filter(

@@ -7,9 +7,9 @@ from zipfile import ZipFile
 import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.utils import timezone
+from django.utils import dateparse, timezone
 
-from collectors.constants import SNIPPET_CREATION_ENABLED
+from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_START_DATE
 from collectors.framework.models import Collector
 from osidb.core import set_user_acls
 from osidb.models import FlawCVSS, FlawReference, Snippet
@@ -21,6 +21,10 @@ logger = get_task_logger(__name__)
 class OSVCollector(Collector):
     # Snippet creation is disabled for now
     snippet_creation_enabled = None
+
+    # When the start date is set to None, all snippets are collected
+    # When set to a datetime object, only snippets created after that date are collected
+    snippet_creation_start_date = SNIPPET_CREATION_START_DATE
 
     SUPPORTED_OSV_ECOSYSTEMS = (
         "Bitnami",  # General purpose Vulnerability Database: https://github.com/bitnami/vulndb
@@ -155,6 +159,12 @@ class OSVCollector(Collector):
         if not self.snippet_creation_enabled:
             return 0, 0
 
+        if self.snippet_creation_start_date and (
+            self.snippet_creation_start_date
+            >= dateparse.parse_datetime(content["published_in_osv"])
+        ):
+            return 0, 0
+
         if not cve_ids:
             _, created = Snippet.objects.update_or_create(
                 source=Snippet.Source.OSV,
@@ -269,6 +279,8 @@ class OSVCollector(Collector):
             "osv_id": osv_id,
             "osv_affected": osv_vuln.get("affected"),
             "osv_acknowledgments": osv_vuln.get("credits"),
+            # Required for ignoring historical data
+            "published_in_osv": osv_vuln.get("published"),
         }
 
         return osv_id, cve_ids, content
