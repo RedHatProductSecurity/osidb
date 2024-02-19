@@ -76,7 +76,7 @@ class TestFlawModelIntegration(object):
             acl_read=acl_read,
             acl_write=acl_write,
             description="Description",
-            component="component",
+            components=["component"],
             impact=Impact.LOW,
             source=FlawSource.INTERNET,
             unembargo_dt=make_aware(datetime.now()),

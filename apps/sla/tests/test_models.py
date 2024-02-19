@@ -620,7 +620,6 @@ class TestSLAPolicy:
                         "is compliance priority",
                     ],
                     "flaw": [
-                        "component is dnf",
                         "is major incident",
                         "is not embargoed",
                     ],
@@ -637,7 +636,7 @@ class TestSLAPolicy:
             policy = SLAPolicy(policy_desc)
 
             flaw = FlawFactory(
-                component="dnf",
+                components=["dnf"],
                 embargoed=False,
                 major_incident_state=Flaw.FlawMajorIncident.APPROVED,
                 impact=Impact.LOW,
@@ -684,7 +683,6 @@ class TestSLAPolicy:
                         "ps_component is dnf",
                     ],
                     "flaw": [
-                        "component is dnf",
                         "is major incident",
                         "is not embargoed",
                     ],
@@ -698,14 +696,14 @@ class TestSLAPolicy:
             policy = SLAPolicy(policy_desc)
 
             flaw1 = FlawFactory(
-                component="dnf",
+                components=["dnf"],
                 embargoed=False,
                 major_incident_state=Flaw.FlawMajorIncident.APPROVED,
                 impact=Impact.LOW,
                 title="real flaw",
             )
             flaw2 = FlawFactory(
-                component="ansible",
+                components=["ansible"],
                 embargoed=flaw1.embargoed,
                 major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
                 impact=Impact.IMPORTANT,
@@ -772,7 +770,6 @@ class TestSLAPolicy:
                 "description": "there is no better",
                 "conditions": {
                     "flaw": [
-                        "component is dnf",
                         "is not embargoed",
                     ],
                 },
@@ -785,7 +782,7 @@ class TestSLAPolicy:
             policy = SLAPolicy(policy_desc)
 
             flaw = FlawFactory(
-                component="dnf",
+                components=["dnf"],
                 embargoed=False,
             )
             ps_module = PsModuleFactory()
@@ -823,7 +820,6 @@ class TestSLAPolicy:
                         "ps_component is dnf",
                     ],
                     "flaw": [
-                        "component is dnf",
                         "is not embargoed",
                     ],
                 },
@@ -836,12 +832,12 @@ class TestSLAPolicy:
             policy = SLAPolicy(policy_desc)
 
             flaw1 = FlawFactory(
-                component="dnf",
+                components=["dnf"],
                 embargoed=False,
                 unembargo_dt=make_aware(datetime(2010, 1, 1)),  # earlier date
             )
             flaw2 = FlawFactory(
-                component="dnf",
+                components=["dnf"],
                 embargoed=flaw1.embargoed,
                 unembargo_dt=make_aware(datetime(2020, 1, 1)),
             )
