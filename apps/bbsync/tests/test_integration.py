@@ -185,7 +185,7 @@ class TestBBSyncIntegration:
         flaw = FlawFactory(
             bz_id="1995562",
             cve_id="",
-            component="ssh",
+            components=["ssh"],
             title="I cannot ssh into Matrix",
             description="test",
             impact="MODERATE",
@@ -236,7 +236,7 @@ class TestBBSyncIntegration:
         flaw = FlawFactory(
             bz_id="1995562",
             cve_id="CVE-2000-3000",
-            component="ssh",
+            components=["ssh"],
             title="I cannot ssh into Matrix",
             description="test",
             impact="MODERATE",
@@ -290,7 +290,7 @@ class TestBBSyncIntegration:
             cve_id="CVE-2022-0508",
             cvss3="2.2/CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:L/I:N/A:N",
             cwe_id="CWE-100",
-            component="shower",
+            components=["shower"],
             description="the water is everywhere",
             embargoed=True,
             impact="IMPORTANT",
@@ -346,7 +346,7 @@ class TestBBSyncIntegration:
             last_change_time = "2024-02-06T09:43:57Z"
             flaw = FlawFactory(
                 cve_id="CVE-2004-2493",
-                component="test",
+                components=["test"],
                 title="totally descriptive",
                 description="test",
                 impact="LOW",
@@ -411,7 +411,7 @@ class TestBBSyncIntegration:
             flaw_last_change_time = "2024-02-09T13:16:34Z"
             flaw = FlawFactory(
                 cve_id="CVE-2004-2493",
-                component="test",
+                components=["test"],
                 title="totally descriptive",
                 description="test",
                 impact="LOW",

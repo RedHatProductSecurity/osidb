@@ -1531,7 +1531,7 @@ class TestFlawConvertor:
         AffectFactory(
             flaw=flaw,
             ps_module="rhel-8",
-            ps_component="ssh",
+            ps_component=["ssh"],
             cvss2="10.0/AV:N/AC:L/Au:N/C:C/I:C/A:C",
             cvss2_score=10.0,
             cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",

@@ -82,7 +82,7 @@ class TestSearch:
             title="TITLE",
             description="DESCRIPTION",
             impact=Impact.CRITICAL,
-            component="kernel",
+            components=["kernel"],
             source=FlawSource.INTERNET,
             summary="SUMMARY",
             statement="STATEMENT",
