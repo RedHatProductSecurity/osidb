@@ -33,7 +33,7 @@ class TestEndpointsFlawsUpdateTrackers:
         affect1 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module1.name,
         )
         tracker1 = TrackerFactory(
@@ -54,7 +54,7 @@ class TestEndpointsFlawsUpdateTrackers:
         affect2 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module2.name,
         )
         TrackerFactory(
@@ -133,7 +133,7 @@ class TestEndpointsFlawsUpdateTrackers:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
         TrackerFactory(

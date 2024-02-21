@@ -23,19 +23,17 @@ class TestTrackerSuggestions:
     @pytest.mark.parametrize(
         "affectedness,resolution,is_valid",
         [
-            (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.FIX, True),
             (
                 Affect.AffectAffectedness.AFFECTED,
                 Affect.AffectResolution.DELEGATED,
                 True,
             ),
-            (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.DEFER, False),
             (
                 Affect.AffectAffectedness.AFFECTED,
                 Affect.AffectResolution.WONTFIX,
                 False,
             ),
-            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.DEFER, False),
+            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.WONTFIX, False),
         ],
     )
     def test_trackers_file_offer_invalid(
@@ -107,7 +105,7 @@ class TestTrackerSuggestions:
         AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_component="component-1",
             ps_module="regular-module",
         )
@@ -128,7 +126,7 @@ class TestTrackerSuggestions:
         affect_embargoed = AffectFactory(
             flaw=flaw_embargoed,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_component="component-1",
             ps_module="public-only-module",
         )
@@ -163,7 +161,7 @@ class TestTrackerSuggestions:
             impact=Impact.MODERATE,
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_component="component-1",
             ps_module="ubi-module",
         )
@@ -245,7 +243,7 @@ class TestTrackerSuggestions:
             impact=Impact.LOW,
             flaw=flaw1,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_component="ubi-component",
             ps_module="ubi-module",
         )
@@ -267,7 +265,7 @@ class TestTrackerSuggestions:
             impact=Impact.MODERATE,
             flaw=flaw2,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_component="ubi-component",
             ps_module="ubi-module",
         )
@@ -312,7 +310,7 @@ class TestTrackerSuggestions:
         AffectFactory(
             flaw=flaw3,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_component="regular-component",
             ps_module="regular-module",
         )

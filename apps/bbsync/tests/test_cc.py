@@ -49,7 +49,7 @@ class TestCCBuilder:
                     else Affect.AffectAffectedness.AFFECTED,
                     "resolution": affect[3]
                     if len(affect) > 3
-                    else Affect.AffectResolution.FIX,
+                    else Affect.AffectResolution.DELEGATED,
                 }
             else:
                 return affect
@@ -100,7 +100,7 @@ class TestCCBuilder:
         assert flaw.meta_attr["cc"] == '["email@redhat.com", "someone@gmail.com"]'
         assert (
             flaw.meta_attr["original_srtnotes"]
-            == '{"affects": [{"ps_module": "rhel-6", "ps_component": "kernel", "affectedness": "AFFECTED", "resolution": "FIX"}]}'
+            == '{"affects": [{"ps_module": "rhel-6", "ps_component": "kernel", "affectedness": "AFFECTED", "resolution": "DELEGATED"}]}'
         )
         assert flaw.affects.count() == 2
         assert flaw.affects.filter(ps_module="rhel-6", ps_component="kernel").exists()
@@ -135,7 +135,7 @@ class TestCCBuilder:
         AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
 
         cc_builder = CCBuilder(flaw)
@@ -151,7 +151,7 @@ class TestCCBuilder:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
         ps_product = PsProductFactory(business_unit="Community")
         PsModuleFactory(
@@ -378,7 +378,7 @@ class TestAffectCCBuilder:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
         PsModuleFactory(
             name=affect.ps_module,
@@ -399,7 +399,7 @@ class TestAffectCCBuilder:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
         PsModuleFactory(
             name=affect.ps_module,
@@ -420,7 +420,7 @@ class TestAffectCCBuilder:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
         PsModuleFactory(
             name=affect.ps_module,
@@ -441,7 +441,7 @@ class TestAffectCCBuilder:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
         PsModuleFactory(
             name=affect.ps_module,
@@ -465,7 +465,7 @@ class TestAffectCCBuilder:
         affect1 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
         PsModuleFactory(
             bts_name="bugzilla",
@@ -480,7 +480,7 @@ class TestAffectCCBuilder:
         affect2 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
         PsModuleFactory(
             bts_name="jboss",
@@ -522,7 +522,7 @@ class TestAffectCCBuilder:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
         PsModuleFactory(
             name=affect.ps_module,
@@ -616,7 +616,7 @@ class TestAffectCCBuilder:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_component=ps_component,
         )
         PsModuleFactory(
@@ -682,7 +682,7 @@ class TestAffectCCBuilder:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_component="brick",
         )
         PsModuleFactory(
@@ -712,7 +712,7 @@ class TestAffectCCBuilder:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
         bz_product = BugzillaProductFactory()
         BugzillaComponentFactory(
@@ -745,7 +745,7 @@ class TestRHSCLAffectCCBuilder:
         affect1 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_component="brick-collection",
         )
         ps_module1 = PsModuleFactory(
@@ -769,7 +769,7 @@ class TestRHSCLAffectCCBuilder:
         affect2 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_component="apple-juice",
         )
         ps_module2 = PsModuleFactory(
@@ -805,7 +805,7 @@ class TestRHSCLAffectCCBuilder:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_component="stick",
         )
         ps_module = PsModuleFactory(
@@ -840,7 +840,7 @@ class TestRHSCLAffectCCBuilder:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_component="stick-brick",
         )
         ps_module = PsModuleFactory(

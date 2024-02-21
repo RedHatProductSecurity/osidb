@@ -258,7 +258,7 @@ class TestBBSyncIntegration:
             ps_module="rhel-9",
             ps_component="samba",
             affectedness="AFFECTED",
-            resolution="FIX",
+            resolution="DELEGATED",
             impact=None,
             cvss2=None,
             cvss3=None,
@@ -513,7 +513,7 @@ class TestBBSyncIntegration:
             "ps_module": "rhel-8",
             "ps_component": "kernel",
             "affectedness": "AFFECTED",
-            "resolution": "FIX",
+            "resolution": "DELEGATED",
             "embargoed": False,
         }
         response = auth_client().post(
@@ -531,7 +531,7 @@ class TestBBSyncIntegration:
         assert response.json()["ps_module"] == "rhel-8"
         assert response.json()["ps_component"] == "kernel"
         assert response.json()["affectedness"] == "AFFECTED"
-        assert response.json()["resolution"] == "FIX"
+        assert response.json()["resolution"] == "DELEGATED"
 
     @pytest.mark.vcr
     def test_affect_update(self, auth_client, test_api_uri):
@@ -556,7 +556,7 @@ class TestBBSyncIntegration:
             ps_module="rhel-8",
             ps_component="kernel",
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             updated_dt="2023-03-17T15:33:54Z",
         )
 

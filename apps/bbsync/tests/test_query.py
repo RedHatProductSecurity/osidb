@@ -224,7 +224,7 @@ class TestGenerateSRTNotes:
                     "impact": null,
                     "ps_component": "libssh",
                     "ps_module": "fedora-all",
-                    "resolution": "fix"
+                    "resolution": "delegated"
                 }
             ],
             "impact": "moderate",
@@ -250,7 +250,7 @@ class TestGenerateSRTNotes:
         AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_component="libssh",
             ps_module="fedora-all",
             impact=Impact.NOVALUE,
@@ -322,7 +322,7 @@ class TestGenerateSRTNotes:
             ps_module="rhel-6",
             ps_component="ImageMagick",
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             impact=Impact.CRITICAL,
             # do not care about cvss2 and cvss3 as they will be deprecated
             cvss2="",
@@ -387,7 +387,7 @@ class TestGenerateSRTNotes:
 
         assert rhel6affect["ps_component"] == "ImageMagick"
         assert rhel6affect["affectedness"] == "affected"
-        assert rhel6affect["resolution"] == "fix"
+        assert rhel6affect["resolution"] == "delegated"
         assert rhel6affect["impact"] == "critical"
         assert rhel6affect["cvss2"] == "6.8/AV:N/AC:M/Au:N/C:P/I:P/A:P"
         assert (
@@ -878,7 +878,7 @@ class TestGenerateSRTNotes:
                     "impact": "moderate",
                     "ps_component": "libssh",
                     "ps_module": "fedora-all",
-                    "resolution": "fix"
+                    "resolution": "delegated"
                 }
             ],
             "cwe": "CWE-123",
@@ -914,7 +914,7 @@ class TestGenerateSRTNotes:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_component="libssh",
             ps_module="fedora-all",
             impact=Impact.MODERATE,

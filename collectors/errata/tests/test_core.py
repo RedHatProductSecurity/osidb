@@ -73,7 +73,7 @@ class TestErrataToolCollection:
         affect = AffectFactory(
             ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
 
         TrackerFactory.create(
@@ -124,7 +124,7 @@ class TestErrataToolCollection:
         affect = AffectFactory(
             ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
 
         # The test uses the same code as above, but no errata I've checked have both Bugzilla and Jira trackers
@@ -224,7 +224,7 @@ class TestErrataToolCollection:
         affect = AffectFactory(
             ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
 
         TrackerFactory.create(

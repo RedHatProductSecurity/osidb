@@ -585,7 +585,7 @@ class TestWorkflowFramework:
 
         affect = AffectFactory(
             flaw=flaw,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             affectedness=Affect.AffectAffectedness.AFFECTED,
         )
 

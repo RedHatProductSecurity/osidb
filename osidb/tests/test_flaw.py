@@ -313,10 +313,13 @@ class TestFlaw:
         ps_module = PsModuleFactory(bts_name="bugzilla")
         fix_affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
             ps_module=ps_module.name,
             flaw=flaw,
         )
+        # Skip validation as FIX is not a valid resolution anymore, but there may be historical
+        # data that still uses it
+        fix_affect.resolution = Affect.AffectResolution.FIX
+        fix_affect.save(raise_validation_error=False)
         assert not flaw.trackers_filed
         TrackerFactory(
             affects=(fix_affect,),
@@ -324,11 +327,12 @@ class TestFlaw:
             type=Tracker.TrackerType.BUGZILLA,
         )
         assert flaw.trackers_filed
-        AffectFactory(
+        fix_affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
             flaw=flaw,
         )
+        fix_affect.resolution = Affect.AffectResolution.FIX
+        fix_affect.save(raise_validation_error=False)
         assert not flaw.trackers_filed
 
     def test_delegated_affects(self):
@@ -396,7 +400,7 @@ class TestFlaw:
         assert new_affect.delegated_resolution is None
         undelegated_affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.WONTFIX,
         )
         assert undelegated_affect.delegated_resolution is None
 
@@ -427,7 +431,7 @@ class TestFlaw:
         ps_module = PsModuleFactory(bts_name="bugzilla")
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
             flaw__embargoed=False,
         )
@@ -2047,117 +2051,93 @@ class TestFlawValidators:
             assert set(alerts).issubset(affect._alerts)
 
     @pytest.mark.parametrize(
-        "affectedness,resolution,should_raise",
+        "affectedness_old,affectedness_new,resolution_old,resolution_new,should_raise,should_alert",
         [
             (
-                Affect.AffectAffectedness.NOVALUE,
-                Affect.AffectResolution.DEFER,
-                True,
-            ),
-            (
-                Affect.AffectAffectedness.NOVALUE,
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.DELEGATED,
                 Affect.AffectResolution.WONTFIX,
-                True,
-            ),
-            (
-                Affect.AffectAffectedness.NEW,
-                Affect.AffectResolution.DEFER,
+                False,
                 False,
             ),
             (
-                Affect.AffectAffectedness.NEW,
-                Affect.AffectResolution.WONTFIX,
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.DELEGATED,
+                Affect.AffectResolution.FIX,
+                True,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.FIX,
+                Affect.AffectResolution.FIX,
+                False,
+                True,
+            ),
+            (
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.FIX,
+                Affect.AffectResolution.DELEGATED,
+                False,
                 False,
             ),
         ],
     )
-    def test_validate_exceptional_affectedness_resolution(
-        self, affectedness, resolution, should_raise
+    def test_validate_historical_affectedness_resolution(
+        self,
+        affectedness_old,
+        affectedness_new,
+        resolution_old,
+        resolution_new,
+        should_raise,
+        should_alert,
     ):
         """
-        Test that old flaw with empty affect raises alert
+        Test modifying an affect into a historical affectedness/resolution combination raises a
+        validation error only when modifying one of those fields, and otherwise it throws an
+        alert.
         """
-        affect = AffectFactory(resolution=resolution, affectedness=affectedness)
-        assert should_raise == bool("flaw_exceptional_affect_status" in affect._alerts)
-
-    @pytest.mark.parametrize(
-        "impact,resolution,product,should_raise",
-        [
-            (
-                Impact.LOW,
-                Affect.AffectResolution.WONTREPORT,
-                "other-services",
-                False,
-            ),
-            (
-                Impact.MODERATE,
-                Affect.AffectResolution.WONTREPORT,
-                "other-services",
-                False,
-            ),
-            (
-                Impact.IMPORTANT,
-                Affect.AffectResolution.WONTREPORT,
-                "other-services",
-                True,
-            ),
-            (
-                Impact.LOW,
-                Affect.AffectResolution.WONTREPORT,
-                "regular-product",
-                True,
-            ),
-            (
-                Impact.LOW,
-                Affect.AffectResolution.WONTREPORT,
-                "invalid",
-                True,
-            ),
-        ],
-    )
-    def test_validate_wontreport_products(
-        self, impact, resolution, product, should_raise
-    ):
-        """
-        Tests that only products associated services, having a impact
-        of LOW or MODERATE, can be marked as AFFECTED by a WONTREPORT affect
-        """
-        # Every test should have only one service product/module
-        if product != "other-services":
-            PsModuleFactory(
-                name="other-services-test-module",
-                ps_product=PsProductFactory(short_name="other-services-test-product"),
-            )
-
-        PsModuleFactory(
-            name=product + "-test-module",
-            ps_product=PsProductFactory(short_name=product),
-        )
-
+        flaw = FlawFactory()
         affect = AffectFactory.build(
-            impact=impact,
-            resolution=resolution,
-            ps_module=product + "-test-module",
-            flaw=FlawFactory(),
-            affectedness=Affect.AffectAffectedness.AFFECTED,
+            affectedness=affectedness_old,
+            resolution=resolution_old,
+            impact=Impact.LOW,
+            flaw=flaw,
         )
+        affect.save(raise_validation_error=False)
+        # Initially there shouldn't be any alerts
+        assert "flaw_historical_affect_status" not in affect._alerts
 
+        affect.affectedness = affectedness_new
+        affect.resolution = resolution_new
+        affect.impact = Impact.CRITICAL
         if should_raise:
-            with pytest.raises(ValidationError) as e:
+            with pytest.raises(
+                ValidationError,
+                match=f"{affect.resolution} is not a valid resolution for {affect.affectedness}.",
+            ):
                 affect.save()
-            assert "wontreport can only be associated with" in str(e)
         else:
             assert affect.save() is None
+
+        if should_alert:
+            assert "flaw_historical_affect_status" in affect._alerts
+        else:
+            assert "flaw_historical_affect_status" not in affect._alerts
 
     @pytest.mark.parametrize(
         "affectedness,resolution,should_raise",
         [
             (Affect.AffectAffectedness.NEW, Affect.AffectResolution.NOVALUE, False),
-            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.DEFER, False),
+            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.DEFER, True),
             (Affect.AffectAffectedness.NEW, Affect.AffectResolution.WONTFIX, False),
             (Affect.AffectAffectedness.NEW, Affect.AffectResolution.OOSS, False),
-            (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.FIX, False),
-            (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.DEFER, False),
+            (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.FIX, True),
+            (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.DEFER, True),
             (
                 Affect.AffectAffectedness.AFFECTED,
                 Affect.AffectResolution.DELEGATED,
@@ -2166,7 +2146,7 @@ class TestFlawValidators:
             (
                 Affect.AffectAffectedness.AFFECTED,
                 Affect.AffectResolution.WONTREPORT,
-                False,
+                True,
             ),
             (
                 Affect.AffectAffectedness.AFFECTED,
@@ -2287,11 +2267,6 @@ class TestFlawValidators:
                 True,
             ),
             (
-                Affect.AffectResolution.FIX,
-                True,
-                False,
-            ),
-            (
                 Affect.AffectResolution.WONTFIX,
                 False,
                 False,
@@ -2344,11 +2319,6 @@ class TestFlawValidators:
                 Affect.AffectResolution.WONTFIX,
                 True,
                 True,
-            ),
-            (
-                Affect.AffectResolution.FIX,
-                True,
-                False,
             ),
             (
                 Affect.AffectResolution.WONTFIX,

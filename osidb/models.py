@@ -1,6 +1,3 @@
-"""
-draft model for end to end testing
-"""
 import json
 import logging
 import re
@@ -1879,30 +1876,47 @@ class Affect(
                 "does not match any valid collection",
             )
 
-    def _validate_exceptional_affectedness_resolution(self):
+    def _validate_historical_affectedness_resolution(self):
         """
-        Alerts that an old flaw have empty affectedness.
-        (Only accepts WONTFIX and DEFER as resolution, validated by other validation)
+        Alerts that an old flaw has an affectedness/resolution combination that is now invalid,
+        but was valid in the past.
         """
-        valid_resolutions = [
-            Affect.AffectResolution.WONTFIX,
-            Affect.AffectResolution.DEFER,
-        ]
         if (
-            self.affectedness == Affect.AffectAffectedness.NOVALUE
-            and self.resolution in valid_resolutions
+            self.resolution
+            in AFFECTEDNESS_HISTORICAL_VALID_RESOLUTIONS[self.affectedness]
         ):
+            # Don't allow new records with historical combinations, or changing old records
+            # to an invalid combination
+            old_affect = (
+                Affect.objects.get(uuid=self.uuid) if not self._state.adding else None
+            )
+            if (
+                self._state.adding
+                or self.affectedness != old_affect.affectedness
+                or self.resolution != old_affect.resolution
+            ):
+                raise ValidationError(
+                    f"{self.resolution} is not a valid resolution for {self.affectedness}."
+                )
+
+            # If modifying something else from a record with an invalid combination, e.g. the
+            # impact, throw an alert
             self.alert(
-                "flaw_exceptional_affect_status",
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is in "
-                "a exceptional state having no affectedness.",
+                "flaw_historical_affect_status",
+                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has a "
+                "historical affectedness/resolution combination which is not valid anymore.",
             )
 
     def _validate_affect_status_resolution(self):
         """
-        Validates that affected product have a valid combination of affectedness and resolution
+        Validates that affected products have a valid combination (currently or historically)
+        of affectedness and resolution.
         """
-        if self.resolution not in AFFECTEDNESS_VALID_RESOLUTIONS[self.affectedness]:
+        if (
+            self.resolution not in AFFECTEDNESS_VALID_RESOLUTIONS[self.affectedness]
+            and self.resolution
+            not in AFFECTEDNESS_HISTORICAL_VALID_RESOLUTIONS[self.affectedness]
+        ):
             raise ValidationError(
                 f"{self.resolution} is not a valid resolution for {self.affectedness}."
             )
@@ -3610,6 +3624,7 @@ class SpecialConsiderationPackage(models.Model):
 from apps.bbsync.cc import AffectCCBuilder, RHSCLAffectCCBuilder  # noqa: E402
 
 from .constants import (  # noqa: E402
+    AFFECTEDNESS_HISTORICAL_VALID_RESOLUTIONS,
     AFFECTEDNESS_VALID_RESOLUTIONS,
     BZ_ID_SENTINEL,
     COMPONENTS_WITHOUT_COLLECTION,

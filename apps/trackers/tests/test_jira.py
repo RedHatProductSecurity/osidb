@@ -293,14 +293,12 @@ class TestTrackerJiraQueryBuilder:
             ps_module=ps_module.name,
             ps_component="component",
             affectedness=affectedness,
-            resolution=Affect.AffectResolution.DEFER,
         )
         affect2 = AffectFactory(
             flaw=flaw2,
             ps_module=ps_module.name,
             ps_component="component",
             affectedness=affectedness,
-            resolution=Affect.AffectResolution.DEFER,
         )
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
 
