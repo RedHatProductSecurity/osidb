@@ -28,7 +28,7 @@ class TestEndpointsTrackers:
         affect = AffectFactory(
             flaw__embargoed=embargoed,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
 
@@ -63,7 +63,7 @@ class TestEndpointsTrackers:
         affect = AffectFactory(
             flaw__embargoed=embargoed,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
         tracker = TrackerFactory(
@@ -97,13 +97,13 @@ class TestEndpointsTrackers:
         affect1 = AffectFactory(
             flaw__embargoed=embargoed,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
         affect2 = AffectFactory(
             flaw__embargoed=embargoed,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
         tracker = TrackerFactory(
@@ -142,7 +142,7 @@ class TestEndpointsTrackers:
         ps_module = PsModuleFactory(bts_name=bts_name)
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
         tracker = TrackerFactory(

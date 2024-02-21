@@ -54,7 +54,7 @@ class TestTrackerSaver:
             ps_module=ps_module.name,
             ps_component="openssl",
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -118,7 +118,7 @@ class TestTrackerSaver:
             ps_module=ps_module.name,
             ps_component="openssl",
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
 
         # 2) define a tracker model instance
@@ -200,7 +200,7 @@ class TestTrackerAPI:
             ps_module=ps_module.name,
             ps_component="openssl",
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
 
         # 2) create tracker in OSIDB and Bugzilla
@@ -270,7 +270,7 @@ class TestTrackerAPI:
             ps_module=ps_module.name,
             ps_component="openssl",
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
 
         # 2) define a tracker model instance
@@ -356,7 +356,7 @@ class TestTrackerAPI:
             ps_module=ps_module.name,
             ps_component="openshift",
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             impact=flaw.impact,
         )
         JiraProjectFieldsFactory(
@@ -450,7 +450,7 @@ class TestTrackerAPI:
             ps_module=ps_module.name,
             ps_component="openshift",
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             impact=flaw1.impact,
         )
         # flaw to unlink
@@ -467,7 +467,7 @@ class TestTrackerAPI:
             ps_module=ps_module.name,
             ps_component="openshift",
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             impact=flaw2.impact,
         )
         # flaw to link
@@ -484,7 +484,7 @@ class TestTrackerAPI:
             ps_module=ps_module.name,
             ps_component="openshift",
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             impact=flaw3.impact,
         )
 

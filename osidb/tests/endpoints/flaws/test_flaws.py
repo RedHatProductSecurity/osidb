@@ -270,7 +270,7 @@ class TestEndpointsFlaws:
         ps_module = PsModuleFactory(bts_name="bugzilla")
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
         tracker = TrackerFactory(
@@ -367,7 +367,7 @@ class TestEndpointsFlaws:
             flaw=flaw,
             ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
         )
         tracker = TrackerFactory(
@@ -448,14 +448,14 @@ class TestEndpointsFlaws:
             flaw=flaw,
             ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
         )
         affect2 = AffectFactory(
             flaw=flaw,
             ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
         )
         tracker1 = TrackerFactory(
@@ -582,7 +582,7 @@ class TestEndpointsFlaws:
                 flaw=flaw,
                 ps_module=ps_module.name,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
-                resolution=Affect.AffectResolution.FIX,
+                resolution=Affect.AffectResolution.DELEGATED,
             )
             TrackerFactory(
                 affects=[affect],
@@ -632,7 +632,7 @@ class TestEndpointsFlaws:
                 flaw=flaw,
                 ps_module=ps_module.name,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
-                resolution=Affect.AffectResolution.FIX,
+                resolution=Affect.AffectResolution.DELEGATED,
             )
             TrackerFactory(
                 affects=[affect],
@@ -692,7 +692,7 @@ class TestEndpointsFlaws:
                 flaw=flaw,
                 ps_module=ps_module.name,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
-                resolution=Affect.AffectResolution.FIX,
+                resolution=Affect.AffectResolution.DELEGATED,
             )
             TrackerFactory(
                 affects=[affect],
@@ -739,7 +739,7 @@ class TestEndpointsFlaws:
                 flaw=flaw,
                 ps_module=ps_module.name,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
-                resolution=Affect.AffectResolution.FIX,
+                resolution=Affect.AffectResolution.DELEGATED,
             )
             TrackerFactory(
                 affects=[affect],
@@ -1405,7 +1405,11 @@ class TestEndpointsFlaws:
         Test that updating a Flaw CVE ID by sending a PUT request works.
         """
         flaw = FlawFactory(embargoed=embargoed, cve_id=old_cve_id)
-        AffectFactory(flaw=flaw)
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
         response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
         body = response.json()
@@ -1627,7 +1631,7 @@ class TestEndpointsFlaws:
             AffectFactory(
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
-                resolution=Affect.AffectResolution.FIX,
+                resolution=Affect.AffectResolution.DELEGATED,
                 ps_module=ps_module.name,
             )
             for _ in range(5)
@@ -1636,7 +1640,7 @@ class TestEndpointsFlaws:
             AffectFactory(
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
-                resolution=Affect.AffectResolution.FIX,
+                resolution=Affect.AffectResolution.DELEGATED,
                 ps_module=ps_module.name,
             )
             for _ in range(5)

@@ -1056,7 +1056,7 @@ class TestFlawConvertor:
                     "ps_module": "rhel-6.0",
                     "ps_component": "firefox",
                     "affectedness": "affected",
-                    "resolution": "fix"
+                    "resolution": "delegated"
                 }
             ],
             "impact": "moderate",
@@ -1119,12 +1119,12 @@ class TestFlawConvertor:
                     "ps_module": "rhel-6.0",
                     "ps_component": "firefox",
                     "affectedness": "affected",
-                    "resolution": "fix"
+                    "resolution": "delegated"
                 },{
                     "ps_module": "rhel-6.1",
                     "ps_component": "firefox",
                     "affectedness": "affected",
-                    "resolution": "fix"
+                    "resolution": "delegated"
                 }
             ],
             "impact": "moderate",
@@ -1554,7 +1554,7 @@ class TestFlawConvertor:
                     "ps_module": "rhel-8",
                     "ps_component": "ssh",
                     "affectedness": "affected",
-                    "resolution": "fix"
+                    "resolution": "delegated"
                 }
             ],
             "impact": "moderate",
