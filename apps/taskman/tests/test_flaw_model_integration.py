@@ -29,6 +29,7 @@ class TestFlawModelIntegration(object):
         def mock_create_or_update_task(self, flaw):
             nonlocal sync_count
             sync_count += 1
+            return Response(data={"key": "TASK-123"}, status=200)
 
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
@@ -60,6 +61,7 @@ class TestFlawModelIntegration(object):
         def mock_create_or_update_task(self, flaw):
             nonlocal sync_count
             sync_count += 1
+            return Response(data={"key": "TASK-123"}, status=200)
 
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
@@ -99,6 +101,7 @@ class TestFlawModelIntegration(object):
         def mock_create_or_update_task(self, flaw):
             nonlocal sync_count
             sync_count += 1
+            return Response(data={"key": "TASK-123"}, status=200)
 
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
@@ -137,6 +140,7 @@ class TestFlawModelIntegration(object):
         def mock_create_or_update_task(self, flaw):
             nonlocal sync_count
             sync_count += 1
+            return Response(data={"key": "TASK-123"}, status=200)
 
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task

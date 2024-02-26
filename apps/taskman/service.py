@@ -93,7 +93,6 @@ class JiraTaskmanQuerier(JiraQuerier):
                     fields=data["fields"], prefetch=True
                 )
                 flaw.task_key = issue.key
-                flaw.save()
                 if flaw.team_id:  # Jira don't allow setting team during creation
                     return self.create_or_update_task(flaw)
                 return Response(data=issue.raw, status=201)

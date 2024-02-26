@@ -40,13 +40,13 @@ class TestTaskmanService(object):
 
         flaw.title = new_title
         flaw.owner = "concosta@redhat.com"
-        flaw.team_id = "4077"
+        flaw.team_id = "4484"
         flaw.save()
 
         response2 = taskman.create_or_update_task(flaw=flaw)
         assert response2.status_code == 200
         assert response2.data["fields"]["summary"] == new_title
-        assert response2.data["fields"]["customfield_12313240"]["id"] == 4077
+        assert response2.data["fields"]["customfield_12313240"]["id"] == 4484
         assert (
             response2.data["fields"]["customfield_12313240"]["name"]
             == "osidb_test_team"

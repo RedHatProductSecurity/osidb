@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ignore hosts on VCR recording (OSIDB-1678)
 - Included workflow fields in OpenAPI document for filtering (OSIDB-2083)
 
+### Fixed
+- Fix Jira sync when bugzilla token is present (OSIDB-2171)
+
 ## [3.6.2] - 2024-02-02
 ### Fixed
 - Fix issue with tracker updates through Affect objects (OSIDB-2059)

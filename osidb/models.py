@@ -612,10 +612,10 @@ class FlawManager(ACLMixinManager, TrackingMixinManager):
 class Flaw(
     ACLMixin,
     TrackingMixin,
+    JiraTaskSyncMixin,
     BugzillaSyncMixin,
     NullStrFieldsMixin,
     WorkflowModel,
-    JiraTaskSyncMixin,
 ):
     """Model flaw"""
 
@@ -1496,10 +1496,14 @@ class Flaw(
         from apps.taskman.service import JiraTaskmanQuerier
 
         jtq = JiraTaskmanQuerier(token=jira_token)
+        kwargs["auto_timestamps"] = False  # the timestamps will be get from Bugzilla
+        kwargs["raise_validation_error"] = False  # the validations were already run
 
         # REST API can force new tasks since it has no access to flaw creation runtime -- create
         if force_creation:
-            jtq.create_or_update_task(self)
+            issue = jtq.create_or_update_task(self)
+            self.task_key = issue.data["key"]
+            self.save(*args, **kwargs)
             return
 
         try:
@@ -1517,7 +1521,9 @@ class Flaw(
                 jtq.create_or_update_task(self)
         except Flaw.DoesNotExist:
             # we're handling a new OSIDB-authored flaw -- create
-            jtq.create_or_update_task(self)
+            issue = jtq.create_or_update_task(self)
+            self.task_key = issue.data["key"]
+            self.save(*args, **kwargs)
 
 
 class Snippet(ACLMixin, AlertMixin, TrackingMixin):
