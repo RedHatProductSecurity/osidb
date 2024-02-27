@@ -3021,6 +3021,7 @@ paths:
             - -nist_cvss_validation
             - -nvd_cvss2
             - -nvd_cvss3
+            - -owner
             - -references__created_dt
             - -references__description
             - -references__type
@@ -3030,10 +3031,12 @@ paths:
             - -reported_dt
             - -requires_summary
             - -source
+            - -team_id
             - -type
             - -unembargo_dt
             - -updated_dt
             - -uuid
+            - -workflow_state
             - acknowledgments__affiliation
             - acknowledgments__created_dt
             - acknowledgments__from_upstream
@@ -3084,6 +3087,7 @@ paths:
             - nist_cvss_validation
             - nvd_cvss2
             - nvd_cvss3
+            - owner
             - references__created_dt
             - references__description
             - references__type
@@ -3093,13 +3097,19 @@ paths:
             - reported_dt
             - requires_summary
             - source
+            - team_id
             - type
             - unembargo_dt
             - updated_dt
             - uuid
+            - workflow_state
         description: Ordering
         explode: false
         style: form
+      - in: query
+        name: owner
+        schema:
+          type: string
       - in: query
         name: references__created_dt
         schema:
@@ -3356,6 +3366,10 @@ paths:
         schema:
           type: string
       - in: query
+        name: team_id
+        schema:
+          type: string
+      - in: query
         name: title
         schema:
           type: string
@@ -3425,6 +3439,17 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: workflow_state
+        schema:
+          type: string
+          enum:
+          - DONE
+          - NEW
+          - PRE_SECONDARY_ASSESSMENT
+          - REJECTED
+          - SECONDARY_ASSESSMENT
+          - TRIAGE
       tags:
       - osidb
       security:

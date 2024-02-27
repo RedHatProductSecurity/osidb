@@ -305,6 +305,10 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
             "major_incident_state": ["exact"],
             "requires_summary": ["exact"],
             "nist_cvss_validation": ["exact"],
+            # Workflow fields
+            "workflow_state": ["exact"],
+            "owner": ["exact"],
+            "team_id": ["exact"],
             # Affect fields
             "affects__uuid": ["exact"],
             "affects__type": ["exact"],
