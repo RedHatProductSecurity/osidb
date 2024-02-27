@@ -2615,7 +2615,13 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             if self.resolution in ("won't do", "won't fix", "wontfix", "obsolete"):
                 return Affect.AffectFix.WONTFIX
             # Added rejected to code inherited from SDEngine because samples such as MGDSTRM-4153
-            elif self.resolution in ("notabug", "not a bug", "rejected"):
+            elif self.resolution in (
+                "duplicate",
+                "migrated",
+                "notabug",
+                "not a bug",
+                "rejected",
+            ):
                 return Affect.AffectFix.NOTAFFECTED
             elif self.resolution in ("eol", "out of date"):
                 return Affect.AffectFix.OOSS
