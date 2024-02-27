@@ -2560,6 +2560,15 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                     f"is already associated with the affect {affect.uuid}"
                 )
 
+    def can_unembargo(self):
+        """
+        tracker can only be unembargoed when not linked to any embargoed affect
+        checking this prevents a premature unembargo of a multi-flaw tracker
+        """
+        # enforce the reload from DB or
+        # we can see an outdated state
+        return not self.affects.filter(embargoed=True).exists()
+
     @property
     def aggregated_impact(self):
         """

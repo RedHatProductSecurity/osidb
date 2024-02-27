@@ -368,18 +368,20 @@ class TestEndpointsFlaws:
             ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
-            updated_dt=datetime(2021, 11, 23),
+            updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
         )
         tracker = TrackerFactory(
             affects=(affect,),
             embargoed=affect.flaw.embargoed,
-            updated_dt=datetime(2021, 11, 23),
+            updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
             type=Tracker.TrackerType.BUGZILLA,
         )
-        past_dt = datetime(2019, 11, 27)
+        past_dt = datetime(2019, 11, 27, tzinfo=timezone.utc)
 
         # first check that we cannot get anything by querying any flaws changed after future_dt
-        response = auth_client().get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?changed_before={past_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -392,7 +394,9 @@ class TestEndpointsFlaws:
         assert tracker.updated_dt == past_dt.astimezone(timezone.get_current_timezone())
 
         # we should get a result now
-        response = auth_client().get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?changed_before={past_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -406,10 +410,14 @@ class TestEndpointsFlaws:
             embargoed=False,
             reported_dt=make_aware(datetime(2001, 11, 23)),
         )
-        affect = AffectFactory(flaw=flaw, updated_dt=datetime(2021, 11, 23))
-        past_dt = datetime(2019, 11, 27)
+        affect = AffectFactory(
+            flaw=flaw, updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc)
+        )
+        past_dt = datetime(2019, 11, 27, tzinfo=timezone.utc)
 
-        response = auth_client().get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?changed_before={past_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -419,7 +427,9 @@ class TestEndpointsFlaws:
             affect.save()
         assert affect.updated_dt == past_dt.astimezone(timezone.get_current_timezone())
 
-        response = auth_client().get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?changed_before={past_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -439,31 +449,33 @@ class TestEndpointsFlaws:
             ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
-            updated_dt=datetime(2021, 11, 23),
+            updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
         )
         affect2 = AffectFactory(
             flaw=flaw,
             ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.FIX,
-            updated_dt=datetime(2021, 11, 23),
+            updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
         )
         tracker1 = TrackerFactory(
             affects=(affect1,),
             embargoed=flaw.embargoed,
-            updated_dt=datetime(2021, 11, 23),
+            updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
             type=Tracker.TrackerType.BUGZILLA,
         )
         tracker2 = TrackerFactory(
             affects=(affect2,),
             embargoed=flaw.embargoed,
-            updated_dt=datetime(2021, 11, 23),
+            updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
             type=Tracker.TrackerType.BUGZILLA,
         )
-        past_dt = datetime(2019, 11, 27)
+        past_dt = datetime(2019, 11, 27, tzinfo=timezone.utc)
 
         # first check that we cannot get anything by querying any flaws changed after future_dt
-        response = auth_client().get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?changed_before={past_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -479,7 +491,9 @@ class TestEndpointsFlaws:
             )
 
         # we should get a result now
-        response = auth_client().get(f"{test_api_uri}/flaws?changed_before={past_dt}")
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?changed_before={past_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+        )
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1

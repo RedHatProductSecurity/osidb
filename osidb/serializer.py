@@ -1453,6 +1453,17 @@ class FlawSerializer(
             + WorkflowModelSerializer.Meta.fields
         )
 
+    def _is_public(self, flaw, validated_data):
+        """
+        check whether the flaw is public
+        based on the preliminary raw ACLs
+        """
+        return all(
+            group in flaw.acls_public
+            # the read groups need to be gathered from validated data
+            for group in self.embargoed2acls(validated_data)["acl_read"]
+        )
+
     def update(self, new_flaw, validated_data):
         """
         perform the flaw instance update
@@ -1468,6 +1479,16 @@ class FlawSerializer(
         #####################
         # 2) update actions #
         #####################
+
+        # unembargo
+        #
+        # the only possible change of the embargo visibility is
+        # the unembargo as the validations prevent the opposite
+        #
+        # we have to check whether the new flaw is public
+        # based on the raw ACLs as it was not yet updated
+        if old_flaw.is_embargoed and self._is_public(new_flaw, validated_data):
+            new_flaw.unembargo()
 
         # perform regular flaw update
         new_flaw = super().update(new_flaw, validated_data)
@@ -1508,10 +1529,6 @@ class FlawSerializer(
                 )
             )
 
-        # TODO
-        # unembargo is more complicated
-        # and will be covered separately
-
         # we only need to sync the trackers when crucial attributes change
         # plus in the case of the impact we only care for the increase
         # plus in the case of the MI we care for specific changes only
@@ -1523,7 +1540,7 @@ class FlawSerializer(
         # but that drastically increases the code complexity and brings only a little
         # value - would prevent a rare extra update attempt without any real effect
         if (
-            not differ(old_flaw, new_flaw, ["cve_id", "unembargo_dt"])
+            not differ(old_flaw, new_flaw, ["cve_id", "is_embargoed", "unembargo_dt"])
             and not mi_differ(old_flaw, new_flaw)
             and Impact(old_flaw.impact) >= Impact(new_flaw.impact)
         ):

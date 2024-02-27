@@ -73,28 +73,6 @@ def fake_triage() -> None:
     setattr(Tracker, "is_triage", is_triage)
 
 
-@pytest.fixture
-def enable_bugzilla_sync(monkeypatch) -> None:
-    """
-    enable the sync to Bugzilla
-    """
-    import apps.bbsync.mixins as mixins
-    import osidb.models as models
-
-    monkeypatch.setattr(mixins, "SYNC_TO_BZ", True)
-    monkeypatch.setattr(models, "SYNC_TO_BZ", True)
-
-
-@pytest.fixture
-def enable_jira_sync(monkeypatch) -> None:
-    """
-    enable the sync to Jira
-    """
-    import osidb.models as models
-
-    monkeypatch.setattr(models, "SYNC_TO_JIRA", True)
-
-
 @pytest.fixture()
 def clean_policies():
     """
