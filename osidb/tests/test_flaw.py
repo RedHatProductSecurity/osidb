@@ -400,6 +400,29 @@ class TestFlaw:
         )
         assert undelegated_affect.delegated_resolution is None
 
+        # Migrated/duplicate trackers should be ignored
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+            flaw__embargoed=False,
+        )
+        TrackerFactory(
+            affects=(affect,),
+            status="closed",
+            resolution="migrated",
+            embargoed=affect.flaw.is_embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        TrackerFactory(
+            affects=(affect,),
+            status="closed",
+            resolution="won't do",
+            embargoed=affect.flaw.is_embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        assert affect.delegated_resolution == Affect.AffectFix.WONTFIX
+
     def test_tracker_fix_state(self):
         ps_module = PsModuleFactory(bts_name="bugzilla")
         affect = AffectFactory(
@@ -428,6 +451,20 @@ class TestFlaw:
             type=Tracker.TrackerType.BUGZILLA,
         )
         assert empty_tracker.fix_state == Affect.AffectFix.AFFECTED
+        migrated_tracker = TrackerFactory(
+            status="closed",
+            resolution="migrated",
+            affects=[affect],
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        assert migrated_tracker.fix_state == Affect.AffectFix.NOTAFFECTED
+        duplicate_tracker = TrackerFactory(
+            status="closed",
+            resolution="duplicate",
+            affects=[affect],
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        assert duplicate_tracker.fix_state == Affect.AffectFix.NOTAFFECTED
 
     def test_flawmeta_create_or_update(self):
         flaw = FlawFactory()
