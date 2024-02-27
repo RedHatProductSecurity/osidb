@@ -382,8 +382,7 @@ class TestAffectCCBuilder:
         )
         PsModuleFactory(
             name=affect.ps_module,
-            default_cc=["me@redhat.com"],
-            private_tracker_cc=["you@redhat.com"],
+            default_cc=["me@redhat.com", "you@redhat.com"],
             private_trackers_allowed=private_trackers_allowed,
         )
 
@@ -404,8 +403,7 @@ class TestAffectCCBuilder:
         )
         PsModuleFactory(
             name=affect.ps_module,
-            default_cc=["me@fedora.org"],
-            private_tracker_cc=["you@redhat.com"],
+            default_cc=["me@fedora.org", "you@redhat.com"],
             private_trackers_allowed=True,
         )
 
@@ -426,8 +424,7 @@ class TestAffectCCBuilder:
         )
         PsModuleFactory(
             name=affect.ps_module,
-            default_cc=USER_BLACKLIST[:10],
-            private_tracker_cc=["you@redhat.com"],
+            default_cc=USER_BLACKLIST[:10] + ["you@redhat.com"],
             private_trackers_allowed=True,
         )
 
@@ -507,28 +504,21 @@ class TestAffectCCBuilder:
         assert not remove_cc
 
     @pytest.mark.parametrize(
-        "default_cc,private_tracker_cc,embargoed,expected_cc",
+        "default_cc,expected_cc",
         [
-            ([], [], False, []),
-            (["me@redhat.com"], [], False, ["me@redhat.com"]),
-            ([], ["you@redhat.com"], False, []),
-            (["me@redhat.com"], ["you@redhat.com"], False, ["me@redhat.com"]),
-            ([], [], True, []),
-            (["me@redhat.com"], [], True, ["me@redhat.com"]),
-            ([], ["you@redhat.com"], True, ["you@redhat.com"]),
+            ([], []),
+            (["me@redhat.com"], ["me@redhat.com"]),
             (
-                ["me@redhat.com"],
-                ["you@redhat.com"],
-                True,
+                ["me@redhat.com", "you@redhat.com"],
                 ["me@redhat.com", "you@redhat.com"],
             ),
         ],
     )
-    def test_module_cc(self, default_cc, private_tracker_cc, embargoed, expected_cc):
+    def test_module_cc(self, default_cc, expected_cc):
         """
         test that PS module CCs are correctly added
         """
-        flaw = FlawFactory(embargoed=embargoed)
+        flaw = FlawFactory()
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
@@ -537,7 +527,6 @@ class TestAffectCCBuilder:
         PsModuleFactory(
             name=affect.ps_module,
             default_cc=default_cc,
-            private_tracker_cc=private_tracker_cc,
             private_trackers_allowed=True,
         )
 
@@ -636,7 +625,6 @@ class TestAffectCCBuilder:
             component_cc=component_cc,
             component_overrides=component_overrides,
             default_cc=[],
-            private_tracker_cc=[],
         )
 
         cc_builder = CCBuilder(flaw)

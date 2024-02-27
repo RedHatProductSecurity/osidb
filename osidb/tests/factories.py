@@ -482,7 +482,6 @@ class PsModuleFactory(factory.django.DjangoModelFactory):
     )
 
     default_cc = factory.List([factory.Faker("word") for _ in range(3)])
-    private_tracker_cc = factory.List([factory.Faker("word") for _ in range(3)])
 
     default_component = factory.Faker("word")
 
