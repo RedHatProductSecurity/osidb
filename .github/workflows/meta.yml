@@ -20,6 +20,7 @@ jobs:
         run: oasdiff -fail-on-diff -fail-on-warns -check-breaking -base base/openapi.yml -revision head/openapi.yml
   changelog:
     runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
     steps:
       - uses: actions/checkout@v3
       - name: Check existence of CHANGELOG entry
