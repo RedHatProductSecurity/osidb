@@ -860,6 +860,7 @@ class TestFlawConvertor:
                 "CVE-2000-1234",
             ],
             "cf_release_notes": None,
+            "component": "vulnerability",
             "creation_time": "2000-01-01T12:12:12Z",
             "depends_on": [],
             "description": "text",
@@ -1593,6 +1594,26 @@ class TestFlawConvertor:
         assert affect.cvss2_score is None
         assert affect.cvss3 == ""
         assert affect.cvss3_score is None
+
+    def test_component_meta_attr(self):
+        """
+        Test that the "component" BZ field is saved as "bz_component" in Flaw.meta_attr
+        """
+        flaw_bug = self.get_flaw_bug()
+        fbc = FlawConvertor(
+            flaw_bug,
+            [],
+            None,
+            None,
+            [],
+            [],
+        )
+        [flaw] = fbc.bug2flaws()
+        flaw.save()
+        flaw = Flaw.objects.first()
+
+        assert "bz_component" in flaw.meta_attr
+        assert flaw.meta_attr["bz_component"] == flaw_bug["component"]
 
     def test_summary_meta_attr(self):
         """

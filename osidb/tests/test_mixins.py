@@ -381,6 +381,7 @@ class TestTrackingMixin:
         return {
             "id": 12345,
             "alias": ["CVE-2020-12345"],
+            "component": "vulnerability",
             "summary": "summary",
             "description": "description",
             "fixed_in": None,

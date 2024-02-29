@@ -115,7 +115,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug?component=vulnerability&f1=delta_ts&f2=delta_ts&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=100&o1=greaterthan&o2=lessthaneq&product=Security+Response&query_format=advanced&v1=2000-01-01+00%3A00%3A00%2B00%3A00&v2=2005-01-01+00%3A00%3A00%2B00%3A00
+    uri: https://example.com/rest/bug?component=vulnerability&component=vulnerability-draft&f1=delta_ts&f2=delta_ts&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=100&o1=greaterthan&o2=lessthaneq&product=Security+Response&query_format=advanced&v1=2000-01-01+00%3A00%3A00%2B00%3A00&v2=2005-01-01+00%3A00%3A00%2B00%3A00
   response:
     body:
       string: '{"offset": 0, "bugs": [], "total_matches": 0, "limit": "100"}'
@@ -165,7 +165,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug?component=vulnerability&f1=delta_ts&f2=delta_ts&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=100&o1=greaterthan&o2=lessthaneq&product=Security+Response&query_format=advanced&v1=2000-01-01+00%3A00%3A00%2B00%3A00&v2=2010-01-01+00%3A00%3A00%2B00%3A00
+    uri: https://example.com/rest/bug?component=vulnerability&component=vulnerability-draft&f1=delta_ts&f2=delta_ts&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=100&o1=greaterthan&o2=lessthaneq&product=Security+Response&query_format=advanced&v1=2000-01-01+00%3A00%3A00%2B00%3A00&v2=2010-01-01+00%3A00%3A00%2B00%3A00
   response:
     body:
       string: '{"limit": "100", "total_matches": 199, "bugs": [{"id": 240155, "data_category":
@@ -409,7 +409,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug?component=vulnerability&f1=delta_ts&f2=delta_ts&f98=bug_id&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=100&o1=greaterthan&o2=lessthaneq&o98=greaterthan&product=Security+Response&query_format=advanced&v1=2000-01-01+00%3A00%3A00%2B00%3A00&v2=2010-01-01+00%3A00%3A00%2B00%3A00&v98=437037
+    uri: https://example.com/rest/bug?component=vulnerability&component=vulnerability-draft&f1=delta_ts&f2=delta_ts&f98=bug_id&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=100&o1=greaterthan&o2=lessthaneq&o98=greaterthan&product=Security+Response&query_format=advanced&v1=2000-01-01+00%3A00%3A00%2B00%3A00&v2=2010-01-01+00%3A00%3A00%2B00%3A00&v98=437037
   response:
     body:
       string: '{"total_matches": 99, "bugs": [{"data_category": "Public", "last_change_time":
@@ -627,8 +627,6 @@ interactions:
       - private, must-revalidate
       Connection:
       - keep-alive
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
@@ -666,7 +664,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug?component=vulnerability&f1=delta_ts&f2=delta_ts&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=100&o1=greaterthan&o2=lessthaneq&product=Security+Response&query_format=advanced&v1=2009-12-17+21%3A27%3A37%2B00%3A00&v2=2014-12-17+21%3A27%3A37%2B00%3A00
+    uri: https://example.com/rest/bug?component=vulnerability&component=vulnerability-draft&f1=delta_ts&f2=delta_ts&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=100&o1=greaterthan&o2=lessthaneq&product=Security+Response&query_format=advanced&v1=2009-12-17+21%3A27%3A37%2B00%3A00&v2=2014-12-17+21%3A27%3A37%2B00%3A00
   response:
     body:
       string: '{"bugs": [{"summary": "at_console isn''t respected in some cases",
@@ -906,7 +904,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug?component=vulnerability&f1=delta_ts&f2=delta_ts&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=100&o1=greaterthan&o2=lessthaneq&product=Security+Response&query_format=advanced&v1=2009-12-17+21%3A27%3A37%2B00%3A00&v2=2015-12-17+21%3A27%3A37%2B00%3A00
+    uri: https://example.com/rest/bug?component=vulnerability&component=vulnerability-draft&f1=delta_ts&f2=delta_ts&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=100&o1=greaterthan&o2=lessthaneq&product=Security+Response&query_format=advanced&v1=2009-12-17+21%3A27%3A37%2B00%3A00&v2=2015-12-17+21%3A27%3A37%2B00%3A00
   response:
     body:
       string: '{"limit": "100", "bugs": [{"last_change_time": "2015-03-02T10:30:21Z",
@@ -1155,7 +1153,7 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug?component=vulnerability&f1=delta_ts&f2=delta_ts&f98=bug_id&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=100&o1=greaterthan&o2=lessthaneq&o98=greaterthan&product=Security+Response&query_format=advanced&v1=2009-12-17+21%3A27%3A37%2B00%3A00&v2=2015-12-17+21%3A27%3A37%2B00%3A00&v98=837956
+    uri: https://example.com/rest/bug?component=vulnerability&component=vulnerability-draft&f1=delta_ts&f2=delta_ts&f98=bug_id&include_fields=id&include_fields=last_change_time&include_fields=summary&limit=100&o1=greaterthan&o2=lessthaneq&o98=greaterthan&product=Security+Response&query_format=advanced&v1=2009-12-17+21%3A27%3A37%2B00%3A00&v2=2015-12-17+21%3A27%3A37%2B00%3A00&v98=837956
   response:
     body:
       string: '{"total_matches": 29, "bugs": [{"last_change_time": "2012-07-10T21:41:02Z",
