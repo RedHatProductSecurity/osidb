@@ -25,9 +25,10 @@ class UBIHandler(ProductDefinitionHandler):
         is_ubi = UBIHandler.has_ubi_packages(ps_module, affect)
 
         if is_ubi and impact in self.UBI_OVERRIDES:
-            if ps_module.unacked_ps_update_stream:
-                offers[ps_module.unacked_ps_update_stream.name] = {
-                    "ps_update_stream": ps_module.unacked_ps_update_stream.name,
+            unacked_stream = ps_module.unacked_ps_update_stream.first()
+            if unacked_stream:
+                offers[unacked_stream.name] = {
+                    "ps_update_stream": unacked_stream.name,
                     "selected": False,
                     "aus": False,
                     "eus": False,

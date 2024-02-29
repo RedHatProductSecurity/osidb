@@ -172,6 +172,12 @@ class TestTrackerSuggestions:
             name="ubi-module", special_handling_features=["ubi_packages"]
         )
         PsUpdateStream(
+            name="stream-2",
+            ps_module=ps_module_ubi,
+            active_to_ps_module=ps_module_ubi,
+            unacked_to_ps_module=ps_module_ubi,
+        ).save()
+        PsUpdateStream(
             name="stream-2.0.z",
             ps_module=ps_module_ubi,
             active_to_ps_module=ps_module_ubi,
@@ -180,11 +186,13 @@ class TestTrackerSuggestions:
             name="stream-2.1",
             ps_module=ps_module_ubi,
             active_to_ps_module=ps_module_ubi,
+            default_to_ps_module=ps_module_ubi,
         ).save()
         PsUpdateStream(
             name="stream-2.0",
             ps_module=ps_module_ubi,
             active_to_ps_module=ps_module_ubi,
+            default_to_ps_module=ps_module_ubi,
         ).save()
 
         headers = {"HTTP_JiraAuthentication": user_token}
@@ -200,6 +208,13 @@ class TestTrackerSuggestions:
         assert len(res["modules_components"]) > 0
         streams = res["modules_components"][0]["streams"]
 
+        assert [stream["ps_update_stream"] for stream in streams] == [
+            "stream-2",
+            "stream-2.0.z",
+            "stream-2.1",
+            "stream-2.0",
+        ]
+
         streams_dict = {stream["ps_update_stream"]: stream for stream in streams}
 
         assert (
@@ -209,6 +224,10 @@ class TestTrackerSuggestions:
             "stream-2.0" in streams_dict and not streams_dict["stream-2.0"]["selected"]
         )
         assert "stream-2.1" in streams_dict and streams_dict["stream-2.1"]["selected"]
+
+        # The unacked stream must be deselected when ubi streams are selected.
+        # Ref. sfm2/api/blueprints/tracker_bp.py::trackers_file_offer
+        assert "stream-2" in streams_dict and not streams_dict["stream-2"]["selected"]
 
     def test_trackers_file_offer_unacked(
         self, user_token, auth_client, test_app_api_uri
