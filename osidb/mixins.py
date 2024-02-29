@@ -295,6 +295,10 @@ class ACLMixin(models.Model):
     def is_embargoed(self):
         return self.acl_read == ACLMixin.get_embargoed_acl()
 
+    @property
+    def is_internal(self):
+        return set(self.acl_read + self.acl_write) == self.acls_internal
+
     def acl2group(self, acl):
         """
         transform back to human readable group name or

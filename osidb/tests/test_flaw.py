@@ -8,6 +8,7 @@ from freezegun import freeze_time
 
 from apps.bbsync.constants import RHSCL_BTS_KEY
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
+from apps.workflows.workflow import WorkflowModel
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 from osidb.constants import BZ_ID_SENTINEL
 from osidb.core import generate_acls
@@ -573,6 +574,54 @@ class TestFlaw:
         # it should not fail and update the timestamp correctly
         a.trackers.remove(t)
         assert Flaw.objects.first().local_updated_dt > og_local_updated_dt
+
+    @pytest.mark.parametrize(
+        "bz_id,bz_component,workflow_state,is_draft",
+        [
+            ("", "", "", True),
+            ("1000", "vulnerability", WorkflowModel.WorkflowState.NEW, False),
+            (
+                "1000",
+                "vulnerability",
+                WorkflowModel.WorkflowState.TRIAGE,
+                False,
+            ),
+            (
+                "1000",
+                "vulnerability-draft",
+                WorkflowModel.WorkflowState.NEW,
+                True,
+            ),
+            (
+                "1000",
+                "vulnerability-draft",
+                WorkflowModel.WorkflowState.TRIAGE,
+                False,
+            ),
+            ("1000", "", WorkflowModel.WorkflowState.NEW, False),
+            ("1000", "", WorkflowModel.WorkflowState.TRIAGE, False),
+        ],
+    )
+    def test_flaw_draft(
+        self,
+        bz_id,
+        bz_component,
+        workflow_state,
+        is_draft,
+    ):
+        """
+        test that flaw draft is set correctly
+        """
+        meta_attr = {}
+        if bz_id:
+            meta_attr["bz_id"] = bz_id
+        if bz_component:
+            meta_attr["bz_component"] = bz_component
+
+        flaw = FlawFactory(
+            cve_id="CVE-2000-1001", workflow_state=workflow_state, meta_attr=meta_attr
+        )
+        assert flaw.is_draft is is_draft
 
 
 class TestImpact:

@@ -1,12 +1,16 @@
 import json
+import uuid
 
 import pytest
+from django.conf import settings
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from freezegun import freeze_time
 
 from apps.bbsync.exceptions import SRTNotesValidationError
 from apps.bbsync.query import FlawBugzillaQueryBuilder, SRTNotesBuilder
+from apps.workflows.workflow import WorkflowModel
+from osidb.core import generate_acls
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -178,6 +182,29 @@ class TestGenerateBasics:
 
         bbq = FlawBugzillaQueryBuilder(flaw, old_flaw)
         assert bbq.query["summary"] == "hammer: is too heavy"
+
+    @pytest.mark.parametrize(
+        "is_draft,result",
+        [
+            (True, "vulnerability-draft"),
+            (False, "vulnerability"),
+        ],
+    )
+    def test_generate_component(self, is_draft, result):
+        """
+        test generating of component
+        """
+        flaw = FlawFactory(
+            cve_id="CVE-2000-1001",
+            workflow_state=WorkflowModel.WorkflowState.NEW,
+            meta_attr={
+                "bz_id": "1000",
+                "bz_component": "vulnerability-draft" if is_draft else "vulnerability",
+            },
+        )
+
+        bbq = FlawBugzillaQueryBuilder(flaw)
+        assert bbq.query["component"] == result
 
 
 class TestGenerateSRTNotes:
@@ -1021,7 +1048,8 @@ class TestGenerateGroups:
         removes groups in BZ query
         """
         flaw = FlawFactory(
-            embargoed=True, meta_attr={"groups": '["private", "qe_staff", "security"]'}
+            embargoed=True,
+            meta_attr={"groups": '["private", "qe_staff", "security"]', "bz_id": "1"},
         )
         FlawCommentFactory(flaw=flaw)
         affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
@@ -1040,7 +1068,9 @@ class TestGenerateGroups:
         )
 
         new_flaw = Flaw.objects.first()
-        new_flaw.acl_read = []  # make it whatever but embargoed
+        new_flaw.acl_read = [
+            uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_READ_GROUPS])
+        ]  # make it unembargoed
 
         bbq = FlawBugzillaQueryBuilder(new_flaw, flaw)
         query = bbq.query
@@ -1059,7 +1089,8 @@ class TestGenerateGroups:
         in added and removed groups in BZ query
         """
         flaw = FlawFactory(
-            embargoed=True, meta_attr={"groups": '["private", "qe_staff", "security"]'}
+            embargoed=True,
+            meta_attr={"groups": '["private", "qe_staff", "security"]', "bz_id": "1"},
         )
         FlawCommentFactory(flaw=flaw)
         affect1 = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
@@ -1104,6 +1135,24 @@ class TestGenerateGroups:
         groups = query.get("groups", [])
         assert ["secalert"] == groups.get("add", [])
         assert ["private"] == groups.get("remove", [])
+
+    def test_create_internal(self):
+        """
+        test that when creating an internal flaw
+        there is only "redhat" group in BZ query
+        """
+        flaw = FlawFactory(
+            acl_read=[
+                uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])
+            ],
+            acl_write=[
+                uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
+            ],
+            embargoed=False,
+        )
+
+        bbq = FlawBugzillaQueryBuilder(flaw)
+        assert bbq.query["groups"] == ["redhat"]
 
 
 class TestGenerateComment:

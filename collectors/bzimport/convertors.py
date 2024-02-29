@@ -746,6 +746,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         meta_attr["status"] = self.flaw_bug["status"]
         meta_attr["resolution"] = self.flaw_bug["resolution"]
         meta_attr["fixed_in"] = self.flaw_bug["fixed_in"]
+        meta_attr["bz_component"] = self.flaw_bug["component"]
         return meta_attr
 
     ##############################
