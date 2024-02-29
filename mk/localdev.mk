@@ -30,7 +30,7 @@ start-local-psql: check-reg check-venv generate_local_pg_tls_cert
 .PHONY : stop-local
 stop-local:
 	@echo ">stopping local env without deleting containers"
-	$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml stop || $(podmancompose) -f docker-compose.yml -f docker-compose.test.yml stop testrunner phpldapadmin testldap flower redis celery_beat celery osidb-service osidb-data
+	$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml stop || $(podmancompose) -f docker-compose.yml -f docker-compose.test.yml stop testrunner testldap flower redis celery_beat celery osidb-service osidb-data
 
 
 
