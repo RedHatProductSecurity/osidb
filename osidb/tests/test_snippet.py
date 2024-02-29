@@ -30,6 +30,7 @@ def get_snippet(cve_id="CVE-2023-0001"):
         ],
         "source": Snippet.Source.NVD,
         "title": "placeholder only, see description",
+        "published_in_nvd": "2024-01-21T16:29:00.393Z",
     }
 
     snippet = Snippet(source=Snippet.Source.NVD, external_id=cve_id, content=content)
@@ -71,12 +72,13 @@ class TestSnippet:
         assert flaw.cvss_scores.count() == 1
         assert flaw.cwe_id == content["cwe_id"]
         assert flaw.description == content["description"]
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
+        assert flaw.meta_attr == {}
         assert flaw.references.count() == 1
         assert flaw.snippets.count() == 0
         assert flaw.source == snippet.source
         assert flaw.title == content["title"]
         assert flaw.type == FlawType.VULNERABILITY
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
 
         flaw_cvss = flaw.cvss_scores.all().first()
         assert flaw_cvss.issuer == FlawCVSS.CVSSIssuer.NIST

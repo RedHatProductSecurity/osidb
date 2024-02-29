@@ -283,6 +283,7 @@ class TestNVDCollector:
                 **data,
                 type=FlawType.VULNERABILITY,
                 embargoed=False,
+                meta_attr={},
                 acl_write=internal_write_groups,
                 acl_read=internal_read_groups,
             )
@@ -322,6 +323,7 @@ class TestNVDCollector:
         assert flaw.cve_id == cve_id
         assert flaw.cwe_id == snippet_content["cwe_id"]
         assert flaw.description == snippet_content["description"]
+        assert flaw.meta_attr == {}
         assert flaw.source == snippet_content["source"]
         assert flaw.title == snippet_content["title"]
         assert flaw.type == FlawType.VULNERABILITY

@@ -178,7 +178,7 @@ class BugzillaQuerier(BugzillaConnector):
         """general query for all flaws"""
         return {
             "product": "Security Response",
-            "component": "vulnerability",
+            "component": ["vulnerability", "vulnerability-draft"],
             "include_fields": ["id", "last_change_time", "summary"],
         }
 

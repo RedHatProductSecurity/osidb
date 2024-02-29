@@ -835,6 +835,24 @@ class Flaw(
         if self.is_major_incident_temp():
             return self.reported_dt
 
+    @property
+    def is_draft(self) -> bool:
+        """
+        Returns True if a flaw is a draft, False otherwise.
+
+        A flaw is a draft in the following situations:
+        1. it comes directly from OSIDB and not from BZ, i.e. it does not have "bz_id" in "meta_attr"
+        2. it comes from BZ, and "bz_component" is "vulnerability-draft" and "workflow_state" is "NEW"
+        """
+        new_flaw_draft = not self.meta_attr.get("bz_id")
+        existing_flaw_draft = (
+            self.meta_attr.get("bz_id")
+            and self.meta_attr.get("bz_component") == "vulnerability-draft"
+            and self.workflow_state == WorkflowModel.WorkflowState.NEW
+        )
+
+        return new_flaw_draft or existing_flaw_draft
+
     # non operational meta data
     meta_attr = HStoreField(default=dict)
 

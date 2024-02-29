@@ -94,6 +94,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         generate query
         """
         self.generate_base()
+        self.generate_component()
         self.generate_unconditional()
         self.generate_summary()
         self.generate_description()
@@ -118,11 +119,18 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         """
         self._query = {
             "product": ANALYSIS_TASK_PRODUCT,
-            "component": "vulnerability",
             "op_sys": "Linux",
             "platform": "All",
             "version": "unspecified",
         }
+
+    def generate_component(self):
+        """
+        generate component to differentiate between flaw and flaw draft
+        """
+        self._query["component"] = (
+            "vulnerability-draft" if self.flaw.is_draft else "vulnerability"
+        )
 
     def generate_unconditional(self):
         """
@@ -332,6 +340,9 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
             )
 
             groups = self._standardize_embargoed_groups(module_groups)
+
+        elif self.flaw.is_internal:
+            groups = ["redhat"]
 
         # on creation we provide a list of groups
         if self.creation:
