@@ -51,14 +51,7 @@ interactions:
         Level Initiative","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/12102","id":"12102","description":"Organizational
         objective focused on a measurable outcome. May be in support of larger strategic
         goals.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Outcome","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10800","id":"10800","description":"Research
-        activity","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
-        new feature of the product, which has yet to be developed.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"New
-        Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10200","id":"10200","description":"An
-        improvement or enhancement to an existing feature or task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Improvement","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11413","id":"11413","description":"Generic
-        Service issue or request (non-code change)","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Ticket","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
-        or a well-defined set of functionality that delivers business value. Features
-        can include additions or changes to existing functionality. Features can easily
-        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
+        activity","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
         of a library dependency","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Library
         Upgrade","subtask":false,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/15","id":"15","description":"A
         clarification needed to a specification based on community feedback","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Clarification","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/19","id":"19","description":"Issue
@@ -77,7 +70,10 @@ interactions:
         Task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Docs
         Task","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10400","id":"10400","description":"Objectives
         and Key Results","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13274&avatarType=issuetype","name":"OKR","subtask":false,"avatarId":13274},{"self":"https://example.com/rest/api/2/issuetype/10500","id":"10500","description":"Policies
-        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
+        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
+        or a well-defined set of functionality that delivers business value. Features
+        can include additions or changes to existing functionality. Features can easily
+        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
         issue requiring coordinated response","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10304&avatarType=issuetype","name":"Flare","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10900","id":"10900","description":"This
         issue type is created for Service Desk functions in Jira Software","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Service
         Request","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/10901","id":"10901","description":"This
@@ -106,7 +102,8 @@ interactions:
         release operations","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13273&avatarType=issuetype","name":"Release
         Milestone","subtask":false,"avatarId":13273},{"self":"https://example.com/rest/api/2/issuetype/11412","id":"11412","description":"tracks
         major releases","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Release
-        tracker","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/11414","id":"11414","description":"Higher
+        tracker","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/11413","id":"11413","description":"Generic
+        Service issue or request (non-code change)","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Ticket","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11414","id":"11414","description":"Higher
         level than an epic","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Project","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/11415","id":"11415","description":"Root
         Cause Analysis","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13269&avatarType=issuetype","name":"Root
         Cause Analysis","subtask":false,"avatarId":13269},{"self":"https://example.com/rest/api/2/issuetype/11416","id":"11416","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13264&avatarType=issuetype","name":"Weather-item","subtask":false,"avatarId":13264},{"self":"https://example.com/rest/api/2/issuetype/11417","id":"11417","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Ad-Hoc
@@ -120,8 +117,21 @@ interactions:
         Software Security Exception","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=40577&avatarType=issuetype","name":"Software
         Security Exception","subtask":false,"avatarId":40577},{"self":"https://example.com/rest/api/2/issuetype/12100","id":"12100","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Objective","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/12101","id":"12101","description":"Large,
         strategic focus area typically defined by leadership teams to achieve organizational
-        long-term vision.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Strategic
-        Goal","subtask":false,"avatarId":13260}]'
+        long-term vision.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=50977&avatarType=issuetype","name":"Strategic
+        Goal","subtask":false,"avatarId":50977},{"self":"https://example.com/rest/api/2/issuetype/12200","id":"12200","description":"Represents
+        a Test","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test.png","name":"Test","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12201","id":"12201","description":"Represents
+        a Test Set","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-set.png","name":"Test
+        Set","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12202","id":"12202","description":"Represents
+        a Test Execution","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-execution.png","name":"Test
+        Execution","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12203","id":"12203","description":"Represents
+        a Pre-Condition","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/pre-condition.png","name":"Pre-Condition","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12204","id":"12204","description":"Represents
+        a Test Plan","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-plan.png","name":"Test
+        Plan","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12205","id":"12205","description":"Represents
+        a Sub Test Execution","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/sub-test-execution.png","name":"Sub
+        Test Execution","subtask":true},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
+        new feature of the product, which has yet to be developed.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"New
+        Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10200","id":"10200","description":"An
+        improvement or enhancement to an existing feature or task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Improvement","subtask":false,"avatarId":13270}]'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -130,9 +140,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:16:51 GMT
+      - Wed, 28 Feb 2024 14:52:41 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:16:51 GMT
+      - Wed, 28 Feb 2024 14:52:41 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -145,17 +155,17 @@ interactions:
       X-RateLimit-Remaining:
       - '9223372036854775807'
       content-length:
-      - '23344'
+      - '24975'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1156x157912x1
+      - 892x567520x1
       x-asessionid:
-      - zm2rom
+      - 1t5c8il
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -167,9 +177,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741411.2b846586
+      - 0.c585d817.1709131961.b67bb2
       x-rh-edge-request-id:
-      - 2b846586
+      - b67bb2
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -245,9 +255,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:16:52 GMT
+      - Wed, 28 Feb 2024 14:52:41 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:16:52 GMT
+      - Wed, 28 Feb 2024 14:52:41 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -266,11 +276,11 @@ interactions:
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1156x157913x1
+      - 892x567522x1
       x-asessionid:
-      - 1b62eod
+      - 1xaqey3
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -282,9 +292,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741412.2b846622
+      - 0.c585d817.1709131961.b67c17
       x-rh-edge-request-id:
-      - 2b846622
+      - b67c17
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -295,8 +305,8 @@ interactions:
 - request:
     body: '{"fields": {"issuetype": {"id": "17"}, "project": {"id": "12337520"}, "summary":
       "CVE-2020-10000 kernel: some description", "description": "Description for CVE-2020-10000",
-      "labels": ["flawuuid:9d9b3b14-0c44-4030-883c-8610f7e2879b", "impact:IMPORTANT",
-      "major_incident"], "priority": {"name": "Major"}}}'
+      "labels": ["flawuuid:9d9b3b14-0c44-4030-883c-8610f7e2879b", "impact:MODERATE",
+      "major_incident"], "priority": {"name": "Normal"}}}'
     headers:
       Accept:
       - application/json,*.*;q=0.9
@@ -318,7 +328,7 @@ interactions:
     uri: https://example.com/rest/api/2/issue
   response:
     body:
-      string: '{"id": "15552894", "key": "OSIM-569", "self": "https://example.com/rest/api/2/issue/15552894"}'
+      string: '{"id": "15822535", "key": "OSIM-1708", "self": "https://example.com/rest/api/2/issue/15822535"}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -327,9 +337,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:17:02 GMT
+      - Wed, 28 Feb 2024 14:52:42 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:17:02 GMT
+      - Wed, 28 Feb 2024 14:52:42 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -342,17 +352,17 @@ interactions:
       X-RateLimit-Remaining:
       - '9223372036854775807'
       content-length:
-      - '101'
+      - '102'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1156x157914x1
+      - 892x567524x1
       x-asessionid:
-      - 19ejt0y
+      - 1cnq561
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -364,9 +374,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741422.2b846736
+      - 0.c585d817.1709131962.b67c83
       x-rh-edge-request-id:
-      - 2b846736
+      - b67c83
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -392,16 +402,16 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-569
+    uri: https://example.com/rest/api/2/issue/OSIM-1708
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "15552894", "self": "https://example.com/rest/api/2/issue/15552894",
-        "key": "OSIM-569", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
+        "id": "15822535", "self": "https://example.com/rest/api/2/issue/15822535",
+        "key": "OSIM-1708", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
         "id": "17", "description": "Created by Jira Software - do not edit or delete.
         Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12322244":
-        null, "customfield_12318341": null, "timespent": null, "customfield_12320940":
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
+        null, "customfield_12324461": [], "timespent": null, "customfield_12320940":
         null, "project": {"self": "https://example.com/rest/api/2/project/12337520",
         "id": "12337520", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
         "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
@@ -410,28 +420,28 @@ interactions:
         "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@49ea31d5[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1224122e[overall=PullRequestOverallBean{stateCount=0,
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@51c150d8[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@e62f00b[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@10e18978[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@22664c28[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4a9b1728[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@294ce701[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@357a1119[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@25ed1c92[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@37dd7d50[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@7967f045[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1c70d4a9[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@51b44239[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7cdaccd2[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@652199ea[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4d692b21[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@5ac30071[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7055fba7[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@1952c28e[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1de6d2a6[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@5fe489e3[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@33c97b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@ffa3d41[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
         "resolutiondate": null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
-        null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
+        null, "customfield_12316841": null, "customfield_12315950": null, "customfield_12310940":
         null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://example.com/rest/api/2/issue/OSIM-569/watchers", "watchCount": 1,
-        "isWatching": true}, "created": "2024-01-08T19:16:52.417+0000", "customfield_12321240":
-        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/3",
-        "iconUrl": "https://example.com/images/icons/priorities/major.svg", "name":
-        "Major", "id": "3"}, "labels": ["flawuuid:9d9b3b14-0c44-4030-883c-8610f7e2879b",
-        "impact:IMPORTANT", "major_incident"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
+        "https://example.com/rest/api/2/issue/OSIM-1708/watchers", "watchCount": 1,
+        "isWatching": true}, "created": "2024-02-28T14:52:42.008+0000", "customfield_12321240":
+        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/10200",
+        "iconUrl": "https://example.com/images/icons/priorities/medium.svg", "name":
+        "Normal", "id": "10200"}, "labels": ["flawuuid:9d9b3b14-0c44-4030-883c-8610f7e2879b",
+        "impact:MODERATE", "major_incident"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
         "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
         null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
-        null, "updated": "2024-01-08T19:16:52.417+0000", "customfield_12313942": null,
+        null, "updated": "2024-02-28T14:52:42.008+0000", "customfield_12313942": null,
         "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
         very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
@@ -442,9 +452,9 @@ interactions:
         null, "timetracking": {}, "customfield_12320842": null, "customfield_12310243":
         null, "attachment": [], "aggregatetimeestimate": null, "customfield_12316542":
         {"self": "https://example.com/rest/api/2/customFieldOption/14655", "value":
-        "False", "id": "14655", "disabled": false}, "customfield_12316543": {"self":
-        "https://example.com/rest/api/2/customFieldOption/14657", "value": "False",
-        "id": "14657", "disabled": false}, "customfield_12317313": null, "customfield_12316544":
+        "False", "id": "14655", "disabled": false}, "customfield_12317313": null,
+        "customfield_12316543": {"self": "https://example.com/rest/api/2/customFieldOption/14657",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12316544":
         "None", "customfield_12310840": "9223372036854775807", "summary": "CVE-2020-10000
         kernel: some description", "customfield_12323640": null, "customfield_12323642":
         null, "creator": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
@@ -455,9 +465,7 @@ interactions:
         "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
         "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
         "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "customfield_12323647": [{"self": "https://example.com/rest/api/2/customFieldOption/34754",
-        "value": "en-US (English)", "id": "34754", "disabled": false}], "reporter":
-        {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
+        "reporter": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
         "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
         "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
         "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
@@ -471,10 +479,10 @@ interactions:
         "0.0", "customfield_12313240": null, "duedate": null, "customfield_12311140":
         null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
         "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt": 0}, "votes":
-        {"self": "https://example.com/rest/api/2/issue/OSIM-569/votes", "votes": 0,
-        "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20, "total": 0,
-        "worklogs": []}, "customfield_12319743": null, "customfield_12310213": null,
-        "archivedby": null, "customfield_12311940": "1|zctawc:"}}'
+        {"self": "https://example.com/rest/api/2/issue/OSIM-1708/votes", "votes":
+        0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
+        0, "maxResults": 20, "total": 0, "worklogs": []}, "customfield_12310213":
+        null, "archivedby": null, "customfield_12311940": "1|ze2aug:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -483,9 +491,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:17:03 GMT
+      - Wed, 28 Feb 2024 14:52:43 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:17:03 GMT
+      - Wed, 28 Feb 2024 14:52:43 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -498,17 +506,17 @@ interactions:
       X-RateLimit-Remaining:
       - '9223372036854775807'
       content-length:
-      - '8976'
+      - '8823'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1157x157918x1
+      - 892x567531x1
       x-asessionid:
-      - 102fzuv
+      - n01zhn
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -520,9 +528,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741423.2b849531
+      - 0.c585d817.1709131963.b68020
       x-rh-edge-request-id:
-      - 2b849531
+      - b68020
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -582,14 +590,7 @@ interactions:
         Level Initiative","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/12102","id":"12102","description":"Organizational
         objective focused on a measurable outcome. May be in support of larger strategic
         goals.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Outcome","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10800","id":"10800","description":"Research
-        activity","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
-        new feature of the product, which has yet to be developed.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"New
-        Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10200","id":"10200","description":"An
-        improvement or enhancement to an existing feature or task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Improvement","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11413","id":"11413","description":"Generic
-        Service issue or request (non-code change)","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Ticket","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
-        or a well-defined set of functionality that delivers business value. Features
-        can include additions or changes to existing functionality. Features can easily
-        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
+        activity","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
         of a library dependency","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Library
         Upgrade","subtask":false,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/15","id":"15","description":"A
         clarification needed to a specification based on community feedback","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Clarification","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/19","id":"19","description":"Issue
@@ -608,7 +609,10 @@ interactions:
         Task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Docs
         Task","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10400","id":"10400","description":"Objectives
         and Key Results","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13274&avatarType=issuetype","name":"OKR","subtask":false,"avatarId":13274},{"self":"https://example.com/rest/api/2/issuetype/10500","id":"10500","description":"Policies
-        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
+        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
+        or a well-defined set of functionality that delivers business value. Features
+        can include additions or changes to existing functionality. Features can easily
+        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
         issue requiring coordinated response","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10304&avatarType=issuetype","name":"Flare","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10900","id":"10900","description":"This
         issue type is created for Service Desk functions in Jira Software","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Service
         Request","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/10901","id":"10901","description":"This
@@ -637,7 +641,8 @@ interactions:
         release operations","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13273&avatarType=issuetype","name":"Release
         Milestone","subtask":false,"avatarId":13273},{"self":"https://example.com/rest/api/2/issuetype/11412","id":"11412","description":"tracks
         major releases","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Release
-        tracker","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/11414","id":"11414","description":"Higher
+        tracker","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/11413","id":"11413","description":"Generic
+        Service issue or request (non-code change)","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Ticket","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11414","id":"11414","description":"Higher
         level than an epic","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Project","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/11415","id":"11415","description":"Root
         Cause Analysis","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13269&avatarType=issuetype","name":"Root
         Cause Analysis","subtask":false,"avatarId":13269},{"self":"https://example.com/rest/api/2/issuetype/11416","id":"11416","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13264&avatarType=issuetype","name":"Weather-item","subtask":false,"avatarId":13264},{"self":"https://example.com/rest/api/2/issuetype/11417","id":"11417","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Ad-Hoc
@@ -651,8 +656,21 @@ interactions:
         Software Security Exception","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=40577&avatarType=issuetype","name":"Software
         Security Exception","subtask":false,"avatarId":40577},{"self":"https://example.com/rest/api/2/issuetype/12100","id":"12100","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Objective","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/12101","id":"12101","description":"Large,
         strategic focus area typically defined by leadership teams to achieve organizational
-        long-term vision.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Strategic
-        Goal","subtask":false,"avatarId":13260}]'
+        long-term vision.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=50977&avatarType=issuetype","name":"Strategic
+        Goal","subtask":false,"avatarId":50977},{"self":"https://example.com/rest/api/2/issuetype/12200","id":"12200","description":"Represents
+        a Test","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test.png","name":"Test","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12201","id":"12201","description":"Represents
+        a Test Set","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-set.png","name":"Test
+        Set","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12202","id":"12202","description":"Represents
+        a Test Execution","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-execution.png","name":"Test
+        Execution","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12203","id":"12203","description":"Represents
+        a Pre-Condition","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/pre-condition.png","name":"Pre-Condition","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12204","id":"12204","description":"Represents
+        a Test Plan","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-plan.png","name":"Test
+        Plan","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12205","id":"12205","description":"Represents
+        a Sub Test Execution","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/sub-test-execution.png","name":"Sub
+        Test Execution","subtask":true},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
+        new feature of the product, which has yet to be developed.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"New
+        Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10200","id":"10200","description":"An
+        improvement or enhancement to an existing feature or task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Improvement","subtask":false,"avatarId":13270}]'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -661,9 +679,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:17:03 GMT
+      - Wed, 28 Feb 2024 14:52:43 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:17:03 GMT
+      - Wed, 28 Feb 2024 14:52:43 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -676,17 +694,17 @@ interactions:
       X-RateLimit-Remaining:
       - '9223372036854775807'
       content-length:
-      - '23344'
+      - '24975'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1157x157919x1
+      - 892x567537x1
       x-asessionid:
-      - vteu32
+      - 1moggd1
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -698,9 +716,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741423.2b849691
+      - 0.c585d817.1709131963.b6817b
       x-rh-edge-request-id:
-      - 2b849691
+      - b6817b
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -776,9 +794,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:17:03 GMT
+      - Wed, 28 Feb 2024 14:52:43 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:17:03 GMT
+      - Wed, 28 Feb 2024 14:52:43 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -797,11 +815,11 @@ interactions:
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1157x157920x1
+      - 892x567540x1
       x-asessionid:
-      - mwgnjr
+      - 71885e
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -813,9 +831,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741423.2b8497bf
+      - 0.c585d817.1709131963.b68455
       x-rh-edge-request-id:
-      - 2b8497bf
+      - b68455
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -827,8 +845,8 @@ interactions:
     body: '{"fields": {"issuetype": {"id": "17"}, "project": {"id": "12337520"}, "summary":
       "CVE-2020-10000 kernel: some description edited title", "description": "Description
       for CVE-2020-10000", "labels": ["flawuuid:9d9b3b14-0c44-4030-883c-8610f7e2879b",
-      "impact:IMPORTANT", "major_incident"], "priority": {"name": "Major"}, "assignee":
-      {"name": "concosta@redhat.com"}, "customfield_12313240": "4077"}}'
+      "impact:MODERATE", "major_incident"], "priority": {"name": "Normal"}, "assignee":
+      {"name": "concosta@redhat.com"}, "customfield_12313240": "4484"}}'
     headers:
       Accept:
       - application/json,*.*;q=0.9
@@ -847,7 +865,7 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: PUT
-    uri: https://example.com/rest/api/2/issue/OSIM-569
+    uri: https://example.com/rest/api/2/issue/OSIM-1708
   response:
     body:
       string: ''
@@ -859,9 +877,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:17:04 GMT
+      - Wed, 28 Feb 2024 14:52:44 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:17:04 GMT
+      - Wed, 28 Feb 2024 14:52:44 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -875,11 +893,11 @@ interactions:
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1157x157921x1
+      - 892x567541x1
       x-asessionid:
-      - 1x17oj
+      - 1o1mhq3
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -891,9 +909,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741424.2b8498bf
+      - 0.c585d817.1709131964.b68523
       x-rh-edge-request-id:
-      - 2b8498bf
+      - b68523
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -919,16 +937,16 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-569
+    uri: https://example.com/rest/api/2/issue/OSIM-1708
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "15552894", "self": "https://example.com/rest/api/2/issue/15552894",
-        "key": "OSIM-569", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
+        "id": "15822535", "self": "https://example.com/rest/api/2/issue/15822535",
+        "key": "OSIM-1708", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
         "id": "17", "description": "Created by Jira Software - do not edit or delete.
         Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12322244":
-        null, "customfield_12318341": null, "timespent": null, "customfield_12320940":
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
+        null, "customfield_12324461": [], "timespent": null, "customfield_12320940":
         null, "project": {"self": "https://example.com/rest/api/2/project/12337520",
         "id": "12337520", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
         "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
@@ -937,23 +955,23 @@ interactions:
         "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@310607d6[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1dd1616c[overall=PullRequestOverallBean{stateCount=0,
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@6dffe272[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3aed2dad[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3db4858b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@2b784950[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@623b955e[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@3609ba27[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2f88e9b0[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@46d307d8[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@787ceb39[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@35fae93[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6b720221[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@35c13550[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@676efda7[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@34bd34a2[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@675f8010[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@1151b12b[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1c2e563[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@5c07c9dd[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@47c39d4d[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@5b07b477[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4d78bb89[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@2f53dada[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
         "resolutiondate": null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
-        null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
+        null, "customfield_12316841": null, "customfield_12315950": null, "customfield_12310940":
         null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://example.com/rest/api/2/issue/OSIM-569/watchers", "watchCount": 1,
-        "isWatching": true}, "created": "2024-01-08T19:16:52.417+0000", "customfield_12321240":
-        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/3",
-        "iconUrl": "https://example.com/images/icons/priorities/major.svg", "name":
-        "Major", "id": "3"}, "labels": ["flawuuid:9d9b3b14-0c44-4030-883c-8610f7e2879b",
-        "impact:IMPORTANT", "major_incident"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
+        "https://example.com/rest/api/2/issue/OSIM-1708/watchers", "watchCount": 1,
+        "isWatching": true}, "created": "2024-02-28T14:52:42.008+0000", "customfield_12321240":
+        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/10200",
+        "iconUrl": "https://example.com/images/icons/priorities/medium.svg", "name":
+        "Normal", "id": "10200"}, "labels": ["flawuuid:9d9b3b14-0c44-4030-883c-8610f7e2879b",
+        "impact:MODERATE", "major_incident"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
         "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
@@ -965,7 +983,7 @@ interactions:
         "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
         "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
         "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
-        "updated": "2024-01-08T19:17:04.091+0000", "customfield_12313942": null, "customfield_12313941":
+        "updated": "2024-02-28T14:52:44.156+0000", "customfield_12313942": null, "customfield_12313941":
         null, "status": {"self": "https://example.com/rest/api/2/status/10016", "description":
         "Initial creation status. Implies nothing yet and should be very short lived;
         also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
@@ -976,9 +994,9 @@ interactions:
         null, "timetracking": {}, "customfield_12320842": null, "customfield_12310243":
         null, "attachment": [], "aggregatetimeestimate": null, "customfield_12316542":
         {"self": "https://example.com/rest/api/2/customFieldOption/14655", "value":
-        "False", "id": "14655", "disabled": false}, "customfield_12316543": {"self":
-        "https://example.com/rest/api/2/customFieldOption/14657", "value": "False",
-        "id": "14657", "disabled": false}, "customfield_12317313": null, "customfield_12316544":
+        "False", "id": "14655", "disabled": false}, "customfield_12317313": null,
+        "customfield_12316543": {"self": "https://example.com/rest/api/2/customFieldOption/14657",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12316544":
         "None", "customfield_12310840": "9223372036854775807", "summary": "CVE-2020-10000
         kernel: some description edited title", "customfield_12323640": null, "customfield_12323642":
         null, "creator": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
@@ -989,9 +1007,7 @@ interactions:
         "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
         "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
         "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "customfield_12323647": [{"self": "https://example.com/rest/api/2/customFieldOption/34754",
-        "value": "en-US (English)", "id": "34754", "disabled": false}], "reporter":
-        {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
+        "reporter": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
         "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
         "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
         "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
@@ -1002,13 +1018,13 @@ interactions:
         0}, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
         null, "customfield_12323645": null, "environment": null, "customfield_12315542":
         null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
-        "0.0", "customfield_12313240": {"id": 4077, "name": "osidb_test_team"}, "duedate":
+        "0.0", "customfield_12313240": {"id": 4484, "name": "osidb_test_team"}, "duedate":
         null, "customfield_12311140": null, "customfield_12319742": null, "progress":
         {"progress": 0, "total": 0}, "comment": {"comments": [], "maxResults": 0,
-        "total": 0, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-569/votes",
-        "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
-        "total": 0, "worklogs": []}, "customfield_12319743": null, "customfield_12310213":
-        null, "archivedby": null, "customfield_12311940": "1|zctawc:"}}'
+        "total": 0, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-1708/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
+        0, "maxResults": 20, "total": 0, "worklogs": []}, "customfield_12310213":
+        null, "archivedby": null, "customfield_12311940": "1|ze2aug:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -1017,9 +1033,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:17:04 GMT
+      - Wed, 28 Feb 2024 14:52:45 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:17:04 GMT
+      - Wed, 28 Feb 2024 14:52:45 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1032,17 +1048,17 @@ interactions:
       X-RateLimit-Remaining:
       - '9223372036854775807'
       content-length:
-      - '9716'
+      - '9567'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1157x157922x1
+      - 892x567550x3
       x-asessionid:
-      - q1z0oa
+      - 1bftr67
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1054,9 +1070,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741424.2b849d0a
+      - 0.c585d817.1709131965.b688b2
       x-rh-edge-request-id:
-      - 2b849d0a
+      - b688b2
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1116,14 +1132,7 @@ interactions:
         Level Initiative","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/12102","id":"12102","description":"Organizational
         objective focused on a measurable outcome. May be in support of larger strategic
         goals.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Outcome","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10800","id":"10800","description":"Research
-        activity","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
-        new feature of the product, which has yet to be developed.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"New
-        Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10200","id":"10200","description":"An
-        improvement or enhancement to an existing feature or task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Improvement","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11413","id":"11413","description":"Generic
-        Service issue or request (non-code change)","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Ticket","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
-        or a well-defined set of functionality that delivers business value. Features
-        can include additions or changes to existing functionality. Features can easily
-        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
+        activity","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
         of a library dependency","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Library
         Upgrade","subtask":false,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/15","id":"15","description":"A
         clarification needed to a specification based on community feedback","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Clarification","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/19","id":"19","description":"Issue
@@ -1142,7 +1151,10 @@ interactions:
         Task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Docs
         Task","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10400","id":"10400","description":"Objectives
         and Key Results","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13274&avatarType=issuetype","name":"OKR","subtask":false,"avatarId":13274},{"self":"https://example.com/rest/api/2/issuetype/10500","id":"10500","description":"Policies
-        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
+        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
+        or a well-defined set of functionality that delivers business value. Features
+        can include additions or changes to existing functionality. Features can easily
+        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
         issue requiring coordinated response","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10304&avatarType=issuetype","name":"Flare","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10900","id":"10900","description":"This
         issue type is created for Service Desk functions in Jira Software","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Service
         Request","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/10901","id":"10901","description":"This
@@ -1171,7 +1183,8 @@ interactions:
         release operations","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13273&avatarType=issuetype","name":"Release
         Milestone","subtask":false,"avatarId":13273},{"self":"https://example.com/rest/api/2/issuetype/11412","id":"11412","description":"tracks
         major releases","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Release
-        tracker","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/11414","id":"11414","description":"Higher
+        tracker","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/11413","id":"11413","description":"Generic
+        Service issue or request (non-code change)","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Ticket","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11414","id":"11414","description":"Higher
         level than an epic","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Project","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/11415","id":"11415","description":"Root
         Cause Analysis","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13269&avatarType=issuetype","name":"Root
         Cause Analysis","subtask":false,"avatarId":13269},{"self":"https://example.com/rest/api/2/issuetype/11416","id":"11416","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13264&avatarType=issuetype","name":"Weather-item","subtask":false,"avatarId":13264},{"self":"https://example.com/rest/api/2/issuetype/11417","id":"11417","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Ad-Hoc
@@ -1185,8 +1198,21 @@ interactions:
         Software Security Exception","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=40577&avatarType=issuetype","name":"Software
         Security Exception","subtask":false,"avatarId":40577},{"self":"https://example.com/rest/api/2/issuetype/12100","id":"12100","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Objective","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/12101","id":"12101","description":"Large,
         strategic focus area typically defined by leadership teams to achieve organizational
-        long-term vision.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Strategic
-        Goal","subtask":false,"avatarId":13260}]'
+        long-term vision.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=50977&avatarType=issuetype","name":"Strategic
+        Goal","subtask":false,"avatarId":50977},{"self":"https://example.com/rest/api/2/issuetype/12200","id":"12200","description":"Represents
+        a Test","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test.png","name":"Test","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12201","id":"12201","description":"Represents
+        a Test Set","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-set.png","name":"Test
+        Set","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12202","id":"12202","description":"Represents
+        a Test Execution","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-execution.png","name":"Test
+        Execution","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12203","id":"12203","description":"Represents
+        a Pre-Condition","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/pre-condition.png","name":"Pre-Condition","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12204","id":"12204","description":"Represents
+        a Test Plan","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-plan.png","name":"Test
+        Plan","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12205","id":"12205","description":"Represents
+        a Sub Test Execution","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/sub-test-execution.png","name":"Sub
+        Test Execution","subtask":true},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
+        new feature of the product, which has yet to be developed.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"New
+        Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10200","id":"10200","description":"An
+        improvement or enhancement to an existing feature or task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Improvement","subtask":false,"avatarId":13270}]'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -1195,9 +1221,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:17:05 GMT
+      - Wed, 28 Feb 2024 14:52:45 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:17:05 GMT
+      - Wed, 28 Feb 2024 14:52:45 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1210,17 +1236,17 @@ interactions:
       X-RateLimit-Remaining:
       - '9223372036854775807'
       content-length:
-      - '23344'
+      - '24975'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1157x157924x1
+      - 892x567553x1
       x-asessionid:
-      - 1a8pnhq
+      - 1osjztg
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1232,9 +1258,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741425.2b849df7
+      - 0.c585d817.1709131965.b689b7
       x-rh-edge-request-id:
-      - 2b849df7
+      - b689b7
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1310,9 +1336,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:17:05 GMT
+      - Wed, 28 Feb 2024 14:52:45 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:17:05 GMT
+      - Wed, 28 Feb 2024 14:52:45 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1331,11 +1357,11 @@ interactions:
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1157x157925x1
+      - 892x567554x1
       x-asessionid:
-      - 1snn20l
+      - 3nr5k5
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1347,9 +1373,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741425.2b849ef1
+      - 0.c585d817.1709131965.b68b20
       x-rh-edge-request-id:
-      - 2b849ef1
+      - b68b20
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1361,8 +1387,8 @@ interactions:
     body: '{"fields": {"issuetype": {"id": "17"}, "project": {"id": "12337520"}, "summary":
       "CVE-2020-10000 kernel: some description edited title", "description": "Description
       for CVE-2020-10000", "labels": ["flawuuid:9d9b3b14-0c44-4030-883c-8610f7e2879b",
-      "impact:IMPORTANT", "major_incident"], "priority": {"name": "Major"}, "assignee":
-      {"name": "concosta@redhat.com"}, "customfield_12313240": "4077"}}'
+      "impact:MODERATE", "major_incident"], "priority": {"name": "Normal"}, "assignee":
+      {"name": "concosta@redhat.com"}, "customfield_12313240": "4484"}}'
     headers:
       Accept:
       - application/json,*.*;q=0.9
@@ -1381,7 +1407,7 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: PUT
-    uri: https://example.com/rest/api/2/issue/OSIM-569
+    uri: https://example.com/rest/api/2/issue/OSIM-1708
   response:
     body:
       string: ''
@@ -1393,9 +1419,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:17:05 GMT
+      - Wed, 28 Feb 2024 14:52:45 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:17:05 GMT
+      - Wed, 28 Feb 2024 14:52:45 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1409,11 +1435,11 @@ interactions:
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1157x157926x1
+      - 892x567556x1
       x-asessionid:
-      - o8k73d
+      - izpsn0
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1425,9 +1451,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741425.2b84a018
+      - 0.c585d817.1709131965.b68b96
       x-rh-edge-request-id:
-      - 2b84a018
+      - b68b96
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1453,16 +1479,16 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-569
+    uri: https://example.com/rest/api/2/issue/OSIM-1708
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "15552894", "self": "https://example.com/rest/api/2/issue/15552894",
-        "key": "OSIM-569", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
+        "id": "15822535", "self": "https://example.com/rest/api/2/issue/15822535",
+        "key": "OSIM-1708", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
         "id": "17", "description": "Created by Jira Software - do not edit or delete.
         Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12322244":
-        null, "customfield_12318341": null, "timespent": null, "customfield_12320940":
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
+        null, "customfield_12324461": [], "timespent": null, "customfield_12320940":
         null, "project": {"self": "https://example.com/rest/api/2/project/12337520",
         "id": "12337520", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
         "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
@@ -1471,23 +1497,23 @@ interactions:
         "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@6f316fd1[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7ec029ef[overall=PullRequestOverallBean{stateCount=0,
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@7df75bfb[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5e831671[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@31b2a6c1[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@4ec27e49[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1428a760[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@90e2a85[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2d2e01cb[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@70c31211[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2101a8ce[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@5923e469[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4de86df[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@6ce54fcf[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5c613c5c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@1a17993f[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@54ac5b78[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@3befd194[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6e399969[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@48413bf0[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7e00de1b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@3ba6c33e[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1976f7f2[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@58a9c197[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
         "resolutiondate": null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
-        null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
+        null, "customfield_12316841": null, "customfield_12315950": null, "customfield_12310940":
         null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://example.com/rest/api/2/issue/OSIM-569/watchers", "watchCount": 1,
-        "isWatching": true}, "created": "2024-01-08T19:16:52.417+0000", "customfield_12321240":
-        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/3",
-        "iconUrl": "https://example.com/images/icons/priorities/major.svg", "name":
-        "Major", "id": "3"}, "labels": ["flawuuid:9d9b3b14-0c44-4030-883c-8610f7e2879b",
-        "impact:IMPORTANT", "major_incident"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
+        "https://example.com/rest/api/2/issue/OSIM-1708/watchers", "watchCount": 1,
+        "isWatching": true}, "created": "2024-02-28T14:52:42.008+0000", "customfield_12321240":
+        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/10200",
+        "iconUrl": "https://example.com/images/icons/priorities/medium.svg", "name":
+        "Normal", "id": "10200"}, "labels": ["flawuuid:9d9b3b14-0c44-4030-883c-8610f7e2879b",
+        "impact:MODERATE", "major_incident"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
         "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
@@ -1499,7 +1525,7 @@ interactions:
         "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
         "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
         "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
-        "updated": "2024-01-08T19:17:04.091+0000", "customfield_12313942": null, "customfield_12313941":
+        "updated": "2024-02-28T14:52:44.156+0000", "customfield_12313942": null, "customfield_12313941":
         null, "status": {"self": "https://example.com/rest/api/2/status/10016", "description":
         "Initial creation status. Implies nothing yet and should be very short lived;
         also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
@@ -1510,9 +1536,9 @@ interactions:
         null, "timetracking": {}, "customfield_12320842": null, "customfield_12310243":
         null, "attachment": [], "aggregatetimeestimate": null, "customfield_12316542":
         {"self": "https://example.com/rest/api/2/customFieldOption/14655", "value":
-        "False", "id": "14655", "disabled": false}, "customfield_12316543": {"self":
-        "https://example.com/rest/api/2/customFieldOption/14657", "value": "False",
-        "id": "14657", "disabled": false}, "customfield_12317313": null, "customfield_12316544":
+        "False", "id": "14655", "disabled": false}, "customfield_12317313": null,
+        "customfield_12316543": {"self": "https://example.com/rest/api/2/customFieldOption/14657",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12316544":
         "None", "customfield_12310840": "9223372036854775807", "summary": "CVE-2020-10000
         kernel: some description edited title", "customfield_12323640": null, "customfield_12323642":
         null, "creator": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
@@ -1523,9 +1549,7 @@ interactions:
         "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
         "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
         "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "customfield_12323647": [{"self": "https://example.com/rest/api/2/customFieldOption/34754",
-        "value": "en-US (English)", "id": "34754", "disabled": false}], "reporter":
-        {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
+        "reporter": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
         "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
         "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
         "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
@@ -1536,13 +1560,13 @@ interactions:
         0}, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
         null, "customfield_12323645": null, "environment": null, "customfield_12315542":
         null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
-        "0.0", "customfield_12313240": {"id": 4077, "name": "osidb_test_team"}, "duedate":
+        "0.0", "customfield_12313240": {"id": 4484, "name": "osidb_test_team"}, "duedate":
         null, "customfield_12311140": null, "customfield_12319742": null, "progress":
         {"progress": 0, "total": 0}, "comment": {"comments": [], "maxResults": 0,
-        "total": 0, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-569/votes",
-        "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
-        "total": 0, "worklogs": []}, "customfield_12319743": null, "customfield_12310213":
-        null, "archivedby": null, "customfield_12311940": "1|zctawc:"}}'
+        "total": 0, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-1708/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
+        0, "maxResults": 20, "total": 0, "worklogs": []}, "customfield_12310213":
+        null, "archivedby": null, "customfield_12311940": "1|ze2aug:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -1551,9 +1575,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:17:06 GMT
+      - Wed, 28 Feb 2024 14:52:45 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:17:06 GMT
+      - Wed, 28 Feb 2024 14:52:45 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1566,17 +1590,17 @@ interactions:
       X-RateLimit-Remaining:
       - '9223372036854775807'
       content-length:
-      - '9715'
+      - '9568'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1157x157927x1
+      - 892x567558x1
       x-asessionid:
-      - 1pajfd2
+      - 143i6iw
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1588,9 +1612,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741426.2b84a12f
+      - 0.c585d817.1709131965.b68c36
       x-rh-edge-request-id:
-      - 2b84a12f
+      - b68c36
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1616,7 +1640,7 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-569/transitions
+    uri: https://example.com/rest/api/2/issue/OSIM-1708/transitions
   response:
     body:
       string: '{"expand": "transitions", "transitions": [{"id": "11", "name": "New",
@@ -1658,9 +1682,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:17:06 GMT
+      - Wed, 28 Feb 2024 14:52:45 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:17:06 GMT
+      - Wed, 28 Feb 2024 14:52:45 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1679,11 +1703,11 @@ interactions:
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1157x157929x1
+      - 892x567561x1
       x-asessionid:
-      - 1hfa3cd
+      - 4iyg7a
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1695,9 +1719,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741426.2b84a20c
+      - 0.c585d817.1709131965.b68d03
       x-rh-edge-request-id:
-      - 2b84a20c
+      - b68d03
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1725,7 +1749,7 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: POST
-    uri: https://example.com/rest/api/2/issue/OSIM-569/transitions
+    uri: https://example.com/rest/api/2/issue/OSIM-1708/transitions
   response:
     body:
       string: ''
@@ -1737,9 +1761,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:17:06 GMT
+      - Wed, 28 Feb 2024 14:52:46 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:17:06 GMT
+      - Wed, 28 Feb 2024 14:52:46 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1753,11 +1777,11 @@ interactions:
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1157x157930x1
+      - 892x567562x1
       x-asessionid:
-      - ycme9a
+      - 1eabdzo
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1769,9 +1793,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741426.2b84a2ca
+      - 0.c585d817.1709131966.b68d68
       x-rh-edge-request-id:
-      - 2b84a2ca
+      - b68d68
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1797,16 +1821,16 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-569
+    uri: https://example.com/rest/api/2/issue/OSIM-1708
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "15552894", "self": "https://example.com/rest/api/2/issue/15552894",
-        "key": "OSIM-569", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
+        "id": "15822535", "self": "https://example.com/rest/api/2/issue/15822535",
+        "key": "OSIM-1708", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
         "id": "17", "description": "Created by Jira Software - do not edit or delete.
         Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12322244":
-        null, "customfield_12318341": null, "timespent": null, "customfield_12320940":
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
+        null, "customfield_12324461": [], "timespent": null, "customfield_12320940":
         null, "project": {"self": "https://example.com/rest/api/2/project/12337520",
         "id": "12337520", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
         "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
@@ -1815,23 +1839,23 @@ interactions:
         "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@6af9c282[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@20d31038[overall=PullRequestOverallBean{stateCount=0,
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@5c7c7b0b[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3db5f33[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4739a809[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@7f533206[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@24c40af7[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@430a04fb[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@49798573[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@2fdc5d58[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2bcb69e6[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@38759db8[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3d22c5d8[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@705979b9[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@49e7fe59[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@109c1291[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@165d3d9c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@389e9ee[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@75eacaf0[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@5125646[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7a5c2aa5[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@36d67a99[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@15488bf9[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@2ff4f70[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
         "resolutiondate": null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
-        null, "customfield_12315950": null, "customfield_12316841": null, "customfield_12310940":
+        null, "customfield_12316841": null, "customfield_12315950": null, "customfield_12310940":
         null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://example.com/rest/api/2/issue/OSIM-569/watchers", "watchCount": 1,
-        "isWatching": true}, "created": "2024-01-08T19:16:52.417+0000", "customfield_12321240":
-        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/3",
-        "iconUrl": "https://example.com/images/icons/priorities/major.svg", "name":
-        "Major", "id": "3"}, "labels": ["flawuuid:9d9b3b14-0c44-4030-883c-8610f7e2879b",
-        "impact:IMPORTANT", "major_incident"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
+        "https://example.com/rest/api/2/issue/OSIM-1708/watchers", "watchCount": 1,
+        "isWatching": true}, "created": "2024-02-28T14:52:42.008+0000", "customfield_12321240":
+        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/10200",
+        "iconUrl": "https://example.com/images/icons/priorities/medium.svg", "name":
+        "Normal", "id": "10200"}, "labels": ["flawuuid:9d9b3b14-0c44-4030-883c-8610f7e2879b",
+        "impact:MODERATE", "major_incident"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
         "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
@@ -1843,7 +1867,7 @@ interactions:
         "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
         "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
         "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
-        "updated": "2024-01-08T19:17:06.449+0000", "customfield_12313942": null, "customfield_12313941":
+        "updated": "2024-02-28T14:52:45.954+0000", "customfield_12313942": null, "customfield_12313941":
         null, "status": {"self": "https://example.com/rest/api/2/status/10020", "description":
         "The team is planning to do this work and it has a priority set", "iconUrl":
         "https://example.com/", "name": "To Do", "id": "10020", "statusCategory":
@@ -1853,12 +1877,12 @@ interactions:
         null, "customfield_12320844": null, "archiveddate": null, "timetracking":
         {}, "customfield_12320842": null, "customfield_12310243": null, "attachment":
         [], "aggregatetimeestimate": null, "customfield_12316542": {"self": "https://example.com/rest/api/2/customFieldOption/14655",
-        "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
-        {"self": "https://example.com/rest/api/2/customFieldOption/14657", "value":
-        "False", "id": "14657", "disabled": false}, "customfield_12317313": null,
-        "customfield_12316544": "None", "customfield_12310840": "9223372036854775807",
-        "summary": "CVE-2020-10000 kernel: some description edited title", "customfield_12323640":
-        null, "customfield_12323642": null, "creator": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
+        "value": "False", "id": "14655", "disabled": false}, "customfield_12317313":
+        null, "customfield_12316543": {"self": "https://example.com/rest/api/2/customFieldOption/14657",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12316544":
+        "None", "customfield_12310840": "9223372036854775807", "summary": "CVE-2020-10000
+        kernel: some description edited title", "customfield_12323640": null, "customfield_12323642":
+        null, "creator": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
         "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
         "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
         "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
@@ -1866,9 +1890,7 @@ interactions:
         "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
         "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
         "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "customfield_12323647": [{"self": "https://example.com/rest/api/2/customFieldOption/34754",
-        "value": "en-US (English)", "id": "34754", "disabled": false}], "reporter":
-        {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
+        "reporter": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
         "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
         "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
         "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
@@ -1879,13 +1901,13 @@ interactions:
         0}, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
         null, "customfield_12323645": null, "environment": null, "customfield_12315542":
         null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
-        "0.0", "customfield_12313240": {"id": 4077, "name": "osidb_test_team"}, "duedate":
+        "0.0", "customfield_12313240": {"id": 4484, "name": "osidb_test_team"}, "duedate":
         null, "customfield_12311140": null, "customfield_12319742": null, "progress":
         {"progress": 0, "total": 0}, "comment": {"comments": [], "maxResults": 0,
-        "total": 0, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-569/votes",
-        "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
-        "total": 0, "worklogs": []}, "customfield_12319743": null, "customfield_12310213":
-        null, "archivedby": null, "customfield_12311940": "1|zctawc:"}}'
+        "total": 0, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-1708/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
+        0, "maxResults": 20, "total": 0, "worklogs": []}, "customfield_12310213":
+        null, "archivedby": null, "customfield_12311940": "1|ze2aug:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -1894,9 +1916,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 08 Jan 2024 19:17:07 GMT
+      - Wed, 28 Feb 2024 14:52:46 GMT
       Expires:
-      - Mon, 08 Jan 2024 19:17:07 GMT
+      - Wed, 28 Feb 2024 14:52:46 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1909,17 +1931,17 @@ interactions:
       X-RateLimit-Remaining:
       - '9223372036854775807'
       content-length:
-      - '9641'
+      - '9488'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1157x157931x1
+      - 892x567571x1
       x-asessionid:
-      - 1k7cbdb
+      - 1cvcvu1
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1931,9 +1953,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704741427.2b84a54d
+      - 0.c585d817.1709131966.b690dc
       x-rh-edge-request-id:
-      - 2b84a54d
+      - b690dc
       x-seraph-loginreason:
       - OK
       x-xss-protection:
