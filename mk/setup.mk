@@ -85,10 +85,10 @@ upgrade-dep: check-venv-active
 apply-requirements-txt: check-reg check-venv sync-deps compose-up
 	@echo ">appyling requirements.txt on osidb-service"
 	$(podman) exec -it osidb-service pip3 install -r /opt/app-root/src/requirements.txt
-	@echo ">appyling requirements.txt on celery_host1"
-	$(podman) exec -it celery_host1 pip3 install -r /opt/app-root/src/requirements.txt
-	@echo ">appyling requirements.txt on celery_host2"
-	$(podman) exec -it celery_host2 pip3 install -r /opt/app-root/src/requirements.txt
+	@echo ">appyling requirements.txt on osidb_celery_1"
+	$(podman) exec -it osidb_celery_1 pip3 install -r /opt/app-root/src/requirements.txt
+	@echo ">appyling requirements.txt on osidb_celery_2" # if you have more celery replicas, you're on your own
+	$(podman) exec -it osidb_celery_2 pip3 install -r /opt/app-root/src/requirements.txt || true  # do not fail if only 1 host is configured
 	@echo ">appyling requirements.txt on celery_beat"
 	$(podman) exec -it celery_beat pip3 install -r /opt/app-root/src/requirements.txt
 	@echo ">appyling requirements.txt on flower"
