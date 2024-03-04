@@ -42,14 +42,14 @@ class TestTrackerSaver:
         affect1 = AffectFactory(
             flaw=flaw1,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
             ps_component="component",
         )
         affect2 = AffectFactory(
             flaw=flaw2,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=affect1.ps_module,
             ps_component=affect1.ps_component,
         )
@@ -76,7 +76,7 @@ class TestTrackerSaver:
 
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
             ps_component="component",
         )
@@ -102,7 +102,7 @@ class TestTrackerSaver:
 
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
             ps_component="component",
         )
@@ -129,7 +129,7 @@ class TestTrackerSaver:
 
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
             ps_component="component",
         )
@@ -155,7 +155,7 @@ class TestTrackerSaver:
 
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
             ps_component="component",
         )
@@ -189,7 +189,7 @@ class TestTrackerModelSave:
 
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
             ps_component="component",
         )
@@ -223,7 +223,7 @@ class TestTrackerModelSave:
 
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
             ps_component="component",
         )
@@ -257,7 +257,7 @@ class TestTrackerModelSave:
 
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
             ps_component="component",
         )
@@ -289,7 +289,7 @@ class TestTrackerModelSave:
 
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
             ps_component="component",
         )

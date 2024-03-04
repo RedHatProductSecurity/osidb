@@ -126,7 +126,7 @@ class TestJiraTrackerCollector:
         ps_module = PsModuleFactory(bts_name="jboss")
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
         tracker_id = "ENTMQ-755"

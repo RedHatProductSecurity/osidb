@@ -43,7 +43,7 @@ class TestTracker:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             flaw=flaw1,
             impact=affect1_impact,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
         affect2 = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
@@ -51,7 +51,7 @@ class TestTracker:
             impact=affect2_impact,
             ps_module=affect1.ps_module,
             ps_component=affect1.ps_component,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
 
         ps_module = PsModuleFactory(name=affect1.ps_module)
@@ -79,7 +79,7 @@ class TestTracker:
 
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
 
@@ -111,7 +111,7 @@ class TestTrackerValidators:
             affect = AffectFactory(
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
-                resolution=Affect.AffectResolution.FIX,
+                resolution=Affect.AffectResolution.DELEGATED,
                 ps_module=ps_module.name,
             )
             ps_update_stream = PsUpdateStreamFactory()
@@ -148,7 +148,7 @@ class TestTrackerValidators:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module="unknown",
         )
         ps_update_stream = PsUpdateStreamFactory()
@@ -172,7 +172,7 @@ class TestTrackerValidators:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.FIX,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
 

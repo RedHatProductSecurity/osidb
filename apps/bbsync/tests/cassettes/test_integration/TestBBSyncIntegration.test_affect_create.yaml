@@ -158,7 +158,7 @@ interactions:
       ["Security"]}, "flags": [], "groups": {"add": [], "remove": []}, "cc": {"add":
       [], "remove": []}, "cf_srtnotes": "{\"affects\": [{\"ps_module\": \"rhel-8\",
       \"ps_component\": \"kernel\", \"affectedness\": \"affected\", \"resolution\":
-      \"fix\", \"impact\": null, \"cvss2\": null, \"cvss3\": null}], \"public\": \"2000-01-01T22:03:26Z\",
+      \"delegated\", \"impact\": null, \"cvss2\": null, \"cvss3\": null}], \"public\": \"2000-01-01T22:03:26Z\",
       \"reported\": \"2022-11-22T15:55:22Z\", \"impact\": \"important\", \"source\":
       \"google\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
       \"cwe\": \"CWE-1\", \"statement\": \"Statement for CVE-2021-0773\"}", "ids":
@@ -185,13 +185,13 @@ interactions:
         "severity": {"removed": "medium", "added": "high"}, "priority": {"removed":
         "medium", "added": "high"}, "cf_release_notes": {"added": "", "removed": "foo"},
         "cf_srtnotes": {"added": "{\"affects\": [{\"ps_module\": \"rhel-8\", \"ps_component\":
-        \"kernel\", \"affectedness\": \"affected\", \"resolution\": \"fix\", \"impact\":
+        \"kernel\", \"affectedness\": \"affected\", \"resolution\": \"delegated\", \"impact\":
         null, \"cvss2\": null, \"cvss3\": null}], \"public\": \"2000-01-01T22:03:26Z\",
         \"reported\": \"2022-11-22T15:55:22Z\", \"impact\": \"important\", \"source\":
         \"google\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
         \"cwe\": \"CWE-1\", \"statement\": \"Statement for CVE-2021-0773\"}", "removed":
         "{\"affects\": [{\"ps_module\": \"rhel-8\", \"ps_component\": \"kernel\",
-        \"affectedness\": \"affected\", \"resolution\": \"fix\", \"impact\": \"critical\",
+        \"affectedness\": \"affected\", \"resolution\": \"delegated\", \"impact\": \"critical\",
         \"cvss2\": null, \"cvss3\": null}], \"public\": \"2000-01-01T22:03:26Z\",
         \"reported\": \"2022-11-22T15:55:22Z\", \"impact\": \"moderate\", \"source\":
         \"xchat\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
@@ -360,7 +360,7 @@ interactions:
         "partner": false, "email": "osoukup@redhat.com", "real_name": "Ondrej Soukup",
         "insider": true, "id": 412888, "active": true}, "cf_clone_of": null, "cc":
         [], "cf_srtnotes": "{\"affects\": [{\"ps_module\": \"rhel-8\", \"ps_component\":
-        \"kernel\", \"affectedness\": \"affected\", \"resolution\": \"fix\", \"impact\":
+        \"kernel\", \"affectedness\": \"affected\", \"resolution\": \"delegated\", \"impact\":
         null, \"cvss2\": null, \"cvss3\": null}], \"public\": \"2000-01-01T22:03:26Z\",
         \"reported\": \"2022-11-22T15:55:22Z\", \"impact\": \"important\", \"source\":
         \"google\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
@@ -453,7 +453,7 @@ interactions:
         {"partner": false, "email": "nobody@redhat.com", "name": "nobody@redhat.com",
         "active": true, "real_name": "Nobody", "insider": false, "id": 29451}, "cf_srtnotes":
         "{\"affects\": [{\"ps_module\": \"rhel-8\", \"ps_component\": \"kernel\",
-        \"affectedness\": \"affected\", \"resolution\": \"fix\", \"impact\": null,
+        \"affectedness\": \"affected\", \"resolution\": \"delegated\", \"impact\": null,
         \"cvss2\": null, \"cvss3\": null}], \"public\": \"2000-01-01T22:03:26Z\",
         \"reported\": \"2022-11-22T15:55:22Z\", \"impact\": \"important\", \"source\":
         \"google\", \"cvss3\": \"3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N\",
