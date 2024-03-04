@@ -144,13 +144,20 @@ if get_env("MPP", is_bool=True, default="False"):
                     "backupCount": LOG_FILE_COUNT,
                 },
                 "console": {
-                    "level": "WARNING",
+                    "level": "DEBUG",
                     "class": "logging.handlers.RotatingFileHandler",
                     "formatter": "verbose",
                     "filename": "/var/log/stage-django.log",
                     "maxBytes": LOG_FILE_SIZE,
                     "backupCount": LOG_FILE_COUNT,
                 },
-            }
+            },
+            "loggers": {
+                "bugzilla": {
+                    "handlers": ["console"],
+                    "level": "DEBUG",
+                    "propagate": False,
+                },
+            },
         }
     )
