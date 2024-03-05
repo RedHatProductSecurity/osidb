@@ -28,6 +28,21 @@ SAMPLE_DATA = {
     ],
 }
 
+SAMPLE_COMPLIANCE_PRIORITY = {
+    "rhel-8": {
+        "components": ["acl", "adcli", "attr"],
+        "streams": ["rhel-8.6.0.z", "rhel-8.9.0.z"],
+    },
+    "openshift-4": {
+        "components": [
+            "cluster-etcd-operator-container",
+            "cluster-monitoring-operator-container",
+        ],
+        "streams": ["rhel-8.6.0.z"],
+    },
+    "foobar-123": {"streams": ["foo-1", "foo-2"]},
+}
+
 
 class TestPsConstantsCollection:
     @pytest.mark.vcr
@@ -36,7 +51,11 @@ class TestPsConstantsCollection:
         url = "/".join((ps_constant_base_url, "compliance_priority.yml"))
         compliance_priority = fetch_ps_constants(url)
         assert "rhel-8" in compliance_priority
-        assert len(compliance_priority["rhel-8"]) > 0
+        assert sorted(compliance_priority.keys()) == [
+            "fdp-el8-ovs",
+            "openshift-4",
+            "rhel-8",
+        ]
 
         url = "/".join((ps_constant_base_url, "contract_priority.yml"))
         contract_priority = fetch_ps_constants(url)
@@ -56,13 +75,35 @@ class TestPsConstantsCollection:
         """
         test collector compliance priority data sync
         """
-        # The meaning of SAMPLE_DATA here is {"module": ["component"]}.
-        sync_compliance_priority(SAMPLE_DATA)
+        sync_compliance_priority(SAMPLE_COMPLIANCE_PRIORITY)
 
-        assert CompliancePriority.objects.all().count() == 4
-        assert CompliancePriority.objects.filter(ps_module="rhel-1").count() == 2
-        assert CompliancePriority.objects.filter(ps_component="test1").count() == 1
-        assert CompliancePriority.objects.filter(ps_component="test2").count() == 1
+        assert CompliancePriority.objects.all().count() == 3
+        assert CompliancePriority.objects.filter(ps_module="rhel-8").count() == 1
+        assert CompliancePriority.objects.filter(ps_module="openshift-4").count() == 1
+        assert CompliancePriority.objects.filter(ps_module="foobar-123").count() == 1
+
+        assert CompliancePriority.objects.get(ps_module="rhel-8").streams == [
+            "rhel-8.6.0.z",
+            "rhel-8.9.0.z",
+        ]
+        assert CompliancePriority.objects.get(ps_module="openshift-4").streams == [
+            "rhel-8.6.0.z"
+        ]
+        assert CompliancePriority.objects.get(ps_module="foobar-123").streams == [
+            "foo-1",
+            "foo-2",
+        ]
+
+        assert CompliancePriority.objects.get(ps_module="rhel-8").components == [
+            "acl",
+            "adcli",
+            "attr",
+        ]
+        assert CompliancePriority.objects.get(ps_module="openshift-4").components == [
+            "cluster-etcd-operator-container",
+            "cluster-monitoring-operator-container",
+        ]
+        assert CompliancePriority.objects.get(ps_module="foobar-123").components == []
 
     def test_sync_contract_priority(self):
         """

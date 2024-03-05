@@ -651,7 +651,9 @@ class TestSLAPolicy:
                 impact=Impact.MODERATE,
             )
             CompliancePriority(
-                ps_module=ps_module.name, ps_component=affect.ps_component
+                ps_module=ps_module.name,
+                components=[affect.ps_component],
+                streams=["dummy_value"],
             ).save()
             tracker = TrackerFactory(
                 affects=[affect],
@@ -719,7 +721,9 @@ class TestSLAPolicy:
                 impact=Impact.MODERATE,
             )
             CompliancePriority(
-                ps_module=ps_module.name, ps_component=affect1.ps_component
+                ps_module=ps_module.name,
+                components=[affect1.ps_component],
+                streams=["dummy_value"],
             ).save()
             affect2 = AffectFactory(
                 flaw=flaw2,

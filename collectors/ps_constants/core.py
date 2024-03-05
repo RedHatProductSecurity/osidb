@@ -1,3 +1,5 @@
+import logging
+
 import requests
 import yaml
 from django.conf import settings
@@ -10,6 +12,8 @@ from osidb.models import (
     SpecialConsiderationPackage,
     UbiPackage,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def fetch_ps_constants(url):
@@ -34,9 +38,18 @@ def sync_compliance_priority(source_dict):
     sync compliance priority data
     """
     CompliancePriority.objects.all().delete()
-    for ps_module, ps_component_list in source_dict.items():
-        for ps_component in ps_component_list:
-            CompliancePriority(ps_module=ps_module, ps_component=ps_component).save()
+    for ps_module, json_field in source_dict.items():
+        components = json_field.get("components", [])
+
+        streams = json_field.get("streams")
+        if streams is None:
+            msg = f"Invalid contents (missing streams) in compliance_priority.yml for module {ps_module}."
+            logger.error(msg)
+            raise RuntimeError(msg)
+
+        CompliancePriority(
+            ps_module=ps_module, components=components, streams=streams
+        ).save()
 
 
 @transaction.atomic
