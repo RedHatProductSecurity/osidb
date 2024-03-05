@@ -808,6 +808,7 @@ class AffectSerializer(
         "module_stream",
         "ps_component",
         "ps_module",
+        "ps_product",
         "resolution",
     )
 
@@ -850,6 +851,7 @@ class AffectSerializer(
                 "affectedness",
                 "resolution",
                 "ps_module",
+                "ps_product",
                 "ps_component",
                 "impact",
                 "cvss2",

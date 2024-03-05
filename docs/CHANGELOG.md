@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Implement flaw unembargo mechanism (OSIDB-1177)
+- Make ps_product property available in affect API
 
 ### Changed
 - Ignore hosts on VCR recording (OSIDB-1678)

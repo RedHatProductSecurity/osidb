@@ -2162,6 +2162,13 @@ class Affect(
         """
         return not PsModule.objects.filter(name=self.ps_module).exists()
 
+    @property
+    def ps_product(self):
+        ps_module = PsModule.objects.filter(name=self.ps_module).first()
+        if not ps_module:
+            return None
+        return ps_module.ps_product.name
+
     def bzsync(self, *args, bz_api_key, **kwargs):
         """
         Bugzilla sync of the Affect instance

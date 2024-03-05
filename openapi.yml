@@ -7051,6 +7051,9 @@ components:
         ps_module:
           type: string
           maxLength: 100
+        ps_product:
+          type: string
+          readOnly: true
         ps_component:
           type: string
           maxLength: 255
@@ -7102,6 +7105,8 @@ components:
               type: string
             ps_module:
               type: string
+            ps_product:
+              type: string
             resolution:
               type: string
           readOnly: true
@@ -7136,6 +7141,7 @@ components:
       - meta_attr
       - ps_component
       - ps_module
+      - ps_product
       - trackers
       - updated_dt
       - uuid
@@ -7287,6 +7293,9 @@ components:
         ps_module:
           type: string
           maxLength: 100
+        ps_product:
+          type: string
+          readOnly: true
         ps_component:
           type: string
           maxLength: 255
@@ -7338,6 +7347,8 @@ components:
               type: string
             ps_module:
               type: string
+            ps_product:
+              type: string
             resolution:
               type: string
           readOnly: true
@@ -7367,6 +7378,7 @@ components:
       - meta_attr
       - ps_component
       - ps_module
+      - ps_product
       - trackers
       - uuid
     AffectReportData:
