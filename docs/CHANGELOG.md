@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Implement flaw unembargo mechanism (OSIDB-1177)
 - Make ps_product property available in affect API
+- Add Fedramp stream preselection handler (OSIDB-1876)
 
 ### Changed
 - Ignore hosts on VCR recording (OSIDB-1678)

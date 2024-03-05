@@ -2,13 +2,14 @@ from osidb.helpers import ps_update_stream_natural_keys
 from osidb.models import Affect, Impact, PsModule, UbiPackage
 
 from .base import ProductDefinitionHandler
+from .fedramp_handler import FedrampHandler
 
 
 class UBIHandler(ProductDefinitionHandler):
     """
     UBI product definition handles
 
-    This handler should run anytime after UnackedHandler
+    This handler should run after UnackedHandler and before FedrampHandler
 
     The handler that runs before this handler must avoid doing changes in `offers`
     that would conflict with UBIHandler:
@@ -36,6 +37,9 @@ class UBIHandler(ProductDefinitionHandler):
         return bool(packages)
 
     def get_offer(self, affect: Affect, impact: Impact, ps_module: PsModule, offers):
+        if FedrampHandler.will_modify_offers(affect, impact, ps_module):
+            # FedrampHandler is next and it would have to undo everything done by UbiHandler.
+            return offers
 
         if UBIHandler.will_modify_offers(affect, impact, ps_module):
 
