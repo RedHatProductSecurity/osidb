@@ -2129,12 +2129,20 @@ class Affect(
     @property
     def is_compliance_priority(self) -> bool:
         """
-        check and return whether this affect module and component combination is compliance
-        priority which is defined in PS constance repo in compliance_priority.yml
+        Check and return whether this affect module and component combination is compliance
+        priority which is defined in PS constance repo in compliance_priority.yml.
+        Note that stream is not evaluated by this property.
         """
-        return CompliancePriority.objects.filter(
-            ps_module=self.ps_module, ps_component=self.ps_component
-        ).exists()
+        compliance_priority = CompliancePriority.objects.filter(
+            ps_module=self.ps_module
+        )
+        if not compliance_priority.exists():
+            return False
+        compliance_components = compliance_priority.first().components
+        if not compliance_components:
+            # Empty list of components in compliance_components.yml means all components are priority.
+            return True
+        return self.ps_component in compliance_components
 
     @property
     def is_notaffected(self) -> bool:
@@ -3575,15 +3583,16 @@ class Profile(models.Model):
 
 class CompliancePriority(models.Model):
     """
-    an instance of this model represents one
-    entry in PS constant compliance priority list
+    One instance of this model represents one
+    model in PS constant compliance priority list.
     """
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     ps_module = models.CharField(max_length=100)
-    ps_component = models.CharField(max_length=255)
+    streams = models.JSONField(default=list)
+    components = models.JSONField(default=list)
 
 
 class ContractPriority(models.Model):
