@@ -57,7 +57,7 @@ class UBIHandler(ProductDefinitionHandler):
                     "aus": bool(
                         ps_module.aus_ps_update_streams.filter(name=z_stream.name)
                     ),
-                    "acked": not ps_module.unacked_ps_update_stream,
+                    "acked": True,
                 }
 
                 # ensure Y-streams earlier than the ps_module.z_stream are not
@@ -75,7 +75,7 @@ class UBIHandler(ProductDefinitionHandler):
                             "aus": bool(
                                 ps_module.aus_ps_update_streams.filter(name=stream.name)
                             ),
-                            "acked": not ps_module.unacked_ps_update_stream,
+                            "acked": True,
                         }
 
         return offers
