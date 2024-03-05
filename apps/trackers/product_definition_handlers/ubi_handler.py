@@ -9,31 +9,35 @@ class UBIHandler(ProductDefinitionHandler):
     UBI product definition handles
 
     This handler should run anytime after UnackedHandler
+
+    The handler that runs before this handler must avoid doing changes in `offers`
+    that would conflict with UBIHandler:
+    - If UBI streams are selected, the unacked stream must not be selected.
     """
 
-    def __init__(self) -> None:
-        self.UBI_OVERRIDES = [Impact.MODERATE]
+    UBI_OVERRIDES = [Impact.MODERATE]
 
+    @staticmethod
+    def will_modify_offers(affect: Affect, impact: Impact, ps_module: PsModule) -> bool:
+        """
+        True if UbiHandler will modify the offers passed to get_offer. Can be used
+        by other handlers to avoid doing offers edits that would have to be reverted
+        by UbiHandler.
+        """
+        is_ubi = UBIHandler.has_ubi_packages(ps_module, affect)
+        return is_ubi and impact in UBIHandler.UBI_OVERRIDES
+
+    @staticmethod
     def has_ubi_packages(ps_module: PsModule, affect: Affect) -> bool:
-        """check weheter a ps_module has ubi packages given a target PsUpdateStream name"""
+        """check whether a ps_module has ubi packages given a target PsUpdateStream name"""
         if "ubi_packages" not in ps_module.special_handling_features:
             return False
         packages = UbiPackage.objects.filter(name=affect.ps_component)
         return bool(packages)
 
     def get_offer(self, affect: Affect, impact: Impact, ps_module: PsModule, offers):
-        is_ubi = UBIHandler.has_ubi_packages(ps_module, affect)
 
-        if is_ubi and impact in self.UBI_OVERRIDES:
-            unacked_stream = ps_module.unacked_ps_update_stream.first()
-            if unacked_stream:
-                offers[unacked_stream.name] = {
-                    "ps_update_stream": unacked_stream.name,
-                    "selected": False,
-                    "aus": False,
-                    "eus": False,
-                    "acked": False,
-                }
+        if UBIHandler.will_modify_offers(affect, impact, ps_module):
 
             z_stream = ps_module.z_stream
             if z_stream:
