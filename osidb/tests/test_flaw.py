@@ -664,6 +664,28 @@ class TestFlaw:
         )
         assert flaw.is_draft is is_draft
 
+    @pytest.mark.parametrize(
+        "ps_module_name,ps_product_name",
+        [
+            ("rhel-8", "Red Hat Enterprise Linux"),
+            ("jbcs-1", "Red Hat JBoss Core Services"),
+            ("", None),
+        ],
+    )
+    def test_ps_product_affect(self, ps_module_name, ps_product_name):
+        """
+        Test that the ps_product property in Affect correctly maps to the
+        one given by the ps_module of the Affect.
+        """
+        if ps_module_name:
+            PsModuleFactory(
+                name=ps_module_name, ps_product=PsProductFactory(name=ps_product_name)
+            )
+            affect = AffectFactory(ps_module=ps_module_name)
+        else:
+            affect = AffectFactory()
+        assert affect.ps_product == ps_product_name
+
 
 class TestImpact:
     @pytest.mark.parametrize(
