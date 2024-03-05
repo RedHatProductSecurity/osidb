@@ -1,6 +1,7 @@
 from osidb.models import Affect, Impact, PsModule
 
 from .base import ProductDefinitionHandler
+from .fedramp_handler import FedrampHandler
 from .ubi_handler import UBIHandler
 
 
@@ -14,6 +15,10 @@ class UnackedHandler(ProductDefinitionHandler):
     def get_offer(self, affect: Affect, impact: Impact, ps_module: PsModule, offers):
         if UBIHandler.will_modify_offers(affect, impact, ps_module):
             # If UBI streams are selected, the unacked stream must not be selected.
+            return offers
+        if FedrampHandler.will_modify_offers(affect, impact, ps_module):
+            # If Fedramp streams are selected, the unacked stream must not be selected.
+            # Ref. OSIDB-1876 comment #10 written by P.
             return offers
 
         unacked_preselected = not affect.flaw.is_major_incident_temp() and impact in [
