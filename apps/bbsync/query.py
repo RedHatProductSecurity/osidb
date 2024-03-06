@@ -157,17 +157,19 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
 
         embargoed = "EMBARGOED " if self.flaw.is_embargoed else ""
 
-        # 1) get all CVE IDs of flaws with the same Bugzilla ID
+        # 1) add the CVE ID from the flaw being updated or created
+        cve_ids = [self.flaw.cve_id]
+        # 2) get all CVE IDs of flaws with the same Bugzilla ID
         #    (this is to cover the cases of multi-CVE flaws)
         #    except the one which is just being updated or created
         #    as the DB instance may differ from this change
-        cve_ids = [
-            f.cve_id
-            for f in Flaw.objects.filter(meta_attr__bz_id=self.flaw.bz_id).exclude(
-                uuid=self.flaw.uuid
-            )
-            # 2) add the CVE ID from the flaw being updated or created
-        ] + [self.flaw.cve_id]
+        if self.flaw.bz_id:
+            cve_ids = cve_ids + [
+                f.cve_id
+                for f in Flaw.objects.filter(meta_attr__bz_id=self.flaw.bz_id).exclude(
+                    uuid=self.flaw.uuid
+                )
+            ]
         # 3) filter out the empty CVE IDs
         #    there can be one in case we are removing the CVE ID
         cve_ids = [cve_id for cve_id in cve_ids if cve_id]
