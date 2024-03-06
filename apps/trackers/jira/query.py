@@ -156,6 +156,9 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         if self.tracker.is_contract_priority:
             self._query["fields"]["labels"].append("contract-priority")
 
+        # TODO: Add label compliance-priority
+        # - ref.: https://gitlab.cee.redhat.com/prodsec-dev/sfm2/-/merge_requests/2831/diffs?commit_id=856be3868b13a9b37ffed01deb5ff500f74b9d81#35dffe426b7022a051a8a7ba57e625c9c233bac1_116_115
+
     def generate_sla(self):
         """
         generate query for Jira SLA timestamps

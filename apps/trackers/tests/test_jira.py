@@ -220,6 +220,9 @@ class TestTrackerJiraQueryBuilder:
         assert len(labels) == len(expected_labels)
         assert labels == expected_labels
 
+    # TODO add a similar test for compliance-priority
+    # - ref.: apps/trackers/jira/query.py line 159
+    # - ref.: https://gitlab.cee.redhat.com/prodsec-dev/sfm2/-/merge_requests/2831/diffs?commit_id=856be3868b13a9b37ffed01deb5ff500f74b9d81
     def test_generate_label_contract_priority(self):
         """
         test that the query for the Jira label contract-priority is generated correctly
