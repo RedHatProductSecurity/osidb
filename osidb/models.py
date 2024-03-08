@@ -2131,8 +2131,11 @@ class Affect(
     def is_compliance_priority(self) -> bool:
         """
         Check and return whether this affect module and component combination is compliance
-        priority which is defined in PS constance repo in compliance_priority.yml.
-        Note that stream is not evaluated by this property.
+        priority which is defined in PS constants repo in compliance_priority.yml.
+
+        Note that stream is not evaluated by this property. Therefore, this property
+        is not useful for evaluating SLA, but useful for computing which streams to
+        file trackers for. Use Tracker.is_compliance_priority for SLA calculations.
         """
         compliance_priority = CompliancePriority.objects.filter(
             ps_module=self.ps_module
@@ -2726,6 +2729,29 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         # TODO this is only a placeholder for now
         # it is to be determined and implemented
         return False
+
+    @property
+    def is_compliance_priority(self) -> bool:
+        """
+        Check and return whether this affect module, component and update stream combination is
+        compliance priority which is defined in PS constants repo in compliance_priority.yml.
+        """
+        affect = self.affects.first()
+        if not affect:
+            return False
+
+        compliance_priority = CompliancePriority.objects.filter(
+            ps_module=affect.ps_module
+        ).first()
+        if not compliance_priority:
+            return False
+        if self.ps_update_stream not in compliance_priority.streams:
+            return False
+        compliance_components = compliance_priority.components
+        if not compliance_components:
+            # Empty list of components in compliance_components.yml means all components are priority.
+            return True
+        return affect.ps_component in compliance_components
 
     @property
     def is_contract_priority(self) -> bool:
