@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Fedramp stream preselection handler (OSIDB-1876)
 - Introduce CVSS v4 (OSIDB-528)
 - Change tests to have default urls strings where it can't be blank (OSIDB-1679)
+- Add label compliance-priority to jira trackers based on ps-constants compliance_priority.yml (OSIDB-2062)
 
 ### Changed
 - Ignore hosts on VCR recording (OSIDB-1678)
