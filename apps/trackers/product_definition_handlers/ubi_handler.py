@@ -2,38 +2,46 @@ from osidb.helpers import ps_update_stream_natural_keys
 from osidb.models import Affect, Impact, PsModule, UbiPackage
 
 from .base import ProductDefinitionHandler
+from .fedramp_handler import FedrampHandler
 
 
 class UBIHandler(ProductDefinitionHandler):
     """
     UBI product definition handles
 
-    This handler should run anytime after UnackedHandler
+    This handler should run after UnackedHandler and before FedrampHandler
+
+    The handler that runs before this handler must avoid doing changes in `offers`
+    that would conflict with UBIHandler:
+    - If UBI streams are selected, the unacked stream must not be selected.
     """
 
-    def __init__(self) -> None:
-        self.UBI_OVERRIDES = [Impact.MODERATE]
+    UBI_OVERRIDES = [Impact.MODERATE]
 
+    @staticmethod
+    def will_modify_offers(affect: Affect, impact: Impact, ps_module: PsModule) -> bool:
+        """
+        True if UbiHandler will modify the offers passed to get_offer. Can be used
+        by other handlers to avoid doing offers edits that would have to be reverted
+        by UbiHandler.
+        """
+        is_ubi = UBIHandler.has_ubi_packages(ps_module, affect)
+        return is_ubi and impact in UBIHandler.UBI_OVERRIDES
+
+    @staticmethod
     def has_ubi_packages(ps_module: PsModule, affect: Affect) -> bool:
-        """check weheter a ps_module has ubi packages given a target PsUpdateStream name"""
+        """check whether a ps_module has ubi packages given a target PsUpdateStream name"""
         if "ubi_packages" not in ps_module.special_handling_features:
             return False
         packages = UbiPackage.objects.filter(name=affect.ps_component)
         return bool(packages)
 
     def get_offer(self, affect: Affect, impact: Impact, ps_module: PsModule, offers):
-        is_ubi = UBIHandler.has_ubi_packages(ps_module, affect)
+        if FedrampHandler.will_modify_offers(affect, impact, ps_module):
+            # FedrampHandler is next and it would have to undo everything done by UbiHandler.
+            return offers
 
-        if is_ubi and impact in self.UBI_OVERRIDES:
-            unacked_stream = ps_module.unacked_ps_update_stream.first()
-            if unacked_stream:
-                offers[unacked_stream.name] = {
-                    "ps_update_stream": unacked_stream.name,
-                    "selected": False,
-                    "aus": False,
-                    "eus": False,
-                    "acked": False,
-                }
+        if UBIHandler.will_modify_offers(affect, impact, ps_module):
 
             z_stream = ps_module.z_stream
             if z_stream:
@@ -57,7 +65,7 @@ class UBIHandler(ProductDefinitionHandler):
                     "aus": bool(
                         ps_module.aus_ps_update_streams.filter(name=z_stream.name)
                     ),
-                    "acked": not ps_module.unacked_ps_update_stream,
+                    "acked": True,
                 }
 
                 # ensure Y-streams earlier than the ps_module.z_stream are not
@@ -75,7 +83,7 @@ class UBIHandler(ProductDefinitionHandler):
                             "aus": bool(
                                 ps_module.aus_ps_update_streams.filter(name=stream.name)
                             ),
-                            "acked": not ps_module.unacked_ps_update_stream,
+                            "acked": True,
                         }
 
         return offers
