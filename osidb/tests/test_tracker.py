@@ -21,7 +21,8 @@ class TestTracker:
         "flaw1_impact,flaw2_impact,affect1_impact,affect2_impact,expected_impact",
         [
             ("LOW", "MODERATE", "IMPORTANT", "CRITICAL", "CRITICAL"),
-            ("LOW", "IMPORTANT", "MODERATE", "MODERATE", "IMPORTANT"),
+            ("LOW", "IMPORTANT", "MODERATE", "MODERATE", "MODERATE"),
+            ("LOW", "IMPORTANT", "", "", "IMPORTANT"),
             ("LOW", "LOW", "", "LOW", "LOW"),
         ],
     )

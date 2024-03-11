@@ -38,8 +38,10 @@ class TestTrackerJiraQueryBuilder:
         "flaw_impact,affect_impact,expected_impact",
         [
             (Impact.LOW, Impact.LOW, JiraPriority.MINOR),
-            (Impact.MODERATE, Impact.LOW, JiraPriority.NORMAL),
-            (Impact.CRITICAL, Impact.LOW, JiraPriority.CRITICAL),
+            (Impact.MODERATE, Impact.NOVALUE, JiraPriority.NORMAL),
+            (Impact.MODERATE, Impact.LOW, JiraPriority.MINOR),
+            (Impact.CRITICAL, Impact.NOVALUE, JiraPriority.CRITICAL),
+            (Impact.CRITICAL, Impact.LOW, JiraPriority.MINOR),
             (Impact.LOW, Impact.LOW, JiraPriority.MINOR),
             (Impact.LOW, Impact.MODERATE, JiraPriority.NORMAL),
             (Impact.LOW, Impact.CRITICAL, JiraPriority.CRITICAL),
