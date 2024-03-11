@@ -4,6 +4,7 @@ import pytest
 from django.conf import settings
 from taskman.constants import JIRA_AUTH_TOKEN, TASKMAN_API_VERSION
 
+import apps.taskman.service as service
 from osidb.constants import OSIDB_API_VERSION
 
 
@@ -51,12 +52,14 @@ def test_api_uri(test_scheme_host, api_version):
 
 
 @pytest.fixture(autouse=True)
-def pin_urls(monkeypatch) -> None:
+def pin_envs(monkeypatch) -> None:
     """
-    the tests should be immune to what .evn you build the testrunner with
+    the tests should be immune to what .env you build the testrunner with
     """
     monkeypatch.setenv("HTTPS_PROXY", "http://squid.corp.redhat.com:3128")
-    monkeypatch.setenv("JIRA_TASKMAN_URL", "https://issues.redhat.com")
+    monkeypatch.setenv("JIRA_TASKMAN_URL", "https://example.com/")
+    monkeypatch.setenv("JIRA_TASKMAN_AUTO_SYNC_FLAW", "1")
+    monkeypatch.setattr(service, "JIRA_TASKMAN_URL", "https://example.com")
 
 
 @pytest.fixture

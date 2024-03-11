@@ -7,8 +7,8 @@ def enable_db_access_for_all_tests(db):
 
 
 @pytest.fixture()
-def pin_urls(monkeypatch) -> None:
+def pin_envs(monkeypatch) -> None:
     """
-    the tests should be immune to what .evn you build the testrunner with
+    the tests should be immune to what .env you build the testrunner with
     """
     monkeypatch.setenv("HTTPS_PROXY", "http://squid.corp.redhat.com:3128")

@@ -37,9 +37,9 @@ def sample_search_time():
 
 
 @pytest.fixture(autouse=True)
-def pin_urls(monkeypatch) -> None:
+def pin_envs(monkeypatch) -> None:
     """
-    the tests should be immune to what .evn you build the testrunner with
+    the tests should be immune to what .env you build the testrunner with
     """
     import collectors.errata.core as core
 

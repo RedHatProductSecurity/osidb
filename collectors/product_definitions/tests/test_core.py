@@ -94,8 +94,8 @@ class TestProductDefinitionsCollection:
 
     @pytest.mark.default_cassette(PRODUCT_DEFINITIONS_CASSETTE)
     @pytest.mark.vcr
-    def test_sanitize(self):
-        raw_data = fetch_product_definitions()
+    def test_sanitize(self, product_definition_url):
+        raw_data = fetch_product_definitions(url=product_definition_url)
         (
             ps_products,
             ps_modules,
@@ -123,8 +123,10 @@ class TestProductDefinitionsCollection:
 
     @pytest.mark.default_cassette(PRODUCT_DEFINITIONS_CASSETTE)
     @pytest.mark.vcr
-    def test_ps_contacts_sync(self):
-        raw_data = self.sample_data(fetch_product_definitions())
+    def test_ps_contacts_sync(self, product_definition_url):
+        raw_data = self.sample_data(
+            fetch_product_definitions(url=product_definition_url)
+        )
         _, _, _, ps_contacts = sanitize_product_definitions(raw_data)
 
         sync_ps_contacts(ps_contacts)
@@ -137,8 +139,10 @@ class TestProductDefinitionsCollection:
 
     @pytest.mark.default_cassette(PRODUCT_DEFINITIONS_CASSETTE)
     @pytest.mark.vcr
-    def test_ps_update_streams_sync(self):
-        raw_data = self.sample_data(fetch_product_definitions())
+    def test_ps_update_streams_sync(self, product_definition_url):
+        raw_data = self.sample_data(
+            fetch_product_definitions(url=product_definition_url)
+        )
         _, _, ps_update_streams, _ = sanitize_product_definitions(raw_data)
 
         sync_ps_update_streams(ps_update_streams)
@@ -151,8 +155,10 @@ class TestProductDefinitionsCollection:
 
     @pytest.mark.default_cassette(PRODUCT_DEFINITIONS_CASSETTE)
     @pytest.mark.vcr
-    def test_ps_products_modules_sync(self):
-        raw_data = self.sample_data(fetch_product_definitions())
+    def test_ps_products_modules_sync(self, product_definition_url):
+        raw_data = self.sample_data(
+            fetch_product_definitions(url=product_definition_url)
+        )
         ps_products, ps_modules, _, _ = sanitize_product_definitions(raw_data)
 
         sync_ps_products_modules(ps_products, ps_modules)
@@ -167,8 +173,10 @@ class TestProductDefinitionsCollection:
 
     @pytest.mark.default_cassette(PRODUCT_DEFINITIONS_CASSETTE)
     @pytest.mark.vcr
-    def test_additional_ps_update_stream_module_link(self):
-        raw_data = self.sample_data(fetch_product_definitions())
+    def test_additional_ps_update_stream_module_link(self, product_definition_url):
+        raw_data = self.sample_data(
+            fetch_product_definitions(url=product_definition_url)
+        )
         (
             ps_products,
             ps_modules,

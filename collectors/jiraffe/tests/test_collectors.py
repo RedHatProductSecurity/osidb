@@ -190,7 +190,7 @@ class TestMetadataCollector:
     @freeze_time(timezone.datetime(2015, 12, 12))
     @pytest.mark.vcr
     @pytest.mark.parametrize("project_key,fields_count", [("RHEL", 120), ("OSIM", 20)])
-    def test_collect(self, pin_urls, project_key, fields_count):
+    def test_collect(self, pin_envs, project_key, fields_count):
         """
         Test that collector is able to get metadata from Jira projects
         """
