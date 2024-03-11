@@ -2078,10 +2078,13 @@ class Affect(
     @property
     def aggregated_impact(self):
         """
-        this property simply gives the maximum impact
-        aggregated from the affect and the related flaw
+        this property equals Flaw's impact if the Affect's impact is blank, or
+        equals the Affect's impact if the Affect's impact is not blank
         """
-        return max(Impact(self.impact), Impact(self.flaw.impact))
+        if not self.impact:
+            return Impact(self.flaw.impact)
+        else:
+            return Impact(self.impact)
 
     @property
     def delegated_resolution(self):
