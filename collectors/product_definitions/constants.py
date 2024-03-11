@@ -4,7 +4,7 @@ product definitions collector constants
 
 from osidb.helpers import get_env
 
-PRODUCT_DEFINITIONS_REPO_URL = get_env("PRODUCT_DEF_URL")
+PRODUCT_DEFINITIONS_REPO_URL = get_env("PRODUCT_DEF_URL", "")
 
 PRODUCT_DEFINITIONS_REPO_BRANCH = "master"
 
