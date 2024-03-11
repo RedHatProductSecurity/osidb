@@ -1,5 +1,6 @@
 import pytest
 
+import apps.trackers.common as common
 from apps.sla.framework import SLAFramework
 from apps.trackers.constants import TRACKERS_API_VERSION
 from osidb.models import Tracker
@@ -24,11 +25,12 @@ def enable_db_access_for_all_tests(db) -> None:
 
 
 @pytest.fixture(autouse=True)
-def pin_urls(monkeypatch) -> None:
+def pin_envs(monkeypatch) -> None:
     """
-    the tests should be immune to what .evn you build the testrunner with
+    the tests should be immune to what .env you build the testrunner with
     """
     monkeypatch.setenv("HTTPS_PROXY", "http://squid.corp.redhat.com:3128")
+    monkeypatch.setattr(common, "BZ_URL", "https://example.com")
 
 
 @pytest.fixture

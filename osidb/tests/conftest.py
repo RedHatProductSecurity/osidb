@@ -27,6 +27,15 @@ def enable_db_access_for_all_tests(db):
     pass
 
 
+@pytest.fixture(autouse=True)
+def pin_envs(monkeypatch) -> None:
+    """
+    the tests should be immune to what .env you build the testrunner with
+    """
+    monkeypatch.setenv("BBSYNC_SYNC_TO_BZ", "0")
+    monkeypatch.setenv("JIRA_TASKMAN_AUTO_SYNC_FLAW", "0")
+
+
 @pytest.fixture
 def root_url():
     return "http://osidb-service:8000"
