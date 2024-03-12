@@ -7,11 +7,14 @@ from django_filters.rest_framework import (
     BaseInFilter,
     BooleanFilter,
     CharFilter,
+    ChoiceFilter,
     DateTimeFilter,
     FilterSet,
     NumberFilter,
     OrderingFilter,
 )
+
+from apps.workflows.workflow import WorkflowModel
 
 from .models import (
     Affect,
@@ -29,6 +32,14 @@ from .models import (
 LT_GT_LOOKUP_EXPRS = ["lt", "gt"]
 LTE_GTE_LOOKUP_EXPRS = ["lte", "gte"]
 DATE_LOOKUP_EXPRS = ["date__exact", "date__lte", "date__gte"]
+
+
+class ChoiceInFilter(BaseInFilter, ChoiceFilter):
+    """
+    Filter for choice csv
+    """
+
+    pass
 
 
 class CharInFilter(BaseInFilter, CharFilter):
@@ -232,6 +243,9 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     summary = CharFilter(field_name="summary", method="search_helper")
     statement = CharFilter(field_name="statement", method="search_helper")
     embargoed = BooleanFilter(field_name="embargoed")
+    workflow_state = ChoiceInFilter(
+        field_name="workflow_state", choices=WorkflowModel.WorkflowState.choices
+    )
     affects__embargoed = BooleanFilter(field_name="affects__embargoed")
     affects__trackers__embargoed = BooleanFilter(
         field_name="affects__trackers__embargoed"

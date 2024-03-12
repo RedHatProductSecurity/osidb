@@ -256,3 +256,8 @@ class TestSearch:
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
+
+        response = auth_client().get(f"{test_api_uri}/flaws?workflow_state=NEW,TRIAGE")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 2
