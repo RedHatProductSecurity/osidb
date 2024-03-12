@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 urlpatterns = [
     path("", index.as_view()),
     path("healthy", healthy.as_view()),
-    path(f"api/{WORKFLOWS_API_VERSION}", workflows.as_view()),
-    path(f"api/{WORKFLOWS_API_VERSION}/<str:pk>", classification.as_view()),
-    path(f"api/{WORKFLOWS_API_VERSION}/<str:pk>/adjust", adjust.as_view()),
+    path(f"api/{WORKFLOWS_API_VERSION}/workflows", workflows.as_view()),
+    path(f"api/{WORKFLOWS_API_VERSION}/workflows/<str:pk>", classification.as_view()),
+    path(f"api/{WORKFLOWS_API_VERSION}/workflows/<str:pk>/adjust", adjust.as_view()),
     path(f"api/{WORKFLOWS_API_VERSION}/graph/workflows", graph_workflows.as_view()),
     path(
         f"api/{WORKFLOWS_API_VERSION}/graph/workflows/<str:pk>",
