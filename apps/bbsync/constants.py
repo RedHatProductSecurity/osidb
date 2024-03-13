@@ -24,4 +24,4 @@ SYNC_TO_BZ = get_env("BBSYNC_SYNC_TO_BZ", default="False", is_bool=True)
 # however the list of the corresponding emails is being pulled from VDB by the old vdbqb library
 # and we definitelly do not want such a dependence in OSIDB so I am adding the list statically
 # here as the best we can do now and a motivation to leave Bugzilla as soon as possible
-USER_BLACKLIST: str = get_env("BZ_USER_BLACKLIST", default="[]", is_json=True)
+USER_BLACKLIST: list = get_env("BZ_USER_BLACKLIST", default="[]", is_json=True)
