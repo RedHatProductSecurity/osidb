@@ -2,7 +2,7 @@ import json
 
 import jsonschema
 
-from osidb.models import AffectCVSS, FlawCVSS, Tracker
+from osidb.models import AffectCVSS, FlawCVSS, FlawReference, Tracker
 
 from .constants import DATE_FMT, DATETIME_FMT, SRTNOTES_SCHEMA_PATH
 from .exceptions import SRTNotesValidationError
@@ -186,10 +186,14 @@ class SRTNotesBuilder:
         """
         generate array of references to SRT notes
 
-        OSIDB uses "ARTICLE" and "EXTERNAL",
-        but Bugzilla uses "vuln_response" and "external".
+        OSIDB uses "ARTICLE", "EXTERNAL" and "SOURCE",
+        but Bugzilla uses "vuln_response", "external" and "source".
         """
-        references_mapping = {"ARTICLE": "vuln_response", "EXTERNAL": "external"}
+        references_mapping = {
+            FlawReference.FlawReferenceType.ARTICLE: "vuln_response",
+            FlawReference.FlawReferenceType.EXTERNAL: "external",
+            FlawReference.FlawReferenceType.SOURCE: "source",
+        }
 
         self.add_conditionally(
             "references",
