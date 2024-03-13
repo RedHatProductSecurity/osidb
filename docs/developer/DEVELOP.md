@@ -73,6 +73,10 @@ HTTPS_PROXY="http://foo.bar"
 OSIDB_CORS_ALLOWED_ORIGINS='["http://localhost:8000", "http://127.0.0.1:8000", "http://0.0.0.0:8000"]'
 # Custom headers allowed by OSIDB CORS policy
 OSIDB_CORS_ALLOW_HEADERS='["bugzilla-api-key", "jira-api-key"]'
+
+# To enable snippets creation in collectors (when date is not set, all snippets are created)
+SNIPPET_CREATION=1
+SNIPPET_CREATION_START="2024-01-01"
 ```
 
 The `.env` file is loaded automatically by podman-compose. It is also loaded as environment variables in a few Makefile targets (run `grep -rF '.env ' mk/` to see which ones).
