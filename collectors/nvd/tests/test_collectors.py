@@ -268,7 +268,7 @@ class TestNVDCollector:
                 },
             ],
             "source": Snippet.Source.NVD,
-            "title": "placeholder only, see description",
+            "title": "from NVD collector",
             "published_in_nvd": "2024-01-21T16:29:00.393Z",
         }
         cve_id = snippet_content["cve_id"]
