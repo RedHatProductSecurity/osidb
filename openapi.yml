@@ -3442,14 +3442,19 @@ paths:
       - in: query
         name: workflow_state
         schema:
-          type: string
-          enum:
-          - DONE
-          - NEW
-          - PRE_SECONDARY_ASSESSMENT
-          - REJECTED
-          - SECONDARY_ASSESSMENT
-          - TRIAGE
+          type: array
+          items:
+            type: string
+            enum:
+            - DONE
+            - NEW
+            - PRE_SECONDARY_ASSESSMENT
+            - REJECTED
+            - SECONDARY_ASSESSMENT
+            - TRIAGE
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       tags:
       - osidb
       security:
