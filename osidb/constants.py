@@ -9,7 +9,6 @@ import re
 from datetime import timedelta, timezone
 from decimal import Decimal
 
-from .helpers import get_env
 from .models import Affect
 
 OSIDB_API_VERSION: str = "v1"
@@ -22,10 +21,6 @@ TZINFO = timezone(timedelta(hours=TZ_OFFSET))
 
 # the default datetime format
 DATETIME_FMT = "%Y-%m-%dT%H:%M:%SZ"
-
-ENABLE_EMBARGO_PROCESS: bool = get_env(
-    "OSIDB_EMBARGO_PROCESS", default="False", is_bool=True
-)
 
 
 # PyPI URL -- all dependent packages are installed from this package index
