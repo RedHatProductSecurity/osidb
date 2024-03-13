@@ -2,7 +2,7 @@ import pytest
 from django.utils.timezone import datetime, make_aware
 
 from collectors.osv.collectors import OSVCollector
-from osidb.models import Snippet
+from osidb.models import Flaw, Snippet
 
 pytestmark = pytest.mark.integration
 
@@ -25,6 +25,7 @@ class TestOSVCollector:
         assert snippet.external_id == "GO-2023-2400/CVE-2023-50424"
         assert snippet.content["references"]
         assert snippet.content["cve_id"] == "CVE-2023-50424"
+        assert Flaw.objects.count() == 1
 
     @pytest.mark.vcr
     def test_collect_osv_record_without_cve(self):
@@ -38,6 +39,7 @@ class TestOSVCollector:
         snippet = Snippet.objects.first()
         assert snippet.external_id == "GHSA-w4f8-fxq2-j35v"
         assert snippet.content["cve_id"] is None
+        assert Flaw.objects.count() == 1
 
     # NOTE: cassette updates may be required to comply with published date
     @pytest.mark.vcr
@@ -55,6 +57,7 @@ class TestOSVCollector:
         assert snippet_2.content["cve_id"] == "CVE-2022-45442"
 
         assert snippet_1.content["title"] == snippet_2.content["title"]
+        assert Flaw.objects.count() == 2
 
     @pytest.mark.vcr
     def test_historical_osv_record(self):
@@ -64,3 +67,4 @@ class TestOSVCollector:
         osvc.snippet_creation_start_date = make_aware(datetime(2024, 1, 1))
         osvc.collect(osv_id="GO-2023-1602")  # published in 2023
         assert Snippet.objects.count() == 0
+        assert Flaw.objects.count() == 0

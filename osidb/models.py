@@ -284,6 +284,7 @@ class FlawSource(models.TextChoices):
     ORACLE = "ORACLE"
     OSS = "OSS"
     OSS_SECURITY = "OSSSECURITY"
+    OSV = "OSV"
     PHP = "PHP"
     PIDGIN = "PIDGIN"
     POSTGRESQL = "POSTGRESQL"
@@ -455,6 +456,7 @@ class FlawSource(models.TextChoices):
     def from_snippet(self):
         return {
             self.NVD,
+            self.OSV,
         }
 
     def is_private(self):
