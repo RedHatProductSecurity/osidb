@@ -1012,9 +1012,11 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         for reference_json in self.srtnotes.get("references", []):
             _type = reference_json.get("type")
             if _type == "vuln_response":
-                _type = "ARTICLE"
+                _type = FlawReference.FlawReferenceType.ARTICLE
             elif _type == "external":
-                _type = "EXTERNAL"
+                _type = FlawReference.FlawReferenceType.EXTERNAL
+            elif _type == "source":
+                _type = FlawReference.FlawReferenceType.SOURCE
 
             url = reference_json.get("url")
             reference_json["acl_labels"] = self.groups
