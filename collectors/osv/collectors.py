@@ -167,6 +167,8 @@ class OSVCollector(Collector):
             return 0, 0
 
         if not cve_ids:
+            # This keeps the structure consistent and ease snippets filtering without cve_id
+            content["cve_id"] = None
             _, created = Snippet.objects.update_or_create(
                 source=Snippet.Source.OSV,
                 external_id=osv_id,
