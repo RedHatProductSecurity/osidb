@@ -51,7 +51,7 @@ class TestBBSyncIntegration:
         test creating a flaw with Bugzilla two-way sync
         """
         flaw_data = {
-            "cve_id": "CVE-2021-0777",
+            "cve_id": "CVE-2024-0126",
             "title": "Foo",
             "description": "test",
             "impact": "LOW",
@@ -68,6 +68,7 @@ class TestBBSyncIntegration:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 201
         body = response.json()
@@ -75,7 +76,7 @@ class TestBBSyncIntegration:
 
         response = auth_client().get(f"{test_api_uri}/flaws/{created_uuid}")
         assert response.status_code == 200
-        assert response.json()["cve_id"] == "CVE-2021-0773"
+        assert response.json()["cve_id"] == "CVE-2024-0126"
         assert response.json()["title"] == "Foo"
         assert response.json()["component"] == "curl"
         assert response.json()["mitigation"] == "mitigation"
@@ -169,6 +170,7 @@ class TestBBSyncIntegration:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
 
@@ -219,6 +221,7 @@ class TestBBSyncIntegration:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
 
