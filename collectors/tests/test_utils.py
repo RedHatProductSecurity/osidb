@@ -1,6 +1,7 @@
 import pytest
 
-from collectors.utils import tracker_parse_update_stream_component
+from collectors.utils import handle_urls, tracker_parse_update_stream_component
+from osidb.models import FlawReference
 
 pytestmark = pytest.mark.unit
 
@@ -88,3 +89,20 @@ class TestParseUpdateStreamComponent:
         test parsing of update stream and component from an incorrect summary
         """
         assert (None, None) == tracker_parse_update_stream_component(title)
+
+
+class TestHandleURLs:
+    def test_handle_urls(self):
+        result = handle_urls(
+            ["https://www.google1.com", "google2.com", "htt://www.google3.com"]
+        )
+
+        assert len(result) == 2
+        assert {
+            "type": FlawReference.FlawReferenceType.EXTERNAL,
+            "url": "https://www.google1.com",
+        } in result
+        assert {
+            "type": FlawReference.FlawReferenceType.EXTERNAL,
+            "url": "http://google2.com",
+        } in result
