@@ -1,7 +1,10 @@
 import re
 from typing import Optional
 
-from osidb.models import PsUpdateStream
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
+
+from osidb.models import FlawReference, PsUpdateStream
 
 TRACKER_COMPONENT_UPDATE_STREAM_RE = re.compile(
     r"^(?:\s*EMBARGOED\s+)?"  # Embargoed keyword
@@ -62,3 +65,32 @@ def tracker_summary2module_component(
         else None,
         ps_component,
     )
+
+
+def handle_urls(references: list) -> list:
+    """
+    This function creates FlawReference objects and stores them in a list.
+    Also, it ensures that only valid URL strings are converted.
+    The logic tries to fix a URL in a simple way. If the fix is not successful, a URL is ignored.
+    """
+    urls = []
+
+    for reference in references:
+        try:
+            # URL scheme can be missing, so try to fix it first
+            if not reference.startswith(("http", "https", "ftp", "ftps")):
+                reference = f"http://{reference}"
+
+            validate = URLValidator()
+            validate(reference)
+            urls.append(
+                {
+                    "type": FlawReference.FlawReferenceType.EXTERNAL,
+                    "url": reference,
+                }
+            )
+        except ValidationError:
+            # Ignore the URL if it is invalid (e.g. due to a typo)
+            pass
+
+    return urls

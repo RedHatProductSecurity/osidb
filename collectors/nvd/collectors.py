@@ -9,6 +9,7 @@ from nvdlib.classes import CVE
 from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_START_DATE
 from collectors.framework.models import Collector
 from collectors.nvd.keywords import should_create_snippet
+from collectors.utils import handle_urls
 from osidb.core import set_user_acls
 from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
 
@@ -125,11 +126,7 @@ class NVDQuerier:
                     "url": f"https://nvd.nist.gov/vuln/detail/{data.id}",
                 }
             ]
-
-            for r in data.references:
-                urls.append(
-                    {"type": FlawReference.FlawReferenceType.EXTERNAL, "url": r.url}
-                )
+            urls.extend(handle_urls([r.url for r in data.references]))
 
             return urls
 
