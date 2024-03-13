@@ -155,7 +155,7 @@ class NVDQuerier:
                     "description": get_description(vulnerability.descriptions),
                     "references": get_references(vulnerability),
                     "source": Snippet.Source.NVD,
-                    "title": "placeholder only, see description",
+                    "title": "from NVD collector",
                     # required for ignoring historical data
                     "published_in_nvd": f"{vulnerability.published}Z",
                 }
