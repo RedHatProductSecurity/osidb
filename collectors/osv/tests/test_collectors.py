@@ -26,6 +26,19 @@ class TestOSVCollector:
         assert snippet.content["references"]
         assert snippet.content["cve_id"] == "CVE-2023-50424"
 
+    @pytest.mark.vcr
+    def test_collect_osv_record_without_cve(self):
+        """Test fetching a single OSV record without cve."""
+        osvc = OSVCollector()
+        osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = None
+        osvc.collect(osv_id="GHSA-w4f8-fxq2-j35v")
+
+        assert Snippet.objects.count() == 1
+        snippet = Snippet.objects.first()
+        assert snippet.external_id == "GHSA-w4f8-fxq2-j35v"
+        assert snippet.content["cve_id"] is None
+
     # NOTE: cassette updates may be required to comply with published date
     @pytest.mark.vcr
     def test_collect_multi_cve_osv_record(self):

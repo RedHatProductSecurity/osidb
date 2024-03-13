@@ -11,6 +11,7 @@ from django.utils import dateparse, timezone
 
 from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_START_DATE
 from collectors.framework.models import Collector
+from collectors.utils import handle_urls
 from osidb.core import set_user_acls
 from osidb.models import FlawCVSS, FlawReference, Snippet
 from osidb.validators import CVE_RE_STR
@@ -166,6 +167,8 @@ class OSVCollector(Collector):
             return 0, 0
 
         if not cve_ids:
+            # This keeps the structure consistent and ease snippets filtering without cve_id
+            content["cve_id"] = None
             _, created = Snippet.objects.update_or_create(
                 source=Snippet.Source.OSV,
                 external_id=osv_id,
@@ -216,13 +219,8 @@ class OSVCollector(Collector):
                     "url": f"https://osv.dev/vulnerability/{osv_id}",
                 }
             ]
-            for ref in data.get("references", []):
-                refs.append(
-                    {
-                        "type": FlawReference.FlawReferenceType.EXTERNAL,
-                        "url": ref["url"],
-                    }
-                )
+            refs.extend(handle_urls([r["url"] for r in data.get("references", [])]))
+
             return refs
 
         def get_description(data: dict) -> str:
