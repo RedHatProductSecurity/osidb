@@ -72,7 +72,7 @@ def auto_create_profile(sender, instance, created, **kwargs):
 @receiver(pre_save, sender=FlawCVSS)
 @receiver(pre_save, sender=AffectCVSS)
 def populate_cvss_score(sender, instance, **kwargs):
-    instance.score = instance.cvss_object.scores()[0]
+    instance.score = float(instance.cvss_object.base_score)
 
 
 @receiver(pre_save, sender=Flaw)

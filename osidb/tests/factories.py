@@ -5,6 +5,7 @@ import factory
 import factory.fuzzy
 from cvss.constants2 import METRICS_VALUE_NAMES as CVSS2_METRICS_VALUE_NAMES
 from cvss.constants3 import METRICS_VALUE_NAMES as CVSS3_METRICS_VALUE_NAMES
+from cvss.constants4 import METRICS_VALUE_NAMES as CVSS4_METRICS_VALUE_NAMES
 from django.conf import settings
 from pytz import UTC
 
@@ -649,6 +650,51 @@ class CVSSFactory(factory.django.DjangoModelFactory):
             elements=CVSS3_METRICS_VALUE_NAMES["A"].keys(),
         )
 
+        # CVSS4 params
+        cvss4_attack_vector = factory.Faker(
+            "random_element", elements=CVSS4_METRICS_VALUE_NAMES["AV"].keys()
+        )
+        cvss4_attack_complexity = factory.Faker(
+            "random_element",
+            elements=CVSS4_METRICS_VALUE_NAMES["AC"].keys(),
+        )
+        cvss4_attack_requirements = factory.Faker(
+            "random_element",
+            elements=CVSS4_METRICS_VALUE_NAMES["AT"].keys(),
+        )
+        cvss4_privileges_required = factory.Faker(
+            "random_element",
+            elements=CVSS4_METRICS_VALUE_NAMES["PR"].keys(),
+        )
+        cvss4_user_interaction = factory.Faker(
+            "random_element",
+            elements=CVSS4_METRICS_VALUE_NAMES["UI"].keys(),
+        )
+        cvss4_vulnerable_system_impact_confidentiality = factory.Faker(
+            "random_element",
+            elements=CVSS4_METRICS_VALUE_NAMES["VC"].keys(),
+        )
+        cvss4_vulnerable_system_impact_integrity = factory.Faker(
+            "random_element",
+            elements=CVSS4_METRICS_VALUE_NAMES["VI"].keys(),
+        )
+        cvss4_vulnerable_system_impact_availability = factory.Faker(
+            "random_element",
+            elements=CVSS4_METRICS_VALUE_NAMES["VA"].keys(),
+        )
+        cvss4_subsequent_system_impact_confidentiality = factory.Faker(
+            "random_element",
+            elements=CVSS4_METRICS_VALUE_NAMES["SC"].keys(),
+        )
+        cvss4_subsequent_system_impact_integrity = factory.Faker(
+            "random_element",
+            elements=CVSS4_METRICS_VALUE_NAMES["SI"].keys(),
+        )
+        cvss4_subsequent_system_impact_availability = factory.Faker(
+            "random_element",
+            elements=CVSS4_METRICS_VALUE_NAMES["SA"].keys(),
+        )
+
     version = factory.Faker("random_element", elements=list(CVSS.CVSSVersion))
     issuer = factory.Faker("random_element", elements=list(CVSS.CVSSIssuer))
 
@@ -672,6 +718,19 @@ class CVSSFactory(factory.django.DjangoModelFactory):
                 f"/C:{self.cvss3_confidentiality}"
                 f"/I:{self.cvss3_integrity}"
                 f"/A:{self.cvss3_availability}"
+            ),
+            CVSS.CVSSVersion.VERSION4: (
+                f"CVSS:4.0/AV:{self.cvss4_attack_vector}"
+                f"/AC:{self.cvss4_attack_complexity}"
+                f"/AT:{self.cvss4_attack_requirements}"
+                f"/PR:{self.cvss4_privileges_required}"
+                f"/UI:{self.cvss4_user_interaction}"
+                f"/VC:{self.cvss4_vulnerable_system_impact_confidentiality}"
+                f"/VI:{self.cvss4_vulnerable_system_impact_integrity}"
+                f"/VA:{self.cvss4_vulnerable_system_impact_availability}"
+                f"/SC:{self.cvss4_subsequent_system_impact_confidentiality}"
+                f"/SI:{self.cvss4_subsequent_system_impact_integrity}"
+                f"/SA:{self.cvss4_subsequent_system_impact_availability}"
             ),
         }
 
