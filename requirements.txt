@@ -173,9 +173,8 @@ cryptography==42.0.4 \
     --hash=sha256:fb0cef872d8193e487fc6bdb08559c3aa41b659a7d9be48b2e10747f47863925 \
     --hash=sha256:ffc73996c4fca3d2b6c1c8c12bfd3ad00def8621da24f547626bf06441400449
     # via secretstorage
-cvss==2.3 \
-    --hash=sha256:0b6b6b78e140f5abbaf75a48d77e970afe6da17763f568a2dca32b23e986a336 \
-    --hash=sha256:fc22c9da2e7b93e0476cbea1279c95e7be08a3413e2d946686f0271501a24140
+cvss==3.0 \
+    --hash=sha256:705995aa6f99efdd600f83997c78b625bc81be0603ec00a91465ad2eb613cd7b
     # via -r requirements.in
 decorator==5.1.0 \
     --hash=sha256:7b12e7c3c6ab203a29e157335e9122cb03de9ab7264b137594103fd4a683b374 \

@@ -221,6 +221,7 @@ class TestGenerateSRTNotes:
                     "affectedness": "affected",
                     "cvss2": null,
                     "cvss3": null,
+                    "cvss4": null,
                     "impact": null,
                     "ps_component": "libssh",
                     "ps_module": "fedora-all",
