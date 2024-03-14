@@ -818,6 +818,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
             for cvss_pair in [
                 ("cvss2", AffectCVSS.CVSSVersion.VERSION2),
                 ("cvss3", AffectCVSS.CVSSVersion.VERSION3),
+                ("cvss4", AffectCVSS.CVSSVersion.VERSION4),
             ]:
                 cvss, version = cvss_pair
 
@@ -1042,6 +1043,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         for cvss_pair in [
             ("cvss2", FlawCVSS.CVSSVersion.VERSION2),
             ("cvss3", FlawCVSS.CVSSVersion.VERSION3),
+            ("cvss4", FlawCVSS.CVSSVersion.VERSION4),
         ]:
             cvss, version = cvss_pair
 
@@ -1049,6 +1051,8 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                 comment = {}
                 if cvss == "cvss3" and self.srtnotes.get("cvss3_comment"):
                     comment["comment"] = self.srtnotes["cvss3_comment"]
+                if cvss == "cvss4" and self.srtnotes.get("cvss4_comment"):
+                    comment["comment"] = self.srtnotes["cvss4_comment"]
 
                 cvss_obj = FlawCVSS.objects.create_cvss(
                     flaw,
