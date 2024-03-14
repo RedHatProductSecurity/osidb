@@ -496,7 +496,7 @@ until the embargo has lifted. Please post the patch only to the \
                 """\
 More information about this security flaw is available in the following bug:
 
-https://bugzilla.redhat.com/show_bug.cgi?id=0
+https://example.com/show_bug.cgi?id=0
 
 Disclaimer: Community trackers are created by Red Hat Product Security team on a \
 best effort basis. Package maintainers are required to ascertain if the flaw indeed \
@@ -507,8 +507,8 @@ affects their package, before starting the update process."""
                 """\
 More information about these security flaws is available in the following bugs:
 
-https://bugzilla.redhat.com/show_bug.cgi?id=0
-https://bugzilla.redhat.com/show_bug.cgi?id=1
+https://example.com/show_bug.cgi?id=0
+https://example.com/show_bug.cgi?id=1
 
 Disclaimer: Community trackers are created by Red Hat Product Security team on a \
 best effort basis. Package maintainers are required to ascertain if the flaw indeed \
@@ -519,9 +519,9 @@ affects their package, before starting the update process."""
                 """\
 More information about these security flaws is available in the following bugs:
 
-https://bugzilla.redhat.com/show_bug.cgi?id=0
-https://bugzilla.redhat.com/show_bug.cgi?id=1
-https://bugzilla.redhat.com/show_bug.cgi?id=2
+https://example.com/show_bug.cgi?id=0
+https://example.com/show_bug.cgi?id=1
+https://example.com/show_bug.cgi?id=2
 
 Disclaimer: Community trackers are created by Red Hat Product Security team on a \
 best effort basis. Package maintainers are required to ascertain if the flaw indeed \
@@ -577,7 +577,7 @@ Flaw:
 -----
 
 serious flaw
-https://bugzilla.redhat.com/show_bug.cgi?id=12345
+https://example.com/show_bug.cgi?id=12345
 
 this flaw is very hard to fix
 
@@ -637,7 +637,7 @@ Flaw:
 -----
 
 serious flaw
-https://bugzilla.redhat.com/show_bug.cgi?id=12345
+https://example.com/show_bug.cgi?id=12345
 
 this flaw is very hard to fix
 
