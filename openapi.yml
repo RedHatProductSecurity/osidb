@@ -1167,6 +1167,7 @@ paths:
           - ORACLE
           - OSS
           - OSSSECURITY
+          - OSV
           - PHP
           - PIDGIN
           - POSTGRESQL
@@ -3330,6 +3331,7 @@ paths:
           - ORACLE
           - OSS
           - OSSSECURITY
+          - OSV
           - PHP
           - PIDGIN
           - POSTGRESQL
@@ -5998,6 +6000,7 @@ paths:
           - ORACLE
           - OSS
           - OSSSECURITY
+          - OSV
           - PHP
           - PIDGIN
           - POSTGRESQL
@@ -7424,7 +7427,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/Source8d8Enum'
+          - $ref: '#/components/schemas/Source642Enum'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
@@ -8117,7 +8120,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/Source8d8Enum'
+          - $ref: '#/components/schemas/Source642Enum'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
@@ -8898,7 +8901,7 @@ components:
       - DELEGATED
       - WONTREPORT
       type: string
-    Source8d8Enum:
+    Source642Enum:
       enum:
       - ADOBE
       - APPLE
@@ -8960,6 +8963,7 @@ components:
       - ORACLE
       - OSS
       - OSSSECURITY
+      - OSV
       - PHP
       - PIDGIN
       - POSTGRESQL
