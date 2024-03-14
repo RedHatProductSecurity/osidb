@@ -481,8 +481,6 @@ class PsModuleFactory(factory.django.DjangoModelFactory):
         start_date=factory.SelfAttribute("..supported_from_dt"),
     )
 
-    default_cc = factory.List([factory.Faker("word") for _ in range(3)])
-
     default_component = factory.Faker("word")
 
     ps_product = factory.SubFactory(PsProductFactory)
