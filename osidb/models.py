@@ -2092,7 +2092,8 @@ class Affect(
         ):
             return None
 
-        trackers = self.trackers.all()
+        # exclude the trackers closed as duplicate or migrated from Bugzilla
+        trackers = self.trackers.exclude(resolution__iregex=r"(duplicate|migrated)")
         if not trackers:
             return Affect.AffectFix.AFFECTED
 
@@ -2674,8 +2675,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 return Affect.AffectFix.WONTFIX
             # Added rejected to code inherited from SDEngine because samples such as MGDSTRM-4153
             elif self.resolution in (
-                "duplicate",
-                "migrated",
                 "notabug",
                 "not a bug",
                 "rejected",
