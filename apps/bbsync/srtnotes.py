@@ -1,8 +1,9 @@
 import json
+from typing import Union
 
 import jsonschema
 
-from osidb.models import AffectCVSS, FlawCVSS, FlawReference, Tracker
+from osidb.models import Affect, AffectCVSS, FlawCVSS, FlawReference, Tracker
 
 from .constants import DATE_FMT, DATETIME_FMT, SRTNOTES_SCHEMA_PATH
 from .exceptions import SRTNotesValidationError
@@ -95,6 +96,20 @@ class SRTNotesBuilder:
         """
         generate array of affects to SRT notes
         """
+
+        def get_cvss(affect: Affect, version: FlawCVSS.CVSSVersion) -> Union[str, None]:
+            return (
+                None
+                if not affect.cvss_scores.filter(
+                    issuer=AffectCVSS.CVSSIssuer.REDHAT, version=version
+                )
+                else "{}/{}".format(
+                    *affect.cvss_scores.filter(
+                        issuer=AffectCVSS.CVSSIssuer.REDHAT, version=version
+                    ).values_list("score", "vector")[0]
+                )
+            )
+
         self.add_conditionally(
             "affects",
             [
@@ -109,24 +124,8 @@ class SRTNotesBuilder:
                     # from none to null but this can be considered as data fixes
                     "impact": affect.impact.lower() or None,
                     # CVSSv2 and CVSSv3 are from AffectCVSS
-                    "cvss2": None
-                    if not affect.cvss_scores.filter(
-                        issuer=AffectCVSS.CVSSIssuer.REDHAT
-                    ).filter(version=FlawCVSS.CVSSVersion.VERSION2)
-                    else "{}/{}".format(
-                        *affect.cvss_scores.filter(issuer=AffectCVSS.CVSSIssuer.REDHAT)
-                        .filter(version=FlawCVSS.CVSSVersion.VERSION2)
-                        .values_list("score", "vector")[0]
-                    ),
-                    "cvss3": None
-                    if not affect.cvss_scores.filter(
-                        issuer=AffectCVSS.CVSSIssuer.REDHAT
-                    ).filter(version=FlawCVSS.CVSSVersion.VERSION3)
-                    else "{}/{}".format(
-                        *affect.cvss_scores.filter(issuer=AffectCVSS.CVSSIssuer.REDHAT)
-                        .filter(version=FlawCVSS.CVSSVersion.VERSION3)
-                        .values_list("score", "vector")[0]
-                    ),
+                    "cvss2": get_cvss(affect, AffectCVSS.CVSSVersion.VERSION2),
+                    "cvss3": get_cvss(affect, AffectCVSS.CVSSVersion.VERSION3),
                 }
                 for affect in self.flaw.affects.all()
             ],
@@ -211,22 +210,22 @@ class SRTNotesBuilder:
         """
         generate cvss2, cvss3, and cvss3_comment attributes
         """
-        cvss2 = (
-            self.flaw.cvss_scores.filter(issuer=FlawCVSS.CVSSIssuer.REDHAT)
-            .filter(version=FlawCVSS.CVSSVersion.VERSION2)
-            .values_list("score", "vector")
-            .first()
-        )
-        cvss3 = (
-            self.flaw.cvss_scores.filter(issuer=FlawCVSS.CVSSIssuer.REDHAT)
-            .filter(version=FlawCVSS.CVSSVersion.VERSION3)
-            .values_list("score", "vector", "comment")
-            .first()
-        )
+
+        def get_cvss(version: FlawCVSS.CVSSVersion) -> Union[tuple, None]:
+            return (
+                self.flaw.cvss_scores.filter(issuer=FlawCVSS.CVSSIssuer.REDHAT)
+                .filter(version=version)
+                .values_list("score", "vector", "comment")
+                .first()
+            )
+
+        cvss2 = get_cvss(FlawCVSS.CVSSVersion.VERSION2)
+        cvss3 = get_cvss(FlawCVSS.CVSSVersion.VERSION3)
 
         cvss2_string = f"{cvss2[0]}/{cvss2[1]}" if cvss2 else None
-        cvss3_string = f"{cvss3[0]}/{cvss3[1]}" if cvss3 else None
-        cvss3_comment = cvss3[2] if cvss3 else None
+        cvss3_string, cvss3_comment = (
+            (f"{cvss3[0]}/{cvss3[1]}", cvss3[2]) if cvss3 else (None, None)
+        )
 
         for key, value in [
             ("cvss2", cvss2_string),
