@@ -6666,170 +6666,6 @@ paths:
                   version:
                     type: string
           description: ''
-  /osim/:
-    get:
-      operationId: osim_retrieve
-      description: index API endpoint listing available API endpoints
-      tags:
-      - osim
-      security:
-      - OsidbTokenAuthentication: []
-      deprecated: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
-  /osim/api/v1/workflows:
-    get:
-      operationId: osim_api_v1_workflows_retrieve
-      description: workflow info API endpoint
-      tags:
-      - osim
-      security:
-      - OsidbTokenAuthentication: []
-      deprecated: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
-  /osim/api/v1/workflows/{id}:
-    get:
-      operationId: osim_api_v1_workflows_retrieve_2
-      description: |-
-        workflow classification API endpoint
-
-        for flaw identified by UUID or CVE returns its workflow:state classification
-
-        params:
-
-            verbose - return also workflows with flaw classification
-                      which represents the reasoning of the result
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      - in: query
-        name: verbose
-        schema:
-          type: boolean
-        description: Return also workflows with flaw classification which represents
-          the reasoning of the result.
-      tags:
-      - osim
-      security:
-      - OsidbTokenAuthentication: []
-      deprecated: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
-  /osim/api/v1/workflows/{id}/adjust:
-    post:
-      operationId: osim_api_v1_workflows_adjust_create
-      description: |-
-        workflow adjustion API endpoint
-
-        adjust workflow classification of flaw identified by UUID or CVE
-        and return its workflow:state classification (new if changed and old otherwise)
-
-        adjust operation is idempotent so when the classification
-        is already adjusted running it results in no operation
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      tags:
-      - osim
-      security:
-      - OsidbTokenAuthentication: []
-      deprecated: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
-  /osim/healthy:
-    get:
-      operationId: osim_healthy_retrieve
-      description: unauthenticated health check API endpoint
-      tags:
-      - osim
-      security:
-      - OsidbTokenAuthentication: []
-      - {}
-      deprecated: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
   /trackers/api/v1/file:
     post:
       operationId: trackers_api_v1_file_create
@@ -6895,9 +6731,9 @@ paths:
                   version:
                     type: string
           description: ''
-  /workflows/api/v1:
+  /workflows/api/v1/workflows:
     get:
-      operationId: workflows_api_v1_retrieve
+      operationId: workflows_api_v1_workflows_retrieve
       description: workflow info API endpoint
       tags:
       - workflows
@@ -6920,9 +6756,9 @@ paths:
                   version:
                     type: string
           description: ''
-  /workflows/api/v1/{id}:
+  /workflows/api/v1/workflows/{id}:
     get:
-      operationId: workflows_api_v1_retrieve_2
+      operationId: workflows_api_v1_workflows_retrieve_2
       description: |-
         workflow classification API endpoint
 
@@ -6965,9 +6801,9 @@ paths:
                   version:
                     type: string
           description: ''
-  /workflows/api/v1/{id}/adjust:
+  /workflows/api/v1/workflows/{id}/adjust:
     post:
-      operationId: workflows_api_v1_adjust_create
+      operationId: workflows_api_v1_workflows_adjust_create
       description: |-
         workflow adjustion API endpoint
 
