@@ -123,9 +123,10 @@ class SRTNotesBuilder:
                     # so let us prefer null which may cause some unexpected rewrites
                     # from none to null but this can be considered as data fixes
                     "impact": affect.impact.lower() or None,
-                    # CVSSv2 and CVSSv3 are from AffectCVSS
+                    # CVSSv2, CVSSv3 and CVSSv4 are from AffectCVSS
                     "cvss2": get_cvss(affect, AffectCVSS.CVSSVersion.VERSION2),
                     "cvss3": get_cvss(affect, AffectCVSS.CVSSVersion.VERSION3),
+                    "cvss4": get_cvss(affect, AffectCVSS.CVSSVersion.VERSION4),
                 }
                 for affect in self.flaw.affects.all()
             ],
@@ -208,7 +209,7 @@ class SRTNotesBuilder:
 
     def generate_flaw_cvss(self):
         """
-        generate cvss2, cvss3, and cvss3_comment attributes
+        generate cvss2, cvss3, cvss3_comment, cvss4 and cvss4_comment attributes
         """
 
         def get_cvss(version: FlawCVSS.CVSSVersion) -> Union[tuple, None]:
@@ -221,16 +222,22 @@ class SRTNotesBuilder:
 
         cvss2 = get_cvss(FlawCVSS.CVSSVersion.VERSION2)
         cvss3 = get_cvss(FlawCVSS.CVSSVersion.VERSION3)
+        cvss4 = get_cvss(FlawCVSS.CVSSVersion.VERSION4)
 
         cvss2_string = f"{cvss2[0]}/{cvss2[1]}" if cvss2 else None
         cvss3_string, cvss3_comment = (
             (f"{cvss3[0]}/{cvss3[1]}", cvss3[2]) if cvss3 else (None, None)
+        )
+        cvss4_string, cvss4_comment = (
+            (f"{cvss4[0]}/{cvss4[1]}", cvss4[2]) if cvss4 else (None, None)
         )
 
         for key, value in [
             ("cvss2", cvss2_string),
             ("cvss3", cvss3_string),
             ("cvss3_comment", cvss3_comment),
+            ("cvss4", cvss4_string),
+            ("cvss4_comment", cvss4_comment),
         ]:
             self.add_conditionally(key, value)
 

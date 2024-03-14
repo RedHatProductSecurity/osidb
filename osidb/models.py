@@ -5,7 +5,7 @@ import uuid
 from decimal import Decimal
 from typing import Union
 
-from cvss import CVSS2, CVSS3, CVSSError
+from cvss import CVSS2, CVSS3, CVSS4, CVSSError
 from django.contrib.auth.models import User
 from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
@@ -2223,13 +2223,18 @@ class CVSS(ACLMixin, BugzillaSyncMixin, TrackingMixin):
     class CVSSVersion(models.TextChoices):
         VERSION2 = "V2", "version 2"
         VERSION3 = "V3", "version 3"
+        VERSION4 = "V4", "version 4"
 
     class CVSSIssuer(models.TextChoices):
         REDHAT = "RH", "Red Hat"
         NIST = "NIST", "NIST"
         OSV = "OSV", "OSV"
 
-    CVSS_HANDLES = {CVSSVersion.VERSION2: CVSS2, CVSSVersion.VERSION3: CVSS3}
+    CVSS_HANDLES = {
+        CVSSVersion.VERSION2: CVSS2,
+        CVSSVersion.VERSION3: CVSS3,
+        CVSSVersion.VERSION4: CVSS4,
+    }
 
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
