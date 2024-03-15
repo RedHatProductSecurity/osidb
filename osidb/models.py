@@ -2136,10 +2136,14 @@ class Affect(
         Check and return whether this affect module and component combination is compliance
         priority which is defined in PS constants repo in compliance_priority.yml.
 
+        Compliance priority is always False for LOW impact.
+
         Note that stream is not evaluated by this property. Therefore, this property
         is not useful for evaluating SLA, but useful for computing which streams to
         file trackers for. Use Tracker.is_compliance_priority for SLA calculations.
         """
+        if self.aggregated_impact == Impact.LOW:
+            return False
         compliance_priority = CompliancePriority.objects.filter(
             ps_module=self.ps_module
         )
@@ -2738,9 +2742,14 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         """
         Check and return whether this affect module, component and update stream combination is
         compliance priority which is defined in PS constants repo in compliance_priority.yml.
+
+        Compliance priority is always False for LOW impact.
         """
         affect = self.affects.first()
         if not affect:
+            return False
+
+        if self.aggregated_impact == Impact.LOW:
             return False
 
         compliance_priority = CompliancePriority.objects.filter(
