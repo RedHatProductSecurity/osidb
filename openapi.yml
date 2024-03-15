@@ -7128,6 +7128,10 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -7138,6 +7142,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - alerts
       - created_dt
       - cvss_scores
       - delegated_resolution
@@ -7178,6 +7183,10 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -7188,6 +7197,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - alerts
       - created_dt
       - cvss_version
       - embargoed
@@ -7220,11 +7230,16 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
           readOnly: true
       required:
+      - alerts
       - created_dt
       - cvss_version
       - embargoed
@@ -7256,6 +7271,10 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -7266,6 +7285,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - alerts
       - created_dt
       - cvss_version
       - embargoed
@@ -7370,11 +7390,16 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
           readOnly: true
       required:
+      - alerts
       - created_dt
       - cvss_scores
       - delegated_resolution
@@ -7446,6 +7471,10 @@ components:
           additionalProperties:
             type: string
             nullable: true
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -7456,6 +7485,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - alerts
       - created_dt
       - updated_dt
       - uuid
@@ -7773,9 +7803,14 @@ components:
         team_id:
           type: string
           maxLength: 8
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
       required:
       - acknowledgments
       - affects
+      - alerts
       - classification
       - comments
       - created_dt
@@ -7816,6 +7851,10 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -7827,6 +7866,7 @@ components:
             it is used to detect mit-air collisions.
       required:
       - affiliation
+      - alerts
       - created_dt
       - embargoed
       - flaw
@@ -7855,12 +7895,17 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
           readOnly: true
       required:
       - affiliation
+      - alerts
       - created_dt
       - embargoed
       - from_upstream
@@ -7887,6 +7932,10 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -7898,6 +7947,7 @@ components:
             it is used to detect mit-air collisions.
       required:
       - affiliation
+      - alerts
       - created_dt
       - embargoed
       - from_upstream
@@ -7941,7 +7991,12 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
       required:
+      - alerts
       - created_dt
       - cvss_version
       - embargoed
@@ -7978,7 +8033,12 @@ components:
           type: string
           format: date-time
           readOnly: true
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
       required:
+      - alerts
       - created_dt
       - cvss_version
       - embargoed
@@ -8019,7 +8079,12 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
       required:
+      - alerts
       - created_dt
       - cvss_version
       - embargoed
@@ -8050,6 +8115,10 @@ components:
           maximum: 2147483647
           minimum: -2147483648
           nullable: true
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -8065,6 +8134,7 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
       required:
+      - alerts
       - created_dt
       - embargoed
       - external_system_id
@@ -8089,6 +8159,10 @@ components:
           additionalProperties:
             type: string
             nullable: true
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -8099,6 +8173,7 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
       required:
+      - alerts
       - created_dt
       - embargoed
       - text
@@ -8461,9 +8536,14 @@ components:
         team_id:
           type: string
           maxLength: 8
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
       required:
       - acknowledgments
       - affects
+      - alerts
       - classification
       - comments
       - created_dt
@@ -8503,6 +8583,10 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -8513,6 +8597,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - alerts
       - created_dt
       - embargoed
       - flaw
@@ -8540,11 +8625,16 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
           readOnly: true
       required:
+      - alerts
       - created_dt
       - embargoed
       - url
@@ -8570,6 +8660,10 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -8580,6 +8674,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - alerts
       - created_dt
       - embargoed
       - updated_dt
@@ -8683,6 +8778,10 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -8693,6 +8792,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - alerts
       - created_dt
       - embargoed
       - type
@@ -8740,7 +8840,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PackageVer'
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
       required:
+      - alerts
       - package
       - versions
     PackageVer:
@@ -9259,6 +9364,10 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -9269,6 +9378,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - alerts
       - created_dt
       - embargoed
       - errata
@@ -9334,6 +9444,10 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: object
+          additionalProperties: {}
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -9344,6 +9458,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - alerts
       - created_dt
       - embargoed
       - errata

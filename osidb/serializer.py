@@ -23,7 +23,7 @@ from apps.workflows.serializers import WorkflowModelSerializer
 from .core import generate_acls
 from .exceptions import DataInconsistencyException
 from .helpers import differ, ensure_list
-from .mixins import ACLMixin, TrackingMixin
+from .mixins import ACLMixin, AlertMixin, TrackingMixin
 from .models import (
     Affect,
     AffectCVSS,
@@ -389,8 +389,22 @@ class JiraAPIKeyMixin:
         return jira_token
 
 
+class AlertMixinSerializer(serializers.ModelSerializer):
+    """Alert mixin serializer to expose alerts stored via AlertMixin"""
+
+    alerts = serializers.JSONField(read_only=True, source="_alerts")
+
+    class Meta:
+        """filter fields"""
+
+        model = AlertMixin
+        abstract = True
+        fields = ["alerts"]
+
+
 class TrackerSerializer(
     ACLMixinSerializer,
+    AlertMixinSerializer,
     BugzillaAPIKeyMixin,
     IncludeExcludeFieldsMixin,
     IncludeMetaAttrMixin,
@@ -458,6 +472,7 @@ class TrackerSerializer(
                 "uuid",
             ]
             + ACLMixinSerializer.Meta.fields
+            + AlertMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
         )
         read_only_fields = [
@@ -599,7 +614,7 @@ class TrackerPostSerializer(TrackerSerializer):
     pass
 
 
-class MetaSerializer(ACLMixinSerializer, TrackingMixinSerializer):
+class MetaSerializer(ACLMixinSerializer, AlertMixinSerializer, TrackingMixinSerializer):
     """FlawMeta serializer"""
 
     class Meta:
@@ -613,24 +628,29 @@ class MetaSerializer(ACLMixinSerializer, TrackingMixinSerializer):
                 "meta_attr",
             ]
             + ACLMixinSerializer.Meta.fields
+            + AlertMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
         )
 
 
-class CommentSerializer(TrackingMixinSerializer):
+class CommentSerializer(AlertMixinSerializer, TrackingMixinSerializer):
     """FlawComment serializer for use by FlawSerializer"""
 
     class Meta:
         """filter fields"""
 
         model = FlawComment
-        fields = [
-            "uuid",
-            "type",
-            "external_system_id",
-            "order",
-            "meta_attr",
-        ] + TrackingMixinSerializer.Meta.fields
+        fields = (
+            [
+                "uuid",
+                "type",
+                "external_system_id",
+                "order",
+                "meta_attr",
+            ]
+            + AlertMixinSerializer.Meta.fields
+            + TrackingMixinSerializer.Meta.fields
+        )
 
 
 class BugzillaBareSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSerializer):
@@ -744,6 +764,7 @@ class JiraTaskSyncMixinSerializer(JiraAPIKeyMixin, serializers.ModelSerializer):
 
 class AffectCVSSSerializer(
     ACLMixinSerializer,
+    AlertMixinSerializer,
     BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
     TrackingMixinSerializer,
@@ -759,6 +780,7 @@ class AffectCVSSSerializer(
         fields = (
             ["affect", "comment", "cvss_version", "issuer", "score", "uuid", "vector"]
             + ACLMixinSerializer.Meta.fields
+            + AlertMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
         )
 
@@ -783,6 +805,7 @@ class AffectCVSSPutSerializer(AffectCVSSSerializer):
 )
 class AffectSerializer(
     ACLMixinSerializer,
+    AlertMixinSerializer,
     BugzillaSyncMixinSerializer,
     TrackingMixinSerializer,
     IncludeExcludeFieldsMixin,
@@ -864,6 +887,7 @@ class AffectSerializer(
                 "cvss_scores",
             ]
             + ACLMixinSerializer.Meta.fields
+            + AlertMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
         )
 
@@ -978,14 +1002,14 @@ class PackageVerSerializer(serializers.ModelSerializer):
         fields = ["version", "status"]
 
 
-class PackageSerializer(serializers.ModelSerializer):
+class PackageSerializer(AlertMixinSerializer):
     """package_versions (Package model) serializer for read-only use in FlawSerializer."""
 
     versions = PackageVerSerializer(many=True)
 
     class Meta:
         model = Package
-        fields = ["package", "versions"]
+        fields = ["package", "versions"] + AlertMixinSerializer.Meta.fields
 
 
 @extend_schema_field({"type": "array", "items": {"type": "string"}})
@@ -1003,6 +1027,7 @@ class FlawAffectsTrackersField(serializers.Field):
 
 class FlawAcknowledgmentSerializer(
     ACLMixinSerializer,
+    AlertMixinSerializer,
     BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
     IncludeMetaAttrMixin,
@@ -1017,6 +1042,7 @@ class FlawAcknowledgmentSerializer(
         fields = (
             ["name", "affiliation", "from_upstream", "flaw", "uuid"]
             + ACLMixinSerializer.Meta.fields
+            + AlertMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
         )
 
@@ -1208,6 +1234,7 @@ class FlawPackageVersionPostSerializer(FlawPackageVersionSerializer):
 
 class FlawReferenceSerializer(
     ACLMixinSerializer,
+    AlertMixinSerializer,
     BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
     IncludeMetaAttrMixin,
@@ -1222,6 +1249,7 @@ class FlawReferenceSerializer(
         fields = (
             ["description", "flaw", "type", "url", "uuid"]
             + ACLMixinSerializer.Meta.fields
+            + AlertMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
         )
 
@@ -1245,6 +1273,7 @@ class FlawCVSSSerializer(
     BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
     TrackingMixinSerializer,
+    AlertMixinSerializer,
 ):
     """FlawCVSS serializer"""
 
@@ -1258,6 +1287,7 @@ class FlawCVSSSerializer(
             ["comment", "cvss_version", "flaw", "issuer", "score", "uuid", "vector"]
             + ACLMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
+            + AlertMixinSerializer.Meta.fields
         )
 
 
@@ -1299,6 +1329,7 @@ class FlawSerializer(
     IncludeMetaAttrMixin,
     BugzillaAPIKeyMixin,
     JiraAPIKeyMixin,
+    AlertMixinSerializer,
 ):
     """serialize flaw model"""
 
@@ -1453,6 +1484,7 @@ class FlawSerializer(
             + ACLMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
             + WorkflowModelSerializer.Meta.fields
+            + AlertMixinSerializer.Meta.fields
         )
 
     def _is_public(self, flaw, validated_data):
