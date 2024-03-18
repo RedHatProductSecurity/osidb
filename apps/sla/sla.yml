@@ -44,14 +44,15 @@ sla:
 name: Critical Compliance Priority
 description: >
   SLA policy applied to critical impact on
-  compliance priority module and component
+  compliance priority module, component and stream
 conditions:
   affect:
     - aggregated impact is critical
-    - is compliance priority
     - is not community
   flaw:
     - is not embargoed
+  tracker:
+    - is compliance priority
 sla:
   duration: 7
   start:
@@ -81,14 +82,15 @@ sla:
 name: Important Compliance Priority
 description: >
   SLA policy applied to important impact on
-  compliance priority module and component
+  compliance priority module, component and stream
 conditions:
   affect:
     - aggregated impact is important
-    - is compliance priority
     - is not community
   flaw:
     - is not embargoed
+  tracker:
+    - is compliance priority
 sla:
   duration: 21
   start:
@@ -118,14 +120,15 @@ sla:
 name: Moderate Compliance Priority
 description: >
   SLA policy applied to moderate impact on
-  compliance priority module and component
+  compliance priority module, component and stream
 conditions:
   affect:
     - aggregated impact is moderate
-    - is compliance priority
     - is not community
   flaw:
     - is not embargoed
+  tracker:
+    - is compliance priority
 sla:
   duration: 50
   start:
