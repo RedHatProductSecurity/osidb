@@ -4,7 +4,14 @@ import pytest
 from django.utils.timezone import datetime, make_aware, timedelta
 
 from apps.sla.framework import SLAContext, SLAFramework
-from osidb.models import Affect, Flaw, Tracker
+from osidb.models import (
+    Affect,
+    CompliancePriority,
+    Flaw,
+    Impact,
+    PsUpdateStream,
+    Tracker,
+)
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -297,3 +304,80 @@ sla:
                 assert sla_context.end == flaw1.reported_dt + timedelta(
                     days=mi_duration
                 )
+
+        @pytest.mark.parametrize(
+            "is_compliance_priority",
+            [
+                (True),
+                (False),
+            ],
+        )
+        def test_tracker_sla(self, is_compliance_priority):
+            """
+            test that classification work also with an SLA property belonging to the tracker
+            """
+            flaw = FlawFactory(
+                embargoed=False,
+                impact=Impact.MODERATE,
+                major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            )
+            ps_module = PsModuleFactory(name="ps-module")
+            affect = AffectFactory(
+                flaw=flaw,
+                impact=Impact.MODERATE,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_module=ps_module.name,
+                ps_component="component-1",
+            )
+            PsUpdateStream(
+                name="upd-stream-1",
+                ps_module=ps_module,
+                active_to_ps_module=ps_module,
+                unacked_to_ps_module=ps_module,
+            ).save()
+            if is_compliance_priority:
+                CompliancePriority(
+                    ps_module=ps_module.name,
+                    components=["component-0", "component-1", "component-2"],
+                    streams=["upd-stream-1", "stream-1.3.z"],
+                ).save()
+            tracker = TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.embargoed,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+                ps_update_stream="upd-stream-1",
+            )
+            assert tracker.is_compliance_priority is is_compliance_priority
+
+            sla_file = """
+name: policy used for compliance-priority
+description: >
+  See real Compliance Priority policies in sla.yml.
+  This test tests that the tracker's .is_compliance_priority
+  is evaluated. It doesn't test the advance "sla:" options
+  used in the real sla.yml file.
+conditions:
+  tracker:
+    - is compliance priority
+  affect:
+    - aggregated impact is moderate
+    - is not community
+  flaw:
+    - is not embargoed
+sla:
+  duration: 5
+  start: created date
+  type: calendar days
+"""
+
+            with patch("builtins.open", mock_open(read_data=sla_file)):
+                sla_framework = SLAFramework()
+                sla_context = sla_framework.classify(tracker)
+
+                if is_compliance_priority:
+                    assert sla_context.sla
+                    assert sla_context.start == flaw.created_dt
+                    assert sla_context.end == flaw.created_dt + timedelta(days=5)
+                else:
+                    assert not sla_context.sla

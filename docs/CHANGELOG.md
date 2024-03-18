@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Set migrated/duplicated delegated resolution to be ignored (OSIDB-1406)
 - Update valid affectedness-resolution combinations (OSIDB-2143)
 - Change Flaw API filter to allow a list of workflow_state (OSIDB-2208)
+- SLA for compliance priority brought to parity with SFM2 (OSIDB-2257)
 
 ### Fixed
 - Fix Jira sync when bugzilla token is present (OSIDB-2171)
