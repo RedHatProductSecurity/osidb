@@ -12,6 +12,8 @@ from apps.trackers.models import JiraProjectFields
 from osidb.models import Affect, Impact
 from osidb.validators import CVE_RE_STR
 
+from .constants import JIRA_EMBARGO_SECURITY_LEVEL_NAME
+
 logger = logging.getLogger(__name__)
 
 
@@ -196,3 +198,15 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
             self._query["fields"]["versions"] = [
                 {"name": self.ps_update_stream.version}
             ]
+
+    def generate_security(self):
+        """
+        generate the appropriate security level for restricting who can access the Jira
+        """
+        if self.tracker.is_embargoed:
+            self._query["fields"]["security"] = {
+                "name": JIRA_EMBARGO_SECURITY_LEVEL_NAME
+            }
+        else:
+            # This tells Jira to remove the embargo if there is one.
+            self._query["fields"]["security"] = None

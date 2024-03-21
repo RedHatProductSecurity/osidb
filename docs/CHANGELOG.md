@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix Jira sync when bugzilla token is present (OSIDB-2171)
 - Fix Bugzilla summary for first flaw creation (OSIDB-2190)
+- Fix Jira tracker security level not being set based on embargo (OSIDB-2082)
 
 ## [3.6.2] - 2024-02-02
 ### Fixed

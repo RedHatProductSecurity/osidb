@@ -472,6 +472,42 @@ sla:
         assert "duedate" in query["fields"]
         assert query["fields"]["duedate"] == "2000-01-11T00:00:00+00:00"
 
+    @pytest.mark.parametrize(
+        "embargoed",
+        [
+            (True),
+            (False),
+        ],
+    )
+    def test_generate_security(self, embargoed):
+        """
+        test that the query for the Jira has security level generated correctly
+        """
+        flaw1 = FlawFactory(cve_id="CVE-2000-2000", embargoed=embargoed)
+        ps_module = PsModuleFactory(bts_name="jboss")
+        affect1 = AffectFactory(
+            flaw=flaw1,
+            ps_module=ps_module.name,
+            ps_component="component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        tracker = TrackerFactory(
+            affects=[affect1],
+            type=Tracker.TrackerType.JIRA,
+            embargoed=flaw1.is_embargoed,
+        )
+
+        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder._query = {"fields": {}}
+        query_builder.generate_security()
+        security = query_builder.query["fields"]["security"]
+
+        if embargoed:
+            assert security == {"name": "Embargoed Security Issue"}
+        else:
+            assert security is None
+
 
 def validate_minimum_key_value(minimum: Dict[str, Any], evaluated: Dict[str, Any]):
     """
