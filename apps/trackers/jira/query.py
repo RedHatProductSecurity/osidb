@@ -12,7 +12,7 @@ from apps.trackers.models import JiraProjectFields
 from osidb.models import Affect, Impact
 from osidb.validators import CVE_RE_STR
 
-from .constants import JIRA_EMBARGO_SECURITY_LEVEL_NAME
+from .constants import JIRA_EMBARGO_SECURITY_LEVEL_NAME, PS_ADDITIONAL_FIELD_TO_JIRA
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +82,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         self.generate_sla()
         self.generate_summary()
         self.generate_versions()
+        self.generate_additional_fields()
 
     def generate_base(self):
         self._query = {
@@ -210,3 +211,27 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         else:
             # This tells Jira to remove the embargo if there is one.
             self._query["fields"]["security"] = None
+
+    def generate_additional_fields(self):
+        """
+        Generate fields passed as additional fields in the PS update stream.
+        """
+        if self.ps_update_stream.additional_fields is None:
+            return
+
+        if (
+            additional_fields := self.ps_update_stream.additional_fields.get(
+                "jboss", None
+            )
+        ) is not None:
+            for name, value in additional_fields.items():
+                # Additional fields require specific handling logic
+                if name == "fixVersions":
+                    field_value = [{"name": value}]
+                elif name == "release_blocker":
+                    field_value = {"value": value}
+                else:
+                    # Unsupported field
+                    continue
+
+                self._query["fields"][PS_ADDITIONAL_FIELD_TO_JIRA[name]] = field_value
