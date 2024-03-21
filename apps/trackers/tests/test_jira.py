@@ -8,6 +8,7 @@ from unittest.mock import mock_open, patch
 import pytest
 from django.utils.timezone import datetime, make_aware
 
+from apps.trackers.jira.constants import PS_ADDITIONAL_FIELD_TO_JIRA
 from apps.trackers.jira.query import JiraPriority, TrackerJiraQueryBuilder
 from apps.trackers.models import JiraProjectFields
 from osidb.models import (
@@ -507,6 +508,63 @@ sla:
             assert security == {"name": "Embargoed Security Issue"}
         else:
             assert security is None
+
+    @pytest.mark.parametrize(
+        "additional_fields, jira_fields",
+        [
+            ({}, {}),
+            (
+                {"jboss": {"fixVersions": "rhel-8.1.0.z"}},
+                {"fixVersions": [{"name": "rhel-8.1.0.z"}]},
+            ),
+            (
+                {
+                    "jboss": {
+                        "fixVersions": "rhel-8.9.0",
+                        "release_blocker": "Approved Blocker",
+                    }
+                },
+                {
+                    "fixVersions": [{"name": "rhel-8.9.0"}],
+                    "customfield_12319743": {"value": "Approved Blocker"},
+                },
+            ),
+        ],
+    )
+    def test_generate_additional_fields(self, additional_fields, jira_fields):
+        """
+        Test that additional fields are correctly parsed and converted to Jira fields.
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module, additional_fields=additional_fields
+        )
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=ps_update_stream.name,
+        )
+
+        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder._query = {"fields": {}}
+        query_builder.generate_additional_fields()
+
+        # Additional fields are optional
+        if "jboss" in additional_fields:
+            for field in additional_fields["jboss"]:
+                jira_field = PS_ADDITIONAL_FIELD_TO_JIRA[field]
+                assert (
+                    query_builder.query["fields"][jira_field] == jira_fields[jira_field]
+                )
+        else:
+            for field in PS_ADDITIONAL_FIELD_TO_JIRA.values():
+                assert field not in query_builder.query["fields"]
 
 
 def validate_minimum_key_value(minimum: Dict[str, Any], evaluated: Dict[str, Any]):

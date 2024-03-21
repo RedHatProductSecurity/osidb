@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add label compliance-priority to jira trackers based on ps-constants compliance_priority.yml (OSIDB-2062)
 - Expose alerts on API for every model alert supported model,
   mainly Flaw, Affect, Tracker (OSIDB-2065)
+- Add support for additional_fields in Jira BTS (OSIDB-696)
 
 ### Changed
 - Ignore hosts on VCR recording (OSIDB-1678)
