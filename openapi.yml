@@ -1995,7 +1995,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '204':
+        '200':
           content:
             application/json:
               schema:
@@ -7007,6 +7007,7 @@ components:
         score:
           type: number
           format: float
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -7038,6 +7039,7 @@ components:
       - cvss_version
       - embargoed
       - issuer
+      - score
       - updated_dt
       - uuid
       - vector
@@ -7054,6 +7056,7 @@ components:
         score:
           type: number
           format: float
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -7080,6 +7083,7 @@ components:
       - cvss_version
       - embargoed
       - issuer
+      - score
       - uuid
       - vector
     AffectCVSSPut:
@@ -7095,6 +7099,7 @@ components:
         score:
           type: number
           format: float
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -7126,6 +7131,7 @@ components:
       - cvss_version
       - embargoed
       - issuer
+      - score
       - updated_dt
       - uuid
       - vector
@@ -7806,6 +7812,7 @@ components:
         score:
           type: number
           format: float
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -7837,6 +7844,7 @@ components:
       - cvss_version
       - embargoed
       - issuer
+      - score
       - updated_dt
       - uuid
       - vector
@@ -7853,6 +7861,7 @@ components:
         score:
           type: number
           format: float
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -7879,6 +7888,7 @@ components:
       - cvss_version
       - embargoed
       - issuer
+      - score
       - uuid
       - vector
     FlawCVSSPut:
@@ -7894,6 +7904,7 @@ components:
         score:
           type: number
           format: float
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -7925,6 +7936,7 @@ components:
       - cvss_version
       - embargoed
       - issuer
+      - score
       - updated_dt
       - uuid
       - vector
