@@ -783,6 +783,11 @@ class AffectCVSSView(ModelViewSet):
             kwargs["data"] = data
         return super().get_serializer(*args, **kwargs)
 
+    @extend_schema(
+        responses={
+            200: {},
+        }
+    )
     def destroy(self, request, *args, **kwargs):
         """
         Destroy the instance and proxy the delete to Bugzilla.
