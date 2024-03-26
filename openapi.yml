@@ -3029,6 +3029,7 @@ paths:
             - -affects__type
             - -affects__updated_dt
             - -affects__uuid
+            - -bz_id
             - -components
             - -created_dt
             - -cve_id
@@ -3044,7 +3045,10 @@ paths:
             - -cvss_scores__uuid
             - -cvss_scores__vector
             - -cwe_id
+            - -description
+            - -embargoed
             - -impact
+            - -is_major_incident
             - -major_incident_state
             - -nist_cvss_validation
             - -nvd_cvss2
@@ -3059,7 +3063,10 @@ paths:
             - -reported_dt
             - -requires_summary
             - -source
+            - -statement
+            - -summary
             - -team_id
+            - -title
             - -type
             - -unembargo_dt
             - -updated_dt
@@ -3095,6 +3102,7 @@ paths:
             - affects__type
             - affects__updated_dt
             - affects__uuid
+            - bz_id
             - components
             - created_dt
             - cve_id
@@ -3110,7 +3118,10 @@ paths:
             - cvss_scores__uuid
             - cvss_scores__vector
             - cwe_id
+            - description
+            - embargoed
             - impact
+            - is_major_incident
             - major_incident_state
             - nist_cvss_validation
             - nvd_cvss2
@@ -3125,7 +3136,10 @@ paths:
             - reported_dt
             - requires_summary
             - source
+            - statement
+            - summary
             - team_id
+            - title
             - type
             - unembargo_dt
             - updated_dt
