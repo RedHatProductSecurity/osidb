@@ -422,7 +422,17 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
             "references__uuid": ["exact"],
         }
 
-    order = OrderingFilter(fields=Meta.fields.keys())
+    order_fields = [
+        "bz_id",
+        "cve_id",
+        "embargoed",
+        "description",
+        "is_major_incident",
+        "statement",
+        "summary",
+        "title",
+    ] + list(Meta.fields.keys())
+    order = OrderingFilter(fields=order_fields)
 
     search_helper = staticmethod(search_helper)
     # Set the class method to be the same as the imported method (and make it static, to avoid breaking on a self param)
