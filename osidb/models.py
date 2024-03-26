@@ -742,8 +742,14 @@ class Flaw(
 
     # flaw component was originally a part of the Bugzilla summary
     # so the value may depend on how successfully it was parsed
-    component = models.CharField(max_length=100, blank=True)
-
+    component = deprecate_field_custom(
+        models.CharField(max_length=100, blank=True),
+        # required to keep backwards compatibility
+        return_instead=lambda self: self.components[-1] if self.components else "",
+    )
+    components = fields.ArrayField(
+        models.CharField(max_length=100, blank=True), default=list, blank=True
+    )
     # from BZ summary
     title = models.TextField()
 
@@ -1272,7 +1278,7 @@ class Flaw(
         we cannot enforce this by model definition
         as the old flaws may have no component
         """
-        if not self.component:
+        if not self.components:
             raise ValidationError("Component value is required.")
 
     def _validate_unsupported_impact_change(self):
