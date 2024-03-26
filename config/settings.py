@@ -34,6 +34,8 @@ READONLY_MODE: bool = get_env("OSIDB_READONLY_MODE", default="False", is_bool=Tr
 
 # Application definition
 INSTALLED_APPS = [
+    "pghistory",
+    "pgtrigger",
     "apps.bbsync",
     "apps.exploits",
     "apps.sla",
@@ -297,3 +299,6 @@ CORS_ALLOW_HEADERS = (
     *get_env("OSIDB_CORS_ALLOW_HEADERS", default="[]", is_json=True),
 )
 CORS_ALLOW_CREDENTIALS = True
+
+# audit history is immutable
+PGHISTORY_APPEND_ONLY = True
