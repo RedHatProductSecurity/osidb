@@ -1,9 +1,10 @@
 import uuid
-from enum import Enum
 from functools import cached_property
 from itertools import chain
 
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres import fields
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -148,68 +149,75 @@ class ValidateMixin(models.Model):
         abstract = True
 
 
+class Alert(ValidateMixin):
+    """
+    Model to store alerts issued by any model that implements the AlertMixin.
+    """
+
+    class AlertType(models.TextChoices):
+        WARNING = "warning"
+        ERROR = "error"
+
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    alert_type = models.CharField(
+        max_length=10, choices=AlertType.choices, default=AlertType.WARNING
+    )
+    resolution_steps = models.TextField(blank=True)
+
+    # Use of contenttype framework to allow any model to have alerts
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    # UUIDs are 36 characters long including hyphens
+    object_id = models.CharField(max_length=36)
+    content_object = GenericForeignKey("content_type", "object_id")
+
+
 class AlertMixin(ValidateMixin):
     """
     This mixin implements the necessary mechanisms to have validation alerts.
 
-    The way that this mixin works is simple, any model that inherits from this mixin
-    will have a field in which alerts are stored in JSON, this field is re-populated
+    This mixin adds an alerts field to any model that inherits from it, from which we
+    can get all alerts related to each instance of the model. The alerts are re-created
     on each save when the validations are automatically run.
-
-    The mixin provides a helper function for creating said alerts, this also serves
-    as an abstraction layer to enforce a schema on the JSON field and guarantee that
-    the alerts are somewhat constant in their content.
 
     It also provides the automatic validation mechanism on every save.
     """
 
-    _alerts = models.JSONField(default=dict, blank=True)
+    alerts = GenericRelation(Alert)
 
-    class AlertType(Enum):
-        WARNING = "warning"
-        ERROR = "error"
-
-    def alert(self, name, description, _type="warning", resolution_steps=""):
+    def alert(
+        self, name, description, alert_type=Alert.AlertType.WARNING, resolution_steps=""
+    ):
         """
         Helper for creating validation alerts on the current object.
-
-        Any and all alerts should be created through this helper method as it
-        guarantees a certain level consistency in the structure of each alert.
-
-        The _alerts column should only be modified manually if you really
-        **really** know what you're doing, as manual modification might break
-        the "schema" and create issues for downstream consumers.
         """
-        # verify that _type is valid
-        try:
-            self.AlertType(_type)
-        except ValueError:
-            _t = [t.value for t in self.AlertType]
-            raise ValueError(f"Alert type '{_type}' is not valid, use one of {_t}")
-        self._alerts[name] = {
-            "type": _type,
-            "description": description,
-            "resolution_steps": resolution_steps,
-        }
+        Alert.objects.create(
+            name=name,
+            description=description,
+            alert_type=alert_type,
+            resolution_steps=resolution_steps,
+            content_object=self,
+        )
 
     def validate(self, raise_validation_error=True):
         """
-        run standard Django validations first potentially raising ValidationError
-        these ensure minimal necessary data quality and thus cannot be suppressed
+        Run standard Django validations first, potentially raising ValidationError.
+        These ensure minimal necessary data quality and thus cannot be suppressed.
 
-        then custom validations are run either raising ValidationError exceptions
-        for error level invalidities or storing the alerts for warning level ones
+        Then custom validations are run, either raising ValidationError exceptions
+        for error level invalidities or storing the alerts for warning level ones.
 
-        for error level invalidities the default behavior may be changed by setting
-        raise_validation_error option to false resulting in suppressesing all the
-        exceptions and instead storing them as error level alerts
+        For error level invalidities the default behavior may be changed by setting
+        raise_validation_error option to false, resulting in suppressing all the
+        exceptions and instead storing them as error level alerts.
         """
         # standard validations
         # exclude meta attributes
         self.full_clean(exclude=["meta_attr"])
 
         # clean all alerts before a new validation
-        self._alerts = {}
+        self.alerts.all().delete()
 
         # custom validations
         for validation_name in [
@@ -226,12 +234,12 @@ class AlertMixin(ValidateMixin):
                 self.alert(
                     name=validation_name,
                     description=e.message,
-                    _type=AlertMixin.AlertType.ERROR.value,
+                    alert_type=Alert.AlertType.ERROR,
                 )
 
     def save(self, *args, **kwargs):
         """
-        save with validate call parametrized by raise_validation_error
+        Save with validate call parametrized by raise_validation_error
         """
         self.validate(raise_validation_error=kwargs.pop("raise_validation_error", True))
         # here we have to skip ValidateMixin level save as otherwise

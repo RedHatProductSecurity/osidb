@@ -6965,8 +6965,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7020,8 +7021,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7067,8 +7069,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7108,8 +7111,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7227,8 +7231,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7281,6 +7286,33 @@ components:
       - AFFECTED
       - NOTAFFECTED
       type: string
+    Alert:
+      type: object
+      description: Alert serializer to expose alerts stored in models that inherit
+        from AlertMixin.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        alert_type:
+          $ref: '#/components/schemas/AlertTypeEnum'
+        resolution_steps:
+          type: string
+      required:
+      - description
+      - name
+      - uuid
+    AlertTypeEnum:
+      enum:
+      - warning
+      - error
+      type: string
     BlankEnum:
       enum:
       - ''
@@ -7308,8 +7340,9 @@ components:
             type: string
             nullable: true
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7640,8 +7673,9 @@ components:
           type: string
           maxLength: 8
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
       required:
       - acknowledgments
@@ -7688,8 +7722,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7732,8 +7767,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7769,8 +7805,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7828,8 +7865,9 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
       required:
       - alerts
@@ -7870,8 +7908,9 @@ components:
           format: date-time
           readOnly: true
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
       required:
       - alerts
@@ -7916,8 +7955,9 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
       required:
       - alerts
@@ -7952,8 +7992,9 @@ components:
           minimum: -2147483648
           nullable: true
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7996,8 +8037,9 @@ components:
             type: string
             nullable: true
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -8373,8 +8415,9 @@ components:
           type: string
           maxLength: 8
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
       required:
       - acknowledgments
@@ -8420,8 +8463,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -8462,8 +8506,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -8497,8 +8542,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -8615,8 +8661,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -8677,8 +8724,9 @@ components:
           items:
             $ref: '#/components/schemas/PackageVer'
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
       required:
       - alerts
@@ -9201,8 +9249,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -9281,8 +9330,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
