@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from typing import Union
 
 import bugzilla
+import pghistory
 import requests
 from bugzilla.base import Bugzilla
 from celery.utils.log import get_task_logger
@@ -544,8 +545,9 @@ class FlawCollector(Collector):
         # TODO store errors
 
         # 3) save Django models
-        for flaw in flaws:
-            self.save(flaw)
+        with pghistory.context(collector="bzsync"):
+            for flaw in flaws:
+                self.save(flaw)
 
     def collect(self, batch=None):
         """

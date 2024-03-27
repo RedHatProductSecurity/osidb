@@ -5,6 +5,7 @@ import uuid
 from decimal import Decimal
 from typing import Union
 
+import pghistory
 from cvss import CVSS2, CVSS3, CVSS4, CVSSError
 from django.contrib.auth.models import User
 from django.contrib.postgres import fields
@@ -606,6 +607,13 @@ class FlawManager(ACLMixinManager, TrackingMixinManager):
         # If search has no results, this will now return an empty queryset
 
 
+@pghistory.track(
+    pghistory.InsertEvent(),
+    pghistory.UpdateEvent(),
+    pghistory.DeleteEvent(),
+    exclude="local_updated_dt,meta_attr,_alerts",
+    model_name="FlawAudit",
+)
 class Flaw(
     ACLMixin,
     TrackingMixin,
@@ -1697,6 +1705,13 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
         # If search has no results, this will now return an empty queryset
 
 
+@pghistory.track(
+    pghistory.InsertEvent(),
+    pghistory.UpdateEvent(),
+    pghistory.DeleteEvent(),
+    exclude="meta_attr,_alerts",
+    model_name="AffectAudit",
+)
 class Affect(
     ACLMixin,
     AffectExploitExtensionMixin,
@@ -2851,6 +2866,13 @@ class FlawMetaManager(ACLMixinManager, TrackingMixinManager):
             )
 
 
+@pghistory.track(
+    pghistory.InsertEvent(),
+    pghistory.UpdateEvent(),
+    pghistory.DeleteEvent(),
+    exclude="meta_attr,_alerts",
+    model_name="FlawMetaAudit",
+)
 class FlawMeta(AlertMixin, TrackingMixin, ACLMixin):
     """Model representing extensible structured flaw metadata"""
 
