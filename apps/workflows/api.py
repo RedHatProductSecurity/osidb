@@ -9,8 +9,10 @@ from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 
 from apps.taskman.service import JiraTaskmanQuerier
+from osidb.api_views import get_valid_http_methods
 
 from .exceptions import WorkflowsException
 from .helpers import get_flaw_or_404, str2bool
@@ -56,6 +58,8 @@ class healthy(APIView):
 class adjust(APIView):
     """workflow adjustion API endpoint"""
 
+    http_method_names = get_valid_http_methods(ModelViewSet)
+
     def post(self, request, pk):
         """
         workflow adjustion API endpoint
@@ -79,6 +83,8 @@ class adjust(APIView):
 
 class promote(APIView):
     """workflow promote API endpoint"""
+
+    http_method_names = get_valid_http_methods(ModelViewSet)
 
     @extend_schema(
         parameters=[
@@ -119,6 +125,8 @@ class promote(APIView):
 
 class reject(APIView):
     """workflow reject API endpoint"""
+
+    http_method_names = get_valid_http_methods(ModelViewSet)
 
     @extend_schema(
         parameters=[
