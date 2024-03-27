@@ -45,6 +45,7 @@ from .helpers import ps_update_stream_natural_keys
 from .mixins import (
     ACLMixin,
     ACLMixinManager,
+    Alert,
     AlertMixin,
     NullStrFieldsMixin,
     TrackingMixin,
@@ -1284,7 +1285,7 @@ class Flaw(
                 self.alert(
                     "_validate_flaw_without_affect",
                     err.message,
-                    _type="error",
+                    alert_type=Alert.AlertType.ERROR,
                 )
             else:
                 raise err

@@ -23,7 +23,7 @@ from apps.workflows.serializers import WorkflowModelSerializer
 from .core import generate_acls
 from .exceptions import DataInconsistencyException
 from .helpers import differ, ensure_list
-from .mixins import ACLMixin, AlertMixin, TrackingMixin
+from .mixins import ACLMixin, Alert, AlertMixin, TrackingMixin
 from .models import (
     Affect,
     AffectCVSS,
@@ -389,14 +389,20 @@ class JiraAPIKeyMixin:
         return jira_token
 
 
-class AlertMixinSerializer(serializers.ModelSerializer):
-    """Alert mixin serializer to expose alerts stored via AlertMixin"""
-
-    alerts = serializers.JSONField(read_only=True, source="_alerts")
+class AlertSerializer(serializers.ModelSerializer):
+    """Alert serializer to expose alerts stored in models that inherit from AlertMixin."""
 
     class Meta:
-        """filter fields"""
+        model = Alert
+        fields = ["uuid", "name", "description", "alert_type", "resolution_steps"]
 
+
+class AlertMixinSerializer(serializers.ModelSerializer):
+    """Serializes the alerts in models that implement AlertMixin."""
+
+    alerts = AlertSerializer(many=True, read_only=True)
+
+    class Meta:
         model = AlertMixin
         abstract = True
         fields = ["alerts"]
