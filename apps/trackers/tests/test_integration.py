@@ -364,6 +364,19 @@ class TestTrackerAPI:
             field_id="priority",
             allowed_values=[JiraPriority.MINOR],
         )
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="security",
+            field_name="Security Level",
+            allowed_values=[
+                "Embargoed Security Issue",
+                "Red Hat Employee",
+                "Red Hat Engineering Authorized",
+                "Red Hat Partner",
+                "Restricted",
+                "Team",
+            ],
+        )
 
         # 2) create tracker in OSIDB and Bugzilla
         tracker_data = {
@@ -435,6 +448,19 @@ class TestTrackerAPI:
             project_key="OSIDB",
             field_id="priority",
             allowed_values=[JiraPriority.MINOR],
+        )
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="security",
+            field_name="Security Level",
+            allowed_values=[
+                "Embargoed Security Issue",
+                "Red Hat Employee",
+                "Red Hat Engineering Authorized",
+                "Red Hat Partner",
+                "Restricted",
+                "Team",
+            ],
         )
         # flaw to keep linked
         flaw1 = FlawFactory(
