@@ -7,12 +7,19 @@ from functools import cached_property
 
 from apps.sla.framework import SLAFramework
 from apps.trackers.common import TrackerQueryBuilder
-from apps.trackers.exceptions import NoPriorityAvailableError
+from apps.trackers.exceptions import (
+    NoPriorityAvailableError,
+    NoSecurityLevelAvailableError,
+)
 from apps.trackers.models import JiraProjectFields
 from osidb.models import Affect, Impact
 from osidb.validators import CVE_RE_STR
 
-from .constants import JIRA_EMBARGO_SECURITY_LEVEL_NAME, PS_ADDITIONAL_FIELD_TO_JIRA
+from .constants import (
+    JIRA_EMBARGO_SECURITY_LEVEL_NAME,
+    JIRA_INTERNAL_SECURITY_LEVEL_NAME,
+    PS_ADDITIONAL_FIELD_TO_JIRA,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +90,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         self.generate_summary()
         self.generate_versions()
         self.generate_additional_fields()
+        self.generate_security()
 
     def generate_base(self):
         self._query = {
@@ -204,12 +212,36 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         generate the appropriate security level for restricting who can access the Jira
         """
-        if self.tracker.is_embargoed:
-            self._query["fields"]["security"] = {
-                "name": JIRA_EMBARGO_SECURITY_LEVEL_NAME
-            }
+        if field_obj := JiraProjectFields.objects.filter(
+            project_key=self.ps_module.bts_key, field_id="security"
+        ).first():
+            allowed_values = field_obj.allowed_values
         else:
-            # This tells Jira to remove the embargo if there is one.
+            # Allow misconfigured projects for public trackers
+            allowed_values = []
+
+        if self.tracker.is_embargoed:
+            if JIRA_EMBARGO_SECURITY_LEVEL_NAME in allowed_values:
+                self._query["fields"]["security"] = {
+                    "name": JIRA_EMBARGO_SECURITY_LEVEL_NAME
+                }
+                return
+            raise NoSecurityLevelAvailableError(
+                f"Jira project {self.ps_module.bts_key} does not have available Security Level "
+                f"{JIRA_EMBARGO_SECURITY_LEVEL_NAME}; allowed Jira priority values are: {', '.join(allowed_values)}"
+            )
+        elif self.ps_module.private_trackers_allowed:
+            if JIRA_INTERNAL_SECURITY_LEVEL_NAME in allowed_values:
+                self._query["fields"]["security"] = {
+                    "name": JIRA_INTERNAL_SECURITY_LEVEL_NAME
+                }
+                return
+            raise NoSecurityLevelAvailableError(
+                f"Jira project {self.ps_module.bts_key} does not have available Security Level "
+                f"{JIRA_INTERNAL_SECURITY_LEVEL_NAME}; allowed Jira priority values are: {', '.join(allowed_values)}"
+            )
+        else:
+            # This tells Jira to remove the field value if there is one set.
             self._query["fields"]["security"] = None
 
     def generate_additional_fields(self):
