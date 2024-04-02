@@ -390,11 +390,28 @@ class JiraAPIKeyMixin:
 
 
 class AlertSerializer(serializers.ModelSerializer):
-    """Alert serializer to expose alerts stored in models that inherit from AlertMixin."""
+    """Alerts indicate some inconsistency in a linked flaw, affect, tracker or other models."""
+
+    parent_uuid = serializers.SerializerMethodField()
+    parent_model = serializers.SerializerMethodField()
 
     class Meta:
         model = Alert
-        fields = ["uuid", "name", "description", "alert_type", "resolution_steps"]
+        fields = [
+            "uuid",
+            "name",
+            "description",
+            "alert_type",
+            "resolution_steps",
+            "parent_uuid",
+            "parent_model",
+        ]
+
+    def get_parent_uuid(self, obj):
+        return obj.object_id
+
+    def get_parent_model(self, obj):
+        return obj.content_type.model
 
 
 class AlertMixinSerializer(serializers.ModelSerializer):

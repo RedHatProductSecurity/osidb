@@ -26,6 +26,7 @@ from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import (
     AffectCVSSFilter,
     AffectFilter,
+    AlertFilter,
     FlawAcknowledgmentFilter,
     FlawCommentFilter,
     FlawCVSSFilter,
@@ -34,6 +35,7 @@ from .filters import (
     FlawReferenceFilter,
     TrackerFilter,
 )
+from .mixins import Alert
 from .models import Affect, AffectCVSS, Flaw, Tracker
 from .serializer import (
     AffectCVSSPostSerializer,
@@ -41,6 +43,7 @@ from .serializer import (
     AffectCVSSSerializer,
     AffectPostSerializer,
     AffectSerializer,
+    AlertSerializer,
     FlawAcknowledgmentPostSerializer,
     FlawAcknowledgmentPutSerializer,
     FlawAcknowledgmentSerializer,
@@ -827,4 +830,62 @@ class TrackerView(ModelViewSet):
     serializer_class = TrackerSerializer
     filterset_class = TrackerFilter
     http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+@include_exclude_fields_extend_schema_view
+@extend_schema_view(
+    list=extend_schema(
+        description="List existing alerts for all models.",
+        parameters=[
+            OpenApiParameter(
+                "name",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "Retrieve only Alerts with the specified name, which is given by the "
+                    "model's validation process."
+                ),
+            ),
+            OpenApiParameter(
+                "parent_uuid",
+                type=OpenApiTypes.UUID,
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "Retrieve only Alerts related to a model with the given UUID."
+                ),
+            ),
+            OpenApiParameter(
+                "parent_model",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                # See osidb/helpers.py::get_mixin_subclases for getting all models
+                # which inherit from AlertMixin
+                enum=[
+                    "flaw",
+                    "affect",
+                    "flawcvss",
+                    "affectcvss",
+                    "flawcomment",
+                    "flawacknowledgment",
+                    "flawreference",
+                    "package",
+                    "snippet",
+                    "tracker",
+                    "flawmeta",
+                ],
+                description=(
+                    "Retrieve only Alerts related to the specified model, e.g. flaw or affect."
+                ),
+            ),
+        ],
+    ),
+)
+class AlertView(ModelViewSet):
+    queryset = Alert.objects.all()
+    serializer_class = AlertSerializer
+    filterset_class = AlertFilter
+    http_method_names = get_valid_http_methods(
+        ModelViewSet, excluded=["patch", "post", "put", "delete"]
+    )
     permission_classes = [IsAuthenticatedOrReadOnly]

@@ -2192,6 +2192,160 @@ paths:
                   version:
                     type: string
           description: ''
+  /osidb/api/v1/alerts:
+    get:
+      operationId: osidb_api_v1_alerts_list
+      description: List existing alerts for all models.
+      parameters:
+      - in: query
+        name: alert_type
+        schema:
+          type: string
+          enum:
+          - ERROR
+          - WARNING
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: name
+        schema:
+          type: string
+        description: Retrieve only Alerts with the specified name, which is given
+          by the model's validation process.
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: parent_model
+        schema:
+          type: string
+          enum:
+          - affect
+          - affectcvss
+          - flaw
+          - flawacknowledgment
+          - flawcomment
+          - flawcvss
+          - flawmeta
+          - flawreference
+          - package
+          - snippet
+          - tracker
+        description: Retrieve only Alerts related to the specified model, e.g. flaw
+          or affect.
+      - in: query
+        name: parent_uuid
+        schema:
+          type: string
+          format: uuid
+        description: Retrieve only Alerts related to a model with the given UUID.
+      - in: query
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedAlertList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v1/alerts/{uuid}:
+    get:
+      operationId: osidb_api_v1_alerts_retrieve
+      parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this alert.
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Alert'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /osidb/api/v1/flaws:
     get:
       operationId: osidb_api_v1_flaws_list
@@ -7377,8 +7531,8 @@ components:
       type: string
     Alert:
       type: object
-      description: Alert serializer to expose alerts stored in models that inherit
-        from AlertMixin.
+      description: Alerts indicate some inconsistency in a linked flaw, affect, tracker
+        or other models.
       properties:
         uuid:
           type: string
@@ -7393,14 +7547,22 @@ components:
           $ref: '#/components/schemas/AlertTypeEnum'
         resolution_steps:
           type: string
+        parent_uuid:
+          type: string
+          readOnly: true
+        parent_model:
+          type: string
+          readOnly: true
       required:
       - description
       - name
+      - parent_model
+      - parent_uuid
       - uuid
     AlertTypeEnum:
       enum:
-      - warning
-      - error
+      - WARNING
+      - ERROR
       type: string
     BlankEnum:
       enum:
@@ -8900,6 +9062,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Affect'
+    PaginatedAlertList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
     PaginatedEPSSList:
       type: object
       properties:
