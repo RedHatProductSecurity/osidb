@@ -771,7 +771,9 @@ class AffectCVSSSerializer(
 ):
     """AffectCVSS serializer"""
 
-    cvss_version = serializers.CharField(source="version")
+    cvss_version = serializers.ChoiceField(
+        choices=AffectCVSS.CVSSVersion, source="version"
+    )
     score = serializers.FloatField(read_only=True)
 
     class Meta:
@@ -1278,7 +1280,9 @@ class FlawCVSSSerializer(
 ):
     """FlawCVSS serializer"""
 
-    cvss_version = serializers.CharField(source="version")
+    cvss_version = serializers.ChoiceField(
+        choices=FlawCVSS.CVSSVersion, source="version"
+    )
     score = serializers.FloatField(read_only=True)
 
     class Meta:
