@@ -7057,7 +7057,7 @@ components:
         comment:
           type: string
         cvss_version:
-          type: string
+          $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
           $ref: '#/components/schemas/IssuerEnum'
         score:
@@ -7106,7 +7106,7 @@ components:
         comment:
           type: string
         cvss_version:
-          type: string
+          $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
           $ref: '#/components/schemas/IssuerEnum'
         score:
@@ -7149,7 +7149,7 @@ components:
         comment:
           type: string
         cvss_version:
-          type: string
+          $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
           $ref: '#/components/schemas/IssuerEnum'
         score:
@@ -7387,6 +7387,12 @@ components:
       - created_dt
       - updated_dt
       - uuid
+    CvssVersionEnum:
+      enum:
+      - V2
+      - V3
+      - V4
+      type: string
     EPSS:
       type: object
       properties:
@@ -7864,7 +7870,7 @@ components:
         comment:
           type: string
         cvss_version:
-          type: string
+          $ref: '#/components/schemas/CvssVersionEnum'
         flaw:
           type: string
           format: uuid
@@ -7916,7 +7922,7 @@ components:
         comment:
           type: string
         cvss_version:
-          type: string
+          $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
           $ref: '#/components/schemas/IssuerEnum'
         score:
@@ -7959,7 +7965,7 @@ components:
         comment:
           type: string
         cvss_version:
-          type: string
+          $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
           $ref: '#/components/schemas/IssuerEnum'
         score:
