@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Jira tracker security level not being set based on embargo (OSIDB-2082)
 - Removed writing operations in workflows when READ_ONLY is enabled (OSIDB-2336)
 - Fix Flaw API allowing to sort by all fields (OSIDB-2367)
+- Fix FlawCVSS and AffectCVSS "cvss_version" on API to show version enum
 
 ## [3.6.2] - 2024-02-02
 ### Fixed
