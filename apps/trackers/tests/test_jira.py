@@ -8,9 +8,11 @@ from unittest.mock import mock_open, patch
 import pytest
 from django.utils.timezone import datetime, make_aware
 
+from apps.trackers.exceptions import NoSecurityLevelAvailableError
 from apps.trackers.jira.constants import PS_ADDITIONAL_FIELD_TO_JIRA
 from apps.trackers.jira.query import JiraPriority, TrackerJiraQueryBuilder
 from apps.trackers.models import JiraProjectFields
+from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from osidb.models import (
     Affect,
     CompliancePriority,
@@ -115,6 +117,19 @@ class TestTrackerJiraQueryBuilder:
             type=Tracker.TrackerType.JIRA,
             ps_update_stream=stream.name,
             embargoed=flaw.is_embargoed,
+        )
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="security",
+            field_name="Security Level",
+            allowed_values=[
+                "Embargoed Security Issue",
+                "Red Hat Employee",
+                "Red Hat Engineering Authorized",
+                "Red Hat Partner",
+                "Restricted",
+                "Team",
+            ],
         )
 
         quer_builder = TrackerJiraQueryBuilder(tracker)
@@ -388,6 +403,19 @@ class TestTrackerJiraQueryBuilder:
             external_system_id=external_system_id,
             meta_attr=meta_attr,
         )
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="security",
+            field_name="Security Level",
+            allowed_values=[
+                "Embargoed Security Issue",
+                "Red Hat Employee",
+                "Red Hat Engineering Authorized",
+                "Red Hat Partner",
+                "Restricted",
+                "Team",
+            ],
+        )
 
         query_builder = TrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
@@ -451,6 +479,19 @@ class TestTrackerJiraQueryBuilder:
             field_id=target_start_id,
             field_name="Target start",
         ).save()
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="security",
+            field_name="Security Level",
+            allowed_values=[
+                "Embargoed Security Issue",
+                "Red Hat Employee",
+                "Red Hat Engineering Authorized",
+                "Red Hat Partner",
+                "Restricted",
+                "Team",
+            ],
+        )
 
         sla_file = """
 ---
@@ -474,18 +515,23 @@ sla:
         assert query["fields"]["duedate"] == "2000-01-11T00:00:00+00:00"
 
     @pytest.mark.parametrize(
-        "embargoed",
+        "embargoed, private, valid_jira_field",
         [
-            (True),
-            (False),
+            (False, False, True),
+            (True, False, True),
+            (False, True, True),
+            (True, True, True),
+            (False, False, False),
+            (True, False, False),
+            (False, True, False),
         ],
     )
-    def test_generate_security(self, embargoed):
+    def test_generate_security(self, embargoed, private, valid_jira_field):
         """
         test that the query for the Jira has security level generated correctly
         """
         flaw1 = FlawFactory(cve_id="CVE-2000-2000", embargoed=embargoed)
-        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_module = PsModuleFactory(bts_name="jboss", private_trackers_allowed=private)
         affect1 = AffectFactory(
             flaw=flaw1,
             ps_module=ps_module.name,
@@ -498,16 +544,38 @@ sla:
             type=Tracker.TrackerType.JIRA,
             embargoed=flaw1.is_embargoed,
         )
+        if valid_jira_field:
+            JiraProjectFieldsFactory(
+                project_key=ps_module.bts_key,
+                field_id="security",
+                field_name="Security Level",
+                allowed_values=[
+                    "Embargoed Security Issue",
+                    "Red Hat Employee",
+                    "Red Hat Engineering Authorized",
+                    "Red Hat Partner",
+                    "Restricted",
+                    "Team",
+                ],
+            )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
-        query_builder._query = {"fields": {}}
-        query_builder.generate_security()
-        security = query_builder.query["fields"]["security"]
+        if valid_jira_field or (not private and not embargoed):
+            query_builder = TrackerJiraQueryBuilder(tracker)
+            query_builder._query = {"fields": {}}
+            query_builder.generate_security()
+            security = query_builder.query["fields"]["security"]
 
-        if embargoed:
-            assert security == {"name": "Embargoed Security Issue"}
+            if embargoed:
+                assert security == {"name": "Embargoed Security Issue"}
+            elif private:
+                assert security == {"name": "Red Hat Employee"}
+            else:
+                assert security is None
         else:
-            assert security is None
+            with pytest.raises(NoSecurityLevelAvailableError):
+                query_builder = TrackerJiraQueryBuilder(tracker)
+                query_builder._query = {"fields": {}}
+                query_builder.generate_security()
 
     @pytest.mark.parametrize(
         "additional_fields, jira_fields",

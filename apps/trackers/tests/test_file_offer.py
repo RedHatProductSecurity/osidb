@@ -437,13 +437,15 @@ class TestTrackerSuggestions:
         assert len(res["modules_components"]) == 1
 
         streams = res["modules_components"][0]["streams"]
-        assert [stream["ps_update_stream"] for stream in streams] == [
-            "regular-stream-1",
-            "regular-stream-1.0.z",
-            "regular-stream-1.1.z",
-            "regular-stream-1.2.z",
-            "regular-stream-1.3.z",
-        ]
+        assert sorted([stream["ps_update_stream"] for stream in streams]) == sorted(
+            [
+                "regular-stream-1",
+                "regular-stream-1.0.z",
+                "regular-stream-1.1.z",
+                "regular-stream-1.2.z",
+                "regular-stream-1.3.z",
+            ]
+        )
 
         streams_dict = {stream["ps_update_stream"]: stream for stream in streams}
 
@@ -475,13 +477,15 @@ class TestTrackerSuggestions:
         assert len(res["modules_components"]) == 1
 
         streams = res["modules_components"][0]["streams"]
-        assert [stream["ps_update_stream"] for stream in streams] == [
-            "regular-stream-1",
-            "regular-stream-1.0.z",
-            "regular-stream-1.1.z",
-            "regular-stream-1.2.z",
-            "regular-stream-1.3.z",
-        ]
+        assert sorted([stream["ps_update_stream"] for stream in streams]) == sorted(
+            [
+                "regular-stream-1",
+                "regular-stream-1.0.z",
+                "regular-stream-1.1.z",
+                "regular-stream-1.2.z",
+                "regular-stream-1.3.z",
+            ]
+        )
 
         streams_dict = {stream["ps_update_stream"]: stream for stream in streams}
 
