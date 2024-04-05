@@ -4,6 +4,7 @@ Jira tracker query module
 import json
 import logging
 
+from apps.taskman.service import JiraTaskmanQuerier
 from collectors.jiraffe.core import JiraQuerier
 
 from .constants import JIRA_SERVER
@@ -45,9 +46,16 @@ class TrackerJiraSaver(JiraQuerier):
         """
         create a representation of tracker model in Jira
         """
-        query = TrackerJiraQueryBuilder(tracker).query
+        querybuilder = TrackerJiraQueryBuilder(tracker)
+        query = querybuilder.query
+        comment = querybuilder.query_comment
         issue = self.jira_conn.create_issue(fields=query["fields"], prefetch=True)
         tracker.external_system_id = issue.key
+        if comment:
+            JiraTaskmanQuerier(token=self._jira_token).create_comment(
+                issue_key=issue.key,
+                body=comment,
+            )
         return tracker
 
     def update(self, tracker):

@@ -3515,6 +3515,9 @@ class PsModule(NullStrFieldsMixin, ValidateMixin):
         models.CharField(max_length=50), default=list, blank=True
     )
     component_cc = models.JSONField(default=dict, blank=True)
+    private_tracker_cc = fields.ArrayField(
+        models.CharField(max_length=50), default=list, blank=True
+    )
 
     # Component overrides
     default_component = models.CharField(max_length=100, blank=True)

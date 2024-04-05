@@ -30,6 +30,7 @@ class AffectCCBuilder:
         self.ps_module_obj = PsModule.objects.get(name=affect.ps_module)
         self.embargoed = embargoed
 
+        # TODO why is it None if BTS is not bugzilla?
         self.bz_component = self.ps2bz_component() if self.is_bugzilla else None
 
     @property

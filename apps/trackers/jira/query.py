@@ -5,14 +5,16 @@ import json
 import logging
 from functools import cached_property
 
+from apps.bbsync.cc import AffectCCBuilder
 from apps.sla.framework import SLAFramework
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import (
     NoPriorityAvailableError,
     NoSecurityLevelAvailableError,
+    TrackerCreationError,
 )
 from apps.trackers.models import JiraProjectFields
-from osidb.models import Affect, Impact
+from osidb.models import Affect, Impact, PsContact
 from osidb.validators import CVE_RE_STR
 
 from .constants import (
@@ -63,6 +65,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         self.instance = instance
         self._query = None
+        self._comment = None
 
     @cached_property
     def impact(self):
@@ -91,6 +94,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         self.generate_versions()
         self.generate_additional_fields()
         self.generate_security()
+        self.generate_cc()
 
     def generate_base(self):
         self._query = {
@@ -267,3 +271,89 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
                     continue
 
                 self._query["fields"][PS_ADDITIONAL_FIELD_TO_JIRA[name]] = field_value
+
+    def generate_cc(self):
+        """
+        generate query for CC list
+        """
+
+        # Each instance of TrackerJiraQueryBuilder is used only once, but if ever used twice,
+        # always produce consistent query and comment.
+        self._comment = None
+
+        if self.tracker.external_system_id:
+            # Add CCs only on creation.
+            return
+
+        # NOTE That SFM2 for Jira tracker creation uses ps_module.component_overrides only for
+        #      generating Jira "components" field, which OSIDB doesn't do, but not for CC lists;
+        #      CC list creation is based solely on ps_component, not on bz_component.
+        #      Therefore AffectCCBuilder.ps2bz_component is not reused here.
+        #      TODO: Is this a bug?
+        # Parse BZ component
+        if self.ps_component and "/" in self.ps_component:
+            bz_component = self.ps_component.split("/")[-1]
+        else:
+            bz_component = self.ps_component
+
+        # embargoed value unused here
+        affect_cc_builder = AffectCCBuilder(
+            self.tracker.affects.first(), embargoed=None
+        )
+        # TODO: Why does AffectCCBuilder set bz_component to None?
+        affect_cc_builder.bz_component = bz_component
+        cc_list = set(affect_cc_builder.component_cc())
+
+        if self.ps_module.default_cc:
+            # Default CC List
+            cc_list.update(self.ps_module.default_cc)
+        if self.tracker.is_embargoed and self.ps_module.private_tracker_cc:
+            cc_list.update(self.ps_module.private_tracker_cc)
+
+        # Replaces contact aliases with appropriate emails/usernames if alias
+        # has the contact set for current BTS. Other records are made intact.
+        # NOTE: Similar functionality in AffectCCBuilder.expand_alias(),
+        #       but only for a single contact at a time.
+        contacts = dict(
+            PsContact.objects.all()
+            .values_list("username", "jboss_username")
+            .filter(username__in=cc_list)
+        )
+        cc_list = {contacts.get(cc, cc) for cc in cc_list}
+
+        if cc_list:
+            # Keep the order stable for ease of testing and debugging
+            cc_list = sorted(cc_list)
+
+            # Note that access control for the comment is not necessary because the whole
+            # tracker has access control set in generate_security().
+            notify_users = ", ".join([("[~%s]" % u) for u in cc_list])
+            self._comment = "Added involved users: " + notify_users
+
+            # contributors fields will replace the involved field
+            # but let us conditionally support both for smooth transition
+            if contr_field_obj := JiraProjectFields.objects.filter(
+                project_key=self.ps_module.bts_key, field_name="Contributors"
+            ).first():
+                self._query["fields"][contr_field_obj.field_id] = [
+                    {"name": un} for un in cc_list
+                ]
+            elif inv_field_obj := JiraProjectFields.objects.filter(
+                project_key=self.ps_module.bts_key, field_name="Involved"
+            ).first():
+                self._query["fields"][inv_field_obj.field_id] = [
+                    {"name": un} for un in cc_list
+                ]
+            else:
+                # At the time of writing this, all Jira projects have these fields.
+                raise TrackerCreationError(
+                    f"Jira project {self.ps_module.bts_key} does not have available field Contributors or "
+                    f"Involved. This is a regression on the part of the administration of that Jira project."
+                )
+
+    @property
+    def query_comment(self):
+        """
+        Retrieves the comment generated by .query(). Can be None if no comment was generated.
+        """
+        return self._comment
