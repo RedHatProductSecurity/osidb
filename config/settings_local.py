@@ -7,29 +7,26 @@ from .settings import *
 SECRET_KEY = get_random_secret_key()  # pragma: allowlist secret
 
 # Minimal group for read access of public flaws in OSIDB
-PUBLIC_READ_GROUPS = [
-    "data-prodsec",
-    "osidb-stage-public-read",
-]
+PUBLIC_READ_GROUPS = ["data-prodsec"]
 # Minimal group for write access of public flaws in OSIDB
-PUBLIC_WRITE_GROUP = ["data-prodsec-write", "osidb-stage-public-write"]
+PUBLIC_WRITE_GROUP = "data-prodsec-write"
 # Minimal group for read access of embargoed flaws in OSIDB
-EMBARGO_READ_GROUP = ["data-topsecret", "osidb-stage-embargo-read"]
+EMBARGO_READ_GROUP = "data-topsecret"
 # Minimal group for write access of embargoed flaws in OSIDB
-EMBARGO_WRITE_GROUP = ["data-topsecret-write", "osidb-stage-embargo-write"]
+EMBARGO_WRITE_GROUP = "data-topsecret-write"
 # Minimal group for read access of internal flaws in OSIDB
-INTERNAL_READ_GROUP = ["data-internal-read", "osidb-stage-internal-read"]
+INTERNAL_READ_GROUP = "data-internal-read"
 # Minimal group for write access of internal flaws in OSIDB
-INTERNAL_WRITE_GROUP = ["data-internal-write", "osidb-stage-internal-write"]
+INTERNAL_WRITE_GROUP = "data-internal-write"
 
 # Contains all non-admin groups
 ALL_GROUPS = [
     *PUBLIC_READ_GROUPS,
-    *PUBLIC_WRITE_GROUP,
-    *EMBARGO_READ_GROUP,
-    *EMBARGO_WRITE_GROUP,
-    *INTERNAL_READ_GROUP,
-    *INTERNAL_WRITE_GROUP,
+    PUBLIC_WRITE_GROUP,
+    EMBARGO_READ_GROUP,
+    EMBARGO_WRITE_GROUP,
+    INTERNAL_READ_GROUP,
+    INTERNAL_WRITE_GROUP,
 ]
 # Minimal group for managing the OSIDB service
 SERVICE_MANAGE_GROUP = "osidb-service-manage"
