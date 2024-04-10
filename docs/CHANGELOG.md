@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expose alerts on API for every model alert supported model,
   mainly Flaw, Affect, Tracker (OSIDB-2065)
 - Add support for additional_fields in Jira BTS (OSIDB-696)
+- Add scripts/restore_pg.sh script for restoring sql dump
 
 ### Changed
 - Ignore hosts on VCR recording (OSIDB-1678)
