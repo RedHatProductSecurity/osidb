@@ -84,6 +84,7 @@ services:
         OSIDB_CORS_ALLOW_HEADERS: ${OSIDB_CORS_ALLOW_HEADERS}
         OSIDB_DEBUG: ${OSIDB_DEBUG}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
+        PRODUCT_DEF_BRANCH: ${PRODUCT_DEF_BRANCH}
         PS_CONSTANTS_URL: ${PS_CONSTANTS_URL}
         SNIPPET_CREATION: ${SNIPPET_CREATION}
         SNIPPET_CREATION_START: ${SNIPPET_CREATION_START}
@@ -146,6 +147,7 @@ services:
         JIRA_URL: ${JIRA_URL}
         OSIDB_DEBUG: ${OSIDB_DEBUG}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
+        PRODUCT_DEF_BRANCH: ${PRODUCT_DEF_BRANCH}
         PS_CONSTANTS_URL: ${PS_CONSTANTS_URL}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
@@ -173,6 +175,7 @@ services:
         JIRA_URL: ${JIRA_URL}
         OSIDB_DEBUG: ${OSIDB_DEBUG}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
+        PRODUCT_DEF_BRANCH: ${PRODUCT_DEF_BRANCH}
         PS_CONSTANTS_URL: ${PS_CONSTANTS_URL}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
@@ -198,6 +201,7 @@ services:
         ET_URL: ${ET_URL}
         OSIDB_DEBUG: ${OSIDB_DEBUG}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
+        PRODUCT_DEF_BRANCH: ${PRODUCT_DEF_BRANCH}
         PS_CONSTANTS_URL: ${PS_CONSTANTS_URL}
       depends_on: ["redis", "osidb-data"]
 

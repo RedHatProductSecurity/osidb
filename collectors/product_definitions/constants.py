@@ -6,7 +6,7 @@ from osidb.helpers import get_env
 
 PRODUCT_DEFINITIONS_REPO_URL = get_env("PRODUCT_DEF_URL", "")
 
-PRODUCT_DEFINITIONS_REPO_BRANCH = "master"
+PRODUCT_DEFINITIONS_REPO_BRANCH = get_env("PRODUCT_DEF_BRANCH", "master")
 
 # Nested properties which should be remaped to normal properties
 PROPERTIES_MAP = {
