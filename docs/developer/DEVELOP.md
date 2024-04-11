@@ -4,11 +4,18 @@ Instructions on how to setup local dev environment and contribute to osidb.
 
 ## Development environment setup
 
+### Minimal requirements
+
+The following dependencies are required for development and deployment:
+* make
+* podman (docker)
+* podman-compose (docker-compose)
+
 ### Environment variables
 
 Before starting osidb, you need to define environment variables.
 
-Create a file named `.env`:
+Create a file named `.env` in repository root directory:
 
 ```
 # Bugzilla REST API key
@@ -90,18 +97,20 @@ If podman-compose older than 1.0 is used, `.env` values must not be quoted (e.g.
 
 Note that your `.env` file contains secrets you should not share. Make sure that it stays in `.gitignore` and that you don't commit it to git.
 
+**IMPORTANT:** Reference `.env` files for setting up OSIDB with Production or Stage instances are located in the `osidb-ops` repository in `env_files/` directory. Whenever a new environment variable is introduced in OSIDB it should be added to that reference files with relevant values as well.
+
 ### Image registries
 
 Before starting osidb the first time, or when updating to newer images, you need to log in to registries.
 
-Log in to **registry.redhat.io** using [customer portal](access.redhat.com) credentials
+Log in to **registry.redhat.io** using [customer portal](https://access.redhat.com) credentials
 ```
 > podman login registry.redhat.io
 Username: yourusername
 Password: ************
 ```
 
-Log in to **quay.io** using [Quay](quay.io) credentials
+Log in to **quay.io** using [Quay](https://quay.io) credentials
 ```
 > podman login quay.io
 Username: yourusername
@@ -152,12 +161,6 @@ $ rm -f .git/hooks/pre-commit
 ### Debugging dev-env
 
 If `make dev-env` doesn't work for some reason, the following details might help.
-
-The following dependencies are required for development and deployment:
-* make
-* podman (docker)
-* podman-compose (docker-compose)
-* prodsec lib (?TBD)
 
 The following dependencies are required for development, if running tests in Tox (outside of the testrunner container):
 * gcc
@@ -624,10 +627,10 @@ podman exec -it osidb-service python3 manage.py shell --settings=config.settings
 The two snippets above have make target shortcuts `make shell-local` and `make shell-service`.
 
 For any customization you can export the following env variables to change the DB settings:
- * FLAW_DB_NAME (default "osidb")
- * FLAW_DB_USER (default "osidb_admin_user")
- * FLAW_DB_HOST (default "localhost")
- * FLAW_DB_PORT (default "5432")
+ * OSIDB_DB_NAME (default "osidb")
+ * OSIDB_DB_USER (default "osidb_admin_user")
+ * OSIDB_DB_HOST (default "localhost")
+ * OSIDB_DB_PORT (default "5432")
 
 If you do that, it is recommended to also add these env variables to your virtual environment's activate script (eg. `venv/bin/activate`).
 
