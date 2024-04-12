@@ -91,7 +91,24 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         """
         generate query for CC list
         """
-        # TODO CC list module
+
+        # NOTE: AffectCCBuilder doesn't implement private_tracker_cc (as of April 2024).
+        #       This is not a problem because we will file BZ trackers only for public
+        #       projects (probably only Fedora).
+        if self.tracker.external_system_id:
+            # Add CCs only on creation.
+            return
+
+        affect_cc_builder = AffectCCBuilder(
+            self.tracker.affects.first(),
+            embargoed=self.tracker.is_embargoed,
+        )
+
+        # Keep the order stable for ease of testing and debugging
+        cc_list = sorted(set(affect_cc_builder.generate_cc()))
+
+        if cc_list:
+            self._query["cc"] = cc_list
 
     def generate_components(self):
         """
