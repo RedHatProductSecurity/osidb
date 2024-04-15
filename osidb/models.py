@@ -1277,7 +1277,17 @@ class Flaw(
             return
 
         if not Affect.objects.filter(flaw=self).exists():
-            raise ValidationError("Flaw does not contain any affects.")
+            err = ValidationError("Flaw does not contain any affects.")
+            # When a flaw in a "new" workflow state is modified, allow saving
+            # with no affects but issue an alert
+            if self.workflow_state == WorkflowModel.WorkflowState.NEW:
+                self.alert(
+                    "_validate_flaw_without_affect",
+                    err.message,
+                    _type="error",
+                )
+            else:
+                raise err
 
     def _validate_nonempty_impact(self):
         """
