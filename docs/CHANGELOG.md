@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   mainly Flaw, Affect, Tracker (OSIDB-2065)
 - Add support for additional_fields in Jira BTS (OSIDB-696)
 - Add scripts/restore_pg.sh script for restoring sql dump
+- Add db routing taking advantage of write and read pg replicas
 
 ### Changed
 - Ignore hosts on VCR recording (OSIDB-1678)
