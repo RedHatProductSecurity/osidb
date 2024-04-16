@@ -29,7 +29,7 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
-from apps.taskman.constants import SYNC_REQUIRED_FIELDS
+from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FIELDS
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.trackers.constants import SYNC_TO_JIRA
 from apps.workflows.workflow import WorkflowModel
@@ -1510,7 +1510,7 @@ class Flaw(
 
         If the flaw is not OSIDB-authored then it's a no-op.
         """
-        if not jira_token:
+        if not JIRA_TASKMAN_AUTO_SYNC_FLAW or not jira_token:
             return
 
         # imports here to prevent cycles
