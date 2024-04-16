@@ -1323,6 +1323,7 @@ class TestEndpointsFlaws:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 201
         body = response.json()
@@ -1357,6 +1358,7 @@ class TestEndpointsFlaws:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 201
         body = response.json()
@@ -1373,6 +1375,7 @@ class TestEndpointsFlaws:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 201
         body = response.json()
@@ -1410,6 +1413,7 @@ class TestEndpointsFlaws:
             },
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
         body = response.json()
@@ -1460,6 +1464,7 @@ class TestEndpointsFlaws:
             },
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
         body = response.json()
@@ -1551,6 +1556,7 @@ class TestEndpointsFlaws:
             },
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
 
         if alerts:
@@ -1583,6 +1589,7 @@ class TestEndpointsFlaws:
             },
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
 
         assert response.status_code == status.HTTP_409_CONFLICT
@@ -1614,6 +1621,7 @@ class TestEndpointsFlaws:
                 },
                 format="json",
                 HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
             )
 
         flaw = new_flaw()

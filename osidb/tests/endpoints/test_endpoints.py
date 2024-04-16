@@ -98,6 +98,7 @@ class TestEndpointsACLs:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 201
         body = response.json()
@@ -149,6 +150,7 @@ class TestEndpointsACLs:
             },
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
         body = response.json()
@@ -184,6 +186,7 @@ class TestEndpointsACLs:
                 },
                 format="json",
                 HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
             )
 
         assert response.status_code == 200
@@ -277,6 +280,7 @@ class TestEndpointsAtomicity:
             response = auth_client().delete(
                 f"{test_api_uri}/affects/{affect.uuid}",
                 HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
             )
             assert response.status_code == 400
 
@@ -313,7 +317,9 @@ class TestEndpointsAtomicity:
             m.setattr(settings, "DATABASES", db_settings)
 
             response = auth_client().delete(
-                f"{test_api_uri}/affects/{affect.uuid}", HTTP_BUGZILLA_API_KEY="SECRET"
+                f"{test_api_uri}/affects/{affect.uuid}",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
             )
             assert response.status_code == 400
 
@@ -410,6 +416,7 @@ class TestDeprecationHandling:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 201
         body = response.json()
@@ -426,6 +433,7 @@ class TestDeprecationHandling:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 201
         body = response.json()
@@ -458,6 +466,7 @@ class TestDeprecationHandling:
             },
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
         body = response.json()
