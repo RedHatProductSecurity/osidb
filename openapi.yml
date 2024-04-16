@@ -1323,11 +1323,13 @@ paths:
             - -cvss3_score
             - -cvss_scores__comment
             - -cvss_scores__created_dt
+            - -cvss_scores__cvss_version
             - -cvss_scores__issuer
             - -cvss_scores__score
             - -cvss_scores__updated_dt
             - -cvss_scores__uuid
             - -cvss_scores__vector
+            - -embargoed
             - -flaw__component
             - -flaw__components
             - -flaw__created_dt
@@ -1337,7 +1339,9 @@ paths:
             - -flaw__cvss3
             - -flaw__cvss3_score
             - -flaw__cwe_id
+            - -flaw__embargoed
             - -flaw__impact
+            - -flaw__is_major_incident
             - -flaw__nvd_cvss2
             - -flaw__nvd_cvss3
             - -flaw__reported_dt
@@ -1351,6 +1355,7 @@ paths:
             - -ps_module
             - -resolution
             - -trackers__created_dt
+            - -trackers__embargoed
             - -trackers__external_system_id
             - -trackers__ps_update_stream
             - -trackers__resolution
@@ -1369,11 +1374,13 @@ paths:
             - cvss3_score
             - cvss_scores__comment
             - cvss_scores__created_dt
+            - cvss_scores__cvss_version
             - cvss_scores__issuer
             - cvss_scores__score
             - cvss_scores__updated_dt
             - cvss_scores__uuid
             - cvss_scores__vector
+            - embargoed
             - flaw__component
             - flaw__components
             - flaw__created_dt
@@ -1383,7 +1390,9 @@ paths:
             - flaw__cvss3
             - flaw__cvss3_score
             - flaw__cwe_id
+            - flaw__embargoed
             - flaw__impact
+            - flaw__is_major_incident
             - flaw__nvd_cvss2
             - flaw__nvd_cvss3
             - flaw__reported_dt
@@ -1397,6 +1406,7 @@ paths:
             - ps_module
             - resolution
             - trackers__created_dt
+            - trackers__embargoed
             - trackers__external_system_id
             - trackers__ps_update_stream
             - trackers__resolution
@@ -6326,6 +6336,7 @@ paths:
             - -affects__cvss2_score
             - -affects__cvss3
             - -affects__cvss3_score
+            - -affects__embargoed
             - -affects__flaw__component
             - -affects__flaw__components
             - -affects__flaw__created_dt
@@ -6335,7 +6346,9 @@ paths:
             - -affects__flaw__cvss3
             - -affects__flaw__cvss3_score
             - -affects__flaw__cwe_id
+            - -affects__flaw__embargoed
             - -affects__flaw__impact
+            - -affects__flaw__is_major_incident
             - -affects__flaw__nvd_cvss2
             - -affects__flaw__nvd_cvss3
             - -affects__flaw__reported_dt
@@ -6352,6 +6365,7 @@ paths:
             - -affects__updated_dt
             - -affects__uuid
             - -created_dt
+            - -embargoed
             - -external_system_id
             - -ps_update_stream
             - -resolution
@@ -6365,6 +6379,7 @@ paths:
             - affects__cvss2_score
             - affects__cvss3
             - affects__cvss3_score
+            - affects__embargoed
             - affects__flaw__component
             - affects__flaw__components
             - affects__flaw__created_dt
@@ -6374,7 +6389,9 @@ paths:
             - affects__flaw__cvss3
             - affects__flaw__cvss3_score
             - affects__flaw__cwe_id
+            - affects__flaw__embargoed
             - affects__flaw__impact
+            - affects__flaw__is_major_incident
             - affects__flaw__nvd_cvss2
             - affects__flaw__nvd_cvss3
             - affects__flaw__reported_dt
@@ -6391,6 +6408,7 @@ paths:
             - affects__updated_dt
             - affects__uuid
             - created_dt
+            - embargoed
             - external_system_id
             - ps_update_stream
             - resolution

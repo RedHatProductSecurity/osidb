@@ -559,7 +559,12 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
         }
 
     order_fields = [
+        "cvss_scores__cvss_version",
+        "embargoed",
         "flaw__component",
+        "flaw__embargoed",
+        "flaw__is_major_incident",
+        "trackers__embargoed",
     ] + list(Meta.fields.keys())
     order = OrderingFilter(fields=order_fields)
 
@@ -672,6 +677,10 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
         }
 
     order_fields = [
+        "embargoed",
+        "affects__embargoed",
+        "affects__flaw__embargoed",
+        "affects__flaw__is_major_incident",
         "affects__flaw__component",
     ] + list(Meta.fields.keys())
     order = OrderingFilter(fields=order_fields)
