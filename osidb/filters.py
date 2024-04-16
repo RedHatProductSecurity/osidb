@@ -425,6 +425,7 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     order_fields = [
         "bz_id",
         "cve_id",
+        "component",
         "embargoed",
         "description",
         "is_major_incident",
@@ -557,7 +558,15 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
             "cvss_scores__vector": ["exact"],
         }
 
-    order = OrderingFilter(fields=Meta.fields.keys())
+    order_fields = [
+        "cvss_scores__cvss_version",
+        "embargoed",
+        "flaw__component",
+        "flaw__embargoed",
+        "flaw__is_major_incident",
+        "trackers__embargoed",
+    ] + list(Meta.fields.keys())
+    order = OrderingFilter(fields=order_fields)
 
 
 class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
@@ -667,7 +676,14 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
             "affects__flaw__components": ["exact"],
         }
 
-    order = OrderingFilter(fields=Meta.fields.keys())
+    order_fields = [
+        "embargoed",
+        "affects__embargoed",
+        "affects__flaw__embargoed",
+        "affects__flaw__is_major_incident",
+        "affects__flaw__component",
+    ] + list(Meta.fields.keys())
+    order = OrderingFilter(fields=order_fields)
 
 
 class FlawAcknowledgmentFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
