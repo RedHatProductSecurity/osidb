@@ -1328,6 +1328,7 @@ paths:
             - -cvss_scores__updated_dt
             - -cvss_scores__uuid
             - -cvss_scores__vector
+            - -flaw__component
             - -flaw__components
             - -flaw__created_dt
             - -flaw__cve_id
@@ -1373,6 +1374,7 @@ paths:
             - cvss_scores__updated_dt
             - cvss_scores__uuid
             - cvss_scores__vector
+            - flaw__component
             - flaw__components
             - flaw__created_dt
             - flaw__cve_id
@@ -3030,6 +3032,7 @@ paths:
             - -affects__updated_dt
             - -affects__uuid
             - -bz_id
+            - -component
             - -components
             - -created_dt
             - -cve_id
@@ -3103,6 +3106,7 @@ paths:
             - affects__updated_dt
             - affects__uuid
             - bz_id
+            - component
             - components
             - created_dt
             - cve_id
@@ -6322,6 +6326,7 @@ paths:
             - -affects__cvss2_score
             - -affects__cvss3
             - -affects__cvss3_score
+            - -affects__flaw__component
             - -affects__flaw__components
             - -affects__flaw__created_dt
             - -affects__flaw__cve_id
@@ -6360,6 +6365,7 @@ paths:
             - affects__cvss2_score
             - affects__cvss3
             - affects__cvss3_score
+            - affects__flaw__component
             - affects__flaw__components
             - affects__flaw__created_dt
             - affects__flaw__cve_id
