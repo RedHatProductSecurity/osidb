@@ -123,11 +123,6 @@ def link_bugs_to_errata(erratum_json_list: list[dict]):
             erratum_json["et_id"]
         )
 
-        if not flaw_ids:
-            # No way to avoid fetching data for this erratum
-            # But we can avoid storing it unnecessarily
-            continue
-
         erratum = Erratum.objects.create_erratum(**erratum_json)
         erratum.save(auto_timestamps=False)
 

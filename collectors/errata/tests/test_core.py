@@ -161,10 +161,10 @@ class TestErrataToolCollection:
         )
 
     @pytest.mark.vcr
-    def test_skip_saving_when_flaws_missing(
+    def test_saving_when_flaws_missing(
         self, sample_erratum_with_no_flaws, sample_erratum_name
     ):
-        """Test that we will not save an Erratum into the DB if it has no linked flaws in Errata Tool"""
+        """Test that Erratum is still saved the DB even if it has no linked flaws in Errata Tool."""
         link_bugs_to_errata(
             [
                 {
@@ -177,8 +177,7 @@ class TestErrataToolCollection:
             ]
         )
 
-        # No erratum was created
-        assert Erratum.objects.count() == 0
+        assert Erratum.objects.count() == 1
 
     @pytest.mark.default_cassette(JIRA_CASSETTE)
     @pytest.mark.vcr
