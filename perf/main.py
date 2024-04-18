@@ -1,9 +1,12 @@
-from locust import HttpUser, between, constant_pacing, task
+from locust import HttpUser, between, task
 
 
 class SFM2User(HttpUser):
     wait_time = between(1, 3)
     weight = 3
+
+    def on_start(self):
+        self.client.verify = False
 
     @task
     def get_nvd_cvss_scores(self):
@@ -13,6 +16,9 @@ class SFM2User(HttpUser):
 class SDEngineUser(HttpUser):
     wait_time = between(1, 3)
     weight = 3
+
+    def on_start(self):
+        self.client.verify = False
 
     @task(1)
     def get_status(self):
@@ -39,6 +45,9 @@ class SDEngineUser(HttpUser):
 class GriffonUser(HttpUser):
     wait_time = between(1, 3600)
     weight = 1
+
+    def on_start(self):
+        self.client.verify = False
 
     @task
     def get_affects_from_ps_product(self):
