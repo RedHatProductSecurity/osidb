@@ -99,13 +99,17 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
             # Add CCs only on creation.
             return
 
-        affect_cc_builder = AffectCCBuilder(
-            self.tracker.affects.first(),
-            embargoed=self.tracker.is_embargoed,
-        )
+        cc_list = set()
+
+        for affect in self.tracker.affects.all():
+            affect_cc_builder = AffectCCBuilder(
+                affect,
+                embargoed=self.tracker.is_embargoed,
+            )
+            cc_list.update(affect_cc_builder.generate_cc())
 
         # Keep the order stable for ease of testing and debugging
-        cc_list = sorted(set(affect_cc_builder.generate_cc()))
+        cc_list = sorted(cc_list)
 
         if cc_list:
             self._query["cc"] = cc_list

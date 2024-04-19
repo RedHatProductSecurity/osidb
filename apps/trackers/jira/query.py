@@ -296,13 +296,15 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         else:
             bz_component = self.ps_component
 
-        # embargoed value unused here
-        affect_cc_builder = AffectCCBuilder(
-            self.tracker.affects.first(), embargoed=None
-        )
-        # TODO: Why does AffectCCBuilder set bz_component to None?
-        affect_cc_builder.bz_component = bz_component
-        cc_list = set(affect_cc_builder.component_cc())
+        cc_list = set()
+        for affect in self.tracker.affects.all():
+            # embargoed value unused here
+            affect_cc_builder = AffectCCBuilder(
+                affect, embargoed=None
+            )
+            # TODO: Why does AffectCCBuilder set bz_component to None?
+            affect_cc_builder.bz_component = bz_component
+            cc_list.update(affect_cc_builder.component_cc())
 
         if self.ps_module.default_cc:
             # Default CC List

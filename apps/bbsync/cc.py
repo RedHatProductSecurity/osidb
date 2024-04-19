@@ -155,6 +155,9 @@ class AffectCCBuilder:
         if self.ps_module_obj.default_cc:
             cc_list.extend(self.ps_module_obj.default_cc)
 
+        if self.embargoed and self.ps_module_obj.private_tracker_cc:
+            cc_list.extend(self.ps_module_obj.private_tracker_cc)
+
         return cc_list
 
     def component_cc(self) -> List[str]:
