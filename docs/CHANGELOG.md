@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - Make workflows API RESTful (OSIDB-1716)
+- Minor change to enable perf tests to run in CI (OSIDB-2447)
 
 ## [3.7.0] - 2024-04-17
 ### Added
