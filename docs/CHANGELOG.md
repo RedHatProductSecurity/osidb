@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow searching by CVE similarity (OSIDB-2482)
 - Add CC lists to Jira trackers and to Bugzilla trackers (OSIDB-2191)
 - Enable flaw draft creation in BZ (OSIDB-2261)
+- Add support for UAT (OSIDB-2447)
 
 ### Changed
 - Make workflows API RESTful (OSIDB-1716)
