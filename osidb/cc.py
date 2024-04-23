@@ -66,15 +66,18 @@ class BaseAffectCCBuilder:
         cc_list = self.module_cc() + self.component_cc() + self.bugzilla_cc()
 
         cc_list = [self.expand_alias(cc) for cc in cc_list]
-        cc_list = [self.append_domain(cc) for cc in cc_list]
+        if self.is_bugzilla:
+            cc_list = [self.append_domain(cc) for cc in cc_list]
 
         if self.embargoed:
-            # if embargoed we need to additionally ensure that
-            # we do not add non-RH or bot or invalid accounts
+            # If embargoed we need to additionally ensure that
+            # we do not add non-RH or bot or invalid accounts.
+            # Non-email-formatted usernames are allowed For Jira.
             cc_list = [
                 cc
                 for cc in cc_list
-                if not self.is_blacklisted(cc) and self.is_redhat(cc)
+                if not self.is_blacklisted(cc)
+                and (self.is_redhat(cc) or ("@" not in cc and not self.is_bugzilla))
             ]
 
         return cc_list
@@ -220,8 +223,6 @@ class JiraAffectCCBuilder(BaseAffectCCBuilder):
             self.bz_component = self.ps_component.split("/")[-1]
         else:
             self.bz_component = self.ps_component
-
-    pass
 
 
 class BugzillaAffectCCBuilder(BaseAffectCCBuilder):

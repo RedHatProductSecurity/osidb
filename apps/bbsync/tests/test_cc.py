@@ -433,9 +433,16 @@ class TestAffectCCBuilder:
         assert add_cc == ["you@redhat.com"]
         assert not remove_cc
 
-    def test_append_domain(self):
+    @pytest.mark.parametrize(
+        "bts_name",
+        [
+            ("bugzilla"),
+            ("jboss"),
+        ],
+    )
+    def test_append_domain(self, bts_name):
         """
-        test that RH domain is added to CC without a domain
+        test that RH domain is added to CC without a domain for BZ-based affects
         """
         flaw = FlawFactory(embargoed=False)
         affect = AffectFactory(
@@ -443,18 +450,26 @@ class TestAffectCCBuilder:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
-        PsModuleFactory(
+        mod = PsModuleFactory(
             name=affect.ps_module,
             default_cc=["cat", "dog", "duck@fedora.org"],
+            bts_name=bts_name,
         )
 
         cc_builder = CCBuilder(flaw)
         add_cc, remove_cc = cc_builder.content
-        assert add_cc == [
-            "cat@redhat.com",
-            "dog@redhat.com",
-            "duck@fedora.org",
-        ]
+        if mod.bts_name == "bugzilla":
+            assert add_cc == [
+                "cat@redhat.com",
+                "dog@redhat.com",
+                "duck@fedora.org",
+            ]
+        else:
+            assert add_cc == [
+                "cat",
+                "dog",
+                "duck@fedora.org",
+            ]
         assert not remove_cc
 
     def test_expand_alias(self):

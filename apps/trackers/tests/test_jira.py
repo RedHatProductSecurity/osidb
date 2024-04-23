@@ -675,6 +675,7 @@ sla:
             component_cc=component_cc,
             private_tracker_cc=private_tracker_cc,
             default_cc=default_cc,
+            private_trackers_allowed=True,
         )
         ps_update_stream = PsUpdateStreamFactory(
             ps_module=ps_module,

@@ -13,8 +13,8 @@ from apps.trackers.exceptions import (
     TrackerCreationError,
 )
 from apps.trackers.models import JiraProjectFields
-from osidb.cc import BugzillaAffectCCBuilder  # TODO use JiraAffectCCBuilder instead
-from osidb.models import Affect, Impact, PsContact
+from osidb.cc import JiraAffectCCBuilder
+from osidb.models import Affect, Impact
 from osidb.validators import CVE_RE_STR
 
 from .constants import (
@@ -285,42 +285,12 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
             # Add CCs only on creation.
             return
 
-        # NOTE That SFM2 for Jira tracker creation uses ps_module.component_overrides only for
-        #      generating Jira "components" field, which OSIDB doesn't do, but not for CC lists;
-        #      CC list creation is based solely on ps_component, not on bz_component.
-        #      Therefore AffectCCBuilder.ps2bz_component is not reused here.
-        #      TODO: Is this a bug?
-        # Parse BZ component
-        if self.ps_component and "/" in self.ps_component:
-            bz_component = self.ps_component.split("/")[-1]
-        else:
-            bz_component = self.ps_component
-
         cc_list = set()
         for affect in self.tracker.affects.all():
-            # embargoed value unused here
-            # TODO use JiraAffectCCBuilder!
-            affect_cc_builder = BugzillaAffectCCBuilder(affect, embargoed=None)
-            # TODO: Why does AffectCCBuilder set bz_component to None?
-            affect_cc_builder.bz_component = bz_component
-            cc_list.update(affect_cc_builder.component_cc())
-
-        if self.ps_module.default_cc:
-            # Default CC List
-            cc_list.update(self.ps_module.default_cc)
-        if self.tracker.is_embargoed and self.ps_module.private_tracker_cc:
-            cc_list.update(self.ps_module.private_tracker_cc)
-
-        # Replaces contact aliases with appropriate emails/usernames if alias
-        # has the contact set for current BTS. Other records are made intact.
-        # NOTE: Similar functionality in AffectCCBuilder.expand_alias(),
-        #       but only for a single contact at a time.
-        contacts = dict(
-            PsContact.objects.all()
-            .values_list("username", "jboss_username")
-            .filter(username__in=cc_list)
-        )
-        cc_list = {contacts.get(cc, cc) for cc in cc_list}
+            affect_cc_builder = JiraAffectCCBuilder(
+                affect, embargoed=self.tracker.is_embargoed
+            )
+            cc_list.update(affect_cc_builder.generate_cc())
 
         if cc_list:
             # Keep the order stable for ease of testing and debugging
