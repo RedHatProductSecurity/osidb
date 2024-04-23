@@ -39,12 +39,12 @@ class TestOSVCollector:
         assert snippet.external_id == "GHSA-w4f8-fxq2-j35v"
         assert snippet.content["cve_id"] is None
 
-    # NOTE: cassette updates may be required to comply with published date
     @pytest.mark.vcr
     def test_collect_multi_cve_osv_record(self):
         """Test fetching a single OSV record that points to multiple CVEs."""
         osvc = OSVCollector()
         osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = None
         osvc.collect(osv_id="PYSEC-2022-245")
 
         assert Snippet.objects.count() == 2

@@ -229,7 +229,7 @@ class OSVCollector(Collector):
 
         def get_title(data: dict) -> str:
             #  https://ossf.github.io/osv-schema/#summary-details-fields
-            return data.get("summary", "")
+            return data.get("summary", "from OSV collector")
 
         def get_cvss(data: dict) -> list:
             # https://ossf.github.io/osv-schema/#severity-field

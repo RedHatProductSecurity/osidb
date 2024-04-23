@@ -2,41 +2,9 @@ import pytest
 
 from apps.workflows.workflow import WorkflowModel
 from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource, FlawType, Snippet
+from osidb.tests.factories import SnippetFactory
 
 pytestmark = pytest.mark.unit
-
-
-def get_snippet(cve_id="CVE-2023-0001"):
-    """
-    Example snippet getter with a customizable `cve_id`.
-    """
-    content = {
-        "cve_id": cve_id,
-        "cvss_scores": [
-            {
-                "score": 8.1,
-                "issuer": FlawCVSS.CVSSIssuer.NIST,
-                "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
-                "version": FlawCVSS.CVSSVersion.VERSION3,
-            },
-        ],
-        "cwe_id": "CWE-110",
-        "description": "some description",
-        "references": [
-            {
-                "url": f"https://nvd.nist.gov/vuln/detail/{cve_id}",
-                "type": FlawReference.FlawReferenceType.SOURCE,
-            },
-        ],
-        "source": Snippet.Source.NVD,
-        "title": "from NVD collector",
-        "published_in_nvd": "2024-01-21T16:29:00.393Z",
-    }
-
-    snippet = Snippet(source=Snippet.Source.NVD, external_id=cve_id, content=content)
-    snippet.save()
-
-    return snippet
 
 
 class TestSnippet:
@@ -44,7 +12,7 @@ class TestSnippet:
         """
         Tests the creation of a snippet.
         """
-        snippet = get_snippet()
+        snippet = SnippetFactory()
 
         assert snippet
         assert snippet.acl_read == internal_read_groups
@@ -58,7 +26,7 @@ class TestSnippet:
         """
         Tests the creation of a flaw from a snippet.
         """
-        snippet = get_snippet()
+        snippet = SnippetFactory(source=Snippet.Source.NVD)
         content = snippet.content
 
         created_flaw = snippet._create_flaw()
@@ -118,7 +86,7 @@ class TestSnippet:
         """
         Tests the conversion of a snippet into a flaw and their linking.
         """
-        snippet = get_snippet(cve_id)
+        snippet = SnippetFactory(source=Snippet.Source.NVD)
 
         if has_flaw:
             f = snippet._create_flaw()
