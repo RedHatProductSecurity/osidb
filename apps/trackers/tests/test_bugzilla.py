@@ -553,14 +553,7 @@ sla:
                 expected_component_cc = []
 
             if tracker.embargoed:
-                # BugzillaTrackerQueryBuilder uses AffectCCBuilder for creating the CC list.
-                # AffectCCBuilder doesn't implement private_tracker_cc (as of April 2024).
-                # This is not a problem because we will file BZ trackers only for public
-                # projects (probably only Fedora).
-
-                # Being explicit.
-                # NOT: expected_private_tracker_cc = private_tracker_cc
-                expected_private_tracker_cc = []
+                expected_private_tracker_cc = private_tracker_cc
             else:
                 expected_private_tracker_cc = []
 

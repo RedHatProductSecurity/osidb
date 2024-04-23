@@ -8,6 +8,7 @@ from apps.bbsync.models import BugzillaComponent
 from apps.bbsync.query import BugzillaQueryBuilder
 from apps.sla.framework import SLAFramework
 from apps.trackers.common import TrackerQueryBuilder
+from osidb.cc import BugzillaAffectCCBuilder
 from osidb.models import Flaw
 
 logger = logging.getLogger(__name__)
@@ -92,9 +93,6 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         generate query for CC list
         """
 
-        # NOTE: AffectCCBuilder doesn't implement private_tracker_cc (as of April 2024).
-        #       This is not a problem because we will file BZ trackers only for public
-        #       projects (probably only Fedora).
         if self.tracker.external_system_id:
             # Add CCs only on creation.
             return
@@ -102,7 +100,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         cc_list = set()
 
         for affect in self.tracker.affects.all():
-            affect_cc_builder = AffectCCBuilder(
+            affect_cc_builder = BugzillaAffectCCBuilder(
                 affect,
                 embargoed=self.tracker.is_embargoed,
             )

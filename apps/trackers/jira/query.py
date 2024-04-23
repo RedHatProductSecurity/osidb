@@ -5,7 +5,6 @@ import json
 import logging
 from functools import cached_property
 
-from apps.bbsync.cc import AffectCCBuilder
 from apps.sla.framework import SLAFramework
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import (
@@ -14,6 +13,7 @@ from apps.trackers.exceptions import (
     TrackerCreationError,
 )
 from apps.trackers.models import JiraProjectFields
+from osidb.cc import BugzillaAffectCCBuilder  # TODO use JiraAffectCCBuilder instead
 from osidb.models import Affect, Impact, PsContact
 from osidb.validators import CVE_RE_STR
 
@@ -299,9 +299,8 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         cc_list = set()
         for affect in self.tracker.affects.all():
             # embargoed value unused here
-            affect_cc_builder = AffectCCBuilder(
-                affect, embargoed=None
-            )
+            # TODO use JiraAffectCCBuilder!
+            affect_cc_builder = BugzillaAffectCCBuilder(affect, embargoed=None)
             # TODO: Why does AffectCCBuilder set bz_component to None?
             affect_cc_builder.bz_component = bz_component
             cc_list.update(affect_cc_builder.component_cc())
