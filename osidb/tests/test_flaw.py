@@ -1876,15 +1876,24 @@ class TestFlawValidators:
         flaw.save(raise_validation_error=False)
 
     def test_validate_flaw_without_affect(self):
-        """test that flaws without affect raises an error on editing"""
+        """
+        test that flaws without affect raises an error on editing,
+        unless it is in a new workflow state
+        """
         flaw1 = FlawFactory()
         AffectFactory(flaw=flaw1)
         assert flaw1.save() is None
 
-        flaw2 = FlawFactory()
+        flaw2 = FlawFactory(workflow_state=WorkflowModel.WorkflowState.TRIAGE)
         with pytest.raises(ValidationError) as e:
             flaw2.save()
         assert "Flaw does not contain any affects." in str(e)
+
+        # Flaws in the 'new' state can be edited without any affects, but
+        # an alert is raised
+        flaw3 = FlawFactory(workflow_state=WorkflowModel.WorkflowState.NEW)
+        assert flaw3.save() is None
+        assert bool("_validate_flaw_without_affect" in flaw3._alerts)
 
     def test_no_impact(self):
         """
