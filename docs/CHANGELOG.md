@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Add new OSV option into FlawSource
+
 ### Changed
 - Make workflows API RESTful (OSIDB-1716)
 - Minor change to enable perf tests to run in CI (OSIDB-2447)

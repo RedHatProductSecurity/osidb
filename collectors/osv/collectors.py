@@ -169,12 +169,13 @@ class OSVCollector(Collector):
         if not cve_ids:
             # This keeps the structure consistent and ease snippets filtering without cve_id
             content["cve_id"] = None
-            _, created = Snippet.objects.update_or_create(
+            snippet, created = Snippet.objects.update_or_create(
                 source=Snippet.Source.OSV,
                 external_id=osv_id,
                 defaults={"content": content},
             )
             if created:
+                snippet.convert_snippet_to_flaw()
                 return 1, 0
             else:
                 return 0, 1
@@ -186,12 +187,13 @@ class OSVCollector(Collector):
                 # We need a unique ID and because we're creating a separate snippet for each
                 # CVE ID we can create a unique ID by appending that CVE ID to the OSV ID.
                 external_id = f"{osv_id}/{cve_id}"
-                _, created = Snippet.objects.update_or_create(
+                snippet, created = Snippet.objects.update_or_create(
                     source=Snippet.Source.OSV,
                     external_id=external_id,
                     defaults={"content": snippet_content},
                 )
                 if created:
+                    snippet.convert_snippet_to_flaw()
                     created += 1
                 else:
                     updated += 1
