@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Add new OSV option into FlawSource
+- Allow searching by CVE similarity (OSIDB-2482)
 
 ### Changed
 - Make workflows API RESTful (OSIDB-1716)

@@ -261,3 +261,51 @@ class TestSearch:
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 2
+
+    def test_search_flaws_by_similar_cve(self, auth_client, test_api_uri):
+        """Test searching flaws by similar or partial CVEs."""
+        response = auth_client().get(f"{test_api_uri}/flaws")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
+
+        FlawFactory(
+            title="title",
+            description="description",
+            summary="summary",
+            embargoed=False,
+            statement="statement",
+            cve_id="CVE-2001-0414",
+        )
+        FlawFactory(
+            title="other flaw",
+            description="description",
+            summary="summary",
+            embargoed=False,
+            statement="statement",
+            cve_id="CVE-2001-0489",
+        )
+        FlawFactory(
+            title="flaw with different CVE",
+            description="description",
+            summary="summary",
+            embargoed=False,
+            statement="statement",
+            cve_id="CVE-2008-0514",
+        )
+
+        # Search with partial CVE
+        response = auth_client().get(f"{test_api_uri}/flaws?search=CVE-2001-04")
+        assert response.status_code == 200
+        body = response.json()
+        # The third flaw should not be found with this query
+        assert body["count"] == 2
+        assert body["results"][0]["cve_id"] == "CVE-2001-0414"
+        assert body["results"][1]["cve_id"] == "CVE-2001-0489"
+
+        # Search with similar CVE
+        response = auth_client().get(f"{test_api_uri}/flaws?search=CVE-2001-0417")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"][0]["cve_id"] == "CVE-2001-0414"

@@ -9,7 +9,12 @@ from cvss import CVSS2, CVSS3, CVSS4, CVSSError
 from django.contrib.auth.models import User
 from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
-from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.contrib.postgres.search import (
+    SearchQuery,
+    SearchRank,
+    SearchVector,
+    TrigramSimilarity,
+)
 from django.core.exceptions import (
     FieldDoesNotExist,
     MultipleObjectsReturned,
@@ -86,15 +91,26 @@ def search_helper(
         # Logic to set weights makes this more complicated
         vector = (
             SearchVector("title", weight="A")
+            + SearchVector("cve_id", weight="A")
             + SearchVector("description", weight="B")
             + SearchVector("summary", weight="C")
             + SearchVector("statement", weight="D")
         )
 
+    # Allow searching CVEs by similarity instead of tokens like full-text search does.
+    # Using tokens, the word 'securit' will not match with 'security', and 'CVE-2001-04'
+    # will not match with 'CVE-2001-0414'. This behavior may be intended for text based fields, but
+    # when searching for CVEs it's probably because the user forgot part of, or the order of, the numbers.
+    similarity = TrigramSimilarity("cve_id", field_value)
+
     rank = SearchRank(vector, query, cover_density=True)
     # Consider proximity of matching terms when ranking
 
-    return queryset.annotate(rank=rank).filter(rank__gt=0).order_by("-rank")
+    return (
+        queryset.annotate(rank=rank, similarity=similarity)
+        # The similarity threshold of 0.7 has been found by trial and error to work best with CVEs
+        .filter(Q(rank__gt=0) | Q(similarity__gt=0.7)).order_by("-rank")
+    )
     # Add "rank" column to queryset based on search result relevance
     # Exclude results that don't match (rank 0)
     # Order remaining results from highest rank to lowest
