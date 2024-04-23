@@ -67,6 +67,7 @@ class SRTNotesBuilder:
         self.generate_affects()
         self.generate_date("unembargo_dt", "public")
         self.generate_date("reported_dt", "reported")
+        self.generate_external_ids()
         self.generate_impact()
         self.generate_jira_trackers()
         self.generate_references()
@@ -157,6 +158,15 @@ class SRTNotesBuilder:
 
         else:
             self._json[srtnotes_attribute] = date_value.strftime(DATETIME_FMT)
+
+    def generate_external_ids(self):
+        """
+        generate array of external_ids to SRT notes
+        """
+        self.add_conditionally(
+            "external_ids",
+            [snippet.external_id for snippet in self.flaw.snippets.all()],
+        )
 
     def generate_impact(self):
         """

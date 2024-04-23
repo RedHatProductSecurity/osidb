@@ -2,7 +2,8 @@ import pytest
 from django.utils.timezone import datetime, make_aware
 
 from collectors.osv.collectors import OSVCollector
-from osidb.models import Snippet
+from osidb.models import Flaw, Snippet
+from osidb.tests.factories import FlawFactory
 
 pytestmark = pytest.mark.integration
 
@@ -25,6 +26,25 @@ class TestOSVCollector:
         assert snippet.external_id == "GO-2023-2400/CVE-2023-50424"
         assert snippet.content["references"]
         assert snippet.content["cve_id"] == "CVE-2023-50424"
+        assert Flaw.objects.count() == 1
+
+    @pytest.mark.vcr
+    @pytest.mark.default_cassette("TestOSVCollector.test_collect_osv_record.yaml")
+    def test_collect_osv_record_when_flaw_exists(self):
+        """Test fetching a single OSV record when a flaw already exists."""
+        flaw = FlawFactory(cve_id="CVE-2023-50424", meta_attr={})
+        assert Flaw.objects.count() == 1
+
+        osvc = OSVCollector()
+        osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = None
+        osvc.collect(osv_id="GO-2023-2400")
+
+        snippet = Snippet.objects.last()
+        assert Snippet.objects.count() == 1
+        assert snippet.flaw == flaw
+        assert snippet.content["cve_id"] == flaw.cve_id
+        assert Flaw.objects.count() == 1
 
     @pytest.mark.vcr
     def test_collect_osv_record_without_cve(self):
@@ -39,12 +59,18 @@ class TestOSVCollector:
         assert snippet.external_id == "GHSA-w4f8-fxq2-j35v"
         assert snippet.content["cve_id"] is None
 
-    # NOTE: cassette updates may be required to comply with published date
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.cve_id is None
+        # meta_attr with external id will be created later by BZ two-way sync
+        assert flaw.meta_attr == {}
+
     @pytest.mark.vcr
     def test_collect_multi_cve_osv_record(self):
         """Test fetching a single OSV record that points to multiple CVEs."""
         osvc = OSVCollector()
         osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = None
         osvc.collect(osv_id="PYSEC-2022-245")
 
         assert Snippet.objects.count() == 2
@@ -55,6 +81,7 @@ class TestOSVCollector:
         assert snippet_2.content["cve_id"] == "CVE-2022-45442"
 
         assert snippet_1.content["title"] == snippet_2.content["title"]
+        assert Flaw.objects.count() == 2
 
     @pytest.mark.vcr
     def test_historical_osv_record(self):
@@ -64,3 +91,4 @@ class TestOSVCollector:
         osvc.snippet_creation_start_date = make_aware(datetime(2024, 1, 1))
         osvc.collect(osv_id="GO-2023-1602")  # published in 2023
         assert Snippet.objects.count() == 0
+        assert Flaw.objects.count() == 0

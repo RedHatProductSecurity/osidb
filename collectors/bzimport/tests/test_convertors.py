@@ -888,6 +888,7 @@ class TestFlawConvertor:
         return """
         {
             "affects": [],
+            "external_ids": ["CVE-2000-1234"],
             "impact": "moderate",
             "public": "2000-04-04T00:00:00Z",
             "reported": "2000-01-01T00:00:00Z",
@@ -1614,6 +1615,27 @@ class TestFlawConvertor:
 
         assert "bz_component" in flaw.meta_attr
         assert flaw.meta_attr["bz_component"] == flaw_bug["component"]
+
+    def test_external_ids_meta_attr(self):
+        """
+        Test saving "external_ids" in Flaw.meta_attr
+        """
+        flaw_bug = self.get_flaw_bug()
+
+        fbc = FlawConvertor(
+            flaw_bug,
+            [],
+            None,
+            None,
+            [],
+            [],
+        )
+        [flaw] = fbc.bug2flaws()
+        flaw.save()
+        flaw = Flaw.objects.first()
+
+        assert "external_ids" in flaw.meta_attr
+        assert flaw.cve_id in flaw.meta_attr["external_ids"]
 
     def test_summary_meta_attr(self):
         """

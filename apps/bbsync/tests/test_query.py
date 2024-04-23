@@ -19,6 +19,7 @@ from osidb.models import (
     FlawCVSS,
     FlawSource,
     Impact,
+    Snippet,
     Tracker,
 )
 from osidb.tests.factories import (
@@ -32,6 +33,7 @@ from osidb.tests.factories import (
     PackageFactory,
     PackageVerFactory,
     PsModuleFactory,
+    SnippetFactory,
     TrackerFactory,
 )
 
@@ -408,6 +410,19 @@ class TestGenerateSRTNotes:
         assert rhel8affect["impact"] is None
         assert rhel8affect["cvss2"] is None
         assert rhel8affect["cvss3"] is None
+
+    def test_generate_external_ids(self):
+        """
+        test generating of SRT external_ids attribute array
+        """
+        flaw = FlawFactory()
+        snippet = SnippetFactory(source=Snippet.Source.NVD, flaw=flaw)
+
+        bqb = FlawBugzillaQueryBuilder(flaw)
+        cf_srtnotes = bqb.query.get("cf_srtnotes")
+        cf_srtnotes_json = json.loads(cf_srtnotes)
+        external_ids = cf_srtnotes_json.get("external_ids", [])
+        assert external_ids == [snippet.external_id]
 
     def test_generate_references(self):
         """

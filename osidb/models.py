@@ -284,6 +284,7 @@ class FlawSource(models.TextChoices):
     ORACLE = "ORACLE"
     OSS = "OSS"
     OSS_SECURITY = "OSSSECURITY"
+    OSV = "OSV"
     PHP = "PHP"
     PIDGIN = "PIDGIN"
     POSTGRESQL = "POSTGRESQL"
@@ -455,6 +456,7 @@ class FlawSource(models.TextChoices):
     def from_snippet(self):
         return {
             self.NVD,
+            self.OSV,
         }
 
     def is_private(self):
@@ -1592,20 +1594,24 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
 
     def convert_snippet_to_flaw(self) -> Union[Flaw, None]:
         """
-        Creates a new flaw from the snippet's content if a flaw with the given cve_id
+        Creates a new flaw from the snippet's content if a flaw with the given cve_id/external_id
         does not exist, and links them together. If a flaw already exists and does not
         contain the snippet of the current source, the snippet will be linked to it.
 
         Returns a flaw if it was newly created, None otherwise.
         """
+        # unlike NVD, OSV may not always have a cve_id, so we have to check external_id as well
         cve_id = self.content["cve_id"]
+        external_id = self.external_id
         created_flaw = None
 
-        if not cve_id or not Flaw.objects.filter(cve_id=cve_id):
+        if cve_id and (f := Flaw.objects.filter(cve_id=cve_id)):
+            flaw = f.first()
+        elif f := Flaw.objects.filter(meta_attr__external_ids__contains=external_id):
+            flaw = f.first()
+        else:
             flaw = self._create_flaw()
             created_flaw = flaw
-        else:
-            flaw = Flaw.objects.filter(cve_id=cve_id).first()
 
         # links either a newly created or an already existing flaw to the snippet
         self.flaw = flaw
@@ -1649,6 +1655,10 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
             for data in list_of_data:
                 related_model = model(flaw=flaw, **data, **shared_acl)
                 related_model.save()
+
+        # link newly created flaw to this snippet
+        self.flaw = flaw
+        self.save()
 
         return flaw
 

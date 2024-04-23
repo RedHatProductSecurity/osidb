@@ -10,6 +10,7 @@ from django.conf import settings
 from pytz import UTC
 
 from osidb.constants import AFFECTEDNESS_VALID_RESOLUTIONS, DATETIME_FMT
+from osidb.core import generate_acls
 from osidb.models import (
     CVSS,
     Affect,
@@ -29,6 +30,7 @@ from osidb.models import (
     PsModule,
     PsProduct,
     PsUpdateStream,
+    Snippet,
     Tracker,
 )
 
@@ -504,6 +506,67 @@ class PsUpdateStreamFactory(factory.django.DjangoModelFactory):
     aus_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
     eus_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
     unacked_to_ps_module = factory.LazyAttribute(lambda o: choice([o.ps_module, None]))
+
+
+class SnippetFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Snippet
+
+    class Params:
+        ext_id = factory.LazyAttribute(
+            lambda f: "CVE-2023-0001" if f.source == Snippet.Source.NVD else "GHSA-0001"
+        )
+        cve_id = factory.LazyAttribute(
+            lambda f: "CVE-2023-0001"
+            if f.source == Snippet.Source.NVD
+            else "CVE-2024-0001"
+        )
+        url = factory.LazyAttribute(
+            lambda f: "https://nvd.nist.gov/vuln/detail/CVE-2023-0001"
+            if f.source == Snippet.Source.NVD
+            else "https://osv.dev/vulnerability/GHSA-0001"
+        )
+
+    source = factory.Faker(
+        "random_element", elements=[Snippet.Source.NVD, Snippet.Source.OSV]
+    )
+    external_id = factory.LazyAttribute(lambda f: f.ext_id)
+
+    @factory.lazy_attribute
+    def content(self):
+        data = {
+            "cve_id": self.cve_id,
+            "cvss_scores": [
+                {
+                    "score": 8.1,
+                    "issuer": FlawCVSS.CVSSIssuer.NIST,
+                    "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                    "version": FlawCVSS.CVSSVersion.VERSION3,
+                }
+            ],
+            "cwe_id": "CWE-110",
+            "description": "some description",
+            "references": [
+                {"url": self.url, "type": FlawReference.FlawReferenceType.SOURCE}
+            ],
+            "source": self.source,
+            "title": f"from {self.source} collector",
+        }
+
+        if self.source == Snippet.Source.NVD:
+            data.update({"published_in_nvd": "2024-01-21T16:29:00.393Z"})
+        else:
+            # only the currently used OSV fields are included
+            data.update({"published_in_osv": "2024-01-21T16:29:00.393Z"})
+        return data
+
+    created_dt = factory.Faker("date_time", tzinfo=UTC)
+    updated_dt = factory.Faker("date_time", tzinfo=UTC)
+
+    acl_read = [uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])]
+    acl_write = [
+        uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
+    ]
 
 
 class TrackerFactory(BaseFactory):

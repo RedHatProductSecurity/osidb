@@ -1,42 +1,10 @@
 import pytest
 
 from apps.workflows.workflow import WorkflowModel
-from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource, FlawType, Snippet
+from osidb.models import Flaw, FlawCVSS, FlawReference, FlawType, Snippet
+from osidb.tests.factories import FlawFactory, SnippetFactory
 
 pytestmark = pytest.mark.unit
-
-
-def get_snippet(cve_id="CVE-2023-0001"):
-    """
-    Example snippet getter with a customizable `cve_id`.
-    """
-    content = {
-        "cve_id": cve_id,
-        "cvss_scores": [
-            {
-                "score": 8.1,
-                "issuer": FlawCVSS.CVSSIssuer.NIST,
-                "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
-                "version": FlawCVSS.CVSSVersion.VERSION3,
-            },
-        ],
-        "cwe_id": "CWE-110",
-        "description": "some description",
-        "references": [
-            {
-                "url": f"https://nvd.nist.gov/vuln/detail/{cve_id}",
-                "type": FlawReference.FlawReferenceType.SOURCE,
-            },
-        ],
-        "source": Snippet.Source.NVD,
-        "title": "from NVD collector",
-        "published_in_nvd": "2024-01-21T16:29:00.393Z",
-    }
-
-    snippet = Snippet(source=Snippet.Source.NVD, external_id=cve_id, content=content)
-    snippet.save()
-
-    return snippet
 
 
 class TestSnippet:
@@ -44,7 +12,7 @@ class TestSnippet:
         """
         Tests the creation of a snippet.
         """
-        snippet = get_snippet()
+        snippet = SnippetFactory()
 
         assert snippet
         assert snippet.acl_read == internal_read_groups
@@ -58,7 +26,7 @@ class TestSnippet:
         """
         Tests the creation of a flaw from a snippet.
         """
-        snippet = get_snippet()
+        snippet = SnippetFactory(source=Snippet.Source.NVD)
         content = snippet.content
 
         created_flaw = snippet._create_flaw()
@@ -74,7 +42,7 @@ class TestSnippet:
         assert flaw.description == content["description"]
         assert flaw.meta_attr == {}
         assert flaw.references.count() == 1
-        assert flaw.snippets.count() == 0
+        assert flaw.snippets.count() == 1
         assert flaw.source == snippet.source
         assert flaw.title == content["title"]
         assert flaw.type == FlawType.VULNERABILITY
@@ -90,6 +58,12 @@ class TestSnippet:
         assert flaw_ref.type == FlawReference.FlawReferenceType.SOURCE
         assert flaw_ref.url == "https://nvd.nist.gov/vuln/detail/CVE-2023-0001"
 
+        flaw_snippet = flaw.snippets.all().first()
+        assert flaw_snippet == snippet
+        assert flaw_snippet.content == content
+        assert flaw_snippet.external_id == snippet.external_id
+        assert flaw_snippet.source == snippet.source
+
         # check ACLs
         assert (
             internal_read_groups
@@ -97,6 +71,7 @@ class TestSnippet:
             == flaw.acl_read
             == flaw_cvss.acl_read
             == flaw_ref.acl_read
+            == flaw_snippet.acl_read
         )
         assert (
             internal_write_groups
@@ -104,31 +79,46 @@ class TestSnippet:
             == flaw.acl_write
             == flaw_cvss.acl_write
             == flaw_ref.acl_write
+            == flaw_snippet.acl_write
         )
 
     @pytest.mark.parametrize(
-        "cve_id,has_flaw,has_snippet",
+        "flaw_present,identifier,source",
         [
-            ("CVE-2023-0001", False, False),
-            ("CVE-2023-0001", True, False),
-            ("CVE-2023-0001", True, True),
+            (True, "cve_id", Snippet.Source.NVD),
+            (True, "external_id", Snippet.Source.NVD),
+            (False, "cve_id", Snippet.Source.NVD),
+            (False, "external_id", Snippet.Source.NVD),
+            (True, "cve_id", Snippet.Source.OSV),
+            (True, "external_id", Snippet.Source.OSV),
+            (False, "cve_id", Snippet.Source.OSV),
+            (False, "external_id", Snippet.Source.OSV),
         ],
     )
-    def test_convert_snippet_to_flaw(self, cve_id, has_flaw, has_snippet):
+    def test_convert_snippet_to_flaw(self, flaw_present, identifier, source):
         """
-        Tests the conversion of a snippet into a flaw and their linking.
+        Tests the conversion of a snippet into a flaw (if a flaw does not exist) and their linking.
         """
-        snippet = get_snippet(cve_id)
+        snippet = SnippetFactory(source=source)
+        cve_id = snippet.content["cve_id"]
+        ext_id = f"{snippet.external_id}/{cve_id}"
 
-        if has_flaw:
-            f = snippet._create_flaw()
-            if has_snippet:
-                snippet.flaw = f
-                snippet.save()
+        if flaw_present:
+            if identifier == "cve_id":
+                FlawFactory(cve_id=cve_id, meta_attr={})
+            if identifier == "external_id":
+                # here we expect that a flaw already got synced to BZ, so meta_attr is present
+                FlawFactory(cve_id=cve_id, meta_attr={"external_ids": [ext_id]})
+            assert Flaw.objects.count() == 1
 
-        snippet.convert_snippet_to_flaw()
+        created = snippet.convert_snippet_to_flaw()
 
-        flaws = Flaw.objects.filter(cve_id=cve_id, source=FlawSource.NVD)
+        if not flaw_present:
+            assert created
+        else:
+            assert created is None
+
+        flaws = Flaw.objects.all()
         assert flaws.count() == 1
 
         flaw = flaws.first()
@@ -136,3 +126,12 @@ class TestSnippet:
         assert flaw.snippets.first() == snippet
 
         assert snippet.flaw == flaw
+
+        if identifier == "cve_id":
+            assert snippet.content["cve_id"] == flaw.cve_id
+        # flaw is newly created, so meta_attr is empty
+        if identifier == "external_id" and not flaw_present:
+            assert flaw.meta_attr == {}
+        # flaw already got synced to BZ, so meta_attr is present
+        if identifier == "external_id" and flaw_present:
+            assert flaw.meta_attr == {"external_ids": f"['{ext_id}']"}
