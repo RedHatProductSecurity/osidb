@@ -478,3 +478,99 @@ sla:
         assert "add" in query["keywords"]
         assert "Security" in query["keywords"]["add"]
         assert "SecurityTracking" in query["keywords"]["add"]
+
+    @pytest.mark.parametrize(
+        "component_cc, private_tracker_cc, default_cc, component, exists",
+        [
+            (True, True, True, "component", True),
+            (True, True, True, "component", False),
+            (True, True, True, "foobar", False),
+            (True, False, False, "component", False),
+            (False, True, False, "component", False),
+            (False, False, True, "component", False),
+        ],
+    )
+    def test_generate_cc(
+        self, component_cc, private_tracker_cc, default_cc, component, exists
+    ):
+        """
+        Test that CC lists are generated for a new tracker
+        """
+
+        # For brevity of pytest.mark.parametrize's arguments
+        if component_cc:
+            component_cc = {"component": ["a@redhat.com", "a2", "ee"]}
+        else:
+            component_cc = {}
+        if private_tracker_cc:
+            private_tracker_cc = ["b@redhat.com", "b2", "ee"]
+        else:
+            private_tracker_cc = []
+        if default_cc:
+            default_cc = ["c@redhat.com", "c2", "ee"]
+        else:
+            default_cc = []
+        if exists:
+            external_system_id = "1234"
+        else:
+            external_system_id = ""
+
+        ps_module = PsModuleFactory(
+            bts_name="bugzilla",
+            component_cc=component_cc,
+            private_tracker_cc=private_tracker_cc,
+            default_cc=default_cc,
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+        )
+        flaw = FlawFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            ps_component=component,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            type=Tracker.TrackerType.BUGZILLA,
+            ps_update_stream=ps_update_stream.name,
+            external_system_id=external_system_id,
+            embargoed=flaw.embargoed,
+        )
+
+        # create query
+        query = TrackerBugzillaQueryBuilder(tracker).query
+
+        if exists:
+            assert "cc" not in query
+        else:
+            if component == "component":
+                expected_component_cc = component_cc.get("component", [])
+            else:
+                # If the PS module's component is not listed in product definition's component_cc,
+                # there is no match.
+                expected_component_cc = []
+
+            if tracker.embargoed:
+                expected_private_tracker_cc = private_tracker_cc
+            else:
+                expected_private_tracker_cc = []
+
+            # Unlike Jira, for BZ all names must be converted to emails
+            expected_cc = sorted(
+                set(
+                    f"{n}@redhat.com" if "@" not in n else n
+                    for n in (
+                        expected_component_cc + expected_private_tracker_cc + default_cc
+                    )
+                )
+            )
+
+            if flaw.embargoed and not ps_module.private_trackers_allowed:
+                expected_cc = []
+
+            if expected_cc:
+                assert sorted(query["cc"]) == expected_cc
+            else:
+                assert "cc" not in query

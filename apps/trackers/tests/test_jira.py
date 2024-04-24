@@ -634,6 +634,109 @@ sla:
             for field in PS_ADDITIONAL_FIELD_TO_JIRA.values():
                 assert field not in query_builder.query["fields"]
 
+    @pytest.mark.parametrize(
+        "component_cc, private_tracker_cc, default_cc, component, exists",
+        [
+            (True, True, True, "component", True),
+            (True, True, True, "component", False),
+            (True, True, True, "foobar", False),
+            (True, False, False, "component", False),
+            (False, True, False, "component", False),
+            (False, False, True, "component", False),
+        ],
+    )
+    def test_generate_cc(
+        self, component_cc, private_tracker_cc, default_cc, component, exists
+    ):
+        """
+        Test that CC lists are generated for a new tracker
+        """
+
+        # For brevity of pytest.mark.parametrize's arguments
+        if component_cc:
+            component_cc = {"component": ["a@redhat.com", "a2", "ee"]}
+        else:
+            component_cc = {}
+        if private_tracker_cc:
+            private_tracker_cc = ["b@redhat.com", "b2", "ee"]
+        else:
+            private_tracker_cc = []
+        if default_cc:
+            default_cc = ["c@redhat.com", "c2", "ee"]
+        else:
+            default_cc = []
+        if exists:
+            external_system_id = "1234"
+        else:
+            external_system_id = ""
+
+        ps_module = PsModuleFactory(
+            bts_name="jboss",
+            component_cc=component_cc,
+            private_tracker_cc=private_tracker_cc,
+            default_cc=default_cc,
+            private_trackers_allowed=True,
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+        )
+        flaw = FlawFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            ps_component=component,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=ps_update_stream.name,
+            external_system_id=external_system_id,
+            embargoed=flaw.embargoed,
+        )
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="contributors",
+            field_name="Contributors",
+            allowed_values=[],
+        )
+
+        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder._query = {"fields": {}}
+        query_builder.generate_cc()
+        if exists:
+            assert "contributors" not in query_builder.query["fields"]
+            assert query_builder.query["fields"] == {}
+            assert query_builder.query_comment is None
+        else:
+            if component == "component":
+                expected_component_cc = component_cc.get("component", [])
+            else:
+                # If the PS module's component is not listed in product definition's component_cc,
+                # there is no match.
+                expected_component_cc = []
+
+            if tracker.embargoed:
+                expected_private_tracker_cc = private_tracker_cc
+            else:
+                expected_private_tracker_cc = []
+
+            expected_cc = sorted(
+                set(expected_component_cc + expected_private_tracker_cc + default_cc)
+            )
+
+            if expected_cc:
+                expected_fields = {"contributors": [{"name": n} for n in expected_cc]}
+                expected_comment = "Added involved users: " + ", ".join(
+                    [f"[~{u}]" for u in expected_cc]
+                )
+            else:
+                expected_fields = {}
+                expected_comment = None
+
+            assert query_builder.query["fields"] == expected_fields
+            assert query_builder.query_comment == expected_comment
+
 
 def validate_minimum_key_value(minimum: Dict[str, Any], evaluated: Dict[str, Any]):
     """

@@ -8,6 +8,7 @@ from apps.bbsync.models import BugzillaComponent
 from apps.bbsync.query import BugzillaQueryBuilder
 from apps.sla.framework import SLAFramework
 from apps.trackers.common import TrackerQueryBuilder
+from osidb.cc import BugzillaAffectCCBuilder
 from osidb.models import Flaw
 
 logger = logging.getLogger(__name__)
@@ -91,7 +92,25 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         """
         generate query for CC list
         """
-        # TODO CC list module
+
+        if self.tracker.external_system_id:
+            # Add CCs only on creation.
+            return
+
+        cc_list = set()
+
+        for affect in self.tracker.affects.all():
+            affect_cc_builder = BugzillaAffectCCBuilder(
+                affect,
+                embargoed=self.tracker.is_embargoed,
+            )
+            cc_list.update(affect_cc_builder.generate_cc())
+
+        # Keep the order stable for ease of testing and debugging
+        cc_list = sorted(cc_list)
+
+        if cc_list:
+            self._query["cc"] = cc_list
 
     def generate_components(self):
         """
