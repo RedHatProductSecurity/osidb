@@ -8,9 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add new OSV option into FlawSource
 - Allow searching by CVE similarity (OSIDB-2482)
+- Add CC lists to Jira trackers and to Bugzilla trackers (OSIDB-2191)
 
 ### Changed
 - Make workflows API RESTful (OSIDB-1716)
+- Collect errata not linked to any flaws (OSIDB-1527)
 - Minor change to enable perf tests to run in CI (OSIDB-2447)
 - Allow editing flaws without affects in NEW state (OSIDB-2452)
 
@@ -27,7 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add support for additional_fields in Jira BTS (OSIDB-696)
 - Add scripts/restore_pg.sh script for restoring sql dump
 - Add db routing taking advantage of write and read pg replicas
-- Add CC lists to Jira trackers and to Bugzilla trackers (OSIDB-2191)
 
 ### Changed
 - Ignore hosts on VCR recording (OSIDB-1678)
@@ -38,7 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SLA for compliance priority brought to parity with SFM2 (OSIDB-2257)
 - Migrate data with outdated workflow_state values to the current ones (OSIDB-1718)
 - Flaw CVSS score and Affect CVSS score are now readonly (OSIDB-2347)
-- Collect errata not linked to any flaws (OSIDB-1527)
 
 ### Fixed
 - Fix Jira sync when bugzilla token is present (OSIDB-2171)
