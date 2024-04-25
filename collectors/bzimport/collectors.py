@@ -13,7 +13,6 @@ from celery.utils.log import get_task_logger
 from dateutil.relativedelta import relativedelta
 from django.db import transaction
 from django.utils import timezone
-from joblib import Parallel, delayed
 
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.convertors import BugzillaTrackerConvertor, FlawConvertor
@@ -28,7 +27,6 @@ from .constants import (
     BZ_DT_FMT,
     BZ_MAX_CONNECTION_AGE,
     BZ_URL,
-    PARALLEL_THREADS,
 )
 from .exceptions import RecoverableBZImportException
 
@@ -558,20 +556,23 @@ class FlawCollector(Collector):
         alternatively you can specify a batch as the parameter - list of Bugzilla IDs
         then all updated until and completeness sugar is skipped
         """
+        successes = []
+        failures = []
+
         # remember time before BZ query so we do not miss
         # anything starting the next batch from it
         start_dt = timezone.now()
 
         flaw_ids = [(i, i) for i in batch] if batch is not None else self.get_batch()
 
-        # collect data in parallel
-        results = Parallel(n_jobs=PARALLEL_THREADS, prefer="threads")(
-            delayed(self.collect_flaw)(flaw_id) for flaw_id, _ in flaw_ids
-        )
-        # process the results
-        successes, failures = [success for success, _ in results if success], [
-            failure for _, failure in results if failure
-        ]
+        # TODO good candidate for parallelizing
+        for flaw_id, _ in flaw_ids:
+            success, failure = self.collect_flaw(flaw_id)
+
+            if success:
+                successes.append(success)
+            if failure:
+                failures.append(failure)
 
         # with specified batch we stop here
         if batch is not None:
