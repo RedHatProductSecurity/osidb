@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.utils.timezone import make_aware
 
 from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
-from collectors.jiraffe.convertors import JiraTrackerConvertor, TrackerConvertor
+from collectors.jiraffe.convertors import TrackerConvertor
 from osidb.core import generate_acls, set_user_acls
 from osidb.mixins import AlertMixin, TrackingMixin
 from osidb.models import (
@@ -190,7 +190,6 @@ class FlawSaver:
         acknowledgments,
         references,
         cvss_scores,
-        trackers,
         package_versions,
     ):
         self.flaw = flaw
@@ -202,7 +201,6 @@ class FlawSaver:
         self.acknowledgments = acknowledgments
         self.references = references
         self.cvss_scores = cvss_scores
-        self.trackers = trackers
         self.package_versions = package_versions
 
     def __str__(self):
@@ -221,7 +219,6 @@ class FlawSaver:
             + self.acknowledgments
             + self.references
             + self.cvss_scores
-            + self.trackers
         )
 
     def save_packageversions(self):
@@ -355,43 +352,6 @@ class FlawSaver:
         for cvss in to_delete:
             cvss.delete()
 
-    def clean_trackers(self):
-        """clean obsoleted affect-tracker links"""
-        tracker_ids = [t.external_system_id for t in self.trackers]
-        for affect in self.affects:
-            obsoleted_trackers = affect.trackers.exclude(
-                external_system_id__in=tracker_ids
-            )
-            for tracker in obsoleted_trackers:
-                affect.trackers.remove(tracker)
-
-    def link_trackers(self):
-        """link trackers to affects"""
-        for tracker in self.trackers:
-            affect = self.flaw.get_affect(
-                tracker.meta_attr["ps_module"],
-                tracker.meta_attr["ps_component"],
-            )
-            # related tracker without corresponding affect is suspicious
-            # it means some data corruption or invalid manipulation
-            # let us leave those unlinked for now
-            if not affect:
-                logger.warning(
-                    f"Failed to match tracker {tracker.external_system_id} "
-                    f"with flaw {self.flaw.meta_attr['bz_id']}:{self.flaw.cve_id} - there is no affect "
-                    f"{tracker.meta_attr['ps_module']}:{tracker.meta_attr['ps_component']}"
-                )
-                # TODO store error
-                continue
-
-            tracker.affects.add(affect)
-            # liking tracker may clean some of the alerts
-            # however the save is needed to recreate them
-            tracker.save(
-                auto_timestamps=False,
-                raise_validation_error=False,
-            )
-
     def save(self):
         """save flaw with its context to DB"""
         # wrap this in an atomic transaction so that
@@ -424,9 +384,6 @@ class FlawSaver:
             self.clean_acknowledgments()
             self.clean_references()
             self.clean_cvss_scores()
-            self.clean_trackers()
-
-            self.link_trackers()
 
             # no automatic timestamps and validation exceptions
             # se explanation above for more details
@@ -493,8 +450,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
     _flaw_comments = None
     _flaw_history = None
     _task_bug = None
-    _tracker_bugs = None
-    _tracker_jiras = None
 
     def __init__(
         self,
@@ -502,16 +457,12 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         flaw_comments,
         flaw_history,
         task_bug,
-        tracker_bugs,
-        tracker_jiras,
     ):
         """init source data"""
         self._flaw_bug = flaw_bug
         self._flaw_comments = flaw_comments
         self._flaw_history = flaw_history
         self._task_bug = task_bug
-        self._tracker_bugs = tracker_bugs
-        self._tracker_jiras = tracker_jiras
         # set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
         # celery workers should be able to read/write any information in order to fulfill their jobs
         set_user_acls(settings.ALL_GROUPS)
@@ -549,20 +500,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         """get task bug"""
         # there are flaws without task
         return self._task_bug
-
-    @property
-    def tracker_bugs(self):
-        """get list of tracker bugs"""
-        if self._tracker_bugs is None:
-            raise self.FlawConvertorException("source data not set")
-        return self._tracker_bugs
-
-    @property
-    def tracker_jiras(self):
-        """get list of tracker Jira issues"""
-        if self._tracker_jiras is None:
-            raise self.FlawConvertorException("source data not set")
-        return self._tracker_jiras
 
     #########################
     # CVE COMMON PROPERTIES #
@@ -754,28 +691,12 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
     ##############################
 
     @property
-    def bz_trackers(self):
-        """
-        Bugzilla trackers
-        with product definitions context
-        """
-        return [BugzillaTrackerConvertor(tracker) for tracker in self.tracker_bugs]
-
-    @property
     def depends_on(self):
         """
         Bugzilla depends_on array
         contains potential Bugzilla trackers
         """
         return self.flaw_bug["depends_on"]
-
-    @property
-    def jira_trackers(self):
-        """
-        Jira trackers
-        with product definitions context
-        """
-        return [JiraTrackerConvertor(tracker) for tracker in self.tracker_jiras]
 
     ########################
     # DJANGO MODEL GETTERS #
@@ -1069,16 +990,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
 
         return all_cvss
 
-    def get_trackers(self):
-        """
-        get list of Tracker objects.
-
-        process all related trackers in Bugzilla and Jira
-        need to be later linked to the corresponding affects
-        """
-        all_trackers = self.bz_trackers + self.jira_trackers
-        return [tracker.convert() for tracker in all_trackers]
-
     ###########################
     # BUG TO FLAWS PROCESSING #
     ###########################
@@ -1164,7 +1075,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     self.get_acknowledgments(flaw),
                     self.get_references(flaw),
                     self.get_flaw_cvss(flaw),
-                    self.get_trackers(),
                     self.package_versions,
                 )
             ]
@@ -1193,7 +1103,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     self.get_acknowledgments(flaw),
                     self.get_references(flaw),
                     self.get_flaw_cvss(flaw),
-                    self.get_trackers(),
                     self.package_versions,
                 )
             ]
@@ -1226,7 +1135,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     self.get_acknowledgments(flaw),
                     self.get_references(flaw),
                     self.get_flaw_cvss(flaw),
-                    self.get_trackers(),
                     self.package_versions,
                 )
             )
