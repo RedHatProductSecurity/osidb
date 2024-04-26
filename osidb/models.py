@@ -38,7 +38,7 @@ from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FI
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.trackers.constants import SYNC_TO_JIRA
 from apps.workflows.workflow import WorkflowModel
-from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
+from collectors.bzimport.constants import BZ_API_KEY, FLAW_PLACEHOLDER_KEYWORD
 
 from .helpers import deprecate_field as deprecate_field_custom
 from .helpers import ps_update_stream_natural_keys
@@ -1686,7 +1686,9 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         self.flaw = flaw
         self.save()
 
-        return flaw
+        flaw.save(bz_api_key=BZ_API_KEY, raise_validation_error=False)
+
+        return Flaw.objects.get(uuid=flaw.uuid)
 
     def _validate_acl_identical_to_parent_flaw(self) -> None:
         """

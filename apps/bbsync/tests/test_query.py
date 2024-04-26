@@ -208,6 +208,29 @@ class TestGenerateBasics:
         bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["component"] == result
 
+    def test_generate_alias_cve_id(self):
+        """
+        test generating of CVE ID alias on creation
+        """
+        flaw = FlawFactory(cve_id="CVE-2000-1001")
+
+        bbq = FlawBugzillaQueryBuilder(flaw)
+        assert bbq.query["alias"] == ["CVE-2000-1001"]
+
+    def test_generate_alias_external_id(self):
+        """
+        test generating of external ID alias on creation
+        """
+        snippet = SnippetFactory(
+            source=Snippet.Source.OSV, ext_id="GHSA-0001", cve_id=None
+        )
+        flaw = FlawFactory(cve_id=None, meta_attr={"external_ids": ["GHSA-0001"]})
+        snippet.flaw = flaw
+        snippet.save()
+
+        bbq = FlawBugzillaQueryBuilder(flaw)
+        assert bbq.query["alias"] == ["GHSA-0001"]
+
 
 class TestGenerateSRTNotes:
     @freeze_time(timezone.datetime(2022, 11, 25))

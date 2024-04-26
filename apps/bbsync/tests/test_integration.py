@@ -6,13 +6,22 @@ from freezegun import freeze_time
 
 from apps.bbsync.exceptions import UnsaveableFlawError
 from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
-from osidb.models import Affect, Flaw, FlawAcknowledgment, FlawCVSS, Tracker
+from osidb.models import (
+    Affect,
+    Flaw,
+    FlawAcknowledgment,
+    FlawCVSS,
+    FlawReference,
+    Snippet,
+    Tracker,
+)
 from osidb.tests.factories import (
     AffectFactory,
     FlawAcknowledgmentFactory,
     FlawFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
+    SnippetFactory,
     TrackerFactory,
 )
 
@@ -832,3 +841,74 @@ class TestBBSyncIntegration:
                 format="json",
                 HTTP_BUGZILLA_API_KEY="SECRET",
             )
+
+
+class TestFlawDraftBBSyncIntegration:
+    @pytest.mark.vcr
+    @pytest.mark.enable_signals
+    @pytest.mark.parametrize(
+        "source,cve_id,ext_id",
+        [
+            (Snippet.Source.NVD, "CVE-2000-0025", "CVE-2000-0025"),
+            (Snippet.Source.OSV, "CVE-2000-0026", "GHSA-0006"),
+            (Snippet.Source.OSV, None, "GHSA-0007"),
+        ],
+    )
+    def test_flaw_draft_create(self, source, cve_id, ext_id):
+        """
+        test creating a flaw draft with Bugzilla two-way sync
+        """
+        content = {
+            "cve_id": cve_id,
+            "cvss_scores": [
+                {
+                    "issuer": FlawCVSS.CVSSIssuer.REDHAT,
+                    "score": 8.1,
+                    "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                    "version": FlawCVSS.CVSSVersion.VERSION3,
+                },
+            ],
+            "cwe_id": "CWE-110",
+            "description": "some description",
+            "references": [
+                {
+                    "url": f"https://osv.dev/vulnerability/{ext_id}"
+                    if source == Snippet.Source.OSV
+                    else f"https://nvd.nist.gov/vuln/detail/{ext_id}",
+                    "type": FlawReference.FlawReferenceType.SOURCE,
+                },
+            ],
+            "source": source,
+            "title": f"From {source} collector",
+            f"published_in_{source.lower()}": "2024-01-21T16:29:00.393Z",
+        }
+
+        snippet = SnippetFactory(
+            source=source, ext_id=ext_id, cve_id=cve_id, content=content
+        )
+        flaw = snippet.convert_snippet_to_flaw()
+
+        assert Flaw.objects.all().count() == 1
+        assert Flaw.objects.all()[0] == flaw
+        assert flaw.cve_id == cve_id
+        assert flaw.cvss_scores.all().count() == 1
+        assert flaw.cwe_id == content["cwe_id"]
+        assert flaw.description == content["description"]
+        assert flaw.references.all().count() == 1
+        assert flaw.source == source
+        assert flaw.title == f"From {source} collector"
+
+        # only some items in meta_attr are checked
+        assert flaw.meta_attr["bz_component"] == "vulnerability-draft"
+        if cve_id:
+            assert flaw.meta_attr["alias"] == f"['{cve_id}']"
+            assert flaw.meta_attr["bz_summary"] == f"{cve_id} From {source} collector"
+            assert (
+                flaw.meta_attr["external_ids"] == f"['{cve_id}']"
+                if source == Snippet.Source.NVD
+                else f"['{ext_id}/{cve_id}']"
+            )
+        else:
+            assert flaw.meta_attr["alias"] == f"['{ext_id}']"
+            assert flaw.meta_attr["bz_summary"] == f"From {source} collector"
+            assert flaw.meta_attr["external_ids"] == f"['{ext_id}']"
