@@ -193,11 +193,16 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         """
         generate add or remove CVE alias query
         conditionally based on the changes and create|update
+
+        if a collector created a flaw, check the external ID, as CVE might not be present
         """
         if self.creation:
             if self.flaw.cve_id is not None:
                 # create query requires pure list
                 self._query["alias"] = [self.flaw.cve_id]
+
+            elif snippets := self.flaw.snippets.all():
+                self._query["alias"] = [s.external_id for s in snippets]
 
         elif self.flaw.cve_id != self.old_flaw.cve_id:
             self._query["alias"] = {}
