@@ -19,7 +19,7 @@ from osidb.models import (
     PackageVer,
     Tracker,
 )
-from osidb.tests.factories import AffectFactory, FlawFactory
+from osidb.tests.factories import AffectFactory, FlawFactory, TrackerFactory
 
 pytestmark = pytest.mark.unit
 
@@ -209,26 +209,6 @@ class TestFlawSaver:
             )
         ]
 
-    def get_trackers(self, affect):
-        """
-        minimal trackers getter
-        """
-        return [
-            Tracker(
-                type=Tracker.TrackerType.JIRA,
-                external_system_id="OSIDB-1",
-                status="New",
-                meta_attr={
-                    "ps_module": affect.ps_module,
-                    "ps_component": affect.ps_component,
-                },
-                created_dt=timezone.now(),
-                updated_dt=timezone.now(),
-                acl_read=self.get_acls(),
-                acl_write=self.get_acls(),
-            )
-        ]
-
     def get_package_versions(self):
         """
         minimal package versions getter
@@ -255,7 +235,6 @@ class TestFlawSaver:
             self.get_acknowledgments(flaw),
             self.get_references(flaw),
             self.get_cvss_scores(flaw),
-            self.get_trackers(affects[0]),
             self.get_package_versions(),
         ).save()
 
@@ -268,7 +247,6 @@ class TestFlawSaver:
         acknowledgment = FlawAcknowledgment.objects.first()
         reference = FlawReference.objects.first()
         cvss_score = FlawCVSS.objects.first()
-        tracker = Tracker.objects.first()
         package = Package.objects.first()
         package_version = PackageVer.objects.first()
 
@@ -295,8 +273,7 @@ class TestFlawSaver:
         assert affect.acl_read == acls
         assert affect.acl_write == acls
         assert affect.flaw == flaw
-        assert affect.trackers.count() == 1
-        assert affect.trackers.first() == tracker
+        assert affect.trackers.count() == 0
         assert affect.cvss_scores.first() == affect_cvss_score
 
         assert affect_cvss_score is not None
@@ -356,15 +333,6 @@ class TestFlawSaver:
         assert cvss_score.acl_write == acls
         assert cvss_score.flaw == flaw
 
-        assert tracker is not None
-        assert tracker.type == Tracker.TrackerType.JIRA
-        assert tracker.external_system_id == "OSIDB-1"
-        assert tracker.status == "New"
-        assert tracker.acl_read == acls
-        assert tracker.acl_write == acls
-        assert tracker.affects.count() == 1
-        assert tracker.affects.first() == affect
-
         assert package is not None
         assert package.package == "package"
         assert package.flaw == flaw
@@ -390,7 +358,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -406,7 +373,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [],
             [],
@@ -439,7 +405,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -459,7 +424,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [affects, []],
-            [],
             [],
             [],
             [],
@@ -493,7 +457,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -514,7 +477,6 @@ class TestFlawSaver:
             [
                 self.get_meta(flaw)[1],
             ],
-            [],
             [],
             [],
             [],
@@ -545,7 +507,6 @@ class TestFlawSaver:
             self.get_acknowledgments(flaw, from_upstream=False),
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -568,7 +529,6 @@ class TestFlawSaver:
             [],
             [],
             self.get_acknowledgments(flaw, from_upstream=True),
-            [],
             [],
             [],
             {},
@@ -595,7 +555,6 @@ class TestFlawSaver:
             self.get_acknowledgments(flaw, name="jaroslava kudrnova"),
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -617,7 +576,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [],
             [],
@@ -649,7 +607,6 @@ class TestFlawSaver:
             [],
             self.get_references(flaw),
             [],
-            [],
             {},
         ).save()
 
@@ -665,7 +622,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [],
             [],
@@ -697,7 +653,6 @@ class TestFlawSaver:
             [],
             [],
             self.get_cvss_scores(flaw),
-            [],
             {},
         ).save()
 
@@ -719,7 +674,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -730,9 +684,10 @@ class TestFlawSaver:
         assert cvss is None
         assert flaw.cvss_scores.count() == 0
 
-    def test_trackers_removed(self):
+    def test_trackers_not_removed(self):
         """
-        test tracker removal save
+        test that neither tracker is removed
+        on flaw and affect save nor the link
         """
         flaw = self.get_flaw()
         affects = self.get_affects(flaw)
@@ -746,20 +701,27 @@ class TestFlawSaver:
             [],
             [],
             [],
-            self.get_trackers(affects[0]),
             {},
         ).save()
 
         flaw = Flaw.objects.first()
         affect = Affect.objects.first()
-        tracker = Tracker.objects.first()
 
         assert flaw is not None
         assert affect is not None
-        assert tracker is not None
         assert flaw.affects.count() == 1
         assert flaw.affects.first() == affect
         assert affect.flaw == flaw
+        assert affect.trackers.count() == 0
+        assert Tracker.objects.count() == 0
+
+        # add the tracker to affect
+        tracker = TrackerFactory.build()
+        tracker.save(raise_validation_error=False)  # ignore validations
+        tracker.affects.add(affect)
+
+        affect = Affect.objects.first()
+        tracker = Tracker.objects.first()
         assert affect.trackers.count() == 1
         assert affect.trackers.first() == tracker
         assert tracker.affects.count() == 1
@@ -774,7 +736,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -784,14 +745,16 @@ class TestFlawSaver:
 
         assert flaw is not None
         assert affect is not None
-        # tracker should not be removed
-        # only the affect-tracker link
+        # neither the tracker should be removed
+        # nor the affect-tracker link
         assert tracker is not None
         assert flaw.affects.count() == 1
         assert flaw.affects.first() == affect
         assert affect.flaw == flaw
-        assert affect.trackers.count() == 0
-        assert tracker.affects.count() == 0
+        assert affect.trackers.count() == 1
+        assert affect.trackers.first() == tracker
+        assert tracker.affects.count() == 1
+        assert tracker.affects.first() == affect
 
     def test_packageversions_removed(self):
         """
@@ -802,7 +765,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [],
             [],
@@ -829,7 +791,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [],
             [],
@@ -945,8 +906,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fc.bug2flaws()
         assert not fc.errors
@@ -991,8 +950,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fc.bug2flaws()
         assert not fc.errors
@@ -1030,8 +987,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fc.bug2flaws()
         assert not fc.errors
@@ -1074,8 +1029,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1095,8 +1048,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert len(flaws) == 1
@@ -1142,8 +1093,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1169,8 +1118,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1191,8 +1138,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1218,8 +1163,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1241,8 +1184,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1267,8 +1208,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1290,8 +1229,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1312,8 +1249,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1338,8 +1273,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1361,8 +1294,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1387,8 +1318,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1408,8 +1337,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1434,8 +1361,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1456,8 +1381,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1497,8 +1420,6 @@ class TestFlawConvertor:
             [],
             self.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors
@@ -1569,8 +1490,6 @@ class TestFlawConvertor:
             [],
             None,
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert "has no reported_dt (reported)" in fbc.errors
@@ -1607,8 +1526,6 @@ class TestFlawConvertor:
             [],
             None,
             None,
-            [],
-            [],
         )
         [flaw] = fbc.bug2flaws()
         flaw.save()
@@ -1628,8 +1545,6 @@ class TestFlawConvertor:
             [],
             None,
             None,
-            [],
-            [],
         )
         [flaw] = fbc.bug2flaws()
         flaw.save()
@@ -1653,8 +1568,6 @@ class TestFlawConvertor:
             [],
             None,
             None,
-            [],
-            [],
         )
         [flaw] = fbc.bug2flaws()
         flaw.save()
@@ -1679,8 +1592,6 @@ class TestFlawConvertor:
             [],
             None,
             None,
-            [],
-            [],
         )
         [flaw] = fbc.bug2flaws()
         flaw.save()
@@ -1711,8 +1622,6 @@ class TestFlawConvertor:
             [],
             None,
             None,
-            [],
-            [],
         )
         [flaw] = fbc.bug2flaws()
         flaw.save()
@@ -1736,8 +1645,6 @@ class TestFlawConvertorFixedIn:
             [],
             TestFlawConvertor.get_flaw_history(),
             None,
-            [],
-            [],
         )
         flaws = fbc.bug2flaws()
         assert not fbc.errors

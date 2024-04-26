@@ -144,7 +144,7 @@ class TestBZImportCollector:
 
         assert Flaw.objects.count() != 0
         assert Affect.objects.count() != 0
-        assert Tracker.objects.count() != 0
+        assert Tracker.objects.count() == 0
 
     @pytest.mark.vcr
     def test_sync_embargoed_flaw(self, flaw_collector):
@@ -227,10 +227,6 @@ class TestBZImportCollector:
 
 
 class TestBugzillaTrackerCollector:
-    def test_jira_connection(self, flaw_collector):
-        """Test that collector is able to instantiate a Jira connection object"""
-        assert flaw_collector.jira_querier.jira_conn
-
     @pytest.mark.vcr
     def test_sync_tracker(self, bz_tracker_collector):
         PsUpdateStreamFactory(name="update-stream")

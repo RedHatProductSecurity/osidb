@@ -1,7 +1,6 @@
 """
 Bugzilla collector
 """
-import json
 import time
 from datetime import datetime, timedelta
 from typing import Union
@@ -16,9 +15,7 @@ from django.utils import timezone
 
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.convertors import BugzillaTrackerConvertor, FlawConvertor
-from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
 from collectors.framework.models import Collector
-from collectors.jiraffe.core import JiraQuerier
 from osidb.models import Flaw, PsModule
 
 from .constants import (
@@ -361,7 +358,6 @@ class FlawCollector(Collector):
     def __init__(self):
         super().__init__()
         self._bz_querier = None
-        self._jira_querier = None
 
     @property
     def bz_querier(self):
@@ -369,15 +365,8 @@ class FlawCollector(Collector):
             self._bz_querier = BugzillaQuerier()
         return self._bz_querier
 
-    @property
-    def jira_querier(self):
-        if self._jira_querier is None:
-            self._jira_querier = JiraQuerier()
-        return self._jira_querier
-
     def free_queriers(self):
         self._bz_querier = None
-        self._jira_querier = None
 
     def end_period_heuristic(self, period_start):
         """
@@ -431,64 +420,6 @@ class FlawCollector(Collector):
             self.bz_querier.query_all_flaws(), updated_after, updated_before
         )
 
-    def get_flaw_bz_trackers(self, flaw_data: dict) -> list:
-        """
-        get Bugzilla trackers from flaw data
-
-        catch exceptions individually so we do
-        not fail everything for a single issue
-        """
-        bz_trackers = []
-
-        for bz_id in flaw_data["depends_on"]:
-            try:
-                bug = self.bz_querier.get_bug_data(bz_id)
-                # security tracking Bugzilla bug has always SecurityTracking keyword
-                # there may be any other non-tracker bugs in the depends_on field
-                if "SecurityTracking" in bug["keywords"]:
-                    bz_trackers.append(bug)
-            except Exception as e:
-                logger.exception(
-                    f"Bugzilla flaw bug {flaw_data['id']} tracker import error: {str(e)}"
-                )
-                # TODO store errors
-
-        return bz_trackers
-
-    def get_flaw_jira_trackers(self, flaw_data: dict) -> list:
-        """
-        get Jira trackers from flaw data
-
-        catch exceptions individually so we do
-        not fail everything for a single issue
-        """
-        jira_trackers = []
-
-        for jira_id in self.get_flaw_jira_tracker_ids(flaw_data):
-            try:
-                jira_trackers.append(self.jira_querier.get_issue(jira_id))
-            except Exception as e:
-                logger.exception(
-                    f"Bugzilla flaw bug {flaw_data['id']} tracker import error: {str(e)}"
-                )
-                # TODO store errors
-
-        return jira_trackers
-
-    def get_flaw_jira_tracker_ids(self, flaw_data: dict) -> list:
-        """get Jira tracker IDs from Bugzilla flaw data"""
-        try:
-            return [
-                issue["key"]
-                for issue in parse_cf_srtnotes(flaw_data["cf_srtnotes"]).get(
-                    "jira_trackers", []
-                )
-            ]
-        except json.decoder.JSONDecodeError:
-            # this exception means invalid or empty SRT notes which usually means a very old flaw
-            # here let us just consider it as that there are no Jira trackers attached to the flaw
-            return []
-
     def get_flaw_task(self, flaw_data: dict) -> Union[str, None]:
         """get first analysis task from flaw data"""
         for bz_id in flaw_data["blocks"]:
@@ -511,7 +442,7 @@ class FlawCollector(Collector):
 
     def sync_flaw(self, flaw_id):
         """fetch-convert-save flaw with give Bugzilla ID"""
-        # 1A) fetch flaw data
+        # 1) fetch flaw data
         try:
             flaw_data = self.bz_querier.get_bug_data(flaw_id)
             flaw_comments = self.bz_querier.get_bug_comments(flaw_id)
@@ -524,19 +455,12 @@ class FlawCollector(Collector):
                 f"Temporary exception raised while fetching flaw data: {flaw_id}"
             ) from e
 
-        # 1B) fetch tracker data
-
-        flaw_bz_trackers = self.get_flaw_bz_trackers(flaw_data)
-        flaw_jira_trackers = self.get_flaw_jira_trackers(flaw_data)
-
         # 2) convert flaw data to Django models
         fbc = FlawConvertor(
             flaw_data,
             flaw_comments,
             flaw_history,
             flaw_task,
-            flaw_bz_trackers,
-            flaw_jira_trackers,
         )
         flaws = fbc.flaws
         # TODO store errors
