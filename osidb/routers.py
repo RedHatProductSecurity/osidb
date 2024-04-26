@@ -4,11 +4,10 @@ import random
 class WeightedReplicaRouter:
     def db_for_read(self, model, **hints):
         """
-        Distributes reads between the read-only replica (2/3) and default (1/3).
+        Distributes reads to the read-only replica.
         """
-        choices = ["default", "read-replica-1"]
-        weights = [0.3, 1]
-        return random.choices(choices, cum_weights=weights)[0]  # nosec
+        # TODO: this will have to be made dynamic once we have N+1 replicas
+        return "read-replica-1"
 
     def db_for_write(self, model, **hints):
         """
