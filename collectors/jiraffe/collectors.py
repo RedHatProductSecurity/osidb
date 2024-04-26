@@ -11,7 +11,7 @@ from jira import Issue
 from jira.exceptions import JIRAError
 
 from apps.trackers.models import JiraProjectFields
-from collectors.framework.models import Collector
+from collectors.framework.models import Collector, CollectorMetadata
 from osidb.models import PsModule
 
 from .convertors import JiraTrackerConvertor
@@ -51,6 +51,14 @@ class JiraTrackerCollector(Collector):
         """
         period_start = self.metadata.updated_until_dt or self.BEGINNING
         period_end = period_start + timezone.timedelta(days=self.BATCH_PERIOD_DAYS)
+        # the tracker collector should never outrun the flaw one
+        # since it creates the linkage which might then be missed
+        period_end = min(
+            period_end,
+            CollectorMetadata.objects.get(
+                name="collectors.bzimport.tasks.flaw_collector"
+            ).updated_until_dt,
+        )
         # query for trackers in the period and return them together with the timestamp
         return (
             self.jira_querier.get_tracker_period(period_start, period_end),

@@ -7,6 +7,7 @@ from django.utils import timezone
 from rest_framework import status
 
 from apps.trackers.jira.query import JiraPriority
+
 # from apps.trackers.save import TrackerSaver
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from collectors.bzimport.collectors import FlawCollector

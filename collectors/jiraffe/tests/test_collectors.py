@@ -3,6 +3,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from apps.trackers.models import JiraProjectFields
+from collectors.framework.models import CollectorMetadata
 from collectors.jiraffe.collectors import JiraTrackerCollector, MetadataCollector
 from osidb.models import Affect, Tracker
 from osidb.tests.factories import (
@@ -30,6 +31,11 @@ class TestJiraTrackerCollector:
         assert collector.BEGINNING == timezone.datetime(2014, 1, 1, tzinfo=timezone.utc)
         assert collector.metadata.updated_until_dt is None
 
+        CollectorMetadata(
+            name="collectors.bzimport.tasks.flaw_collector",
+            updated_until_dt=timezone.now(),
+        ).save()
+
         trackers, period_end = collector.get_batch()
         assert len(trackers) == 15  # all the trackers from 2014
         assert period_end == timezone.datetime(2015, 1, 1, tzinfo=timezone.utc)
@@ -42,6 +48,42 @@ class TestJiraTrackerCollector:
         assert period_end == timezone.datetime(2016, 1, 1, tzinfo=timezone.utc)
 
     @pytest.mark.vcr
+    def test_get_batch_till_flaws(self):
+        """
+        test that getting the next batch of Jira issues works
+        correctly taking into account the FlawCollector freshness
+        """
+        collector = JiraTrackerCollector()
+        assert collector.BEGINNING == timezone.datetime(2014, 1, 1, tzinfo=timezone.utc)
+        assert collector.metadata.updated_until_dt is None
+
+        CollectorMetadata(
+            name="collectors.bzimport.tasks.flaw_collector",
+            updated_until_dt=timezone.datetime(2014, 9, 1, tzinfo=timezone.utc),
+        ).save()
+
+        trackers, period_end = collector.get_batch()
+        assert len(trackers) == 1
+        assert period_end == timezone.datetime(2014, 9, 1, tzinfo=timezone.utc)
+
+        # artificially change the updated until timestamp
+        collector.metadata.updated_until_dt = period_end
+
+        # consecutive sync should not sync anything new
+        trackers, period_end = collector.get_batch()
+        assert len(trackers) == 0
+        assert period_end == timezone.datetime(2014, 9, 1, tzinfo=timezone.utc)
+
+        CollectorMetadata(
+            name="collectors.bzimport.tasks.flaw_collector",
+            updated_until_dt=timezone.datetime(2015, 2, 15, tzinfo=timezone.utc),
+        ).save()
+
+        trackers, period_end = collector.get_batch()
+        assert len(trackers) == 16
+        assert period_end == timezone.datetime(2015, 2, 15, tzinfo=timezone.utc)
+
+    @pytest.mark.vcr
     def test_collect(self):
         """
         test the Jira collector run
@@ -49,6 +91,11 @@ class TestJiraTrackerCollector:
         collector = JiraTrackerCollector()
         assert collector.BEGINNING == timezone.datetime(2014, 1, 1, tzinfo=timezone.utc)
         assert collector.metadata.updated_until_dt is None
+
+        CollectorMetadata(
+            name="collectors.bzimport.tasks.flaw_collector",
+            updated_until_dt=timezone.now(),
+        ).save()
 
         msg = collector.collect()
         assert Tracker.objects.count() == 15  # all the trackers from 2014
@@ -87,6 +134,10 @@ class TestJiraTrackerCollector:
         """
         collector = JiraTrackerCollector()
         collector.metadata.updated_until_dt = timezone.now()
+        CollectorMetadata(
+            name="collectors.bzimport.tasks.flaw_collector",
+            updated_until_dt=timezone.datetime(2020, 12, 12, tzinfo=timezone.utc),
+        ).save()
         assert not collector.is_complete
 
         collector.collect()
