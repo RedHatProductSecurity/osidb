@@ -513,27 +513,29 @@ class SnippetFactory(factory.django.DjangoModelFactory):
         model = Snippet
 
     class Params:
+        cve_id = factory.LazyAttribute(lambda f: "CVE-2024-0001")
         ext_id = factory.LazyAttribute(
-            lambda f: "CVE-2023-0001" if f.source == Snippet.Source.NVD else "GHSA-0001"
-        )
-        cve_id = factory.LazyAttribute(
-            lambda f: "CVE-2023-0001"
-            if f.source == Snippet.Source.NVD
-            else "CVE-2024-0001"
+            lambda f: f.cve_id if f.source == Snippet.Source.NVD else "GHSA-0001"
         )
         url = factory.LazyAttribute(
-            lambda f: "https://nvd.nist.gov/vuln/detail/CVE-2023-0001"
+            lambda f: f"https://nvd.nist.gov/vuln/detail/{f.ext_id}"
             if f.source == Snippet.Source.NVD
-            else "https://osv.dev/vulnerability/GHSA-0001"
+            else f"https://osv.dev/vulnerability/{f.ext_id}"
         )
 
     source = factory.Faker(
         "random_element", elements=[Snippet.Source.NVD, Snippet.Source.OSV]
     )
-    external_id = factory.LazyAttribute(lambda f: f.ext_id)
+
+    external_id = factory.LazyAttribute(
+        lambda f: f.ext_id
+        if f.source == Snippet.Source.NVD or f.cve_id is None
+        else f"{f.ext_id}/{f.cve_id}"
+    )
 
     @factory.lazy_attribute
     def content(self):
+        # contains all NVD fields and only the currently used OSV fields
         data = {
             "cve_id": self.cve_id,
             "cvss_scores": [
@@ -550,14 +552,10 @@ class SnippetFactory(factory.django.DjangoModelFactory):
                 {"url": self.url, "type": FlawReference.FlawReferenceType.SOURCE}
             ],
             "source": self.source,
-            "title": f"from {self.source} collector",
+            "title": f"From {self.source} collector",
+            f"published_in_{self.source.lower()}": "2024-01-21T16:29:00.393Z",
         }
 
-        if self.source == Snippet.Source.NVD:
-            data.update({"published_in_nvd": "2024-01-21T16:29:00.393Z"})
-        else:
-            # only the currently used OSV fields are included
-            data.update({"published_in_osv": "2024-01-21T16:29:00.393Z"})
         return data
 
     created_dt = factory.Faker("date_time", tzinfo=UTC)

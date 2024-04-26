@@ -56,7 +56,7 @@ class TestSnippet:
 
         flaw_ref = flaw.references.all().first()
         assert flaw_ref.type == FlawReference.FlawReferenceType.SOURCE
-        assert flaw_ref.url == "https://nvd.nist.gov/vuln/detail/CVE-2023-0001"
+        assert flaw_ref.url == "https://nvd.nist.gov/vuln/detail/CVE-2024-0001"
 
         flaw_snippet = flaw.snippets.all().first()
         assert flaw_snippet == snippet
@@ -65,22 +65,9 @@ class TestSnippet:
         assert flaw_snippet.source == snippet.source
 
         # check ACLs
-        assert (
-            internal_read_groups
-            == snippet.acl_read
-            == flaw.acl_read
-            == flaw_cvss.acl_read
-            == flaw_ref.acl_read
-            == flaw_snippet.acl_read
-        )
-        assert (
-            internal_write_groups
-            == snippet.acl_write
-            == flaw.acl_write
-            == flaw_cvss.acl_write
-            == flaw_ref.acl_write
-            == flaw_snippet.acl_write
-        )
+        for i in [snippet, flaw, flaw_cvss, flaw_ref, flaw_snippet]:
+            assert internal_read_groups == i.acl_read
+            assert internal_write_groups == i.acl_write
 
     @pytest.mark.parametrize(
         "flaw_present,identifier,source",
@@ -99,9 +86,13 @@ class TestSnippet:
         """
         Tests the conversion of a snippet into a flaw (if a flaw does not exist) and their linking.
         """
-        snippet = SnippetFactory(source=source)
+        if source == Snippet.Source.OSV and identifier == "external_id":
+            snippet = SnippetFactory(source=source, cve_id=None)
+        else:
+            snippet = SnippetFactory(source=source)
+
         cve_id = snippet.content["cve_id"]
-        ext_id = f"{snippet.external_id}/{cve_id}"
+        ext_id = snippet.external_id
 
         if flaw_present:
             if identifier == "cve_id":
