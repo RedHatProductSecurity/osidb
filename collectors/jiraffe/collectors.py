@@ -16,6 +16,7 @@ from osidb.models import PsModule
 
 from .convertors import JiraTrackerConvertor
 from .core import JiraQuerier
+from .exceptions import MetadataCollectorInsufficientDataJiraffeException
 
 logger = get_task_logger(__name__)
 
@@ -178,6 +179,14 @@ class MetadataCollector(Collector):
                     logger.error(
                         f"Jira error trying to fetch project {project}: {e.response}"
                     )
+        nonempty_project_fields = {k: v for k, v in project_fields.items() if v}
+        if len(nonempty_project_fields) < projects.count() * 0.8:
+            logger.error(
+                "More than 20% of projects are not available in Jira. Make sure jira token is valid and product definition is up to date."
+            )
+            # Proceeding would erase existing JiraProjectField models and would make it impossible
+            # to work with Jira-based Trackers. Raising will preserve the (slightly outdated) data.
+            raise MetadataCollectorInsufficientDataJiraffeException
 
         self.update_metadata(project_fields)
 
