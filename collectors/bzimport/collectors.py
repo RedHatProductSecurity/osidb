@@ -553,8 +553,9 @@ class FlawCollector(Collector):
 
 class BugzillaTrackerCollector(Collector):
 
-    # version 0.0.1 of OSIDB was released on January 21st 2022
-    BEGINNING = timezone.datetime(2022, 1, 21, tzinfo=timezone.get_current_timezone())
+    # according to the Bugzilla advanced search the longest non-updated
+    # security trackers going chronologically were last updated in 2010
+    BEGINNING = timezone.datetime(2010, 1, 1, tzinfo=timezone.get_current_timezone())
     BATCH_SIZE = 100
     BATCH_PERIOD = relativedelta(months=1)
 
