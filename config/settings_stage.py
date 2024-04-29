@@ -95,28 +95,7 @@ DATABASES = {
         },
         "CONN_MAX_AGE": 120,
     },
-    "read-replica-1": {
-        "NAME": get_env("OSIDB_DB_NAME", default="osidb"),
-        "USER": get_env("OSIDB_DB_USER"),
-        "PASSWORD": get_env("OSIDB_DB_PASSWORD"),
-        "HOST": get_env("OSIDB_DB_HOST_RO"),
-        "PORT": get_env("OSIDB_DB_PORT", default="5432"),
-        "ENGINE": "psqlextra.backend",
-        "ATOMIC_REQUESTS": True,  # perform HTTP requests as atomic transactions
-        "OPTIONS": {
-            "sslmode": "require",
-            # prevent libpq from automatically trying to connect to the db via GSSAPI
-            "gssencmode": "disable",
-            # this is a hack due to our inability to set a custom parameter either at
-            # the database or role level in managed databases such as AWS RDS
-            "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000",
-        },
-        "CONN_MAX_AGE": 120,
-    },
 }
-
-# use a custom database router to effectively serve as a load balancer
-DATABASE_ROUTERS = ("osidb.routers.WeightedReplicaRouter",)
 
 STATIC_ROOT = "/opt/app-root/static/"
 STATIC_URL = "/static/"
