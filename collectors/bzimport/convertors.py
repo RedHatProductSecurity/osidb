@@ -168,6 +168,13 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
         raw data normalization
         """
         ps_module, ps_component = tracker_summary2module_component(self._raw["summary"])
+        ps_update_stream = tracker_parse_update_stream_component(self._raw["summary"])[
+            0
+        ]
+
+        self.ps_module = ps_module
+        self.ps_component = ps_component
+        self.ps_update_stream = ps_update_stream
 
         return {
             "external_system_id": self._raw["id"],
@@ -175,9 +182,7 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
             "qe_owner": self._raw["qa_contact"],
             "ps_module": ps_module,
             "ps_component": ps_component,
-            "ps_update_stream": tracker_parse_update_stream_component(
-                self._raw["summary"]
-            )[0],
+            "ps_update_stream": ps_update_stream,
             "status": self._raw["status"],
             "resolution": self._raw["resolution"],
             "created_dt": self._raw["creation_time"],

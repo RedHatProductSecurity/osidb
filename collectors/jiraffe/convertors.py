@@ -112,6 +112,13 @@ class JiraTrackerConvertor(TrackerConvertor):
         ps_module, ps_component = tracker_summary2module_component(
             self._raw.fields.summary
         )
+        ps_update_stream = tracker_parse_update_stream_component(
+            self._raw.fields.summary
+        )[0]
+
+        self.ps_module = ps_module
+        self.ps_component = ps_component
+        self.ps_update_stream = ps_update_stream
 
         return {
             "external_system_id": self._raw.key,
@@ -124,9 +131,7 @@ class JiraTrackerConvertor(TrackerConvertor):
             ),
             "ps_module": ps_module,
             "ps_component": ps_component,
-            "ps_update_stream": tracker_parse_update_stream_component(
-                self._raw.fields.summary
-            )[0],
+            "ps_update_stream": ps_update_stream,
             "status": self.get_field_attr(self._raw, "status", "name"),
             "resolution": self.get_field_attr(self._raw, "resolution", "name"),
             "created_dt": self._raw.fields.created,
