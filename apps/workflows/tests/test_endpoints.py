@@ -1,5 +1,6 @@
 import pytest
 from django.conf import settings
+from rest_framework.response import Response
 
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.models import State, Workflow
@@ -214,8 +215,32 @@ class TestEndpoints(object):
         assert response.status_code == 401
 
     @pytest.mark.enable_signals
-    def test_promote_endpoint(self, auth_client, test_api_uri_osidb, user_token):
+    def test_promote_endpoint(
+        self, monkeypatch, auth_client, test_api_uri_osidb, user_token
+    ):
         """test flaw state promotion after data change"""
+        import osidb.models as models
+
+        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+
+        def mock_create_or_update_task(self, flaw):
+            return Response(
+                data={
+                    "key": "TASK-123",
+                    "fields": {
+                        "status": {
+                            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+                        },
+                        "resolution": None,
+                    },
+                },
+                status=200,
+            )
+
+        monkeypatch.setattr(
+            JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
+        )
+
         workflow_framework = WorkflowFramework()
         workflow_framework._workflows = []
 
@@ -251,7 +276,7 @@ class TestEndpoints(object):
         )
         workflow_framework.register_workflow(workflow)
 
-        flaw = FlawFactory(cwe_id="", summary="")
+        flaw = FlawFactory(cwe_id="", summary="", task_key="TASK-123")
         AffectFactory(flaw=flaw)
 
         assert flaw.classification["workflow"] == "DEFAULT"
