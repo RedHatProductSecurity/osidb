@@ -370,12 +370,6 @@ class Collector(LockableTask):
         else:
             logger.info(f"Performing the save of the following data: {str(data)}")
             data.save()
-            # TODO
-            # store non-critical errors during the save (eg. tracker cannot be linked to flaw)
-            # - critical errors should be of course raised as exceptions
-            # but we need some general clever way of storing collector errors
-            # maybe we could use the celery task Django models for this
-            # - the data could optionally provide .errors() method
 
     def store(self, complete=True, updated_until_dt=None, meta_attr=None) -> None:
         """
