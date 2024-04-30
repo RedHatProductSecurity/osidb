@@ -28,6 +28,7 @@ class TrackerConvertor:
         self,
         tracker_data,
     ):
+        self._alerts = []
         self._raw = tracker_data
         # important that this is last as it might require other fields on self
         self.tracker_data = self._normalize()
@@ -48,6 +49,19 @@ class TrackerConvertor:
         returns the list of related affects
         """
         raise NotImplementedError
+
+    def alert(self, alert) -> None:
+        """
+        store conversion alert
+        """
+        self._alerts.append(alert)
+
+    @property
+    def alerts(self) -> list:
+        """
+        return the list of conversion alerts
+        """
+        return self._alerts
 
     @property
     def _normalize(self):
