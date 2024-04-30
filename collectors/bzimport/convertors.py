@@ -163,6 +163,33 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
         """
         return self._raw
 
+    @property
+    def affects(self) -> list:
+        """
+        returns the list of related affects
+        """
+        affects = []
+        for bz_id in self._raw["blocks"]:
+            try:
+                flaw = Flaw.objects.get(meta_attr__bz_id=bz_id)
+            except Flaw.DoesNotExist:
+                # the bug is no flaw
+                continue
+
+            try:
+                affect = flaw.affects.get(
+                    ps_module=self.ps_module,
+                    ps_component=self.ps_component,
+                )
+            except Affect.DoesNotExist:
+                # tracker created against
+                # non-existing affect
+                # self.alert(TODO)
+                continue
+
+            affects.append(affect)
+        return affects
+
     def _normalize(self) -> dict:
         """
         raw data normalization
