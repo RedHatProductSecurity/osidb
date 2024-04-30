@@ -283,7 +283,7 @@ class WorkflowModel(models.Model):
         if not save:
             return
 
-        self.save(jira_token=jira_token)
+        self.save(jira_token=jira_token, raise_validation_error=False)
 
     def reject(self, save=True, jira_token=None):
         """
@@ -304,7 +304,7 @@ class WorkflowModel(models.Model):
         if not save:
             return
 
-        self.save(jira_token=jira_token)
+        self.save(jira_token=jira_token, raise_validation_error=False)
 
     def jira_status(self):
         return WorkflowFramework().jira_status(self)

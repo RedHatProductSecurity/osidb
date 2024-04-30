@@ -156,6 +156,7 @@ class TestEndpoints(object):
         workflow_framework.register_workflow(workflow)
 
         flaw = FlawFactory.build(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
+        flaw.adjust_classification(save=False)
         flaw.save(raise_validation_error=False)
         AffectFactory(flaw=flaw)
 
