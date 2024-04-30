@@ -6,6 +6,7 @@ import uuid
 from functools import cached_property
 
 from django.conf import settings
+from django.db import transaction
 
 from osidb.core import generate_acls, set_user_acls
 from osidb.models import Tracker
@@ -14,6 +15,50 @@ from ..utils import (
     tracker_parse_update_stream_component,
     tracker_summary2module_component,
 )
+
+
+class TrackerSaver:
+    """
+    TrackerSaver is holder of the individual tracker parts provided by TrackerConvertor
+    which knows how to correctly save and link them all as the resulting Django DB models
+    it provides save method as an interface to perform the whole save operation
+    """
+
+    def __init__(
+        self,
+        tracker,
+        affects,
+        alerts,
+    ):
+        self.tracker = tracker
+        self.affects = affects
+        self.alerts = alerts
+
+    def __str__(self):
+        return f"TrackerSaver {self.tracker.type}:{self.tracker.external_system_id}"
+
+    def save(self):
+        """
+        save the tracker with its context to DB
+        """
+        # wrap this in an atomic transaction so that
+        # we don't query this tracker during the process
+        with transaction.atomic():
+            # re-create all affect links
+            # in case some were removed
+            self.tracker.affects.clear()
+            self.tracker.affects.add(*self.affects)  # bulk add
+            self.tracker.save(
+                # we want to store the original timestamps
+                # so we turn off assigning the automatic ones
+                auto_timestamps=False,
+                # we want to store all the data fetched by the collector
+                # so we suppress the exception raising in favor of alerts
+                raise_validation_error=False,
+            )
+
+            # TODO
+            # store alerts
 
 
 class TrackerConvertor:
