@@ -624,26 +624,7 @@ class BugzillaTrackerCollector(Collector):
         Fetch, convert and save a bugzilla tracker from a given Bugzilla ID.
         """
         tracker_data = self.bz_querier.get_bug_data(tracker_id)
-        # not passing an affect explicitly during periodic sync should be fine
-        # - case A:
-        #   tracker is new, will be created from FlawCollector with correct affect,
-        #   if for some reason this doesn't happen and the periodic collector creates
-        #   the tracker first, FlawCollector should eventually create it and add the
-        #   affect as a side-effect of create_tracker().
-        # - case B:
-        #   tracker exists, will be updated and passing affect=None will not change
-        #   the set of affects.
-        # - case C:
-        #   tracker exists and affect has been removed, in which case the tracker is
-        #   orphaned which isn't ideal but isn't the end of the world either.
-        # - case D:
-        #   tracker is deleted? not sure if that can happen anyway as I would imagine
-        #   that the tracker would not be deleted but corrected and/or set to a
-        #   specific state/resolution, but if it truly is deleted then it's currently
-        #   not handled.
-        BugzillaTrackerConvertor(tracker_data).convert().save(
-            auto_timestamps=False, raise_validation_error=False
-        )
+        self.save(BugzillaTrackerConvertor(tracker_data).tracker)
 
     def collect(self):
         successes = []

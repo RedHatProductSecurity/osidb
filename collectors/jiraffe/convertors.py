@@ -115,7 +115,7 @@ class TrackerConvertor:
         """
         raise NotImplementedError
 
-    def _gen_tracker_object(self, affect) -> Tracker:
+    def _gen_tracker_object(self, affect=None) -> Tracker:
         """
         generate Tracker object from raw tracker data
         """
@@ -144,6 +144,18 @@ class TrackerConvertor:
 
     def convert(self, affect=None) -> Tracker:
         return self._gen_tracker_object(affect)
+
+    @property
+    def tracker(self) -> TrackerSaver:
+        """
+        the convertor interface to get the
+        conversion result as a saveable object
+        """
+        return TrackerSaver(
+            self._gen_tracker_object(),
+            self.affects,
+            self.alerts,
+        )
 
 
 class JiraTrackerConvertor(TrackerConvertor):

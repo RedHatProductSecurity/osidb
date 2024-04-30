@@ -260,13 +260,18 @@ class TestBugzillaTrackerCollector:
 
     @pytest.mark.vcr
     def test_sync_with_affect(self, bz_tracker_collector):
-        PsModuleFactory(bts_name="bugzilla", name="module")
-        PsUpdateStreamFactory(name="update-stream")
+        ps_module = PsModuleFactory(bts_name="bugzilla", name="module")
+        PsUpdateStreamFactory(name="update-stream", ps_module=ps_module)
 
+        flaw = FlawFactory(
+            bz_id="577401",
+            embargoed=False,
+        )
         affect = AffectFactory.create(
-            flaw__embargoed=False,
+            flaw=flaw,
             affectedness=Affect.AffectAffectedness.NEW,
             ps_module="module",
+            ps_component="spamass-milter",
         )
         creation_dt = datetime(2011, 1, 1, tzinfo=timezone.utc)
         TrackerFactory.create(
