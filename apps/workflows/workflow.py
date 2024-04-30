@@ -145,10 +145,12 @@ class WorkflowModel(models.Model):
         DONE = "DONE"
         REJECTED = "REJECTED"
 
-    # workflow metadata
-    workflow_name = models.CharField(max_length=50, blank=True)
+    workflow_name = models.CharField(max_length=50, blank=True, default="DEFAULT")
     workflow_state = models.CharField(
-        choices=WorkflowState.choices, max_length=24, blank=True
+        choices=WorkflowState.choices,
+        max_length=24,
+        blank=True,
+        default=WorkflowState.NEW,
     )
     owner = models.CharField(max_length=60, blank=True)
     group_key = models.CharField(max_length=60, blank=True)

@@ -129,7 +129,7 @@ class TestEndpoints(object):
         # always some workflow to classify the flaw in
         workflow = Workflow(
             {
-                "name": "default workflow",
+                "name": "DEFAULT",
                 "description": "random description",
                 "priority": 0,
                 "conditions": [],
@@ -142,7 +142,7 @@ class TestEndpoints(object):
         # major incident workflow
         workflow = Workflow(
             {
-                "name": "major incident workflow",
+                "name": "MAJOR_INCIDENT",
                 "description": "random description",
                 "priority": 1,  # is more prior than default one
                 "conditions": [
@@ -159,7 +159,7 @@ class TestEndpoints(object):
         AffectFactory(flaw=flaw)
 
         assert flaw.classification == {
-            "workflow": "major incident workflow",
+            "workflow": "MAJOR_INCIDENT",
             "state": "DONE",
         }
 
@@ -172,14 +172,14 @@ class TestEndpoints(object):
         assert body["flaw"] == str(flaw.uuid)
         assert "classification" in body
         assert body["classification"] == {
-            "workflow": "default workflow",
+            "workflow": "DEFAULT",
             "state": "DONE",
         }
 
         # reload flaw DB
         flaw = Flaw.objects.get(pk=flaw.pk)
         assert flaw.classification == {
-            "workflow": "default workflow",
+            "workflow": "DEFAULT",
             "state": "DONE",
         }
 
@@ -229,20 +229,20 @@ class TestEndpoints(object):
         state_first = {
             "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
             "requirements": ["has cwe"],
-            "jira_state": "To Do",
+            "jira_state": "In Progress",
             "jira_resolution": None,
         }
 
         state_second = {
             "name": WorkflowModel.WorkflowState.DONE,
             "requirements": ["has summary"],
-            "jira_state": "In Progress",
-            "jira_resolution": None,
+            "jira_state": "Closed",
+            "jira_resolution": "Done",
         }
 
         workflow = Workflow(
             {
-                "name": "default workflow",
+                "name": "DEFAULT",
                 "description": "random description",
                 "priority": 0,
                 "conditions": [],
@@ -254,7 +254,7 @@ class TestEndpoints(object):
         flaw = FlawFactory(cwe_id="", summary="")
         AffectFactory(flaw=flaw)
 
-        assert flaw.classification["workflow"] == "default workflow"
+        assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
         headers = {"HTTP_JIRA_API_KEY": user_token}
         response = auth_client().post(
