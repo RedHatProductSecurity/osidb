@@ -43,6 +43,13 @@ class TrackerConvertor:
         raise NotImplementedError
 
     @property
+    def affects(self) -> list:
+        """
+        returns the list of related affects
+        """
+        raise NotImplementedError
+
+    @property
     def _normalize(self):
         """
         to be implemented in the child classes
