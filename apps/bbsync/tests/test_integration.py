@@ -854,7 +854,9 @@ class TestFlawDraftBBSyncIntegration:
             (Snippet.Source.OSV, None, "GHSA-0007"),
         ],
     )
-    def test_flaw_draft_create(self, source, cve_id, ext_id):
+    def test_flaw_draft_create(
+        self, internal_read_groups, internal_write_groups, source, cve_id, ext_id
+    ):
         """
         test creating a flaw draft with Bugzilla two-way sync
         """
@@ -912,3 +914,14 @@ class TestFlawDraftBBSyncIntegration:
             assert flaw.meta_attr["alias"] == f"['{ext_id}']"
             assert flaw.meta_attr["bz_summary"] == f"From {source} collector"
             assert flaw.meta_attr["external_ids"] == f"['{ext_id}']"
+
+        # check that all ACLs are internal after Bugzilla two-way sync
+        for i in [
+            snippet,
+            flaw,
+            flaw.cvss_scores.first(),
+            flaw.references.first(),
+            flaw.snippets.first(),
+        ]:
+            assert internal_read_groups == i.acl_read
+            assert internal_write_groups == i.acl_write

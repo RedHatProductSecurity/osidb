@@ -76,30 +76,44 @@ class BugzillaGroupsConvertorMixin:
         """
         appropriate read LDAP groups
         """
-        if "security" not in self.bug.get("groups", []):
-            return settings.PUBLIC_READ_GROUPS
-
-        if not BZ_ENABLE_IMPORT_EMBARGOED:
-            raise self.FlawConvertorException(
-                f"Bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
-            )
-
-        return [settings.EMBARGO_READ_GROUP]
+        return self.get_group("read")
 
     @property
     def groups_write(self):
         """
         appropriate write LDAP groups
         """
-        if "security" not in self.bug.get("groups", []):
-            return [settings.PUBLIC_WRITE_GROUP]
+        return self.get_group("write")
 
-        if not BZ_ENABLE_IMPORT_EMBARGOED:
-            raise self.FlawConvertorException(
-                f"Bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
-            )
+    def get_group(self, operation):
+        """
+        appropriate LDAP group
+        """
+        mapping = {
+            "read": {
+                "public": settings.PUBLIC_READ_GROUPS,
+                "internal": [settings.INTERNAL_READ_GROUP],
+                "embargo": [settings.EMBARGO_READ_GROUP],
+            },
+            "write": {
+                "public": [settings.PUBLIC_WRITE_GROUP],
+                "internal": [settings.INTERNAL_WRITE_GROUP],
+                "embargo": [settings.EMBARGO_WRITE_GROUP],
+            },
+        }
 
-        return [settings.EMBARGO_WRITE_GROUP]
+        if not self.bug.get("groups", []):
+            return mapping[operation]["public"]
+
+        elif "security" not in self.bug.get("groups", []):
+            return mapping[operation]["internal"]
+
+        else:
+            if not BZ_ENABLE_IMPORT_EMBARGOED:
+                raise self.FlawConvertorException(
+                    f"Bug {self.bz_id} is embargoed but BZ_ENABLE_IMPORT_EMBARGOED is set to False"
+                )
+            return mapping[operation]["embargo"]
 
     @cached_property
     def acl_read(self):
