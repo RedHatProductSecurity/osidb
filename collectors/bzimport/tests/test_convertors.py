@@ -865,6 +865,7 @@ class TestFlawConvertor:
             "depends_on": [],
             "description": "text",
             "fixed_in": None,
+            "groups": [],
             "id": "123",
             "last_change_time": "2001-01-01T12:12:12Z",
             "status": "CLOSED",
@@ -1687,6 +1688,38 @@ class TestFlawConvertor:
 
         assert "fixed_in" in flaw.meta_attr
         assert flaw.meta_attr["fixed_in"] == flaw_bug["fixed_in"]
+
+    @pytest.mark.parametrize(
+        "bz_groups,ldap_read_group,ldap_write_group",
+        [
+            ([], "public_read_groups", "public_write_groups"),
+            (["security"], "embargoed_read_groups", "embargoed_write_groups"),
+            (["redhat"], "internal_read_groups", "internal_write_groups"),
+        ],
+    )
+    def test_groups(self, request, bz_groups, ldap_read_group, ldap_write_group):
+        """
+        Test that "groups" field is correctly matched to LDAP groups.
+        """
+        ldap_read_group = request.getfixturevalue(ldap_read_group)
+        ldap_write_group = request.getfixturevalue(ldap_write_group)
+
+        flaw_bug = self.get_flaw_bug()
+        flaw_bug["groups"] = bz_groups
+        fbc = FlawConvertor(
+            flaw_bug,
+            [],
+            None,
+            None,
+            [],
+            [],
+        )
+        [flaw] = fbc.bug2flaws()
+        flaw.save()
+        flaw = Flaw.objects.first()
+
+        assert flaw.acl_read == ldap_read_group
+        assert flaw.acl_write == ldap_write_group
 
 
 class TestFlawConvertorFixedIn:

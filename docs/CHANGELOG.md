@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow editing flaws without affects in NEW state (OSIDB-2452)
 - Fixed read replica to perform HTTP requests as atomic transactions (OSIDB-2585)
 
+### Fixed
+- Fix incorrect ACLs for flaw drafts (OSIDB-2263)
+
 ## [3.7.0] - 2024-04-17
 ### Added
 - Implement flaw unembargo mechanism (OSIDB-1177)
