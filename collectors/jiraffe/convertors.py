@@ -9,12 +9,14 @@ from django.conf import settings
 from django.db import transaction
 
 from osidb.core import generate_acls, set_user_acls
-from osidb.models import Tracker
+from osidb.models import Affect, Flaw, Tracker
+from osidb.validators import CVE_RE_STR
 
 from ..utils import (
     tracker_parse_update_stream_component,
     tracker_summary2module_component,
 )
+from .constants import JIRA_BZ_ID_LABEL_RE
 
 
 class TrackerSaver:
@@ -263,3 +265,61 @@ class JiraTrackerConvertor(TrackerConvertor):
         so the ACL validations may properly compare the result
         """
         return [uuid.UUID(acl) for acl in generate_acls(self.groups_write)]
+
+    @property
+    def affects(self) -> list:
+        """
+        returns the list of related affects
+        """
+        # to ensure the maximum possible linkage retrieval
+        # we use multiple methods to find the related flaws
+        #
+        # this ensures the restoration of links
+        # which has one of the sides broken
+        flaws = set()
+
+        # 1) linking from the flaw side
+        for flaw in Flaw.objects.filter(
+            meta_attr__jira_trackers__contains=self._raw.key
+        ):
+            # we need to double check the tracker ID
+            # as eg. OSIDB-123 is contained in OSIDB-1234
+            for item in json.loads(flaw.meta_attr["jira_trackers"]):
+                if self._raw.key == item["key"]:
+                    flaws.add(flaw)
+
+        # 2) linking from the tracker side
+        for label in self._raw.fields.labels:
+            if CVE_RE_STR.match(label):
+                try:
+                    flaws.add(Flaw.objects.get(cve_id=label))
+                except Flaw.DoesNotExist:
+                    # tracker created against
+                    # non-existing CVE ID
+                    # self.alert(TODO)
+                    continue
+
+            if match := JIRA_BZ_ID_LABEL_RE.match(label):
+                try:
+                    flaws.add(Flaw.objects.get(meta_attr__bz_id=match.group(1)))
+                except Flaw.DoesNotExist:
+                    # tracker created against
+                    # non-existing BZ ID
+                    # self.alert(TODO)
+                    continue
+
+        affects = []
+        for flaw in flaws:
+            try:
+                affect = flaw.affects.get(
+                    ps_module=self.ps_module,
+                    ps_component=self.ps_component,
+                )
+            except Affect.DoesNotExist:
+                # tracker created against
+                # non-existing affect
+                # self.alert(TODO)
+                continue
+
+            affects.append(affect)
+        return affects
