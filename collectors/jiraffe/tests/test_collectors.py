@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from django.utils import timezone
 from freezegun import freeze_time
@@ -205,23 +207,31 @@ class TestJiraTrackerCollector:
         test collecting a known Jira issue specified by the given ID
         linked to an affect which should preserve the linking
         """
-        flaw1 = FlawFactory(embargoed=False)
-        flaw2 = FlawFactory(embargoed=False)
-        PsModuleFactory(bts_name="jboss", name="module")
+        tracker_id = "ENTMQ-755"
+        flaw1 = FlawFactory(
+            embargoed=False,
+            meta_attr={"jira_trackers": json.dumps([{"key": tracker_id}])},
+        )
+        flaw2 = FlawFactory(
+            embargoed=False,
+            meta_attr={"jira_trackers": json.dumps([{"key": tracker_id}])},
+        )
+        ps_module = PsModuleFactory(bts_name="jboss", name="module")
         affect1 = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             flaw=flaw1,
-            ps_module="module",
+            ps_module=ps_module.name,
             ps_component="component",
         )
         affect2 = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             flaw=flaw2,
-            ps_module="module",
+            ps_module=ps_module.name,
             ps_component="component",
         )
-        tracker_id = "ENTMQ-755"
+        ps_update_stream = PsUpdateStreamFactory(name="stream", ps_module=ps_module)
         TrackerFactory(
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.JIRA,
             external_system_id=tracker_id,
             affects=[affect1, affect2],

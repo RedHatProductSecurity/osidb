@@ -39,7 +39,7 @@ interactions:
         null, "lastViewed": null, "customfield_12313140": null, "priority": {"self":
         "https://example.com/rest/api/2/priority/3", "iconUrl": "https://example.com/images/icons/priorities/major.svg",
         "name": "Major", "id": "3"}, "labels": ["CVE-2014-3120", "Security", "SecurityTracking",
-        "component:elasticsearch"], "customfield_12311640": null, "customfield_12311244":
+        "component:component"], "customfield_12311640": null, "customfield_12311244":
         null, "customfield_12311245": null, "customfield_12311641": null, "customfield_12311242":
         null, "aggregatetimeoriginalestimate": null, "timeestimate": null, "versions":
         [{"self": "https://example.com/rest/api/2/version/12323365", "id": "12323365",
@@ -108,8 +108,8 @@ interactions:
         "id": "11697", "description": "Red Hat Employee and Contractors only", "name":
         "Red Hat Employee"}, "customfield_12312340": null, "attachment": [], "customfield_12316542":
         null, "customfield_12316543": null, "customfield_12316544": null, "customfield_12310840":
-        "9223372036854775807", "summary": "CVE-2014-3120 elasticsearch: remote code
-        execution flaw via dynamic scripting [amq-7.1]", "customfield_12323640": null,
+        "9223372036854775807", "summary": "CVE-2014-3120 component: remote code
+        execution flaw via dynamic scripting [stream]", "customfield_12323640": null,
         "customfield_12323642": null, "customfield_12323641": null, "customfield_12323644":
         null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
         null, "customfield_12313441": "", "customfield_12315740": null, "customfield_12313440":
