@@ -14,7 +14,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from packageurl import PackageURL
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -38,6 +38,7 @@ from .filters import (
 from .mixins import Alert
 from .models import Affect, AffectCVSS, Flaw, Tracker
 from .serializer import (
+    AffectBulkPutResponseSerializer,
     AffectCVSSPostSerializer,
     AffectCVSSPutSerializer,
     AffectCVSSSerializer,
@@ -737,6 +738,80 @@ class AffectView(SubFlawViewDestroyMixin, ModelViewSet):
     filterset_class = AffectFilter
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    @extend_schema(
+        request=AffectSerializer(many=True),
+        responses=AffectBulkPutResponseSerializer,
+    )
+    @action(methods=["PUT"], detail=False, url_path="bulk")
+    def put(self, request, *args, **kwargs):
+        """
+        Bulk update endpoint. Expects a list of dict Affect objects.
+        """
+
+        bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
+        if not bz_api_key:
+            raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
+
+        # TODO sometime: Some of these actions probably belong to another layer, perhaps serializer.
+
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # first, perform validations
+        flaws = set()
+        uuids = set()
+        validated_serializers = []
+        for datum in request.data:
+            try:
+                uuid = datum["uuid"]
+            except KeyError:
+                raise ValidationError({"uuid": "This field is required."})
+
+            if uuid in uuids:
+                raise ValidationError(
+                    {"uuid": "Multiple objects with the same uuid provided."}
+                )
+            else:
+                uuids.add(uuid)
+
+            try:
+                flaw_uuid = datum["flaw"]
+            except KeyError:
+                raise ValidationError({"flaw": "This field is required."})
+
+            flaws.add(flaw_uuid)
+
+            instance = get_object_or_404(queryset, uuid=uuid)
+            serializer = self.get_serializer(instance, data=datum)
+            serializer.is_valid(raise_exception=True)
+            validated_serializers.append(serializer)
+
+        if len(flaws) > 1:
+            raise ValidationError(
+                {"flaw": "Provided affects belong to multiple flaws."}
+            )
+
+        def dummy(*args, **kwargs):
+            pass
+
+        # Second, save the updated affects to the database, but not sync with BZ.
+        ret = []
+        for serializer in validated_serializers:
+            # NOTE This takes about 300 milliseconds on local laptop per instance.
+
+            # Make the serializer's and model's mixins and .bzsync() not make requests to bugzilla.
+            # Leave the jira token as is, so that AffectSerializer.update() can still update
+            # Trackers in Jira as necessary.
+            serializer.get_bz_api_key = dummy
+            self.perform_update(serializer)
+
+            ret.append(serializer.data)
+
+        # Third, proxy the update to Bugzilla
+        flaw = Flaw.objects.get(uuid=next(iter(flaws)))
+        flaw.save(bz_api_key=bz_api_key)
+
+        return Response({"results": ret})
 
 
 @include_exclude_fields_extend_schema_view

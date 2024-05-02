@@ -216,6 +216,53 @@ class TestEndpointsAffects:
         assert AffectCVSS.objects.count() == 0
 
 
+class TestEndpointsAffectsBulk:
+    """
+    tests specific to bulk operations on /affects endpoint
+    """
+
+    def test_affect_update_bulk(self, auth_client, test_api_uri):
+        """
+        Test the bulk update of Affect records via a REST API PUT request.
+        """
+        flaw = FlawFactory(cve_id="CVE-2345-6789")
+        affects = []
+        for i in range(20):
+            affects.append(AffectFactory(flaw=flaw))
+
+        response = auth_client().get(
+            f"{test_api_uri}/affects?flaw__cve_id=CVE-2345-6789"
+        )
+        assert response.status_code == 200
+        original_body = response.json()
+        request_affects = original_body["results"]
+        orig_uuids = set()
+        for aff in request_affects:
+            orig_uuids.add(aff["uuid"])
+            aff["affectedness"] = "AFFECTED"
+            aff["resolution"] = "DELEGATED"
+            aff["ps_module"] = f"different {aff['ps_module']}"
+
+        response = auth_client().put(
+            f"{test_api_uri}/affects/bulk",
+            request_affects,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        body = response.json()
+        new_uuids = set()
+        for returned_aff in body["results"]:
+            new_uuids.add(returned_aff["uuid"])
+            assert returned_aff["affectedness"] == "AFFECTED"
+            assert returned_aff["resolution"] == "DELEGATED"
+            assert returned_aff["ps_module"].startswith("different ")
+        assert len(orig_uuids) == len(new_uuids)
+        assert orig_uuids == new_uuids
+        assert len(body["results"]) == len(request_affects)
+
+
 class TestEndpointsAffectsUpdateTrackers:
     """
     tests of consecutive tracker update trigger

@@ -341,8 +341,33 @@ class ACLMixinSerializer(serializers.ModelSerializer):
         """
         process validated data converting embargoed status into the ACLs
         """
-        # Already validated in EmbargoedField
-        embargoed = self.context["request"].data.get("embargoed")
+        # Already validated in EmbargoedField for non-bulk requests
+        try:
+            # For usual dict-typed requests with one object per request.
+            embargoed = self.context["request"].data.get("embargoed")
+        except AttributeError:
+            # For bulk list-typed requests with multiple objects per request.
+            embargoed_values = [
+                d.get("embargoed") for d in self.context["request"].data
+            ]
+            if not embargoed_values:
+                raise serializers.ValidationError(
+                    {
+                        "embargoed": "No value provided. All objects in a bulk request must have the (same) value for embargoed."
+                    }
+                )
+            embargoed_values_dedup = tuple(set(embargoed_values))
+            if len(embargoed_values_dedup) > 1 or len(embargoed_values) != len(
+                self.context["request"].data
+            ):
+                # Even if boolean-equivalent values are provided, still require an identical value.
+                raise serializers.ValidationError(
+                    {
+                        "embargoed": "Different values provided in a bulk request. All objects in a bulk request must have the same value for embargoed."
+                    }
+                )
+            embargoed = embargoed_values_dedup[0]
+
         if isinstance(embargoed, str):
             embargoed = bool(strtobool(embargoed))
 
@@ -1011,6 +1036,15 @@ class AffectPostSerializer(AffectSerializer):
     # extra serializer for POST request as there is no last update
     # timestamp but we need to make the field mandatory otherwise
     pass
+
+
+class AffectBulkPutResponseSerializer(serializers.ModelSerializer):
+    # Extra serializer for drf-spectacular to describe format of bulk PUT response.
+    results = AffectSerializer(many=True)
+
+    class Meta:
+        model = Affect
+        fields = ["results"]
 
 
 @extend_schema_serializer(deprecate_fields=["status"])
