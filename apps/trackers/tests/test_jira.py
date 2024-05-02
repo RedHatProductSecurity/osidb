@@ -142,10 +142,12 @@ class TestTrackerJiraQueryBuilder:
             (
                 {"test": 1},
                 [
-                    "SecurityTracking",
-                    "Security",
-                    "pscomponent:component",
                     "CVE-2000-2000",
+                    "Security",
+                    "SecurityTracking",
+                    "flaw:bz#42",
+                    "flaw:bz#72",
+                    "pscomponent:component",
                 ],
             ),
             (
@@ -154,47 +156,55 @@ class TestTrackerJiraQueryBuilder:
                     "labels": '["CVE-2000-2000", "SecurityTracking", "pscomponent:component", "Security", "validation-requested", "custom_label"]'
                 },
                 [
-                    "custom_label",
-                    "SecurityTracking",
-                    "Security",
-                    "pscomponent:component",
                     "CVE-2000-2000",
+                    "Security",
+                    "SecurityTracking",
+                    "custom_label",
+                    "flaw:bz#42",
+                    "flaw:bz#72",
+                    "pscomponent:component",
                 ],
             ),
             (
                 {"labels": []},
                 [
-                    "SecurityTracking",
-                    "Security",
-                    "pscomponent:component",
                     "CVE-2000-2000",
+                    "Security",
+                    "SecurityTracking",
+                    "flaw:bz#42",
+                    "flaw:bz#72",
+                    "pscomponent:component",
                 ],
             ),
             (
                 {
                     "labels": [
-                        "CVE-2000-2000",
-                        "Security",
-                        "foobar",
-                        "CVE-2000-0001",
                         "CVE-1",
+                        "CVE-2000-2000",
+                        "CVE-2000-0001",
+                        "Security",
                         "SecurityTracking",
+                        "flaw:bz#42",
+                        "flaw:bz#72",
+                        "foobaa",
+                        "foobar",
                         "foobaz",
                         "pscomponent:component",
                         "pscomponent:foobar",
-                        "foobaa",
                         "validation-requested",
                     ]
                 },
                 [
-                    "foobar",
                     "CVE-1",
-                    "foobaz",
-                    "foobaa",
-                    "SecurityTracking",
-                    "Security",
-                    "pscomponent:component",
                     "CVE-2000-2000",
+                    "Security",
+                    "SecurityTracking",
+                    "flaw:bz#42",
+                    "flaw:bz#72",
+                    "foobaa",
+                    "foobar",
+                    "foobaz",
+                    "pscomponent:component",
                 ],
             ),
         ],
@@ -207,8 +217,8 @@ class TestTrackerJiraQueryBuilder:
             # Do what jiraffe/convertors.py::JiraTrackerConvertor._normalize normally does
             # when saving meta_attr (improve readability of pytest parameters).
             meta["labels"] = json.dumps(meta["labels"])
-        flaw1 = FlawFactory(cve_id="CVE-2000-2000")
-        flaw2 = FlawFactory(embargoed=flaw1.embargoed, cve_id=None)
+        flaw1 = FlawFactory(bz_id="42", cve_id="CVE-2000-2000")
+        flaw2 = FlawFactory(bz_id="72", embargoed=flaw1.embargoed, cve_id=None)
         ps_module = PsModuleFactory(bts_name="jboss")
         affect1 = AffectFactory(
             flaw=flaw1,
@@ -242,6 +252,8 @@ class TestTrackerJiraQueryBuilder:
         assert "Security" in labels
         assert "pscomponent:component" in labels
         assert "CVE-2000-2000" in labels
+        assert "flaw:bz#42" in labels
+        assert "flaw:bz#72" in labels
         assert len(labels) == len(expected_labels)
         assert labels == expected_labels
 
@@ -249,7 +261,7 @@ class TestTrackerJiraQueryBuilder:
         """
         test that the query for the Jira label contract-priority is generated correctly
         """
-        flaw1 = FlawFactory(cve_id="CVE-2000-2000")
+        flaw1 = FlawFactory(bz_id="42", cve_id="CVE-2000-2000")
         ps_module = PsModuleFactory(bts_name="jboss")
         affect1 = AffectFactory(
             flaw=flaw1,
@@ -277,7 +289,8 @@ class TestTrackerJiraQueryBuilder:
         assert "Security" in labels
         assert "pscomponent:component" in labels
         assert "CVE-2000-2000" in labels
-        assert len(labels) == 5
+        assert "flaw:bz#42" in labels
+        assert len(labels) == 6
 
     @pytest.mark.parametrize(
         "impact,yml_components",
@@ -293,7 +306,7 @@ class TestTrackerJiraQueryBuilder:
         """
         test that the query for the Jira label compliance-priority is generated correctly
         """
-        flaw1 = FlawFactory(cve_id="CVE-2000-2000", impact=impact)
+        flaw1 = FlawFactory(bz_id="42", cve_id="CVE-2000-2000", impact=impact)
         ps_module = PsModuleFactory(bts_name="jboss")
         affect1 = AffectFactory(
             flaw=flaw1,
@@ -327,12 +340,13 @@ class TestTrackerJiraQueryBuilder:
         assert "Security" in labels
         assert "pscomponent:component" in labels
         assert "CVE-2000-2000" in labels
+        assert "flaw:bz#42" in labels
         if impact == "LOW" or "foobar" in yml_components:
             assert "compliance-priority" not in labels
-            assert len(labels) == 5
+            assert len(labels) == 6
         else:
             assert "compliance-priority" in labels
-            assert len(labels) == 6
+            assert len(labels) == 7
 
     @pytest.mark.parametrize(
         "external_system_id, affectedness, preexisting_val_req_lbl, result_val_req_lbl",
@@ -365,8 +379,8 @@ class TestTrackerJiraQueryBuilder:
         """
         test that the validation-requested label in the Jira query is generated correctly
         """
-        flaw1 = FlawFactory(cve_id="CVE-2000-2000")
-        flaw2 = FlawFactory(embargoed=flaw1.embargoed, cve_id=None)
+        flaw1 = FlawFactory(bz_id="1", cve_id="CVE-2000-2000")
+        flaw2 = FlawFactory(bz_id="2", embargoed=flaw1.embargoed, cve_id=None)
         ps_module = PsModuleFactory(bts_name="jboss")
         affect1 = AffectFactory(
             flaw=flaw1,
@@ -426,12 +440,14 @@ class TestTrackerJiraQueryBuilder:
         assert "Security" in labels
         assert "pscomponent:component" in labels
         assert "CVE-2000-2000" in labels
+        assert "flaw:bz#1" in labels
+        assert "flaw:bz#2" in labels
         if result_val_req_lbl:
             assert "validation-requested" in labels
-            assert len(labels) == 5
+            assert len(labels) == 7
         else:
             assert "validation-requested" not in labels
-            assert len(labels) == 4
+            assert len(labels) == 6
 
         # NOTE: In real usage, this query is sent to Jira and it overwrites the list of
         # labels stored in Jira, so if the label is not generated anymore, it effectively

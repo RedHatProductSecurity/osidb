@@ -3,7 +3,7 @@ interactions:
     body: '{"fields": {"issuetype": {"name": "Bug"}, "project": {"key": "OSIDB"},
       "priority": {"name": "Minor"}, "description": "Security Tracking Issue\n\nDo
       not make this issue public.\n\nFlaw:\n-----\n\nsample title\nhttps://example.com/show_bug.cgi?id=1997880\n\nDescription
-      for None\n\n~~~", "labels": ["SecurityTracking", "Security", "pscomponent:openshift"],
+      for None\n\n~~~", "labels": ["SecurityTracking", "Security", "pscomponent:openshift", "flaw:bz#1997880"],
       "summary": "[CISA Major Incident] openshift: sample title [openshift-4.8.z]"}}'
     headers:
       Accept:
@@ -135,7 +135,7 @@ interactions:
         "watchCount": 1, "isWatching": true}, "created": "2023-12-05T17:04:56.823+0000",
         "customfield_12321240": null, "customfield_12313140": null, "priority": {"self":
         "https://example.com/rest/api/2/priority/4", "iconUrl": "https://example.com/images/icons/priorities/minor.svg",
-        "name": "Minor", "id": "4"}, "labels": ["Security", "SecurityTracking", "pscomponent:openshift"],
+        "name": "Minor", "id": "4"}, "labels": ["Security", "SecurityTracking", "pscomponent:openshift", "flaw:bz#1997880"],
         "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705",
@@ -297,7 +297,7 @@ interactions:
         "watchCount": 1, "isWatching": true}, "created": "2023-12-05T17:04:56.823+0000",
         "customfield_12321240": null, "customfield_12313140": null, "priority": {"self":
         "https://example.com/rest/api/2/priority/4", "iconUrl": "https://example.com/images/icons/priorities/minor.svg",
-        "name": "Minor", "id": "4"}, "labels": ["Security", "SecurityTracking", "pscomponent:openshift"],
+        "name": "Minor", "id": "4"}, "labels": ["Security", "SecurityTracking", "pscomponent:openshift", "flaw:bz#1997880"],
         "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705",
@@ -624,7 +624,7 @@ interactions:
         null, \"item\": \"14. Task problems reported in secalert/postmortem\", \"not_applicable\":
         false}], \"name\": \"Base flaw\", \"signature\": \"817fb25\", \"template\":
         \"base_flaw\"}], \"cvss3\": \"0/CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N\",
-        \"impact\": \"low\", \"jira_trackers\": [], \"public\": \"2022-06-24\", \"reported\":
+        \"impact\": \"low\", \"public\": \"2022-06-24\", \"reported\":
         \"2022-06-24\", \"source\": \"internet\"}", "added": "{\"affects\": [{\"ps_module\":
         \"openshift-4\", \"ps_component\": \"openshift\", \"affectedness\": \"affected\",
         \"resolution\": \"fix\", \"impact\": \"low\", \"cvss2\": null, \"cvss3\":
@@ -1083,7 +1083,7 @@ interactions:
         "watchCount": 1, "isWatching": true}, "created": "2023-12-05T17:04:56.823+0000",
         "customfield_12321240": null, "customfield_12313140": null, "priority": {"self":
         "https://example.com/rest/api/2/priority/4", "iconUrl": "https://example.com/images/icons/priorities/minor.svg",
-        "name": "Minor", "id": "4"}, "labels": ["Security", "SecurityTracking", "pscomponent:openshift"],
+        "name": "Minor", "id": "4"}, "labels": ["Security", "SecurityTracking", "pscomponent:openshift", "flaw:bz#1997880"],
         "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705",
@@ -1609,7 +1609,7 @@ interactions:
         "watchCount": 1, "isWatching": true}, "created": "2023-12-05T17:04:56.823+0000",
         "customfield_12321240": null, "customfield_12313140": null, "priority": {"self":
         "https://example.com/rest/api/2/priority/4", "iconUrl": "https://example.com/images/icons/priorities/minor.svg",
-        "name": "Minor", "id": "4"}, "labels": ["Security", "SecurityTracking", "pscomponent:openshift"],
+        "name": "Minor", "id": "4"}, "labels": ["Security", "SecurityTracking", "pscomponent:openshift", "flaw:bz#1997880"],
         "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705",
