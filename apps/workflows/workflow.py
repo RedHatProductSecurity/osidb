@@ -117,6 +117,19 @@ class WorkflowFramework:
             f"Workflow ({target_workflow}) was not found in WorkflowFramework."
         )
 
+    def jira_to_state(self, jira_state, jira_resolution):
+        """
+        Given the current Jira state and resolution, find the correponding workflow state
+        """
+        for workflow in self.workflows:
+            for state in workflow.states:
+                if (
+                    state.jira_state == jira_state
+                    and state.jira_resolution == jira_resolution
+                ):
+                    return state.name
+        return None
+
     def jira_status(self, instance):
         """
         Given a instance, return expected jira status and resolution
@@ -145,10 +158,12 @@ class WorkflowModel(models.Model):
         DONE = "DONE"
         REJECTED = "REJECTED"
 
-    # workflow metadata
-    workflow_name = models.CharField(max_length=50, blank=True)
+    workflow_name = models.CharField(max_length=50, blank=True, default="DEFAULT")
     workflow_state = models.CharField(
-        choices=WorkflowState.choices, max_length=24, blank=True
+        choices=WorkflowState.choices,
+        max_length=24,
+        blank=True,
+        default=WorkflowState.NEW,
     )
     owner = models.CharField(max_length=60, blank=True)
     group_key = models.CharField(max_length=60, blank=True)
@@ -268,7 +283,7 @@ class WorkflowModel(models.Model):
         if not save:
             return
 
-        self.save(jira_token=jira_token)
+        self.save(jira_token=jira_token, raise_validation_error=False)
 
     def reject(self, save=True, jira_token=None):
         """
@@ -289,7 +304,7 @@ class WorkflowModel(models.Model):
         if not save:
             return
 
-        self.save(jira_token=jira_token)
+        self.save(jira_token=jira_token, raise_validation_error=False)
 
     def jira_status(self):
         return WorkflowFramework().jira_status(self)

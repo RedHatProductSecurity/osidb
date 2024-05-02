@@ -6,11 +6,14 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
+from apps.taskman.service import JiraTaskmanQuerier
+from apps.workflows.models import Workflow
+from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.convertors import FlawConvertor
 from osidb.core import generate_acls
 from osidb.exceptions import DataInconsistencyException
 from osidb.models import Flaw, FlawSource, Impact
-from osidb.tests.factories import AffectFactory, FlawFactory
+from osidb.tests.factories import AffectFactory, FlawFactory, PsModuleFactory
 
 from .test_flaw import tzdatetime
 
@@ -479,3 +482,198 @@ class TestTrackingMixin:
         flaw = Flaw.objects.create(**kwargs)
         assert flaw.created_dt == timezone.now()
         assert flaw.updated_dt == timezone.now()
+
+
+class TestBugzillaJiraMixinInteration:
+    def get_acl_read(self):
+        return [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                "https://osidb.prod.redhat.com/ns/acls#data-prodsec",
+            )
+        ]
+
+    def get_acl_write(self):
+        return [
+            uuid.uuid5(
+                uuid.NAMESPACE_URL,
+                "https://osidb.prod.redhat.com/ns/acls#data-prodsec-write",
+            )
+        ]
+
+    def enable_sync(self, monkeypatch):
+        """Enables all sync to test integration between mixins"""
+        import apps.bbsync.mixins as bz_mixins
+        import apps.taskman.mixins as task_mixins
+        import osidb.models as models
+        import osidb.serializer as serializer
+
+        monkeypatch.setattr(task_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(bz_mixins, "SYNC_TO_BZ", True)
+        monkeypatch.setattr(models, "SYNC_TO_BZ", True)
+        monkeypatch.setattr(models, "SYNC_TO_JIRA", True)
+
+        monkeypatch.setenv("HTTPS_PROXY", "http://squid.corp.redhat.com:3128")
+
+    def setup_workflow(self):
+        """Clean default workflows and set a basic workflow for testing"""
+
+        state_new = {
+            "name": WorkflowModel.WorkflowState.NEW,
+            "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
+        }
+        state_second = {
+            "name": WorkflowModel.WorkflowState.TRIAGE,
+            "requirements": ["has title"],
+            "jira_state": "Refinement",
+            "jira_resolution": None,
+        }
+
+        workflow_main = Workflow(
+            {
+                "name": "DEFAULT",
+                "description": "a two step workflow",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_new, state_second],
+            }
+        )
+
+        state_reject = {
+            "name": WorkflowModel.WorkflowState.REJECTED,
+            "requirements": [],
+            "jira_state": "Closed",
+            "jira_resolution": "Won't Do",
+        }
+        workflow_reject = Workflow(
+            {
+                "name": "REJECTED",
+                "description": "a two step workflow",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_reject],
+            }
+        )
+        workflow_framework = WorkflowFramework()
+        # remove yml workflows
+        workflow_framework._workflows = []
+        workflow_framework.register_workflow(workflow_main)
+        workflow_framework.register_workflow(workflow_reject)
+
+    @pytest.mark.vcr
+    def test_manual_changes(self, monkeypatch):
+        """Test that sync occurs using internal OSIDB APIs"""
+        self.enable_sync(monkeypatch)
+        self.setup_workflow()
+        flaw = Flaw(
+            title="title",
+            cwe_id="CWE-1",
+            description="description",
+            impact=Impact.LOW,
+            components=["curl"],
+            source=FlawSource.INTERNET,
+            acl_read=self.get_acl_read(),
+            acl_write=self.get_acl_write(),
+            reported_dt=timezone.now(),
+            unembargo_dt=tzdatetime(2000, 1, 1),
+            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+        )
+
+        jira_token = "SECRET"
+        bz_token = "SECRET"
+
+        flaw.save(jira_token=jira_token, bz_api_key=bz_token)
+
+        PsModuleFactory(name="ps-module-0")
+        assert flaw.bz_id
+        assert flaw.task_key
+
+        AffectFactory(flaw=flaw, ps_module="ps-module-0")
+        flaw = Flaw.objects.get(pk=flaw.uuid)
+
+        flaw.promote(jira_token=jira_token)
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
+
+        jtq = JiraTaskmanQuerier(jira_token)
+
+        issue = jtq.jira_conn.issue(flaw.task_key).raw
+        assert issue["fields"]["status"]["name"] == "Refinement"
+
+        flaw.reject(jira_token=jira_token)
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.REJECTED
+
+        issue = jtq.jira_conn.issue(flaw.task_key).raw
+        assert issue["fields"]["status"]["name"] == "Closed"
+        assert issue["fields"]["resolution"]["name"] == "Won't Do"
+
+    @pytest.mark.vcr
+    @pytest.mark.enable_signals
+    def test_api_changes(self, monkeypatch, auth_client, test_api_uri):
+        """Test that sync occurs using OSIDB REST API"""
+        self.enable_sync(monkeypatch)
+        self.setup_workflow()
+
+        jira_token = "SECRET"
+        bz_token = "SECRET"
+
+        flaw_data = {
+            "title": "Foo",
+            "description": "test",
+            "impact": "LOW",
+            "component": "curl",
+            "source": "DEBIAN",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "mitigation": "mitigation",
+            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "embargoed": "false",
+        }
+        response = auth_client().post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+
+        assert response.status_code == 201
+        body = response.json()
+        created_uuid = body["uuid"]
+        flaw = Flaw.objects.get(pk=created_uuid)
+
+        PsModuleFactory(name="ps-module-0")
+        assert flaw.bz_id
+        assert flaw.task_key
+
+        AffectFactory(flaw=flaw, ps_module="ps-module-0")
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws/{created_uuid}/promote",
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+
+        flaw = Flaw.objects.get(pk=created_uuid)
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
+
+        jtq = JiraTaskmanQuerier(jira_token)
+
+        issue = jtq.jira_conn.issue(flaw.task_key).raw
+        assert issue["fields"]["status"]["name"] == "Refinement"
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws/{created_uuid}/reject",
+            {"reason": "This is not a bug."},
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+
+        issue = jtq.jira_conn.issue(flaw.task_key).raw
+        assert issue["fields"]["status"]["name"] == "Closed"
+        assert issue["fields"]["resolution"]["name"] == "Won't Do"

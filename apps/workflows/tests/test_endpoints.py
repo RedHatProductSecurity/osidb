@@ -1,5 +1,6 @@
 import pytest
 from django.conf import settings
+from rest_framework.response import Response
 
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.models import State, Workflow
@@ -129,7 +130,7 @@ class TestEndpoints(object):
         # always some workflow to classify the flaw in
         workflow = Workflow(
             {
-                "name": "default workflow",
+                "name": "DEFAULT",
                 "description": "random description",
                 "priority": 0,
                 "conditions": [],
@@ -142,7 +143,7 @@ class TestEndpoints(object):
         # major incident workflow
         workflow = Workflow(
             {
-                "name": "major incident workflow",
+                "name": "MAJOR_INCIDENT",
                 "description": "random description",
                 "priority": 1,  # is more prior than default one
                 "conditions": [
@@ -155,11 +156,12 @@ class TestEndpoints(object):
         workflow_framework.register_workflow(workflow)
 
         flaw = FlawFactory.build(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
+        flaw.adjust_classification(save=False)
         flaw.save(raise_validation_error=False)
         AffectFactory(flaw=flaw)
 
         assert flaw.classification == {
-            "workflow": "major incident workflow",
+            "workflow": "MAJOR_INCIDENT",
             "state": "DONE",
         }
 
@@ -172,14 +174,14 @@ class TestEndpoints(object):
         assert body["flaw"] == str(flaw.uuid)
         assert "classification" in body
         assert body["classification"] == {
-            "workflow": "default workflow",
+            "workflow": "DEFAULT",
             "state": "DONE",
         }
 
         # reload flaw DB
         flaw = Flaw.objects.get(pk=flaw.pk)
         assert flaw.classification == {
-            "workflow": "default workflow",
+            "workflow": "DEFAULT",
             "state": "DONE",
         }
 
@@ -214,8 +216,32 @@ class TestEndpoints(object):
         assert response.status_code == 401
 
     @pytest.mark.enable_signals
-    def test_promote_endpoint(self, auth_client, test_api_uri_osidb, user_token):
+    def test_promote_endpoint(
+        self, monkeypatch, auth_client, test_api_uri_osidb, user_token
+    ):
         """test flaw state promotion after data change"""
+        import osidb.models as models
+
+        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+
+        def mock_create_or_update_task(self, flaw):
+            return Response(
+                data={
+                    "key": "TASK-123",
+                    "fields": {
+                        "status": {
+                            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+                        },
+                        "resolution": None,
+                    },
+                },
+                status=200,
+            )
+
+        monkeypatch.setattr(
+            JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
+        )
+
         workflow_framework = WorkflowFramework()
         workflow_framework._workflows = []
 
@@ -229,20 +255,20 @@ class TestEndpoints(object):
         state_first = {
             "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
             "requirements": ["has cwe"],
-            "jira_state": "To Do",
+            "jira_state": "In Progress",
             "jira_resolution": None,
         }
 
         state_second = {
             "name": WorkflowModel.WorkflowState.DONE,
             "requirements": ["has summary"],
-            "jira_state": "In Progress",
-            "jira_resolution": None,
+            "jira_state": "Closed",
+            "jira_resolution": "Done",
         }
 
         workflow = Workflow(
             {
-                "name": "default workflow",
+                "name": "DEFAULT",
                 "description": "random description",
                 "priority": 0,
                 "conditions": [],
@@ -251,10 +277,10 @@ class TestEndpoints(object):
         )
         workflow_framework.register_workflow(workflow)
 
-        flaw = FlawFactory(cwe_id="", summary="")
+        flaw = FlawFactory(cwe_id="", summary="", task_key="TASK-123")
         AffectFactory(flaw=flaw)
 
-        assert flaw.classification["workflow"] == "default workflow"
+        assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
         headers = {"HTTP_JIRA_API_KEY": user_token}
         response = auth_client().post(

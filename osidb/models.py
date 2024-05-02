@@ -37,7 +37,7 @@ from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FIELDS
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.trackers.constants import SYNC_TO_JIRA
-from apps.workflows.workflow import WorkflowModel
+from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.constants import BZ_API_KEY, FLAW_PLACEHOLDER_KEYWORD
 
 from .helpers import deprecate_field as deprecate_field_custom
@@ -1567,7 +1567,15 @@ class Flaw(
                 getattr(old_flaw, field) != getattr(self, field)
                 for field in SYNC_REQUIRED_FIELDS
             ):
-                jtq.create_or_update_task(self)
+                issue = jtq.create_or_update_task(self)
+                status = issue.data["fields"]["status"]["name"]
+                resolution = issue.data["fields"]["resolution"]
+                resolution = resolution["name"] if resolution else None
+
+                framework = WorkflowFramework()
+                workflow_state = framework.jira_to_state(status, resolution)
+                self.workflow_state = workflow_state
+                self.save(*args, **kwargs)
         except Flaw.DoesNotExist:
             # we're handling a new OSIDB-authored flaw -- create
             issue = jtq.create_or_update_task(self)

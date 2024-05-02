@@ -536,7 +536,7 @@ class TestWorkflowFramework:
 
         workflow_main = Workflow(
             {
-                "name": "main workflow",
+                "name": "DEFAULT",
                 "description": "a three step workflow to test classification",
                 "priority": 0,
                 "conditions": [],
@@ -553,7 +553,7 @@ class TestWorkflowFramework:
 
         workflow_reject = Workflow(
             {
-                "name": "reject workflow",
+                "name": "REJECT",
                 "description": "a worflow for rejected flaws",
                 "priority": 1,
                 "conditions": ["has affects", "affects notaffected"],
@@ -610,98 +610,6 @@ class TestFlaw:
         assert flaw.workflow_state
 
     @pytest.mark.enable_signals
-    def test_classification(self):
-        """test flaw classification property"""
-        state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
-            "requirements": [],
-            "jira_state": "New",
-            "jira_resolution": None,
-        }
-        state_first = {
-            "name": WorkflowModel.WorkflowState.TRIAGE,
-            "requirements": ["has description"],
-            "jira_state": "In Progress",
-            "jira_resolution": None,
-        }
-        state_second = {
-            "name": WorkflowModel.WorkflowState.DONE,
-            "requirements": ["has title"],
-            "jira_state": "Refinement",
-            "jira_resolution": None,
-        }
-
-        workflow_main = Workflow(
-            {
-                "name": "main workflow",
-                "description": "a three step workflow to test classification",
-                "priority": 0,
-                "conditions": [],
-                "states": [state_new, state_first, state_second],
-            }
-        )
-
-        state_not_affected = {
-            "name": WorkflowModel.WorkflowState.REJECTED,
-            "requirements": [],
-            "jira_state": "Closed",
-            "jira_resolution": "Won't Do",
-        }
-
-        workflow_reject = Workflow(
-            {
-                "name": "reject workflow",
-                "description": "a worflow for rejected flaws",
-                "priority": 1,
-                "conditions": ["has affects", "affects notaffected"],
-                "states": [state_not_affected],
-            }
-        )
-
-        workflow_framework = WorkflowFramework()
-        # remove yml workflows
-        workflow_framework._workflows = []
-        workflow_framework.register_workflow(workflow_main)
-        workflow_framework.register_workflow(workflow_reject)
-
-        flaw = FlawFactory()
-
-        # stored classification
-        assert flaw.workflow_name == flaw.classification["workflow"]
-        assert flaw.workflow_state == flaw.classification["state"]
-        # computed classification
-        old_computed_workflow = flaw.classify()["workflow"]
-        old_computed_state = flaw.classify()["state"]
-        assert flaw.workflow_name == old_computed_workflow
-        assert flaw.workflow_state == old_computed_state
-        # assing new and different classification
-        for workflow in WorkflowFramework().workflows:
-            if workflow.name != flaw.workflow_name:
-                for state in workflow.states:
-                    if state.name != flaw.workflow_state:
-                        new_stored_workflow = workflow.name
-                        new_stored_state = state.name
-                        flaw.classification = {
-                            "workflow": new_stored_workflow,
-                            "state": new_stored_state,
-                        }
-                # prevent asigning same workflow depending on order in the framework
-                break
-
-        # stored classification has changed
-        assert flaw.workflow_name == new_stored_workflow
-        assert flaw.workflow_name == flaw.classification["workflow"]
-        assert flaw.workflow_state == new_stored_state
-        assert flaw.workflow_state == flaw.classification["state"]
-        # computed classification has not changed
-        new_computed_workflow = flaw.classify()["workflow"]
-        new_computed_state = flaw.classify()["state"]
-        assert old_computed_workflow == new_computed_workflow
-        assert old_computed_state == new_computed_state
-        assert flaw.workflow_name != new_computed_workflow
-        assert flaw.workflow_state != new_computed_state
-
-    @pytest.mark.enable_signals
     def test_adjust(self):
         """test flaw classification adjustion after metadata change"""
         workflow_framework = WorkflowFramework()
@@ -738,7 +646,7 @@ class TestFlaw:
         # always some workflow to classify the flaw in
         workflow = Workflow(
             {
-                "name": "default workflow",
+                "name": "DEFAULT",
                 "description": "random description",
                 "priority": 0,
                 "conditions": [],
@@ -751,7 +659,7 @@ class TestFlaw:
         # major incident workflow
         workflow = Workflow(
             {
-                "name": "major incident workflow",
+                "name": "MAJOR_INCIDENT",
                 "description": "random description",
                 "priority": 1,  # is more prior than default one
                 "conditions": [
@@ -765,13 +673,14 @@ class TestFlaw:
 
         flaw = FlawFactory(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
         AffectFactory(flaw=flaw)
+        flaw.adjust_classification()
 
-        assert flaw.classification["workflow"] == "major incident workflow"
+        assert flaw.classification["workflow"] == "MAJOR_INCIDENT"
 
         flaw.major_incident_state = Flaw.FlawMajorIncident.NOVALUE
         flaw.adjust_classification()
 
-        assert flaw.classification["workflow"] == "default workflow"
+        assert flaw.classification["workflow"] == "DEFAULT"
 
     @pytest.mark.enable_signals
     def test_adjust_no_change(self):
@@ -810,7 +719,7 @@ class TestFlaw:
 
         workflow = Workflow(
             {
-                "name": "default workflow",
+                "name": "DEFAULT",
                 "description": "random description",
                 "priority": 0,
                 "conditions": [],
@@ -822,7 +731,7 @@ class TestFlaw:
         flaw = FlawFactory(cwe_id="", summary="")
         AffectFactory(flaw=flaw)
 
-        assert flaw.classification["workflow"] == "default workflow"
+        assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
 
         with pytest.raises(MissingRequirementsException, match="has cwe"):
