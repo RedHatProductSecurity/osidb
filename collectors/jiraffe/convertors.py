@@ -117,7 +117,7 @@ class TrackerConvertor:
         """
         raise NotImplementedError
 
-    def _gen_tracker_object(self, affect=None) -> Tracker:
+    def _gen_tracker_object(self) -> Tracker:
         """
         generate Tracker object from raw tracker data
         """
@@ -125,7 +125,7 @@ class TrackerConvertor:
         # if this is the periodic update however also when the flaw bug
         # has multiple CVEs the resulting flaws will share the trackers
         tracker = Tracker.objects.create_tracker(
-            affect=affect,
+            affect=None,
             _type=self.type,
             external_system_id=self.tracker_data["external_system_id"],
             status=self.tracker_data["status"],
@@ -143,9 +143,6 @@ class TrackerConvertor:
             self.tracker_data["updated_dt"] or self.tracker_data["created_dt"]
         )
         return tracker
-
-    def convert(self, affect=None) -> Tracker:
-        return self._gen_tracker_object(affect)
 
     @property
     def tracker(self) -> TrackerSaver:

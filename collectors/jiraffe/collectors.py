@@ -89,13 +89,8 @@ class JiraTrackerCollector(Collector):
 
         # process data
         for tracker_data in batch_data:
-            tracker_convertor = JiraTrackerConvertor(tracker_data)
-            tracker = tracker_convertor.convert()
-            # no automatic timestamps as those go from Jira
-            # and no validation exceptions not to fail here
-            tracker.save(auto_timestamps=False, raise_validation_error=False)
-
-            updated_trackers.append(tracker.external_system_id)
+            self.save(JiraTrackerConvertor(tracker_data).tracker)
+            updated_trackers.append(tracker_data.key)
 
         logger.info(
             f"Jira trackers were updated for the following IDs: {', '.join(updated_trackers)}"
