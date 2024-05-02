@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import pytest
@@ -908,17 +909,17 @@ class TestFlawDraftBBSyncIntegration:
         # only some items in meta_attr are checked
         assert flaw.meta_attr["bz_component"] == "vulnerability-draft"
         if cve_id:
-            assert flaw.meta_attr["alias"] == f"['{cve_id}']"
+            assert json.loads(flaw.meta_attr["alias"]) == [cve_id]
             assert flaw.meta_attr["bz_summary"] == f"{cve_id} From {source} collector"
             assert (
-                flaw.meta_attr["external_ids"] == f"['{cve_id}']"
+                json.loads(flaw.meta_attr["external_ids"]) == [cve_id]
                 if source == Snippet.Source.NVD
                 else f"['{ext_id}/{cve_id}']"
             )
         else:
-            assert flaw.meta_attr["alias"] == f"['{ext_id}']"
+            assert json.loads(flaw.meta_attr["alias"]) == [ext_id]
             assert flaw.meta_attr["bz_summary"] == f"From {source} collector"
-            assert flaw.meta_attr["external_ids"] == f"['{ext_id}']"
+            assert json.loads(flaw.meta_attr["external_ids"]) == [ext_id]
 
         # check that all ACLs are internal after Bugzilla two-way sync
         for i in [

@@ -721,9 +721,9 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         meta_attr["last_imported_dt"] = timezone.now()
         meta_attr["acl_labels"] = self.groups
         meta_attr["task_owner"] = self.task_owner
-        meta_attr["cc"] = json.dumps(self.flaw_bug.get("cc", []))
-        meta_attr["groups"] = json.dumps(self.flaw_bug.get("groups", []))
-        meta_attr["keywords"] = json.dumps(self.flaw_bug.get("keywords", []))
+        meta_attr["cc"] = self.flaw_bug.get("cc", [])
+        meta_attr["groups"] = self.flaw_bug.get("groups", [])
+        meta_attr["keywords"] = self.flaw_bug.get("keywords", [])
         # store the original SRT notes string as meta attributes tamper the JSON
         meta_attr["original_srtnotes"] = self.flaw_bug["cf_srtnotes"]
         meta_attr["status"] = self.flaw_bug["status"]
@@ -731,7 +731,26 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         meta_attr["fixed_in"] = self.flaw_bug["fixed_in"]
         meta_attr["bz_component"] = self.flaw_bug["component"]
         meta_attr["external_ids"] = self.srtnotes.get("external_ids", [])
-        return meta_attr
+
+        def dump(meta_attr):
+            """
+            json.dump dict values when appropriate
+            """
+            meta_attr_dump = {}
+            for key, value in meta_attr.items():
+                if not isinstance(
+                    value, timezone.datetime  # datetime is not JSON serializable
+                ) and not isinstance(
+                    value, str  # the string values result in extra quotes
+                ):
+                    value = json.dumps(value)
+
+                meta_attr_dump[key] = value
+            return meta_attr_dump
+
+        # process all the meta attributes through json.dumps
+        # to set them the correct quotes for later json.loads
+        return dump(meta_attr)
 
     ##############################
     # TRACKER RELATED PROPERTIES #
