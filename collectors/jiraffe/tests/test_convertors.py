@@ -126,6 +126,36 @@ class TestJiraTrackerConvertor:
         assert tracker.affects.first() == affect
 
     @pytest.mark.vcr
+    def test_convert_linked_from_flaw_side_no_affect(self):
+        """
+        test the convertor alerts while linking
+        when the link is in flaw SRT notes
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            meta_attr={"jira_trackers": json.dumps([{"key": self.tracker_id}])},
+        )
+        PsUpdateStreamFactory(name="amq-7.1")
+
+        tracker_data = JiraQuerier().get_issue(self.tracker_id)
+        tracker_convertor = JiraTrackerConvertor(tracker_data)
+        tracker_convertor.tracker.save()
+
+        tracker = Tracker.objects.get(external_system_id=self.tracker_id)
+        assert tracker.external_system_id in [
+            t["key"] for t in json.loads(flaw.meta_attr["jira_trackers"])
+        ]
+        assert not any(
+            "CVE" in label for label in json.loads(tracker.meta_attr["labels"])
+        )
+        assert not any(
+            "flaw:bz#" in label for label in json.loads(tracker.meta_attr["labels"])
+        )
+        assert tracker.affects.count() == 0
+        assert tracker.alerts
+        assert "tracker_no_affect" in tracker.alerts.values_list("name", flat=True)
+
+    @pytest.mark.vcr
     def test_convert_linked_from_tracker_side_cve(self):
         """
         test that the convertor linking works
@@ -157,6 +187,22 @@ class TestJiraTrackerConvertor:
         )
         assert tracker.affects.count() == 1
         assert tracker.affects.first() == affect
+
+    @pytest.mark.vcr
+    def test_convert_linked_from_tracker_side_no_flaw(self):
+        """
+        test the convertor alerts while linking
+        when the link is in tracker CVE label
+        """
+        PsUpdateStreamFactory(name="amq-7.1")
+
+        tracker_data = JiraQuerier().get_issue(self.tracker_id)
+        tracker_convertor = JiraTrackerConvertor(tracker_data)
+        tracker_convertor.tracker.save()
+
+        tracker = Tracker.objects.get(external_system_id=self.tracker_id)
+        assert tracker.alerts
+        assert "tracker_no_flaw" in tracker.alerts.values_list("name", flat=True)
 
     @pytest.mark.vcr
     def test_convert_linked_from_tracker_side_bz_id(self):

@@ -16,7 +16,7 @@ from django.utils.timezone import make_aware
 from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
 from collectors.jiraffe.convertors import TrackerConvertor
 from osidb.core import generate_acls, set_user_acls
-from osidb.mixins import AlertMixin, TrackingMixin
+from osidb.mixins import Alert, AlertMixin, TrackingMixin
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -184,7 +184,17 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
             except Affect.DoesNotExist:
                 # tracker created against
                 # non-existing affect
-                # self.alert(TODO)
+                self.alert(
+                    {
+                        "name": "tracker_no_affect",
+                        "description": (
+                            f"Bugzilla tracker {bz_id} is associated with flaw "
+                            f"{flaw.cve_id or flaw.bz_id} but there is no associated affect "
+                            f"({self.ps_module}:{self.ps_component})"
+                        ),
+                        "alert_type": Alert.AlertType.ERROR,
+                    }
+                )
                 continue
 
             affects.append(affect)

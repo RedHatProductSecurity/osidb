@@ -9,6 +9,7 @@ from django.conf import settings
 from django.db import transaction
 
 from osidb.core import generate_acls, set_user_acls
+from osidb.mixins import Alert
 from osidb.models import Affect, Flaw, Tracker
 from osidb.validators import CVE_RE_STR
 
@@ -59,8 +60,9 @@ class TrackerSaver:
                 raise_validation_error=False,
             )
 
-            # TODO
             # store alerts
+            for alert in self.alerts:
+                self.tracker.alert(**alert)
 
 
 class TrackerConvertor:
@@ -293,7 +295,16 @@ class JiraTrackerConvertor(TrackerConvertor):
                 except Flaw.DoesNotExist:
                     # tracker created against
                     # non-existing CVE ID
-                    # self.alert(TODO)
+                    self.alert(
+                        {
+                            "name": "tracker_no_flaw",
+                            "description": (
+                                f"Jira tracker {self._raw.key} is supposed to be associated with "
+                                f"flaw {label} which however does not exist"
+                            ),
+                            "alert_type": Alert.AlertType.ERROR,
+                        }
+                    )
                     continue
 
             if match := JIRA_BZ_ID_LABEL_RE.match(label):
@@ -302,7 +313,16 @@ class JiraTrackerConvertor(TrackerConvertor):
                 except Flaw.DoesNotExist:
                     # tracker created against
                     # non-existing BZ ID
-                    # self.alert(TODO)
+                    self.alert(
+                        {
+                            "name": "tracker_no_flaw",
+                            "description": (
+                                f"Jira tracker {self._raw.key} is supposed to be associated with "
+                                f"flaw {match.group(1)} which however does not exist"
+                            ),
+                            "alert_type": Alert.AlertType.ERROR,
+                        }
+                    )
                     continue
 
         affects = []
@@ -315,7 +335,17 @@ class JiraTrackerConvertor(TrackerConvertor):
             except Affect.DoesNotExist:
                 # tracker created against
                 # non-existing affect
-                # self.alert(TODO)
+                self.alert(
+                    {
+                        "name": "tracker_no_affect",
+                        "description": (
+                            f"Jira tracker {self._raw.key} is associated with flaw "
+                            f"{flaw.cve_id or flaw.bz_id} but there is no associated affect "
+                            f"({self.ps_module}:{self.ps_component})"
+                        ),
+                        "alert_type": Alert.AlertType.ERROR,
+                    }
+                )
                 continue
 
             affects.append(affect)
