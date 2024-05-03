@@ -10,6 +10,7 @@ from apps.workflows.api import promote, reject
 from .api_views import (
     AffectCVSSView,
     AffectView,
+    AlertView,
     FlawAcknowledgmentView,
     FlawCommentView,
     FlawCVSSView,
@@ -52,6 +53,7 @@ router.register(
     r"affects/(?P<affect_id>[^/.]+)/cvss_scores", AffectCVSSView, basename="affectcvss"
 )
 router.register(r"trackers", TrackerView)
+router.register(r"alerts", AlertView)
 
 urlpatterns = [
     path("healthy", healthy),

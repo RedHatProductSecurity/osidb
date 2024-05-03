@@ -106,6 +106,17 @@ def get_model_fields(model: Type[models.Model]) -> List[str]:
     return [field.name for field in model._meta.get_fields()]
 
 
+def get_mixin_subclases(mixin):
+    """Gets all non-abstract models that inherit from a mixin."""
+    result = []
+    for subclass in mixin.__subclasses__():
+        if subclass._meta.abstract:
+            result.extend(get_mixin_subclases(subclass))
+        else:
+            result.append(subclass.__name__)
+    return result
+
+
 class TaskFormatter(logging.Formatter):
     """
     Custom formatter based on celery 'celery.utils.log.TaskFormatter'

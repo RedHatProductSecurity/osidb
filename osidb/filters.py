@@ -16,6 +16,7 @@ from django_filters.rest_framework import (
 
 from apps.workflows.workflow import WorkflowModel
 
+from .mixins import Alert
 from .models import (
     Affect,
     AffectCVSS,
@@ -794,4 +795,17 @@ class FlawPackageVersionFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
             + DATE_LOOKUP_EXPRS,
             # versions fields
             "versions__version": ["exact"],
+        }
+
+
+class AlertFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
+    parent_uuid = CharFilter(field_name="object_id")
+    parent_model = CharFilter(field_name="content_type__model")
+
+    class Meta:
+        model = Alert
+        fields = {
+            "uuid": ["exact"],
+            "name": ["exact"],
+            "alert_type": ["exact"],
         }

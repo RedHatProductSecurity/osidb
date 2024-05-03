@@ -2192,6 +2192,160 @@ paths:
                   version:
                     type: string
           description: ''
+  /osidb/api/v1/alerts:
+    get:
+      operationId: osidb_api_v1_alerts_list
+      description: List existing alerts for all models.
+      parameters:
+      - in: query
+        name: alert_type
+        schema:
+          type: string
+          enum:
+          - ERROR
+          - WARNING
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: name
+        schema:
+          type: string
+        description: Retrieve only Alerts with the specified name, which is given
+          by the model's validation process.
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: parent_model
+        schema:
+          type: string
+          enum:
+          - affect
+          - affectcvss
+          - flaw
+          - flawacknowledgment
+          - flawcomment
+          - flawcvss
+          - flawmeta
+          - flawreference
+          - package
+          - snippet
+          - tracker
+        description: Retrieve only Alerts related to the specified model, e.g. flaw
+          or affect.
+      - in: query
+        name: parent_uuid
+        schema:
+          type: string
+          format: uuid
+        description: Retrieve only Alerts related to a model with the given UUID.
+      - in: query
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedAlertList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v1/alerts/{uuid}:
+    get:
+      operationId: osidb_api_v1_alerts_retrieve
+      parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this alert.
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Alert'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /osidb/api/v1/flaws:
     get:
       operationId: osidb_api_v1_flaws_list
@@ -7048,8 +7202,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7104,8 +7259,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7153,8 +7309,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7196,8 +7353,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7316,8 +7474,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7370,6 +7529,41 @@ components:
       - AFFECTED
       - NOTAFFECTED
       type: string
+    Alert:
+      type: object
+      description: Alerts indicate some inconsistency in a linked flaw, affect, tracker
+        or other models.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        alert_type:
+          $ref: '#/components/schemas/AlertTypeEnum'
+        resolution_steps:
+          type: string
+        parent_uuid:
+          type: string
+          readOnly: true
+        parent_model:
+          type: string
+          readOnly: true
+      required:
+      - description
+      - name
+      - parent_model
+      - parent_uuid
+      - uuid
+    AlertTypeEnum:
+      enum:
+      - WARNING
+      - ERROR
+      type: string
     BlankEnum:
       enum:
       - ''
@@ -7397,8 +7591,9 @@ components:
             type: string
             nullable: true
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7740,8 +7935,9 @@ components:
           type: string
           maxLength: 8
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
       required:
       - acknowledgments
@@ -7788,8 +7984,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7832,8 +8029,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7869,8 +8067,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -7929,8 +8128,9 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
       required:
       - alerts
@@ -7973,8 +8173,9 @@ components:
           format: date-time
           readOnly: true
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
       required:
       - alerts
@@ -8021,8 +8222,9 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
       required:
       - alerts
@@ -8058,8 +8260,9 @@ components:
           minimum: -2147483648
           nullable: true
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -8102,8 +8305,9 @@ components:
             type: string
             nullable: true
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -8484,8 +8688,9 @@ components:
           type: string
           maxLength: 8
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
       required:
       - acknowledgments
@@ -8531,8 +8736,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -8573,8 +8779,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -8608,8 +8815,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -8726,8 +8934,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -8788,8 +8997,9 @@ components:
           items:
             $ref: '#/components/schemas/PackageVer'
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
       required:
       - alerts
@@ -8852,6 +9062,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Affect'
+    PaginatedAlertList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
     PaginatedEPSSList:
       type: object
       properties:
@@ -9313,8 +9543,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string
@@ -9393,8 +9624,9 @@ components:
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
         alerts:
-          type: object
-          additionalProperties: {}
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
           readOnly: true
         created_dt:
           type: string

@@ -88,7 +88,7 @@ class TestTrackerSaver:
         assert not loaded_tracker.resolution
         assert loaded_tracker.affects.count() == 1
         assert loaded_tracker.affects.first() == affect
-        assert not loaded_tracker._alerts
+        assert not loaded_tracker.alerts.exists()
 
     @pytest.mark.vcr
     def test_tracker_update_bugzilla(self):
@@ -159,7 +159,7 @@ class TestTrackerSaver:
         assert not loaded_tracker.resolution
         assert loaded_tracker.affects.count() == 1
         assert loaded_tracker.affects.first() == affect
-        assert not loaded_tracker._alerts
+        assert not loaded_tracker.alerts.exists()
 
         # 7) check that the update actually happened
         assert "updated_dt" in loaded_tracker.meta_attr
@@ -232,7 +232,7 @@ class TestTrackerAPI:
         assert not tracker.resolution
         assert tracker.affects.count() == 1
         assert tracker.affects.first() == affect
-        assert not tracker._alerts
+        assert not tracker.alerts.exists()
 
     @pytest.mark.vcr
     def test_tracker_update_bugzilla(
@@ -316,7 +316,7 @@ class TestTrackerAPI:
         assert not tracker.resolution
         assert tracker.affects.count() == 1
         assert tracker.affects.first() == affect
-        assert not tracker._alerts
+        assert not tracker.alerts.exists()
 
         # 6) check that the update actually happened
         assert "updated_dt" in tracker.meta_attr
@@ -408,7 +408,7 @@ class TestTrackerAPI:
         assert not tracker.resolution
         assert tracker.affects.count() == 1
         assert tracker.affects.first() == affect
-        assert not tracker._alerts
+        assert not tracker.alerts.exists()
 
         # 5) reload the flaw and check that the tracker still links
         #    to make sure that the SRT notes were properly updated
@@ -561,7 +561,7 @@ class TestTrackerAPI:
         assert tracker.affects.count() == 2
         assert affect1 in tracker.affects.all()
         assert affect3 in tracker.affects.all()
-        assert not tracker._alerts
+        assert not tracker.alerts.exists()
 
         # 6) check that the update actually happened
         assert updated_dt != tracker.updated_dt

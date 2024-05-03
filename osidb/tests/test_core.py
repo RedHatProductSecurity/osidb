@@ -8,6 +8,7 @@ from rest_framework.viewsets import ModelViewSet
 from osidb.api_views import get_valid_http_methods
 from osidb.core import set_user_acls
 from osidb.exceptions import OSIDBException
+from osidb.mixins import Alert
 from osidb.models import Flaw, FlawMeta, FlawReference, PsContact
 from osidb.tests.factories import (
     AffectFactory,
@@ -16,8 +17,8 @@ from osidb.tests.factories import (
     FlawReferenceFactory,
 )
 from osidb.tests.models import (
-    AlertModel,
-    AlertModelBasic,
+    AlertableModel,
+    AlertableModelBasic,
     ComparableTextChoices_1,
     ComparableTextChoices_2,
 )
@@ -94,10 +95,10 @@ class TestCore(object):
 class TestModelDefinitions:
     @isolate_apps("tests")
     def test_creation_empty_alerts(self):
-        m = AlertModelBasic()
+        m = AlertableModelBasic()
         m.save()
 
-        assert m._alerts == {}
+        assert not m.alerts.exists()
 
     @isolate_apps("tests")
     def test_alert_deletion(self):
@@ -105,27 +106,20 @@ class TestModelDefinitions:
         Tests that when calling validate() method, all existing alerts
         are deleted, and new ones are created and stored.
         """
-        m = AlertModel()
+        m = AlertableModel()
         m.alert("original_alert", "This is an alert from the previous run.")
-        assert "original_alert" in m._alerts
+        assert m.alerts.count() == 1
+        assert m.alerts.first().name == "original_alert"
+        assert m.alerts.first().description == "This is an alert from the previous run."
 
         # validate() is called inside save()
         m.save()
-        assert "original_alert" not in m._alerts
-        assert m._alerts == {
-            "new_alert": {
-                "type": "warning",
-                "description": "This is a new alert.",
-                "resolution_steps": "",
-            }
-        }
-
-    @isolate_apps("tests")
-    def test_alert_incorrect_type(self):
-        m = AlertModel()
-        with pytest.raises(ValueError) as e:
-            m.alert("my_error", "This is a weird error", _type="weird")
-        assert "Alert type 'weird' is not valid" in str(e)
+        assert m.alerts.count() == 1
+        alert = m.alerts.first()
+        assert alert.name == "new_alert"
+        assert alert.alert_type == Alert.AlertType.WARNING
+        assert alert.description == "This is a new alert."
+        assert alert.resolution_steps == ""
 
     def test_ps_contact_empty(self):
         """
