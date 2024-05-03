@@ -13,10 +13,10 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/version
+    uri: https://example.com/rest/version
   response:
     body:
-      string: '{"version": "5.0.4.rh93"}'
+      string: '{"version": "5.0.4.rh95"}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -28,12 +28,10 @@ interactions:
       - keep-alive
       Content-Length:
       - '24'
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 11 Oct 2023 15:50:47 GMT
+      - Fri, 03 May 2024 12:48:32 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -43,9 +41,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.64f06e68.1697039447.37a5de0
+      - 0.7df06e68.1714740512.274afd9
       x-rh-edge-request-id:
-      - 37a5de0
+      - 274afd9
     status:
       code: 200
       message: OK
@@ -63,11 +61,11 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/user?ids=1
+    uri: https://example.com/rest/user?ids=1
   response:
     body:
       string: '{"users": [{"email": "aander07@packetmaster.com", "can_login": true,
-        "id": 1, "name": "aander07@packetmaster.com", "real_name": "Need Real Name"}]}'
+        "real_name": "Need Real Name", "id": 1, "name": "aander07@packetmaster.com"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -79,12 +77,10 @@ interactions:
       - keep-alive
       Content-Length:
       - '137'
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 11 Oct 2023 15:50:48 GMT
+      - Fri, 03 May 2024 12:48:32 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -94,9 +90,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.64f06e68.1697039448.37a5eb5
+      - 0.7df06e68.1714740512.274affe
       x-rh-edge-request-id:
-      - 37a5eb5
+      - 274affe
     status:
       code: 200
       message: OK
@@ -114,12 +110,11 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2018651&include_fields=id&include_fields=last_change_time
+    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2018651&include_fields=id&include_fields=last_change_time
   response:
     body:
-      string: '{"limit": "20", "bugs": [{"last_change_time": "2023-10-11T15:48:03Z",
-        "data_category": "Engineering", "id": 2018651}], "total_matches": 1, "offset":
-        0}'
+      string: '{"total_matches": 1, "limit": "20", "bugs": [{"last_change_time": "2024-05-03T12:44:32Z",
+        "data_category": "Engineering", "id": 2018651}], "offset": 0}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -131,12 +126,10 @@ interactions:
       - keep-alive
       Content-Length:
       - '139'
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 11 Oct 2023 15:50:48 GMT
+      - Fri, 03 May 2024 12:48:33 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -146,17 +139,18 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.64f06e68.1697039448.37a623d
+      - 0.7df06e68.1714740513.274b042
       x-rh-edge-request-id:
-      - 37a623d
+      - 274b042
     status:
       code: 200
       message: OK
 - request:
     body: '{"product": "Red Hat Certification Program", "version": "1.0", "priority":
-      "high", "severity": "high", "blocks": {"add": ["2013494"], "remove": []}, "component":
-      "redhat-certification", "keywords": {"add": ["Security", "SecurityTracking"]},
-      "summary": "CVE-2020-0000 openssl: CVE-2020-0000 kernel: some description [rhcertification-6]",
+      "low", "severity": "low", "blocks": {"add": ["2013494"], "remove": []}, "component":
+      "redhat-certification", "deadline": "2024-10-07", "groups": {"add": ["devel"],
+      "remove": []}, "keywords": {"add": ["Security", "SecurityTracking"]}, "summary":
+      "CVE-2020-10000 openssl: CVE-2020-10000 kernel: some description [rhcertification-6]",
       "ids": ["2018651"]}'
     headers:
       Accept:
@@ -166,19 +160,22 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '356'
+      - '426'
       Content-Type:
       - application/json
       User-Agent:
       - python-bugzilla/3.2.0
     method: PUT
-    uri: https://squid.corp.redhat.com:3128/rest/bug/2018651
+    uri: https://example.com/rest/bug/2018651
   response:
     body:
-      string: '{"bugs": [{"id": 2018651, "last_change_time": "2023-10-11T15:50:49Z",
-        "alias": [], "changes": {"summary": {"removed": "[Major Incident] openssl:
-        sample title [rhcertification-6]", "added": "CVE-2020-0000 openssl: CVE-2020-0000
-        kernel: some description [rhcertification-6]"}}}]}'
+      string: '{"bugs": [{"changes": {"deadline": {"added": "2024-10-07", "removed":
+        "2024-05-06"}, "priority": {"added": "low", "removed": "high"}, "severity":
+        {"removed": "high", "added": "low"}, "summary": {"removed": "[Major Incident]
+        CVE-2020-10000 openssl: CVE-2020-10000 kernel: some description [rhcertification-6]",
+        "added": "CVE-2020-10000 openssl: CVE-2020-10000 kernel: some description
+        [rhcertification-6]"}}, "id": 2018651, "last_change_time": "2024-05-03T12:48:34Z",
+        "alias": []}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -189,13 +186,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '265'
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
+      - '454'
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 11 Oct 2023 15:50:49 GMT
+      - Fri, 03 May 2024 12:48:34 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -205,9 +200,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.64f06e68.1697039449.37a65d9
+      - 0.7df06e68.1714740514.274b0bd
       x-rh-edge-request-id:
-      - 37a65d9
+      - 274b0bd
     status:
       code: 200
       message: OK
@@ -225,10 +220,10 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/version
+    uri: https://example.com/rest/version
   response:
     body:
-      string: '{"version": "5.0.4.rh93"}'
+      string: '{"version": "5.0.4.rh95"}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -240,12 +235,10 @@ interactions:
       - keep-alive
       Content-Length:
       - '24'
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 11 Oct 2023 15:50:51 GMT
+      - Fri, 03 May 2024 12:48:35 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -255,9 +248,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.7df06e68.1697039451.8681c82
+      - 0.7df06e68.1714740515.274b125
       x-rh-edge-request-id:
-      - 8681c82
+      - 274b125
     status:
       code: 200
       message: OK
@@ -275,11 +268,11 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/user?ids=1
+    uri: https://example.com/rest/user?ids=1
   response:
     body:
-      string: '{"users": [{"real_name": "Need Real Name", "name": "aander07@packetmaster.com",
-        "email": "aander07@packetmaster.com", "can_login": true, "id": 1}]}'
+      string: '{"users": [{"can_login": true, "real_name": "Need Real Name", "email":
+        "aander07@packetmaster.com", "name": "aander07@packetmaster.com", "id": 1}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -291,12 +284,10 @@ interactions:
       - keep-alive
       Content-Length:
       - '137'
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 11 Oct 2023 15:50:51 GMT
+      - Fri, 03 May 2024 12:48:35 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -306,9 +297,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.7df06e68.1697039451.8681cb2
+      - 0.7df06e68.1714740515.274b148
       x-rh-edge-request-id:
-      - 8681cb2
+      - 274b148
     status:
       code: 200
       message: OK
@@ -326,69 +317,49 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2013494
+    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2018651
   response:
     body:
-      string: '{"offset": 0, "total_matches": 1, "limit": "20", "bugs": [{"cf_cust_facing":
-        "---", "url": "", "description": "triage", "creator": "osoukup@redhat.com",
-        "platform": "All", "is_creator_accessible": true, "flags": [{"modification_date":
-        "2023-06-07T07:02:07Z", "name": "requires_doc_text", "type_id": 415, "creation_date":
-        "2023-06-07T07:02:07Z", "setter": "osoukup@redhat.com", "status": "?", "is_active":
-        1, "id": 5222989}], "classification": "Other", "cf_clone_of": null, "alias":
-        [], "dupe_of": null, "cf_doc_type": "If docs needed, set a value", "status":
-        "NEW", "is_confirmed": true, "cf_environment": "", "deadline": null, "priority":
-        "high", "estimated_time": 0, "is_open": true, "cf_pm_score": "0", "severity":
-        "high", "qa_contact": "", "groups": [], "op_sys": "Linux", "cc_detail": [{"partner":
-        false, "real_name": "Christina Fu", "id": 172340, "name": "cfu@redhat.com",
-        "insider": true, "email": "cfu@redhat.com", "active": true}, {"insider": true,
-        "email": "csutherl@redhat.com", "active": true, "partner": false, "real_name":
-        "Coty Sutherland", "id": 323620, "name": "csutherl@redhat.com"}, {"insider":
-        true, "email": "dsirrine@redhat.com", "active": true, "partner": false, "real_name":
-        "David Sirrine", "id": 328816, "name": "dsirrine@redhat.com"}, {"active":
-        true, "insider": true, "email": "edewata@redhat.com", "id": 268649, "name":
-        "edewata@redhat.com", "partner": false, "real_name": "Endi Sukma Dewata"},
-        {"real_name": "Jean-frederic Clere", "partner": false, "name": "jclere@redhat.com",
-        "id": 207159, "email": "jclere@redhat.com", "insider": true, "active": true},
-        {"active": true, "insider": true, "email": "jmagne@redhat.com", "id": 172343,
-        "name": "jmagne@redhat.com", "partner": false, "real_name": "Jack Magne"},
-        {"active": true, "email": "mharmsen@redhat.com", "insider": true, "name":
-        "mharmsen@redhat.com", "id": 172338, "real_name": "Matthew Harmsen", "partner":
-        false}, {"real_name": "Mladen Turk", "partner": false, "name": "mturk@redhat.com",
-        "id": 203655, "email": "mturk@redhat.com", "insider": true, "active": true},
-        {"name": "peholase@redhat.com", "id": 459204, "real_name": "Petr Holasek",
-        "partner": false, "active": true, "email": "peholase@redhat.com", "insider":
-        true}, {"active": true, "email": "szappis@redhat.com", "insider": false, "name":
-        "szappis@redhat.com", "id": 415516, "real_name": "Socrates Zappis", "partner":
-        false}], "docs_contact": "", "id": 2013494, "cf_last_closed": null, "summary":
-        "openssl: sample title", "actual_time": 0, "creator_detail": {"id": 412888,
-        "name": "osoukup@redhat.com", "partner": false, "real_name": "Ondrej Soukup",
-        "active": true, "email": "osoukup@redhat.com", "insider": true}, "assigned_to_detail":
-        {"partner": false, "real_name": "Nobody", "id": 29451, "name": "nobody@redhat.com",
-        "insider": false, "email": "nobody@redhat.com", "active": true}, "whiteboard":
-        "", "cf_internal_whiteboard": "", "cf_release_notes": "", "blocks": [2013606],
-        "cf_major_incident": null, "comments": [{"text": "triage", "id": 15574231,
-        "is_private": false, "bug_id": 2013494, "count": 0, "time": "2023-06-07T07:02:07Z",
-        "private_groups": [], "attachment_id": null, "creator": "osoukup@redhat.com",
-        "creation_time": "2023-06-07T07:02:07Z", "tags": [], "creator_id": 412888},
-        {"tags": [], "creator_id": 412888, "creation_time": "2023-06-08T14:03:51Z",
-        "attachment_id": null, "time": "2023-06-08T14:03:51Z", "private_groups": [],
-        "creator": "osoukup@redhat.com", "count": 17, "bug_id": 2013494, "is_private":
-        false, "text": "test", "id": 15575051}], "keywords": ["Security"], "is_cc_accessible":
-        true, "cf_srtnotes": "{\"affects\": [{\"affectedness\": \"affected\", \"cvss2\":
-        null, \"cvss3\": null, \"impact\": null, \"ps_component\": \"openssl\", \"ps_module\":
-        \"rhcertification-6\", \"resolution\": \"fix\"}], \"impact\": \"important\",
-        \"jira_trackers\": [], \"public\": \"2023-06-07T07:01:00Z\", \"reported\":
-        \"2023-06-07\", \"source\": \"customer\"}", "data_category": "Public", "cc":
-        ["cfu@redhat.com", "csutherl@redhat.com", "dsirrine@redhat.com", "edewata@redhat.com",
-        "jclere@redhat.com", "jmagne@redhat.com", "mharmsen@redhat.com", "mturk@redhat.com",
-        "peholase@redhat.com", "szappis@redhat.com"], "cf_devel_whiteboard": "", "cf_fixed_in":
-        "", "target_milestone": "---", "creation_time": "2023-06-07T07:02:07Z", "component":
-        ["vulnerability"], "product": "Security Response", "sub_components": {}, "cf_embargoed":
-        null, "external_bugs": [], "tags": [], "assigned_to": "nobody@redhat.com",
-        "cf_build_id": "", "version": ["unspecified"], "cf_pgm_internal": "", "depends_on":
-        [2018651], "cf_qe_conditional_nak": [], "last_change_time": "2023-10-11T15:48:03Z",
-        "remaining_time": 0, "cf_conditional_nak": [], "target_release": ["---"],
-        "cf_qa_whiteboard": "", "resolution": ""}]}'
+      string: '{"offset": 0, "limit": "20", "bugs": [{"creator_detail": {"email":
+        "osoukup@redhat.com", "insider": true, "name": "osoukup@redhat.com", "id":
+        412888, "partner": false, "active": true, "real_name": "Ondrej Soukup"}, "op_sys":
+        "Unspecified", "external_bugs": [], "keywords": ["Security", "SecurityTracking"],
+        "version": ["1.0"], "is_cc_accessible": true, "sub_components": {}, "cf_clone_of":
+        null, "cf_last_closed": null, "creation_time": "2023-10-11T15:48:03Z", "cf_verified":
+        [], "is_open": true, "status": "NEW", "actual_time": 0, "cf_embargoed": null,
+        "cf_environment": "", "summary": "CVE-2020-10000 openssl: CVE-2020-10000 kernel:
+        some description [rhcertification-6]", "is_confirmed": true, "priority": "low",
+        "cf_devel_whiteboard": "", "resolution": "", "assigned_to": "jweng@redhat.com",
+        "cf_qe_conditional_nak": [], "cf_release_notes": "", "target_milestone": "---",
+        "last_change_time": "2024-05-03T12:48:34Z", "data_category": "Engineering",
+        "cc_detail": [], "groups": ["devel"], "cf_fixed_in": "", "cc": [], "comments":
+        [{"private_groups": [], "id": 15671700, "text": "rhcertification-6 tracking
+        bug for openssl: see the bugs linked in the \"Blocks\" field of this bug for
+        full details of the security issue(s).\n\nThis bug is never intended to be
+        made public, please put any public notes in the blocked bugs.", "tags": [],
+        "count": 0, "bug_id": 2018651, "creation_time": "2023-10-11T15:48:03Z", "attachment_id":
+        null, "is_private": false, "time": "2023-10-11T15:48:03Z", "creator": "osoukup@redhat.com",
+        "creator_id": 412888}], "alias": [], "cf_pgm_internal": "", "qa_contact":
+        "rhcert-qe@redhat.com", "cf_pm_score": "0", "cf_partner": [], "component":
+        ["redhat-certification"], "docs_contact": "", "estimated_time": 0, "id": 2018651,
+        "product": "Red Hat Certification Program", "creator": "osoukup@redhat.com",
+        "flags": [{"id": 5241544, "name": "requires_doc_text", "status": "-", "is_active":
+        1, "creation_date": "2023-10-11T15:48:03Z", "modification_date": "2023-10-11T15:48:03Z",
+        "type_id": 415, "setter": "bugzilla@redhat.com"}], "cf_conditional_nak": [],
+        "is_creator_accessible": true, "depends_on": [], "assigned_to_detail": {"insider":
+        true, "name": "jweng@redhat.com", "email": "jweng@redhat.com", "id": 283338,
+        "partner": false, "active": true, "real_name": "Jianwei Weng"}, "qa_contact_detail":
+        {"id": 408554, "insider": false, "email": "rhcert-qe@redhat.com", "name":
+        "rhcert-qe@redhat.com", "partner": false, "real_name": "rhcert qe", "active":
+        false}, "blocks": [2013494], "cf_qa_whiteboard": "", "whiteboard": "", "cf_major_incident":
+        null, "platform": "Unspecified", "target_release": ["---"], "cf_build_id":
+        "", "classification": "Red Hat", "dupe_of": null, "tags": [], "cf_target_upstream_version":
+        "", "remaining_time": 0, "cf_internal_whiteboard": "", "description": "rhcertification-6
+        tracking bug for openssl: see the bugs linked in the \"Blocks\" field of this
+        bug for full details of the security issue(s).\n\nThis bug is never intended
+        to be made public, please put any public notes in the blocked bugs.", "severity":
+        "low", "cf_doc_type": "No Doc Update", "deadline": "2024-10-07", "url": "",
+        "cf_cust_facing": "---"}], "total_matches": 1}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -398,12 +369,10 @@ interactions:
       - private, must-revalidate
       Connection:
       - keep-alive
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 11 Oct 2023 15:50:52 GMT
+      - Fri, 03 May 2024 12:48:36 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       Vary:
@@ -413,328 +382,13 @@ interactions:
       X-xss-protection:
       - 1; mode=block
       content-length:
-      - '12336'
+      - '2956'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.7df06e68.1697039452.8681d30
+      - 0.7df06e68.1714740516.274b167
       x-rh-edge-request-id:
-      - 8681d30
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2013494
-  response:
-    body:
-      string: '{"offset": 0, "limit": "20", "bugs": [{"cf_last_closed": null, "resolution":
-        "", "classification": "Other", "comments": [{"creator": "osoukup@redhat.com",
-        "creation_time": "2023-06-07T07:02:07Z", "bug_id": 2013494, "tags": [], "time":
-        "2023-06-07T07:02:07Z", "is_private": false, "id": 15574231, "private_groups":
-        [], "text": "triage", "count": 0, "creator_id": 412888, "attachment_id": null},
-        {"time": "2023-06-08T14:03:51Z", "tags": [], "creation_time": "2023-06-08T14:03:51Z",
-        "creator": "osoukup@redhat.com", "bug_id": 2013494, "attachment_id": null,
-        "creator_id": 412888, "text": "test", "count": 17, "is_private": false, "id":
-        15575051, "private_groups": []}], "data_category": "Public", "url": "", "cf_fixed_in":
-        "", "cf_devel_whiteboard": "", "keywords": ["Security"], "target_release":
-        ["---"], "estimated_time": 0, "alias": [], "cf_clone_of": null, "cf_environment":
-        "", "cc": ["cfu@redhat.com", "csutherl@redhat.com", "dsirrine@redhat.com",
-        "edewata@redhat.com", "jclere@redhat.com", "jmagne@redhat.com", "mharmsen@redhat.com",
-        "mturk@redhat.com", "peholase@redhat.com", "szappis@redhat.com"], "docs_contact":
-        "", "dupe_of": null, "qa_contact": "", "is_cc_accessible": true, "cf_pgm_internal":
-        "", "is_open": true, "platform": "All", "flags": [{"id": 5222989, "setter":
-        "osoukup@redhat.com", "name": "requires_doc_text", "status": "?", "is_active":
-        1, "type_id": 415, "modification_date": "2023-06-07T07:02:07Z", "creation_date":
-        "2023-06-07T07:02:07Z"}], "whiteboard": "", "cf_release_notes": "", "creator":
-        "osoukup@redhat.com", "cf_embargoed": null, "cf_srtnotes": "{\"affects\":
-        [{\"affectedness\": \"affected\", \"cvss2\": null, \"cvss3\": null, \"impact\":
-        null, \"ps_component\": \"openssl\", \"ps_module\": \"rhcertification-6\",
-        \"resolution\": \"fix\"}], \"impact\": \"important\", \"jira_trackers\": [],
-        \"public\": \"2023-06-07T07:01:00Z\", \"reported\": \"2023-06-07\", \"source\":
-        \"customer\"}", "external_bugs": [], "creator_detail": {"partner": false,
-        "active": true, "insider": true, "id": 412888, "email": "osoukup@redhat.com",
-        "name": "osoukup@redhat.com", "real_name": "Ondrej Soukup"}, "product": "Security
-        Response", "cf_qe_conditional_nak": [], "cf_conditional_nak": [], "severity":
-        "high", "sub_components": {}, "groups": [], "assigned_to_detail": {"name":
-        "nobody@redhat.com", "real_name": "Nobody", "partner": false, "insider": false,
-        "active": true, "id": 29451, "email": "nobody@redhat.com"}, "is_confirmed":
-        true, "cf_doc_type": "If docs needed, set a value", "deadline": null, "cf_internal_whiteboard":
-        "", "creation_time": "2023-06-07T07:02:07Z", "cc_detail": [{"partner": false,
-        "id": 172340, "email": "cfu@redhat.com", "insider": true, "active": true,
-        "real_name": "Christina Fu", "name": "cfu@redhat.com"}, {"name": "csutherl@redhat.com",
-        "real_name": "Coty Sutherland", "insider": true, "active": true, "email":
-        "csutherl@redhat.com", "id": 323620, "partner": false}, {"name": "dsirrine@redhat.com",
-        "real_name": "David Sirrine", "partner": false, "active": true, "insider":
-        true, "id": 328816, "email": "dsirrine@redhat.com"}, {"active": true, "insider":
-        true, "id": 268649, "email": "edewata@redhat.com", "partner": false, "name":
-        "edewata@redhat.com", "real_name": "Endi Sukma Dewata"}, {"real_name": "Jean-frederic
-        Clere", "name": "jclere@redhat.com", "email": "jclere@redhat.com", "id": 207159,
-        "insider": true, "active": true, "partner": false}, {"partner": false, "insider":
-        true, "active": true, "email": "jmagne@redhat.com", "id": 172343, "name":
-        "jmagne@redhat.com", "real_name": "Jack Magne"}, {"real_name": "Matthew Harmsen",
-        "name": "mharmsen@redhat.com", "email": "mharmsen@redhat.com", "id": 172338,
-        "insider": true, "active": true, "partner": false}, {"real_name": "Mladen
-        Turk", "name": "mturk@redhat.com", "partner": false, "id": 203655, "email":
-        "mturk@redhat.com", "active": true, "insider": true}, {"active": true, "insider":
-        true, "email": "peholase@redhat.com", "id": 459204, "partner": false, "name":
-        "peholase@redhat.com", "real_name": "Petr Holasek"}, {"real_name": "Socrates
-        Zappis", "name": "szappis@redhat.com", "partner": false, "id": 415516, "email":
-        "szappis@redhat.com", "active": true, "insider": false}], "description": "triage",
-        "component": ["vulnerability"], "depends_on": [2018651], "cf_major_incident":
-        null, "blocks": [2013606], "last_change_time": "2023-10-11T15:48:03Z", "cf_build_id":
-        "", "summary": "openssl: sample title", "cf_pm_score": "0", "is_creator_accessible":
-        true, "cf_qa_whiteboard": "", "remaining_time": 0, "tags": [], "op_sys": "Linux",
-        "version": ["unspecified"], "status": "NEW", "cf_cust_facing": "---", "assigned_to":
-        "nobody@redhat.com", "id": 2013494, "priority": "high", "actual_time": 0,
-        "target_milestone": "---"}], "total_matches": 1}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Wed, 11 Oct 2023 15:50:53 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      Vary:
-      - Accept-Encoding
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      content-length:
-      - '12336'
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.7df06e68.1697039453.8681e92
-      x-rh-edge-request-id:
-      - 8681e92
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/bug/2013494/comment
-  response:
-    body:
-      string: '{"comments": {}, "bugs": {"2013494": {"comments": [{"id": 15574231,
-        "text": "triage", "is_private": false, "bug_id": 2013494, "count": 0, "creator":
-        "osoukup@redhat.com", "attachment_id": null, "time": "2023-06-07T07:02:07Z",
-        "private_groups": [], "creation_time": "2023-06-07T07:02:07Z", "creator_id":
-        412888, "tags": []}, {"creation_time": "2023-06-08T14:03:51Z", "tags": [],
-        "creator_id": 412888, "is_private": false, "bug_id": 2013494, "text": "test",
-        "id": 15575051, "private_groups": [], "time": "2023-06-08T14:03:51Z", "attachment_id":
-        null, "creator": "osoukup@redhat.com", "count": 17}]}}}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Wed, 11 Oct 2023 15:50:53 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      Vary:
-      - Accept-Encoding
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      content-length:
-      - '8504'
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.7df06e68.1697039453.8681f9d
-      x-rh-edge-request-id:
-      - 8681f9d
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2013606&include_fields=assigned_to&include_fields=id&include_fields=product
-  response:
-    body:
-      string: '{"offset": 0, "total_matches": 1, "bugs": [{"assigned_to_detail": {"insider":
-        true, "active": true, "id": 412888, "email": "osoukup@redhat.com", "partner":
-        false, "name": "osoukup@redhat.com", "real_name": "Ondrej Soukup"}, "data_category":
-        "Security Restricted", "id": 2013606, "product": "Security Response", "assigned_to":
-        "osoukup@redhat.com"}], "limit": "20"}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '335'
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Wed, 11 Oct 2023 15:50:54 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.7df06e68.1697039454.8681fe7
-      x-rh-edge-request-id:
-      - 8681fe7
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2018651
-  response:
-    body:
-      string: '{"limit": "20", "bugs": [{"creation_time": "2023-10-11T15:48:03Z",
-        "cf_devel_whiteboard": "", "target_milestone": "---", "cf_partner": [], "cf_fixed_in":
-        "", "cf_embargoed": null, "external_bugs": [], "product": "Red Hat Certification
-        Program", "component": ["redhat-certification"], "sub_components": {}, "is_cc_accessible":
-        true, "blocks": [2013494], "comments": [{"bug_id": 2018651, "is_private":
-        false, "text": "rhcertification-6 tracking bug for openssl: see the bugs linked
-        in the \"Blocks\" field of this bug for full details of the security issue(s).\n\nThis
-        bug is never intended to be made public, please put any public notes in the
-        blocked bugs.", "id": 15671700, "private_groups": [], "attachment_id": null,
-        "time": "2023-10-11T15:48:03Z", "creator": "osoukup@redhat.com", "count":
-        0, "creation_time": "2023-10-11T15:48:03Z", "tags": [], "creator_id": 412888}],
-        "cf_major_incident": null, "keywords": ["Security", "SecurityTracking"], "cc":
-        [], "data_category": "Engineering", "remaining_time": 0, "cf_conditional_nak":
-        [], "cf_qe_conditional_nak": [], "last_change_time": "2023-10-11T15:50:49Z",
-        "resolution": "", "target_release": ["---"], "cf_qa_whiteboard": "", "cf_build_id":
-        "", "version": ["1.0"], "tags": [], "assigned_to": "jweng@redhat.com", "cf_pgm_internal":
-        "", "depends_on": [], "classification": "Red Hat", "flags": [{"name": "requires_doc_text",
-        "modification_date": "2023-10-11T15:48:03Z", "is_active": 1, "id": 5241544,
-        "setter": "bugzilla@redhat.com", "status": "-", "creation_date": "2023-10-11T15:48:03Z",
-        "type_id": 415}], "cf_clone_of": null, "alias": [], "is_creator_accessible":
-        true, "cf_environment": "", "deadline": null, "dupe_of": null, "status": "NEW",
-        "cf_doc_type": "No Doc Update", "is_confirmed": true, "cf_verified": [], "platform":
-        "Unspecified", "url": "", "description": "rhcertification-6 tracking bug for
-        openssl: see the bugs linked in the \"Blocks\" field of this bug for full
-        details of the security issue(s).\n\nThis bug is never intended to be made
-        public, please put any public notes in the blocked bugs.", "cf_cust_facing":
-        "---", "creator": "osoukup@redhat.com", "actual_time": 0, "creator_detail":
-        {"partner": false, "real_name": "Ondrej Soukup", "id": 412888, "name": "osoukup@redhat.com",
-        "email": "osoukup@redhat.com", "insider": true, "active": true}, "cf_last_closed":
-        null, "summary": "CVE-2020-0000 openssl: CVE-2020-0000 kernel: some description
-        [rhcertification-6]", "cf_release_notes": "", "cf_internal_whiteboard": "",
-        "cf_target_upstream_version": "", "assigned_to_detail": {"id": 283338, "name":
-        "jweng@redhat.com", "partner": false, "real_name": "Jianwei Weng", "active":
-        true, "email": "jweng@redhat.com", "insider": true}, "whiteboard": "", "cf_pm_score":
-        "0", "severity": "high", "qa_contact": "rhcert-qe@redhat.com", "groups": ["devel"],
-        "priority": "high", "estimated_time": 0, "is_open": true, "id": 2018651, "qa_contact_detail":
-        {"email": "rhcert-qe@redhat.com", "insider": false, "active": false, "partner":
-        false, "real_name": "rhcert qe", "id": 408554, "name": "rhcert-qe@redhat.com"},
-        "op_sys": "Unspecified", "docs_contact": "", "cc_detail": []}], "total_matches":
-        1, "offset": 0}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Wed, 11 Oct 2023 15:50:55 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      Vary:
-      - Accept-Encoding
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      content-length:
-      - '2948'
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.7df06e68.1697039455.86820aa
-      x-rh-edge-request-id:
-      - 86820aa
+      - 274b167
     status:
       code: 200
       message: OK

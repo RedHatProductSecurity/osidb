@@ -6,7 +6,9 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from apps.bbsync.exceptions import UnsaveableFlawError
+from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
+from collectors.jiraffe.collectors import JiraTrackerCollector
 from osidb.models import (
     Affect,
     Flaw,
@@ -416,15 +418,21 @@ class TestBBSyncIntegration:
         """
         test flaw unembargo with Bugzilla two-way sync
         """
+        # change time on one place for easier update
+        flaw_last_change_time = "2024-05-03T14:03:53Z"
+        tracker1_last_change_time = "2024-05-03T14:09:44Z"
+        # TODO no mid-air collision detection
+        tracker2_last_change_time = "2000-01-01T00:00:00Z"
+
         # freeze time so there is no late unembargo
         with freeze_time(timezone.datetime(2000, 11, 11)):
-            flaw_last_change_time = "2024-02-09T13:16:34Z"
             flaw = FlawFactory(
                 cve_id="CVE-2004-2493",
                 components=["test"],
                 title="totally descriptive",
                 description="test",
                 impact="LOW",
+                major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
                 reported_dt="2000-01-01T01:01:01Z",
                 unembargo_dt="2000-11-11T22:22:22Z",
                 updated_dt=flaw_last_change_time,
@@ -471,59 +479,85 @@ class TestBBSyncIntegration:
             ps_module=ps_module1,
             version="1.0",
         )
-        tracker_last_change_time = "2024-02-09T13:15:35Z"
         tracker1 = TrackerFactory(
             affects=[affect1],
             bz_id="2021859",
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream1.name,
             type=Tracker.TrackerType.BUGZILLA,
-            updated_dt=tracker_last_change_time,
+            updated_dt=tracker1_last_change_time,
             status="NEW",
             # we expect the existing groups to be stored in metadata
             meta_attr={
                 "bz_id": "2021859",
-                "groups": '["qe_staff", "security"]',
-                "last_change_time": tracker_last_change_time,
+                "groups": '["security"]',
+                "last_change_time": tracker1_last_change_time,
             },
         )
-        # TODO
-        # Jira tracker query builder is currently not ready for this
-        # https://issues.redhat.com/browse/OSIDB-2082
-        # ps_module2 = PsModuleFactory(
-        #     bts_name="jboss",
-        #     name="rhel-8",
-        #     default_cc=[],
-        #     component_cc={},
-        # )
-        # affect2 = AffectFactory(
-        #     flaw=flaw,
-        #     affectedness=Affect.AffectAffectedness.AFFECTED,
-        #     resolution=Affect.AffectResolution.DELEGATED,
-        #     ps_module=ps_module2.name,
-        #     ps_component="openssl",
-        #     impact=None,
-        # )
-        # ps_update_stream2 = PsUpdateStreamFactory(
-        #     name="rhel-8",
-        #     ps_module=ps_module2,
-        #     version="rhel-8.10.0",
-        # )
-        # tracker2 = TrackerFactory(
-        #     affects=[affect2],
-        #     external_system_id="RHEL-12102",
-        #     embargoed=flaw.embargoed,
-        #     ps_update_stream=ps_update_stream2.name,
-        #     type=Tracker.TrackerType.JIRA,
-        #     status="NEW",
-        # )
+        ps_module2 = PsModuleFactory(
+            bts_name="jboss",
+            bts_groups={"public": ["redhat"]},
+            bts_key="RHEL",
+            name="rhel-8",
+            default_cc=[],
+            component_cc={},
+        )
+        affect2 = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module2.name,
+            ps_component="openssl",
+            impact=None,
+        )
+        ps_update_stream2 = PsUpdateStreamFactory(
+            name="rhel-8",
+            ps_module=ps_module2,
+            version="rhel-8.10.0",
+        )
+        tracker2 = TrackerFactory(
+            affects=[affect2],
+            external_system_id="RHEL-12102",
+            embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream2.name,
+            type=Tracker.TrackerType.JIRA,
+            updated_dt=tracker2_last_change_time,
+            status="NEW",
+        )
 
         assert Flaw.objects.get(uuid=flaw.uuid).is_embargoed
         assert FlawAcknowledgment.objects.get(uuid=acknowledgment.uuid).is_embargoed
         assert Affect.objects.get(uuid=affect1.uuid).is_embargoed
         assert Tracker.objects.get(uuid=tracker1.uuid).is_embargoed
-        # assert Affect.objects.get(uuid=affect2.uuid).is_embargoed
-        # assert Tracker.objects.get(uuid=tracker2.uuid).is_embargoed
+        assert Affect.objects.get(uuid=affect2.uuid).is_embargoed
+        assert Tracker.objects.get(uuid=tracker2.uuid).is_embargoed
+
+        JiraProjectFieldsFactory(
+            project_key=ps_module2.bts_key,
+            field_id="priority",
+            field_name="Priority",
+            allowed_values=[
+                "Blocker",
+                "Critical",
+                "Major",
+                "Normal",
+                "Minor",
+                "Undefined",
+            ],
+        )
+        JiraProjectFieldsFactory(
+            project_key=ps_module2.bts_key,
+            field_id="security",
+            field_name="Security Level",
+            allowed_values=[
+                "Embargoed Security Issue",
+                "Red Hat Employee",
+                "Red Hat Engineering Authorized",
+                "Red Hat Partner",
+                "Restricted",
+                "Team",
+            ],
+        )
 
         flaw_data = {
             "cve_id": "CVE-2004-2493",
@@ -548,14 +582,14 @@ class TestBBSyncIntegration:
         # changes happened in Bugzilla and Jira
         FlawCollector().collect_flaw(flaw.bz_id)
         BugzillaTrackerCollector().sync_tracker(tracker1.external_system_id)
-        # JiraTrackerCollector().collect(tracker2.external_system_id)
+        JiraTrackerCollector().collect(tracker2.external_system_id)
 
         assert not Flaw.objects.get(uuid=flaw.uuid).is_embargoed
         assert not FlawAcknowledgment.objects.get(uuid=acknowledgment.uuid).is_embargoed
         assert not Affect.objects.get(uuid=affect1.uuid).is_embargoed
         assert not Tracker.objects.get(uuid=tracker1.uuid).is_embargoed
-        # assert not Affect.objects.get(uuid=affect2.uuid).is_embargoed
-        # assert not Tracker.objects.get(uuid=tracker2.uuid).is_embargoed
+        assert not Affect.objects.get(uuid=affect2.uuid).is_embargoed
+        assert not Tracker.objects.get(uuid=tracker2.uuid).is_embargoed
 
     @pytest.mark.vcr
     def test_affect_create(self, auth_client, test_api_uri):
