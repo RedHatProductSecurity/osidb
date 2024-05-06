@@ -221,7 +221,11 @@ class OSVCollector(Collector):
                     "url": f"https://osv.dev/vulnerability/{osv_id}",
                 }
             ]
-            refs.extend(handle_urls([r["url"] for r in data.get("references", [])]))
+            refs.extend(
+                handle_urls(
+                    [r["url"] for r in data.get("references", [])], refs[0]["url"]
+                )
+            )
 
             return refs
 
