@@ -384,17 +384,22 @@ class FlawCollector(Collector):
         # then we have more regularly scattered data
         # and the possible future date is no problem
         # so we can use it for the periodic sync too
-        period_end = period_start + relativedelta(months=1)
+        if period_start < timezone.datetime(2024, 1, 1, tzinfo=TIMEZONE):
+            period_end = period_start + relativedelta(months=1)
 
-        # but we have to account for the periods of data migrations
-        for migration in self.MIGRATIONS:
-            if period_start < migration["start"] and period_end > migration["start"]:
-                return migration["start"]
+            # but we have to account for the periods of data migrations
+            for migration in self.MIGRATIONS:
+                if period_start < migration["start"] < period_end:
+                    return migration["start"]
 
-            if period_start >= migration["start"] and period_start < migration["end"]:
-                return period_start + migration["step"]
+                if migration["start"] <= period_start < migration["end"]:
+                    return period_start + migration["step"]
 
-        return period_end
+            return period_end
+
+        # starting 2024 the Assembler collectors were migrated to OSIDB
+        # regularly creating tens to hundreds flaws every day
+        return period_start + relativedelta(days=10)
 
     def get_batch(self):
         """get next batch of flaw IDs"""
