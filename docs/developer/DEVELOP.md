@@ -41,8 +41,9 @@ OSIDB_DB_PASSWORD=passw0rd
 # Errata Tool URL
 ET_URL="https://foo.bar"
 
-# Product definitions git URL
+# Product definitions git source
 PRODUCT_DEF_URL="https://foo.bar"
+PRODUCT_DEF_BRANCH="master"
 
 # PS Constants git URL
 PS_CONSTANTS_URL="https://foo.bar"

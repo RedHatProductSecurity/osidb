@@ -203,6 +203,10 @@ class TestProductDefinitionsCollection:
         # Sync PS Update Streams and resync Products and Modules
         sync_ps_update_streams(ps_update_streams)
         sync_ps_products_modules(ps_products, ps_modules)
+        # redefine the variables as the recreated
+        # PS modules now have different UUIDs
+        module1 = PsModule.objects.get(name="fuse-7")
+        module2 = PsModule.objects.get(name="cfme-5")
         assert module1.ps_update_streams.all()
         assert module1.active_ps_update_streams.all()
         assert module1.default_ps_update_streams.all()

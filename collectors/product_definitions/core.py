@@ -2,6 +2,7 @@ from typing import Tuple
 
 import requests
 from django.conf import settings
+from django.db import transaction
 from django.utils.timezone import datetime, make_aware
 from requests_gssapi import HTTPSPNEGOAuth
 
@@ -70,8 +71,13 @@ def sanitize_product_definitions(data: dict) -> Tuple[dict, dict, dict, dict]:
     )
 
 
+@transaction.atomic
 def sync_ps_contacts(data: dict):
-    """Create or update PS Contacts based from given data"""
+    """
+    clean and re-create PS contacts from given data
+    """
+    PsContact.objects.all().delete()
+
     ps_contact_fields = get_model_fields(PsContact)
     for contact_username, contact_data in data.items():
         filtered_contact_data = {
@@ -80,13 +86,16 @@ def sync_ps_contacts(data: dict):
             if key in ps_contact_fields
         }
 
-        PsContact.objects.update_or_create(
-            username=contact_username, defaults=filtered_contact_data
-        )
+        PsContact.objects.create(username=contact_username, **filtered_contact_data)
 
 
+@transaction.atomic
 def sync_ps_update_streams(data: dict):
-    """Create or update PS Update Streams based from given data"""
+    """
+    clean and re-create PS update streams from given data
+    """
+    PsUpdateStream.objects.all().delete()
+
     ps_update_stream_fields = get_model_fields(PsUpdateStream)
     for stream_name, stream_data in data.items():
         filtered_stream_data = {
@@ -95,16 +104,17 @@ def sync_ps_update_streams(data: dict):
             if key in ps_update_stream_fields
         }
 
-        PsUpdateStream.objects.update_or_create(
-            name=stream_name, defaults=filtered_stream_data
-        )
+        PsUpdateStream.objects.create(name=stream_name, **filtered_stream_data)
 
 
+@transaction.atomic
 def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
     """
-    Create or update PS Products based from given data and for each
-    PS Product create PS Modules
+    clean and re-create PS products and PS module from given data
     """
+    PsModule.objects.all().delete()
+    PsProduct.objects.all().delete()
+
     ps_product_fields = get_model_fields(PsProduct)
     ps_module_fields = get_model_fields(PsModule)
     for product_short_name, product_data in ps_products_data.items():
@@ -115,8 +125,8 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
         }
         related_ps_modules = filtered_product_data.pop("ps_modules")
 
-        ps_product, _ = PsProduct.objects.update_or_create(
-            short_name=product_short_name, defaults=filtered_product_data
+        ps_product = PsProduct.objects.create(
+            short_name=product_short_name, **filtered_product_data
         )
 
         # Sync PS Product related PS Modules
@@ -146,9 +156,8 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
                         datetime.strptime(date, "%Y-%m-%d")
                     )
 
-            ps_module, _ = PsModule.objects.update_or_create(
-                name=module_name,
-                defaults={"ps_product": ps_product, **filtered_module_data},
+            ps_module = PsModule.objects.create(
+                name=module_name, ps_product=ps_product, **filtered_module_data
             )
 
             # Create relations with related PS Update Streams
