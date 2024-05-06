@@ -126,7 +126,7 @@ class NVDQuerier:
                     "url": f"https://nvd.nist.gov/vuln/detail/{data.id}",
                 }
             ]
-            urls.extend(handle_urls([r.url for r in data.references]))
+            urls.extend(handle_urls([r.url for r in data.references], urls[0]["url"]))
 
             return urls
 

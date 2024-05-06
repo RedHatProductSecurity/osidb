@@ -94,7 +94,13 @@ class TestParseUpdateStreamComponent:
 class TestHandleURLs:
     def test_handle_urls(self):
         result = handle_urls(
-            ["https://www.google1.com", "google2.com", "htt://www.google3.com"]
+            [
+                "https://www.google1.com",
+                "google2.com",
+                "htt://www.google3.com",
+                "https://www.source.com",
+            ],
+            "https://www.source.com",
         )
 
         assert len(result) == 2

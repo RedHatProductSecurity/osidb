@@ -67,9 +67,11 @@ def tracker_summary2module_component(
     )
 
 
-def handle_urls(references: list) -> list:
+def handle_urls(references: list, source_ref: str) -> list:
     """
-    This function creates FlawReference objects and stores them in a list.
+    This function creates a list of external references matching FlawReference fields. References matching
+    "source_ref" are ignored because they would cause ValidationError in later validation.
+
     Also, it ensures that only valid URL strings are converted.
     The logic tries to fix a URL in a simple way. If the fix is not successful, a URL is ignored.
     """
@@ -83,12 +85,14 @@ def handle_urls(references: list) -> list:
 
             validate = URLValidator()
             validate(reference)
-            urls.append(
-                {
-                    "type": FlawReference.FlawReferenceType.EXTERNAL,
-                    "url": reference,
-                }
-            )
+
+            if reference != source_ref:
+                urls.append(
+                    {
+                        "type": FlawReference.FlawReferenceType.EXTERNAL,
+                        "url": reference,
+                    }
+                )
         except ValidationError:
             # Ignore the URL if it is invalid (e.g. due to a typo)
             pass
