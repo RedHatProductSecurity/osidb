@@ -108,9 +108,7 @@ coverage[toml]==6.1.2 \
     --hash=sha256:fae3fe111670e51f1ebbc475823899524e3459ea2db2cb88279bbfb2a0b8a3de \
     --hash=sha256:fd92ece726055e80d4e3f01fff3b91f54b18c9c357c48fcf6119e87e2461a091 \
     --hash=sha256:ffa545230ca2ad921ad066bf8fd627e7be43716b6e0fcf8e32af1b8188ccb0ab
-    # via
-    #   coverage
-    #   pytest-cov
+    # via pytest-cov
 detect-secrets==1.4.0 \
     --hash=sha256:d08ecabeee8b68c0acb0e8a354fb98d822a653f6ed05e520cead4c6fc1fc02cd \
     --hash=sha256:d56787e339758cef48c9ccd6692f7a094b9963c979c9813580b0169e41132833
@@ -192,9 +190,9 @@ itypes==1.2.0 \
     --hash=sha256:03da6872ca89d29aef62773672b2d408f490f80db48b23079a4b194c86dd04c6 \
     --hash=sha256:af886f129dea4a2a1e3d36595a2d139589e4dd287f5cab0b40e799ee81570ff1
     # via coreapi
-jinja2==3.0.3 \
-    --hash=sha256:077ce6014f7b40d03b47d1f1ca4b0fc8328a692bd284016f806ed0eaca390ad8 \
-    --hash=sha256:611bb273cd68f3b993fabdc4064fc858c5b47a973cb5aa7999ec1ba405c87cd7
+jinja2==3.1.4 \
+    --hash=sha256:4a3aee7acbbe7303aede8e9648d13b8bf88a429282aa6122a993f0ac800cb369 \
+    --hash=sha256:bc5dd2abb727a5319567b7a813e6a2e7318c39f4f487cfe6c89c6f9c7d25197d
     # via
     #   coreschema
     #   openshift
