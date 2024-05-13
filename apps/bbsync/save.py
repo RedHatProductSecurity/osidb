@@ -97,13 +97,13 @@ class BugzillaSaver(BugzillaQuerier):
         one last preventative check that Bugzilla last_change_time
         really corresponds to the stored one so there was no collision
         """
-        if self.actual_last_chante != self.stored_last_change:
+        if self.actual_last_change != self.stored_last_change:
             raise DataInconsistencyException(
                 "Save operation based on an outdated model instance"
             )
 
     @property
-    def actual_last_chante(self):
+    def actual_last_change(self):
         """
         retrieve the actual last change timestamp from Bugzilla
         """
