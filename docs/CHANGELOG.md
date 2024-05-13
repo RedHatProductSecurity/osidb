@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable flaw draft creation in BZ (OSIDB-2261)
 - Add support for UAT (OSIDB-2447)
 - Added API for Alerts (OSIDB-325)
+- Add bulk PUT for Affects (OSIDB-2407)
 
 ### Changed
 - Make workflows API RESTful (OSIDB-1716)

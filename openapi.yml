@@ -2192,6 +2192,51 @@ paths:
                   version:
                     type: string
           description: ''
+  /osidb/api/v1/affects/bulk:
+    put:
+      operationId: osidb_api_v1_affects_bulk_update
+      description: Bulk update endpoint. Expects a list of dict Affect objects.
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Affect'
+          application/x-www-form-urlencoded:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Affect'
+          multipart/form-data:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Affect'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/AffectBulkPutResponse'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /osidb/api/v1/alerts:
     get:
       operationId: osidb_api_v1_alerts_list
@@ -7229,6 +7274,15 @@ components:
       - trackers
       - updated_dt
       - uuid
+    AffectBulkPutResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Affect'
+      required:
+      - results
     AffectCVSS:
       type: object
       description: AffectCVSS serializer
