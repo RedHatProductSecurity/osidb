@@ -14,6 +14,8 @@ ACCESS_LOG_FILE="-"
 
 if [ "$DJANGO_SETTINGS_MODULE" = "config.settings_stage" ]; then
     ACCESS_LOG_FILE="/var/log/stage-access.log"
+elif [ "$DJANGO_SETTINGS_MODULE" = "config.settings_uat" ]; then
+    ACCESS_LOG_FILE="/var/log/uat-access.log"
 elif [ "$DJANGO_SETTINGS_MODULE" = "config.settings_prod" ]; then
     ACCESS_LOG_FILE="/var/log/prod-access.log"
 fi

@@ -15,6 +15,8 @@ def calc_env(env_str):
         return "prod"
     if "stage" in env_str:
         return "stage"
+    if "uat" in env_str:
+        return "uat"
     return "local"
 
 
