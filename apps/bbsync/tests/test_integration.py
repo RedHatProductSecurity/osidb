@@ -444,7 +444,12 @@ class TestBBSyncIntegration:
         )
         ps_module1 = PsModuleFactory(
             bts_name="bugzilla",
-            bts_groups={"public": ["devel"]},
+            bts_groups={
+                "public": ["devel"],
+                "embargoed": [
+                    "private",
+                ],
+            },
             bts_key="Red Hat Certification Program",
             name="rhcertification-8",
             default_component="redhat-certification",

@@ -1518,6 +1518,8 @@ class Flaw(
         # fetch from Bugzilla
         fc = FlawCollector()
         fc.sync_flaw(self.bz_id)
+        # Make sure the flaw instance has the latest data
+        self.refresh_from_db()
 
     def tasksync(
         self,
