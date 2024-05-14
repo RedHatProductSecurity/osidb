@@ -495,7 +495,6 @@ class PsUpdateStreamFactory(factory.django.DjangoModelFactory):
     name = factory.sequence(lambda n: f"ps_update_stream_{n}")
     version = factory.Faker("word")
     target_release = factory.Faker("word")
-    rhsa_sla_applicable = factory.Faker("boolean")
 
     collections = factory.List([factory.Faker("word") for _ in range(3)])
     flags = factory.List([factory.Faker("word") for _ in range(3)])
