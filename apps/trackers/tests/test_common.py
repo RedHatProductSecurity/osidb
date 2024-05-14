@@ -711,25 +711,6 @@ until the embargo has lifted. Please post the patch only to the \
         tqb = TrackerQueryBuilder()
         tqb.instance = tracker
 
-        assert (
-            (
-                """\
-This is a preliminary notification of a potential vulnerability under \
-the accelerated "Triage Tracker" program introduced between Product Security \
-and Engineering to allow deeper collaboration.
-
-The in-depth analysis is ongoing, and details are expected to change until \
-such time as it concludes.
-
-Be aware that someone other than the analyst performing the Secondary Assessment \
-will usually create the triage tracker. The best option is to comment in the \
-tracker and wait for a reply. Based on your regular interactions, \
-if you know the Incident Response Analyst for your offering, you can reach out \
-to them directly or add a private comment in the triage tracker or in \
-the flaw bug for their attention.
-
-Please refer to the FAQ page for more information - \
-https://source.redhat.com/departments/products_and_global_engineering/product_security/content/product_security_wiki/incident_response_coordination_faq"""
-            )
-            in tqb.description
-        )
+        assert "preliminary notification" not in tqb.description
+        assert "triage" not in tqb.description
+        assert "Triage" not in tqb.description
