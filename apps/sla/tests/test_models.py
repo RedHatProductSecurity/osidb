@@ -8,6 +8,7 @@ from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
     PsModuleFactory,
+    PsUpdateStreamFactory,
     TrackerFactory,
 )
 
@@ -887,3 +888,47 @@ class TestSLAPolicy:
             assert sla_context.sla == policy.sla
             assert sla_context.start == flaw1.unembargo_dt
             assert sla_context.end == flaw1.unembargo_dt + timedelta(days=5)
+
+        def test_policy_not_applicable(self):
+            """
+            Test that SLA policy does not apply when rhsa_sla_applicable is false
+            in the PS update stream.
+            """
+            policy_desc = {
+                "name": "fantastic SLA policy",
+                "description": "there is no better",
+                "conditions": {
+                    "flaw": [
+                        "is not embargoed",
+                    ],
+                },
+                "sla": {
+                    "duration": 5,
+                    "start": "unembargo date",
+                    "type": "business days",
+                },
+            }
+            policy = SLAPolicy(policy_desc)
+
+            flaw = FlawFactory(
+                embargoed=False,
+            )
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_module=ps_module.name,
+            )
+            ps_update_stream = PsUpdateStreamFactory(
+                ps_module=ps_module, rhsa_sla_applicable=False
+            )
+            tracker = TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.embargoed,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+                ps_update_stream=ps_update_stream.name,
+            )
+
+            sla_context = policy.context(tracker)
+            assert not sla_context

@@ -3,7 +3,7 @@ SLA policy model definitions
 """
 
 from apps.workflows.models import Check
-from osidb.models import Affect, Flaw, Tracker
+from osidb.models import Affect, Flaw, PsUpdateStream, Tracker
 
 from .exceptions import SLAExecutionError
 from .time import add_business_days, add_days
@@ -194,6 +194,10 @@ class SLAPolicy:
         # for now we only support Tracker SLAs
         if not isinstance(instance, Tracker):
             raise SLAExecutionError(f"Unsupported SLA instance type: {type(instance)}")
+
+        ps_update_stream = PsUpdateStream.objects.get(name=instance.ps_update_stream)
+        if not ps_update_stream.rhsa_sla_applicable:
+            return SLAContext()
 
         # computing the SLA is not simple as we have to consider multi-flaw trackers where
         # the SLA start must be computed for the flaw which results in the earlist SLA end
