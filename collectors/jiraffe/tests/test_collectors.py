@@ -30,6 +30,7 @@ class TestJiraTrackerCollector:
         test that getting the next batch of Jira issues works
         """
         collector = JiraTrackerCollector()
+        collector.BATCH_PERIOD_DAYS = 365
         assert collector.BEGINNING == timezone.datetime(2014, 1, 1, tzinfo=timezone.utc)
         assert collector.metadata.updated_until_dt is None
 
@@ -56,6 +57,7 @@ class TestJiraTrackerCollector:
         correctly taking into account the FlawCollector freshness
         """
         collector = JiraTrackerCollector()
+        collector.BATCH_PERIOD_DAYS = 365
         assert collector.BEGINNING == timezone.datetime(2014, 1, 1, tzinfo=timezone.utc)
         assert collector.metadata.updated_until_dt is None
 
@@ -91,6 +93,7 @@ class TestJiraTrackerCollector:
         test the Jira collector run
         """
         collector = JiraTrackerCollector()
+        collector.BATCH_PERIOD_DAYS = 365
         assert collector.BEGINNING == timezone.datetime(2014, 1, 1, tzinfo=timezone.utc)
         assert collector.metadata.updated_until_dt is None
 
@@ -135,6 +138,7 @@ class TestJiraTrackerCollector:
         test that Jira collector data status is changed to complete when the data are current
         """
         collector = JiraTrackerCollector()
+        collector.BATCH_PERIOD_DAYS = 365
         collector.metadata.updated_until_dt = timezone.now()
         CollectorMetadata(
             name="collectors.bzimport.tasks.flaw_collector",
