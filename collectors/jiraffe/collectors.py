@@ -30,7 +30,7 @@ class JiraTrackerCollector(Collector):
     BEGINNING = timezone.datetime(2014, 1, 1, tzinfo=timezone.get_current_timezone())
     # Jira API does not seem to have either issues returning large number of results
     # or any restrictions on the maximum query period so we can be quite greedy
-    BATCH_PERIOD_DAYS = 365
+    BATCH_PERIOD_DAYS = 10
 
     def __init__(self):
         super().__init__()
