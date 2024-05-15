@@ -1,3 +1,5 @@
+import re
+
 from osidb.helpers import get_env
 
 # Auth
@@ -10,3 +12,6 @@ JIRA_DT_FMT = "%Y-%m-%d %H:%M"
 
 # Maximum age of connection to Jira in seconds, recommended value is 60
 JIRA_MAX_CONNECTION_AGE = get_env("JIRA_MAX_CONNECTION_AGE")
+
+# Jira label containing Bugzilla ID
+JIRA_BZ_ID_LABEL_RE = re.compile(r"flaw:bz#(\d+)")

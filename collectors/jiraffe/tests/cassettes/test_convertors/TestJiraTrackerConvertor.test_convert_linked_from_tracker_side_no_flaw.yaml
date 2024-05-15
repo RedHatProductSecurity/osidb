@@ -22,36 +22,38 @@ interactions:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
         "id": "12548499", "self": "https://example.com/rest/api/2/issue/12548499",
-        "key": "ENTMQ-755", "fields": {"fixVersions": [{"self": "https://example.com/rest/api/2/version/12323365",
-        "id": "12323365", "description": "7.1 release", "name": "7.1.0.fuse-046",
-        "archived": false, "released": true, "releaseDate": "2012-12-21"}], "resolution":
-        {"self": "https://example.com/rest/api/2/resolution/1", "id": "1", "description":
-        "This issue is closed, and complete.", "name": "Done"}, "customfield_12312840":
-        null, "customfield_12312442": null, "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@549f6b40[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@501e1f87[overall=PullRequestOverallBean{stateCount=0,
+        "key": "ENTMQ-755", "fields": {"customfield_12324544": "0", "fixVersions":
+        [{"self": "https://example.com/rest/api/2/version/12323365", "id": "12323365",
+        "description": "7.1 release", "name": "7.1.0.fuse-046", "archived": false,
+        "released": true, "releaseDate": "2012-12-21"}], "resolution": {"self": "https://example.com/rest/api/2/resolution/1",
+        "id": "1", "description": "This issue is closed, and complete.", "name": "Done"},
+        "customfield_12312840": null, "customfield_12312442": null, "customfield_12314740":
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@2e9f5d81[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@223528d1[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@65c42955[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@4586e04d[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3345d35[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@3dd5d4be[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@791fdcd0[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@b69df36[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2a95e69b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@3976a753[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3e0805f1[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@7b5ded69[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
-        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":true}}",
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1425dd4e[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@1f5d0cbb[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3465a7c8[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@63ac0cfd[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5959726b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@2e96852f[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@37543cd2[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@341c0521[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@26c4e3e3[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@3ce1a5e9[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
         "customfield_12312848": null, "customfield_12315950": null, "customfield_12310940":
         null, "lastViewed": null, "customfield_12313140": null, "priority": {"self":
         "https://example.com/rest/api/2/priority/3", "iconUrl": "https://example.com/images/icons/priorities/major.svg",
-        "name": "Major", "id": "3"}, "labels": ["CVE-2014-3120", "Security", "SecurityTracking",
-        "component:component"], "customfield_12311640": null, "customfield_12311244":
-        null, "customfield_12311245": null, "customfield_12311641": null, "customfield_12311242":
-        null, "aggregatetimeoriginalestimate": null, "timeestimate": null, "versions":
-        [{"self": "https://example.com/rest/api/2/version/12323365", "id": "12323365",
-        "description": "7.1 release", "name": "7.1.0.fuse-046", "archived": false,
-        "released": true, "releaseDate": "2012-12-21"}], "customfield_12311241": null,
-        "customfield_12310031": null, "issuelinks": [], "assignee": {"self": "https://example.com/rest/api/2/user?username=acunning%40redhat.com",
-        "name": "acunning@redhat.com", "key": "aileenc", "emailAddress": "acunning@redhat.com",
+        "name": "Major", "id": "3"}, "labels": ["CVE-2014-3130", "Security", "SecurityTracking",
+        "component:elasticsearch", "flaw:bz#12345"], "customfield_12311640": null,
+        "customfield_12311244": null, "customfield_12311245": null, "customfield_12311641":
+        null, "customfield_12311242": null, "aggregatetimeoriginalestimate": null,
+        "timeestimate": null, "versions": [{"self": "https://example.com/rest/api/2/version/12323365",
+        "id": "12323365", "description": "7.1 release", "name": "7.1.0.fuse-046",
+        "archived": false, "released": true, "releaseDate": "2012-12-21"}], "customfield_12311241":
+        null, "customfield_12310031": null, "issuelinks": [], "assignee": {"self":
+        "https://example.com/rest/api/2/user?username=acunning%40redhat.com", "name":
+        "acunning@redhat.com", "key": "aileenc", "emailAddress": "acunning@redhat.com",
         "avatarUrls": {"48x48": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=48",
         "24x24": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=24",
         "16x16": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=16",
         "32x32": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=32"},
-        "displayName": "Aileen Cunningham", "active": true, "timeZone": "GMT"}, "customfield_12313942":
+        "displayName": "Aileen Cunningham", "active": true, "timeZone": "UTC"}, "customfield_12313942":
         null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/6",
         "description": "The issue is closed. See the resolution for context regarding
         why (for example Done, Abandoned, Duplicate, etc)", "iconUrl": "https://example.com/images/icons/statuses/closed.png",
@@ -66,7 +68,7 @@ interactions:
         "24x24": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=24",
         "16x16": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=16",
         "32x32": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=32"},
-        "displayName": "Chess Hazlett", "active": true, "timeZone": "GMT"}, "subtasks":
+        "displayName": "Chess Hazlett", "active": true, "timeZone": "UTC"}, "subtasks":
         [], "customfield_12321140": null, "customfield_12310091": null, "customfield_12310090":
         null, "reporter": {"self": "https://example.com/rest/api/2/user?username=chess.hazlett",
         "name": "chess.hazlett", "key": "chazlett", "emailAddress": "chazlett@redhat.com",
@@ -74,7 +76,7 @@ interactions:
         "24x24": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=24",
         "16x16": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=16",
         "32x32": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=32"},
-        "displayName": "Chess Hazlett", "active": true, "timeZone": "GMT"}, "customfield_12320850":
+        "displayName": "Chess Hazlett", "active": true, "timeZone": "UTC"}, "customfield_12320850":
         null, "customfield_12310092": null, "aggregateprogress": {"progress": 0, "total":
         0}, "customfield_12310010": null, "customfield_12315542": null, "customfield_12313240":
         null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
@@ -101,16 +103,16 @@ interactions:
         null, "watches": {"self": "https://example.com/rest/api/2/issue/ENTMQ-755/watchers",
         "watchCount": 3, "isWatching": false}, "created": "2014-08-04T15:07:19.000+0000",
         "customfield_12321240": null, "customfield_12320947": null, "customfield_12320946":
-        null, "updated": "2014-09-10T01:43:37.000+0000", "customfield_12311840": null,
+        null, "updated": "2024-05-03T15:54:06.682+0000", "customfield_12311840": null,
         "customfield_12316142": null, "timeoriginalestimate": null, "description":
         "https://example.com/show_bug.cgi?id=1124252", "timetracking": {}, "customfield_12310440":
         null, "security": {"self": "https://example.com/rest/api/2/securitylevel/11697",
         "id": "11697", "description": "Red Hat Employee and Contractors only", "name":
         "Red Hat Employee"}, "customfield_12312340": null, "attachment": [], "customfield_12316542":
-        null, "customfield_12316543": null, "customfield_12316544": null, "customfield_12310840":
-        "9223372036854775807", "summary": "CVE-2014-3120 component: remote code
-        execution flaw via dynamic scripting [stream]", "customfield_12323640": null,
-        "customfield_12323642": null, "customfield_12323641": null, "customfield_12323644":
+        null, "customfield_12316543": null, "customfield_12310840": "9223372036854775807",
+        "customfield_12316544": null, "summary": "CVE-2014-3120 elasticsearch: remote
+        code execution flaw via dynamic scripting [amq-7.1]", "customfield_12323640":
+        null, "customfield_12323642": null, "customfield_12323641": null, "customfield_12323644":
         null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
         null, "customfield_12313441": "", "customfield_12315740": null, "customfield_12313440":
         "0.0", "duedate": null, "customfield_12311140": null, "comment": {"comments":
@@ -121,7 +123,7 @@ interactions:
         "24x24": "https://example.com/avatar/57a50b7afda86587ff149bde634f232d?d=mm&s=24",
         "16x16": "https://example.com/avatar/57a50b7afda86587ff149bde634f232d?d=mm&s=16",
         "32x32": "https://example.com/avatar/57a50b7afda86587ff149bde634f232d?d=mm&s=32"},
-        "displayName": "David Jorm", "active": false, "timeZone": "GMT"}, "body":
+        "displayName": "David Jorm", "active": false, "timeZone": "UTC"}, "body":
         "It has been reported that CVE-2014-3120 is being actively exploited in the
         wild to spread a botnet. For more information, please see the following knowledge
         solution:\n\nhttps://example.com/solutions/1189133\n\nWe need to ship patches
@@ -133,44 +135,44 @@ interactions:
         "https://example.com/avatar/57a50b7afda86587ff149bde634f232d?d=mm&s=24", "16x16":
         "https://example.com/avatar/57a50b7afda86587ff149bde634f232d?d=mm&s=16", "32x32":
         "https://example.com/avatar/57a50b7afda86587ff149bde634f232d?d=mm&s=32"},
-        "displayName": "David Jorm", "active": false, "timeZone": "GMT"}, "created":
+        "displayName": "David Jorm", "active": false, "timeZone": "UTC"}, "created":
         "2014-09-08T00:49:03.000+0000", "updated": "2014-09-08T00:49:03.000+0000"},
         {"self": "https://example.com/rest/api/2/issue/12548499/comment/13000639",
         "id": "13000639", "author": {"self": "https://example.com/rest/api/2/user?username=e-tool",
-        "name": "e-tool", "key": "e-tool", "emailAddress": "errata-owner+e-tool@redhat.com",
+        "name": "e-tool", "key": "e-tool", "emailAddress": "errata-owner+e-tool+stage@redhat.com",
         "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=e-tool&avatarId=33138",
         "24x24": "https://example.com/secure/useravatar?size=small&ownerId=e-tool&avatarId=33138",
         "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=e-tool&avatarId=33138",
         "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=e-tool&avatarId=33138"},
-        "displayName": "Errata Tool", "active": true, "timeZone": "GMT"}, "body":
+        "displayName": "Errata Tool", "active": true, "timeZone": "UTC"}, "body":
         "This issue has been added to advisory RHSA-2014:18746 by David Jorm (djorm@redhat.com)",
         "updateAuthor": {"self": "https://example.com/rest/api/2/user?username=e-tool",
-        "name": "e-tool", "key": "e-tool", "emailAddress": "errata-owner+e-tool@redhat.com",
+        "name": "e-tool", "key": "e-tool", "emailAddress": "errata-owner+e-tool+stage@redhat.com",
         "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=e-tool&avatarId=33138",
         "24x24": "https://example.com/secure/useravatar?size=small&ownerId=e-tool&avatarId=33138",
         "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=e-tool&avatarId=33138",
         "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=e-tool&avatarId=33138"},
-        "displayName": "Errata Tool", "active": true, "timeZone": "GMT"}, "created":
+        "displayName": "Errata Tool", "active": true, "timeZone": "UTC"}, "created":
         "2014-09-10T01:18:58.000+0000", "updated": "2014-09-10T01:18:58.000+0000",
         "visibility": {"type": "group", "value": "JBoss Employee"}}, {"self": "https://example.com/rest/api/2/issue/12548499/comment/13000647",
         "id": "13000647", "author": {"self": "https://example.com/rest/api/2/user?username=e-tool",
-        "name": "e-tool", "key": "e-tool", "emailAddress": "errata-owner+e-tool@redhat.com",
+        "name": "e-tool", "key": "e-tool", "emailAddress": "errata-owner+e-tool+stage@redhat.com",
         "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=e-tool&avatarId=33138",
         "24x24": "https://example.com/secure/useravatar?size=small&ownerId=e-tool&avatarId=33138",
         "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=e-tool&avatarId=33138",
         "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=e-tool&avatarId=33138"},
-        "displayName": "Errata Tool", "active": true, "timeZone": "GMT"}, "body":
+        "displayName": "Errata Tool", "active": true, "timeZone": "UTC"}, "body":
         "Since the problem described in this issue should be resolved in a recent
         advisory, it has been closed.\n\nFor information on the advisory, and where
         to find the updated files, follow the link below.\n\nIf the solution does
-        not work for you, open a new bug report.\nhttp://example.com/errata/RHSA-2014-1171.html",
+        not work for you, open a new bug report.\nhttps://example.com/errata/RHSA-2014-1171.html",
         "updateAuthor": {"self": "https://example.com/rest/api/2/user?username=e-tool",
-        "name": "e-tool", "key": "e-tool", "emailAddress": "errata-owner+e-tool@redhat.com",
+        "name": "e-tool", "key": "e-tool", "emailAddress": "errata-owner+e-tool+stage@redhat.com",
         "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=e-tool&avatarId=33138",
         "24x24": "https://example.com/secure/useravatar?size=small&ownerId=e-tool&avatarId=33138",
         "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=e-tool&avatarId=33138",
         "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=e-tool&avatarId=33138"},
-        "displayName": "Errata Tool", "active": true, "timeZone": "GMT"}, "created":
+        "displayName": "Errata Tool", "active": true, "timeZone": "UTC"}, "created":
         "2014-09-10T01:43:37.000+0000", "updated": "2014-09-10T01:43:37.000+0000"}],
         "maxResults": 3, "total": 3, "startAt": 0}, "customfield_12310213": null,
         "customfield_12311940": "1|hz4zfj:"}}'
@@ -182,9 +184,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Thu, 21 Dec 2023 12:41:13 GMT
+      - Fri, 03 May 2024 15:54:36 GMT
       Expires:
-      - Thu, 21 Dec 2023 12:41:13 GMT
+      - Fri, 03 May 2024 15:54:36 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -197,17 +199,17 @@ interactions:
       X-RateLimit-Remaining:
       - '9223372036854775807'
       content-length:
-      - '14949'
+      - '15307'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-prod-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 761x4665951x8
+      - 954x19791x1
       x-asessionid:
-      - 14d2cdq
+      - 1vzj4dt
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -219,9 +221,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.ee097b5c.1703162473.193c0a89
+      - 0.6f361060.1714751676.54166d17
       x-rh-edge-request-id:
-      - 193c0a89
+      - 54166d17
       x-seraph-loginreason:
       - OK
       x-xss-protection:

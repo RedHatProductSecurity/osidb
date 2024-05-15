@@ -11,7 +11,7 @@ from jira import Issue
 from jira.exceptions import JIRAError
 
 from apps.trackers.models import JiraProjectFields
-from collectors.framework.models import Collector
+from collectors.framework.models import Collector, CollectorMetadata
 from osidb.models import PsModule
 
 from .convertors import JiraTrackerConvertor
@@ -30,7 +30,7 @@ class JiraTrackerCollector(Collector):
     BEGINNING = timezone.datetime(2014, 1, 1, tzinfo=timezone.get_current_timezone())
     # Jira API does not seem to have either issues returning large number of results
     # or any restrictions on the maximum query period so we can be quite greedy
-    BATCH_PERIOD_DAYS = 365
+    BATCH_PERIOD_DAYS = 10
 
     def __init__(self):
         super().__init__()
@@ -51,6 +51,14 @@ class JiraTrackerCollector(Collector):
         """
         period_start = self.metadata.updated_until_dt or self.BEGINNING
         period_end = period_start + timezone.timedelta(days=self.BATCH_PERIOD_DAYS)
+        # the tracker collector should never outrun the flaw one
+        # since it creates the linkage which might then be missed
+        period_end = min(
+            period_end,
+            CollectorMetadata.objects.get(
+                name="collectors.bzimport.tasks.flaw_collector"
+            ).updated_until_dt,
+        )
         # query for trackers in the period and return them together with the timestamp
         return (
             self.jira_querier.get_tracker_period(period_start, period_end),
@@ -81,13 +89,8 @@ class JiraTrackerCollector(Collector):
 
         # process data
         for tracker_data in batch_data:
-            tracker_convertor = JiraTrackerConvertor(tracker_data)
-            tracker = tracker_convertor.convert()
-            # no automatic timestamps as those go from Jira
-            # and no validation exceptions not to fail here
-            tracker.save(auto_timestamps=False, raise_validation_error=False)
-
-            updated_trackers.append(tracker.external_system_id)
+            self.save(JiraTrackerConvertor(tracker_data).tracker)
+            updated_trackers.append(tracker_data.key)
 
         logger.info(
             f"Jira trackers were updated for the following IDs: {', '.join(updated_trackers)}"
