@@ -43,7 +43,7 @@ jobs:
       redis:
         image: redis
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install required packages
         run: dnf install -y openldap-devel openldap-clients python3.9 postgresql-contrib
       - name: Setup PostgreSQL service
