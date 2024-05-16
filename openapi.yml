@@ -2926,6 +2926,10 @@ paths:
         explode: false
         style: form
       - in: query
+        name: cve_id__isempty
+        schema:
+          type: boolean
+      - in: query
         name: cvss2
         schema:
           type: string

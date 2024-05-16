@@ -3,6 +3,8 @@ Implement filters for OSIDB REST API results
 """
 
 from django.core.exceptions import FieldDoesNotExist
+from django.core.validators import EMPTY_VALUES
+from django.db.models import Q
 from django_filters.rest_framework import (
     BaseInFilter,
     BooleanFilter,
@@ -49,6 +51,24 @@ class CharInFilter(BaseInFilter, CharFilter):
     """
 
     pass
+
+
+class EmptyOrNullStringFilter(BooleanFilter):
+    """Filter for both empty and null string fields."""
+
+    def filter(self, queryset, value):
+        """
+        Given a value of True or False, it will return the records that have an
+        empty string or null value (True) or the ones that don't (False).
+        """
+        if value in EMPTY_VALUES:
+            return queryset
+
+        exclude = self.exclude ^ (value is False)
+        method = queryset.exclude if exclude else queryset.filter
+        query = Q(**{self.field_name: ""}) | Q(**{f"{self.field_name}__isnull": True})
+
+        return method(query)
 
 
 class DistinctFilterSet(FilterSet):
@@ -217,6 +237,7 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     DISTINCT_FIELDS_PREFIXES = ("affects__",)
 
     cve_id = CharInFilter(field_name="cve_id")
+    cve_id__isempty = EmptyOrNullStringFilter(field_name="cve_id")
 
     component = CharInFilter(method="component_filter")
     components = CharInFilter(field_name="components", lookup_expr="contains")

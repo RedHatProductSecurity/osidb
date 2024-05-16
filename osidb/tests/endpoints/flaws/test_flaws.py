@@ -264,6 +264,35 @@ class TestEndpointsFlaws:
             else:
                 raise Exception("Unexpected response code - must be 200 or 400")
 
+    @pytest.mark.parametrize(
+        "is_empty,cve_id",
+        [
+            (True, None),
+            (True, ""),
+            (False, "CVE-2024-271828"),
+        ],
+    )
+    def test_list_flaws_empty_cve(self, is_empty, cve_id, auth_client, test_api_uri):
+        """Test that filtering by null or empty CVEs works."""
+        response = auth_client().get(f"{test_api_uri}/flaws")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
+
+        FlawFactory(cve_id=cve_id)
+
+        # Filter is true: matches null and empty strings
+        response = auth_client().get(f"{test_api_uri}/flaws?cve_id__isempty=1")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == (1 if is_empty else 0)
+
+        # Filter is false: matches non-null and non-empty strings
+        response = auth_client().get(f"{test_api_uri}/flaws?cve_id__isempty=0")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == (0 if is_empty else 1)
+
     @freeze_time(datetime(2021, 11, 23))
     @pytest.mark.enable_signals
     def test_changed_after_from_tracker(self, auth_client, test_api_uri):
