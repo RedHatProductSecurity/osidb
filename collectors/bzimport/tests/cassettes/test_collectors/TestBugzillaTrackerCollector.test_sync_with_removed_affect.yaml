@@ -1,0 +1,195 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/version
+  response:
+    body:
+      string: '{"version": "5.0.4.rh95"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '24'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 30 Apr 2024 14:08:15 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.a5361060.1714486095.840a8095
+      x-rh-edge-request-id:
+      - 840a8095
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/user?ids=1
+  response:
+    body:
+      string: '{"users": [{"name": "aander07@packetmaster.com", "id": 1, "real_name":
+        "Need Real Name", "can_login": true, "email": "aander07@packetmaster.com"}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '137'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 30 Apr 2024 14:08:15 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.a5361060.1714486095.840a86b2
+      x-rh-edge-request-id:
+      - 840a86b2
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2022501
+  response:
+    body:
+      string: '{"bugs": [{"comments": [{"tags": [], "count": 0, "private_groups":
+        [], "id": 15711594, "text": "certificate_system_10 tracking bug for ssh: see
+        the bugs linked in the \"Blocks\" field of this bug for full details of the
+        security issue(s).\n\nThis bug is never intended to be made public, please
+        put any public notes in the blocked bugs.", "creation_time": "2024-02-28T14:51:02Z",
+        "bug_id": 2022501, "is_private": false, "attachment_id": null, "time": "2024-02-28T14:51:02Z",
+        "creator_id": 464884, "creator": "jreichar@redhat.com"}], "alias": [], "cf_pm_score":
+        "0", "cf_pgm_internal": "", "qa_contact": "", "component": ["Other"], "cf_partner":
+        [], "estimated_time": 0, "id": 2022501, "docs_contact": "", "product": "Red
+        Hat Certificate System", "cf_deadline": null, "creator": "jreichar@redhat.com",
+        "flags": [{"modification_date": "2024-02-28T14:51:02Z", "type_id": 415, "setter":
+        "bugzilla@redhat.com", "status": "-", "is_active": 1, "id": 5255051, "name":
+        "requires_doc_text", "creation_date": "2024-02-28T14:51:02Z"}], "is_creator_accessible":
+        true, "depends_on": [], "cf_conditional_nak": [], "assigned_to_detail": {"partner":
+        false, "name": "nobody@redhat.com", "email": "nobody@redhat.com", "insider":
+        false, "id": 29451, "active": true, "real_name": "Nobody"}, "blocks": [1982889],
+        "cf_qa_whiteboard": "", "whiteboard": "", "cf_major_incident": null, "platform":
+        "Unspecified", "cf_final_deadline": null, "target_release": ["---"], "cf_build_id":
+        "", "classification": "Red Hat", "dupe_of": null, "tags": [], "cf_internal_whiteboard":
+        "", "remaining_time": 0, "cf_target_upstream_version": "", "description":
+        "certificate_system_10 tracking bug for ssh: see the bugs linked in the \"Blocks\"
+        field of this bug for full details of the security issue(s).\n\nThis bug is
+        never intended to be made public, please put any public notes in the blocked
+        bugs.", "severity": "high", "cf_doc_type": "No Doc Update", "deadline": "2023-05-29",
+        "url": "", "cf_cust_facing": "---", "keywords": ["Security", "SecurityTracking"],
+        "creator_detail": {"active": true, "real_name": "James Reichard", "partner":
+        false, "name": "jreichar@redhat.com", "email": "jreichar@redhat.com", "insider":
+        true, "id": 464884}, "external_bugs": [], "op_sys": "Unspecified", "sub_components":
+        {}, "version": ["10.2"], "is_cc_accessible": true, "cf_last_closed": null,
+        "cf_clone_of": null, "creation_time": "2024-02-28T14:51:02Z", "cf_verified":
+        [], "status": "NEW", "is_open": true, "actual_time": 0, "cf_environment":
+        "", "cf_embargoed": null, "summary": "[CISA Major Incident] CVE-2020-1234
+        ssh: problem (has acknowledgments, references) [certificate_system_10.2.1]",
+        "is_confirmed": true, "resolution": "", "cf_devel_whiteboard": "", "priority":
+        "high", "assigned_to": "nobody@redhat.com", "cf_qe_conditional_nak": [], "cf_release_notes":
+        "", "last_change_time": "2024-04-30T14:04:11Z", "target_milestone": "rc",
+        "data_category": "Red Hat", "cc_detail": [{"real_name": "Ade Lee", "active":
+        true, "partner": false, "id": 194784, "name": "alee@redhat.com", "insider":
+        true, "email": "alee@redhat.com"}, {"insider": true, "email": "cfu@redhat.com",
+        "name": "cfu@redhat.com", "id": 172340, "partner": false, "active": true,
+        "real_name": "Christina Fu"}, {"active": true, "real_name": "Jack Magne",
+        "name": "jmagne@redhat.com", "insider": true, "email": "jmagne@redhat.com",
+        "id": 172343, "partner": false}, {"active": true, "real_name": "Ondrej Soukup",
+        "partner": false, "insider": true, "email": "osoukup@redhat.com", "name":
+        "osoukup@redhat.com", "id": 412888}], "groups": ["redhat"], "cf_fixed_in":
+        "", "cc": ["alee@redhat.com", "cfu@redhat.com", "jmagne@redhat.com", "osoukup@redhat.com"],
+        "cf_deadline_type": null}], "total_matches": 1, "offset": 0, "limit": "20"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Tue, 30 Apr 2024 14:08:16 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '3472'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.a5361060.1714486096.840a9228
+      x-rh-edge-request-id:
+      - 840a9228
+    status:
+      code: 200
+      message: OK
+version: 1

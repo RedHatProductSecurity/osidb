@@ -1,7 +1,6 @@
 """
 Bugzilla collector
 """
-import json
 import time
 from datetime import datetime, timedelta
 from typing import Union
@@ -13,13 +12,10 @@ from celery.utils.log import get_task_logger
 from dateutil.relativedelta import relativedelta
 from django.db import transaction
 from django.utils import timezone
-from joblib import Parallel, delayed
 
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.convertors import BugzillaTrackerConvertor, FlawConvertor
-from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
-from collectors.framework.models import Collector
-from collectors.jiraffe.core import JiraQuerier
+from collectors.framework.models import Collector, CollectorMetadata
 from osidb.models import Flaw, PsModule
 
 from .constants import (
@@ -28,7 +24,6 @@ from .constants import (
     BZ_DT_FMT,
     BZ_MAX_CONNECTION_AGE,
     BZ_URL,
-    PARALLEL_THREADS,
 )
 from .exceptions import RecoverableBZImportException
 
@@ -363,7 +358,6 @@ class FlawCollector(Collector):
     def __init__(self):
         super().__init__()
         self._bz_querier = None
-        self._jira_querier = None
 
     @property
     def bz_querier(self):
@@ -371,15 +365,8 @@ class FlawCollector(Collector):
             self._bz_querier = BugzillaQuerier()
         return self._bz_querier
 
-    @property
-    def jira_querier(self):
-        if self._jira_querier is None:
-            self._jira_querier = JiraQuerier()
-        return self._jira_querier
-
     def free_queriers(self):
         self._bz_querier = None
-        self._jira_querier = None
 
     def end_period_heuristic(self, period_start):
         """
@@ -397,17 +384,22 @@ class FlawCollector(Collector):
         # then we have more regularly scattered data
         # and the possible future date is no problem
         # so we can use it for the periodic sync too
-        period_end = period_start + relativedelta(months=1)
+        if period_start < timezone.datetime(2024, 1, 1, tzinfo=TIMEZONE):
+            period_end = period_start + relativedelta(months=1)
 
-        # but we have to account for the periods of data migrations
-        for migration in self.MIGRATIONS:
-            if period_start < migration["start"] and period_end > migration["start"]:
-                return migration["start"]
+            # but we have to account for the periods of data migrations
+            for migration in self.MIGRATIONS:
+                if period_start < migration["start"] < period_end:
+                    return migration["start"]
 
-            if period_start >= migration["start"] and period_start < migration["end"]:
-                return period_start + migration["step"]
+                if migration["start"] <= period_start < migration["end"]:
+                    return period_start + migration["step"]
 
-        return period_end
+            return period_end
+
+        # starting 2024 the Assembler collectors were migrated to OSIDB
+        # regularly creating tens to hundreds flaws every day
+        return period_start + relativedelta(days=10)
 
     def get_batch(self):
         """get next batch of flaw IDs"""
@@ -433,64 +425,6 @@ class FlawCollector(Collector):
             self.bz_querier.query_all_flaws(), updated_after, updated_before
         )
 
-    def get_flaw_bz_trackers(self, flaw_data: dict) -> list:
-        """
-        get Bugzilla trackers from flaw data
-
-        catch exceptions individually so we do
-        not fail everything for a single issue
-        """
-        bz_trackers = []
-
-        for bz_id in flaw_data["depends_on"]:
-            try:
-                bug = self.bz_querier.get_bug_data(bz_id)
-                # security tracking Bugzilla bug has always SecurityTracking keyword
-                # there may be any other non-tracker bugs in the depends_on field
-                if "SecurityTracking" in bug["keywords"]:
-                    bz_trackers.append(bug)
-            except Exception as e:
-                logger.exception(
-                    f"Bugzilla flaw bug {flaw_data['id']} tracker import error: {str(e)}"
-                )
-                # TODO store errors
-
-        return bz_trackers
-
-    def get_flaw_jira_trackers(self, flaw_data: dict) -> list:
-        """
-        get Jira trackers from flaw data
-
-        catch exceptions individually so we do
-        not fail everything for a single issue
-        """
-        jira_trackers = []
-
-        for jira_id in self.get_flaw_jira_tracker_ids(flaw_data):
-            try:
-                jira_trackers.append(self.jira_querier.get_issue(jira_id))
-            except Exception as e:
-                logger.exception(
-                    f"Bugzilla flaw bug {flaw_data['id']} tracker import error: {str(e)}"
-                )
-                # TODO store errors
-
-        return jira_trackers
-
-    def get_flaw_jira_tracker_ids(self, flaw_data: dict) -> list:
-        """get Jira tracker IDs from Bugzilla flaw data"""
-        try:
-            return [
-                issue["key"]
-                for issue in parse_cf_srtnotes(flaw_data["cf_srtnotes"]).get(
-                    "jira_trackers", []
-                )
-            ]
-        except json.decoder.JSONDecodeError:
-            # this exception means invalid or empty SRT notes which usually means a very old flaw
-            # here let us just consider it as that there are no Jira trackers attached to the flaw
-            return []
-
     def get_flaw_task(self, flaw_data: dict) -> Union[str, None]:
         """get first analysis task from flaw data"""
         for bz_id in flaw_data["blocks"]:
@@ -513,7 +447,7 @@ class FlawCollector(Collector):
 
     def sync_flaw(self, flaw_id):
         """fetch-convert-save flaw with give Bugzilla ID"""
-        # 1A) fetch flaw data
+        # 1) fetch flaw data
         try:
             flaw_data = self.bz_querier.get_bug_data(flaw_id)
             flaw_comments = self.bz_querier.get_bug_comments(flaw_id)
@@ -526,19 +460,12 @@ class FlawCollector(Collector):
                 f"Temporary exception raised while fetching flaw data: {flaw_id}"
             ) from e
 
-        # 1B) fetch tracker data
-
-        flaw_bz_trackers = self.get_flaw_bz_trackers(flaw_data)
-        flaw_jira_trackers = self.get_flaw_jira_trackers(flaw_data)
-
         # 2) convert flaw data to Django models
         fbc = FlawConvertor(
             flaw_data,
             flaw_comments,
             flaw_history,
             flaw_task,
-            flaw_bz_trackers,
-            flaw_jira_trackers,
         )
         flaws = fbc.flaws
         # TODO store errors
@@ -558,20 +485,23 @@ class FlawCollector(Collector):
         alternatively you can specify a batch as the parameter - list of Bugzilla IDs
         then all updated until and completeness sugar is skipped
         """
+        successes = []
+        failures = []
+
         # remember time before BZ query so we do not miss
         # anything starting the next batch from it
         start_dt = timezone.now()
 
         flaw_ids = [(i, i) for i in batch] if batch is not None else self.get_batch()
 
-        # collect data in parallel
-        results = Parallel(n_jobs=PARALLEL_THREADS, prefer="threads")(
-            delayed(self.collect_flaw)(flaw_id) for flaw_id, _ in flaw_ids
-        )
-        # process the results
-        successes, failures = [success for success, _ in results if success], [
-            failure for _, failure in results if failure
-        ]
+        # TODO good candidate for parallelizing
+        for flaw_id, _ in flaw_ids:
+            success, failure = self.collect_flaw(flaw_id)
+
+            if success:
+                successes.append(success)
+            if failure:
+                failures.append(failure)
 
         # with specified batch we stop here
         if batch is not None:
@@ -628,8 +558,9 @@ class FlawCollector(Collector):
 
 class BugzillaTrackerCollector(Collector):
 
-    # version 0.0.1 of OSIDB was released on January 21st 2022
-    BEGINNING = timezone.datetime(2022, 1, 21, tzinfo=timezone.get_current_timezone())
+    # according to the Bugzilla advanced search the longest non-updated
+    # security trackers going chronologically were last updated in 2010
+    BEGINNING = timezone.datetime(2010, 1, 1, tzinfo=timezone.get_current_timezone())
     BATCH_SIZE = 100
     BATCH_PERIOD = relativedelta(months=1)
 
@@ -676,6 +607,14 @@ class BugzillaTrackerCollector(Collector):
         """
         period_start = self.metadata.updated_until_dt or self.BEGINNING
         period_end = period_start + self.BATCH_PERIOD
+        # the tracker collector should never outrun the flaw one
+        # since it creates the linkage which might then be missed
+        period_end = min(
+            period_end,
+            CollectorMetadata.objects.get(
+                name="collectors.bzimport.tasks.flaw_collector"
+            ).updated_until_dt,
+        )
 
         tracker_ids = self.get_tracker_ids(period_start, period_end)
         while len(tracker_ids) < self.BATCH_SIZE and period_end < timezone.now():
@@ -690,26 +629,7 @@ class BugzillaTrackerCollector(Collector):
         Fetch, convert and save a bugzilla tracker from a given Bugzilla ID.
         """
         tracker_data = self.bz_querier.get_bug_data(tracker_id)
-        # not passing an affect explicitly during periodic sync should be fine
-        # - case A:
-        #   tracker is new, will be created from FlawCollector with correct affect,
-        #   if for some reason this doesn't happen and the periodic collector creates
-        #   the tracker first, FlawCollector should eventually create it and add the
-        #   affect as a side-effect of create_tracker().
-        # - case B:
-        #   tracker exists, will be updated and passing affect=None will not change
-        #   the set of affects.
-        # - case C:
-        #   tracker exists and affect has been removed, in which case the tracker is
-        #   orphaned which isn't ideal but isn't the end of the world either.
-        # - case D:
-        #   tracker is deleted? not sure if that can happen anyway as I would imagine
-        #   that the tracker would not be deleted but corrected and/or set to a
-        #   specific state/resolution, but if it truly is deleted then it's currently
-        #   not handled.
-        BugzillaTrackerConvertor(tracker_data).convert().save(
-            auto_timestamps=False, raise_validation_error=False
-        )
+        self.save(BugzillaTrackerConvertor(tracker_data).tracker)
 
     def collect(self):
         successes = []

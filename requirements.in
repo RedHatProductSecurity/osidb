@@ -23,7 +23,6 @@ flower
 gunicorn[gevent,setproctitle]
 inflection
 jira
-joblib
 jsonschema
 kerberos
 markdown

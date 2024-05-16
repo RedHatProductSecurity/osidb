@@ -6,14 +6,61 @@ import uuid
 from functools import cached_property
 
 from django.conf import settings
+from django.db import transaction
 
 from osidb.core import generate_acls, set_user_acls
-from osidb.models import Tracker
+from osidb.models import Affect, Flaw, Tracker
+from osidb.validators import CVE_RE_STR
 
 from ..utils import (
     tracker_parse_update_stream_component,
     tracker_summary2module_component,
 )
+from .constants import JIRA_BZ_ID_LABEL_RE
+
+
+class TrackerSaver:
+    """
+    TrackerSaver is holder of the individual tracker parts provided by TrackerConvertor
+    which knows how to correctly save and link them all as the resulting Django DB models
+    it provides save method as an interface to perform the whole save operation
+    """
+
+    def __init__(
+        self,
+        tracker,
+        affects,
+        alerts,
+    ):
+        self.tracker = tracker
+        self.affects = affects
+        self.alerts = alerts
+
+    def __str__(self):
+        return f"TrackerSaver {self.tracker.type}:{self.tracker.external_system_id}"
+
+    def save(self):
+        """
+        save the tracker with its context to DB
+        """
+        # wrap this in an atomic transaction so that
+        # we don't query this tracker during the process
+        with transaction.atomic():
+            # re-create all affect links
+            # in case some were removed
+            self.tracker.affects.clear()
+            self.tracker.affects.add(*self.affects)  # bulk add
+            self.tracker.save(
+                # we want to store the original timestamps
+                # so we turn off assigning the automatic ones
+                auto_timestamps=False,
+                # we want to store all the data fetched by the collector
+                # so we suppress the exception raising in favor of alerts
+                raise_validation_error=False,
+            )
+
+            # TODO
+            # store alerts
 
 
 class TrackerConvertor:
@@ -28,6 +75,7 @@ class TrackerConvertor:
         self,
         tracker_data,
     ):
+        self._alerts = []
         self._raw = tracker_data
         # important that this is last as it might require other fields on self
         self.tracker_data = self._normalize()
@@ -43,13 +91,33 @@ class TrackerConvertor:
         raise NotImplementedError
 
     @property
+    def affects(self) -> list:
+        """
+        returns the list of related affects
+        """
+        raise NotImplementedError
+
+    def alert(self, alert) -> None:
+        """
+        store conversion alert
+        """
+        self._alerts.append(alert)
+
+    @property
+    def alerts(self) -> list:
+        """
+        return the list of conversion alerts
+        """
+        return self._alerts
+
+    @property
     def _normalize(self):
         """
         to be implemented in the child classes
         """
         raise NotImplementedError
 
-    def _gen_tracker_object(self, affect) -> Tracker:
+    def _gen_tracker_object(self) -> Tracker:
         """
         generate Tracker object from raw tracker data
         """
@@ -57,7 +125,7 @@ class TrackerConvertor:
         # if this is the periodic update however also when the flaw bug
         # has multiple CVEs the resulting flaws will share the trackers
         tracker = Tracker.objects.create_tracker(
-            affect=affect,
+            affect=None,
             _type=self.type,
             external_system_id=self.tracker_data["external_system_id"],
             status=self.tracker_data["status"],
@@ -76,8 +144,17 @@ class TrackerConvertor:
         )
         return tracker
 
-    def convert(self, affect=None) -> Tracker:
-        return self._gen_tracker_object(affect)
+    @property
+    def tracker(self) -> TrackerSaver:
+        """
+        the convertor interface to get the
+        conversion result as a saveable object
+        """
+        return TrackerSaver(
+            self._gen_tracker_object(),
+            self.affects,
+            self.alerts,
+        )
 
 
 class JiraTrackerConvertor(TrackerConvertor):
@@ -112,6 +189,13 @@ class JiraTrackerConvertor(TrackerConvertor):
         ps_module, ps_component = tracker_summary2module_component(
             self._raw.fields.summary
         )
+        ps_update_stream = tracker_parse_update_stream_component(
+            self._raw.fields.summary
+        )[0]
+
+        self.ps_module = ps_module
+        self.ps_component = ps_component
+        self.ps_update_stream = ps_update_stream
 
         return {
             "external_system_id": self._raw.key,
@@ -124,9 +208,7 @@ class JiraTrackerConvertor(TrackerConvertor):
             ),
             "ps_module": ps_module,
             "ps_component": ps_component,
-            "ps_update_stream": tracker_parse_update_stream_component(
-                self._raw.fields.summary
-            )[0],
+            "ps_update_stream": ps_update_stream,
             "status": self.get_field_attr(self._raw, "status", "name"),
             "resolution": self.get_field_attr(self._raw, "resolution", "name"),
             "created_dt": self._raw.fields.created,
@@ -180,3 +262,61 @@ class JiraTrackerConvertor(TrackerConvertor):
         so the ACL validations may properly compare the result
         """
         return [uuid.UUID(acl) for acl in generate_acls(self.groups_write)]
+
+    @property
+    def affects(self) -> list:
+        """
+        returns the list of related affects
+        """
+        # to ensure the maximum possible linkage retrieval
+        # we use multiple methods to find the related flaws
+        #
+        # this ensures the restoration of links
+        # which has one of the sides broken
+        flaws = set()
+
+        # 1) linking from the flaw side
+        for flaw in Flaw.objects.filter(
+            meta_attr__jira_trackers__contains=self._raw.key
+        ):
+            # we need to double check the tracker ID
+            # as eg. OSIDB-123 is contained in OSIDB-1234
+            for item in json.loads(flaw.meta_attr["jira_trackers"]):
+                if self._raw.key == item["key"]:
+                    flaws.add(flaw)
+
+        # 2) linking from the tracker side
+        for label in self._raw.fields.labels:
+            if CVE_RE_STR.match(label):
+                try:
+                    flaws.add(Flaw.objects.get(cve_id=label))
+                except Flaw.DoesNotExist:
+                    # tracker created against
+                    # non-existing CVE ID
+                    # self.alert(TODO)
+                    continue
+
+            if match := JIRA_BZ_ID_LABEL_RE.match(label):
+                try:
+                    flaws.add(Flaw.objects.get(meta_attr__bz_id=match.group(1)))
+                except Flaw.DoesNotExist:
+                    # tracker created against
+                    # non-existing BZ ID
+                    # self.alert(TODO)
+                    continue
+
+        affects = []
+        for flaw in flaws:
+            try:
+                affect = flaw.affects.get(
+                    ps_module=self.ps_module,
+                    ps_component=self.ps_component,
+                )
+            except Affect.DoesNotExist:
+                # tracker created against
+                # non-existing affect
+                # self.alert(TODO)
+                continue
+
+            affects.append(affect)
+        return affects

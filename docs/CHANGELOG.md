@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.1] - 2024-05-16
+### Changed
+- Move flaw-affect-tracker linking to the tracker sync (OSIDB-1012, OSIDB-2587)
+
 ## [3.7.0] - 2024-04-17
 ### Added
 - Implement flaw unembargo mechanism (OSIDB-1177)

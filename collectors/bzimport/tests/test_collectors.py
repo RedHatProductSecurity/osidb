@@ -144,7 +144,7 @@ class TestBZImportCollector:
 
         assert Flaw.objects.count() != 0
         assert Affect.objects.count() != 0
-        assert Tracker.objects.count() != 0
+        assert Tracker.objects.count() == 0
 
     @pytest.mark.vcr
     def test_sync_embargoed_flaw(self, flaw_collector):
@@ -227,10 +227,6 @@ class TestBZImportCollector:
 
 
 class TestBugzillaTrackerCollector:
-    def test_jira_connection(self, flaw_collector):
-        """Test that collector is able to instantiate a Jira connection object"""
-        assert flaw_collector.jira_querier.jira_conn
-
     @pytest.mark.vcr
     def test_sync_tracker(self, bz_tracker_collector):
         PsUpdateStreamFactory(name="update-stream")
@@ -264,13 +260,18 @@ class TestBugzillaTrackerCollector:
 
     @pytest.mark.vcr
     def test_sync_with_affect(self, bz_tracker_collector):
-        PsModuleFactory(bts_name="bugzilla", name="module")
-        PsUpdateStreamFactory(name="update-stream")
+        ps_module = PsModuleFactory(bts_name="bugzilla", name="module")
+        PsUpdateStreamFactory(name="update-stream", ps_module=ps_module)
 
+        flaw = FlawFactory(
+            bz_id="577401",
+            embargoed=False,
+        )
         affect = AffectFactory.create(
-            flaw__embargoed=False,
+            flaw=flaw,
             affectedness=Affect.AffectAffectedness.NEW,
             ps_module="module",
+            ps_component="spamass-milter",
         )
         creation_dt = datetime(2011, 1, 1, tzinfo=timezone.utc)
         TrackerFactory.create(
@@ -302,6 +303,87 @@ class TestBugzillaTrackerCollector:
         assert tracker.resolution == "NOTABUG"
         assert tracker.status == "CLOSED"
         assert affect in list(tracker.affects.all())
+
+    @pytest.mark.vcr
+    def test_sync_with_multiple_affects(self, bz_tracker_collector):
+        ps_module = PsModuleFactory(bts_name="bugzilla", name="certificate_system_10")
+        PsUpdateStreamFactory(name="certificate_system_10.2.1", ps_module=ps_module)
+
+        flaw1 = FlawFactory(
+            bz_id="1982889",
+            embargoed=False,
+        )
+        affect1 = AffectFactory(
+            flaw=flaw1,
+            affectedness=Affect.AffectAffectedness.NEW,
+            ps_module="certificate_system_10",
+            ps_component="ssh",
+        )
+
+        flaw2 = FlawFactory(
+            bz_id="2015935",
+            embargoed=False,
+        )
+        affect2 = AffectFactory(
+            flaw=flaw2,
+            affectedness=Affect.AffectAffectedness.NEW,
+            ps_module="certificate_system_10",
+            ps_component="ssh",
+        )
+
+        bz_tracker_collector.sync_tracker("2022501")
+
+        tracker = Tracker.objects.first()
+        assert tracker.affects.count() == 2
+        assert affect1 in list(tracker.affects.all())
+        assert affect2 in list(tracker.affects.all())
+
+    @pytest.mark.vcr
+    def test_sync_with_removed_affect(self, bz_tracker_collector):
+        ps_module = PsModuleFactory(bts_name="bugzilla", name="certificate_system_10")
+        PsUpdateStreamFactory(name="certificate_system_10.2.1", ps_module=ps_module)
+
+        flaw1 = FlawFactory(
+            bz_id="1982889",
+            embargoed=False,
+        )
+        affect1 = AffectFactory(
+            flaw=flaw1,
+            affectedness=Affect.AffectAffectedness.NEW,
+            ps_module="certificate_system_10",
+            ps_component="ssh",
+        )
+
+        flaw2 = FlawFactory(
+            bz_id="2015935",
+            embargoed=False,
+        )
+        affect2 = AffectFactory(
+            flaw=flaw2,
+            affectedness=Affect.AffectAffectedness.NEW,
+            ps_module="certificate_system_10",
+            ps_component="ssh",
+        )
+
+        TrackerFactory(
+            affects=[affect1, affect2],
+            external_system_id="2022501",
+            type=Tracker.TrackerType.BUGZILLA,
+            embargoed=False,
+        )
+        # make sure the links are there
+        tracker = Tracker.objects.first()
+        assert tracker.affects.count() == 2
+        assert affect1 in list(tracker.affects.all())
+        assert affect2 in list(tracker.affects.all())
+
+        bz_tracker_collector.sync_tracker("2022501")
+
+        # make sure the second link was removed
+        tracker = Tracker.objects.first()
+        assert tracker.affects.count() == 1
+        assert affect1 in list(tracker.affects.all())
+        assert affect2 not in list(tracker.affects.all())
 
 
 class TestMetadataCollector:

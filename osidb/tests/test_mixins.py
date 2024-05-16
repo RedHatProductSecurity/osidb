@@ -400,8 +400,6 @@ class TestTrackingMixin:
             flaw_comments=[],
             flaw_history={"bugs": [{"history": []}]},
             task_bug=None,
-            tracker_bugs=[],
-            tracker_jiras=[],
         )
 
     @freeze_time(tzdatetime(2022, 12, 24))

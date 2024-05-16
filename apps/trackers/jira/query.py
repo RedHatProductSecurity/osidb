@@ -12,6 +12,7 @@ from apps.trackers.exceptions import (
     NoSecurityLevelAvailableError,
 )
 from apps.trackers.models import JiraProjectFields
+from collectors.jiraffe.constants import JIRA_BZ_ID_LABEL_RE
 from osidb.models import Affect, Impact
 from osidb.validators import CVE_RE_STR
 
@@ -142,20 +143,30 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
                 lbl.startswith("pscomponent:")
                 or lbl in ["SecurityTracking", "Security", "validation-requested"]
                 or CVE_RE_STR.match(lbl)
+                or JIRA_BZ_ID_LABEL_RE.match(lbl)
             )
         ]
 
-        self._query["fields"]["labels"] = [
-            *labels_to_preserve,
-            "SecurityTracking",
-            "Security",
-            f"pscomponent:{self.ps_component}",
-            *list(  # add all linked non-empty CVE IDs
-                self.tracker.affects.exclude(flaw__cve_id__isnull=True).values_list(
-                    "flaw__cve_id", flat=True
-                )
-            ),
-        ]
+        # sort the labels to keep them consistent
+        self._query["fields"]["labels"] = sorted(
+            [
+                *labels_to_preserve,
+                "SecurityTracking",
+                "Security",
+                f"pscomponent:{self.ps_component}",
+                *list(  # add all linked non-empty CVE IDs
+                    self.tracker.affects.exclude(flaw__cve_id__isnull=True).values_list(
+                        "flaw__cve_id", flat=True
+                    )
+                ),
+                *[  # add all linked non-empty BZ IDs
+                    "flaw:bz#" + meta_attr["bz_id"]
+                    for meta_attr in self.tracker.affects.values_list(
+                        "flaw__meta_attr", flat=True
+                    )
+                ],
+            ]
+        )
 
         # If all affects are NEW, add label validation-requested.
         if set(self.tracker.affects.all().values_list("affectedness", flat=True)) == {
