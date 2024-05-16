@@ -130,9 +130,6 @@ class TrackerQueryBuilder:
         ):
             prefixes.append("[CISA Major Incident]")
 
-        # TODO TRIAGE prefix is based on the flaw workflow state
-        # be aware that it is still undefined for trackers with multiple flaws
-
         if not prefixes:
             return ""
 
@@ -197,9 +194,9 @@ class TrackerQueryBuilder:
             if self.tracker.type == Tracker.TrackerType.JIRA:
                 description_parts.extend(self._description_jira_header())
 
-            # 3b) triage text
-            if self.tracker.is_triage:
-                description_parts.extend(self._description_triage())
+            # 3b) was "triage text"
+            #     Not renumbering to keep potential
+            #     discussions about the code non-confusing.
 
             # 3c) Bugzilla header
             if self.tracker.type == Tracker.TrackerType.BUGZILLA:
@@ -265,8 +262,6 @@ class TrackerQueryBuilder:
         description_parts = []
 
         header = ""
-        if self.tracker.is_triage:
-            header += "Potential "
 
         header += (
             f"{self.ps_module.name} tracking bug for {self.ps_component}: "
@@ -383,31 +378,3 @@ class TrackerQueryBuilder:
             "Reproducers, if any, will remain confidential and never be made public, "
             "unless done so by the security team."
         ]
-
-    def _description_triage(self):
-        """
-        generate triage tracker description text
-        """
-        description_parts = []
-        description_parts.append(
-            "This is a preliminary notification of a potential vulnerability under "
-            'the accelerated "Triage Tracker" program introduced between Product Security '
-            "and Engineering to allow deeper collaboration."
-        )
-        description_parts.append(
-            "The in-depth analysis is ongoing, and details are expected to change until "
-            "such time as it concludes."
-        )
-        description_parts.append(
-            "Be aware that someone other than the analyst performing the Secondary Assessment "
-            "will usually create the triage tracker. The best option is to comment in the "
-            "tracker and wait for a reply. Based on your regular interactions, "
-            "if you know the Incident Response Analyst for your offering, you can reach out "
-            "to them directly or add a private comment in the triage tracker or in "
-            "the flaw bug for their attention."
-        )
-        description_parts.append(
-            "Please refer to the FAQ page for more information - "
-            "https://source.redhat.com/departments/products_and_global_engineering/product_security/content/product_security_wiki/incident_response_coordination_faq"
-        )
-        return description_parts
