@@ -25,14 +25,13 @@ states:
   - name: PRE_SECONDARY_ASSESSMENT
     description: >
       Task qualified for further work and has initial data filled, triage
-      trackers have been filled and product team has been identified.
+      trackers have been filled.
     jira_state: To Do
     jira_resolution: null
     requirements:
       - has affects
       - has impact
       - has source
-      - has team
       - has title
       - has trackers
 
