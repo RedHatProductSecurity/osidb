@@ -22,12 +22,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed read replica to perform HTTP requests as atomic transactions (OSIDB-2585)
 - Fixed Bugzilla sync not working when Jira task sync is enabled (OSIDB-2628)
 - Ignore SLA if update stream specifies it's not applicable (OSIDB-2612)
-- Move flaw-affect-tracker linking to the tracker sync (OSIDB-1012, OSIDB-2587)
 
 ### Fixed
 - Fix incorrect ACLs for flaw drafts (OSIDB-2263)
 - Fix workflow rejection endpoint (OSIDB-2456)
+
+## [3.7.2] - 2024-05-17
+### Fixed
 - Fix JiraTrackerConvertor linking of multi-CVE flaws (OSIDB-2708)
+
+## [3.7.1] - 2024-05-16
+### Changed
+- Move flaw-affect-tracker linking to the tracker sync (OSIDB-1012, OSIDB-2587)
 
 ## [3.7.0] - 2024-04-17
 ### Added
