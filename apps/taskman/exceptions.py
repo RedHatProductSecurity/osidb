@@ -9,3 +9,7 @@ class TaskmanException(Exception):
 
 class MissingJiraTokenException(TaskmanException):
     """exception for performing user action without providing token"""
+
+
+class JiraTaskErrorException(TaskmanException):
+    """exception for getting an error from Jira"""
