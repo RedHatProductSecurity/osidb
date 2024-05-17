@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix incorrect ACLs for flaw drafts (OSIDB-2263)
 - Fix workflow rejection endpoint (OSIDB-2456)
+- Fix JiraTrackerConvertor linking of multi-CVE flaws (OSIDB-2708)
 
 ## [3.7.0] - 2024-04-17
 ### Added
