@@ -297,13 +297,15 @@ class JiraTrackerConvertor(TrackerConvertor):
                     continue
 
             if match := JIRA_BZ_ID_LABEL_RE.match(label):
-                try:
-                    flaws.add(Flaw.objects.get(meta_attr__bz_id=match.group(1)))
-                except Flaw.DoesNotExist:
+                if not (
+                    linked_flaws := Flaw.objects.filter(meta_attr__bz_id=match.group(1))
+                ):
                     # tracker created against
                     # non-existing BZ ID
                     # self.alert(TODO)
                     continue
+
+                flaws.update(linked_flaws)
 
         affects = []
         for flaw in flaws:
