@@ -5,9 +5,10 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from apps.trackers.models import JiraProjectFields
+from collectors.bzimport.collectors import FlawCollector
 from collectors.framework.models import CollectorMetadata
 from collectors.jiraffe.collectors import JiraTrackerCollector, MetadataCollector
-from osidb.models import Affect, Tracker
+from osidb.models import Affect, Flaw, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -249,6 +250,35 @@ class TestJiraTrackerCollector:
         assert tracker.external_system_id == tracker_id
         assert tracker.affects.count() == 2
         assert all(tracker in affect.trackers.all() for affect in Affect.objects.all())
+
+    @pytest.mark.vcr
+    def test_collect_tracker_with_multi_cve_flaw(self):
+        """
+        test collecting a Jira issue linked to a multi-CVE flaw
+        https://issues.redhat.com/browse/OSIDB-2708
+        """
+        flaw_id = "2090226"
+        tracker_id = "OSD-12347"
+
+        fc = FlawCollector()
+        fc.sync_flaw(flaw_id)
+        assert Flaw.objects.count() == 2
+        assert Flaw.objects.filter(meta_attr__bz_id=flaw_id).count() == 2
+
+        ps_module = PsModuleFactory(name="openshift-hosted-osd4")
+        PsUpdateStreamFactory(name="openshift-hosted-osd4-default", ps_module=ps_module)
+
+        jtc = JiraTrackerCollector()
+        # before fixing OSIDB-2708
+        # we get traceback here
+        msg = jtc.collect(tracker_id)
+
+        assert msg == f"Jira tracker sync of {tracker_id} completed"
+        assert Tracker.objects.count() == 1
+        tracker = Tracker.objects.first()
+        assert tracker.external_system_id == tracker_id
+        assert tracker.affects.count() == 2
+        assert tracker.affects.first().flaw != tracker.affects.last().flaw
 
 
 class TestMetadataCollector:
