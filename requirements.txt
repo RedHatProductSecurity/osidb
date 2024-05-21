@@ -520,9 +520,9 @@ pyjwt==2.4.0 \
     # via
     #   -r requirements.in
     #   djangorestframework-simplejwt
-pymysql==1.0.2 \
-    --hash=sha256:41fc3a0c5013d5f039639442321185532e3e2c8924687abe6537de157d403641 \
-    --hash=sha256:816927a350f38d56072aeca5dfb10221fe1dc653745853d30a216637f5d7ad36
+pymysql==1.1.1 \
+    --hash=sha256:4de15da4c61dc132f4fb9ab763063e693d521a80fd0e87943b9a453dd4c19d6c \
+    --hash=sha256:e127611aaf2b417403c60bf4dc570124aeb4a57f5f37b8e95ae399a42f904cd0
     # via django-db
 pyrsistent==0.18.0 \
     --hash=sha256:097b96f129dd36a8c9e33594e7ebb151b1515eb52cceb08474c10a5479e799f2 \
