@@ -3290,14 +3290,23 @@ class FlawReference(ACLMixin, BugzillaSyncMixin, TrackingMixin):
         """
         Checks that a flaw has maximally one article link.
         """
+        old_reference = FlawReference.objects.filter(uuid=self.uuid).first()
+        article_count = 0
+        if self.type == FlawReference.FlawReferenceType.ARTICLE:
+            if (
+                not old_reference
+                or old_reference.type != FlawReference.FlawReferenceType.ARTICLE
+            ):
+                article_count = 1
+
         article_links = self.flaw.references.filter(
             type=FlawReference.FlawReferenceType.ARTICLE
         )
+        article_count += article_links.count()
 
-        if article_links.count() > 1:
+        if article_count > 1:
             raise ValidationError(
-                f"A flaw has {article_links.count()} article links, "
-                f"but only 1 is allowed."
+                f"A flaw has {article_count} article links, but only 1 is allowed."
             )
 
     def bzsync(self, *args, bz_api_key, **kwargs):

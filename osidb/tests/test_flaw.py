@@ -2473,12 +2473,14 @@ class TestFlawValidators:
         a flaw which already has a flaw reference of this type raises an alert.
         """
         flaw = FlawFactory()
+        assert flaw.references.count() == 0
 
         FlawReferenceFactory(
             flaw=flaw,
             type=FlawReference.FlawReferenceType.ARTICLE,
             url="https://access.redhat.com/link123",
         )
+        assert flaw.references.count() == 1
 
         error_msg = "A flaw has 2 article links, but only 1 is allowed."
         with pytest.raises(ValidationError, match=error_msg):
@@ -2486,7 +2488,20 @@ class TestFlawValidators:
                 flaw=flaw,
                 type=FlawReference.FlawReferenceType.ARTICLE,
                 url="https://access.redhat.com/link456",
-            ).save()
+            )
+        assert flaw.references.count() == 1
+
+        reference = FlawReferenceFactory(
+            flaw=flaw,
+            type=FlawReference.FlawReferenceType.EXTERNAL,
+            url="https://example.com/link456",
+        )
+        assert flaw.references.count() == 2
+
+        with pytest.raises(ValidationError, match=error_msg):
+            reference.url = "https://access.redhat.com/link456"
+            reference.type = FlawReference.FlawReferenceType.ARTICLE
+            reference.save()
 
     def test_validate_article_links_count_via_flaw(self):
         """
@@ -2502,15 +2517,13 @@ class TestFlawValidators:
             url="https://access.redhat.com/link123",
         )
 
-        FlawReferenceFactory(
-            flaw=flaw,
-            type=FlawReference.FlawReferenceType.ARTICLE,
-            url="https://access.redhat.com/link456",
-        )
-
         error_msg = "A flaw has 2 article links, but only 1 is allowed."
         with pytest.raises(ValidationError, match=error_msg):
-            flaw.save()
+            FlawReferenceFactory(
+                flaw=flaw,
+                type=FlawReference.FlawReferenceType.ARTICLE,
+                url="https://access.redhat.com/link456",
+            )
 
     def test_validate_public_source_no_ack(self, both_source):
         """
