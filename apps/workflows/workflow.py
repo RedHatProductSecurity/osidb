@@ -238,7 +238,7 @@ class WorkflowModel(models.Model):
         """
         WorkflowFramework().validate_classification(self, target_workflow, target_state)
 
-    def promote(self, save=True, jira_token=None):
+    def promote(self, save=True, jira_token=None, **kwargs):
         """
         this is the cannonical way of changing classification
 
@@ -283,9 +283,9 @@ class WorkflowModel(models.Model):
         if not save:
             return
 
-        self.save(jira_token=jira_token, raise_validation_error=False)
+        self.save(jira_token=jira_token, raise_validation_error=False, **kwargs)
 
-    def reject(self, save=True, jira_token=None):
+    def reject(self, save=True, jira_token=None, **kwargs):
         """
         this is the cannonical way of rejecting a flaw / task
 
@@ -304,7 +304,7 @@ class WorkflowModel(models.Model):
         if not save:
             return
 
-        self.save(jira_token=jira_token, raise_validation_error=False)
+        self.save(jira_token=jira_token, raise_validation_error=False, **kwargs)
 
     def jira_status(self):
         return WorkflowFramework().jira_status(self)

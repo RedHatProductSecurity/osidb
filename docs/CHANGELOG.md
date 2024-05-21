@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add support for UAT (OSIDB-2447)
 - Added API for Alerts (OSIDB-325)
 - Add bulk PUT for Affects (OSIDB-2407)
+- Add Bugzilla token to promote API (OSIDB-2262)
 
 ### Changed
 - Make workflows API RESTful (OSIDB-1716)
