@@ -94,7 +94,14 @@ class promote(APIView):
                 type=str,
                 location=OpenApiParameter.HEADER,
                 description="User generated api key for Jira authentication.",
-            )
+            ),
+            OpenApiParameter(
+                name="Bugzilla-Api-Key",
+                required=True,
+                type=str,
+                location=OpenApiParameter.HEADER,
+                description="User generated api key for Bugzilla authentication.",
+            ),
         ]
     )
     def post(self, request, flaw_id):
@@ -108,11 +115,12 @@ class promote(APIView):
         flaw = get_flaw_or_404(flaw_id)
         try:
             jira_token = request.META.get("HTTP_JIRA_API_KEY")
+            bz_token = request.META.get("HTTP_BUGZILLA_API_KEY")
             if not jira_token:
                 raise serializers.ValidationError(
                     {"Jira-Api-Key": "This HTTP header is required."}
                 )
-            flaw.promote(jira_token=jira_token)
+            flaw.promote(jira_token=jira_token, bz_api_key=bz_token)
             return Response(
                 {
                     "flaw": flaw.pk,
@@ -136,7 +144,14 @@ class reject(APIView):
                 type=str,
                 location=OpenApiParameter.HEADER,
                 description="User generated api key for Jira authentication.",
-            )
+            ),
+            OpenApiParameter(
+                name="Bugzilla-Api-Key",
+                required=True,
+                type=str,
+                location=OpenApiParameter.HEADER,
+                description="User generated api key for Bugzilla authentication.",
+            ),
         ],
         request=RejectSerializer,
     )
@@ -153,11 +168,12 @@ class reject(APIView):
         flaw = get_flaw_or_404(flaw_id)
         try:
             jira_token = request.META.get("HTTP_JIRA_API_KEY")
+            bz_token = request.META.get("HTTP_BUGZILLA_API_KEY")
             if not jira_token:
                 raise serializers.ValidationError(
                     {"Jira-Api-Key": "This HTTP header is required."}
                 )
-            flaw.reject(jira_token=jira_token)
+            flaw.reject(jira_token=jira_token, bz_api_key=bz_token)
             JiraTaskmanQuerier(token=jira_token).create_comment(
                 issue_key=flaw.task_key,
                 body=request.data["reason"],

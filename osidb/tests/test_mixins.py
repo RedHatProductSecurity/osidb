@@ -589,19 +589,20 @@ class TestBugzillaJiraMixinInteration:
         PsModuleFactory(name="ps-module-0")
         assert flaw.bz_id
         assert flaw.task_key
+        assert flaw.meta_attr["bz_component"] == "vulnerability-draft"
 
         AffectFactory(flaw=flaw, ps_module="ps-module-0")
         flaw = Flaw.objects.get(pk=flaw.uuid)
 
-        flaw.promote(jira_token=jira_token)
+        flaw.promote(jira_token=jira_token, bz_api_key=bz_token)
         assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
+        assert flaw.meta_attr["bz_component"] == "vulnerability"
 
         jtq = JiraTaskmanQuerier(jira_token)
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Refinement"
-
-        flaw.reject(jira_token=jira_token)
+        flaw.reject(jira_token=jira_token, bz_api_key=bz_token)
         assert flaw.workflow_state == WorkflowModel.WorkflowState.REJECTED
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
@@ -646,6 +647,7 @@ class TestBugzillaJiraMixinInteration:
         PsModuleFactory(name="ps-module-0")
         assert flaw.bz_id
         assert flaw.task_key
+        assert flaw.meta_attr["bz_component"] == "vulnerability-draft"
 
         AffectFactory(flaw=flaw, ps_module="ps-module-0")
 
@@ -658,6 +660,7 @@ class TestBugzillaJiraMixinInteration:
 
         flaw = Flaw.objects.get(pk=created_uuid)
         assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
+        assert flaw.meta_attr["bz_component"] == "vulnerability"
 
         jtq = JiraTaskmanQuerier(jira_token)
 
