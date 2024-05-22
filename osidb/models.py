@@ -1541,6 +1541,12 @@ class Flaw(
 
         If the flaw is not OSIDB-authored then it's a no-op.
         """
+
+        def _create_new_flaw():
+            issue = jtq.create_or_update_task(self)
+            self.task_key = issue.data["key"]
+            self.save(*args, **kwargs)
+
         if not JIRA_TASKMAN_AUTO_SYNC_FLAW or not jira_token:
             return
 
@@ -1553,9 +1559,7 @@ class Flaw(
 
         # REST API can force new tasks since it has no access to flaw creation runtime -- create
         if force_creation:
-            issue = jtq.create_or_update_task(self)
-            self.task_key = issue.data["key"]
-            self.save(*args, **kwargs)
+            _create_new_flaw()
             return
 
         try:
@@ -1581,9 +1585,7 @@ class Flaw(
                 self.save(*args, **kwargs)
         except Flaw.DoesNotExist:
             # we're handling a new OSIDB-authored flaw -- create
-            issue = jtq.create_or_update_task(self)
-            self.task_key = issue.data["key"]
-            self.save(*args, **kwargs)
+            _create_new_flaw()
 
 
 class Snippet(ACLMixin, AlertMixin, TrackingMixin):
