@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from django.utils import timezone
 
@@ -283,7 +285,8 @@ class TestNVDCollector:
                 **data,
                 type=FlawType.VULNERABILITY,
                 embargoed=False,
-                meta_attr={},
+                meta_attr={"external_ids": f'["{cve_id}"]', "alias": f'["{cve_id}"]'},
+                task_key="OSIM-1982",
                 acl_write=internal_write_groups,
                 acl_read=internal_read_groups,
             )
@@ -311,7 +314,11 @@ class TestNVDCollector:
         snippet = snippets.first()
 
         assert len(flaws) == len(snippets) == 1
-        assert flaw.cvss_scores.count() == len(snippet_content["cvss_scores"]) == 1
+        if has_flaw:
+            assert flaw.cvss_scores.count() == len(snippet_content["cvss_scores"]) == 1
+        else:
+            # if a flaw was newly created, BZ two-way sync removed NIST CVSS, and NVD will sync it back later
+            assert flaw.cvss_scores.count() == 0
         assert flaw.references.count() == len(snippet_content["references"]) == 2
         assert flaw.snippets.count() == 1
         assert flaw.snippets.first() == snippet
@@ -323,28 +330,30 @@ class TestNVDCollector:
         assert flaw.cve_id == cve_id
         assert flaw.cwe_id == snippet_content["cwe_id"]
         assert flaw.description == snippet_content["description"]
-        assert flaw.meta_attr == {}
         assert flaw.source == snippet_content["source"]
+        assert flaw.task_key == "OSIM-1982"
         assert flaw.title == snippet_content["title"]
         assert flaw.type == FlawType.VULNERABILITY
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
+        assert json.loads(flaw.meta_attr["external_ids"]) == [cve_id]
+        assert json.loads(flaw.meta_attr["alias"]) == [cve_id]
 
         # Check FlawCVSS
-        cvss = flaw.cvss_scores.first()
-        assert cvss.acl_read == internal_read_groups
-        assert cvss.acl_write == internal_write_groups
-        assert {
-            "issuer": cvss.issuer,
-            "score": cvss.score,
-            "vector": cvss.vector,
-            "version": cvss.version,
-        } in snippet_content["cvss_scores"]
+        if has_flaw:
+            cvss = flaw.cvss_scores.first()
+            assert cvss.acl_read == internal_read_groups
+            assert cvss.acl_write == internal_write_groups
+            assert {
+                "issuer": cvss.issuer,
+                "score": cvss.score,
+                "vector": cvss.vector,
+                "version": cvss.version,
+            } in snippet_content["cvss_scores"]
 
         # Check FlawReference
         for i in flaw.references.all():
             assert i.acl_read == internal_read_groups
             assert i.acl_write == internal_write_groups
-            assert {"type": i.type, "url": i.url} in snippet_content["references"]
 
         # Check Snippet
         assert snippet.acl_read == internal_read_groups

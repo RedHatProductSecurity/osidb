@@ -887,19 +887,32 @@ class TestFlawDraftBBSyncIntegration:
     @pytest.mark.vcr
     @pytest.mark.enable_signals
     @pytest.mark.parametrize(
-        "source,cve_id,ext_id",
+        "source,cve_id,ext_id,jira_id",
         [
-            (Snippet.Source.NVD, "CVE-2000-0025", "CVE-2000-0025"),
-            (Snippet.Source.OSV, "CVE-2000-0026", "GHSA-0006"),
-            (Snippet.Source.OSV, None, "GHSA-0007"),
+            (Snippet.Source.NVD, "CVE-2000-0043", "CVE-2000-0043", "OSIM-1985"),
+            (Snippet.Source.OSV, "CVE-2000-0044", "GHSA-0008", "OSIM-1986"),
+            (Snippet.Source.OSV, None, "GHSA-0009", "OSIM-1987"),
         ],
     )
     def test_flaw_draft_create(
-        self, internal_read_groups, internal_write_groups, source, cve_id, ext_id
+        self,
+        internal_read_groups,
+        internal_write_groups,
+        source,
+        cve_id,
+        ext_id,
+        jira_id,
+        monkeypatch,
     ):
         """
         test creating a flaw draft with Bugzilla two-way sync
         """
+        import apps.taskman.mixins as taskman_mixins
+        from osidb import models
+
+        monkeypatch.setattr(taskman_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+
         content = {
             "cve_id": cve_id,
             "cvss_scores": [
@@ -928,7 +941,7 @@ class TestFlawDraftBBSyncIntegration:
         snippet = SnippetFactory(
             source=source, ext_id=ext_id, cve_id=cve_id, content=content
         )
-        flaw = snippet.convert_snippet_to_flaw()
+        flaw = snippet.convert_snippet_to_flaw(jira_token="SECRET")  # nosec
 
         assert Flaw.objects.all().count() == 1
         assert Flaw.objects.all()[0] == flaw
@@ -940,16 +953,25 @@ class TestFlawDraftBBSyncIntegration:
         assert flaw.source == source
         assert flaw.title == f"From {source} collector"
 
+        # check values related to taskman
+        assert flaw.group_key == ""
+        assert flaw.owner == ""
+        assert flaw.task_key == jira_id
+        assert flaw.team_id == ""
+        assert flaw.workflow_name == "DEFAULT"
+        assert flaw.workflow_state == "NEW"
+
         # only some items in meta_attr are checked
         assert flaw.meta_attr["bz_component"] == "vulnerability-draft"
         if cve_id:
             assert json.loads(flaw.meta_attr["alias"]) == [cve_id]
             assert flaw.meta_attr["bz_summary"] == f"{cve_id} From {source} collector"
-            assert (
-                json.loads(flaw.meta_attr["external_ids"]) == [cve_id]
-                if source == Snippet.Source.NVD
-                else f"['{ext_id}/{cve_id}']"
-            )
+            if source == "NVD":
+                assert json.loads(flaw.meta_attr["external_ids"]) == [cve_id]
+            else:
+                assert json.loads(flaw.meta_attr["external_ids"]) == [
+                    f"{ext_id}/{cve_id}"
+                ]
         else:
             assert json.loads(flaw.meta_attr["alias"]) == [ext_id]
             assert flaw.meta_attr["bz_summary"] == f"From {source} collector"

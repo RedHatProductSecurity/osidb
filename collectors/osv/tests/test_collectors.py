@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from django.utils.timezone import datetime, make_aware
 
@@ -15,30 +17,38 @@ class TestOSVCollector:
     @pytest.mark.parametrize("start_date", [None, make_aware(datetime(2024, 1, 1))])
     def test_collect_osv_record(self, start_date):
         """Test fetching a single OSV record."""
+        osv_id = "GO-2023-1494"
+        cve_id = "CVE-2014-125064"
+
         osvc = OSVCollector()
         osvc.snippet_creation_enabled = True
         # when start date is set to None, all snippets are collected
         osvc.snippet_creation_start_date = start_date
-        osvc.collect(osv_id="GO-2023-2400")
+        osvc.collect(osv_id=osv_id)
 
         snippet = Snippet.objects.last()
         assert Snippet.objects.count() == 1
-        assert snippet.external_id == "GO-2023-2400/CVE-2023-50424"
+        assert snippet.external_id == f"{osv_id}/{cve_id}"
         assert snippet.content["references"]
-        assert snippet.content["cve_id"] == "CVE-2023-50424"
+        assert snippet.content["cve_id"] == f"{cve_id}"
+
         assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.all().first()
+        assert flaw.task_key == "OSIM-1975"
+        assert json.loads(flaw.meta_attr["alias"]) == [cve_id]
+        assert json.loads(flaw.meta_attr["external_ids"]) == [f"{osv_id}/{cve_id}"]
 
     @pytest.mark.vcr
     @pytest.mark.default_cassette("TestOSVCollector.test_collect_osv_record.yaml")
     def test_collect_osv_record_when_flaw_exists(self):
         """Test fetching a single OSV record when a flaw already exists."""
-        flaw = FlawFactory(cve_id="CVE-2023-50424", meta_attr={})
+        flaw = FlawFactory(cve_id="CVE-2014-125064", meta_attr={})
         assert Flaw.objects.count() == 1
 
         osvc = OSVCollector()
         osvc.snippet_creation_enabled = True
         osvc.snippet_creation_start_date = None
-        osvc.collect(osv_id="GO-2023-2400")
+        osvc.collect(osv_id="GO-2023-1494")
 
         snippet = Snippet.objects.last()
         assert Snippet.objects.count() == 1
@@ -49,36 +59,42 @@ class TestOSVCollector:
     @pytest.mark.vcr
     def test_collect_osv_record_without_cve(self):
         """Test fetching a single OSV record without cve."""
+        osv_id = "GHSA-3hwm-922r-47hw"
+
         osvc = OSVCollector()
         osvc.snippet_creation_enabled = True
         osvc.snippet_creation_start_date = None
-        osvc.collect(osv_id="GHSA-w4f8-fxq2-j35v")
+        osvc.collect(osv_id=osv_id)
 
         assert Snippet.objects.count() == 1
         snippet = Snippet.objects.first()
-        assert snippet.external_id == "GHSA-w4f8-fxq2-j35v"
+        assert snippet.external_id == osv_id
         assert snippet.content["cve_id"] is None
 
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.cve_id is None
-        # meta_attr with external id will be created later by BZ two-way sync
-        assert flaw.meta_attr == {}
+        assert flaw.task_key == "OSIM-1976"
+        assert json.loads(flaw.meta_attr["alias"]) == [osv_id]
+        assert json.loads(flaw.meta_attr["external_ids"]) == [osv_id]
 
     @pytest.mark.vcr
     def test_collect_multi_cve_osv_record(self):
         """Test fetching a single OSV record that points to multiple CVEs."""
+        osv_id = "GO-2022-0646"
+        cve_ids = ["CVE-2020-8911", "CVE-2020-8912"]
+
         osvc = OSVCollector()
         osvc.snippet_creation_enabled = True
         osvc.snippet_creation_start_date = None
-        osvc.collect(osv_id="PYSEC-2022-245")
+        osvc.collect(osv_id=osv_id)
 
         assert Snippet.objects.count() == 2
-        snippet_1 = Snippet.objects.get(external_id="PYSEC-2022-245/CVE-2022-36359")
-        assert snippet_1.content["cve_id"] == "CVE-2022-36359"
+        snippet_1 = Snippet.objects.get(external_id=f"{osv_id}/{cve_ids[0]}")
+        assert snippet_1.content["cve_id"] == f"{cve_ids[0]}"
 
-        snippet_2 = Snippet.objects.get(external_id="PYSEC-2022-245/CVE-2022-45442")
-        assert snippet_2.content["cve_id"] == "CVE-2022-45442"
+        snippet_2 = Snippet.objects.get(external_id=f"{osv_id}/{cve_ids[1]}")
+        assert snippet_2.content["cve_id"] == f"{cve_ids[1]}"
 
         assert snippet_1.content["title"] == snippet_2.content["title"]
         assert Flaw.objects.count() == 2
