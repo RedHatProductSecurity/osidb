@@ -6,6 +6,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
 from apps.workflows.api import promote, reject
+from config import get_env
 
 from .api_views import (
     AffectCVSSView,
@@ -17,6 +18,7 @@ from .api_views import (
     FlawPackageVersionView,
     FlawReferenceView,
     FlawView,
+    JiraStageForwarderView,
     ManifestView,
     StatusView,
     TrackerView,
@@ -77,3 +79,12 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="schema"),
     ),
 ]
+
+# TODO: undocumented endpoint only is enabled on non production environments and will be removed in the future.
+if get_env() != "prod":
+    urlpatterns.append(
+        path(
+            f"api/{OSIDB_API_VERSION}/jira_stage_forwarder",
+            JiraStageForwarderView.as_view(),
+        )
+    )

@@ -1,12 +1,12 @@
 """
 implement osidb rest api views
 """
-
 import logging
 from typing import Type
 from urllib.parse import urljoin
 
 import pkg_resources
+import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
@@ -21,6 +21,8 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ViewSet, ViewSetMixin
+
+from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER, JIRA_TOKEN
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import (
@@ -964,3 +966,52 @@ class AlertView(ModelViewSet):
         ModelViewSet, excluded=["patch", "post", "put", "delete"]
     )
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+# TODO: this view is temporary/undocumented and only applies to accessing JIRA stage and someday should be removed
+@extend_schema(exclude=True)
+class JiraStageForwarderView(APIView):
+    """authenticated view which performs http forwarding specifically for Jira stage"""
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    # Set up proxy configuration and JIRA authentication
+    proxies = {"https": HTTPS_PROXY}
+    headers = {"Authorization": f"Bearer {JIRA_TOKEN}", "Accept": "application/json"}
+
+    def get(self, request, *args, **kwargs):
+        """perform JIRA stage HTTP GET"""
+        path_value = request.GET.get("path")
+        target_url = f"{JIRA_SERVER}{path_value}"
+        response = requests.get(
+            target_url,
+            proxies=self.proxies,
+            headers=self.headers,
+            timeout=30,
+        )
+        return Response(response.json(), status=response.status_code)
+
+    def create(self, request, *args, **kwargs):
+        """perform JIRA stage HTTP POST"""
+        path_value = request.GET.get("path")
+        target_url = f"{JIRA_SERVER}{path_value}"
+        response = requests.post(
+            target_url,
+            data=request.POST,
+            proxies=self.proxies,
+            headers=self.headers,
+            timeout=30,
+        )
+        return Response(response.json, status=response.status_code)
+
+    def options(self, request, *args, **kwargs):
+        """always return same OPTIONS"""
+        allowed_methods = ["GET", "POST"]
+
+        headers = {
+            "Allow": ", ".join(allowed_methods),
+            "Access-Control-Allow-Methods": ", ".join(allowed_methods),
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        }
+        # Return a response with the allowed methods and headers
+        return Response(status=200, headers=headers)
