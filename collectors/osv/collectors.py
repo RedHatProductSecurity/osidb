@@ -9,6 +9,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.utils import dateparse, timezone
 
+from apps.taskman.constants import JIRA_AUTH_TOKEN
 from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_START_DATE
 from collectors.framework.models import Collector
 from collectors.utils import handle_urls
@@ -175,7 +176,7 @@ class OSVCollector(Collector):
                 defaults={"content": content},
             )
             if created:
-                snippet.convert_snippet_to_flaw()
+                snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN)
                 return 1, 0
             else:
                 return 0, 1
@@ -193,7 +194,7 @@ class OSVCollector(Collector):
                     defaults={"content": snippet_content},
                 )
                 if created:
-                    snippet.convert_snippet_to_flaw()
+                    snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN)
                     created += 1
                 else:
                     updated += 1

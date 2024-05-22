@@ -6,6 +6,7 @@ from django.conf import settings
 from django.utils import dateparse, timezone
 from nvdlib.classes import CVE
 
+from apps.taskman.constants import JIRA_AUTH_TOKEN
 from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_START_DATE
 from collectors.framework.models import Collector
 from collectors.nvd.keywords import should_create_snippet
@@ -272,7 +273,9 @@ class NVDCollector(Collector, NVDQuerier):
                         snippet.save()
                         new_snippets.append(cve_id)
 
-                if snippet and snippet.convert_snippet_to_flaw():
+                if snippet and snippet.convert_snippet_to_flaw(
+                    jira_token=JIRA_AUTH_TOKEN
+                ):
                     new_flaws.append(cve_id)
 
         changes = (

@@ -1536,6 +1536,9 @@ class Flaw(
         the corresponding JIRA task will be updated if any of the
         SYNC_REQUIRED_FIELDS has been updated.
 
+        If the flaw is OSIDB-authored and comes from collectors (exists in the database),
+        then a corresponding JIRA task will be created.
+
         If the flaw is OSIDB-authored and does not exist in the database
         then a corresponding JIRA task will be created.
 
@@ -1564,6 +1567,11 @@ class Flaw(
 
         try:
             old_flaw = Flaw.objects.get(uuid=self.uuid)
+
+            # we're handling a new OSIDB-authored flaw from collectors -- create
+            if old_flaw.is_draft and old_flaw.task_key == "":
+                _create_new_flaw()
+                return
 
             # the flaw exists but the task doesn't, not an OSIDB-authored flaw -- no-op
             if not old_flaw.task_key:
@@ -1631,7 +1639,7 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
             ),
         ]
 
-    def convert_snippet_to_flaw(self) -> Union[Flaw, None]:
+    def convert_snippet_to_flaw(self, *args, **kwargs) -> Union[Flaw, None]:
         """
         Creates a new flaw from the snippet's content if a flaw with the given cve_id/external_id
         does not exist, and links them together. If a flaw already exists and does not
@@ -1649,7 +1657,7 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         elif f := Flaw.objects.filter(meta_attr__external_ids__contains=external_id):
             flaw = f.first()
         else:
-            flaw = self._create_flaw()
+            flaw = self._create_flaw(*args, **kwargs)
             created_flaw = flaw
 
         # links either a newly created or an already existing flaw to the snippet
@@ -1658,7 +1666,7 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
 
         return created_flaw
 
-    def _create_flaw(self) -> Flaw:
+    def _create_flaw(self, *args, **kwargs) -> Flaw:
         """
         Internal helper function to create a new flaw from the snippet's content. Any data
         from the snippet's content that does not match the fields in Flaw will be ignored.
@@ -1699,7 +1707,8 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         self.flaw = flaw
         self.save()
 
-        flaw.save(bz_api_key=BZ_API_KEY, raise_validation_error=False)
+        # kwargs contains jira_token
+        flaw.save(bz_api_key=BZ_API_KEY, raise_validation_error=False, *args, **kwargs)
 
         return Flaw.objects.get(uuid=flaw.uuid)
 

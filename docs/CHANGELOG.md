@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added API for Alerts (OSIDB-325)
 - Add bulk PUT for Affects (OSIDB-2407)
 - Add Bugzilla token to promote API (OSIDB-2262)
+- Enable creation of Jira tasks for collector flaws (OSIDB-2649)
 
 ### Changed
 - Make workflows API RESTful (OSIDB-1716)
