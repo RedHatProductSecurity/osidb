@@ -6,6 +6,7 @@ from xmlrpc.client import ServerProxy
 import backoff
 import requests
 from django.conf import settings
+from django.db import transaction
 from requests_gssapi import HTTPSPNEGOAuth
 
 from osidb.core import set_user_acls
@@ -130,29 +131,35 @@ def link_bugs_to_errata(erratum_json_list: list[dict]):
             erratum_json["et_id"]
         )
 
-        erratum = Erratum.objects.create_erratum(**erratum_json)
-        erratum.save(auto_timestamps=False)
+        # create or update the erratum and its context atomically
+        # to prevent any inconsistent intermediate state
+        with transaction.atomic():
+            erratum = Erratum.objects.create_erratum(**erratum_json)
+            erratum.save(auto_timestamps=False)
+            # remove the existing erratum-tracker links
+            # so only the still existing are preserved
+            erratum.trackers.clear()
 
-        # TODO: Not enough info here to create a tracker if it doesn't exist
-        # Technically we could create the trackers, but they would be missing affects + many other properties
-        # So we run the ET collector less frequently than bzimport / Jiraffe, and hope all objects are already created
-        # If not, just skip linking that object. Collector refactoring will allow running dependent collectors first
-        for bz_id in bz_tracker_ids:
-            try:
-                bz_bug = Tracker.objects.get(
-                    external_system_id=bz_id, type=Tracker.TrackerType.BUGZILLA
-                )
-                erratum.trackers.add(bz_bug)
-            except Tracker.DoesNotExist:
-                logger.error(f"BZ#{bz_id} does not exist in DB")
-        for jira_id in jira_tracker_ids:
-            try:
-                jira_issue = Tracker.objects.get(
-                    external_system_id=jira_id, type=Tracker.TrackerType.JIRA
-                )
-                erratum.trackers.add(jira_issue)
-            except Tracker.DoesNotExist:
-                logger.exception(f"Jira issue {jira_id} does not exist in DB")
+            # TODO: Not enough info here to create a tracker if it doesn't exist
+            # Technically we could create the trackers, but they would be missing affects + many other properties
+            # So we run the ET collector less frequently than bzimport / Jiraffe, and hope all objects are already created
+            # If not, just skip linking that object. Collector refactoring will allow running dependent collectors first
+            for bz_id in bz_tracker_ids:
+                try:
+                    bz_bug = Tracker.objects.get(
+                        external_system_id=bz_id, type=Tracker.TrackerType.BUGZILLA
+                    )
+                    erratum.trackers.add(bz_bug)
+                except Tracker.DoesNotExist:
+                    logger.error(f"BZ#{bz_id} does not exist in DB")
+            for jira_id in jira_tracker_ids:
+                try:
+                    jira_issue = Tracker.objects.get(
+                        external_system_id=jira_id, type=Tracker.TrackerType.JIRA
+                    )
+                    erratum.trackers.add(jira_issue)
+                except Tracker.DoesNotExist:
+                    logger.exception(f"Jira issue {jira_id} does not exist in DB")
 
 
 @backoff.on_exception(
