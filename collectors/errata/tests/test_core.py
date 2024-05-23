@@ -2,7 +2,12 @@ import pytest
 from django.utils import timezone
 
 from osidb.models import Affect, Erratum, Tracker
-from osidb.tests.factories import AffectFactory, PsModuleFactory, TrackerFactory
+from osidb.tests.factories import (
+    AffectFactory,
+    ErratumFactory,
+    PsModuleFactory,
+    TrackerFactory,
+)
 
 from ..core import (
     get_all_errata,
@@ -114,6 +119,84 @@ class TestErrataToolCollection:
             2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
         )
 
+    @pytest.mark.default_cassette(BZ_CASSETTE)
+    @pytest.mark.vcr
+    def test_unlink_from_errata(self, sample_erratum_with_bz_bugs, sample_erratum_name):
+        """
+        test that erratum-tracker link removals are respected
+        reproducer for https://issues.redhat.com/browse/OSIDB-2752
+        """
+        ps_module1 = PsModuleFactory(bts_name="bugzilla")
+        ps_module2 = PsModuleFactory(bts_name="jboss")
+        affect1 = AffectFactory(
+            ps_module=ps_module1.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        affect2 = AffectFactory(
+            ps_module=ps_module2.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+
+        TrackerFactory.create(
+            affects=[affect1],
+            embargoed=affect1.flaw.embargoed,
+            external_system_id="2021161",
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        TrackerFactory.create(
+            affects=[affect1],
+            embargoed=affect1.flaw.embargoed,
+            external_system_id="2021168",
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        # extra trackers
+        bugzilla_tracker = TrackerFactory.create(
+            affects=[affect1],
+            embargoed=affect1.flaw.embargoed,
+            external_system_id="7",
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        jira_tracker = TrackerFactory.create(
+            affects=[affect2],
+            embargoed=affect2.flaw.embargoed,
+            external_system_id="PROJECT-7",
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        # existing erratum linked to the trackers
+        erratum = ErratumFactory.create(
+            et_id=sample_erratum_with_bz_bugs,
+            advisory_name=sample_erratum_name,
+        )
+        erratum.trackers.add(bugzilla_tracker)
+        erratum.trackers.add(jira_tracker)
+
+        assert Erratum.objects.count() == 1
+        assert Erratum.objects.first().trackers.count() == 2
+        assert bugzilla_tracker.errata.first() == erratum
+        assert jira_tracker.errata.first() == erratum
+
+        link_bugs_to_errata(
+            [
+                {
+                    "et_id": sample_erratum_with_bz_bugs,
+                    "advisory_name": sample_erratum_name,
+                    "created_dt": "2023-01-08T00:41:10Z",
+                    "shipped_dt": "2023-02-08T00:41:10Z",
+                    "updated_dt": "2023-03-08T00:41:10Z",
+                }
+            ]
+        )
+
+        # no new erratum was created
+        assert Erratum.objects.count() == 1
+        assert Erratum.objects.first().trackers.count() == 2
+        assert not bugzilla_tracker.errata.first()
+        assert not jira_tracker.errata.first()
+
     @pytest.mark.default_cassette(JIRA_CASSETTE)
     @pytest.mark.vcr
     def test_link_jira_issues_to_errata(
@@ -159,26 +242,6 @@ class TestErrataToolCollection:
         assert Erratum.objects.first().updated_dt == timezone.datetime(
             2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
         )
-
-    @pytest.mark.vcr
-    def test_skip_saving_when_flaws_missing(
-        self, sample_erratum_with_no_flaws, sample_erratum_name
-    ):
-        """Test that we will not save an Erratum into the DB if it has no linked flaws in Errata Tool"""
-        link_bugs_to_errata(
-            [
-                {
-                    "et_id": sample_erratum_with_no_flaws,
-                    "advisory_name": sample_erratum_name,
-                    "created_dt": "2023-01-08T00:41:10Z",
-                    "shipped_dt": "2023-02-08T00:41:10Z",
-                    "updated_dt": "2023-03-08T00:41:10Z",
-                }
-            ]
-        )
-
-        # No erratum was created
-        assert Erratum.objects.count() == 0
 
     @pytest.mark.default_cassette(JIRA_CASSETTE)
     @pytest.mark.vcr
