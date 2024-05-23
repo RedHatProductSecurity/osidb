@@ -49,13 +49,20 @@ def get_erratum(et_id) -> dict:
     both list and search miss some timestamps
     """
     erratum_json = get(f"/advisory/{et_id}.json")
-    return {
+    erratum = {
         "et_id": et_id,
         "advisory_name": erratum_json["advisory_name"],
         "created_dt": erratum_json["timestamps"]["created_at"],
         "shipped_dt": erratum_json["timestamps"]["actual_ship_date"],
         "updated_dt": erratum_json["timestamps"]["updated_at"],
     }
+    logger.info(f"Syncing erratum {erratum['advisory_name'] or erratum['et_id']}")
+    logger.debug(
+        f"Created: {erratum['created_dt']} "
+        f"Updated: {erratum['updated_dt']} "
+        f"Shipped: {erratum['shipped_dt']}"
+    )
+    return erratum
 
 
 def get_all_errata() -> list[dict]:
