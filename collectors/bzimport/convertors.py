@@ -779,7 +779,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                 flaw,
                 ps_module,
                 ps_component,
-                type=Affect.AffectType.DEFAULT,
                 meta_attr=affect_json,
                 acl_read=self.acl_read,
                 acl_write=self.acl_write,
