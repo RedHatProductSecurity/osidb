@@ -19,9 +19,8 @@ BZ_ENABLE_IMPORT_EMBARGOED = get_env(
 # Bugzilla product for analysis tasks
 ANALYSIS_TASK_PRODUCT = "Security Response"
 
-# Bugzilla datetime format strings
+# Bugzilla datetime format string
 BZ_DT_FMT = "%Y-%m-%dT%H:%M:%S%z"
-BZ_DT_FMT_HISTORY = "%Y-%m-%dT%H:%M:%SZ"
 
 FLAW_PLACEHOLDER_KEYWORD = "Tracking"
 

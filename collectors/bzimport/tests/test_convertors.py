@@ -11,7 +11,6 @@ from osidb.models import (
     FlawAcknowledgment,
     FlawComment,
     FlawCVSS,
-    FlawHistory,
     FlawMeta,
     FlawReference,
     Impact,
@@ -116,23 +115,6 @@ class TestFlawSaver:
             )
         ]
 
-    def get_history(self):
-        """
-        minimal history getter
-        """
-        return [
-            FlawHistory(
-                cve_id="CVE-2000-1234",
-                impact=Impact.IMPORTANT,
-                title="historical title",
-                description="historical description",
-                pgh_created_at=timezone.now(),
-                pgh_label="user",
-                acl_read=self.get_acls(),
-                acl_write=self.get_acls(),
-            )
-        ]
-
     def get_meta(self, flaw):
         """
         minimal meta getter
@@ -230,7 +212,6 @@ class TestFlawSaver:
             flaw,
             [affects, self.get_affects_cvss_scores(affects[0])],
             self.get_comments(flaw),
-            self.get_history(),
             self.get_meta(flaw),
             self.get_acknowledgments(flaw),
             self.get_references(flaw),
@@ -242,7 +223,6 @@ class TestFlawSaver:
         affect = Affect.objects.first()
         affect_cvss_score = AffectCVSS.objects.first()
         comment = FlawComment.objects.first()
-        history = FlawHistory.objects.first()
         meta = FlawMeta.objects.first()
         acknowledgment = FlawAcknowledgment.objects.first()
         reference = FlawReference.objects.first()
@@ -293,14 +273,6 @@ class TestFlawSaver:
         assert comment.acl_read == acls
         assert comment.acl_write == acls
         assert comment.flaw == flaw
-
-        assert history is not None
-        assert history.cve_id == "CVE-2000-1234"
-        assert history.impact == Impact.IMPORTANT
-        assert history.title == "historical title"
-        assert history.description == "historical description"
-        assert history.acl_read == acls
-        assert history.acl_write == acls
 
         assert meta is not None
         assert meta.type == FlawMeta.FlawMetaType.ACKNOWLEDGMENT
@@ -357,7 +329,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -373,7 +344,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [],
             [],
@@ -404,7 +374,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -424,7 +393,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [affects, []],
-            [],
             [],
             [],
             [],
@@ -452,7 +420,6 @@ class TestFlawSaver:
             flaw,
             [[], []],
             [],
-            [],
             self.get_meta(flaw),
             [],
             [],
@@ -472,7 +439,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [
                 self.get_meta(flaw)[1],
@@ -503,7 +469,6 @@ class TestFlawSaver:
             [[], []],
             [],
             [],
-            [],
             self.get_acknowledgments(flaw, from_upstream=False),
             [],
             [],
@@ -527,7 +492,6 @@ class TestFlawSaver:
             [[], []],
             [],
             [],
-            [],
             self.get_acknowledgments(flaw, from_upstream=True),
             [],
             [],
@@ -549,7 +513,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [],
             self.get_acknowledgments(flaw, name="jaroslava kudrnova"),
@@ -581,7 +544,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -604,7 +566,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             self.get_references(flaw),
             [],
             {},
@@ -622,7 +583,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [],
             [],
@@ -651,7 +611,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             self.get_cvss_scores(flaw),
             {},
         ).save()
@@ -668,7 +627,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [],
             [],
@@ -695,7 +653,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [affects, []],
-            [],
             [],
             [],
             [],
@@ -735,7 +692,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -770,7 +726,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             self.get_package_versions(),
         ).save()
 
@@ -791,7 +746,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [],
             [],
@@ -834,13 +788,6 @@ class TestFlawConvertor:
             "summary": "EMBARGOED TRIAGE CVE-2000-1234 foo: ACL bypass with Authorization: 0000 HTTP header",
             "cf_srtnotes": cls.get_flaw_srtnotes(),
         }
-
-    @classmethod
-    def get_flaw_history(cls):
-        """
-        minimal Bugzilla flaw data getter
-        """
-        return {"bugs": [{"history": []}]}
 
     @classmethod
     def get_flaw_srtnotes(cls):
@@ -904,7 +851,6 @@ class TestFlawConvertor:
         fc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fc.bug2flaws()
@@ -948,7 +894,6 @@ class TestFlawConvertor:
         fc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fc.bug2flaws()
@@ -985,7 +930,6 @@ class TestFlawConvertor:
         fc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fc.bug2flaws()
@@ -1027,7 +971,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1046,7 +989,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1091,7 +1033,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1116,7 +1057,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1136,7 +1076,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1161,7 +1100,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1182,7 +1120,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1206,7 +1143,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1227,7 +1163,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1247,7 +1182,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1271,7 +1205,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1292,7 +1225,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1316,7 +1248,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1335,7 +1266,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1359,7 +1289,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1379,7 +1308,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1418,7 +1346,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            self.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()
@@ -1489,7 +1416,6 @@ class TestFlawConvertor:
             flaw_bug,
             [],
             None,
-            None,
         )
         flaws = fbc.bug2flaws()
         assert "has no reported_dt (reported)" in fbc.errors
@@ -1525,7 +1451,6 @@ class TestFlawConvertor:
             flaw_bug,
             [],
             None,
-            None,
         )
         [flaw] = fbc.bug2flaws()
         flaw.save()
@@ -1543,7 +1468,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            None,
             None,
         )
         [flaw] = fbc.bug2flaws()
@@ -1567,7 +1491,6 @@ class TestFlawConvertor:
             flaw_bug,
             [],
             None,
-            None,
         )
         [flaw] = fbc.bug2flaws()
         flaw.save()
@@ -1590,7 +1513,6 @@ class TestFlawConvertor:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            None,
             None,
         )
         [flaw] = fbc.bug2flaws()
@@ -1621,7 +1543,6 @@ class TestFlawConvertor:
             flaw_bug,
             [],
             None,
-            None,
         )
         [flaw] = fbc.bug2flaws()
         flaw.save()
@@ -1643,7 +1564,6 @@ class TestFlawConvertorFixedIn:
         fbc = FlawConvertor(
             flaw_bug,
             [],
-            TestFlawConvertor.get_flaw_history(),
             None,
         )
         flaws = fbc.bug2flaws()

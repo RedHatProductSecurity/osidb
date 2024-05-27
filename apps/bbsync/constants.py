@@ -3,13 +3,10 @@ BBSync constants
 """
 import os
 
-from collectors.bzimport.constants import BZ_DT_FMT_HISTORY
 from osidb.helpers import get_env
 
 DATE_FMT = "%Y-%m-%d"
-# these two time formats are the same
-# thus spare us defining it again
-DATETIME_FMT = BZ_DT_FMT_HISTORY
+DATETIME_FMT = "%Y-%m-%dT%H:%M:%SZ"
 
 # RHSCL Bugzilla project key
 RHSCL_BTS_KEY = "Red Hat Software Collections"

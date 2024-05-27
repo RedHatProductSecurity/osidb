@@ -117,17 +117,6 @@ def search_helper(
     # Order remaining results from highest rank to lowest
 
 
-class FlawHistoryManager(ACLMixinManager):
-    """flaw history manager"""
-
-    @staticmethod
-    def fts_search(q):
-        """full text search using postgres FTS via django.contrib.postgres"""
-        return search_helper(FlawHistory.objects.get_queryset(), (), q)
-        # Search default Flaw fields (title, description, summary, statement) with default weights
-        # If search has no results, this will now return an empty queryset
-
-
 class FlawType(models.TextChoices):
     """allowable types"""
 
@@ -505,83 +494,6 @@ class FlawSource(models.TextChoices):
         Returns True if the source is Snippet, False otherwise.
         """
         return self in self.from_snippet
-
-
-class FlawHistory(NullStrFieldsMixin, ValidateMixin, ACLMixin):
-    """match existing history table for flaws"""
-
-    pgh_created_at = models.DateTimeField(null=True)
-    # this model is unused so we don't care that it's a CharField with null=True
-    pgh_label = models.CharField(max_length=100, null=True)  # noqa: DJ01
-
-    # internal primary key
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    # CVE-ID, should be unique, from BZ alias
-    cve_id = models.CharField(max_length=500, blank=True)
-
-    # vulnerability or weakness
-    type = models.CharField(
-        choices=FlawType.choices, default=FlawType.VULNERABILITY, max_length=20
-    )
-
-    # flaw severity, from srtnotes "impact"
-    impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
-
-    # from BZ summary
-    title = models.TextField()
-
-    # from BZ description
-    description = models.TextField()
-
-    # from doc_text summary
-    summary = models.TextField(blank=True)
-
-    # if redhat cve-id then this is required, from srtnotes "statement"
-    # eventually should compose up from affects
-    statement = models.TextField(blank=True)
-
-    # contains a single cwe-id or cwe relationships, from srtnotes "cwe"
-    cwe_id = models.CharField(blank=True, max_length=50, validators=[validate_cwe_id])
-
-    # date when embargo is to be lifted, from srtnotes "public"
-    unembargo_dt = models.DateTimeField(null=True, blank=True)
-
-    # reported source of flaw, from srtnotes "source"
-    source = models.CharField(choices=FlawSource.choices, max_length=500, blank=True)
-
-    # reported date, from srtnotes "reported"
-    reported_dt = models.DateTimeField(
-        null=True, blank=True, validators=[no_future_date]
-    )
-
-    # , from srtnotes "cvss2"
-    cvss2 = models.CharField(max_length=100, blank=True, validators=[validate_cvss2])
-    cvss2_score = models.FloatField(null=True, blank=True)
-
-    # , from srtnotes "cvss3"
-    cvss3 = models.CharField(max_length=100, blank=True, validators=[validate_cvss3])
-    cvss3_score = models.FloatField(null=True, blank=True)
-
-    # should be set True if MAJOR_INCIDENT or MAJOR_INCIDENT_LITE FlawMeta exists, from BZ flagsq
-    is_major_incident = models.BooleanField(default=False)
-
-    # TBD-  affects history
-    # TBD-  meta history
-
-    # non operational meta data
-    meta_attr = HStoreField(default=dict)
-
-    class Meta:
-        """define meta"""
-
-        verbose_name = "FlawHistory"
-
-    def __str__(self):
-        """convert to string"""
-        return str(self.uuid)
-
-    objects = FlawHistoryManager()
 
 
 class FlawManager(ACLMixinManager, TrackingMixinManager):
