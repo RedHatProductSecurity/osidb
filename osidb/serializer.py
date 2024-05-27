@@ -921,7 +921,6 @@ class AffectSerializer(
             [
                 "uuid",
                 "flaw",
-                "type",
                 "affectedness",
                 "resolution",
                 "ps_module",

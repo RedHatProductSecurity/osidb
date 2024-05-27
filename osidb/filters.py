@@ -359,7 +359,6 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
             "team_id": ["exact"],
             # Affect fields
             "affects__uuid": ["exact"],
-            "affects__type": ["exact"],
             "affects__affectedness": ["exact"],
             "affects__resolution": ["exact"],
             "affects__ps_module": ["exact"],
@@ -502,7 +501,6 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
         model = Affect
         fields = {
             "uuid": ["exact"],
-            "type": ["exact"],
             "affectedness": ["exact"],
             "resolution": ["exact"],
             "ps_module": ["exact"],
@@ -643,7 +641,6 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
             + DATE_LOOKUP_EXPRS,
             # Affect fields
             "affects__uuid": ["exact"],
-            "affects__type": ["exact"],
             "affects__affectedness": ["exact"],
             "affects__resolution": ["exact"],
             "affects__ps_module": ["exact"],
