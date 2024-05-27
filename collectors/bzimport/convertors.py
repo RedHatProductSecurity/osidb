@@ -11,7 +11,6 @@ from functools import cached_property
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
-from django.utils.timezone import make_aware
 
 from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
 from collectors.jiraffe.convertors import TrackerConvertor
@@ -24,7 +23,6 @@ from osidb.models import (
     FlawAcknowledgment,
     FlawComment,
     FlawCVSS,
-    FlawHistory,
     FlawMeta,
     FlawReference,
     FlawType,
@@ -38,7 +36,7 @@ from ..utils import (
     tracker_parse_update_stream_component,
     tracker_summary2module_component,
 )
-from .constants import BZ_DT_FMT, BZ_DT_FMT_HISTORY, BZ_ENABLE_IMPORT_EMBARGOED
+from .constants import BZ_DT_FMT, BZ_ENABLE_IMPORT_EMBARGOED
 from .exceptions import NonRecoverableBZImportException
 from .fixups import AffectFixer, FlawFixer
 
@@ -241,7 +239,6 @@ class FlawSaver:
         flaw,
         affects,
         comments,
-        history,
         meta,
         acknowledgments,
         references,
@@ -252,7 +249,6 @@ class FlawSaver:
         self.affects = affects[0]
         self.affects_cvss_scores = affects[1]
         self.comments = comments
-        self.history = history
         self.meta = meta
         self.acknowledgments = acknowledgments
         self.references = references
@@ -270,7 +266,6 @@ class FlawSaver:
             + self.affects
             + self.affects_cvss_scores
             + self.comments
-            + self.history
             + self.meta
             + self.acknowledgments
             + self.references
@@ -504,20 +499,17 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
 
     _flaw_bug = None
     _flaw_comments = None
-    _flaw_history = None
     _task_bug = None
 
     def __init__(
         self,
         flaw_bug,
         flaw_comments,
-        flaw_history,
         task_bug,
     ):
         """init source data"""
         self._flaw_bug = flaw_bug
         self._flaw_comments = flaw_comments
-        self._flaw_history = flaw_history
         self._task_bug = task_bug
         # set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
         # celery workers should be able to read/write any information in order to fulfill their jobs
@@ -543,13 +535,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         if self._flaw_comments is None:
             raise self.FlawConvertorException("source data not set")
         return self._flaw_comments
-
-    @property
-    def flaw_history(self):
-        """check and get flaw history"""
-        if self._flaw_history is None:
-            raise self.FlawConvertorException("source data not set")
-        return self._flaw_history
 
     @property
     def task_bug(self):
@@ -888,78 +873,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         self.record_errors(errors)
         return flaw
 
-    def get_history(self):
-        """get list of FlawHistory Django models"""
-        history = []
-
-        try:
-            removed = {}
-            added = {}
-            added_srtnotes = {}
-
-            history_flaw_bug = self.flaw_bug.copy()
-            history_srtnotes = self.srtnotes.copy()
-
-            for item in reversed(self.flaw_history["bugs"][0]["history"]):
-
-                for change in item["changes"]:
-                    removed[change["field_name"]] = change["removed"]
-                    added[change["field_name"]] = change["added"]
-
-                if "cf_srtnotes" in removed:
-                    history_srtnotes_string = removed["cf_srtnotes"]
-
-                    if history_srtnotes_string:
-                        try:
-                            added_srtnotes = parse_cf_srtnotes(history_srtnotes_string)
-                            history_srtnotes = added_srtnotes
-
-                        except Exception as e:
-                            # this is very frequent especially for the old flaws
-                            # and there is no way to fix it - we cannot change history
-                            # so we will not store this in the logs not to pollute them
-                            error_msg = (
-                                f"SRT notes history of flaw bug {self.bz_id} "
-                                f"parsing exception: {str(e)}"
-                            )
-                            self.record_errors(error_msg)
-
-                    history_flaw_bug.update(removed)
-
-                meta_attr = history_srtnotes
-                meta_attr["bz_id"] = self.bz_id
-                meta_attr["alias"] = history_flaw_bug["alias"]
-                meta_attr["acl_labels"] = self.groups
-
-                flaw_history_record = FlawHistory(
-                    pgh_created_at=make_aware(
-                        timezone.datetime.strptime(item["when"], BZ_DT_FMT_HISTORY)
-                    ),
-                    pgh_label=item["who"],
-                    type=FlawType.VULNERABILITY,
-                    acl_read=self.acl_read,
-                    acl_write=self.acl_write,
-                    meta_attr=meta_attr,
-                )
-                cves = self.filter_cves(history_flaw_bug["alias"])
-                if cves:
-                    # we pick random CVE for historical records
-                    # - mostly there will be either one or none
-                    flaw_history_record.cve_id = cves[0]
-
-                # history fixups errors are ignored
-                flaw_history_record, _ = FlawFixer(
-                    flaw_history_record, history_flaw_bug, history_srtnotes
-                ).fix()
-                history.append(flaw_history_record)
-
-        except Exception as e:
-            error_msg = f"History processing exception: {str(e)}"
-            logger.exception(error_msg)
-            self.record_errors(error_msg)
-
-        return history
-
     def get_meta(self, flaw, meta_type, items):
         """get FlawMeta Django models"""
         return [
@@ -1146,7 +1059,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     flaw,
                     self.get_affects(flaw),
                     self.get_comments(flaw),
-                    self.get_history(),
                     self.get_all_meta(flaw),
                     self.get_acknowledgments(flaw),
                     self.get_references(flaw),
@@ -1174,7 +1086,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     flaw,
                     self.get_affects(flaw),
                     self.get_comments(flaw),
-                    self.get_history(),
                     self.get_all_meta(flaw),
                     self.get_acknowledgments(flaw),
                     self.get_references(flaw),
@@ -1206,7 +1117,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     flaw,
                     self.get_affects(flaw),
                     self.get_comments(flaw),
-                    self.get_history(),
                     self.get_all_meta(flaw),
                     self.get_acknowledgments(flaw),
                     self.get_references(flaw),

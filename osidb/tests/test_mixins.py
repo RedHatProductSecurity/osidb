@@ -401,7 +401,6 @@ class TestTrackingMixin:
         return FlawConvertor(
             flaw_bug=self.get_flaw_bug(),
             flaw_comments=[],
-            flaw_history={"bugs": [{"history": []}]},
             task_bug=None,
         )
 

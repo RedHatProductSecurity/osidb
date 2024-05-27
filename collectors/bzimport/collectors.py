@@ -106,12 +106,6 @@ class BugzillaQuerier(BugzillaConnector):
         """get Bugzilla bug data"""
         return self.get_bug(bz_id, include_fields=include_fields).get_raw_data()
 
-    def get_bug_history(self, bz_id):
-        """get Bugzilla bug history"""
-        # return self.get_bug(bz_id).get_history_raw()
-        # TODO temporarily disabled - returns empty history immediately
-        return {"bugs": [{"history": []}]}
-
     def get_bug_comments(self, bz_id):
         """get Bugzilla bug comments"""
         return self.get_bug(bz_id).getcomments()
@@ -451,7 +445,6 @@ class FlawCollector(Collector):
         try:
             flaw_data = self.bz_querier.get_bug_data(flaw_id)
             flaw_comments = self.bz_querier.get_bug_comments(flaw_id)
-            flaw_history = self.bz_querier.get_bug_history(flaw_id)
             flaw_task = self.get_flaw_task(flaw_data)
         except Exception as e:
             # fetching the data is prone to transient failures which are recoverable
@@ -464,7 +457,6 @@ class FlawCollector(Collector):
         fbc = FlawConvertor(
             flaw_data,
             flaw_comments,
-            flaw_history,
             flaw_task,
         )
         flaws = fbc.flaws

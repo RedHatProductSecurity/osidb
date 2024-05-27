@@ -460,7 +460,7 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     search_helper = staticmethod(search_helper)
     # Set the class method to be the same as the imported method (and make it static, to avoid breaking on a self param)
     # This ugly hack is needed to reuse code. django-filter requires the method to be defined as part of this class
-    # models.py needs to use the method for FlawManager and FlawHistoryManager, but can't define here + import there
+    # models.py needs to use the method for FlawManager, but can't define here + import there
     # This would cause a circular import, so instead we define there + import here and set the property
 
 
