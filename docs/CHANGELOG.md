@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix workflow rejection endpoint (OSIDB-2456)
 - Fix FlawReference article count validation (OSIDB-2651)
 
+### Removed
+- Remove "type" field from Affect (OSIDB-2743)
+
 ## [3.7.2] - 2024-05-17
 ### Fixed
 - Fix JiraTrackerConvertor linking of multi-CVE flaws (OSIDB-2708)
