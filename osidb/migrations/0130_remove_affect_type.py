@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0128_fix_meta_attr_quotes'),
+        ('osidb', '0129_delete_flawhistory'),
     ]
 
     operations = [
