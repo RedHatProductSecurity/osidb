@@ -1,13 +1,15 @@
 import logging
-from datetime import datetime
 from urllib.parse import urljoin
 from xmlrpc.client import ServerProxy
 
 import backoff
 import requests
 from django.conf import settings
+from django.db import transaction
+from django.utils import timezone
 from requests_gssapi import HTTPSPNEGOAuth
 
+from collectors.framework.models import CollectorMetadata
 from osidb.core import set_user_acls
 from osidb.models import Erratum, Tracker
 
@@ -49,13 +51,20 @@ def get_erratum(et_id) -> dict:
     both list and search miss some timestamps
     """
     erratum_json = get(f"/advisory/{et_id}.json")
-    return {
+    erratum = {
         "et_id": et_id,
         "advisory_name": erratum_json["advisory_name"],
         "created_dt": erratum_json["timestamps"]["created_at"],
         "shipped_dt": erratum_json["timestamps"]["actual_ship_date"],
         "updated_dt": erratum_json["timestamps"]["updated_at"],
     }
+    logger.info(f"Syncing erratum {erratum['advisory_name'] or erratum['et_id']}")
+    logger.debug(
+        f"Created: {erratum['created_dt']} "
+        f"Updated: {erratum['updated_dt']} "
+        f"Shipped: {erratum['shipped_dt']}"
+    )
+    return erratum
 
 
 def get_all_errata() -> list[dict]:
@@ -66,7 +75,22 @@ def get_all_errata() -> list[dict]:
     return [get_erratum(errata_id) for errata_id in all_errata_with_cves]
 
 
-def get_errata_to_sync(updated_after: datetime) -> list[dict]:
+def get_batch_end() -> timezone.datetime:
+    """
+    generate end time of the next batch
+    never out running tracker collectors
+    """
+    return min(
+        CollectorMetadata.objects.get(
+            name="collectors.bzimport.tasks.bztracker_collector"
+        ).updated_until_dt,
+        CollectorMetadata.objects.get(
+            name="collectors.bzimport.tasks.jira_tracker_collector"
+        ).updated_until_dt,
+    )
+
+
+def get_errata_to_sync(updated_after: timezone.datetime) -> list[dict]:
     """
     Fetches IDs for Errata that changed after last collector success time
     """
@@ -123,29 +147,31 @@ def link_bugs_to_errata(erratum_json_list: list[dict]):
             erratum_json["et_id"]
         )
 
-        erratum = Erratum.objects.create_erratum(**erratum_json)
-        erratum.save(auto_timestamps=False)
+        # create or update the erratum and its context atomically
+        # to prevent any inconsistent intermediate state
+        with transaction.atomic():
+            erratum = Erratum.objects.create_erratum(**erratum_json)
+            erratum.save(auto_timestamps=False)
+            # remove the existing erratum-tracker links
+            # so only the still existing are preserved
+            erratum.trackers.clear()
 
-        # TODO: Not enough info here to create a tracker if it doesn't exist
-        # Technically we could create the trackers, but they would be missing affects + many other properties
-        # So we run the ET collector less frequently than bzimport / Jiraffe, and hope all objects are already created
-        # If not, just skip linking that object. Collector refactoring will allow running dependent collectors first
-        for bz_id in bz_tracker_ids:
-            try:
-                bz_bug = Tracker.objects.get(
-                    external_system_id=bz_id, type=Tracker.TrackerType.BUGZILLA
-                )
-                erratum.trackers.add(bz_bug)
-            except Tracker.DoesNotExist:
-                logger.error(f"BZ#{bz_id} does not exist in DB")
-        for jira_id in jira_tracker_ids:
-            try:
-                jira_issue = Tracker.objects.get(
-                    external_system_id=jira_id, type=Tracker.TrackerType.JIRA
-                )
-                erratum.trackers.add(jira_issue)
-            except Tracker.DoesNotExist:
-                logger.exception(f"Jira issue {jira_id} does not exist in DB")
+            for bz_id in bz_tracker_ids:
+                try:
+                    bz_bug = Tracker.objects.get(
+                        external_system_id=bz_id, type=Tracker.TrackerType.BUGZILLA
+                    )
+                    erratum.trackers.add(bz_bug)
+                except Tracker.DoesNotExist:
+                    logger.error(f"BZ#{bz_id} does not exist in DB")
+            for jira_id in jira_tracker_ids:
+                try:
+                    jira_issue = Tracker.objects.get(
+                        external_system_id=jira_id, type=Tracker.TrackerType.JIRA
+                    )
+                    erratum.trackers.add(jira_issue)
+                except Tracker.DoesNotExist:
+                    logger.exception(f"Jira issue {jira_id} does not exist in DB")
 
 
 @backoff.on_exception(

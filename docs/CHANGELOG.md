@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix incorrect ACLs for flaw drafts (OSIDB-2263)
 - Fix workflow rejection endpoint (OSIDB-2456)
 - Fix FlawReference article count validation (OSIDB-2651)
+- Fix erratum-tracker linking (OSIDB-2752)
 
 ### Removed
 - Remove "type" field from Affect (OSIDB-2743)
