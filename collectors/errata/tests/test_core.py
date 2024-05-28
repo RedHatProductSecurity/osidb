@@ -1,11 +1,18 @@
 import pytest
 from django.utils import timezone
 
+from collectors.framework.models import CollectorMetadata
 from osidb.models import Affect, Erratum, Tracker
-from osidb.tests.factories import AffectFactory, PsModuleFactory, TrackerFactory
+from osidb.tests.factories import (
+    AffectFactory,
+    ErratumFactory,
+    PsModuleFactory,
+    TrackerFactory,
+)
 
 from ..core import (
     get_all_errata,
+    get_batch_end,
     get_errata_to_sync,
     get_flaws_and_trackers_for_erratum,
     link_bugs_to_errata,
@@ -24,6 +31,43 @@ class TestErrataToolCollection:
         errata_id_name_pairs = get_all_errata()
 
         assert len(errata_id_name_pairs) == 3
+
+    @pytest.mark.parametrize(
+        "bz_updated,jira_updated,expected_end",
+        [
+            (
+                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+            ),
+            (
+                timezone.datetime(2021, 1, 1, tzinfo=timezone.utc),
+                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+            ),
+            (
+                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+                timezone.datetime(2021, 1, 1, tzinfo=timezone.utc),
+                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+            ),
+        ],
+    )
+    def test_get_batch_end(self, bz_updated, jira_updated, expected_end):
+        """
+        test that the batch end logic respect the dependencies
+        """
+        CollectorMetadata(
+            data_state=CollectorMetadata.DataState.COMPLETE,
+            name="collectors.bzimport.tasks.bztracker_collector",
+            updated_until_dt=bz_updated,
+        ).save()
+        CollectorMetadata(
+            data_state=CollectorMetadata.DataState.COMPLETE,
+            name="collectors.bzimport.tasks.jira_tracker_collector",
+            updated_until_dt=jira_updated,
+        ).save()
+
+        assert expected_end == get_batch_end()
 
     @pytest.mark.vcr
     def test_get_errata_to_sync(self, sample_search_time):
@@ -114,6 +158,84 @@ class TestErrataToolCollection:
             2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
         )
 
+    @pytest.mark.default_cassette(BZ_CASSETTE)
+    @pytest.mark.vcr
+    def test_unlink_from_errata(self, sample_erratum_with_bz_bugs, sample_erratum_name):
+        """
+        test that erratum-tracker link removals are respected
+        reproducer for https://issues.redhat.com/browse/OSIDB-2752
+        """
+        ps_module1 = PsModuleFactory(bts_name="bugzilla")
+        ps_module2 = PsModuleFactory(bts_name="jboss")
+        affect1 = AffectFactory(
+            ps_module=ps_module1.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        affect2 = AffectFactory(
+            ps_module=ps_module2.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+
+        TrackerFactory.create(
+            affects=[affect1],
+            embargoed=affect1.flaw.embargoed,
+            external_system_id="2021161",
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        TrackerFactory.create(
+            affects=[affect1],
+            embargoed=affect1.flaw.embargoed,
+            external_system_id="2021168",
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        # extra trackers
+        bugzilla_tracker = TrackerFactory.create(
+            affects=[affect1],
+            embargoed=affect1.flaw.embargoed,
+            external_system_id="7",
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        jira_tracker = TrackerFactory.create(
+            affects=[affect2],
+            embargoed=affect2.flaw.embargoed,
+            external_system_id="PROJECT-7",
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        # existing erratum linked to the trackers
+        erratum = ErratumFactory.create(
+            et_id=sample_erratum_with_bz_bugs,
+            advisory_name=sample_erratum_name,
+        )
+        erratum.trackers.add(bugzilla_tracker)
+        erratum.trackers.add(jira_tracker)
+
+        assert Erratum.objects.count() == 1
+        assert Erratum.objects.first().trackers.count() == 2
+        assert bugzilla_tracker.errata.first() == erratum
+        assert jira_tracker.errata.first() == erratum
+
+        link_bugs_to_errata(
+            [
+                {
+                    "et_id": sample_erratum_with_bz_bugs,
+                    "advisory_name": sample_erratum_name,
+                    "created_dt": "2023-01-08T00:41:10Z",
+                    "shipped_dt": "2023-02-08T00:41:10Z",
+                    "updated_dt": "2023-03-08T00:41:10Z",
+                }
+            ]
+        )
+
+        # no new erratum was created
+        assert Erratum.objects.count() == 1
+        assert Erratum.objects.first().trackers.count() == 2
+        assert not bugzilla_tracker.errata.first()
+        assert not jira_tracker.errata.first()
+
     @pytest.mark.default_cassette(JIRA_CASSETTE)
     @pytest.mark.vcr
     def test_link_jira_issues_to_errata(
@@ -159,26 +281,6 @@ class TestErrataToolCollection:
         assert Erratum.objects.first().updated_dt == timezone.datetime(
             2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
         )
-
-    @pytest.mark.vcr
-    def test_skip_saving_when_flaws_missing(
-        self, sample_erratum_with_no_flaws, sample_erratum_name
-    ):
-        """Test that we will not save an Erratum into the DB if it has no linked flaws in Errata Tool"""
-        link_bugs_to_errata(
-            [
-                {
-                    "et_id": sample_erratum_with_no_flaws,
-                    "advisory_name": sample_erratum_name,
-                    "created_dt": "2023-01-08T00:41:10Z",
-                    "shipped_dt": "2023-02-08T00:41:10Z",
-                    "updated_dt": "2023-03-08T00:41:10Z",
-                }
-            ]
-        )
-
-        # No erratum was created
-        assert Erratum.objects.count() == 0
 
     @pytest.mark.default_cassette(JIRA_CASSETTE)
     @pytest.mark.vcr

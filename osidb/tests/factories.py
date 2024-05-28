@@ -14,6 +14,7 @@ from osidb.models import (
     CVSS,
     Affect,
     AffectCVSS,
+    Erratum,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
@@ -763,3 +764,15 @@ class AffectCVSSFactory(CVSSFactory):
     # let us inherit the parent affect ACLs if not specified
     acl_read = factory.LazyAttribute(lambda o: o.affect.acl_read)
     acl_write = factory.LazyAttribute(lambda o: o.affect.acl_write)
+
+
+class ErratumFactory(BaseFactory):
+    class Meta:
+        model = Erratum
+
+    et_id = factory.sequence(lambda n: f"{n}")
+    advisory_name = factory.sequence(lambda n: f"RHSA-2020:{n}")
+
+    created_dt = factory.Faker("date_time", tzinfo=UTC)
+    updated_dt = factory.LazyAttribute(lambda f: f.created_dt)
+    shipped_dt = factory.LazyAttribute(lambda f: f.created_dt)
