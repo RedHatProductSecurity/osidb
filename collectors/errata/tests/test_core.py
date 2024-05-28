@@ -1,6 +1,7 @@
 import pytest
 from django.utils import timezone
 
+from collectors.framework.models import CollectorMetadata
 from osidb.models import Affect, Erratum, Tracker
 from osidb.tests.factories import (
     AffectFactory,
@@ -11,6 +12,7 @@ from osidb.tests.factories import (
 
 from ..core import (
     get_all_errata,
+    get_batch_end,
     get_errata_to_sync,
     get_flaws_and_trackers_for_erratum,
     link_bugs_to_errata,
@@ -29,6 +31,43 @@ class TestErrataToolCollection:
         errata_id_name_pairs = get_all_errata()
 
         assert len(errata_id_name_pairs) == 3
+
+    @pytest.mark.parametrize(
+        "bz_updated,jira_updated,expected_end",
+        [
+            (
+                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+            ),
+            (
+                timezone.datetime(2021, 1, 1, tzinfo=timezone.utc),
+                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+            ),
+            (
+                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+                timezone.datetime(2021, 1, 1, tzinfo=timezone.utc),
+                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+            ),
+        ],
+    )
+    def test_get_batch_end(self, bz_updated, jira_updated, expected_end):
+        """
+        test that the batch end logic respect the dependencies
+        """
+        CollectorMetadata(
+            data_state=CollectorMetadata.DataState.COMPLETE,
+            name="collectors.bzimport.tasks.bztracker_collector",
+            updated_until_dt=bz_updated,
+        ).save()
+        CollectorMetadata(
+            data_state=CollectorMetadata.DataState.COMPLETE,
+            name="collectors.bzimport.tasks.jira_tracker_collector",
+            updated_until_dt=jira_updated,
+        ).save()
+
+        assert expected_end == get_batch_end()
 
     @pytest.mark.vcr
     def test_get_errata_to_sync(self, sample_search_time):
