@@ -1210,13 +1210,6 @@ paths:
           - XEN
           - XPDF
       - in: query
-        name: flaw__type
-        schema:
-          type: string
-          enum:
-          - VULNERABILITY
-          - WEAKNESS
-      - in: query
         name: flaw__unembargo_dt
         schema:
           type: string
@@ -1347,7 +1340,6 @@ paths:
             - -flaw__nvd_cvss3
             - -flaw__reported_dt
             - -flaw__source
-            - -flaw__type
             - -flaw__unembargo_dt
             - -flaw__updated_dt
             - -flaw__uuid
@@ -1397,7 +1389,6 @@ paths:
             - flaw__nvd_cvss3
             - flaw__reported_dt
             - flaw__source
-            - flaw__type
             - flaw__unembargo_dt
             - flaw__updated_dt
             - flaw__uuid
@@ -3269,7 +3260,6 @@ paths:
             - -summary
             - -team_id
             - -title
-            - -type
             - -unembargo_dt
             - -updated_dt
             - -uuid
@@ -3342,7 +3332,6 @@ paths:
             - summary
             - team_id
             - title
-            - type
             - unembargo_dt
             - updated_dt
             - uuid
@@ -3627,13 +3616,6 @@ paths:
         description: Filter only Flaws which are related to specified Trackers (through
           Affects). Multiple tracker IDs may be separated by commas. Also only Affects
           that have the specified Trackers related will be shown.
-      - in: query
-        name: type
-        schema:
-          type: string
-          enum:
-          - VULNERABILITY
-          - WEAKNESS
       - in: query
         name: unembargo_dt
         schema:
@@ -6298,13 +6280,6 @@ paths:
           - XEN
           - XPDF
       - in: query
-        name: affects__flaw__type
-        schema:
-          type: string
-          enum:
-          - VULNERABILITY
-          - WEAKNESS
-      - in: query
         name: affects__flaw__unembargo_dt
         schema:
           type: string
@@ -6549,7 +6524,6 @@ paths:
             - -affects__flaw__nvd_cvss3
             - -affects__flaw__reported_dt
             - -affects__flaw__source
-            - -affects__flaw__type
             - -affects__flaw__unembargo_dt
             - -affects__flaw__updated_dt
             - -affects__flaw__uuid
@@ -6591,7 +6565,6 @@ paths:
             - affects__flaw__nvd_cvss3
             - affects__flaw__reported_dt
             - affects__flaw__source
-            - affects__flaw__type
             - affects__flaw__unembargo_dt
             - affects__flaw__updated_dt
             - affects__flaw__uuid
@@ -7736,8 +7709,6 @@ components:
           type: string
           format: uuid
           readOnly: true
-        type:
-          $ref: '#/components/schemas/FlawType'
         cve_id:
           type: string
           nullable: true
@@ -8494,8 +8465,6 @@ components:
           type: string
           format: uuid
           readOnly: true
-        type:
-          $ref: '#/components/schemas/FlawType'
         cve_id:
           type: string
           nullable: true
@@ -8899,11 +8868,6 @@ components:
       required:
       - resolution
       - state
-    FlawType:
-      enum:
-      - VULNERABILITY
-      - WEAKNESS
-      type: string
     FlawUUIDList:
       type: object
       properties:

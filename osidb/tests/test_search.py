@@ -2,7 +2,7 @@ import uuid
 
 import pytest
 
-from osidb.models import Flaw, FlawSource, FlawType, Impact
+from osidb.models import Flaw, FlawSource, Impact
 
 from .factories import AffectFactory, FlawFactory
 
@@ -78,7 +78,6 @@ class TestSearch:
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
-            type=FlawType.VULNERABILITY,
             title="TITLE",
             description="DESCRIPTION",
             impact=Impact.CRITICAL,

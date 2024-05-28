@@ -326,7 +326,6 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
             # Flaw fields
             "uuid": ["exact"],
             "cve_id": ["exact"],
-            "type": ["exact"],
             "created_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
@@ -521,7 +520,6 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
             # Flaw fields
             "flaw__uuid": ["exact"],
             "flaw__cve_id": ["exact"],
-            "flaw__type": ["exact"],
             "flaw__created_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
@@ -665,7 +663,6 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
             # Flaw fields
             "affects__flaw__uuid": ["exact"],
             "affects__flaw__cve_id": ["exact"],
-            "affects__flaw__type": ["exact"],
             "affects__flaw__created_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS

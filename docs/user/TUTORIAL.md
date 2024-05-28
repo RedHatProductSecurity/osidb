@@ -449,7 +449,6 @@ $ curl -H "Authorization: Bearer <access_token>" \
        -H "Content-Type: application/json" \
        -X POST
        -d '{
-              "type": "VULNERABILITY",
               "cve_id": "CVE-2161-0013",
               "state": "NEW",
               "resolution": "ERRATA",
@@ -470,7 +469,6 @@ headers = {
     "Content-Type": "application/json",
 }
 data = {
-    "type": "VULNERABILITY",
     "cve_id": "CVE-2161-0013",
     "state": "NEW",
     "resolution": "ERRATA",
@@ -495,7 +493,6 @@ $ curl -H "Authorization: Bearer <access_token>" \
        -H "Content-Type: application/json" \
        -X PUT
        -d '{
-              "type": "VULNERABILITY",
               "cve_id": "CVE-2161-0013",
               "state": "NEW",
               "resolution": "ERRATA",
@@ -516,7 +513,6 @@ headers = {
     "Content-Type": "application/json",
 }
 data = {
-    "type": "VULNERABILITY",
     "cve_id": "CVE-2161-0013",
     "state": "NEW",
     "resolution": "ERRATA",

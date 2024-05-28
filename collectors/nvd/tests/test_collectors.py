@@ -6,7 +6,7 @@ from django.utils import timezone
 from apps.workflows.workflow import WorkflowModel
 from collectors.framework.models import CollectorMetadata
 from collectors.nvd.collectors import NVDCollector
-from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource, FlawType, Snippet
+from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource, Snippet
 from osidb.tests.factories import FlawCVSSFactory, FlawFactory, FlawReferenceFactory
 
 pytestmark = pytest.mark.integration
@@ -283,7 +283,6 @@ class TestNVDCollector:
 
             f = FlawFactory(
                 **data,
-                type=FlawType.VULNERABILITY,
                 embargoed=False,
                 meta_attr={"external_ids": f'["{cve_id}"]', "alias": f'["{cve_id}"]'},
                 task_key="OSIM-1982",
@@ -333,7 +332,6 @@ class TestNVDCollector:
         assert flaw.source == snippet_content["source"]
         assert flaw.task_key == "OSIM-1982"
         assert flaw.title == snippet_content["title"]
-        assert flaw.type == FlawType.VULNERABILITY
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
         assert json.loads(flaw.meta_attr["external_ids"]) == [cve_id]
         assert json.loads(flaw.meta_attr["alias"]) == [cve_id]
