@@ -709,7 +709,7 @@ interactions:
       "", "severity": "unspecified", "priority": "unspecified", "summary": "CVE-2017-7542
       From NVD collector", "description": "The ip6_find_1stfragopt function allows local users to cause
       a denial of service.", "comment_is_private": false, "alias": ["CVE-2017-7542"], "keywords":
-      ["Security"], "flags": [], "groups": ["redhat"], "cc": [], "cf_srtnotes": "{\"external_ids\":
+      ["Security"], "flags": [], "groups": ["redhat"], "cc": [], "cf_srtnotes": "{\"reported\": \"2024-05-15T07:36:59Z\", \"external_ids\":
       [\"CVE-2017-7542\"], \"references\": [{\"type\": \"source\", \"url\": \"https://nvd.nist.gov/vuln/detail/CVE-2017-7542\",
       \"description\": null}, {\"type\": \"external\", \"url\": \"http://www.debian.org/security/2017/dsa-3927\",
       \"description\": null}], \"source\": \"nvd\", \"cwe\": \"(CWE-190|CWE-835)\"}"}'
@@ -882,7 +882,7 @@ interactions:
         "---", "alias": ["CVE-2017-7542"], "version": ["unspecified"], "priority":
         "unspecified", "severity": "unspecified", "url": "", "platform": "All", "whiteboard":
         "", "groups": ["redhat"], "cf_clone_of": null, "creator": "nobody@redhat.com",
-        "cf_srtnotes": "{\"external_ids\": [\"CVE-2017-7542\"], \"references\": [{\"type\":
+        "cf_srtnotes": "{\"reported\": \"2024-05-15T07:36:59Z\", \"external_ids\": [\"CVE-2017-7542\"], \"references\": [{\"type\":
         \"source\", \"url\": \"https://example.com/vuln/detail/CVE-2017-7542\", \"description\":
         null}, {\"type\": \"external\", \"url\": \"https://example.com/security/2017/dsa-3927\",
         \"description\": null}], \"source\": \"nvd\", \"cwe\": \"(CWE-190|CWE-835)\"}",
@@ -983,7 +983,7 @@ interactions:
         allows local users to cause a denial of service.", "cf_conditional_nak": [], "depends_on":
         [], "docs_contact": "", "summary": "CVE-2017-7542 From NVD collector", "dupe_of":
         null, "remaining_time": 0, "cf_qa_whiteboard": "", "blocks": [], "is_open":
-        true, "cf_pgm_internal": "", "actual_time": 0, "cf_srtnotes": "{\"external_ids\":
+        true, "cf_pgm_internal": "", "actual_time": 0, "cf_srtnotes": "{\"reported\": \"2024-05-15T07:36:59Z\", \"external_ids\":
         [\"CVE-2017-7542\"], \"references\": [{\"type\": \"source\", \"url\": \"https://example.com/vuln/detail/CVE-2017-7542\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"http://www.example.com/security/2017/dsa-3927\",
         \"description\": null}], \"source\": \"nvd\", \"cwe\": \"(CWE-190|CWE-835)\"}",

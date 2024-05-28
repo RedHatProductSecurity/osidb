@@ -889,9 +889,9 @@ class TestFlawDraftBBSyncIntegration:
     @pytest.mark.parametrize(
         "source,cve_id,ext_id,jira_id",
         [
-            (Snippet.Source.NVD, "CVE-2000-0043", "CVE-2000-0043", "OSIM-1985"),
-            (Snippet.Source.OSV, "CVE-2000-0044", "GHSA-0008", "OSIM-1986"),
-            (Snippet.Source.OSV, None, "GHSA-0009", "OSIM-1987"),
+            (Snippet.Source.NVD, "CVE-2000-0048", "CVE-2000-0048", "OSIM-2470"),
+            (Snippet.Source.OSV, "CVE-2000-0049", "GHSA-0012", "OSIM-2471"),
+            (Snippet.Source.OSV, None, "GHSA-0013", "OSIM-2472"),
         ],
     )
     def test_flaw_draft_create(
@@ -950,6 +950,7 @@ class TestFlawDraftBBSyncIntegration:
         assert flaw.cwe_id == content["cwe_id"]
         assert flaw.description == content["description"]
         assert flaw.references.all().count() == 1
+        assert flaw.reported_dt
         assert flaw.source == source
         assert flaw.title == f"From {source} collector"
 

@@ -329,6 +329,7 @@ class TestNVDCollector:
         assert flaw.cve_id == cve_id
         assert flaw.cwe_id == snippet_content["cwe_id"]
         assert flaw.description == snippet_content["description"]
+        assert flaw.reported_dt
         assert flaw.source == snippet_content["source"]
         assert flaw.task_key == "OSIM-1982"
         assert flaw.title == snippet_content["title"]

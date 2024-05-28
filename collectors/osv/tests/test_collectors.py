@@ -37,6 +37,7 @@ class TestOSVCollector:
         assert flaw.task_key == "OSIM-1975"
         assert json.loads(flaw.meta_attr["alias"]) == [cve_id]
         assert json.loads(flaw.meta_attr["external_ids"]) == [f"{osv_id}/{cve_id}"]
+        assert flaw.reported_dt
 
     @pytest.mark.vcr
     @pytest.mark.default_cassette("TestOSVCollector.test_collect_osv_record.yaml")
