@@ -8,7 +8,7 @@ import apps.taskman.mixins as mixins
 import osidb.models as models
 import osidb.serializer as serializer
 from apps.taskman.service import JiraTaskmanQuerier
-from osidb.models import Flaw, FlawSource, FlawType, Impact
+from osidb.models import Flaw, FlawSource, Impact
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
@@ -87,7 +87,6 @@ class TestFlawModelIntegration(object):
         flaw = Flaw(
             cve_id="CVE-2020-8004",
             title="CVE-2020-8004 kernel: some description",
-            type=FlawType.VULNERABILITY,
             acl_read=acl_read,
             acl_write=acl_write,
             description="Description",
@@ -133,7 +132,6 @@ class TestFlawModelIntegration(object):
         flaw_data = {
             "cwe_id": "CWE-1",
             "title": "Foo",
-            "type": "VULNERABILITY",
             "state": "NEW",
             "impact": "CRITICAL",
             "component": "curl",
@@ -189,7 +187,6 @@ class TestFlawModelIntegration(object):
             {
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
-                "type": flaw.type,
                 "title": f"{flaw.title} appended test title",
                 "description": flaw.description,
                 "impact": Impact.IMPORTANT,
@@ -211,7 +208,6 @@ class TestFlawModelIntegration(object):
             {
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
-                "type": flaw.type,
                 "title": f"{flaw.title} appended test title",
                 "description": flaw.description,
                 "impact": Impact.LOW,

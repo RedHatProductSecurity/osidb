@@ -22,7 +22,6 @@ from osidb.models import (
     FlawMeta,
     FlawReference,
     FlawSource,
-    FlawType,
     Impact,
     Package,
     PackageVer,
@@ -91,7 +90,6 @@ class FlawFactory(BaseFactory):
 
     cve_id = factory.sequence(lambda n: f"CVE-2020-1000{n}")
     cwe_id = factory.Faker("random_element", elements=["CWE-1", ""])
-    type = factory.Faker("random_element", elements=list(FlawType))
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     reported_dt = factory.LazyAttribute(lambda f: f.created_dt)
     updated_dt = factory.LazyAttribute(lambda f: f.created_dt)

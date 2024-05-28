@@ -1510,7 +1510,6 @@ class FlawSerializer(
         fields = (
             [
                 "uuid",
-                "type",
                 "cve_id",
                 "state",
                 "resolution",

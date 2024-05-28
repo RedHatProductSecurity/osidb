@@ -1336,7 +1336,6 @@ class TestEndpointsFlaws:
             "cve_id": "CVE-2021-0666",
             "cwe_id": "CWE-1",
             "title": "Foo",
-            "type": "VULNERABILITY",
             "state": "NEW",
             "impact": "CRITICAL",
             "component": "curl",
@@ -1371,7 +1370,6 @@ class TestEndpointsFlaws:
         flaw_data = {
             "cwe_id": "CWE-1",
             "title": "Foo",
-            "type": "VULNERABILITY",
             "state": "NEW",
             "impact": "CRITICAL",
             "component": "curl",
@@ -1432,7 +1430,6 @@ class TestEndpointsFlaws:
             {
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
-                "type": flaw.type,
                 "title": f"{flaw.title} appended test title",
                 "description": flaw.description,
                 "impact": flaw.impact,
@@ -1608,7 +1605,6 @@ class TestEndpointsFlaws:
             {
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
-                "type": flaw.type,
                 "title": f"{flaw.title} appended test title",
                 "description": flaw.description,
                 "impact": flaw.impact,

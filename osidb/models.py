@@ -117,16 +117,6 @@ def search_helper(
     # Order remaining results from highest rank to lowest
 
 
-class FlawType(models.TextChoices):
-    """allowable types"""
-
-    # NOTE: when moving or renaming this enum, please check and modify
-    # config/settings.py::SPECTACULAR_SETTINGS::ENUM_NAME_OVERRIDES accordingly
-
-    VULNERABILITY = "VULNERABILITY"
-    WEAKNESS = "WEAKNESS"
-
-
 class ComparableTextChoices(models.TextChoices):
     """
     extension of the models.TextChoices classes
@@ -640,11 +630,6 @@ class Flaw(
         unique=True,
         validators=[validate_cve_id],
         blank=True,
-    )
-
-    # vulnerability or weakness
-    type = models.CharField(
-        choices=FlawType.choices, default=FlawType.VULNERABILITY, max_length=20
     )
 
     # flaw state, from BZ status

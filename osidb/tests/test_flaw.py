@@ -21,7 +21,6 @@ from osidb.models import (
     FlawMeta,
     FlawReference,
     FlawSource,
-    FlawType,
     Impact,
     Tracker,
 )
@@ -75,7 +74,6 @@ class TestFlaw:
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
-            type=FlawType.VULNERABILITY,
             title="title",
             description="description",
             impact=Impact.CRITICAL,
@@ -232,7 +230,6 @@ class TestFlaw:
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
-            type=FlawType.VULNERABILITY,
             title="title",
             description="description",
             impact=Impact.CRITICAL,
@@ -485,7 +482,6 @@ class TestFlaw:
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
-            type=FlawType.VULNERABILITY,
             title="title",
             description="description",
             impact=Impact.CRITICAL,
@@ -509,7 +505,6 @@ class TestFlaw:
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
-            type=FlawType.VULNERABILITY,
             title="title",
             description="description",
             impact=Impact.CRITICAL,
@@ -532,7 +527,6 @@ class TestFlaw:
             created_dt=datetime_with_tz,
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
-            type=FlawType.VULNERABILITY,
             title="title",
             description="description",
             impact=Impact.CRITICAL,
@@ -776,7 +770,7 @@ class TestFlawValidators:
             FlawFactory(reported_dt=future_dt)
             # no exception should be raised now
 
-    @pytest.mark.parametrize("attr_name", ["impact", "type"])
+    @pytest.mark.parametrize("attr_name", ["impact"])
     def test_validate_choice(self, attr_name):
         """test choice validation"""
         with pytest.raises(ValidationError) as e:

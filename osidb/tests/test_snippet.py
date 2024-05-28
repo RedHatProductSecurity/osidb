@@ -1,7 +1,7 @@
 import pytest
 
 from apps.workflows.workflow import WorkflowModel
-from osidb.models import Flaw, FlawCVSS, FlawReference, FlawType, Snippet
+from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
 from osidb.tests.factories import FlawFactory, SnippetFactory
 
 pytestmark = pytest.mark.unit
@@ -45,7 +45,6 @@ class TestSnippet:
         assert flaw.snippets.count() == 1
         assert flaw.source == snippet.source
         assert flaw.title == content["title"]
-        assert flaw.type == FlawType.VULNERABILITY
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
 
         flaw_cvss = flaw.cvss_scores.all().first()
