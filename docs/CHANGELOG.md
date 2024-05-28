@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Remove "type" field from Affect (OSIDB-2743)
+- Remove "type" field from Flaw (OSIDB-2735)
 
 ## [3.7.2] - 2024-05-17
 ### Fixed
