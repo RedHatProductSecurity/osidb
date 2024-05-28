@@ -63,7 +63,7 @@ class TestErrataToolCollection:
         ).save()
         CollectorMetadata(
             data_state=CollectorMetadata.DataState.COMPLETE,
-            name="collectors.bzimport.tasks.jira_tracker_collector",
+            name="collectors.jiraffe.tasks.jira_tracker_collector",
             updated_until_dt=jira_updated,
         ).save()
 
