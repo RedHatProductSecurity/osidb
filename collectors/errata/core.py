@@ -85,7 +85,7 @@ def get_batch_end() -> timezone.datetime:
             name="collectors.bzimport.tasks.bztracker_collector"
         ).updated_until_dt,
         CollectorMetadata.objects.get(
-            name="collectors.bzimport.tasks.jira_tracker_collector"
+            name="collectors.jiraffe.tasks.jira_tracker_collector"
         ).updated_until_dt,
     )
 
