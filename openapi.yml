@@ -1364,7 +1364,6 @@ paths:
             - -trackers__type
             - -trackers__updated_dt
             - -trackers__uuid
-            - -type
             - -updated_dt
             - -uuid
             - affectedness
@@ -1415,7 +1414,6 @@ paths:
             - trackers__type
             - trackers__updated_dt
             - trackers__uuid
-            - type
             - updated_dt
             - uuid
         description: Ordering
@@ -1553,12 +1551,6 @@ paths:
         schema:
           type: string
           format: uuid
-      - in: query
-        name: type
-        schema:
-          type: string
-          enum:
-          - DEFAULT
       - in: query
         name: updated_dt
         schema:
@@ -2794,12 +2786,6 @@ paths:
           type: string
           format: uuid
       - in: query
-        name: affects__type
-        schema:
-          type: string
-          enum:
-          - DEFAULT
-      - in: query
         name: affects__updated_dt
         schema:
           type: string
@@ -3242,7 +3228,6 @@ paths:
             - -affects__trackers__type
             - -affects__trackers__updated_dt
             - -affects__trackers__uuid
-            - -affects__type
             - -affects__updated_dt
             - -affects__uuid
             - -bz_id
@@ -3316,7 +3301,6 @@ paths:
             - affects__trackers__type
             - affects__trackers__updated_dt
             - affects__trackers__uuid
-            - affects__type
             - affects__updated_dt
             - affects__uuid
             - bz_id
@@ -6401,12 +6385,6 @@ paths:
           - WONTFIX
           - WONTREPORT
       - in: query
-        name: affects__type
-        schema:
-          type: string
-          enum:
-          - DEFAULT
-      - in: query
         name: affects__updated_dt
         schema:
           type: string
@@ -6579,7 +6557,6 @@ paths:
             - -affects__ps_component
             - -affects__ps_module
             - -affects__resolution
-            - -affects__type
             - -affects__updated_dt
             - -affects__uuid
             - -created_dt
@@ -6622,7 +6599,6 @@ paths:
             - affects__ps_component
             - affects__ps_module
             - affects__resolution
-            - affects__type
             - affects__updated_dt
             - affects__uuid
             - created_dt
@@ -7177,8 +7153,6 @@ components:
           type: string
           format: uuid
           nullable: true
-        type:
-          $ref: '#/components/schemas/AffectType'
         affectedness:
           oneOf:
           - $ref: '#/components/schemas/AffectednessEnum'
@@ -7458,8 +7432,6 @@ components:
           type: string
           format: uuid
           nullable: true
-        type:
-          $ref: '#/components/schemas/AffectType'
         affectedness:
           oneOf:
           - $ref: '#/components/schemas/AffectednessEnum'
@@ -7589,10 +7561,6 @@ components:
       required:
       - ps_component
       - ps_module
-    AffectType:
-      enum:
-      - DEFAULT
-      type: string
     AffectednessEnum:
       enum:
       - NEW

@@ -1704,21 +1704,8 @@ class Affect(
         OOSS = "OOSS"
         DEFER = "DEFER"
 
-    class AffectType(models.TextChoices):
-        """allowable type"""
-
-        # NOTE: when moving or renaming this enum, please check and modify
-        # config/settings.py::SPECTACULAR_SETTINGS::ENUM_NAME_OVERRIDES accordingly
-
-        DEFAULT = "DEFAULT"  # we may have different types of affects in the future
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    # type
-    type = models.CharField(
-        choices=AffectType.choices, max_length=10, default=AffectType.DEFAULT
-    )
 
     # affectedness:resolution status
     affectedness = models.CharField(

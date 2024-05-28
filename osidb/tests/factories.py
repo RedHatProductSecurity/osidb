@@ -278,7 +278,6 @@ class AffectFactory(BaseFactory):
         model = Affect
         django_get_or_create = ("flaw", "ps_module", "ps_component")
 
-    type = factory.Faker("random_element", elements=list(Affect.AffectType))
     affectedness = factory.fuzzy.FuzzyChoice(
         [
             Affect.AffectAffectedness.NEW,

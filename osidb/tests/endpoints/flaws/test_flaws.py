@@ -703,7 +703,7 @@ class TestEndpointsFlaws:
             )
 
         flaw_include_fields = ["resolution", "state", "uuid", "impact"]
-        affect_include_fields = ["ps_module", "ps_component", "type", "affectedness"]
+        affect_include_fields = ["ps_module", "ps_component", "affectedness"]
         tracker_include_fields = ["type", "external_system_id", "status", "resolution"]
 
         include_fields_param = ",".join(
@@ -762,7 +762,7 @@ class TestEndpointsFlaws:
                 type=Tracker.TrackerType.BUGZILLA,
             )
 
-        affect_include_fields = ["ps_module", "ps_component", "type", "affectedness"]
+        affect_include_fields = ["ps_module", "ps_component", "affectedness"]
 
         include_fields_param = ",".join(
             [f"affects.{field}" for field in affect_include_fields]
@@ -810,7 +810,7 @@ class TestEndpointsFlaws:
             )
 
         flaw_include_fields = ["resolution", "state", "uuid", "impact"]
-        affect_include_fields = ["ps_module", "ps_component", "type", "affectedness"]
+        affect_include_fields = ["ps_module", "ps_component", "affectedness"]
         tracker_include_fields = ["type", "external_system_id", "status", "resolution"]
 
         include_fields_param = ",".join(
