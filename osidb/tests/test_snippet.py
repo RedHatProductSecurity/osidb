@@ -42,6 +42,7 @@ class TestSnippet:
         assert flaw.description == content["description"]
         assert flaw.meta_attr == {}
         assert flaw.references.count() == 1
+        assert flaw.reported_dt
         assert flaw.snippets.count() == 1
         assert flaw.source == snippet.source
         assert flaw.title == content["title"]

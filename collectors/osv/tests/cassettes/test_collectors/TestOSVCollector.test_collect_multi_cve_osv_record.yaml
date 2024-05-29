@@ -716,7 +716,7 @@ interactions:
       API, which will not create vulnerable files. Old files will remain vulnerable
       until re-encrypted with the new client.", "comment_is_private": false, "alias":
       ["CVE-2020-8911"], "keywords": ["Security"], "flags": [], "groups": ["redhat"],
-      "cc": [], "cf_srtnotes": "{\"external_ids\": [\"GO-2022-0646/CVE-2020-8911\"],
+      "cc": [], "cf_srtnotes": "{\"reported\": \"2024-05-14T14:25:01Z\", \"external_ids\": [\"GO-2022-0646/CVE-2020-8911\"],
       \"references\": [{\"type\": \"source\", \"url\": \"https://osv.dev/vulnerability/GO-2022-0646\",
       \"description\": null}, {\"type\": \"external\", \"url\": \"https://aws.amazon.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
       \"description\": null}, {\"type\": \"external\", \"url\": \"https://github.com/aws/aws-sdk-go/pull/3403\",
@@ -903,7 +903,7 @@ interactions:
         "dupe_of": null, "op_sys": "Linux", "depends_on": [], "cf_major_incident":
         null, "keywords": ["Security"], "cf_clone_of": null, "sub_components": {},
         "data_category": "Red Hat", "target_milestone": "---", "cf_release_notes":
-        "", "creator": "nobody@redhat.com", "cf_srtnotes": "{\"external_ids\": [\"GO-2022-0646/CVE-2020-8911\"],
+        "", "creator": "nobody@redhat.com", "cf_srtnotes": "{\"reported\": \"2024-05-14T14:25:01Z\", \"external_ids\": [\"GO-2022-0646/CVE-2020-8911\"],
         \"references\": [{\"type\": \"source\", \"url\": \"https://example.com/vulnerability/GO-2022-0646\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/pull/3403\",
@@ -999,7 +999,7 @@ interactions:
         [], "is_private": false, "bug_id": 2037692, "creation_time": "2024-05-14T14:25:01Z",
         "creator_id": 425662, "private_groups": [], "attachment_id": null}], "id":
         2037692, "cf_qa_whiteboard": "", "tags": [], "assigned_to": "nobody@redhat.com",
-        "cf_devel_whiteboard": "", "cc": [], "cf_srtnotes": "{\"external_ids\": [\"GO-2022-0646/CVE-2020-8911\"],
+        "cf_devel_whiteboard": "", "cc": [], "cf_srtnotes": "{\"reported\": \"2024-05-14T14:25:01Z\", \"external_ids\": [\"GO-2022-0646/CVE-2020-8911\"],
         \"references\": [{\"type\": \"source\", \"url\": \"https://example.com/vulnerability/GO-2022-0646\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/pull/3403\",
@@ -1770,7 +1770,7 @@ interactions:
       API, which will not create vulnerable files. Old files will remain vulnerable
       until re-encrypted with the new client.", "comment_is_private": false, "alias":
       ["CVE-2020-8912"], "keywords": ["Security"], "flags": [], "groups": ["redhat"],
-      "cc": [], "cf_srtnotes": "{\"external_ids\": [\"GO-2022-0646/CVE-2020-8912\"],
+      "cc": [], "cf_srtnotes": "{\"reported\": \"2024-05-14T14:25:14Z\", \"external_ids\": [\"GO-2022-0646/CVE-2020-8912\"],
       \"references\": [{\"type\": \"source\", \"url\": \"https://osv.dev/vulnerability/GO-2022-0646\",
       \"description\": null}, {\"type\": \"external\", \"url\": \"https://aws.amazon.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
       \"description\": null}, {\"type\": \"external\", \"url\": \"https://github.com/aws/aws-sdk-go/pull/3403\",
@@ -1975,7 +1975,7 @@ interactions:
         "", "creator_detail": {"insider": true, "email": "nobody@redhat.com", "real_name":
         "nobody", "active": true, "partner": false, "name": "nobody@redhat.com",
         "id": 425662}, "cf_internal_whiteboard": "", "cf_conditional_nak": [], "cc":
-        [], "cf_srtnotes": "{\"external_ids\": [\"GO-2022-0646/CVE-2020-8912\"], \"references\":
+        [], "cf_srtnotes": "{\"reported\": \"2024-05-14T14:25:14Z\", \"external_ids\": [\"GO-2022-0646/CVE-2020-8912\"], \"references\":
         [{\"type\": \"source\", \"url\": \"https://example.com/vulnerability/GO-2022-0646\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/pull/3403\",
@@ -2056,7 +2056,7 @@ interactions:
         "nobody@redhat.com", "partner": false, "id": 29451, "insider": false}, "classification":
         "Other", "actual_time": 0, "url": "", "target_milestone": "---", "data_category":
         "Red Hat", "cf_release_notes": "", "creator": "nobody@redhat.com", "cf_srtnotes":
-        "{\"external_ids\": [\"GO-2022-0646/CVE-2020-8912\"], \"references\": [{\"type\":
+        "{\"reported\": \"2024-05-14T14:25:14Z\", \"external_ids\": [\"GO-2022-0646/CVE-2020-8912\"], \"references\": [{\"type\":
         \"source\", \"url\": \"https://example.com/vulnerability/GO-2022-0646\", \"description\":
         null}, {\"type\": \"external\", \"url\": \"https://example.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/pull/3403\",

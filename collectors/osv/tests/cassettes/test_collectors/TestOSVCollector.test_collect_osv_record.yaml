@@ -695,7 +695,7 @@ interactions:
       SQL injection in github.com/elgs/gosqljson", "description": "There is a potential
       for SQL injection through manipulation of the sqlStatement argument.", "comment_is_private":
       false, "alias": ["CVE-2014-125064"], "keywords": ["Security"], "flags": [],
-      "groups": ["redhat"], "cc": [], "cf_srtnotes": "{\"external_ids\": [\"GO-2023-1494/CVE-2014-125064\"],
+      "groups": ["redhat"], "cc": [], "cf_srtnotes": "{\"reported\": \"2024-05-14T13:57:55Z\", \"external_ids\": [\"GO-2023-1494/CVE-2014-125064\"],
       \"references\": [{\"type\": \"source\", \"url\": \"https://osv.dev/vulnerability/GO-2023-1494\",
       \"description\": null}, {\"type\": \"external\", \"url\": \"https://github.com/elgs/gosqljson/commit/2740b331546cb88eb61771df4c07d389e9f0363a\",
       \"description\": null}], \"source\": \"osv\"}"}'
@@ -873,7 +873,7 @@ interactions:
         "nobody", "insider": true, "email": "nobody@redhat.com", "partner":
         false, "name": "nobody@redhat.com", "id": 425662}, "resolution": "", "url":
         "", "op_sys": "Linux", "cf_devel_whiteboard": "", "assigned_to": "nobody@redhat.com",
-        "cc": [], "cf_srtnotes": "{\"external_ids\": [\"GO-2023-1494/CVE-2014-125064\"],
+        "cc": [], "cf_srtnotes": "{\"reported\": \"2024-05-14T13:57:55Z\", \"external_ids\": [\"GO-2023-1494/CVE-2014-125064\"],
         \"references\": [{\"type\": \"source\", \"url\": \"https://example.com/vulnerability/GO-2023-1494\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/elgs/gosqljson/commit/2740b331546cb88eb61771df4c07d389e9f0363a\",
         \"description\": null}], \"source\": \"osv\"}", "data_category": "Red Hat",
@@ -953,7 +953,7 @@ interactions:
         "NEW", "cf_pm_score": "0", "last_change_time": "2024-05-14T13:57:55Z", "is_creator_accessible":
         true, "is_cc_accessible": true, "target_milestone": "---", "data_category":
         "Red Hat", "product": "Security Response", "creator": "nobody@redhat.com",
-        "cf_srtnotes": "{\"external_ids\": [\"GO-2023-1494/CVE-2014-125064\"], \"references\":
+        "cf_srtnotes": "{\"reported\": \"2024-05-14T13:57:55Z\", \"external_ids\": [\"GO-2023-1494/CVE-2014-125064\"], \"references\":
         [{\"type\": \"source\", \"url\": \"https://example.com/vulnerability/GO-2023-1494\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/elgs/gosqljson/commit/2740b331546cb88eb61771df4c07d389e9f0363a\",
         \"description\": null}], \"source\": \"osv\"}", "cf_release_notes": "", "sub_components":

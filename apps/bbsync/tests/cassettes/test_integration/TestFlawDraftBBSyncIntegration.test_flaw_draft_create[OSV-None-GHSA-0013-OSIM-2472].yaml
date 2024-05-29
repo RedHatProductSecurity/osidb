@@ -140,9 +140,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 15 May 2024 11:26:45 GMT
+      - Tue, 28 May 2024 13:11:45 GMT
       Expires:
-      - Wed, 15 May 2024 11:26:45 GMT
+      - Tue, 28 May 2024 13:11:45 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -161,11 +161,11 @@ interactions:
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-0
+      - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 686x52968x1
+      - 791x720197x1
       x-asessionid:
-      - 1q7wnzi
+      - l69v4l
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -177,9 +177,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.7df06e68.1715772405.1c07da0
+      - 0.7df06e68.1716901905.2137bec
       x-rh-edge-request-id:
-      - 1c07da0
+      - 2137bec
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -255,9 +255,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 15 May 2024 11:26:45 GMT
+      - Tue, 28 May 2024 13:11:45 GMT
       Expires:
-      - Wed, 15 May 2024 11:26:45 GMT
+      - Tue, 28 May 2024 13:11:45 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -276,11 +276,11 @@ interactions:
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-0
+      - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 686x52969x1
+      - 791x720199x1
       x-asessionid:
-      - 1oqu0p4
+      - 1ovo31b
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -292,9 +292,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.7df06e68.1715772405.1c07db3
+      - 0.7df06e68.1716901905.2137ca4
       x-rh-edge-request-id:
-      - 1c07db3
+      - 2137ca4
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -304,9 +304,8 @@ interactions:
       message: OK
 - request:
     body: '{"fields": {"issuetype": {"id": "17"}, "project": {"id": "12337520"}, "summary":
-      "CVE-2000-0043 From NVD collector", "description": "some description", "labels":
-      ["flawuuid:d2184587-cd0c-4bf6-b264-9bd4b1cb29db", "impact:"], "priority": {"name":
-      "Undefined"}}}'
+      "From OSV collector", "description": "some description", "labels": ["flawuuid:dd5394ca-f495-4a04-a79d-a575fb94cd1f",
+      "impact:"], "priority": {"name": "Undefined"}}}'
     headers:
       Accept:
       - application/json,*.*;q=0.9
@@ -317,7 +316,7 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '259'
+      - '245'
       Content-Type:
       - application/json
       User-Agent:
@@ -328,18 +327,18 @@ interactions:
     uri: https://example.com/rest/api/2/issue
   response:
     body:
-      string: '{"id": "15885883", "key": "OSIM-1985", "self": "https://example.com/rest/api/2/issue/15885883"}'
+      string: '{"id": "15925665", "key": "OSIM-2472", "self": "https://example.com/rest/api/2/issue/15925665"}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
       Connection:
-      - close
+      - keep-alive
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 15 May 2024 11:26:46 GMT
+      - Tue, 28 May 2024 13:11:47 GMT
       Expires:
-      - Wed, 15 May 2024 11:26:46 GMT
+      - Tue, 28 May 2024 13:11:47 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -358,11 +357,11 @@ interactions:
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-0
+      - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 686x52970x1
+      - 791x720200x1
       x-asessionid:
-      - 1687kw5
+      - c8vo89
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -374,9 +373,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.7df06e68.1715772406.1c07dcb
+      - 0.7df06e68.1716901907.2137dd2
       x-rh-edge-request-id:
-      - 1c07dcb
+      - 2137dd2
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -402,16 +401,16 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-1985
+    uri: https://example.com/rest/api/2/issue/OSIM-2472
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "15885883", "self": "https://example.com/rest/api/2/issue/15885883",
-        "key": "OSIM-1985", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
+        "id": "15925665", "self": "https://example.com/rest/api/2/issue/15925665",
+        "key": "OSIM-2472", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
         "id": "17", "description": "Created by Jira Software - do not edit or delete.
         Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
         "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12324544":
-        "0.0", "customfield_12318341": null, "customfield_12324461": [], "timespent":
+        "0.0", "customfield_12324461": [], "customfield_12318341": null, "timespent":
         null, "customfield_12320940": null, "project": {"self": "https://example.com/rest/api/2/project/12337520",
         "id": "12337520", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
         "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
@@ -420,28 +419,28 @@ interactions:
         "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@22d993be[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5a992880[overall=PullRequestOverallBean{stateCount=0,
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@6076d90b[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@42c88d96[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5f05619c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@4c4b9fd4[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@176de70e[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@5c0ab9e7[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@28772a7b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@3852b59e[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@40ff700d[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@49b32c74[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5886f3cb[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@75d54300[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@f059757[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@9270f1c[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@71cc164e[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@458ad9b4[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6616517d[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@57f8fd4c[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4697ef9b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@5543d984[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@18ae7e8[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@11087808[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
         "resolutiondate": null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
         null, "customfield_12316841": null, "customfield_12315950": null, "customfield_12310940":
         null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://example.com/rest/api/2/issue/OSIM-1985/watchers", "watchCount": 1,
-        "isWatching": true}, "created": "2024-05-15T11:26:45.617+0000", "customfield_12321240":
+        "https://example.com/rest/api/2/issue/OSIM-2472/watchers", "watchCount": 1,
+        "isWatching": true}, "created": "2024-05-28T13:11:46.090+0000", "customfield_12321240":
         null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/10300",
         "iconUrl": "https://example.com/images/icons/priorities/trivial.svg", "name":
-        "Undefined", "id": "10300"}, "labels": ["flawuuid:d2184587-cd0c-4bf6-b264-9bd4b1cb29db",
+        "Undefined", "id": "10300"}, "labels": ["flawuuid:dd5394ca-f495-4a04-a79d-a575fb94cd1f",
         "impact:"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
         "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
         null, "timeestimate": null, "versions": [], "issuelinks": [], "customfield_12325240":
-        null, "assignee": null, "updated": "2024-05-15T11:26:45.617+0000", "customfield_12313942":
+        null, "assignee": null, "updated": "2024-05-28T13:11:46.090+0000", "customfield_12313942":
         null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
         very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
@@ -453,10 +452,10 @@ interactions:
         [], "aggregatetimeestimate": null, "customfield_12316542": {"self": "https://example.com/rest/api/2/customFieldOption/14655",
         "value": "False", "id": "14655", "disabled": false}, "customfield_12317313":
         null, "customfield_12316543": {"self": "https://example.com/rest/api/2/customFieldOption/14657",
-        "value": "False", "id": "14657", "disabled": false}, "customfield_12316544":
-        "None", "customfield_12310840": "9223372036854775807", "summary": "CVE-2000-0043
-        From NVD collector", "customfield_12323640": null, "customfield_12323642":
-        null, "creator": {"self": "https://example.com/rest/api/2/user?username=nobody%40redhat.com",
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12310840":
+        "9223372036854775807", "customfield_12316544": "None", "customfield_12323640":
+        null, "summary": "From OSV collector", "customfield_12323642": null, "creator":
+        {"self": "https://example.com/rest/api/2/user?username=nobody%40redhat.com",
         "name": "nobody@redhat.com", "key": "nobody", "emailAddress": "nobody+stage@redhat.com",
         "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=nobody&avatarId=29772",
         "24x24": "https://example.com/secure/useravatar?size=small&ownerId=nobody&avatarId=29772",
@@ -478,10 +477,10 @@ interactions:
         "0.0", "customfield_12313240": null, "duedate": null, "customfield_12311140":
         null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
         "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt": 0}, "votes":
-        {"self": "https://example.com/rest/api/2/issue/OSIM-1985/votes", "votes":
+        {"self": "https://example.com/rest/api/2/issue/OSIM-2472/votes", "votes":
         0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
         0, "maxResults": 20, "total": 0, "worklogs": []}, "customfield_12310213":
-        null, "archivedby": null, "customfield_12311940": "1|zecukw:"}}'
+        null, "archivedby": null, "customfield_12311940": "1|zejnxc:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -490,9 +489,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 15 May 2024 11:26:46 GMT
+      - Tue, 28 May 2024 13:11:47 GMT
       Expires:
-      - Wed, 15 May 2024 11:26:46 GMT
+      - Tue, 28 May 2024 13:11:47 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -505,17 +504,17 @@ interactions:
       X-RateLimit-Remaining:
       - '9223372036854775807'
       content-length:
-      - '8780'
+      - '8763'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-0
+      - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 686x52971x1
+      - 791x720202x2
       x-asessionid:
-      - 1md3qar
+      - 14ca15p
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -527,9 +526,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.7df06e68.1715772406.1c07e88
+      - 0.7df06e68.1716901907.21383c7
       x-rh-edge-request-id:
-      - 1c07e88
+      - 21383c7
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -569,7 +568,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 15 May 2024 11:26:47 GMT
+      - Tue, 28 May 2024 13:11:47 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -579,9 +578,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.64f06e68.1715772407.1803ac29
+      - 0.64f06e68.1716901907.148d291d
       x-rh-edge-request-id:
-      - 1803ac29
+      - 148d291d
     status:
       code: 200
       message: OK
@@ -602,8 +601,8 @@ interactions:
     uri: https://example.com/rest/user?ids=1
   response:
     body:
-      string: '{"users": [{"id": 1, "name": "aander07@packetmaster.com", "can_login":
-        true, "real_name": "Need Real Name", "email": "aander07@packetmaster.com"}]}'
+      string: '{"users": [{"id": 1, "can_login": true, "real_name": "Need Real Name",
+        "name": "aander07@packetmaster.com", "email": "aander07@packetmaster.com"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -618,7 +617,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 15 May 2024 11:26:47 GMT
+      - Tue, 28 May 2024 13:11:48 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -628,22 +627,22 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.64f06e68.1715772407.1803ac6b
+      - 0.64f06e68.1716901908.148d29b6
       x-rh-edge-request-id:
-      - 1803ac6b
+      - 148d29b6
     status:
       code: 200
       message: OK
 - request:
     body: '{"product": "Security Response", "op_sys": "Linux", "platform": "All",
       "version": "unspecified", "component": "vulnerability-draft", "cf_release_notes":
-      "", "severity": "unspecified", "priority": "unspecified", "summary": "CVE-2000-0043
-      From NVD collector", "description": "some description", "comment_is_private":
-      false, "alias": ["CVE-2000-0043"], "keywords": ["Security"], "flags": [], "groups":
-      ["redhat"], "cc": [], "cf_srtnotes": "{\"external_ids\": [\"CVE-2000-0043\"],
-      \"references\": [{\"type\": \"source\", \"url\": \"https://nvd.nist.gov/vuln/detail/CVE-2000-0043\",
+      "", "severity": "unspecified", "priority": "unspecified", "summary": "From OSV
+      collector", "description": "some description", "comment_is_private": false,
+      "alias": ["GHSA-0013"], "keywords": ["Security"], "flags": [], "groups": ["redhat"],
+      "cc": [], "cf_srtnotes": "{\"reported\": \"2024-05-28T13:11:44Z\", \"external_ids\":
+      [\"GHSA-0013\"], \"references\": [{\"type\": \"source\", \"url\": \"https://osv.dev/vulnerability/GHSA-0013\",
       \"description\": null}], \"cvss3\": \"8.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H\",
-      \"source\": \"nvd\", \"cwe\": \"CWE-110\"}"}'
+      \"source\": \"osv\", \"cwe\": \"CWE-110\"}"}'
     headers:
       Accept:
       - '*/*'
@@ -652,7 +651,7 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '712'
+      - '723'
       Content-Type:
       - application/json
       User-Agent:
@@ -661,7 +660,7 @@ interactions:
     uri: https://example.com/rest/bug
   response:
     body:
-      string: '{"id": 2038324}'
+      string: '{"id": 2280635}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -676,7 +675,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 15 May 2024 11:26:48 GMT
+      - Tue, 28 May 2024 13:11:49 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -686,9 +685,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.64f06e68.1715772408.1803ad35
+      - 0.64f06e68.1716901909.148d2b34
       x-rh-edge-request-id:
-      - 1803ad35
+      - 148d2b34
     status:
       code: 200
       message: OK
@@ -724,7 +723,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 15 May 2024 11:26:49 GMT
+      - Tue, 28 May 2024 13:11:49 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -734,9 +733,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.7df06e68.1715772409.1c0802f
+      - 0.7df06e68.1716901909.2138e96
       x-rh-edge-request-id:
-      - 1c0802f
+      - 2138e96
     status:
       code: 200
       message: OK
@@ -757,8 +756,8 @@ interactions:
     uri: https://example.com/rest/user?ids=1
   response:
     body:
-      string: '{"users": [{"real_name": "Need Real Name", "id": 1, "email": "aander07@packetmaster.com",
-        "name": "aander07@packetmaster.com", "can_login": true}]}'
+      string: '{"users": [{"can_login": true, "real_name": "Need Real Name", "email":
+        "aander07@packetmaster.com", "name": "aander07@packetmaster.com", "id": 1}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -773,7 +772,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 15 May 2024 11:26:49 GMT
+      - Tue, 28 May 2024 13:11:50 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -783,9 +782,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.7df06e68.1715772409.1c0806b
+      - 0.7df06e68.1716901910.2138f28
       x-rh-edge-request-id:
-      - 1c0806b
+      - 2138f28
     status:
       code: 200
       message: OK
@@ -803,41 +802,40 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2038324
+    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2280635
   response:
     body:
-      string: '{"limit": "20", "bugs": [{"cf_pm_score": "0", "assigned_to": "nobody@redhat.com",
-        "cf_qe_conditional_nak": [], "keywords": ["Security"], "is_cc_accessible":
-        true, "cf_build_id": "", "cf_fixed_in": "", "platform": "All", "data_category":
-        "Red Hat", "assigned_to_detail": {"id": 29451, "partner": false, "name": "nobody@redhat.com",
-        "insider": false, "active": true, "email": "nobody@redhat.com", "real_name":
-        "Nobody"}, "cf_doc_type": "If docs needed, set a value", "resolution": "",
-        "id": 2038324, "cc_detail": [], "estimated_time": 0, "cf_last_closed": null,
-        "cf_cust_facing": "---", "component": ["vulnerability-draft"], "tags": [],
-        "creation_time": "2024-05-15T11:26:48Z", "whiteboard": "", "product": "Security
-        Response", "creator_detail": {"name": "nobody@redhat.com", "insider": true,
-        "id": 425662, "partner": false, "email": "nobody@redhat.com", "real_name":
-        "nobody", "active": true}, "priority": "unspecified", "cf_embargoed":
-        null, "cf_environment": "", "qa_contact": "", "flags": [], "cf_clone_of":
-        null, "is_creator_accessible": true, "comments": [{"attachment_id": null,
-        "id": 15734113, "time": "2024-05-15T11:26:48Z", "is_private": false, "text":
-        "some description", "bug_id": 2038324, "count": 0, "creator_id": 425662, "private_groups":
-        [], "creator": "nobody@redhat.com", "tags": [], "creation_time": "2024-05-15T11:26:48Z"}],
-        "last_change_time": "2024-05-15T11:26:48Z", "status": "NEW", "target_release":
-        ["---"], "summary": "CVE-2000-0043 From NVD collector", "remaining_time":
-        0, "dupe_of": null, "description": "some description", "cf_conditional_nak":
-        [], "docs_contact": "", "depends_on": [], "cf_pgm_internal": "", "is_open":
-        true, "cf_srtnotes": "{\"external_ids\": [\"CVE-2000-0043\"], \"references\":
-        [{\"type\": \"source\", \"url\": \"https://example.com/vuln/detail/CVE-2000-0043\",
+      string: '{"limit": "20", "offset": 0, "bugs": [{"url": "", "version": ["unspecified"],
+        "comments": [{"creation_time": "2024-05-28T13:11:49Z", "count": 0, "is_private":
+        false, "time": "2024-05-28T13:11:49Z", "bug_id": 2280635, "tags": [], "creator_id":
+        425662, "creator": "nobody@redhat.com", "private_groups": [], "attachment_id":
+        null, "id": 18006767, "text": "some description"}], "cf_qa_whiteboard": "",
+        "assigned_to_detail": {"partner": false, "real_name": "INVALID USER", "email":
+        "prodsec-dev@redhat.com", "name": "prodsec-dev@redhat.com", "active": true,
+        "id": 377884, "insider": true}, "blocks": [], "assigned_to": "prodsec-dev@redhat.com",
+        "creation_time": "2024-05-28T13:11:49Z", "deadline": null, "cf_release_notes":
+        "", "classification": "Other", "status": "NEW", "cf_pgm_internal": "", "estimated_time":
+        0, "external_bugs": [], "flags": [], "summary": "From OSV collector", "tags":
+        [], "platform": "All", "is_creator_accessible": true, "cf_doc_type": "If docs
+        needed, set a value", "qa_contact": "", "severity": "unspecified", "target_milestone":
+        "---", "op_sys": "Linux", "last_change_time": "2024-05-28T13:11:49Z", "cf_pm_score":
+        "0", "is_confirmed": true, "cf_cust_facing": "---", "groups": ["redhat"],
+        "target_release": ["---"], "alias": ["GHSA-0013"], "creator": "nobody@redhat.com",
+        "sub_components": {}, "cf_build_id": "", "cf_fixed_in": "", "actual_time":
+        0, "is_open": true, "cf_devel_whiteboard": "", "remaining_time": 0, "docs_contact":
+        "", "cf_qe_conditional_nak": [], "cf_major_incident": null, "is_cc_accessible":
+        true, "cc": [], "cc_detail": [], "cf_internal_whiteboard": "", "cf_clone_of":
+        null, "cf_conditional_nak": [], "creator_detail": {"name": "nobody@redhat.com",
+        "active": true, "partner": false, "real_name": "nobody", "email":
+        "nobody@redhat.com", "insider": true, "id": 425662}, "cf_embargoed": null,
+        "priority": "unspecified", "product": "Security Response", "data_category":
+        "Red Hat", "component": ["vulnerability-draft"], "resolution": "", "whiteboard":
+        "", "cf_environment": "", "cf_last_closed": null, "dupe_of": null, "id": 2280635,
+        "cf_srtnotes": "{\"reported\": \"2024-05-28T13:11:44Z\", \"external_ids\":
+        [\"GHSA-0013\"], \"references\": [{\"type\": \"source\", \"url\": \"https://example.com/vulnerability/GHSA-0013\",
         \"description\": null}], \"cvss3\": \"8.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H\",
-        \"source\": \"nvd\", \"cwe\": \"CWE-110\"}", "actual_time": 0, "cf_release_notes":
-        "", "blocks": [], "cf_qa_whiteboard": "", "groups": ["redhat"], "external_bugs":
-        [], "classification": "Other", "deadline": null, "op_sys": "Linux", "version":
-        ["unspecified"], "severity": "unspecified", "target_milestone": "---", "url":
-        "", "cc": [], "creator": "nobody@redhat.com", "alias": ["CVE-2000-0043"],
-        "cf_major_incident": null, "is_confirmed": true, "cf_internal_whiteboard":
-        "", "sub_components": {}, "cf_devel_whiteboard": ""}], "total_matches": 1,
-        "offset": 0}'
+        \"source\": \"osv\", \"cwe\": \"CWE-110\"}", "description": "some description",
+        "depends_on": [], "keywords": ["Security"]}], "total_matches": 1}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -850,7 +848,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 15 May 2024 11:26:50 GMT
+      - Tue, 28 May 2024 13:11:51 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       Vary:
@@ -860,13 +858,13 @@ interactions:
       X-xss-protection:
       - 1; mode=block
       content-length:
-      - '2291'
+      - '2323'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.7df06e68.1715772410.1c080a5
+      - 0.7df06e68.1716901911.2139073
       x-rh-edge-request-id:
-      - 1c080a5
+      - '2139073'
     status:
       code: 200
       message: OK
@@ -884,40 +882,41 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2038324
+    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2280635
   response:
     body:
-      string: '{"offset": 0, "total_matches": 1, "bugs": [{"product": "Security Response",
-        "creator_detail": {"partner": false, "id": 425662, "insider": true, "name":
-        "nobody@redhat.com", "active": true, "real_name": "nobody", "email":
-        "nobody@redhat.com"}, "estimated_time": 0, "cf_last_closed": null, "cf_cust_facing":
-        "---", "component": ["vulnerability-draft"], "tags": [], "creation_time":
-        "2024-05-15T11:26:48Z", "whiteboard": "", "cf_clone_of": null, "comments":
-        [{"text": "some description", "is_private": false, "attachment_id": null,
-        "time": "2024-05-15T11:26:48Z", "id": 15734113, "private_groups": [], "creator":
-        "nobody@redhat.com", "tags": [], "creation_time": "2024-05-15T11:26:48Z",
-        "creator_id": 425662, "bug_id": 2038324, "count": 0}], "is_creator_accessible":
-        true, "last_change_time": "2024-05-15T11:26:48Z", "target_release": ["---"],
-        "status": "NEW", "cf_environment": "", "priority": "unspecified", "cf_embargoed":
-        null, "flags": [], "qa_contact": "", "cf_qe_conditional_nak": [], "keywords":
-        ["Security"], "cf_pm_score": "0", "assigned_to": "nobody@redhat.com", "id":
-        2038324, "resolution": "", "cc_detail": [], "is_cc_accessible": true, "cf_build_id":
-        "", "cf_fixed_in": "", "platform": "All", "data_category": "Red Hat", "cf_doc_type":
-        "If docs needed, set a value", "assigned_to_detail": {"name": "nobody@redhat.com",
-        "insider": false, "id": 29451, "partner": false, "email": "nobody@redhat.com",
-        "real_name": "Nobody", "active": true}, "op_sys": "Linux", "version": ["unspecified"],
-        "severity": "unspecified", "target_milestone": "---", "groups": ["redhat"],
-        "external_bugs": [], "classification": "Other", "deadline": null, "cf_major_incident":
-        null, "is_confirmed": true, "cf_internal_whiteboard": "", "sub_components":
-        {}, "cf_devel_whiteboard": "", "url": "", "cc": [], "creator": "nobody@redhat.com",
-        "alias": ["CVE-2000-0043"], "cf_conditional_nak": [], "description": "some
-        description", "depends_on": [], "docs_contact": "", "summary": "CVE-2000-0043
-        From NVD collector", "remaining_time": 0, "dupe_of": null, "blocks": [], "cf_qa_whiteboard":
-        "", "is_open": true, "cf_pgm_internal": "", "cf_srtnotes": "{\"external_ids\":
-        [\"CVE-2000-0043\"], \"references\": [{\"type\": \"source\", \"url\": \"https://example.com/vuln/detail/CVE-2000-0043\",
+      string: '{"offset": 0, "limit": "20", "total_matches": 1, "bugs": [{"target_milestone":
+        "---", "status": "NEW", "actual_time": 0, "cf_fixed_in": "", "data_category":
+        "Red Hat", "severity": "unspecified", "creator_detail": {"partner": false,
+        "active": true, "id": 425662, "real_name": "nobody", "insider": true,
+        "name": "nobody@redhat.com", "email": "nobody@redhat.com"}, "cf_clone_of":
+        null, "deadline": null, "platform": "All", "is_creator_accessible": true,
+        "version": ["unspecified"], "cf_last_closed": null, "is_cc_accessible": true,
+        "dupe_of": null, "comments": [{"id": 18006767, "tags": [], "is_private": false,
+        "creator_id": 425662, "bug_id": 2280635, "time": "2024-05-28T13:11:49Z", "text":
+        "some description", "count": 0, "creation_time": "2024-05-28T13:11:49Z", "creator":
+        "nobody@redhat.com", "attachment_id": null, "private_groups": []}], "alias":
+        ["GHSA-0013"], "is_confirmed": true, "cf_cust_facing": "---", "target_release":
+        ["---"], "cf_embargoed": null, "description": "some description", "sub_components":
+        {}, "cf_pgm_internal": "", "keywords": ["Security"], "cf_qe_conditional_nak":
+        [], "docs_contact": "", "cf_environment": "", "whiteboard": "", "assigned_to_detail":
+        {"id": 377884, "real_name": "INVALID USER", "email": "prodsec-dev@redhat.com",
+        "insider": true, "name": "prodsec-dev@redhat.com", "partner": false, "active":
+        true}, "cc": [], "cf_pm_score": "0", "priority": "unspecified", "estimated_time":
+        0, "component": ["vulnerability-draft"], "product": "Security Response", "cf_release_notes":
+        "", "remaining_time": 0, "url": "", "tags": [], "summary": "From OSV collector",
+        "cf_qa_whiteboard": "", "qa_contact": "", "creator": "nobody@redhat.com",
+        "cf_doc_type": "If docs needed, set a value", "cf_devel_whiteboard": "", "id":
+        2280635, "cf_conditional_nak": [], "flags": [], "classification": "Other",
+        "assigned_to": "prodsec-dev@redhat.com", "blocks": [], "external_bugs": [],
+        "resolution": "", "cc_detail": [], "cf_build_id": "", "groups": ["redhat"],
+        "creation_time": "2024-05-28T13:11:49Z", "last_change_time": "2024-05-28T13:11:49Z",
+        "cf_srtnotes": "{\"reported\": \"2024-05-28T13:11:44Z\", \"external_ids\":
+        [\"GHSA-0013\"], \"references\": [{\"type\": \"source\", \"url\": \"https://example.com/vulnerability/GHSA-0013\",
         \"description\": null}], \"cvss3\": \"8.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H\",
-        \"source\": \"nvd\", \"cwe\": \"CWE-110\"}", "actual_time": 0, "cf_release_notes":
-        ""}], "limit": "20"}'
+        \"source\": \"osv\", \"cwe\": \"CWE-110\"}", "cf_internal_whiteboard": "",
+        "is_open": true, "cf_major_incident": null, "op_sys": "Linux", "depends_on":
+        []}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -930,7 +929,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 15 May 2024 11:26:51 GMT
+      - Tue, 28 May 2024 13:11:52 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       Vary:
@@ -940,13 +939,13 @@ interactions:
       X-xss-protection:
       - 1; mode=block
       content-length:
-      - '2291'
+      - '2323'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.7df06e68.1715772411.1c08113
+      - 0.7df06e68.1716901912.21393a1
       x-rh-edge-request-id:
-      - 1c08113
+      - 21393a1
     status:
       code: 200
       message: OK
@@ -964,14 +963,14 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug/2038324/comment
+    uri: https://example.com/rest/bug/2280635/comment
   response:
     body:
-      string: '{"bugs": {"2038324": {"comments": [{"private_groups": [], "creation_time":
-        "2024-05-15T11:26:48Z", "creator": "nobody@redhat.com", "tags": [], "creator_id":
-        425662, "count": 0, "bug_id": 2038324, "text": "some description", "is_private":
-        false, "attachment_id": null, "time": "2024-05-15T11:26:48Z", "id": 15734113}]}},
-        "comments": {}}'
+      string: '{"comments": {}, "bugs": {"2280635": {"comments": [{"id": 18006767,
+        "is_private": false, "tags": [], "creator_id": 425662, "bug_id": 2280635,
+        "time": "2024-05-28T13:11:49Z", "text": "some description", "count": 0, "creation_time":
+        "2024-05-28T13:11:49Z", "creator": "nobody@redhat.com", "attachment_id":
+        null, "private_groups": []}]}}}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -986,7 +985,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 15 May 2024 11:26:52 GMT
+      - Tue, 28 May 2024 13:11:52 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -996,9 +995,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.7df06e68.1715772412.1c0816c
+      - 0.7df06e68.1716901912.213976a
       x-rh-edge-request-id:
-      - 1c0816c
+      - 213976a
     status:
       code: 200
       message: OK

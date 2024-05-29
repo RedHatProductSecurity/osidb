@@ -718,7 +718,7 @@ interactions:
       to cause a denial of service (DoS) attack on the s42.app API, resulting in unavailability
       of the API for legitimate users.", "comment_is_private": false, "alias": ["GHSA-3hwm-922r-47hw"],
       "keywords": ["Security"], "flags": [], "groups": ["redhat"], "cc": [], "cf_srtnotes":
-      "{\"external_ids\": [\"GHSA-3hwm-922r-47hw\"], \"references\": [{\"type\": \"source\",
+      "{\"reported\": \"2024-05-14T14:06:42Z\", \"external_ids\": [\"GHSA-3hwm-922r-47hw\"], \"references\": [{\"type\": \"source\",
       \"url\": \"https://osv.dev/vulnerability/GHSA-3hwm-922r-47hw\", \"description\":
       null}, {\"type\": \"external\", \"url\": \"https://github.com/42Atomys/stud42/security/advisories/GHSA-3hwm-922r-47hw\",
       \"description\": null}, {\"type\": \"external\", \"url\": \"https://github.com/42Atomys/stud42/issues/412\",
@@ -914,7 +914,7 @@ interactions:
         "nobody@redhat.com", "active": true, "name": "nobody@redhat.com", "real_name":
         "Nobody"}, "resolution": "", "cf_doc_type": "If docs needed, set a value",
         "sub_components": {}, "cf_clone_of": null, "product": "Security Response",
-        "cf_srtnotes": "{\"external_ids\": [\"GHSA-3hwm-922r-47hw\"], \"references\":
+        "cf_srtnotes": "{\"reported\": \"2024-05-14T14:06:42Z\", \"external_ids\": [\"GHSA-3hwm-922r-47hw\"], \"references\":
         [{\"type\": \"source\", \"url\": \"https://example.com/vulnerability/GHSA-3hwm-922r-47hw\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/42Atomys/stud42/security/advisories/GHSA-3hwm-922r-47hw\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/42Atomys/stud42/issues/412\",
@@ -989,7 +989,7 @@ interactions:
         "Linux", "url": "", "resolution": "", "creator_detail": {"insider": true,
         "email": "nobody@redhat.com", "active": true, "real_name": "nobody",
         "id": 425662, "name": "nobody@redhat.com", "partner": false}, "cf_internal_whiteboard":
-        "", "cf_conditional_nak": [], "cc": [], "cf_srtnotes": "{\"external_ids\":
+        "", "cf_conditional_nak": [], "cc": [], "cf_srtnotes": "{\"reported\": \"2024-05-14T14:06:42Z\", \"external_ids\":
         [\"GHSA-3hwm-922r-47hw\"], \"references\": [{\"type\": \"source\", \"url\":
         \"https://example.com/vulnerability/GHSA-3hwm-922r-47hw\", \"description\":
         null}, {\"type\": \"external\", \"url\": \"https://example.com/42Atomys/stud42/security/advisories/GHSA-3hwm-922r-47hw\",
