@@ -843,6 +843,8 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                 ),
                 order=comment["count"],
                 text=comment["text"],
+                creator=comment["creator"],
+                is_private=comment.get("is_private", False),
                 type=FlawComment.FlawCommentType.BUGZILLA,
                 acl_read=self.acl_read,
                 acl_write=self.acl_write,

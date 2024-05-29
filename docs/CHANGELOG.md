@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Bugzilla sync not working when Jira task sync is enabled (OSIDB-2628)
 - Ignore SLA if update stream specifies it's not applicable (OSIDB-2612)
 - Allow filtering by empty or null CVE IDs (OSIDB-2625)
+- Redesign of flaw comments to make them independent of Bugzilla (OSIDB-2760)
 
 ### Fixed
 - Fix incorrect ACLs for flaw drafts (OSIDB-2263)
