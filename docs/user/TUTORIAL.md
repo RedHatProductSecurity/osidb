@@ -450,7 +450,6 @@ $ curl -H "Authorization: Bearer <access_token>" \
        -X POST
        -d '{
               "cve_id": "CVE-2161-0013",
-              "state": "NEW",
               "resolution": "ERRATA",
               "impact": "MODERATE",
               "title": "Retrieve the water chip",
@@ -470,7 +469,6 @@ headers = {
 }
 data = {
     "cve_id": "CVE-2161-0013",
-    "state": "NEW",
     "resolution": "ERRATA",
     "impact": "MODERATE",
     "title": "Retrieve the water chip",
@@ -494,7 +492,6 @@ $ curl -H "Authorization: Bearer <access_token>" \
        -X PUT
        -d '{
               "cve_id": "CVE-2161-0013",
-              "state": "NEW",
               "resolution": "ERRATA",
               "impact": "CRITICAL",     # from MODERATE to CRITICAL
               "title": "Retrieve the water chip",
@@ -514,7 +511,6 @@ headers = {
 }
 data = {
     "cve_id": "CVE-2161-0013",
-    "state": "NEW",
     "resolution": "ERRATA",
     "impact": "CRITICAL",           # from MODERATE to CRITICAL
     "title": "Retrieve the water chip",
