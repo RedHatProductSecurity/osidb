@@ -467,7 +467,6 @@ class FlawView(ModelViewSet):
         response = super().create(request, *args, **kwargs)
         response.data = {
             "uuid": response.data["uuid"],
-            "state": response.data["state"],
         }
         response["Location"] = f"/api/{OSIDB_API_VERSION}/flaws/{response.data['uuid']}"
         return response

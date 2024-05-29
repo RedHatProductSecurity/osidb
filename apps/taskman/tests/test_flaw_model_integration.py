@@ -132,7 +132,6 @@ class TestFlawModelIntegration(object):
         flaw_data = {
             "cwe_id": "CWE-1",
             "title": "Foo",
-            "state": "NEW",
             "impact": "CRITICAL",
             "component": "curl",
             "source": "INTERNET",

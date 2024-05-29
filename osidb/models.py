@@ -537,19 +537,6 @@ class Flaw(
 ):
     """Model flaw"""
 
-    class FlawState(models.TextChoices):
-        """allowable Bugzilla states"""
-
-        ASSIGNED = "ASSIGNED"
-        CLOSED = "CLOSED"
-        MODIFIED = "MODIFIED"
-        NEW = "NEW"
-        ON_DEV = "ON_DEV"
-        ON_QA = "ON_QA"
-        POST = "POST"
-        RELEASE_PENDING = "RELEASE_PENDING"
-        VERIFIED = "VERIFIED"
-
     class FlawMajorIncident(models.TextChoices):
         """
         Stores a Major Incident (MI) state.
@@ -630,15 +617,6 @@ class Flaw(
         unique=True,
         validators=[validate_cve_id],
         blank=True,
-    )
-
-    # flaw state, from BZ status
-    state = deprecate_field(
-        models.CharField(
-            choices=FlawState.choices, default=FlawState.NEW, max_length=100
-        ),
-        # required to keep backwards compatibility
-        return_instead=FlawState.NEW,
     )
 
     # resolution
