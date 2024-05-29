@@ -7712,10 +7712,6 @@ components:
         cve_id:
           type: string
           nullable: true
-        state:
-          type: string
-          readOnly: true
-          deprecated: true
         resolution:
           type: string
           readOnly: true
@@ -7875,8 +7871,6 @@ components:
               type: string
             source:
               type: string
-            state:
-              type: string
             statement:
               type: string
             task_owner:
@@ -7963,7 +7957,6 @@ components:
       - package_versions
       - references
       - resolution
-      - state
       - title
       - trackers
       - updated_dt
@@ -8468,10 +8461,6 @@ components:
         cve_id:
           type: string
           nullable: true
-        state:
-          type: string
-          readOnly: true
-          deprecated: true
         resolution:
           type: string
           readOnly: true
@@ -8631,8 +8620,6 @@ components:
               type: string
             source:
               type: string
-            state:
-              type: string
             statement:
               type: string
             task_owner:
@@ -8714,7 +8701,6 @@ components:
       - package_versions
       - references
       - resolution
-      - state
       - title
       - trackers
       - uuid
@@ -8855,9 +8841,6 @@ components:
           type: string
           nullable: true
           maxLength: 500
-        state:
-          type: string
-          readOnly: true
         resolution:
           type: string
           readOnly: true
@@ -8867,7 +8850,6 @@ components:
             $ref: '#/components/schemas/AffectReportData'
       required:
       - resolution
-      - state
     FlawUUIDList:
       type: object
       properties:
