@@ -1433,7 +1433,7 @@ class FlawSerializer(
         "task_owner",
     )
 
-    cve_id = serializers.CharField(required=False, allow_null=True)
+    cve_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     trackers = FlawAffectsTrackersField(source="*", read_only=True)
     affects = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
