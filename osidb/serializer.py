@@ -1374,7 +1374,6 @@ class FlawCVSSPutSerializer(FlawCVSSSerializer):
 @extend_schema_serializer(
     deprecate_fields=[
         "component",
-        "resolution",
         "is_major_incident",
         "cvss2",
         "cvss2_score",
@@ -1430,7 +1429,6 @@ class FlawSerializer(
         "references",
         "related_cves",
         "reported",
-        "resolution",
         "source",
         "statement",
         "task_owner",
@@ -1512,7 +1510,6 @@ class FlawSerializer(
             [
                 "uuid",
                 "cve_id",
-                "resolution",
                 "impact",
                 "component",
                 "components",

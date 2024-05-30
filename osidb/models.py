@@ -25,7 +25,6 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django_deprecate_fields import deprecate_field
 from polymorphic.models import PolymorphicModel
 from psqlextra.fields import HStoreField
 
@@ -190,25 +189,6 @@ class Impact(ComparableTextChoices):
     MODERATE = "MODERATE"
     IMPORTANT = "IMPORTANT"
     CRITICAL = "CRITICAL"
-
-
-class FlawResolution(models.TextChoices):
-    """allowable resolution"""
-
-    NOVALUE = ""
-    DUPLICATE = "DUPLICATE"
-    WONTFIX = "WONTFIX"
-    NOTABUG = "NOTABUG"
-    ERRATA = "ERRATA"
-    CANTFIX = "CANTFIX"
-    DEFERRED = "DEFERRED"
-    CURRENTRELEASE = "CURRENTRELEASE"
-    UPSTREAM = "UPSTREAM"
-    RAWHIDE = "RAWHIDE"
-    INSUFFICIENT_DATA = "INSUFFICIENT_DATA"
-    NEXTRELEASE = "NEXTRELEASE"
-    WORKSFORME = "WORKSFORME"
-    EOL = "EOL"
 
 
 class FlawSource(models.TextChoices):
@@ -617,18 +597,6 @@ class Flaw(
         unique=True,
         validators=[validate_cve_id],
         blank=True,
-    )
-
-    # resolution
-    resolution = deprecate_field(
-        models.CharField(
-            choices=FlawResolution.choices,
-            default=FlawResolution.NOVALUE,
-            max_length=100,
-            blank=True,
-        ),
-        # required to keep backwards compatibility
-        return_instead=FlawResolution.NOVALUE,
     )
 
     # flaw severity, from srtnotes "impact"

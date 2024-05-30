@@ -702,7 +702,7 @@ class TestEndpointsFlaws:
                 type=Tracker.TrackerType.BUGZILLA,
             )
 
-        flaw_include_fields = ["resolution", "uuid", "impact"]
+        flaw_include_fields = ["uuid", "impact"]
         affect_include_fields = ["ps_module", "ps_component", "affectedness"]
         tracker_include_fields = ["type", "external_system_id", "status", "resolution"]
 
@@ -809,7 +809,7 @@ class TestEndpointsFlaws:
                 type=Tracker.TrackerType.BUGZILLA,
             )
 
-        flaw_include_fields = ["resolution", "uuid", "impact"]
+        flaw_include_fields = ["uuid", "impact"]
         affect_include_fields = ["ps_module", "ps_component", "affectedness"]
         tracker_include_fields = ["type", "external_system_id", "status", "resolution"]
 
@@ -819,7 +819,7 @@ class TestEndpointsFlaws:
             + [f"affects.trackers.{field}" for field in tracker_include_fields]
         )
 
-        flaw_exclude_fields = ["resolution"]
+        flaw_exclude_fields = ["cve_id"]
         affect_exclude_fields = ["ps_module", "ps_component"]
         tracker_exclude_fields = ["type", "external_system_id"]
 
