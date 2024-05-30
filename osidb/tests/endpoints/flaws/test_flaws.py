@@ -702,7 +702,7 @@ class TestEndpointsFlaws:
                 type=Tracker.TrackerType.BUGZILLA,
             )
 
-        flaw_include_fields = ["resolution", "state", "uuid", "impact"]
+        flaw_include_fields = ["resolution", "uuid", "impact"]
         affect_include_fields = ["ps_module", "ps_component", "affectedness"]
         tracker_include_fields = ["type", "external_system_id", "status", "resolution"]
 
@@ -809,7 +809,7 @@ class TestEndpointsFlaws:
                 type=Tracker.TrackerType.BUGZILLA,
             )
 
-        flaw_include_fields = ["resolution", "state", "uuid", "impact"]
+        flaw_include_fields = ["resolution", "uuid", "impact"]
         affect_include_fields = ["ps_module", "ps_component", "affectedness"]
         tracker_include_fields = ["type", "external_system_id", "status", "resolution"]
 
@@ -819,7 +819,7 @@ class TestEndpointsFlaws:
             + [f"affects.trackers.{field}" for field in tracker_include_fields]
         )
 
-        flaw_exclude_fields = ["resolution", "state"]
+        flaw_exclude_fields = ["resolution"]
         affect_exclude_fields = ["ps_module", "ps_component"]
         tracker_exclude_fields = ["type", "external_system_id"]
 
@@ -1336,7 +1336,6 @@ class TestEndpointsFlaws:
             "cve_id": "CVE-2021-0666",
             "cwe_id": "CWE-1",
             "title": "Foo",
-            "state": "NEW",
             "impact": "CRITICAL",
             "component": "curl",
             "source": "INTERNET",
@@ -1370,7 +1369,6 @@ class TestEndpointsFlaws:
         flaw_data = {
             "cwe_id": "CWE-1",
             "title": "Foo",
-            "state": "NEW",
             "impact": "CRITICAL",
             "component": "curl",
             "source": "INTERNET",
