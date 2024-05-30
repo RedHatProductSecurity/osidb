@@ -7724,10 +7724,6 @@ components:
         cve_id:
           type: string
           nullable: true
-        resolution:
-          type: string
-          readOnly: true
-          deprecated: true
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -7879,8 +7875,6 @@ components:
               type: string
             reported:
               type: string
-            resolution:
-              type: string
             source:
               type: string
             statement:
@@ -7968,7 +7962,6 @@ components:
       - meta_attr
       - package_versions
       - references
-      - resolution
       - title
       - trackers
       - updated_dt
@@ -8483,10 +8476,6 @@ components:
         cve_id:
           type: string
           nullable: true
-        resolution:
-          type: string
-          readOnly: true
-          deprecated: true
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -8638,8 +8627,6 @@ components:
               type: string
             reported:
               type: string
-            resolution:
-              type: string
             source:
               type: string
             statement:
@@ -8722,7 +8709,6 @@ components:
       - meta_attr
       - package_versions
       - references
-      - resolution
       - title
       - trackers
       - uuid
@@ -8863,15 +8849,10 @@ components:
           type: string
           nullable: true
           maxLength: 500
-        resolution:
-          type: string
-          readOnly: true
         affects:
           type: array
           items:
             $ref: '#/components/schemas/AffectReportData'
-      required:
-      - resolution
     FlawUUIDList:
       type: object
       properties:
