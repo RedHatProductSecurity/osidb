@@ -268,7 +268,6 @@ class TestTrackingMixin:
             acl_write=self.get_acl_write(),
             reported_dt=timezone.now(),
             unembargo_dt=tzdatetime(2000, 1, 1),
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             **kwargs,
         )
 
@@ -461,7 +460,6 @@ class TestTrackingMixin:
             updated_dt=tzdatetime(2000, 1, 1),  # different from now
             reported_dt=tzdatetime(2000, 1, 1),
             unembargo_dt=tzdatetime(2000, 1, 1),
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
 
         # timestamps should be auto rewritten to now
@@ -577,7 +575,6 @@ class TestBugzillaJiraMixinInteration:
             acl_write=self.get_acl_write(),
             reported_dt=timezone.now(),
             unembargo_dt=tzdatetime(2000, 1, 1),
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
 
         jira_token = "SECRET"
@@ -627,7 +624,6 @@ class TestBugzillaJiraMixinInteration:
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "mitigation": "mitigation",
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": "false",
         }
         response = auth_client().post(

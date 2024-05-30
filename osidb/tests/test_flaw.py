@@ -83,7 +83,6 @@ class TestFlaw:
             nist_cvss_validation=Flaw.FlawNistCvssValidation.REQUESTED,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             requires_summary=Flaw.FlawRequiresSummary.APPROVED,
             # META
             meta_attr=meta_attr,
@@ -238,7 +237,6 @@ class TestFlaw:
             statement="statement",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
         assert vuln_2.validate() is None
 
@@ -259,7 +257,6 @@ class TestFlaw:
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             reported_dt=timezone.now(),
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
         flaw1.save()
         AffectFactory(flaw=flaw1)
@@ -275,7 +272,6 @@ class TestFlaw:
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             reported_dt=timezone.now(),
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         ).save()
         # no new flaw should be created
         assert Flaw.objects.count() == 1
@@ -490,7 +486,6 @@ class TestFlaw:
             statement="statement",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             # META
             meta_attr=meta_attr,
         )
@@ -513,7 +508,6 @@ class TestFlaw:
             statement="statement",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
         assert Flaw.objects.get_queryset().count() == 0
         flaw.save()
@@ -535,7 +529,6 @@ class TestFlaw:
             statement="statement",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
 
         assert not Flaw.objects.fts_search("title")
@@ -721,38 +714,6 @@ class TestFlawValidators:
     #     with pytest.raises(ValidationError) as e:
     #         FlawFactory(cwe_id=cwe_id)
     #     assert "Invalid CWE." in str(e)
-
-    @pytest.mark.parametrize(
-        "cvss2",
-        [
-            "test",
-            "7.8/AV:N/AC:L/Au:N/C:N/I:N/A:C ",
-            "2.8/AV:N/AC:L/Au:N/C:N/I:N/A:C",  # score does not correspond to vector
-            "AV:N/AC:L/Au:N/C:N/I:N/A:C",
-        ],
-    )
-    def test_validate_cvss2(self, cvss2):
-        """test cvss2 validator"""
-        with pytest.raises(ValidationError) as e:
-            FlawFactory(cvss2=cvss2)
-        assert "Invalid CVSS2:" in str(e)
-
-    @pytest.mark.parametrize(
-        "cvss3",
-        [
-            "test",
-            "5.3/CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N "
-            "3.3/CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"  # score does not correspond to vector
-            "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"
-            "5.3/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"
-            "AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
-        ],
-    )
-    def test_validate_cvss3_field(self, cvss3):
-        """test cvss3 validator"""
-        with pytest.raises(ValidationError) as e:
-            FlawFactory(cvss3=cvss3)
-        assert "Invalid CVSS3:" in str(e)
 
     @freeze_time(tzdatetime(2021, 11, 23))
     def test_validate_reported_dt(self):

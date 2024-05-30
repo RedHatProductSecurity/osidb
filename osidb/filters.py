@@ -342,12 +342,6 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
-            "cvss2": ["exact"],
-            "cvss2_score": ["exact"] + LT_GT_LOOKUP_EXPRS + LTE_GTE_LOOKUP_EXPRS,
-            "cvss3": ["exact"],
-            "cvss3_score": ["exact", "lt"] + LT_GT_LOOKUP_EXPRS + LTE_GTE_LOOKUP_EXPRS,
-            "nvd_cvss2": ["exact"],
-            "nvd_cvss3": ["exact"],
             "components": ["exact"],
             "major_incident_state": ["exact"],
             "requires_summary": ["exact"],
@@ -536,14 +530,6 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
-            "flaw__cvss2": ["exact"],
-            "flaw__cvss2_score": ["exact"] + LT_GT_LOOKUP_EXPRS + LTE_GTE_LOOKUP_EXPRS,
-            "flaw__cvss3": ["exact"],
-            "flaw__cvss3_score": ["exact", "lt"]
-            + LT_GT_LOOKUP_EXPRS
-            + LTE_GTE_LOOKUP_EXPRS,
-            "flaw__nvd_cvss2": ["exact"],
-            "flaw__nvd_cvss3": ["exact"],
             "flaw__components": ["exact"],
             # Tracker fields
             "trackers__uuid": ["exact"],
@@ -679,16 +665,6 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
-            "affects__flaw__cvss2": ["exact"],
-            "affects__flaw__cvss2_score": ["exact"]
-            + LT_GT_LOOKUP_EXPRS
-            + LTE_GTE_LOOKUP_EXPRS,
-            "affects__flaw__cvss3": ["exact"],
-            "affects__flaw__cvss3_score": ["exact", "lt"]
-            + LT_GT_LOOKUP_EXPRS
-            + LTE_GTE_LOOKUP_EXPRS,
-            "affects__flaw__nvd_cvss2": ["exact"],
-            "affects__flaw__nvd_cvss3": ["exact"],
             "affects__flaw__components": ["exact"],
         }
 

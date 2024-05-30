@@ -154,7 +154,6 @@ class FlawFactory(BaseFactory):
         yes_declaration=factory.Faker("future_datetime", tzinfo=UTC),
         no_declaration=factory.Faker("past_datetime", tzinfo=UTC),
     )
-    cvss3 = "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"
     source = factory.Maybe(
         "embargoed",
         yes_declaration=factory.Faker(

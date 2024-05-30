@@ -77,7 +77,6 @@ class TestCheck:
             "description",
             "title",
             "summary",
-            "cvss3",
             "source",
         ],
     )
@@ -101,7 +100,6 @@ class TestCheck:
             ("description", ""),
             ("title", ""),
             ("summary", ""),
-            ("cvss3", ""),
             ("source", ""),
         ],
     )
@@ -278,7 +276,6 @@ class TestState:
         requirements = [
             "has cve_id",
             "has impact",
-            "has cvss3",
             "not cwe",
             "not description",
             "not title",

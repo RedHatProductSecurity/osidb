@@ -191,8 +191,6 @@ class FlawFixer:
         self.fix_reported_dt()
         self.fix_source()
         self.fix_cwe_id()
-        self.fix_cvss2()
-        self.fix_cvss3()
 
         return self.flaw_obj, self.errors
 
@@ -319,31 +317,3 @@ class FlawFixer:
     def fix_cwe_id(self) -> None:
         """cwe_id fixup"""
         self.flaw_obj.cwe_id = self.srtnotes.get("cwe")
-
-    def fix_cvss2(self) -> None:
-        """cvss2 fixup"""
-        if self.srtnotes.get("cvss2"):
-            cvss2_data = self.srtnotes["cvss2"].split("/", 1)
-            if len(cvss2_data) == 2:
-                self.flaw_obj.cvss2_score = cvss2_data[0]
-                self.flaw_obj.cvss2 = self.srtnotes["cvss2"]
-            else:
-                self.flaw_obj.cvss2_score = None
-                self.flaw_obj.cvss2 = cvss2_data
-        else:
-            self.flaw_obj.cvss2_score = None
-            self.flaw_obj.cvss2 = ""
-
-    def fix_cvss3(self) -> None:
-        """cvss3 fixup"""
-        if self.srtnotes.get("cvss3"):
-            cvss3_data = self.srtnotes["cvss3"].split("/", 1)
-            if len(cvss3_data) == 2:
-                self.flaw_obj.cvss3_score = cvss3_data[0]
-                self.flaw_obj.cvss3 = self.srtnotes["cvss3"]
-            else:
-                self.flaw_obj.cvss3_score = None
-                self.flaw_obj.cvss3 = cvss3_data
-        else:
-            self.flaw_obj.cvss3_score = None
-            self.flaw_obj.cvss3 = ""
