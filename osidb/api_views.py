@@ -982,10 +982,14 @@ class JiraStageForwarderView(APIView):
         """perform JIRA stage HTTP GET"""
         path_value = request.GET.get("path")
         target_url = f"{JIRA_SERVER}{path_value}"
+        headers = dict(request.headers)
+        params = request.GET.copy()
+        params.pop("path")
         response = requests.get(
             target_url,
             proxies=self.proxies,
-            headers=self.headers,
+            params=params,
+            headers=headers.update(self.headers),
             timeout=30,
         )
         return Response(response.json(), status=response.status_code)
@@ -994,11 +998,15 @@ class JiraStageForwarderView(APIView):
         """perform JIRA stage HTTP POST"""
         path_value = request.GET.get("path")
         target_url = f"{JIRA_SERVER}{path_value}"
+        headers = dict(request.headers)
+        params = request.GET.copy()
+        params.pop("path")
         response = requests.post(
             target_url,
             data=request.POST,
             proxies=self.proxies,
-            headers=self.headers,
+            params=params,
+            headers=headers.update(self.headers),
             timeout=30,
         )
         return Response(response.json, status=response.status_code)
