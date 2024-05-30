@@ -34,8 +34,11 @@ pytestmark = pytest.mark.integration
 @pytest.fixture(autouse=True)
 def enable_bbsync_env_var(monkeypatch) -> None:
     import apps.bbsync.mixins as mixins
+    import osidb.models as models
 
     monkeypatch.setattr(mixins, "SYNC_TO_BZ", True)
+    monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ", True)
+    monkeypatch.setattr(models, "SYNC_TRACKERS_TO_BZ", True)
 
 
 class TestBBSyncIntegration:

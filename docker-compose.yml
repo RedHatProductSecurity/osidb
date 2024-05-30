@@ -69,6 +69,8 @@ services:
         - "8000:8000"
       environment:
         BBSYNC_SYNC_TO_BZ: ${BBSYNC_SYNC_TO_BZ}
+        BBSYNC_SYNC_FLAWS_TO_BZ: ${BBSYNC_SYNC_FLAWS_TO_BZ}
+        BBSYNC_SYNC_TRACKERS_TO_BZ: ${BBSYNC_SYNC_TRACKERS_TO_BZ}
         BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
         BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
         DJANGO_SETTINGS_MODULE: "config.settings_local"

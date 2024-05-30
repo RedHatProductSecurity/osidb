@@ -507,7 +507,8 @@ class TestBugzillaJiraMixinInteration:
         monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(bz_mixins, "SYNC_TO_BZ", True)
-        monkeypatch.setattr(models, "SYNC_TO_BZ", True)
+        monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ", True)
+        monkeypatch.setattr(models, "SYNC_TRACKERS_TO_BZ", True)
         monkeypatch.setattr(models, "SYNC_TO_JIRA", True)
 
         monkeypatch.setenv("HTTPS_PROXY", "http://squid.corp.redhat.com:3128")

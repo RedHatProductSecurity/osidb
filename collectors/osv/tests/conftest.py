@@ -16,4 +16,6 @@ def enable_env_vars(monkeypatch) -> None:
     monkeypatch.setattr(bbsync_mixins, "SYNC_TO_BZ", True)
     monkeypatch.setattr(taskman_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
     monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+    monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ", True)
+    monkeypatch.setattr(models, "SYNC_TRACKERS_TO_BZ", True)
     monkeypatch.setattr(collectors, "JIRA_AUTH_TOKEN", "SECRET")
