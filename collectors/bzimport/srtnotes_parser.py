@@ -129,7 +129,6 @@ def parse_cf_srtnotes(cf_srtnotes, return_warnings=False, revision=1):
     1) convert date / datetime fields to dates / datetimes
     2) split out some extra information from ps_component entries for convenience.
       * Adds 'module_name', 'module_stream', and 'component' that are parsed out of ps_component
-    3) adds 'cvss[2,3]_score', 'cvss[2,3]_vector' attributes, which are split out from the whole cvss attribute
 
     The 'return_warnings' arg allows you to specify warning behavior. If False (default)
     warnings will be "raised" with warnings.warn. If True then instead of raising them
@@ -190,9 +189,7 @@ def parse_cf_srtnotes(cf_srtnotes, return_warnings=False, revision=1):
     for field in ("cvss2", "cvss3"):
         if srtnotes[field]:
             try:
-                score, vector = srtnotes[field].split("/", 1)
-                srtnotes[field + "_score"] = float(score)
-                srtnotes[field + "_vector"] = vector
+                _, _ = srtnotes[field].split("/", 1)
             except (TypeError, ValueError) as e:
                 warns.append(
                     WhiteboardMalformedCVSS(
@@ -201,9 +198,6 @@ def parse_cf_srtnotes(cf_srtnotes, return_warnings=False, revision=1):
                         )
                     )
                 )
-
-        if not field + "_score" in srtnotes:
-            srtnotes[field + "_score"] = srtnotes[field + "_vector"] = None
 
     srtnotes, _warns = _parse_affects(srtnotes)
     warns += _warns

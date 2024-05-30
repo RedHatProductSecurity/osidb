@@ -353,42 +353,6 @@ def include_exclude_fields_extend_schema_view(
                 location=OpenApiParameter.QUERY,
                 deprecated=True,
             ),
-            OpenApiParameter(
-                "cvss2",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.QUERY,
-                deprecated=True,
-            ),
-            OpenApiParameter(
-                "cvss2_score",
-                type=OpenApiTypes.FLOAT,
-                location=OpenApiParameter.QUERY,
-                deprecated=True,
-            ),
-            OpenApiParameter(
-                "cvss3",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.QUERY,
-                deprecated=True,
-            ),
-            OpenApiParameter(
-                "cvss3_score",
-                type=OpenApiTypes.FLOAT,
-                location=OpenApiParameter.QUERY,
-                deprecated=True,
-            ),
-            OpenApiParameter(
-                "nvd_cvss2",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.QUERY,
-                deprecated=True,
-            ),
-            OpenApiParameter(
-                "nvd_cvss3",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.QUERY,
-                deprecated=True,
-            ),
         ],
     ),
     retrieve=extend_schema(

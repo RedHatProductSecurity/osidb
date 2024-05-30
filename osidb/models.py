@@ -646,22 +646,6 @@ class Flaw(
     # mitigation to apply if the final fix is not available, from srtnotes "mitigation"
     mitigation = models.TextField(blank=True)
 
-    # , from srtnotes "cvss2"
-    cvss2 = models.CharField(max_length=100, blank=True, validators=[validate_cvss2])
-    cvss2_score = models.FloatField(null=True, blank=True)
-
-    # , from srtnotes "cvss3"
-    cvss3 = models.CharField(max_length=100, blank=True, validators=[validate_cvss3])
-    cvss3_score = models.FloatField(null=True, blank=True)
-
-    # updated from Dashboard's /rest/api/latest/nvd_cvss
-    nvd_cvss2 = models.CharField(
-        max_length=100, blank=True, validators=[validate_cvss2]
-    )
-    nvd_cvss3 = models.CharField(
-        max_length=100, blank=True, validators=[validate_cvss3]
-    )
-
     def is_major_incident_temp(self):
         """
         This function mirrors behaviour of the is_major_incident field.

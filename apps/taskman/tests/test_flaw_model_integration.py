@@ -138,7 +138,6 @@ class TestFlawModelIntegration(object):
             "description": "test",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
         response = auth_client().post(

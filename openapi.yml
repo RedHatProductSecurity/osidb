@@ -987,64 +987,6 @@ paths:
         schema:
           type: string
       - in: query
-        name: flaw__cvss2
-        schema:
-          type: string
-      - in: query
-        name: flaw__cvss2_score
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: flaw__cvss2_score__gt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: flaw__cvss2_score__gte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: flaw__cvss2_score__lt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: flaw__cvss2_score__lte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: flaw__cvss3
-        schema:
-          type: string
-      - in: query
-        name: flaw__cvss3_score
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: flaw__cvss3_score__gt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: flaw__cvss3_score__gte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: flaw__cvss3_score__lt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: flaw__cvss3_score__lte
-        schema:
-          type: number
-          format: float
-      - in: query
         name: flaw__cwe_id
         schema:
           type: string
@@ -1067,14 +1009,6 @@ paths:
         schema:
           type: boolean
         deprecated: true
-      - in: query
-        name: flaw__nvd_cvss2
-        schema:
-          type: string
-      - in: query
-        name: flaw__nvd_cvss3
-        schema:
-          type: string
       - in: query
         name: flaw__reported_dt
         schema:
@@ -1328,16 +1262,10 @@ paths:
             - -flaw__components
             - -flaw__created_dt
             - -flaw__cve_id
-            - -flaw__cvss2
-            - -flaw__cvss2_score
-            - -flaw__cvss3
-            - -flaw__cvss3_score
             - -flaw__cwe_id
             - -flaw__embargoed
             - -flaw__impact
             - -flaw__is_major_incident
-            - -flaw__nvd_cvss2
-            - -flaw__nvd_cvss3
             - -flaw__reported_dt
             - -flaw__source
             - -flaw__unembargo_dt
@@ -1377,16 +1305,10 @@ paths:
             - flaw__components
             - flaw__created_dt
             - flaw__cve_id
-            - flaw__cvss2
-            - flaw__cvss2_score
-            - flaw__cvss3
-            - flaw__cvss3_score
             - flaw__cwe_id
             - flaw__embargoed
             - flaw__impact
             - flaw__is_major_incident
-            - flaw__nvd_cvss2
-            - flaw__nvd_cvss3
             - flaw__reported_dt
             - flaw__source
             - flaw__unembargo_dt
@@ -2907,68 +2829,6 @@ paths:
         schema:
           type: boolean
       - in: query
-        name: cvss2
-        schema:
-          type: string
-        deprecated: true
-      - in: query
-        name: cvss2_score
-        schema:
-          type: number
-          format: float
-        deprecated: true
-      - in: query
-        name: cvss2_score__gt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: cvss2_score__gte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: cvss2_score__lt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: cvss2_score__lte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: cvss3
-        schema:
-          type: string
-        deprecated: true
-      - in: query
-        name: cvss3_score
-        schema:
-          type: number
-          format: float
-        deprecated: true
-      - in: query
-        name: cvss3_score__gt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: cvss3_score__gte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: cvss3_score__lt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: cvss3_score__lte
-        schema:
-          type: number
-          format: float
-      - in: query
         name: cvss_scores__comment
         schema:
           type: string
@@ -3169,16 +3029,6 @@ paths:
           - APPROVED
           - REJECTED
           - REQUESTED
-      - in: query
-        name: nvd_cvss2
-        schema:
-          type: string
-        deprecated: true
-      - in: query
-        name: nvd_cvss3
-        schema:
-          type: string
-        deprecated: true
       - name: offset
         required: false
         in: query
@@ -3226,10 +3076,6 @@ paths:
             - -components
             - -created_dt
             - -cve_id
-            - -cvss2
-            - -cvss2_score
-            - -cvss3
-            - -cvss3_score
             - -cvss_scores__comment
             - -cvss_scores__created_dt
             - -cvss_scores__issuer
@@ -3244,8 +3090,6 @@ paths:
             - -is_major_incident
             - -major_incident_state
             - -nist_cvss_validation
-            - -nvd_cvss2
-            - -nvd_cvss3
             - -owner
             - -references__created_dt
             - -references__description
@@ -3298,10 +3142,6 @@ paths:
             - components
             - created_dt
             - cve_id
-            - cvss2
-            - cvss2_score
-            - cvss3
-            - cvss3_score
             - cvss_scores__comment
             - cvss_scores__created_dt
             - cvss_scores__issuer
@@ -3316,8 +3156,6 @@ paths:
             - is_major_incident
             - major_incident_state
             - nist_cvss_validation
-            - nvd_cvss2
-            - nvd_cvss3
             - owner
             - references__created_dt
             - references__description
@@ -6061,64 +5899,6 @@ paths:
         schema:
           type: string
       - in: query
-        name: affects__flaw__cvss2
-        schema:
-          type: string
-      - in: query
-        name: affects__flaw__cvss2_score
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__flaw__cvss2_score__gt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__flaw__cvss2_score__gte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__flaw__cvss2_score__lt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__flaw__cvss2_score__lte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__flaw__cvss3
-        schema:
-          type: string
-      - in: query
-        name: affects__flaw__cvss3_score
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__flaw__cvss3_score__gt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__flaw__cvss3_score__gte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__flaw__cvss3_score__lt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__flaw__cvss3_score__lte
-        schema:
-          type: number
-          format: float
-      - in: query
         name: affects__flaw__cwe_id
         schema:
           type: string
@@ -6141,14 +5921,6 @@ paths:
         schema:
           type: boolean
         deprecated: true
-      - in: query
-        name: affects__flaw__nvd_cvss2
-        schema:
-          type: string
-      - in: query
-        name: affects__flaw__nvd_cvss3
-        schema:
-          type: string
       - in: query
         name: affects__flaw__reported_dt
         schema:
@@ -6516,16 +6288,10 @@ paths:
             - -affects__flaw__components
             - -affects__flaw__created_dt
             - -affects__flaw__cve_id
-            - -affects__flaw__cvss2
-            - -affects__flaw__cvss2_score
-            - -affects__flaw__cvss3
-            - -affects__flaw__cvss3_score
             - -affects__flaw__cwe_id
             - -affects__flaw__embargoed
             - -affects__flaw__impact
             - -affects__flaw__is_major_incident
-            - -affects__flaw__nvd_cvss2
-            - -affects__flaw__nvd_cvss3
             - -affects__flaw__reported_dt
             - -affects__flaw__source
             - -affects__flaw__unembargo_dt
@@ -6557,16 +6323,10 @@ paths:
             - affects__flaw__components
             - affects__flaw__created_dt
             - affects__flaw__cve_id
-            - affects__flaw__cvss2
-            - affects__flaw__cvss2_score
-            - affects__flaw__cvss3
-            - affects__flaw__cvss3_score
             - affects__flaw__cwe_id
             - affects__flaw__embargoed
             - affects__flaw__impact
             - affects__flaw__is_major_incident
-            - affects__flaw__nvd_cvss2
-            - affects__flaw__nvd_cvss3
             - affects__flaw__reported_dt
             - affects__flaw__source
             - affects__flaw__unembargo_dt
@@ -7770,32 +7530,6 @@ components:
           nullable: true
         mitigation:
           type: string
-        cvss2:
-          type: string
-          maxLength: 100
-          deprecated: true
-        cvss2_score:
-          type: number
-          format: float
-          nullable: true
-          deprecated: true
-        nvd_cvss2:
-          type: string
-          maxLength: 100
-          deprecated: true
-        cvss3:
-          type: string
-          maxLength: 100
-          deprecated: true
-        cvss3_score:
-          type: number
-          format: float
-          nullable: true
-          deprecated: true
-        nvd_cvss3:
-          type: string
-          maxLength: 100
-          deprecated: true
         is_major_incident:
           type: boolean
           deprecated: true
@@ -7840,20 +7574,6 @@ components:
             checklists:
               type: string
             classification:
-              type: string
-            cvss2:
-              type: string
-            cvss2_score:
-              type: string
-            cvss2_vector:
-              type: string
-            cvss3:
-              type: string
-            cvss3_comment:
-              type: string
-            cvss3_score:
-              type: string
-            cvss3_vector:
               type: string
             cwe:
               type: string
@@ -8522,32 +8242,6 @@ components:
           nullable: true
         mitigation:
           type: string
-        cvss2:
-          type: string
-          maxLength: 100
-          deprecated: true
-        cvss2_score:
-          type: number
-          format: float
-          nullable: true
-          deprecated: true
-        nvd_cvss2:
-          type: string
-          maxLength: 100
-          deprecated: true
-        cvss3:
-          type: string
-          maxLength: 100
-          deprecated: true
-        cvss3_score:
-          type: number
-          format: float
-          nullable: true
-          deprecated: true
-        nvd_cvss3:
-          type: string
-          maxLength: 100
-          deprecated: true
         is_major_incident:
           type: boolean
           deprecated: true
@@ -8592,20 +8286,6 @@ components:
             checklists:
               type: string
             classification:
-              type: string
-            cvss2:
-              type: string
-            cvss2_score:
-              type: string
-            cvss2_vector:
-              type: string
-            cvss3:
-              type: string
-            cvss3_comment:
-              type: string
-            cvss3_score:
-              type: string
-            cvss3_vector:
               type: string
             cwe:
               type: string

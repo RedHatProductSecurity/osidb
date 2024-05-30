@@ -18,6 +18,7 @@ class TestNVDCollector:
     """
 
     @pytest.mark.vcr
+    @pytest.mark.enable_signals
     def test_collect_batch(self):
         """
         test that collecting a batch of CVEs works
@@ -41,31 +42,32 @@ class TestNVDCollector:
         # we do not test CVSS3 as these old flaws do not have it
         # but more recent batches are too huge (a few MB cassettes)
         # it is going to be tested by another test case
-        FlawFactory(
-            cve_id="CVE-2000-0835",
-            nvd_cvss2=None,
-        )
-        FlawFactory(
-            cve_id="CVE-2010-0977",
-            nvd_cvss2=None,
-        )
-        FlawFactory(
-            cve_id="CVE-2010-1313",
-            nvd_cvss2=None,
-        )
+        FlawFactory(cve_id="CVE-2000-0835")
+        FlawFactory(cve_id="CVE-2010-0977")
+        FlawFactory(cve_id="CVE-2010-1313")
 
         nvdc.collect()
 
         flaw = Flaw.objects.get(cve_id="CVE-2000-0835")
-        assert flaw.nvd_cvss2 == "5.0/AV:N/AC:L/Au:N/C:P/I:N/A:N"
+        cvss = flaw.cvss_scores.all().filter(
+            issuer=FlawCVSS.CVSSIssuer.NIST, version=FlawCVSS.CVSSVersion.VERSION2
+        )[0]
+        assert str(cvss) == "5.0/AV:N/AC:L/Au:N/C:P/I:N/A:N"
 
         flaw = Flaw.objects.get(cve_id="CVE-2010-0977")
-        assert flaw.nvd_cvss2 == "5.0/AV:N/AC:L/Au:N/C:P/I:N/A:N"
+        cvss = flaw.cvss_scores.all().filter(
+            issuer=FlawCVSS.CVSSIssuer.NIST, version=FlawCVSS.CVSSVersion.VERSION2
+        )[0]
+        assert str(cvss) == "5.0/AV:N/AC:L/Au:N/C:P/I:N/A:N"
 
         flaw = Flaw.objects.get(cve_id="CVE-2010-1313")
-        assert flaw.nvd_cvss2 == "4.3/AV:N/AC:M/Au:N/C:P/I:N/A:N"
+        cvss = flaw.cvss_scores.all().filter(
+            issuer=FlawCVSS.CVSSIssuer.NIST, version=FlawCVSS.CVSSVersion.VERSION2
+        )[0]
+        assert str(cvss) == "4.3/AV:N/AC:M/Au:N/C:P/I:N/A:N"
 
     @pytest.mark.vcr
+    @pytest.mark.enable_signals
     def test_collect_cve(self):
         """
         test that collecting a given CVE works
@@ -74,21 +76,24 @@ class TestNVDCollector:
         # https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2020-1234
         cve = "CVE-2020-1234"
 
-        FlawFactory(
-            cve_id=cve,
-            nvd_cvss2=None,
-            nvd_cvss3=None,
-        )
+        FlawFactory(cve_id=cve)
 
         nvdc = NVDCollector()
         nvdc.collect(cve)
 
         flaw = Flaw.objects.first()
+        cvss_v2 = flaw.cvss_scores.all().filter(
+            issuer=FlawCVSS.CVSSIssuer.NIST, version=FlawCVSS.CVSSVersion.VERSION2
+        )[0]
+        cvss_v3 = flaw.cvss_scores.all().filter(
+            issuer=FlawCVSS.CVSSIssuer.NIST, version=FlawCVSS.CVSSVersion.VERSION3
+        )[0]
         assert flaw.cve_id == cve
-        assert flaw.nvd_cvss2 == "6.8/AV:N/AC:M/Au:N/C:P/I:P/A:P"
-        assert flaw.nvd_cvss3 == "7.8/CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"
+        assert str(cvss_v2) == "6.8/AV:N/AC:M/Au:N/C:P/I:P/A:P"
+        assert str(cvss_v3) == "7.8/CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"
 
     @pytest.mark.vcr
+    @pytest.mark.enable_signals
     def test_collect_updated(self):
         """
         test that collecting updated CVE works
@@ -105,18 +110,8 @@ class TestNVDCollector:
         last_collector_run = timezone.datetime(2022, 2, 1, 0, 0, tzinfo=timezone.utc)
         after_collector_run = timezone.datetime(2022, 3, 1, 0, 0, tzinfo=timezone.utc)
 
-        FlawFactory(
-            cve_id=cve1,
-            nvd_cvss2=None,
-            nvd_cvss3=None,
-            updated_dt=before_collector_run,
-        )
-        FlawFactory(
-            cve_id=cve2,
-            nvd_cvss2=None,
-            nvd_cvss3=None,
-            updated_dt=after_collector_run,
-        )
+        FlawFactory(cve_id=cve1, updated_dt=before_collector_run)
+        FlawFactory(cve_id=cve2, updated_dt=after_collector_run)
 
         nvdc = NVDCollector()
         nvdc.metadata.updated_until_dt = last_collector_run
@@ -124,12 +119,10 @@ class TestNVDCollector:
         nvdc.collect_updated()
 
         flaw = Flaw.objects.get(cve_id=cve1)
-        assert not flaw.nvd_cvss2
-        assert not flaw.nvd_cvss3
+        assert not flaw.cvss_scores.all()
 
         flaw = Flaw.objects.get(cve_id=cve2)
-        assert not flaw.nvd_cvss2
-        assert not flaw.nvd_cvss3
+        assert not flaw.cvss_scores.all()
 
         # make data complete
         nvdc.metadata.data_state = CollectorMetadata.DataState.COMPLETE
@@ -138,12 +131,17 @@ class TestNVDCollector:
         # first CVE was not updated after the
         # collector run so should be unchanged
         flaw = Flaw.objects.get(cve_id=cve1)
-        assert not flaw.nvd_cvss2
-        assert not flaw.nvd_cvss3
+        assert not flaw.cvss_scores.all()
 
         flaw = Flaw.objects.get(cve_id=cve2)
-        assert flaw.nvd_cvss2 == "6.8/AV:N/AC:M/Au:N/C:P/I:P/A:P"
-        assert flaw.nvd_cvss3 == "7.8/CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"
+        cvss_v2 = flaw.cvss_scores.all().filter(
+            issuer=FlawCVSS.CVSSIssuer.NIST, version=FlawCVSS.CVSSVersion.VERSION2
+        )[0]
+        cvss_v3 = flaw.cvss_scores.all().filter(
+            issuer=FlawCVSS.CVSSIssuer.NIST, version=FlawCVSS.CVSSVersion.VERSION3
+        )[0]
+        assert str(cvss_v2) == "6.8/AV:N/AC:M/Au:N/C:P/I:P/A:P"
+        assert str(cvss_v3) == "7.8/CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"
 
     @pytest.mark.vcr
     @pytest.mark.enable_signals
@@ -198,8 +196,7 @@ class TestNVDCollector:
         Test that CVSSv2 and CVSSv3 scores are correctly loaded and updated
         in the FlawCVSS model.
         """
-        # do not care about nvd_cvss2 and nvd_cvss3 as they will be deprecated
-        flaw = FlawFactory(cve_id=cve_id, nvd_cvss2="", nvd_cvss3="")
+        flaw = FlawFactory(cve_id=cve_id)
 
         for vector, version in [
             (original_cvss2[1], FlawCVSS.CVSSVersion.VERSION2),

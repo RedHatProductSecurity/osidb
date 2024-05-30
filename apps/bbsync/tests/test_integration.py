@@ -72,7 +72,6 @@ class TestBBSyncIntegration:
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "mitigation": "mitigation",
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
         response = auth_client().post(
@@ -106,7 +105,6 @@ class TestBBSyncIntegration:
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-13T12:54:13Z",
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -124,7 +122,6 @@ class TestBBSyncIntegration:
             "reported_dt": flaw.reported_dt,
             "unembargo_dt": flaw.unembargo_dt,
             "updated_dt": flaw.updated_dt,
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
         response = auth_client().put(
@@ -153,7 +150,6 @@ class TestBBSyncIntegration:
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2024-03-14T09:55:39Z",
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             embargoed=False,
@@ -300,7 +296,6 @@ class TestBBSyncIntegration:
         last_change_time = "2023-05-26T13:10:44Z"
         flaw = FlawFactory.build(
             cve_id="CVE-2022-0508",
-            cvss3="2.2/CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:L/I:N/A:N",
             cwe_id="CWE-100",
             components=["shower"],
             description="the water is everywhere",
@@ -365,7 +360,6 @@ class TestBBSyncIntegration:
                 reported_dt="2000-01-01T01:01:01Z",
                 unembargo_dt="2000-11-11T22:22:22Z",
                 updated_dt=last_change_time,
-                cvss3="4.6/CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L",
                 # we expect the existing groups to be stored in metadata
                 meta_attr={
                     "bz_id": "1984642",
@@ -394,7 +388,6 @@ class TestBBSyncIntegration:
             "reported_dt": flaw.reported_dt,
             "unembargo_dt": flaw.unembargo_dt,
             "updated_dt": flaw.updated_dt,
-            "cvss3": "4.6/CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L",
             "embargoed": False,
         }
         response = auth_client().put(
@@ -436,7 +429,6 @@ class TestBBSyncIntegration:
                 reported_dt="2000-01-01T01:01:01Z",
                 unembargo_dt="2000-11-11T22:22:22Z",
                 updated_dt=flaw_last_change_time,
-                cvss3="4.6/CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L",
                 # we expect the existing groups to be stored in metadata
                 meta_attr={
                     "bz_id": "1984642",
@@ -566,7 +558,6 @@ class TestBBSyncIntegration:
             "reported_dt": flaw.reported_dt,
             "unembargo_dt": flaw.unembargo_dt,
             "updated_dt": flaw.updated_dt,
-            "cvss3": "4.6/CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L",
             "embargoed": False,
         }
         response = auth_client().put(
@@ -604,7 +595,6 @@ class TestBBSyncIntegration:
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-17T11:24:14Z",
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -648,7 +638,6 @@ class TestBBSyncIntegration:
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-17T15:33:54Z",
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -699,7 +688,6 @@ class TestBBSyncIntegration:
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-17T15:38:53Z",
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -768,7 +756,6 @@ class TestBBSyncIntegration:
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-31T16:41:41Z",
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -780,7 +767,6 @@ class TestBBSyncIntegration:
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-31T16:41:41Z",
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -805,7 +791,6 @@ class TestBBSyncIntegration:
             "reported_dt": flaw1.reported_dt,
             "unembargo_dt": flaw1.unembargo_dt,
             "updated_dt": flaw1.updated_dt,
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
         response = auth_client().put(
@@ -834,7 +819,6 @@ class TestBBSyncIntegration:
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-31T16:41:41Z",
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -846,7 +830,6 @@ class TestBBSyncIntegration:
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-31T16:41:41Z",
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -871,7 +854,6 @@ class TestBBSyncIntegration:
             "reported_dt": flaw1.reported_dt,
             "unembargo_dt": flaw1.unembargo_dt,
             "updated_dt": flaw1.updated_dt,
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
         with pytest.raises(UnsaveableFlawError, match="Unable to remove a CVE ID"):

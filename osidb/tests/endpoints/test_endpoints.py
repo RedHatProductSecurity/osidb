@@ -90,7 +90,6 @@ class TestEndpointsACLs:
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": None if embargoed else "2000-1-1T22:03:26.065Z",
             "mitigation": "mitigation",
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": embargoed,
         }
         response = auth_client().post(
@@ -203,7 +202,6 @@ class TestEndpointsACLs:
             "description": "test",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": None,
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": True,
             "bz_api_key": "SECRET",
         }
@@ -346,7 +344,6 @@ class TestEndpointsBZAPIKey:
             "description": "test",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
         }
         response = auth_client().post(f"{test_api_uri}/flaws", flaw_data, format="json")
@@ -406,7 +403,6 @@ class TestDeprecationHandling:
             "source": "DEBIAN",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "mitigation": "mitigation",
-            "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
             "embargoed": False,
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "component": "curl",

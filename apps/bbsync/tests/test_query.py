@@ -475,8 +475,7 @@ class TestGenerateSRTNotes:
         """
         test generating of SRT notes CVSS attributes
         """
-        # do not care about cvss2 and cvss3 as they will be deprecated
-        flaw = FlawFactory(cvss2="", cvss3="")
+        flaw = FlawFactory()
 
         FlawCVSSFactory(
             flaw=flaw,

@@ -1369,10 +1369,6 @@ class TestFlawConvertor:
         """
         flaw = FlawFactory(
             bz_id="123",
-            cvss2="10.0/AV:N/AC:L/Au:N/C:C/I:C/A:C",
-            cvss2_score=10.0,
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            cvss3_score=3.7,
             embargoed=False,
             reported_dt="2000-01-01T01:01:01Z",
             summary="test",
@@ -1427,10 +1423,6 @@ class TestFlawConvertor:
 
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
-        assert flaw.cvss2 == ""
-        assert flaw.cvss2_score is None
-        assert flaw.cvss3 == ""
-        assert flaw.cvss3_score is None
         assert flaw.reported_dt is None
         assert flaw.summary == ""
         assert flaw.unembargo_dt is None
