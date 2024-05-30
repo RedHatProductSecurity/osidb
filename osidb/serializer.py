@@ -691,9 +691,12 @@ class CommentSerializer(AlertMixinSerializer, TrackingMixinSerializer):
         fields = (
             [
                 "uuid",
+                "text",
                 "type",
                 "external_system_id",
                 "order",
+                "creator",
+                "is_private",
                 "meta_attr",
             ]
             + AlertMixinSerializer.Meta.fields

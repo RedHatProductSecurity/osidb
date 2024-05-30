@@ -4135,6 +4135,10 @@ paths:
         comments are created simultaneously.
       parameters:
       - in: query
+        name: creator
+        schema:
+          type: string
+      - in: query
         name: exclude_fields
         schema:
           type: array
@@ -7586,6 +7590,8 @@ components:
           type: string
           format: uuid
           readOnly: true
+        text:
+          type: string
         type:
           $ref: '#/components/schemas/FlawCommentType'
         external_system_id:
@@ -7596,6 +7602,11 @@ components:
           maximum: 2147483647
           minimum: -2147483648
           nullable: true
+        creator:
+          type: string
+          maxLength: 100
+        is_private:
+          type: boolean
         meta_attr:
           type: object
           additionalProperties:
@@ -7618,6 +7629,7 @@ components:
       required:
       - alerts
       - created_dt
+      - text
       - updated_dt
       - uuid
     CvssVersionEnum:
@@ -8261,6 +8273,11 @@ components:
           maximum: 2147483647
           minimum: -2147483648
           nullable: true
+        creator:
+          type: string
+          maxLength: 100
+        is_private:
+          type: boolean
         alerts:
           type: array
           items:
@@ -8301,6 +8318,11 @@ components:
           readOnly: true
         type:
           $ref: '#/components/schemas/FlawCommentType'
+        creator:
+          type: string
+          maxLength: 100
+        is_private:
+          type: boolean
         meta_attr:
           type: object
           additionalProperties:

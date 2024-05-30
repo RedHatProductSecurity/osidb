@@ -2943,6 +2943,14 @@ class FlawComment(
     # text of the comment
     text = models.TextField()
 
+    # creator of the comment, which can be passed as an argument when creating it,
+    # similar to the flaw's owner field, or if BZ sync is enabled, then it will be
+    # implied from the BZ API key owner during sync
+    creator = models.CharField(max_length=100, blank=True)
+
+    # whether the comment is internal or not
+    is_private = models.BooleanField(default=False)
+
     # comment meta data
     meta_attr = HStoreField(default=dict)
 

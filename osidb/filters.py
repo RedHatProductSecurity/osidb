@@ -728,6 +728,7 @@ class FlawCommentFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
             "uuid": ["exact"],
             "order": ["exact"],
             "external_system_id": ["exact"],
+            "creator": ["exact"],
         }
 
 
