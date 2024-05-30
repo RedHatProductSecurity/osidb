@@ -1452,6 +1452,7 @@ class TestEndpointsFlaws:
             (None, "CVE-2020-12345"),
             ("CVE-2020-12345", None),
             ("CVE-2020-12345", "CVE-2020-54321"),
+            ("CVE-2020-12345", ""),
         ],
     )
     def test_flaw_update_cve(

@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix workflow rejection endpoint (OSIDB-2456)
 - Fix FlawReference article count validation (OSIDB-2651)
 - Fix erratum-tracker linking (OSIDB-2752)
+- Fix not being able to set CVE ID to an empty string through the API (OSIDB-270)
 
 ### Removed
 - Remove "type" field from Affect (OSIDB-2743)
