@@ -1,7 +1,8 @@
 import pytest
 from rest_framework import status
 
-from osidb.models import Affect, Tracker
+from apps.bbsync.mixins import BugzillaSyncMixin
+from osidb.models import Affect, Flaw, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     PsModuleFactory,
@@ -52,6 +53,90 @@ class TestEndpointsTrackers:
         tracker = Tracker.objects.first()
         assert tracker.affects.count() == 1
         assert tracker.affects.first().uuid == affect.uuid
+
+    @pytest.mark.parametrize("sync_to_bz", [False, True, None])
+    def test_tracker_create_jira_bulk_enablement(
+        self, auth_client, test_api_uri, monkeypatch, sync_to_bz
+    ):
+        """
+        Test the creation of Tracker records via a REST API POST request
+        with regard to the parameter "sync_to_bz" that disables
+        Flaw BZ sync after Tracker creation.
+        """
+
+        shared_state = {"runs": []}
+        assert len(shared_state["runs"]) == 0
+
+        def patched_save(self, *args, bz_api_key=None, **kwargs):
+            success = {"success": False}
+            shared_state["runs"].append((self.__class__, success))
+
+            # Original code from the original .save():
+            # always perform the validations first
+            self.validate(
+                raise_validation_error=kwargs.get("raise_validation_error", True)
+            )
+
+            # check BBSync conditions are met
+
+            # 3 lines of original .save() disabled so that the test doesn't hit Bugzilla:
+            # if SYNC_TO_BZ and bz_api_key is not None:
+            #     self.bzsync(*args, bz_api_key=bz_api_key, **kwargs)
+            # else:
+            super(BugzillaSyncMixin, self).save(*args, **kwargs)
+            success["success"] = True
+
+        with monkeypatch.context() as m:
+            m.setattr(BugzillaSyncMixin, "save", patched_save)
+
+            assert len(shared_state["runs"]) == 0  # nothing created yet
+            ps_module = PsModuleFactory(bts_name="jboss")
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+            affect = AffectFactory(
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_module=ps_module.name,
+            )
+
+            assert Tracker.objects.count() == 0
+            assert Flaw.objects.count() == 1
+            assert len(shared_state["runs"]) == 2  # created Flaw and Affect
+            assert shared_state == {
+                "runs": [
+                    (Flaw, {"success": True}),
+                    (Affect, {"success": True}),
+                ]
+            }
+
+            tracker_data = {
+                "affects": [affect.uuid],
+                "embargoed": affect.flaw.embargoed,
+                "ps_update_stream": ps_update_stream.name,
+                "sync_to_bz": sync_to_bz,
+            }
+            if sync_to_bz is None:
+                del tracker_data["sync_to_bz"]
+            response = auth_client().post(
+                f"{test_api_uri}/trackers",
+                tracker_data,
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+
+            assert response.status_code == status.HTTP_201_CREATED
+            assert Tracker.objects.count() == 1
+            tracker = Tracker.objects.first()
+            assert tracker.affects.count() == 1
+            assert tracker.affects.first().uuid == affect.uuid
+
+            if sync_to_bz is False:
+                # Flaw was not synced.
+                assert len(shared_state["runs"]) == 2
+            else:
+                # Flaw was synced.
+                assert len(shared_state["runs"]) == 3
+                assert shared_state["runs"][-1] == (Flaw, {"success": True})
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])

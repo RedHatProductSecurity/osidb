@@ -245,6 +245,48 @@ class TrackingMixinSerializer(serializers.ModelSerializer):
         abstract = True
 
 
+class SyncToBzBulkEnablementMixinSerializer(serializers.ModelSerializer):
+    """
+    Provides parameter "sync_to_bz" that when set to False disables sync
+    with Bugzilla for the given request. This is to be used by clients
+    during bulk actions that are carried out by repeated single-instance
+    calls (e.g. creating Trackers). The reason is that the final flaw bz
+    sync that happens after e.g. creating a tracker can take minutes for
+    huge flaws.
+
+    The parameter does nothing if BZ sync is not enabled in the OSIDB instance.
+    """
+
+    sync_to_bz = serializers.BooleanField(
+        required=False,
+        write_only=True,
+        help_text=(
+            "Setting sync_to_bz to false disables flaw sync with Bugzilla "
+            "after this operation. Use only as part of bulk actions and "
+            "trigger a flaw bugzilla sync afterwards. Does nothing if BZ "
+            "is disabled."
+        ),
+    )
+
+    class Meta:
+        fields = ["sync_to_bz"]
+        abstract = True
+
+    # Not named exactly as the write-only field to prevent Django
+    # from trying to treat it as a readable field.
+    @property
+    def sync_to_bz_helper(self):
+        return getattr(self, "_sync_to_bz", True)
+
+    def is_valid(self, raise_exception=False):
+        ret = super().is_valid(raise_exception=raise_exception)
+        # By default, sync with bz is not disabled.
+        # sync_to_bz: false is a special case for bulk actions.
+        # This can be removed after decommissioning bugzilla.
+        self._sync_to_bz = self._validated_data.pop("sync_to_bz", True)
+        return ret
+
+
 class ErratumSerializer(
     IncludeExcludeFieldsMixin,
     TrackingMixinSerializer,
@@ -460,6 +502,7 @@ class TrackerSerializer(
     IncludeMetaAttrMixin,
     JiraAPIKeyMixin,
     TrackingMixinSerializer,
+    SyncToBzBulkEnablementMixinSerializer,
 ):
     """Tracker serializer"""
 
@@ -479,7 +522,6 @@ class TrackerSerializer(
         "resolution",
         "status",
     )
-
     errata = serializers.SerializerMethodField()
     meta_attr = serializers.SerializerMethodField()
 
@@ -524,6 +566,7 @@ class TrackerSerializer(
             + ACLMixinSerializer.Meta.fields
             + AlertMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
+            + SyncToBzBulkEnablementMixinSerializer.Meta.fields
         )
         read_only_fields = [
             "external_system_id",
@@ -575,7 +618,6 @@ class TrackerSerializer(
         #####################
         # 3) create actions #
         #####################
-
         tracker.save(
             # the serializer does not care for the backend system
             # therefore at this point we simply require both secrets
@@ -587,15 +629,22 @@ class TrackerSerializer(
         # 4) post-create actions #
         ##########################
 
-        # related flaws need to be saved to Bugzilla in order to update SRT notes with the new
-        # Jira tracker ID (Bugzilla trackers are linked naturally through Bugzilla relations)
-        if tracker.type == Tracker.TrackerType.JIRA:
-            for affect in affects:
-                # do not raise validation errors here as the flaw is not what the user touches
-                # which would make the errors hard to understand and cause the tracker to orphan
-                affect.flaw.save(
-                    bz_api_key=self.get_bz_api_key(), raise_validation_error=False
-                )
+        if self.sync_to_bz_helper:
+            # related flaws need to be saved to Bugzilla in order to update SRT notes with the new
+            # Jira tracker ID (Bugzilla trackers are linked naturally through Bugzilla relations)
+            if tracker.type == Tracker.TrackerType.JIRA:
+                for affect in affects:
+                    # do not raise validation errors here as the flaw is not what the user touches
+                    # which would make the errors hard to understand and cause the tracker to orphan
+                    affect.flaw.save(
+                        bz_api_key=self.get_bz_api_key(), raise_validation_error=False
+                    )
+        else:
+            # Special path for bulk tracker create. Works for Jira trackers only.
+            # Do not sync with BZ, as that can take a long time for large flaws.
+            # The disadvantage is srtnotes being out of date in BZ until OSIDB updates
+            # that BZ with any BZ-syncing action without "sync_to_bz: false".
+            pass
 
         #####################
         # 5) return created #

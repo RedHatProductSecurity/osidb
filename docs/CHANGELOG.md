@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add temporary JIRA stage http forwarder passing in params and headers (OSIDB-2734)
 - Add link between trackers to flaws without CVE (OSIDB-2848)
 - Support Bugzilla tracker creation/linking for non-Bugzilla flaws (OSIDB-2845)
+- Add bulk-enabling parameter "sync_to_bz" to POST for Trackers (OSIDB-2609)
 
 ### Changed
 - Make workflows API RESTful (OSIDB-1716)

@@ -8805,6 +8805,12 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
+        sync_to_bz:
+          type: boolean
+          writeOnly: true
+          description: Setting sync_to_bz to false disables flaw sync with Bugzilla
+            after this operation. Use only as part of bulk actions and trigger a flaw
+            bugzilla sync afterwards. Does nothing if BZ is disabled.
       required:
       - alerts
       - created_dt
@@ -8887,6 +8893,12 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
+        sync_to_bz:
+          type: boolean
+          writeOnly: true
+          description: Setting sync_to_bz to false disables flaw sync with Bugzilla
+            after this operation. Use only as part of bulk actions and trigger a flaw
+            bugzilla sync afterwards. Does nothing if BZ is disabled.
       required:
       - alerts
       - created_dt
