@@ -34,8 +34,6 @@ class AffectFixer:
         self.fix_affectedness()
         self.fix_resolution()
         self.fix_impact()
-        self.fix_cvss2()
-        self.fix_cvss3()
         self.fix_ps_module()
 
         return self.affect_obj, self.errors
@@ -104,34 +102,6 @@ class AffectFixer:
             self.affect_obj.impact = impact.upper()
         else:
             self.affect_obj.impact = Impact.NOVALUE
-
-    def fix_cvss2(self) -> None:
-        """CVSS2 fixup"""
-        if self.affect_json.get("cvss2"):
-            cvss2_data = self.affect_json["cvss2"].split("/", 1)
-            if len(cvss2_data) == 2:
-                self.affect_obj.cvss2_score = cvss2_data[0]
-                self.affect_obj.cvss2 = self.affect_json["cvss2"]
-            else:
-                self.affect_obj.cvss2_score = None
-                self.affect_obj.cvss2 = cvss2_data
-        else:
-            self.affect_obj.cvss2_score = None
-            self.affect_obj.cvss2 = ""
-
-    def fix_cvss3(self) -> None:
-        """CVSS3 fixup"""
-        if self.affect_json.get("cvss3"):
-            cvss3_data = self.affect_json["cvss3"].split("/", 1)
-            if len(cvss3_data) == 2:
-                self.affect_obj.cvss3_score = cvss3_data[0]
-                self.affect_obj.cvss3 = self.affect_json["cvss3"]
-            else:
-                self.affect_obj.cvss3_score = None
-                self.affect_obj.cvss3 = cvss3_data
-        else:
-            self.affect_obj.cvss3_score = None
-            self.affect_obj.cvss3 = ""
 
     def fix_ps_module(self) -> None:
         """PS module fixup"""

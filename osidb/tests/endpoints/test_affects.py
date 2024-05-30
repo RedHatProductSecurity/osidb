@@ -356,11 +356,6 @@ class TestEndpointsAffectsUpdateTrackers:
     @pytest.mark.parametrize(
         "to_create,to_update,triggered",
         [
-            (
-                {"cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N"},
-                {"cvss3": "2.2/CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:L/I:N/A:N"},
-                False,
-            ),
             ({"impact": "IMPORTANT"}, {"impact": "LOW"}, False),
             ({"impact": "MODERATE"}, {"impact": "IMPORTANT"}, True),
             ({"ps_component": "ssh"}, {"ps_component": "bash"}, True),

@@ -51,13 +51,7 @@ from .mixins import (
     TrackingMixinManager,
     ValidateMixin,
 )
-from .validators import (
-    no_future_date,
-    validate_cve_id,
-    validate_cvss2,
-    validate_cvss3,
-    validate_cwe_id,
-)
+from .validators import no_future_date, validate_cve_id, validate_cwe_id
 
 logger = logging.getLogger(__name__)
 
@@ -1649,14 +1643,6 @@ class Affect(
 
     # from srtnotes affects/impact
     impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
-
-    # from srtnotes affects/cvss2
-    cvss2 = models.CharField(max_length=100, blank=True, validators=[validate_cvss2])
-    cvss2_score = models.FloatField(null=True, blank=True)
-
-    # from srtnotes affects/cvss3
-    cvss3 = models.CharField(max_length=100, blank=True, validators=[validate_cvss3])
-    cvss3_score = models.FloatField(null=True, blank=True)
 
     # non operational meta data
     meta_attr = HStoreField(default=dict)

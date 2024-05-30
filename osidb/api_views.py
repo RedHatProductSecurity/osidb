@@ -665,30 +665,6 @@ class FlawPackageVersionView(
                 location=OpenApiParameter.QUERY,
                 deprecated=True,
             ),
-            OpenApiParameter(
-                "cvss2",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.QUERY,
-                deprecated=True,
-            ),
-            OpenApiParameter(
-                "cvss2_score",
-                type=OpenApiTypes.FLOAT,
-                location=OpenApiParameter.QUERY,
-                deprecated=True,
-            ),
-            OpenApiParameter(
-                "cvss3",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.QUERY,
-                deprecated=True,
-            ),
-            OpenApiParameter(
-                "cvss3_score",
-                type=OpenApiTypes.FLOAT,
-                location=OpenApiParameter.QUERY,
-                deprecated=True,
-            ),
         ],
     ),
 )

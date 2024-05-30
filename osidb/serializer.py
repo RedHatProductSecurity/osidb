@@ -854,9 +854,6 @@ class AffectCVSSPutSerializer(AffectCVSSSerializer):
     pass
 
 
-@extend_schema_serializer(
-    deprecate_fields=["cvss2", "cvss2_score", "cvss3", "cvss3_score"]
-)
 class AffectSerializer(
     ACLMixinSerializer,
     AlertMixinSerializer,
@@ -878,8 +875,6 @@ class AffectSerializer(
     META_ATTR_KEYS = (
         "affectedness",
         "component",
-        "cvss2",
-        "cvss3",
         "impact",
         "module_name",
         "module_stream",
@@ -930,10 +925,6 @@ class AffectSerializer(
                 "ps_product",
                 "ps_component",
                 "impact",
-                "cvss2",
-                "cvss2_score",
-                "cvss3",
-                "cvss3_score",
                 "trackers",
                 "meta_attr",
                 "delegated_resolution",

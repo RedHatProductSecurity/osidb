@@ -280,8 +280,6 @@ class TestGenerateSRTNotes:
             ps_component="libssh",
             ps_module="fedora-all",
             impact=Impact.NOVALUE,
-            cvss2="",
-            cvss3="",
         )
         old_flaw = FlawFactory(
             embargoed=False,
@@ -350,9 +348,6 @@ class TestGenerateSRTNotes:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             impact=Impact.CRITICAL,
-            # do not care about cvss2 and cvss3 as they will be deprecated
-            cvss2="",
-            cvss3="",
         )
         AffectFactory(
             flaw=flaw,
@@ -361,9 +356,6 @@ class TestGenerateSRTNotes:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             impact=Impact.MODERATE,
-            # do not care about cvss2 and cvss3 as they will be deprecated
-            cvss2="",
-            cvss3="",
         )
         AffectFactory(
             flaw=flaw,
@@ -372,9 +364,6 @@ class TestGenerateSRTNotes:
             affectedness=Affect.AffectAffectedness.NOTAFFECTED,
             resolution=Affect.AffectResolution.NOVALUE,
             impact=Impact.NOVALUE,
-            # do not care about cvss2 and cvss3 as they will be deprecated
-            cvss2="",
-            cvss3="",
         )
         AffectCVSSFactory(
             affect=affect,
@@ -911,8 +900,6 @@ class TestGenerateSRTNotes:
             "affects": [
                 {
                     "affectedness": "affected",
-                    "cvss2": "5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
-                    "cvss3": "3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
                     "impact": "moderate",
                     "ps_component": "libssh",
                     "ps_module": "fedora-all",
@@ -956,8 +943,6 @@ class TestGenerateSRTNotes:
             ps_component="libssh",
             ps_module="fedora-all",
             impact=Impact.MODERATE,
-            cvss2="5.2/AV:L/AC:H/Au:N/C:P/I:P/A:C",
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
         PsModuleFactory(
             bts_name="jboss",
