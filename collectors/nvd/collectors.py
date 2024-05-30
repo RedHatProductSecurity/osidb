@@ -240,11 +240,9 @@ class NVDCollector(Collector, NVDQuerier):
             # check if a flaw is already in DB, and if so, update CVSS if necessary
             try:
                 flaw = Flaw.objects.get(cve_id=cve_id)
-                # update NVD CVSS2 or CVSS3 data if necessary
-                updated_in_flaw = self.update_cvss_via_flaw(flaw, item)
-                updated_in_flawcvss = self.update_cvss_via_flawcvss(flaw, item)
 
-                if updated_in_flaw or updated_in_flawcvss:
+                # update NVD CVSS2 or CVSS3 data if necessary
+                if self.update_cvss_via_flawcvss(flaw, item):
                     updated_flaws.append(cve_id)
                     # no automatic timestamps as those go from Bugzilla
                     # and no validation exceptions not to fail here
@@ -340,47 +338,14 @@ class NVDCollector(Collector, NVDQuerier):
         )
 
     @staticmethod
-    def get_new_nvd_cvss(item: dict, cvss_version: str, vector_only: bool) -> str:
+    def get_new_nvd_cvss(item: dict, cvss_version: str) -> Union[str, None]:
         """
         Return NVD CVSS data stored in NVD from `item` for the given `cvss_version`.
         `cvss_version` is of FlawCVSS.CVSSVersion enum type.
-
-        If `vector_only` is True, only vector is returned; score/vector otherwise.
         """
         cvss = [i for i in item["cvss_scores"] if i["version"] == cvss_version]
 
-        if not cvss:
-            return ""
-        elif vector_only:
-            return cvss[0]["vector"]
-        else:
-            return f"{cvss[0]['score']}/{cvss[0]['vector']}"
-
-    def update_cvss_via_flaw(self, flaw: Flaw, item: dict) -> bool:
-        """
-        Update NVD CVSS data in `flaw` if they are not equal to new NVD data in `item`.
-        Return True if CVSS data was updated, False otherwise.
-
-        Note that this method updates the old unused fields.
-        """
-        new_cvss2 = self.get_new_nvd_cvss(
-            item, FlawCVSS.CVSSVersion.VERSION2, vector_only=False
-        )
-        new_cvss3 = self.get_new_nvd_cvss(
-            item, FlawCVSS.CVSSVersion.VERSION3, vector_only=False
-        )
-
-        # update CVSS2 and CVSS3 if necessary
-        if were_updated := (
-            (flaw.nvd_cvss2 != new_cvss2) or (flaw.nvd_cvss3 != new_cvss3)
-        ):
-            if flaw.nvd_cvss2 != new_cvss2:
-                flaw.nvd_cvss2 = new_cvss2
-
-            if flaw.nvd_cvss3 != new_cvss3:
-                flaw.nvd_cvss3 = new_cvss3
-
-        return were_updated
+        return cvss[0]["vector"] if cvss else None
 
     def update_cvss_via_flawcvss(self, flaw: Flaw, item: dict) -> bool:
         """
@@ -390,14 +355,8 @@ class NVDCollector(Collector, NVDQuerier):
         original_cvss2 = self.get_original_nvd_cvss(flaw, FlawCVSS.CVSSVersion.VERSION2)
         original_cvss3 = self.get_original_nvd_cvss(flaw, FlawCVSS.CVSSVersion.VERSION3)
 
-        new_cvss2 = (
-            self.get_new_nvd_cvss(item, FlawCVSS.CVSSVersion.VERSION2, vector_only=True)
-            or None
-        )
-        new_cvss3 = (
-            self.get_new_nvd_cvss(item, FlawCVSS.CVSSVersion.VERSION3, vector_only=True)
-            or None
-        )
+        new_cvss2 = self.get_new_nvd_cvss(item, FlawCVSS.CVSSVersion.VERSION2)
+        new_cvss3 = self.get_new_nvd_cvss(item, FlawCVSS.CVSSVersion.VERSION3)
 
         # update CVSS2 and CVSS3 if necessary
         if were_updated := (
