@@ -450,7 +450,6 @@ $ curl -H "Authorization: Bearer <access_token>" \
        -X POST
        -d '{
               "cve_id": "CVE-2161-0013",
-              "resolution": "ERRATA",
               "impact": "MODERATE",
               "title": "Retrieve the water chip",
               "description": "We need the water chip to survive, explore the wasteland and find a replacement",
@@ -469,7 +468,6 @@ headers = {
 }
 data = {
     "cve_id": "CVE-2161-0013",
-    "resolution": "ERRATA",
     "impact": "MODERATE",
     "title": "Retrieve the water chip",
     "description": "We need the water chip to survive, explore the wasteland and find a replacement",
@@ -492,7 +490,6 @@ $ curl -H "Authorization: Bearer <access_token>" \
        -X PUT
        -d '{
               "cve_id": "CVE-2161-0013",
-              "resolution": "ERRATA",
               "impact": "CRITICAL",     # from MODERATE to CRITICAL
               "title": "Retrieve the water chip",
               "description": "We need the water chip to survive, explore the wasteland and find a replacement",
@@ -511,7 +508,6 @@ headers = {
 }
 data = {
     "cve_id": "CVE-2161-0013",
-    "resolution": "ERRATA",
     "impact": "CRITICAL",           # from MODERATE to CRITICAL
     "title": "Retrieve the water chip",
     "description": "We need the water chip to survive, explore the wasteland and find a replacement",
