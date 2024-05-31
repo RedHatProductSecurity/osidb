@@ -2865,22 +2865,8 @@ class FlawComment(
 ):
     """Model representing flaw comments"""
 
-    class FlawCommentType(models.TextChoices):
-        """allowable types"""
-
-        # NOTE: when moving or renaming this enum, please check and modify
-        # config/settings.py::SPECTACULAR_SETTINGS::ENUM_NAME_OVERRIDES accordingly
-        BUGZILLA = "BUGZILLA"
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    # comment type
-    type = models.CharField(
-        default=FlawCommentType.BUGZILLA,
-        choices=FlawCommentType.choices,
-        max_length=100,
-    )
 
     # external comment id
     external_system_id = models.CharField(max_length=100, blank=True)

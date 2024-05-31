@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove "resolution" field from Flaw (OSIDB-2737)
 - Remove several cvss fields from Flaw (OSIDB-2749)
 - Remove several cvss fields from Affect (OSIDB-2749)
+- Remove "type" field from FlawComment (OSIDB-2745)
 
 ## [3.7.3] - 2024-05-28
 ### Fixed

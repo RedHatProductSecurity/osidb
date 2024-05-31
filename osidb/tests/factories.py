@@ -318,7 +318,6 @@ class FlawCommentFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = FlawComment
 
-    type = "BUGZILLA"
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     updated_dt = factory.Faker("date_time", tzinfo=UTC)
     external_system_id = factory.sequence(lambda n: f"fake-external-id{n}")

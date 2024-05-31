@@ -163,7 +163,6 @@ class TestFlaw:
                 "is_private": "False",
                 "creation_time": "2006-03-30T11:56:45Z",
             },
-            type=FlawComment.FlawCommentType.BUGZILLA,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             text="some comment text",
