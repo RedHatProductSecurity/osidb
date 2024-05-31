@@ -28,7 +28,7 @@ from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
 from psqlextra.fields import HStoreField
 
-from apps.bbsync.constants import RHSCL_BTS_KEY, SYNC_TO_BZ
+from apps.bbsync.constants import RHSCL_BTS_KEY, SYNC_FLAWS_TO_BZ, SYNC_TRACKERS_TO_BZ
 from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
@@ -1324,6 +1324,16 @@ class Flaw(
         """
         Bugzilla sync of the Flaw instance
         """
+        if not SYNC_FLAWS_TO_BZ:
+            # up until now the parent save methods run in sequence of
+            # 1) TrackingMixin with auto-timestamps on
+            # 2) JiraTaskSyncMixin syncing the task if enabled
+            # 3) BugzillaSyncMixin running the validations
+            # so we do not need to run any other mixins
+            kwargs.pop("raise_validation_error", None)
+            super(ValidateMixin, self).save(*args, **kwargs)
+            return
+
         # imports here to prevent cycles
         from apps.bbsync.save import FlawBugzillaSaver
         from collectors.bzimport.collectors import FlawCollector
@@ -2332,7 +2342,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
         # check Bugzilla conditions are met
         if (
-            SYNC_TO_BZ
+            SYNC_TRACKERS_TO_BZ
             and bz_api_key is not None
             and self.type == self.TrackerType.BUGZILLA
         ):

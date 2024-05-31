@@ -140,5 +140,6 @@ def disable_sync(monkeypatch) -> None:
 
     monkeypatch.setattr(mixins, "SYNC_TO_BZ", False)
     monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", False)
-    monkeypatch.setattr(models, "SYNC_TO_BZ", False)
+    monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ", False)
+    monkeypatch.setattr(models, "SYNC_TRACKERS_TO_BZ", False)
     monkeypatch.setattr(models, "SYNC_TO_JIRA", False)

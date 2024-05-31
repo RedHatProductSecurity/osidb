@@ -57,6 +57,10 @@ RH_CERT_URL="https://foo.bar"
 # enable Bugzilla backwards sync to propagate writes to Bugzilla
 # otherwise all the writes are performed only locally in OSIDB
 BBSYNC_SYNC_TO_BZ=1
+# enable Bugzilla backwards sync of the flaws
+BBSYNC_SYNC_FLAWS_TO_BZ=1
+# enable Bugzilla backwards sync of the trackers
+BBSYNC_SYNC_TRACKERS_TO_BZ=1
 
 # enable Jira tracker sync to propagate writes to Jira
 # otherwise all the writes are performed only locally in OSIDB
