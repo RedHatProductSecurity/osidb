@@ -173,6 +173,34 @@ class TestTrackerSaver:
         ):
             TrackerSaver(tracker)
 
+    def test_empty_bz_id(self):
+        """
+        test we can fill a tracker without bz_id
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        # need two empty bz_id flaws to test conflict
+        FlawFactory(bz_id=None)
+        flaw = FlawFactory(bz_id=None)
+
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+            ps_component="component",
+            flaw=flaw,
+        )
+
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        TrackerSaver(tracker, jira_token="SECRET")  # nosec
+
 
 class TestTrackerModelSave:
     """

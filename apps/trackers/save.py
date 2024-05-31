@@ -21,7 +21,10 @@ class TrackerSaver:
         """
         # we do not support tracker filing for the old multi-CVE flaws
         for affect in tracker.affects.all():
-            if Flaw.objects.filter(meta_attr__bz_id=affect.flaw.bz_id).count() > 1:
+            if (
+                affect.flaw.bz_id
+                and Flaw.objects.filter(meta_attr__bz_id=affect.flaw.bz_id).count() > 1
+            ):
                 raise UnsupportedTrackerError(
                     "Creating trackers for flaws with multiple CVEs is not supported"
                 )
