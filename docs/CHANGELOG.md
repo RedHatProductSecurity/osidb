@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add link between trackers to flaws without CVE (OSIDB-2848)
 - Support Bugzilla tracker creation/linking for non-Bugzilla flaws (OSIDB-2845)
 - Add bulk-enabling parameter "sync_to_bz" to POST for Trackers (OSIDB-2609)
+- Add bulk POST, DELETE for Affects (OSIDB-2722)
 
 ### Changed
 - Make workflows API RESTful (OSIDB-1716)

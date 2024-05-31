@@ -1063,8 +1063,22 @@ class AffectPostSerializer(AffectSerializer):
     pass
 
 
-class AffectBulkPutResponseSerializer(serializers.ModelSerializer):
-    # Extra serializer for drf-spectacular to describe format of bulk PUT response.
+@extend_schema_serializer()
+class AffectBulkPutSerializer(AffectSerializer):
+    # extra serializer for a single instance within a bulk PUT request
+    # as it needs UUID to be a part of each Affect's object.
+    META_ATTR_KEYS = tuple(AffectSerializer.META_ATTR_KEYS + ("uuid",))
+    uuid = serializers.UUIDField(
+        required=True,
+    )
+
+    class Meta:
+        model = Affect
+        fields = AffectSerializer.Meta.fields + ["uuid"]
+
+
+class AffectBulkPostPutResponseSerializer(serializers.ModelSerializer):
+    # Extra serializer for drf-spectacular to describe format of bulk POST & PUT response.
     results = AffectSerializer(many=True)
 
     class Meta:

@@ -1,6 +1,7 @@
 """
 implement osidb rest api views
 """
+
 import logging
 from typing import Type
 from urllib.parse import urljoin
@@ -40,7 +41,8 @@ from .filters import (
 from .mixins import Alert
 from .models import Affect, AffectCVSS, Flaw, Tracker
 from .serializer import (
-    AffectBulkPutResponseSerializer,
+    AffectBulkPostPutResponseSerializer,
+    AffectBulkPutSerializer,
     AffectCVSSPostSerializer,
     AffectCVSSPutSerializer,
     AffectCVSSSerializer,
@@ -644,11 +646,11 @@ class AffectView(SubFlawViewDestroyMixin, ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     @extend_schema(
-        request=AffectSerializer(many=True),
-        responses=AffectBulkPutResponseSerializer,
+        request=AffectBulkPutSerializer(many=True),
+        responses=AffectBulkPostPutResponseSerializer,
     )
     @action(methods=["PUT"], detail=False, url_path="bulk")
-    def put(self, request, *args, **kwargs):
+    def bulk_put(self, request, *args, **kwargs):
         """
         Bulk update endpoint. Expects a list of dict Affect objects.
         """
@@ -716,6 +718,119 @@ class AffectView(SubFlawViewDestroyMixin, ModelViewSet):
         flaw.save(bz_api_key=bz_api_key)
 
         return Response({"results": ret})
+
+    @extend_schema(
+        request=AffectPostSerializer(many=True),
+        responses=AffectBulkPostPutResponseSerializer,
+    )
+    @bulk_put.mapping.post
+    def bulk_post(self, request, *args, **kwargs):
+        """
+        Bulk create endpoint. Expects a list of dict Affect objects.
+        """
+
+        bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
+        if not bz_api_key:
+            raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
+
+        # TODO sometime: Some of these actions probably belong to another layer, perhaps serializer.
+
+        # first, perform validations
+        flaws = set()
+        validated_serializers = []
+        for datum in request.data:
+
+            try:
+                flaw_uuid = datum["flaw"]
+            except KeyError:
+                raise ValidationError({"flaw": "This field is required."})
+
+            flaws.add(flaw_uuid)
+
+            serializer = self.get_serializer(data=datum)
+            serializer.is_valid(raise_exception=True)
+            validated_serializers.append(serializer)
+
+        if len(flaws) > 1:
+            raise ValidationError(
+                {"flaw": "Provided affects belong to multiple flaws."}
+            )
+
+        def dummy(*args, **kwargs):
+            pass
+
+        # Second, save the updated affects to the database, but not sync with BZ.
+        ret = []
+        for serializer in validated_serializers:
+            # NOTE This takes about 300 milliseconds on local laptop per instance.
+
+            # Make the serializer's and model's mixins and .bzsync() not make requests to bugzilla.
+            # Leave the jira token as is, so that AffectSerializer.update() can still update
+            # Trackers in Jira as necessary.
+            # This also inherently performs additional validation, e.g. for
+            # duplicates among the submitted affects. Relying on the whole
+            # transaction being aborted if a validation fails.
+            serializer.get_bz_api_key = dummy
+            self.perform_update(serializer)
+
+            ret.append(serializer.data)
+
+        # Third, proxy the update to Bugzilla
+        flaw = Flaw.objects.get(uuid=next(iter(flaws)))
+        flaw.save(bz_api_key=bz_api_key)
+
+        return Response({"results": ret})
+
+    @extend_schema(
+        methods=["DELETE"],
+        responses={
+            200: {},
+        },
+        # Ignored because of https://github.com/tfranzel/drf-spectacular/issues/379
+        # and https://swagger.io/docs/specification/describing-request-body/#:~:text=GET%2C-,DELETE,-and%20HEAD%20are
+        request={"type": "array", "items": {"type": "string"}},
+    )
+    @bulk_put.mapping.delete
+    def bulk_delete(self, request, *args, **kwargs):
+        """
+        Bulk delete endpoint. Expects a list of Affect uuids.
+        """
+
+        bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
+        if not bz_api_key:
+            raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
+
+        flaws = set()
+        uuids = set()
+        for uuid in request.data:
+
+            if uuid in uuids:
+                raise ValidationError(
+                    {"uuid": "Multiple objects with the same uuid provided."}
+                )
+            else:
+                uuids.add(uuid)
+
+            try:
+                affect_obj = Affect.objects.get(uuid=uuid)
+            except Affect.DoesNotExist:
+                raise ValidationError({"uuid": "Affect matching query does not exist."})
+
+            flaw_obj = affect_obj.flaw
+            flaws.add(flaw_obj.uuid)
+            if len(flaws) > 1:
+                raise ValidationError(
+                    {
+                        "uuid": "Affect object UUIDs belonging to multiple Flaws provided."
+                    }
+                )
+
+            # Relying on the whole transaction being aborted if a validation fails along the way.
+            affect_obj.delete()
+        flaw = Flaw.objects.get(uuid=next(iter(flaws)))
+        flaw.save(bz_api_key=bz_api_key)
+
+        return Response(status=HTTP_200_OK)
 
 
 @include_exclude_fields_extend_schema_view
