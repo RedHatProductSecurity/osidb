@@ -1204,11 +1204,6 @@ class Flaw(
         Checks that flaws with private sources have ACK.
         """
         if (source := FlawSource(self.source)) and source.is_private():
-            if self.meta.filter(type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT).exists():
-                return
-
-            # Acknowledgments are stored in both FlawMeta and FlawAcknowledgment.
-            # FlawMeta will be deprecated in the future, so this check should be kept.
             if self.acknowledgments.count() > 0:
                 return
 
@@ -2701,121 +2696,6 @@ class Erratum(TrackingMixin):
     def __str__(self):
         # self.advisory_name is already a str, below needed only to fix a warning
         return str(self.advisory_name)
-
-
-class FlawMetaManager(ACLMixinManager, TrackingMixinManager):
-    """flawmeta manager"""
-
-    @staticmethod
-    def create_flawmeta(flaw, _type, meta, **extra_fields):
-        """return a new flawmeta or update an existing flawmeta without saving"""
-        try:
-            flawmeta = FlawMeta.objects.get(flaw=flaw, type=_type, meta_attr=meta)
-            for attr, value in extra_fields.items():
-                setattr(flawmeta, attr, value)
-            return flawmeta
-        except ObjectDoesNotExist:
-            return FlawMeta(
-                flaw=flaw,
-                type=_type,
-                meta_attr=meta,
-                **extra_fields,
-            )
-
-
-class FlawMeta(AlertMixin, TrackingMixin, ACLMixin):
-    """Model representing extensible structured flaw metadata"""
-
-    class FlawMetaType(models.TextChoices):
-        """allowable types"""
-
-        # NOTE: when moving or renaming this enum, please check and modify
-        # config/settings.py::SPECTACULAR_SETTINGS::ENUM_NAME_OVERRIDES accordingly
-
-        ERRATA = "ERRATA"
-        REFERENCE = "REFERENCE"
-        ACKNOWLEDGMENT = "ACKNOWLEDGMENT"
-        EXPLOIT = "EXPLOIT"
-        MAJOR_INCIDENT = "MAJOR_INCIDENT"
-        MAJOR_INCIDENT_LITE = "MAJOR_INCIDENT_LITE"
-        REQUIRES_SUMMARY = "REQUIRES_SUMMARY"
-        NIST_CVSS_VALIDATION = "NIST_CVSS_VALIDATION"
-        NEED_INFO = "NEED_INFO"
-        CHECKLIST = "CHECKLIST"
-        NVD_CVSS = "NVD_CVSS"
-
-    # internal primary key
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    type = models.CharField(choices=FlawMetaType.choices, max_length=500)
-
-    # non operational meta data
-    meta_attr = HStoreField(default=dict)
-
-    # A Flaw can have many structured FlawMeta
-    flaw = models.ForeignKey(Flaw, on_delete=models.CASCADE, related_name="meta")
-
-    objects = FlawMetaManager()
-
-    class Meta:
-        """define meta"""
-
-        verbose_name = "FlawMeta"
-
-        indexes = TrackingMixin.Meta.indexes + [
-            GinIndex(fields=["acl_read"]),
-        ]
-
-    def __str__(self):
-        return str(self.uuid)
-
-    def _validate_major_incident_combos(self):
-        """
-        Checks that the combination of MAJOR_INCIDENT and MAJOR_INCIDENT_LITE is valid.
-        """
-        if self.type not in (
-            self.FlawMetaType.MAJOR_INCIDENT,
-            self.FlawMetaType.MAJOR_INCIDENT_LITE,
-        ):
-            return
-
-        INVALID_COMBOS = [("+", "+"), ("+", "?"), ("?", "+"), ("?", "-"), ("-", "?")]
-        maj_incident_flag = None
-        maj_incident_lite_flag = None
-
-        # must include self as it's potentially not yet included in flaw.meta.all()
-        for meta in list(self.flaw.meta.all()) + [self]:
-            if meta.type == FlawMeta.FlawMetaType.MAJOR_INCIDENT:
-                maj_incident_flag = meta.meta_attr.get("status")
-            if meta.type == FlawMeta.FlawMetaType.MAJOR_INCIDENT_LITE:
-                maj_incident_lite_flag = meta.meta_attr.get("status")
-            if maj_incident_flag and maj_incident_lite_flag:
-                break
-
-        flag_pair = (maj_incident_flag, maj_incident_lite_flag)
-        if flag_pair in INVALID_COMBOS:
-            raise ValidationError(
-                f"Flaw MAJOR_INCIDENT and MAJOR_INCIDENT_LITE combination cannot be {flag_pair}."
-            )
-
-    def _validate_public_source_no_ack(self):
-        """
-        Checks that ACK FlawMetas cannot be linked to flaws with public sources.
-        """
-        if self.type != self.FlawMetaType.ACKNOWLEDGMENT or not self.flaw.source:
-            return
-
-        if (source := FlawSource(self.flaw.source)) and source.is_public():
-            if source.is_private():
-                self.alert(
-                    "public_source_no_ack",
-                    f"Flaw source of type {source} can be public or private, "
-                    "ensure that it is private since the Flaw has acknowledgments.",
-                )
-            else:
-                raise ValidationError(
-                    f"Flaw contains acknowledgments for public source {self.flaw.source}"
-                )
 
 
 class FlawCommentManager(ACLMixinManager, TrackingMixinManager):

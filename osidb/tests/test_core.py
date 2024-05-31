@@ -9,13 +9,8 @@ from osidb.api_views import get_valid_http_methods
 from osidb.core import set_user_acls
 from osidb.exceptions import OSIDBException
 from osidb.mixins import Alert
-from osidb.models import Flaw, FlawMeta, FlawReference, PsContact
-from osidb.tests.factories import (
-    AffectFactory,
-    FlawFactory,
-    FlawMetaFactory,
-    FlawReferenceFactory,
-)
+from osidb.models import Flaw, FlawReference, PsContact
+from osidb.tests.factories import AffectFactory, FlawFactory, FlawReferenceFactory
 from osidb.tests.models import (
     AlertableModel,
     AlertableModelBasic,
@@ -38,11 +33,6 @@ class TestCore(object):
             requires_summary=Flaw.FlawRequiresSummary.APPROVED,
         )
         flaw1.save(raise_validation_error=False)
-        FlawMetaFactory(
-            flaw=flaw1,
-            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-            meta_attr={"status": "+"},
-        )
         FlawReferenceFactory(
             flaw=flaw1,
             type=FlawReference.FlawReferenceType.ARTICLE,

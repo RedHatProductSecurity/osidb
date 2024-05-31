@@ -1,21 +1,17 @@
-import uuid
 from datetime import datetime
 
 import pytest
-from django.conf import settings
 from django.db.utils import IntegrityError
 from django.utils import timezone
 from freezegun import freeze_time
 
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.collectors import BugzillaQuerier, MetadataCollector
-from osidb.core import generate_acls
-from osidb.models import Affect, Flaw, FlawComment, FlawMeta, Package, Tracker
+from osidb.models import Affect, Flaw, FlawComment, Package, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawCommentFactory,
     FlawFactory,
-    FlawMetaFactory,
     PackageFactory,
     PsModuleFactory,
     PsProductFactory,
@@ -37,14 +33,12 @@ class TestBugzillaQuerier:
         AffectFactory(flaw=flaw2)
         PackageFactory(flaw=flaw2)
         FlawCommentFactory(flaw=flaw2)
-        FlawMetaFactory(flaw=flaw2)
 
         flaw1 = Flaw.objects.filter(meta_attr__bz_id="321").first()
         flaw2 = Flaw.objects.filter(meta_attr__bz_id="123").first()
         affect = Affect.objects.first()
         package_version = Package.objects.first()
         comment = FlawComment.objects.first()
-        meta = FlawMeta.objects.first()
 
         assert flaw1 is not None
         assert flaw2 is not None
@@ -54,8 +48,6 @@ class TestBugzillaQuerier:
         assert package_version.flaw == flaw2
         assert comment is not None
         assert comment.flaw == flaw2
-        assert meta is not None
-        assert meta.flaw == flaw2
 
         bugs = [
             ("321", None, flaw1.title),
@@ -70,14 +62,12 @@ class TestBugzillaQuerier:
         affect = Affect.objects.first()
         package_version = Package.objects.first()
         comment = FlawComment.objects.first()
-        meta = FlawMeta.objects.first()
 
         assert flaw1 is not None
         assert flaw2 is None
         assert affect is None
         assert package_version is None
         assert comment is None
-        assert meta is None
 
 
 class TestBZImportCollector:
@@ -169,61 +159,6 @@ class TestBZImportCollector:
             flaw_collector.sync_flaw("1824033")
         except IntegrityError:
             pytest.fail("Flaw synchronization failed")
-
-    @pytest.mark.vcr
-    def test_flawmeta_acl_change(
-        self, flaw_collector, bz_bug_requires_summary, monkeypatch
-    ):
-        """
-        Test that FlawMetas are correctly updated.
-        """
-        assert Flaw.objects.count() == 0
-        assert FlawMeta.objects.count() == 0
-
-        with monkeypatch.context() as m:
-            # avoid triggering the validator, the alternative would be to define
-            # in this test **all** the PsModules found in this particular flaw's
-            # affects, which is a lot of work
-            m.setattr(Affect, "_validate_ps_module_new_flaw", lambda s: None)
-            flaw_collector.sync_flaw(bz_bug_requires_summary)
-
-        assert Flaw.objects.count() != 0
-        assert FlawMeta.objects.count() != 0
-
-        doctext_meta = FlawMeta.objects.filter(
-            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY
-        ).first()
-        old_acls = doctext_meta.acl_read + doctext_meta.acl_write
-        # make metadata embargoed so we change to a valid ACL combination
-        doctext_meta.acl_read = [
-            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
-        ]
-        doctext_meta.acl_write = [
-            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_WRITE_GROUP])
-        ]
-        new_acls = doctext_meta.acl_read + doctext_meta.acl_write
-
-        # in Bugzilla world it is not possible to have different Flaw and FlawMeta visibility
-        # but here we want to be in OSIDB world only so let us turn off this Bugzilla validation
-        with monkeypatch.context() as m:
-            m.setattr(
-                FlawMeta, "_validate_acl_identical_to_parent_flaw", lambda s: None
-            )
-            doctext_meta.save()
-
-        assert old_acls != new_acls
-
-        # ACL data should be updated
-        with monkeypatch.context() as m:
-            # see explanation above
-            m.setattr(Affect, "_validate_ps_module_new_flaw", lambda s: None)
-            flaw_collector.sync_flaw(bz_bug_requires_summary)
-        doctext_meta = FlawMeta.objects.filter(
-            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY
-        ).first()
-        new_acls = doctext_meta.acl_read + doctext_meta.acl_write
-
-        assert old_acls == new_acls
 
 
 class TestBugzillaTrackerCollector:
