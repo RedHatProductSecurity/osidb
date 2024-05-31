@@ -692,7 +692,6 @@ class CommentSerializer(AlertMixinSerializer, TrackingMixinSerializer):
             [
                 "uuid",
                 "text",
-                "type",
                 "external_system_id",
                 "order",
                 "creator",
