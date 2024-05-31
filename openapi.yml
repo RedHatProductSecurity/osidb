@@ -7106,8 +7106,6 @@ components:
           readOnly: true
         text:
           type: string
-        type:
-          $ref: '#/components/schemas/FlawCommentType'
         external_system_id:
           type: string
           maxLength: 100
@@ -7730,8 +7728,6 @@ components:
           type: string
           format: uuid
           readOnly: true
-        type:
-          $ref: '#/components/schemas/FlawCommentType'
         external_system_id:
           type: string
           readOnly: true
@@ -7783,8 +7779,6 @@ components:
           type: string
           format: uuid
           readOnly: true
-        type:
-          $ref: '#/components/schemas/FlawCommentType'
         creator:
           type: string
           maxLength: 100
@@ -7815,10 +7809,6 @@ components:
       - embargoed
       - text
       - uuid
-    FlawCommentType:
-      enum:
-      - BUGZILLA
-      type: string
     FlawMetaType:
       enum:
       - ERRATA
