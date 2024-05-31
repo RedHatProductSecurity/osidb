@@ -357,14 +357,6 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
             "affects__ps_module": ["exact"],
             "affects__ps_component": ["exact"],
             "affects__impact": ["exact"],
-            "affects__cvss2": ["exact"],
-            "affects__cvss2_score": ["exact"]
-            + LT_GT_LOOKUP_EXPRS
-            + LTE_GTE_LOOKUP_EXPRS,
-            "affects__cvss3": ["exact"],
-            "affects__cvss3_score": ["exact"]
-            + LT_GT_LOOKUP_EXPRS
-            + LTE_GTE_LOOKUP_EXPRS,
             "affects__created_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
@@ -499,10 +491,6 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
             "ps_module": ["exact"],
             "ps_component": ["exact"],
             "impact": ["exact"],
-            "cvss2": ["exact"],
-            "cvss2_score": ["exact"] + LT_GT_LOOKUP_EXPRS + LTE_GTE_LOOKUP_EXPRS,
-            "cvss3": ["exact"],
-            "cvss3_score": ["exact"] + LT_GT_LOOKUP_EXPRS + LTE_GTE_LOOKUP_EXPRS,
             "created_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
@@ -630,14 +618,6 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
             "affects__ps_module": ["exact"],
             "affects__ps_component": ["exact"],
             "affects__impact": ["exact"],
-            "affects__cvss2": ["exact"],
-            "affects__cvss2_score": ["exact"]
-            + LT_GT_LOOKUP_EXPRS
-            + LTE_GTE_LOOKUP_EXPRS,
-            "affects__cvss3": ["exact"],
-            "affects__cvss3_score": ["exact"]
-            + LT_GT_LOOKUP_EXPRS
-            + LTE_GTE_LOOKUP_EXPRS,
             "affects__created_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS

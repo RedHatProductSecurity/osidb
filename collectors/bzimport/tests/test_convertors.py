@@ -18,7 +18,12 @@ from osidb.models import (
     PackageVer,
     Tracker,
 )
-from osidb.tests.factories import AffectFactory, FlawFactory, TrackerFactory
+from osidb.tests.factories import (
+    AffectCVSSFactory,
+    AffectFactory,
+    FlawFactory,
+    TrackerFactory,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -1360,6 +1365,7 @@ class TestFlawConvertor:
         assert flaw.requires_summary == Flaw.FlawRequiresSummary.APPROVED
         assert flaw.nist_cvss_validation == Flaw.FlawNistCvssValidation.REJECTED
 
+    @pytest.mark.enable_signals
     def test_attributes_removed_in_bugzilla(self):
         """
         test that the attribute removals in Bugzilla
@@ -1374,14 +1380,15 @@ class TestFlawConvertor:
             summary="test",
             unembargo_dt="2000-01-01T01:01:01Z",
         )
-        AffectFactory(
+        affect = AffectFactory(
             flaw=flaw,
             ps_module="rhel-8",
             ps_component=["ssh"],
-            cvss2="10.0/AV:N/AC:L/Au:N/C:C/I:C/A:C",
-            cvss2_score=10.0,
-            cvss3="3.7/CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
-            cvss3_score=3.7,
+        )
+        AffectCVSSFactory(
+            affect=affect,
+            version=AffectCVSS.CVSSVersion.VERSION3,
+            vector="CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N",
         )
 
         flaw_bug = self.get_flaw_bug()
@@ -1429,10 +1436,7 @@ class TestFlawConvertor:
 
         assert Affect.objects.count() == 1
         affect = Affect.objects.first()
-        assert affect.cvss2 == ""
-        assert affect.cvss2_score is None
-        assert affect.cvss3 == ""
-        assert affect.cvss3_score is None
+        assert not affect.cvss_scores.all()
 
     def test_component_meta_attr(self):
         """

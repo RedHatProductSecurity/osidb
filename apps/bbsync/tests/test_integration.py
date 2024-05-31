@@ -320,8 +320,6 @@ class TestBBSyncIntegration:
             affectedness="AFFECTED",
             resolution="DELEGATED",
             impact=None,
-            cvss2=None,
-            cvss3=None,
         )
 
         flaw_data = {

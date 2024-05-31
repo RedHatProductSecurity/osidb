@@ -740,68 +740,6 @@ paths:
           type: string
           format: date-time
       - in: query
-        name: cvss2
-        schema:
-          type: string
-        deprecated: true
-      - in: query
-        name: cvss2_score
-        schema:
-          type: number
-          format: float
-        deprecated: true
-      - in: query
-        name: cvss2_score__gt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: cvss2_score__gte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: cvss2_score__lt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: cvss2_score__lte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: cvss3
-        schema:
-          type: string
-        deprecated: true
-      - in: query
-        name: cvss3_score
-        schema:
-          type: number
-          format: float
-        deprecated: true
-      - in: query
-        name: cvss3_score__gt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: cvss3_score__gte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: cvss3_score__lt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: cvss3_score__lte
-        schema:
-          type: number
-          format: float
-      - in: query
         name: cvss_scores__comment
         schema:
           type: string
@@ -1245,10 +1183,6 @@ paths:
             enum:
             - -affectedness
             - -created_dt
-            - -cvss2
-            - -cvss2_score
-            - -cvss3
-            - -cvss3_score
             - -cvss_scores__comment
             - -cvss_scores__created_dt
             - -cvss_scores__cvss_version
@@ -1288,10 +1222,6 @@ paths:
             - -uuid
             - affectedness
             - created_dt
-            - cvss2
-            - cvss2_score
-            - cvss3
-            - cvss3_score
             - cvss_scores__comment
             - cvss_scores__created_dt
             - cvss_scores__cvss_version
@@ -2447,64 +2377,6 @@ paths:
           type: string
           format: date-time
       - in: query
-        name: affects__cvss2
-        schema:
-          type: string
-      - in: query
-        name: affects__cvss2_score
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss2_score__gt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss2_score__gte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss2_score__lt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss2_score__lte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss3
-        schema:
-          type: string
-      - in: query
-        name: affects__cvss3_score
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss3_score__gt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss3_score__gte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss3_score__lt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss3_score__lte
-        schema:
-          type: number
-          format: float
-      - in: query
         name: affects__embargoed
         schema:
           type: boolean
@@ -3050,10 +2922,6 @@ paths:
             - -acknowledgments__uuid
             - -affects__affectedness
             - -affects__created_dt
-            - -affects__cvss2
-            - -affects__cvss2_score
-            - -affects__cvss3
-            - -affects__cvss3_score
             - -affects__impact
             - -affects__ps_component
             - -affects__ps_module
@@ -3116,10 +2984,6 @@ paths:
             - acknowledgments__uuid
             - affects__affectedness
             - affects__created_dt
-            - affects__cvss2
-            - affects__cvss2_score
-            - affects__cvss3
-            - affects__cvss3_score
             - affects__impact
             - affects__ps_component
             - affects__ps_module
@@ -5775,64 +5639,6 @@ paths:
           type: string
           format: date-time
       - in: query
-        name: affects__cvss2
-        schema:
-          type: string
-      - in: query
-        name: affects__cvss2_score
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss2_score__gt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss2_score__gte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss2_score__lt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss2_score__lte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss3
-        schema:
-          type: string
-      - in: query
-        name: affects__cvss3_score
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss3_score__gt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss3_score__gte
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss3_score__lt
-        schema:
-          type: number
-          format: float
-      - in: query
-        name: affects__cvss3_score__lte
-        schema:
-          type: number
-          format: float
-      - in: query
         name: affects__embargoed
         schema:
           type: boolean
@@ -6279,10 +6085,6 @@ paths:
             enum:
             - -affects__affectedness
             - -affects__created_dt
-            - -affects__cvss2
-            - -affects__cvss2_score
-            - -affects__cvss3
-            - -affects__cvss3_score
             - -affects__embargoed
             - -affects__flaw__component
             - -affects__flaw__components
@@ -6314,10 +6116,6 @@ paths:
             - -uuid
             - affects__affectedness
             - affects__created_dt
-            - affects__cvss2
-            - affects__cvss2_score
-            - affects__cvss3
-            - affects__cvss3_score
             - affects__embargoed
             - affects__flaw__component
             - affects__flaw__components
@@ -6911,24 +6709,6 @@ components:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
           - $ref: '#/components/schemas/BlankEnum'
-        cvss2:
-          type: string
-          maxLength: 100
-          deprecated: true
-        cvss2_score:
-          type: number
-          format: float
-          nullable: true
-          deprecated: true
-        cvss3:
-          type: string
-          maxLength: 100
-          deprecated: true
-        cvss3_score:
-          type: number
-          format: float
-          nullable: true
-          deprecated: true
         trackers:
           type: array
           items:
@@ -6940,10 +6720,6 @@ components:
             affectedness:
               type: string
             component:
-              type: string
-            cvss2:
-              type: string
-            cvss3:
               type: string
             impact:
               type: string
@@ -7190,24 +6966,6 @@ components:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
           - $ref: '#/components/schemas/BlankEnum'
-        cvss2:
-          type: string
-          maxLength: 100
-          deprecated: true
-        cvss2_score:
-          type: number
-          format: float
-          nullable: true
-          deprecated: true
-        cvss3:
-          type: string
-          maxLength: 100
-          deprecated: true
-        cvss3_score:
-          type: number
-          format: float
-          nullable: true
-          deprecated: true
         trackers:
           type: array
           items:
@@ -7219,10 +6977,6 @@ components:
             affectedness:
               type: string
             component:
-              type: string
-            cvss2:
-              type: string
-            cvss3:
               type: string
             impact:
               type: string
