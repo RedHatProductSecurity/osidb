@@ -329,15 +329,6 @@ def include_exclude_fields_extend_schema_view(
     list=extend_schema(
         parameters=[
             OpenApiParameter(
-                "flaw_meta_type",
-                type={"type": "array", "items": {"type": "string"}},
-                location=OpenApiParameter.QUERY,
-                description=(
-                    "Include flaw metas with specified type only, "
-                    "multiple values may be separated by commas. "
-                ),
-            ),
-            OpenApiParameter(
                 "tracker_ids",
                 type={"type": "array", "items": {"type": "string"}},
                 location=OpenApiParameter.QUERY,
@@ -358,15 +349,6 @@ def include_exclude_fields_extend_schema_view(
     retrieve=extend_schema(
         responses=FlawSerializer,
         parameters=[
-            OpenApiParameter(
-                "flaw_meta_type",
-                type={"type": "array", "items": {"type": "string"}},
-                location=OpenApiParameter.QUERY,
-                description=(
-                    "Include flaw metas with specified type only, "
-                    "multiple values may be separated by commas. "
-                ),
-            ),
             OpenApiParameter(
                 "tracker_ids",
                 type={"type": "array", "items": {"type": "string"}},
@@ -402,7 +384,6 @@ class FlawView(ModelViewSet):
         "affects__trackers__affects",
         "comments",
         "cvss_scores",
-        "meta",
         "package_versions",
         "references",
     ).all()
@@ -888,7 +869,6 @@ class TrackerView(ModelViewSet):
                     "package",
                     "snippet",
                     "tracker",
-                    "flawmeta",
                 ],
                 description=(
                     "Retrieve only Alerts related to the specified model, e.g. flaw or affect."

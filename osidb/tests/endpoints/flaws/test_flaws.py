@@ -10,22 +10,13 @@ from rest_framework import status
 
 from osidb.core import set_user_acls
 from osidb.filters import FlawFilter
-from osidb.models import (
-    Affect,
-    Flaw,
-    FlawComment,
-    FlawMeta,
-    FlawReference,
-    FlawSource,
-    Tracker,
-)
+from osidb.models import Affect, Flaw, FlawComment, FlawReference, FlawSource, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawAcknowledgmentFactory,
     FlawCommentFactory,
     FlawCVSSFactory,
     FlawFactory,
-    FlawMetaFactory,
     FlawReferenceFactory,
     PackageFactory,
     PackageVerFactory,
@@ -126,11 +117,6 @@ class TestEndpointsFlaws:
             nist_cvss_validation=Flaw.FlawNistCvssValidation.NOVALUE,
         )
         flaw1.save(raise_validation_error=False)
-        FlawMetaFactory(
-            flaw=flaw1,
-            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-            meta_attr={"status": "+"},
-        )
         FlawReferenceFactory(
             flaw=flaw1,
             type=FlawReference.FlawReferenceType.ARTICLE,
@@ -916,7 +902,6 @@ class TestEndpointsFlaws:
         response = auth_client().get(f"{test_api_uri}/flaws?cve_id={flaw1.cve_id}")
         body = response.json()
         assert body["count"] == 1
-        assert "meta" in body["results"][0]
         assert "affects" in body["results"][0]
 
         response = auth_client().get(
@@ -1146,74 +1131,6 @@ class TestEndpointsFlaws:
                     tracker.get("meta_attr"), expected_keys["tracker"]
                 )
 
-    @pytest.mark.parametrize(
-        "query_params,expected_values",
-        [
-            ("flaw_meta_type=reference", {"REFERENCE"}),
-            ("flaw_meta_type=reference,checklist", {"REFERENCE", "CHECKLIST"}),
-            (
-                "flaw_meta_type=reference,checklist,bad_type",
-                {"REFERENCE", "CHECKLIST"},
-            ),
-            ("", {"REFERENCE", "CHECKLIST", "NEED_INFO"}),
-        ],
-    )
-    def test_list_flaw_meta_type(
-        self, query_params, expected_values, auth_client, test_api_uri
-    ):
-
-        for _ in range(2):
-            flaw = FlawFactory()
-
-            FlawMetaFactory(type=FlawMeta.FlawMetaType.REFERENCE, flaw=flaw)
-            FlawMetaFactory(type="CHECKLIST", flaw=flaw)
-            FlawMetaFactory(type="NEED_INFO", flaw=flaw)
-
-        response = auth_client().get(f"{test_api_uri}/flaws?{query_params}")
-        assert response.status_code == 200
-        body = response.json()
-        assert body["count"] == 2
-
-        for result in body["results"]:
-            if not query_params:
-                assert "meta" in result
-            else:
-                assert "meta" in result
-                assert set([obj["type"] for obj in result["meta"]]) == expected_values
-
-    @pytest.mark.parametrize(
-        "query_params,expected_values",
-        [
-            ("flaw_meta_type=reference", {"REFERENCE"}),
-            ("flaw_meta_type=reference,checklist", {"REFERENCE", "CHECKLIST"}),
-            (
-                "flaw_meta_type=reference,checklist,bad_type",
-                {"REFERENCE", "CHECKLIST"},
-            ),
-            ("", {"REFERENCE", "CHECKLIST", "NEED_INFO"}),
-        ],
-    )
-    def test_flaw_meta_type(
-        self, query_params, expected_values, auth_client, test_api_uri
-    ):
-        flaw = FlawFactory()
-
-        FlawMetaFactory(type=FlawMeta.FlawMetaType.REFERENCE, flaw=flaw)
-        FlawMetaFactory(type="CHECKLIST", flaw=flaw)
-        FlawMetaFactory(type="NEED_INFO", flaw=flaw)
-
-        response = auth_client().get(
-            f"{test_api_uri}/flaws/{flaw.cve_id}?{query_params}"
-        )
-        assert response.status_code == 200
-        body = response.json()
-
-        if not query_params:
-            assert "meta" in body
-        else:
-            assert "meta" in body
-            assert set([obj["type"] for obj in body["meta"]]) == expected_values
-
     def test_flaw_including_package_versions(self, auth_client, test_api_uri):
         """retrieve flaw with package_versions"""
         package_versions = PackageFactory()
@@ -1303,11 +1220,6 @@ class TestEndpointsFlaws:
             requires_summary=Flaw.FlawRequiresSummary.APPROVED,
         )
         flaw1.save(raise_validation_error=False)
-        FlawMetaFactory(
-            flaw=flaw1,
-            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-            meta_attr={"status": "+"},
-        )
         FlawReferenceFactory(
             flaw=flaw1,
             type=FlawReference.FlawReferenceType.ARTICLE,

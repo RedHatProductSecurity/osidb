@@ -20,7 +20,6 @@ from osidb.models import (
     FlawAcknowledgment,
     FlawComment,
     FlawCVSS,
-    FlawMeta,
     FlawReference,
     FlawSource,
     Impact,
@@ -342,26 +341,6 @@ class FlawCommentFactory(factory.django.DjangoModelFactory):
         "is_private": "False",
         "creation_time": "2006-03-30T11:56:45Z",
     }
-
-
-class FlawMetaFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = FlawMeta
-
-    type = "REFERENCE"
-    created_dt = factory.Faker("date_time", tzinfo=UTC)
-    updated_dt = factory.Faker("date_time", tzinfo=UTC)
-
-    # let us inherit the parent flaw ACLs if not specified
-    acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
-    acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
-
-    meta_attr = {
-        "url": "http://nonexistenturl.example.com/1285930",
-        "type": "external",
-    }
-
-    flaw = factory.SubFactory(FlawFactory)
 
 
 class FlawAcknowledgmentFactory(factory.django.DjangoModelFactory):

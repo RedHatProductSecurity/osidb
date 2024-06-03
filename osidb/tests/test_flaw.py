@@ -18,7 +18,6 @@ from osidb.models import (
     FlawAcknowledgment,
     FlawComment,
     FlawCVSS,
-    FlawMeta,
     FlawReference,
     FlawSource,
     Impact,
@@ -30,7 +29,6 @@ from osidb.tests.factories import (
     FlawCommentFactory,
     FlawCVSSFactory,
     FlawFactory,
-    FlawMetaFactory,
     FlawReferenceFactory,
     PsModuleFactory,
     PsProductFactory,
@@ -104,11 +102,6 @@ class TestFlaw:
         assert nist_cvss in all_cvss_scores
         assert rh_cvss in all_cvss_scores
 
-        FlawMetaFactory(
-            flaw=vuln_1,
-            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-            meta_attr={"status": "+"},
-        )
         FlawReferenceFactory(
             flaw=vuln_1,
             type=FlawReference.FlawReferenceType.ARTICLE,
@@ -173,23 +166,6 @@ class TestFlaw:
         assert len(all_comments) == 2
         assert comment1 in all_comments
         assert comment2 in all_comments
-
-        meta1 = FlawMetaFactory(flaw=vuln_1)
-        meta2 = FlawMeta.objects.create_flawmeta(
-            vuln_1,
-            FlawMeta.FlawMetaType.REFERENCE,
-            {
-                "url": "http://nonexistenturl.example.com/99999",
-                "type": "external",
-            },
-            acl_read=self.acl_read,
-            acl_write=self.acl_write,
-        )
-        meta2.save()
-        all_meta = vuln_1.meta.all()
-        assert len(all_meta) == 3
-        assert meta1 in all_meta
-        assert meta2 in all_meta
 
         reference1 = FlawReferenceFactory(flaw=vuln_1)
         reference2 = FlawReference.objects.create_flawreference(
@@ -442,30 +418,6 @@ class TestFlaw:
             type=Tracker.TrackerType.BUGZILLA,
         )
         assert empty_tracker.fix_state == Affect.AffectFix.AFFECTED
-
-    def test_flawmeta_create_or_update(self):
-        flaw = FlawFactory()
-        meta = FlawMeta.objects.create_flawmeta(
-            flaw=flaw,
-            _type=FlawMeta.FlawMetaType.MAJOR_INCIDENT,
-            meta={},
-            acl_read=flaw.acl_read,
-            acl_write=flaw.acl_write,
-        )
-        meta.save()
-        old_updated_dt = meta.updated_dt
-
-        assert FlawMeta.objects.first().updated_dt == old_updated_dt
-
-        meta = FlawMeta.objects.create_flawmeta(
-            flaw=flaw,
-            _type=FlawMeta.FlawMetaType.MAJOR_INCIDENT,
-            meta={},
-            updated_dt=timezone.now(),
-        )
-        meta.save(auto_timestamps=False)
-
-        assert FlawMeta.objects.first().updated_dt > old_updated_dt
 
     def test_objects_create_flaw(self, datetime_with_tz, good_cve_id):
         """test creating with manager .create_flow()"""
@@ -736,77 +688,6 @@ class TestFlawValidators:
         with pytest.raises(ValidationError) as e:
             FlawFactory(**{attr_name: "half of FISH"})
         assert "Value 'half of FISH' is not a valid choice." in str(e)
-
-    @pytest.mark.parametrize(
-        "flag_pair", [("+", "+"), ("+", "?"), ("?", "+"), ("-", "?"), ("?", "-")]
-    )
-    def test_major_incident_flag_invalid(self, flag_pair):
-        """
-        Test invalid combinations of hightouch / hightouch-lite flag values.
-        """
-        flaw = FlawFactory()
-        FlawMetaFactory(
-            type="MAJOR_INCIDENT",
-            meta_attr={"status": flag_pair[0]},
-            flaw=flaw,
-        )
-
-        with pytest.raises(ValidationError) as e:
-            FlawMetaFactory(
-                type="MAJOR_INCIDENT_LITE",
-                meta_attr={"status": flag_pair[1]},
-                flaw=flaw,
-            )
-        assert (
-            f"Flaw MAJOR_INCIDENT and MAJOR_INCIDENT_LITE combination cannot be {flag_pair}."
-            in str(e)
-        )
-        # test that it works with RelatedManager methods such as add()
-        meta2 = FlawMetaFactory(
-            type="MAJOR_INCIDENT_LITE",
-            meta_attr={"status": flag_pair[1]},
-        )
-        with pytest.raises(ValidationError) as e:
-            # Note: only works with bulk=False which is not the default value
-            # if bulk=False is omitted, it will do an SQL update which means
-            # save() won't be called thus no validation will be performed
-            # this is a Django limitation and there's not much that we can do
-            # about it.
-            flaw.meta.add(meta2, bulk=False)
-
-    @pytest.mark.parametrize(
-        "flag_pair",
-        [
-            ("", ""),
-            ("?", "?"),
-            ("-", "-"),
-            ("+", ""),
-            ("+", "-"),
-            ("", "+"),
-            ("-", "+"),
-        ],
-    )
-    def test_major_incident_flag_valid(self, flag_pair):
-        """
-        Test valid combinations of hightouch / hightouch-lite flag values.
-        """
-        flaw = FlawFactory()
-        meta1 = FlawMetaFactory(
-            type="MAJOR_INCIDENT",
-            meta_attr={"status": flag_pair[0]},
-            flaw=flaw,
-        )
-        meta2 = FlawMetaFactory(
-            type="MAJOR_INCIDENT_LITE",
-            meta_attr={"status": flag_pair[1]},
-            flaw=flaw,
-        )
-        assert FlawMeta.objects.count() == 2
-        # test that it works with RelatedManager methods such as add()
-        flaw = FlawFactory(embargoed=flaw.embargoed)
-        # see previous test for explanation on bulk=False
-        flaw.meta.set([meta1, meta2], bulk=False)
-        assert flaw.meta.count() == 2
 
     @pytest.mark.enable_signals
     @pytest.mark.parametrize(
@@ -1284,29 +1165,6 @@ class TestFlawValidators:
         assert Flaw.objects.count() == 1
         assert flaw.alerts.filter(name="embargoed_source_public").exists()
 
-    def test_public_source_ack(self, public_source):
-        flaw = FlawFactory(source=public_source, embargoed=False)
-        assert FlawMeta.objects.count() == 0
-        with pytest.raises(ValidationError) as e:
-            FlawMetaFactory(type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT, flaw=flaw)
-        assert (
-            f"Flaw contains acknowledgments for public source {public_source}" in str(e)
-        )
-        assert FlawMeta.objects.count() == 0
-
-    def test_private_source_ack(self, private_source):
-        flaw = FlawFactory(source=private_source, embargoed=True)
-        FlawMetaFactory(type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT, flaw=flaw)
-        assert FlawMeta.objects.count() == 1
-
-    def test_private_and_public_source_ack(self, both_source):
-        flaw = FlawFactory(source=both_source, embargoed=True)
-        flaw_meta = FlawMetaFactory(
-            type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT, flaw=flaw
-        )
-        assert FlawMeta.objects.count() == 1
-        assert flaw_meta.alerts.filter(name="public_source_no_ack").exists()
-
     @pytest.mark.parametrize(
         "bz_id,ps_module,should_alert",
         [
@@ -1465,11 +1323,6 @@ class TestFlawValidators:
             flaw=flaw,
             type=FlawReference.FlawReferenceType.ARTICLE,
             url="https://access.redhat.com/link123",
-        )
-        FlawMetaFactory(
-            flaw=flaw,
-            type=FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-            meta_attr={"status": "+"},
         )
 
         if should_raise:

@@ -32,7 +32,6 @@ from .models import (
     FlawAcknowledgment,
     FlawComment,
     FlawCVSS,
-    FlawMeta,
     FlawReference,
     Impact,
     Package,
@@ -660,25 +659,6 @@ class TrackerPostSerializer(TrackerSerializer):
     # extra serializer for POST request to exclude
     # not yet existing but otherwise mandatory fields
     pass
-
-
-class MetaSerializer(ACLMixinSerializer, AlertMixinSerializer, TrackingMixinSerializer):
-    """FlawMeta serializer"""
-
-    class Meta:
-        """filter fields"""
-
-        model = FlawMeta
-        fields = (
-            [
-                "uuid",
-                "type",
-                "meta_attr",
-            ]
-            + ACLMixinSerializer.Meta.fields
-            + AlertMixinSerializer.Meta.fields
-            + TrackingMixinSerializer.Meta.fields
-        )
 
 
 class CommentSerializer(AlertMixinSerializer, TrackingMixinSerializer):
@@ -1420,7 +1400,6 @@ class FlawSerializer(
     cvss_scores = FlawCVSSSerializer(many=True, read_only=True)
     package_versions = PackageSerializer(many=True, read_only=True)
 
-    meta = serializers.SerializerMethodField()
     meta_attr = serializers.SerializerMethodField()
 
     # This line forces the deprecated "is_major_incident" field NOT to change
@@ -1463,22 +1442,6 @@ class FlawSerializer(
         )
         return serializer.data
 
-    @extend_schema_field(MetaSerializer(many=True))
-    def get_meta(self, obj):
-        """Returns all meta information for a given flaw"""
-        meta = obj.meta.all()
-        request = self.context.get("request")
-        if request:
-            flaw_meta_type = request.query_params.get("flaw_meta_type")
-            if flaw_meta_type is not None:
-                flaw_meta_types = set(flaw_meta_type.split(","))
-                flaw_meta_types = [
-                    meta_type.upper() for meta_type in list(flaw_meta_types)
-                ]
-                meta = meta.filter(type__in=flaw_meta_types)
-        serializer = MetaSerializer(instance=meta, many=True, read_only=True)
-        return serializer.data
-
     class Meta:
         """filter fields"""
 
@@ -1505,7 +1468,6 @@ class FlawSerializer(
                 "major_incident_state",
                 "nist_cvss_validation",
                 "affects",
-                "meta",
                 "comments",
                 "meta_attr",
                 "package_versions",

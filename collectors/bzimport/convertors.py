@@ -23,7 +23,6 @@ from osidb.models import (
     FlawAcknowledgment,
     FlawComment,
     FlawCVSS,
-    FlawMeta,
     FlawReference,
     Package,
     PackageVer,
@@ -238,7 +237,6 @@ class FlawSaver:
         flaw,
         affects,
         comments,
-        meta,
         acknowledgments,
         references,
         cvss_scores,
@@ -248,7 +246,6 @@ class FlawSaver:
         self.affects = affects[0]
         self.affects_cvss_scores = affects[1]
         self.comments = comments
-        self.meta = meta
         self.acknowledgments = acknowledgments
         self.references = references
         self.cvss_scores = cvss_scores
@@ -265,7 +262,6 @@ class FlawSaver:
             + self.affects
             + self.affects_cvss_scores
             + self.comments
-            + self.meta
             + self.acknowledgments
             + self.references
             + self.cvss_scores
@@ -299,7 +295,7 @@ class FlawSaver:
 
     def clean_affects(self):
         """clean obsoleted affects"""
-        # TODO: potentially optimize like clean_meta ?
+        # TODO: potentially optimize?
         for old_affect in self.flaw.affects.all():
             for new_affect in self.affects:
                 if (
@@ -323,57 +319,6 @@ class FlawSaver:
         to_delete = list(old_cvss - new_cvss)
         for cvss in to_delete:
             cvss.delete()
-
-    def clean_meta(self):
-        """
-        Removes FlawMeta objects that no longer exist upstream.
-
-        This is achieved by comparing the key attributes of the FlawMeta objects:
-            * flaw -- the flaw for which the meta object applies
-            * type -- the type of flaw metadata
-            * meta_attr -- the contents of the flawmeta
-
-        If none of the existing FlawMeta objects match these three attributes with
-        any of the upstream meta objects, then it means that it was removed upstream
-        and should be removed in OSIDB too.
-
-        E.g.
-
-        OSIDB contains:
-            FlawMeta(
-                flaw=<CVE-2022-1234>
-                type=<ACKNOWLEDGMENT>
-                meta_attr={
-                    "name": "Adrin Tres"
-                }
-            )
-
-        And upstream generates:
-            FlawMeta(
-                flaw=<CVE-2022-1234>
-                type=<ACKNOWLEDGMENT>
-                meta_attr={
-                    "name": "Adrian Torres"
-                }
-            )
-
-        It's clear that at some point a typo was made, the existing Acknowledgment
-        meta removed and replaced with the version without a typo, in that case OSIDB
-        should keep in sync with upstream.
-
-        The comparison is leveraged using the FlawMetaManager.create_flawmeta method:
-
-            When the convertor creates FlawMeta objects from the upstream data, it will
-            use the create_flawmeta method which will either retrieve an existing FlawMeta
-            or create a new one, but never create a duplicate one. This guarantees that
-            the equality operator (==) is safe to use in this case.
-        """
-        # NOTE: maybe we should simply always recreate all from upstream
-        old = set(self.flaw.meta.all())
-        new = set(self.meta)
-        to_delete = list(old - new)
-        for meta in to_delete:
-            meta.delete()
 
     def clean_acknowledgments(self):
         """clean obsoleted flaw acknowledgments"""
@@ -430,7 +375,6 @@ class FlawSaver:
             self.clean_affects_cvss_scores()
             # comments cannot be deleted in Bugzilla
             # history cannot be deleted in Bugzilla
-            self.clean_meta()
             self.clean_acknowledgments()
             self.clean_references()
             self.clean_cvss_scores()
@@ -871,23 +815,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         self.record_errors(errors)
         return flaw
 
-    def get_meta(self, flaw, meta_type, items):
-        """get FlawMeta Django models"""
-        return [
-            # TODO I am not sure this way works also
-            # for meta with multiple possible instances
-            FlawMeta.objects.create_flawmeta(
-                flaw=flaw,
-                _type=meta_type,
-                created_dt=self.flaw_bug["creation_time"],
-                updated_dt=self.flaw_bug["last_change_time"],
-                meta=item,
-                acl_read=self.acl_read,
-                acl_write=self.acl_write,
-            )
-            for item in items
-        ]
-
     def get_acknowledgments(self, flaw):
         """get a list of FlawAcknowledgment Django models"""
         acknowledgments = []
@@ -981,49 +908,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
     # BUG TO FLAWS PROCESSING #
     ###########################
 
-    SRTNOTES_META = [
-        ("acknowledgments", FlawMeta.FlawMetaType.ACKNOWLEDGMENT),
-        ("exploits", FlawMeta.FlawMetaType.EXPLOIT),
-        ("references", FlawMeta.FlawMetaType.REFERENCE),
-        ("checklists", FlawMeta.FlawMetaType.CHECKLIST),
-    ]
-    FLAGS_META = {
-        "hightouch": FlawMeta.FlawMetaType.MAJOR_INCIDENT,
-        "hightouch-lite": FlawMeta.FlawMetaType.MAJOR_INCIDENT_LITE,
-        "requires_doc_text": FlawMeta.FlawMetaType.REQUIRES_SUMMARY,
-        "nist_cvss_validation": FlawMeta.FlawMetaType.NIST_CVSS_VALIDATION,
-        "needinfo": FlawMeta.FlawMetaType.NEED_INFO,
-    }
-
-    def get_all_meta(self, flaw):
-        """process and create metadata with respect to a given flaw"""
-        meta = []
-
-        for meta_key, meta_type in self.SRTNOTES_META:
-            if meta_key in self.srtnotes:
-                meta.extend(
-                    self.get_meta(
-                        flaw,
-                        meta_type,
-                        self.srtnotes[meta_key],
-                    )
-                )
-
-        for flag in self.flags:
-            flag_name = flag["name"]
-            if flag_name not in self.FLAGS_META:
-                continue
-
-            meta.extend(
-                self.get_meta(
-                    flaw,
-                    self.FLAGS_META[flag_name],
-                    [flag],
-                )
-            )
-
-        return meta
-
     def bug2flaws(self):
         """
         perform flaw bug to flaw models conversion
@@ -1057,7 +941,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     flaw,
                     self.get_affects(flaw),
                     self.get_comments(flaw),
-                    self.get_all_meta(flaw),
                     self.get_acknowledgments(flaw),
                     self.get_references(flaw),
                     self.get_flaw_cvss(flaw),
@@ -1084,7 +967,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     flaw,
                     self.get_affects(flaw),
                     self.get_comments(flaw),
-                    self.get_all_meta(flaw),
                     self.get_acknowledgments(flaw),
                     self.get_references(flaw),
                     self.get_flaw_cvss(flaw),
@@ -1115,7 +997,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     flaw,
                     self.get_affects(flaw),
                     self.get_comments(flaw),
-                    self.get_all_meta(flaw),
                     self.get_acknowledgments(flaw),
                     self.get_references(flaw),
                     self.get_flaw_cvss(flaw),

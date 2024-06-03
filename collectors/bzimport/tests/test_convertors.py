@@ -11,7 +11,6 @@ from osidb.models import (
     FlawAcknowledgment,
     FlawComment,
     FlawCVSS,
-    FlawMeta,
     FlawReference,
     Impact,
     Package,
@@ -120,31 +119,6 @@ class TestFlawSaver:
             )
         ]
 
-    def get_meta(self, flaw):
-        """
-        minimal meta getter
-        """
-        return [
-            FlawMeta.objects.create_flawmeta(
-                flaw=flaw,
-                _type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT,
-                meta={"name": "Lon Wnderer"},
-                created_dt=timezone.now(),
-                updated_dt=timezone.now(),
-                acl_read=self.get_acls(),
-                acl_write=self.get_acls(),
-            ),
-            FlawMeta.objects.create_flawmeta(
-                flaw=flaw,
-                _type=FlawMeta.FlawMetaType.ACKNOWLEDGMENT,
-                meta={"name": "Lone Wanderer"},
-                created_dt=timezone.now(),
-                updated_dt=timezone.now(),
-                acl_read=self.get_acls(),
-                acl_write=self.get_acls(),
-            ),
-        ]
-
     def get_acknowledgments(self, flaw, from_upstream=False, name="Jane Doe"):
         """
         minimal acknowledgments getter
@@ -217,7 +191,6 @@ class TestFlawSaver:
             flaw,
             [affects, self.get_affects_cvss_scores(affects[0])],
             self.get_comments(flaw),
-            self.get_meta(flaw),
             self.get_acknowledgments(flaw),
             self.get_references(flaw),
             self.get_cvss_scores(flaw),
@@ -228,7 +201,6 @@ class TestFlawSaver:
         affect = Affect.objects.first()
         affect_cvss_score = AffectCVSS.objects.first()
         comment = FlawComment.objects.first()
-        meta = FlawMeta.objects.first()
         acknowledgment = FlawAcknowledgment.objects.first()
         reference = FlawReference.objects.first()
         cvss_score = FlawCVSS.objects.first()
@@ -244,7 +216,6 @@ class TestFlawSaver:
         assert flaw.acl_write == acls_write
         assert flaw.affects.first() == affect
         assert flaw.comments.first() == comment
-        assert flaw.meta.first() == meta
         assert flaw.references.first() == reference
         assert flaw.cvss_scores.first() == cvss_score
         assert flaw.package_versions.first() == package
@@ -278,12 +249,6 @@ class TestFlawSaver:
         assert comment.acl_read == acls
         assert comment.acl_write == acls
         assert comment.flaw == flaw
-
-        assert meta is not None
-        assert meta.type == FlawMeta.FlawMetaType.ACKNOWLEDGMENT
-        assert meta.acl_read == acls
-        assert meta.acl_write == acls
-        assert meta.flaw == flaw
 
         assert acknowledgment is not None
         assert acknowledgment.name == "Jane Doe"
@@ -333,7 +298,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -349,7 +313,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [],
             [],
@@ -378,7 +341,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -402,7 +364,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -415,53 +376,6 @@ class TestFlawSaver:
         assert affect_cvss_score is None
         assert affect.cvss_scores.count() == 0
 
-    def test_meta_removed(self):
-        """
-        test meta removal save
-        """
-        flaw = self.get_flaw()
-
-        FlawSaver(
-            flaw,
-            [[], []],
-            [],
-            self.get_meta(flaw),
-            [],
-            [],
-            [],
-            {},
-        ).save()
-
-        flaw = Flaw.objects.first()
-        meta = FlawMeta.objects.first()
-
-        assert flaw is not None
-        assert meta is not None
-        assert flaw.meta.count() == 2
-        assert flaw.meta.first() == meta
-        assert meta.flaw == flaw
-
-        FlawSaver(
-            flaw,
-            [[], []],
-            [],
-            [
-                self.get_meta(flaw)[1],
-            ],
-            [],
-            [],
-            [],
-            {},
-        ).save()
-
-        flaw = Flaw.objects.first()
-        meta = FlawMeta.objects.first()
-
-        assert flaw is not None
-        assert flaw.meta.count() == 1
-        assert flaw.meta.first() == self.get_meta(flaw)[1]
-        assert flaw.meta.first().meta_attr["name"] == "Lone Wanderer"
-
     def test_acknowledgment_removed(self):
         """
         test acknowledgment removal on save
@@ -472,7 +386,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             self.get_acknowledgments(flaw, from_upstream=False),
             [],
@@ -496,7 +409,6 @@ class TestFlawSaver:
             flaw,
             [[], []],
             [],
-            [],
             self.get_acknowledgments(flaw, from_upstream=True),
             [],
             [],
@@ -518,7 +430,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             self.get_acknowledgments(flaw, name="jaroslava kudrnova"),
             [],
@@ -548,7 +459,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -570,7 +480,6 @@ class TestFlawSaver:
             [[], []],
             [],
             [],
-            [],
             self.get_references(flaw),
             [],
             {},
@@ -588,7 +497,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [],
             [],
@@ -615,7 +523,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             self.get_cvss_scores(flaw),
             {},
         ).save()
@@ -632,7 +539,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [],
             [],
@@ -658,7 +564,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [affects, []],
-            [],
             [],
             [],
             [],
@@ -696,7 +601,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             {},
         ).save()
 
@@ -730,7 +634,6 @@ class TestFlawSaver:
             [],
             [],
             [],
-            [],
             self.get_package_versions(),
         ).save()
 
@@ -751,7 +654,6 @@ class TestFlawSaver:
         FlawSaver(
             flaw,
             [[], []],
-            [],
             [],
             [],
             [],

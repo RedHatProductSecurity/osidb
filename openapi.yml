@@ -2131,7 +2131,6 @@ paths:
           - flawacknowledgment
           - flawcomment
           - flawcvss
-          - flawmeta
           - flawreference
           - package
           - snippet
@@ -2831,14 +2830,6 @@ paths:
         description: 'Exclude specified fields from the response. Multiple values
           may be separated by commas. Dot notation can be used to filter on related
           model fields. Example: `exclude_fields=field,related_model_field.field`'
-      - in: query
-        name: flaw_meta_type
-        schema:
-          type: array
-          items:
-            type: string
-        description: 'Include flaw metas with specified type only, multiple values
-          may be separated by commas. '
       - in: query
         name: impact
         schema:
@@ -5247,14 +5238,6 @@ paths:
         description: 'Exclude specified fields from the response. Multiple values
           may be separated by commas. Dot notation can be used to filter on related
           model fields. Example: `exclude_fields=field,related_model_field.field`'
-      - in: query
-        name: flaw_meta_type
-        schema:
-          type: array
-          items:
-            type: string
-        description: 'Include flaw metas with specified type only, multiple values
-          may be separated by commas. '
       - in: path
         name: id
         schema:
@@ -7298,11 +7281,6 @@ components:
           items:
             $ref: '#/components/schemas/Affect'
           readOnly: true
-        meta:
-          type: array
-          items:
-            $ref: '#/components/schemas/Meta'
-          readOnly: true
         comments:
           type: array
           items:
@@ -7430,7 +7408,6 @@ components:
       - cvss_scores
       - description
       - embargoed
-      - meta
       - meta_attr
       - package_versions
       - references
@@ -7809,20 +7786,6 @@ components:
       - embargoed
       - text
       - uuid
-    FlawMetaType:
-      enum:
-      - ERRATA
-      - REFERENCE
-      - ACKNOWLEDGMENT
-      - EXPLOIT
-      - MAJOR_INCIDENT
-      - MAJOR_INCIDENT_LITE
-      - REQUIRES_SUMMARY
-      - NIST_CVSS_VALIDATION
-      - NEED_INFO
-      - CHECKLIST
-      - NVD_CVSS
-      type: string
     FlawPackageVersion:
       type: object
       description: Package model serializer
@@ -8002,11 +7965,6 @@ components:
           items:
             $ref: '#/components/schemas/Affect'
           readOnly: true
-        meta:
-          type: array
-          items:
-            $ref: '#/components/schemas/Meta'
-          readOnly: true
         comments:
           type: array
           items:
@@ -8129,7 +8087,6 @@ components:
       - cvss_scores
       - description
       - embargoed
-      - meta
       - meta_attr
       - package_versions
       - references
@@ -8324,47 +8281,6 @@ components:
       - 2
       - 3
       type: integer
-    Meta:
-      type: object
-      description: FlawMeta serializer
-      properties:
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
-        type:
-          $ref: '#/components/schemas/FlawMetaType'
-        meta_attr:
-          type: object
-          additionalProperties:
-            type: string
-            nullable: true
-        embargoed:
-          type: boolean
-          description: The embargoed boolean attribute is technically read-only as
-            it just indirectly modifies the ACLs but is mandatory as it controls the
-            access to the resource.
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
-        updated_dt:
-          type: string
-          format: date-time
-          description: The updated_dt timestamp attribute is mandatory on update as
-            it is used to detect mit-air collisions.
-      required:
-      - alerts
-      - created_dt
-      - embargoed
-      - type
-      - updated_dt
-      - uuid
     ModuleComponent:
       type: object
       properties:
