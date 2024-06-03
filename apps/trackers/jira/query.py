@@ -165,9 +165,9 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
                 ),
                 *[  # add all linked non-empty BZ IDs
                     "flaw:bz#" + meta_attr["bz_id"]
-                    for meta_attr in self.tracker.affects.values_list(
-                        "flaw__meta_attr", flat=True
-                    )
+                    for meta_attr in self.tracker.affects.filter(
+                        flaw__meta_attr__bz_id__isnull=False
+                    ).values_list("flaw__meta_attr", flat=True)
                 ],
             ]
         )

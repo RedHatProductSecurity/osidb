@@ -143,6 +143,7 @@ class TestTrackerJiraQueryBuilder:
                 {"test": 1},
                 [
                     "CVE-2000-2000",
+                    "CVE-2000-2001",
                     "Security",
                     "SecurityTracking",
                     "flaw:bz#42",
@@ -157,6 +158,7 @@ class TestTrackerJiraQueryBuilder:
                 },
                 [
                     "CVE-2000-2000",
+                    "CVE-2000-2001",
                     "Security",
                     "SecurityTracking",
                     "custom_label",
@@ -169,6 +171,7 @@ class TestTrackerJiraQueryBuilder:
                 {"labels": []},
                 [
                     "CVE-2000-2000",
+                    "CVE-2000-2001",
                     "Security",
                     "SecurityTracking",
                     "flaw:bz#42",
@@ -197,6 +200,7 @@ class TestTrackerJiraQueryBuilder:
                 [
                     "CVE-1",
                     "CVE-2000-2000",
+                    "CVE-2000-2001",
                     "Security",
                     "SecurityTracking",
                     "flaw:bz#42",
@@ -219,6 +223,9 @@ class TestTrackerJiraQueryBuilder:
             meta["labels"] = json.dumps(meta["labels"])
         flaw1 = FlawFactory(bz_id="42", cve_id="CVE-2000-2000")
         flaw2 = FlawFactory(bz_id="72", embargoed=flaw1.embargoed, cve_id=None)
+        flaw3 = FlawFactory(
+            bz_id=None, embargoed=flaw1.embargoed, cve_id="CVE-2000-2001"
+        )
         ps_module = PsModuleFactory(bts_name="jboss")
         affect1 = AffectFactory(
             flaw=flaw1,
@@ -234,9 +241,16 @@ class TestTrackerJiraQueryBuilder:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
+        affect3 = AffectFactory(
+            flaw=flaw3,
+            ps_module=ps_module.name,
+            ps_component="component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
-            affects=[affect1, affect2],
+            affects=[affect1, affect2, affect3],
             type=Tracker.TrackerType.JIRA,
             ps_update_stream=ps_update_stream.name,
             embargoed=flaw1.is_embargoed,
@@ -254,6 +268,7 @@ class TestTrackerJiraQueryBuilder:
         assert "CVE-2000-2000" in labels
         assert "flaw:bz#42" in labels
         assert "flaw:bz#72" in labels
+        assert "flaw:bz#" not in labels
         assert len(labels) == len(expected_labels)
         assert labels == expected_labels
 
