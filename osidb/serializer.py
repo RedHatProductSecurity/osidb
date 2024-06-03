@@ -526,6 +526,7 @@ class TrackerSerializer(
             "external_system_id",
             "status",
             "type",
+            "resolution",
         ]
 
     def create(self, validated_data):

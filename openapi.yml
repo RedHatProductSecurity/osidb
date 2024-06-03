@@ -8855,7 +8855,7 @@ components:
           readOnly: true
         resolution:
           type: string
-          maxLength: 100
+          readOnly: true
         type:
           allOf:
           - $ref: '#/components/schemas/TrackerType'
@@ -8890,6 +8890,7 @@ components:
       - errata
       - external_system_id
       - meta_attr
+      - resolution
       - status
       - type
       - updated_dt
@@ -8936,7 +8937,7 @@ components:
           readOnly: true
         resolution:
           type: string
-          maxLength: 100
+          readOnly: true
         type:
           allOf:
           - $ref: '#/components/schemas/TrackerType'
@@ -8970,6 +8971,7 @@ components:
       - embargoed
       - errata
       - meta_attr
+      - resolution
       - status
       - type
       - updated_dt
