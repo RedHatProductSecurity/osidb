@@ -1,6 +1,7 @@
 """
 Bugzilla specific tracker test cases
 """
+import json
 from unittest.mock import mock_open, patch
 
 import pytest
@@ -56,6 +57,41 @@ class TestTrackerBugzillaQueryBuilder:
 
         assert "blocks" in query
         assert sorted(query["blocks"]) == sorted(flaw_ids)
+
+    @pytest.mark.parametrize("flaw_count", [1, 2, 3])
+    def test_generate_whiteboard(self, flaw_count):
+        """
+        test that the tracker whiteboard contains all the related flaws
+        this is especially needed for linking the non-Bugzilla flaws
+        """
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        affects, flaw_uuids = [], []
+        for idx in range(flaw_count):
+            affect = AffectFactory(
+                flaw__bz_id=None,
+                flaw__embargoed=False,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                ps_module=ps_module.name,
+                ps_component="component",
+            )
+            affects.append(affect)
+            flaw_uuids.append(str(affect.flaw.uuid))
+
+        tracker = TrackerFactory(
+            affects=affects,
+            embargoed=False,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        query = TrackerBugzillaQueryBuilder(tracker).query
+
+        assert "whiteboard" in query
+        whiteboard = json.loads(query["whiteboard"])
+        assert "flaws" in whiteboard
+        assert sorted(whiteboard["flaws"]) == sorted(flaw_uuids)
 
     def test_generate_deadline(self, clean_policies):
         """
