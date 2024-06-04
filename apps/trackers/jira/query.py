@@ -163,6 +163,12 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
                         "flaw__cve_id", flat=True
                     )
                 ),
+                *[  # add all linked flaw UUIDs
+                    f"flawuuid:{uuid}"
+                    for uuid in self.tracker.affects.filter(
+                        flaw__isnull=False
+                    ).values_list("flaw__uuid", flat=True)
+                ],
                 *[  # add all linked non-empty BZ IDs
                     "flaw:bz#" + meta_attr["bz_id"]
                     for meta_attr in self.tracker.affects.filter(

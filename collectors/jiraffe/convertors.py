@@ -307,6 +307,25 @@ class JiraTrackerConvertor(TrackerConvertor):
                     )
                     continue
 
+            if label.startswith("flawuuid:"):
+                flaw_uuid = label.split(":")[1]
+                try:
+                    flaws.add(Flaw.objects.get(uuid=flaw_uuid))
+                except Flaw.DoesNotExist:
+                    # tracker created against
+                    # non-existing flaw UUID
+                    self.alert(
+                        {
+                            "name": "tracker_no_flaw",
+                            "description": (
+                                f"Jira tracker {self._raw.key} is supposed to be associated with "
+                                f"flaw {flaw_uuid} which however does not exist"
+                            ),
+                            "alert_type": Alert.AlertType.ERROR,
+                        }
+                    )
+                    continue
+
             if match := JIRA_BZ_ID_LABEL_RE.match(label):
                 if not (
                     linked_flaws := Flaw.objects.filter(meta_attr__bz_id=match.group(1))
