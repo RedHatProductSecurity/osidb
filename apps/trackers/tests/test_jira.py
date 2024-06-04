@@ -1,6 +1,7 @@
 """
 Bugzilla specific tracker test cases
 """
+
 import json
 from typing import Any, Dict
 from unittest.mock import mock_open, patch
@@ -8,7 +9,10 @@ from unittest.mock import mock_open, patch
 import pytest
 from django.utils.timezone import datetime, make_aware
 
-from apps.trackers.exceptions import NoSecurityLevelAvailableError
+from apps.trackers.exceptions import (
+    NoSecurityLevelAvailableError,
+    NoTargetReleaseVersionAvailableError,
+)
 from apps.trackers.jira.constants import PS_ADDITIONAL_FIELD_TO_JIRA
 from apps.trackers.jira.query import JiraPriority, TrackerJiraQueryBuilder
 from apps.trackers.models import JiraProjectFields
@@ -798,6 +802,79 @@ sla:
 
             assert query_builder.query["fields"] == expected_fields
             assert query_builder.query_comment == expected_comment
+
+    @pytest.mark.parametrize(
+        "target_release, target_version, valid_jira_field, available_field",
+        [
+            ("4.1.0", None, True, True),
+            (None, "One-off release", True, True),
+            ("4.1.0", None, True, False),
+            (None, None, False, False),
+            ("42.17", None, False, True),
+            (None, "20.77", False, True),
+        ],
+    )
+    def test_generate_target_release(
+        self, target_release, target_version, valid_jira_field, available_field
+    ):
+        """
+        Test generation of Target Release/Target Version fields from PsUpdateStream.
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            target_release=(
+                target_release if target_release is not None else target_version
+            ),
+        )
+        flaw = FlawFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=ps_update_stream.name,
+            embargoed=flaw.embargoed,
+        )
+
+        # Create mock field
+        if available_field:
+            if target_release is not None:
+                field_id = "customfield_12311240"
+                field_name = "Target Release"
+            else:
+                field_id = "customfield_12319940"
+                field_name = "Target Version"
+            JiraProjectFieldsFactory(
+                project_key=ps_module.bts_key,
+                field_id=field_id,
+                field_name=field_name,
+                allowed_values=[
+                    "4.1.0",
+                    "One-off release",
+                ],
+            )
+
+        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder._query = {"fields": {}}
+        if not available_field:
+            # If the field is not available in the project, nothing is generated
+            query_builder.generate_target_release()
+            assert "customfield_12311240" not in query_builder.query["fields"]
+            assert "customfield_12319940" not in query_builder.query["fields"]
+        elif valid_jira_field:
+            query_builder.generate_target_release()
+            query_value = query_builder.query["fields"].get(field_id)
+            if target_release is not None:
+                assert query_value == {"name": target_release}
+            elif target_version is not None:
+                assert query_value == [{"name": target_version}]
+        else:
+            with pytest.raises(NoTargetReleaseVersionAvailableError):
+                query_builder.generate_target_release()
 
 
 def validate_minimum_key_value(minimum: Dict[str, Any], evaluated: Dict[str, Any]):

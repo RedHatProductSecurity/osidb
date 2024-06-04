@@ -10,6 +10,7 @@ from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import (
     NoPriorityAvailableError,
     NoSecurityLevelAvailableError,
+    NoTargetReleaseVersionAvailableError,
     TrackerCreationError,
 )
 from apps.trackers.models import JiraProjectFields
@@ -96,6 +97,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         self.generate_additional_fields()
         self.generate_security()
         self.generate_cc()
+        self.generate_target_release()
 
     def generate_base(self):
         self._query = {
@@ -338,6 +340,43 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
                     f"Jira project {self.ps_module.bts_key} does not have available field Contributors or "
                     f"Involved. This is a regression on the part of the administration of that Jira project."
                 )
+
+    def generate_target_release(self):
+        """
+        Generate target release field from the PsUpdateStream's data.
+        """
+        value = self.ps_update_stream.target_release
+        if value is None:
+            return
+
+        # Try to use Jira field "Target Release"
+        field_name = "Target Release"
+        field_id = PS_ADDITIONAL_FIELD_TO_JIRA["target_release"]
+        field_obj = JiraProjectFields.objects.filter(
+            project_key=self.ps_module.bts_key, field_id=field_id
+        ).first()
+        if field_obj is None:
+            # Use field "Target Version" as fallback option
+            field_name = "Target Version"
+            field_id = PS_ADDITIONAL_FIELD_TO_JIRA["target_version"]
+            field_obj = JiraProjectFields.objects.filter(
+                project_key=self.ps_module.bts_key, field_id=field_id
+            ).first()
+        if field_obj is None:
+            # The fields are not available for this project
+            return
+
+        allowed_values = field_obj.allowed_values
+        if allowed_values and value in allowed_values:
+            query_value = (
+                {"name": value} if field_name == "Target Release" else [{"name": value}]
+            )
+            self._query["fields"][field_id] = query_value
+        else:
+            raise NoTargetReleaseVersionAvailableError(
+                f"Jira project {self.ps_module.bts_key} does not have {field_name} with value "
+                f"{value} available; allowed values values are: {', '.join(allowed_values)}"
+            )
 
     @property
     def query_comment(self):

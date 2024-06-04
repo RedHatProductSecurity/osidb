@@ -15,6 +15,12 @@ class NoSecurityLevelAvailableError(BTSException):
     """exception class for missing correct Security Level in the particular project"""
 
 
+class NoTargetReleaseVersionAvailableError(BTSException):
+    """
+    Exception class for missing target release (or its fallback target version) value in the project.
+    """
+
+
 class TrackerCreationError(BTSException):
     """
     exception class for the cases of unsuccessful tracker creation
