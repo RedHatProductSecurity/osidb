@@ -148,6 +148,9 @@ class TestTrackerJiraQueryBuilder:
                     "SecurityTracking",
                     "flaw:bz#42",
                     "flaw:bz#72",
+                    "flawuuid:b46a4c34-3c29-4fbd-8543-95d460bb3ceb",
+                    "flawuuid:7f30f723-317d-4eff-97ed-65fc844e7c69",
+                    "flawuuid:f3979e01-47ca-48e0-830c-ebe6fc02b259",
                     "pscomponent:component",
                 ],
             ),
@@ -164,6 +167,9 @@ class TestTrackerJiraQueryBuilder:
                     "custom_label",
                     "flaw:bz#42",
                     "flaw:bz#72",
+                    "flawuuid:b46a4c34-3c29-4fbd-8543-95d460bb3ceb",
+                    "flawuuid:7f30f723-317d-4eff-97ed-65fc844e7c69",
+                    "flawuuid:f3979e01-47ca-48e0-830c-ebe6fc02b259",
                     "pscomponent:component",
                 ],
             ),
@@ -176,6 +182,9 @@ class TestTrackerJiraQueryBuilder:
                     "SecurityTracking",
                     "flaw:bz#42",
                     "flaw:bz#72",
+                    "flawuuid:b46a4c34-3c29-4fbd-8543-95d460bb3ceb",
+                    "flawuuid:7f30f723-317d-4eff-97ed-65fc844e7c69",
+                    "flawuuid:f3979e01-47ca-48e0-830c-ebe6fc02b259",
                     "pscomponent:component",
                 ],
             ),
@@ -205,6 +214,9 @@ class TestTrackerJiraQueryBuilder:
                     "SecurityTracking",
                     "flaw:bz#42",
                     "flaw:bz#72",
+                    "flawuuid:b46a4c34-3c29-4fbd-8543-95d460bb3ceb",
+                    "flawuuid:7f30f723-317d-4eff-97ed-65fc844e7c69",
+                    "flawuuid:f3979e01-47ca-48e0-830c-ebe6fc02b259",
                     "foobaa",
                     "foobar",
                     "foobaz",
@@ -221,10 +233,22 @@ class TestTrackerJiraQueryBuilder:
             # Do what jiraffe/convertors.py::JiraTrackerConvertor._normalize normally does
             # when saving meta_attr (improve readability of pytest parameters).
             meta["labels"] = json.dumps(meta["labels"])
-        flaw1 = FlawFactory(bz_id="42", cve_id="CVE-2000-2000")
-        flaw2 = FlawFactory(bz_id="72", embargoed=flaw1.embargoed, cve_id=None)
+        flaw1 = FlawFactory(
+            uuid="b46a4c34-3c29-4fbd-8543-95d460bb3ceb",
+            bz_id="42",
+            cve_id="CVE-2000-2000",
+        )
+        flaw2 = FlawFactory(
+            uuid="7f30f723-317d-4eff-97ed-65fc844e7c69",
+            bz_id="72",
+            embargoed=flaw1.embargoed,
+            cve_id=None,
+        )
         flaw3 = FlawFactory(
-            bz_id=None, embargoed=flaw1.embargoed, cve_id="CVE-2000-2001"
+            uuid="f3979e01-47ca-48e0-830c-ebe6fc02b259",
+            bz_id=None,
+            embargoed=flaw1.embargoed,
+            cve_id="CVE-2000-2001",
         )
         ps_module = PsModuleFactory(bts_name="jboss")
         affect1 = AffectFactory(
@@ -262,6 +286,9 @@ class TestTrackerJiraQueryBuilder:
         query_builder.generate_labels()
 
         labels = query_builder.query["fields"]["labels"]
+        assert f"flawuuid:{flaw1.uuid}" in labels
+        assert f"flawuuid:{flaw2.uuid}" in labels
+        assert f"flawuuid:{flaw3.uuid}" in labels
         assert "SecurityTracking" in labels
         assert "Security" in labels
         assert "pscomponent:component" in labels
@@ -270,7 +297,7 @@ class TestTrackerJiraQueryBuilder:
         assert "flaw:bz#72" in labels
         assert "flaw:bz#" not in labels
         assert len(labels) == len(expected_labels)
-        assert labels == expected_labels
+        assert sorted(labels) == sorted(expected_labels)
 
     def test_generate_label_contract_priority(self):
         """
@@ -305,7 +332,8 @@ class TestTrackerJiraQueryBuilder:
         assert "pscomponent:component" in labels
         assert "CVE-2000-2000" in labels
         assert "flaw:bz#42" in labels
-        assert len(labels) == 6
+        assert f"flawuuid:{flaw1}" in labels
+        assert len(labels) == 7
 
     @pytest.mark.parametrize(
         "impact,yml_components",
@@ -356,12 +384,13 @@ class TestTrackerJiraQueryBuilder:
         assert "pscomponent:component" in labels
         assert "CVE-2000-2000" in labels
         assert "flaw:bz#42" in labels
+        assert f"flawuuid:{flaw1}" in labels
         if impact == "LOW" or "foobar" in yml_components:
             assert "compliance-priority" not in labels
-            assert len(labels) == 6
+            assert len(labels) == 7
         else:
             assert "compliance-priority" in labels
-            assert len(labels) == 7
+            assert len(labels) == 8
 
     @pytest.mark.parametrize(
         "external_system_id, affectedness, preexisting_val_req_lbl, result_val_req_lbl",
@@ -457,12 +486,14 @@ class TestTrackerJiraQueryBuilder:
         assert "CVE-2000-2000" in labels
         assert "flaw:bz#1" in labels
         assert "flaw:bz#2" in labels
+        assert f"flawuuid:{flaw1}" in labels
+        assert f"flawuuid:{flaw2}" in labels
         if result_val_req_lbl:
             assert "validation-requested" in labels
-            assert len(labels) == 7
+            assert len(labels) == 9
         else:
             assert "validation-requested" not in labels
-            assert len(labels) == 6
+            assert len(labels) == 8
 
         # NOTE: In real usage, this query is sent to Jira and it overwrites the list of
         # labels stored in Jira, so if the label is not generated anymore, it effectively
