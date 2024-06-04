@@ -41,6 +41,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         self.generate_groups()
         self.generate_keywords()
         self.generate_summary()
+        self.generate_whiteboard()
 
     def generate_base(self):
         """
@@ -66,7 +67,13 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         that the tracker blocks the flaw so the flaw depends_on the tracker
         """
         # there may be multiple flaws in OSIDB with the same Bugzilla ID
-        flaw_ids = list(set(flaw.meta_attr["bz_id"] for flaw in self.flaws))
+        flaw_ids = list(
+            set(
+                flaw.meta_attr["bz_id"]
+                for flaw in self.flaws
+                if "bz_id" in flaw.meta_attr
+            )
+        )
 
         if self.old_tracker is None:
             self._query["blocks"] = flaw_ids
@@ -260,3 +267,11 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         generate query for tracker summary
         """
         self._query["summary"] = self.summary
+
+    def generate_whiteboard(self):
+        """
+        generate query for the tracker whiteboard
+        """
+        self._query["whiteboard"] = json.dumps(
+            {"flaws": [str(flaw.uuid) for flaw in self.flaws]}
+        )
