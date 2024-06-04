@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add bulk PUT for Affects (OSIDB-2407)
 - Add Bugzilla token to promote API (OSIDB-2262)
 - Enable creation of Jira tasks for collector flaws (OSIDB-2649)
-- Add temporary JIRA stage http forwarder passing in headers/params (OSIDB-2734)
+- Add temporary JIRA stage http forwarder passing in params (OSIDB-2734)
 - Add link between trackers to flaws without CVE (OSIDB-2848)
 
 ### Changed
