@@ -236,3 +236,39 @@ class TestJiraTrackerConvertor:
         assert f"flaw:bz#{flaw.bz_id}" in json.loads(tracker.meta_attr["labels"])
         assert tracker.affects.count() == 1
         assert tracker.affects.first() == affect
+
+    @pytest.mark.vcr
+    def test_convert_linked_from_tracker_side_flawuuid(self, pin_envs):
+        """
+        test that the convertor linking works
+        when the link is in tracker flawuuid label
+        """
+        flaw = FlawFactory(
+            uuid="56f06643-6eb9-4fd0-aef7-38ddcbfab65d",  # remove randomness
+            bz_id=None,
+            cve_id=None,
+            embargoed=False,
+        )
+        ps_module = PsModuleFactory(name="amq-7")
+        PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            flaw=flaw,
+            ps_module=ps_module.name,
+            ps_component="elasticsearch",
+        )
+        tracker_data = JiraQuerier().get_issue(self.tracker_id)
+        tracker_convertor = JiraTrackerConvertor(tracker_data)
+        tracker_convertor.tracker.save()
+        tracker = Tracker.objects.get(external_system_id=self.tracker_id)
+
+        assert not flaw.meta_attr.get("jira_trackers")
+        assert not any(
+            "CVE" in label for label in json.loads(tracker.meta_attr["labels"])
+        )
+        assert not any(
+            "flaw:bz#" in label for label in json.loads(tracker.meta_attr["labels"])
+        )
+        assert tracker.affects.count() == 1
+        assert tracker.affects.first() == affect
