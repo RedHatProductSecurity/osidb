@@ -32,6 +32,8 @@ conditions:
   flaw:
     - is major incident
     - is not embargoed
+  tracker:
+    - is not triage
 sla:
   duration: 5
   start:
@@ -53,6 +55,7 @@ conditions:
     - is not embargoed
   tracker:
     - is compliance priority
+    - is not triage
 sla:
   duration: 7
   start:
@@ -70,6 +73,8 @@ conditions:
     - is not community
   flaw:
     - is not embargoed
+  tracker:
+    - is not triage
 sla:
   duration: 30
   start:
@@ -91,6 +96,7 @@ conditions:
     - is not embargoed
   tracker:
     - is compliance priority
+    - is not triage
 sla:
   duration: 21
   start:
@@ -108,6 +114,8 @@ conditions:
     - is not community
   flaw:
     - is not embargoed
+  tracker:
+    - is not triage
 sla:
   duration: 60
   start:
@@ -129,6 +137,7 @@ conditions:
     - is not embargoed
   tracker:
     - is compliance priority
+    - is not triage
 sla:
   duration: 50
   start:
@@ -146,6 +155,8 @@ conditions:
     - is not community
   flaw:
     - is not embargoed
+  tracker:
+    - is not triage
 sla:
   duration: 90
   start:
@@ -163,6 +174,8 @@ conditions:
     - is not community
   flaw:
     - is not embargoed
+  tracker:
+    - is not triage
 sla:
   duration: 180
   start:

@@ -100,6 +100,36 @@ class TestTracker:
         assert acked_tracker.is_acked and not acked_tracker.is_unacked
         assert not unacked_tracker.is_acked and unacked_tracker.is_unacked
 
+    @pytest.mark.parametrize(
+        "affectedness_list, is_triage",
+        [
+            ([Affect.AffectAffectedness.NEW], True),
+            ([Affect.AffectAffectedness.AFFECTED], False),
+            ([Affect.AffectAffectedness.NEW, Affect.AffectAffectedness.NEW], True),
+            (
+                [Affect.AffectAffectedness.NEW, Affect.AffectAffectedness.AFFECTED],
+                False,
+            ),
+        ],
+    )
+    def test_is_triage(self, affectedness_list, is_triage):
+        """
+        Test that a tracker is considered on triage if all of its affects are in NEW
+        affectedness state.
+        """
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affects = [
+            AffectFactory(
+                ps_module=ps_module.name,
+                affectedness=affectedness,
+                ps_component="component",
+                flaw=FlawFactory(embargoed=False),
+            )
+            for affectedness in affectedness_list
+        ]
+        tracker = TrackerFactory(affects=affects, type=Tracker.TrackerType.BUGZILLA)
+        assert tracker.is_triage == is_triage
+
 
 class TestTrackerValidators:
     def test_validate_good(self):

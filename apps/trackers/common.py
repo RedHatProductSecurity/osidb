@@ -358,11 +358,7 @@ class TrackerQueryBuilder:
         if not self.ps_module.private_trackers_allowed:
             header += "Public "
 
-        header += (
-            "Security Issue Notification"
-            if self.tracker.is_triage
-            else "Security Tracking Issue"
-        )
+        header += "Security Tracking Issue"
         description_parts.append(header)
 
         if self.ps_module.private_trackers_allowed:

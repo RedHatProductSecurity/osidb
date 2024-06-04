@@ -566,11 +566,11 @@ class TestSLAPolicy:
                 ),
                 (
                     {
-                        "tracker": ["aggregated impact is critical"],
+                        "tracker": ["aggregated impact is critical", "is not triage"],
                     },
                     [],
                     [],
-                    ["aggregated impact is critical"],
+                    ["aggregated impact is critical", "is not triage"],
                 ),
             ],
         )
@@ -606,10 +606,27 @@ class TestSLAPolicy:
 
     class TestConditions:
         """
-        test SLAPolicy conditions eveluation
+        test SLAPolicy conditions evaluation
         """
 
-        def test_conditions(self):
+        @pytest.mark.parametrize(
+            "is_major_incident,embargoed,affectedness,is_compliance_priority,sla_accepted",
+            [
+                (True, False, Affect.AffectAffectedness.AFFECTED, True, True),
+                (False, False, Affect.AffectAffectedness.AFFECTED, True, False),
+                (True, True, Affect.AffectAffectedness.AFFECTED, True, False),
+                (True, False, Affect.AffectAffectedness.NEW, True, False),
+                (True, False, Affect.AffectAffectedness.AFFECTED, False, False),
+            ],
+        )
+        def test_conditions(
+            self,
+            is_major_incident,
+            embargoed,
+            affectedness,
+            is_compliance_priority,
+            sla_accepted,
+        ):
             """
             test evaluating of SLAPolicy conditions
             """
@@ -626,6 +643,7 @@ class TestSLAPolicy:
                     ],
                     "tracker": [
                         "aggregated impact is moderate",
+                        "is not triage",
                     ],
                 },
                 "sla": {
@@ -638,23 +656,27 @@ class TestSLAPolicy:
 
             flaw = FlawFactory(
                 components=["dnf"],
-                embargoed=False,
-                major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+                embargoed=embargoed,
+                major_incident_state=(
+                    Flaw.FlawMajorIncident.APPROVED
+                    if is_major_incident
+                    else Flaw.FlawMajorIncident.NOVALUE
+                ),
                 impact=Impact.LOW,
             )
             ps_module = PsModuleFactory()
             affect = AffectFactory(
                 flaw=flaw,
-                affectedness=Affect.AffectAffectedness.AFFECTED,
-                resolution=Affect.AffectResolution.DELEGATED,
+                affectedness=affectedness,
                 ps_module=ps_module.name,
                 impact=Impact.MODERATE,
             )
-            CompliancePriority(
-                ps_module=ps_module.name,
-                components=[affect.ps_component],
-                streams=["dummy_value"],
-            ).save()
+            if is_compliance_priority:
+                CompliancePriority(
+                    ps_module=ps_module.name,
+                    components=[affect.ps_component],
+                    streams=["dummy_value"],
+                ).save()
             tracker = TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.embargoed,
@@ -662,12 +684,15 @@ class TestSLAPolicy:
             )
 
             # provide SLA context
-            assert policy.accepts(
-                SLAContext(
-                    flaw=flaw,
-                    affect=affect,
-                    tracker=tracker,
+            assert (
+                policy.accepts(
+                    SLAContext(
+                        flaw=flaw,
+                        affect=affect,
+                        tracker=tracker,
+                    )
                 )
+                == sla_accepted
             )
 
         def test_conditions_multiple_flaws(self):
@@ -687,6 +712,7 @@ class TestSLAPolicy:
                         "is major incident",
                         "is not embargoed",
                     ],
+                    "tracker": ["is not triage"],
                 },
                 "sla": {
                     "duration": 5,

@@ -2604,11 +2604,11 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     @property
     def is_triage(self):
         """
-        triage tracker has a non-published flaw state attached
+        A tracker is in triage if all the affects linked to it are in NEW state of affectedness.
         """
-        # TODO this is only a placeholder for now
-        # it is to be determined and implemented
-        return False
+        return not self.affects.exclude(
+            affectedness=Affect.AffectAffectedness.NEW
+        ).exists()
 
     @property
     def is_compliance_priority(self) -> bool:
