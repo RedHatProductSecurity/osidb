@@ -144,7 +144,10 @@ class JiraTaskmanQuerier(JiraQuerier):
         for product in products:
             if product.team:
                 labels.append(f"team:{product.team}")
-        if flaw.is_major_incident_temp():
+        if flaw.major_incident_state in [
+            Flaw.FlawMajorIncident.APPROVED,
+            Flaw.FlawMajorIncident.CISA_APPROVED,
+        ]:
             labels.append("major_incident")
         if not flaw.cve_id or flaw.cve_id in flaw.title:
             summary = flaw.title

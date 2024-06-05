@@ -640,29 +640,6 @@ class Flaw(
     # mitigation to apply if the final fix is not available, from srtnotes "mitigation"
     mitigation = models.TextField(blank=True)
 
-    def is_major_incident_temp(self):
-        """
-        This function mirrors behaviour of the is_major_incident field.
-        Once the original field is removed, this should be turned into property.
-
-        "is_major_incident" is True if hightouch/hightouch-lite contains "+"/"?" flags.
-        """
-        if self is None:
-            return False
-
-        return self.major_incident_state in [
-            self.FlawMajorIncident.REQUESTED,
-            self.FlawMajorIncident.APPROVED,
-            self.FlawMajorIncident.CISA_APPROVED,
-        ]
-
-    # should be set True if MAJOR_INCIDENT or MAJOR_INCIDENT_LITE FlawMeta exists, from BZ flagsq
-    is_major_incident = deprecate_field_custom(
-        models.BooleanField(default=False),
-        # required to keep backwards compatibility
-        return_instead=is_major_incident_temp,
-    )
-
     major_incident_state = models.CharField(
         choices=FlawMajorIncident.choices, max_length=20, blank=True
     )
@@ -675,7 +652,10 @@ class Flaw(
         # TODO
         # we currently do not have this information available
         # so we assume that this was always Major Incident
-        if self.is_major_incident_temp():
+        if self.major_incident_state in [
+            Flaw.FlawMajorIncident.APPROVED,
+            Flaw.FlawMajorIncident.CISA_APPROVED,
+        ]:
             return self.reported_dt
 
     @property
@@ -1140,14 +1120,20 @@ class Flaw(
             return
 
         old_flaw = Flaw.objects.get(pk=self.pk)
-        was_high_impact = (
-            old_flaw.impact in [Impact.CRITICAL, Impact.IMPORTANT]
-            or old_flaw.is_major_incident_temp()
-        )
-        is_high_impact = (
-            self.impact in [Impact.CRITICAL, Impact.IMPORTANT]
-            or self.is_major_incident_temp()
-        )
+        was_high_impact = old_flaw.impact in [
+            Impact.CRITICAL,
+            Impact.IMPORTANT,
+        ] or old_flaw.major_incident_state in [
+            Flaw.FlawMajorIncident.APPROVED,
+            Flaw.FlawMajorIncident.CISA_APPROVED,
+        ]
+        is_high_impact = self.impact in [
+            Impact.CRITICAL,
+            Impact.IMPORTANT,
+        ] or self.major_incident_state in [
+            Flaw.FlawMajorIncident.APPROVED,
+            Flaw.FlawMajorIncident.CISA_APPROVED,
+        ]
         if (
             was_high_impact != is_high_impact
             and Tracker.objects.filter(affects__flaw=self)

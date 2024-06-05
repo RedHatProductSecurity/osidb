@@ -526,7 +526,7 @@ class TestTrackerSuggestions:
             flaw = FlawFactory(
                 embargoed=False,
                 impact=Impact.MODERATE,
-                major_incident_state=Flaw.FlawMajorIncident.REQUESTED,
+                major_incident_state=Flaw.FlawMajorIncident.APPROVED,
             )
         else:
             flaw = FlawFactory(

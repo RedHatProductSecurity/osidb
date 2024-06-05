@@ -25,7 +25,6 @@ class CheckParser:
         assert issubclass(self.model, models.Model)
 
     ATTRIBUTE_MAP = {
-        "is_major_incident": "is_major_incident_temp",
         "cve": "cve_id",
         "cwe": "cwe_id",
         "group": "group_key",

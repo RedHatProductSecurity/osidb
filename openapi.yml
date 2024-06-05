@@ -943,11 +943,6 @@ paths:
           - LOW
           - MODERATE
       - in: query
-        name: flaw__is_major_incident
-        schema:
-          type: boolean
-        deprecated: true
-      - in: query
         name: flaw__reported_dt
         schema:
           type: string
@@ -1199,7 +1194,6 @@ paths:
             - -flaw__cwe_id
             - -flaw__embargoed
             - -flaw__impact
-            - -flaw__is_major_incident
             - -flaw__reported_dt
             - -flaw__source
             - -flaw__unembargo_dt
@@ -1238,7 +1232,6 @@ paths:
             - flaw__cwe_id
             - flaw__embargoed
             - flaw__impact
-            - flaw__is_major_incident
             - flaw__reported_dt
             - flaw__source
             - flaw__unembargo_dt
@@ -2861,11 +2854,6 @@ paths:
           wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
           keys from meta_attr. Omit this parameter to not include meta_attr fields
           at all. '
-      - in: query
-        name: is_major_incident
-        schema:
-          type: boolean
-        deprecated: true
       - name: limit
         required: false
         in: query
@@ -2946,7 +2934,6 @@ paths:
             - -description
             - -embargoed
             - -impact
-            - -is_major_incident
             - -major_incident_state
             - -nist_cvss_validation
             - -owner
@@ -3008,7 +2995,6 @@ paths:
             - description
             - embargoed
             - impact
-            - is_major_incident
             - major_incident_state
             - nist_cvss_validation
             - owner
@@ -5706,11 +5692,6 @@ paths:
           - LOW
           - MODERATE
       - in: query
-        name: affects__flaw__is_major_incident
-        schema:
-          type: boolean
-        deprecated: true
-      - in: query
         name: affects__flaw__reported_dt
         schema:
           type: string
@@ -6076,7 +6057,6 @@ paths:
             - -affects__flaw__cwe_id
             - -affects__flaw__embargoed
             - -affects__flaw__impact
-            - -affects__flaw__is_major_incident
             - -affects__flaw__reported_dt
             - -affects__flaw__source
             - -affects__flaw__unembargo_dt
@@ -6107,7 +6087,6 @@ paths:
             - affects__flaw__cwe_id
             - affects__flaw__embargoed
             - affects__flaw__impact
-            - affects__flaw__is_major_incident
             - affects__flaw__reported_dt
             - affects__flaw__source
             - affects__flaw__unembargo_dt
@@ -7265,9 +7244,6 @@ components:
           nullable: true
         mitigation:
           type: string
-        is_major_incident:
-          type: boolean
-          deprecated: true
         major_incident_state:
           oneOf:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'
@@ -7949,9 +7925,6 @@ components:
           nullable: true
         mitigation:
           type: string
-        is_major_incident:
-          type: boolean
-          deprecated: true
         major_incident_state:
           oneOf:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'

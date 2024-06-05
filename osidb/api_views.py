@@ -338,12 +338,6 @@ def include_exclude_fields_extend_schema_view(
                     "Affects that have the specified Trackers related will be shown."
                 ),
             ),
-            OpenApiParameter(
-                "is_major_incident",
-                type=OpenApiTypes.BOOL,
-                location=OpenApiParameter.QUERY,
-                deprecated=True,
-            ),
         ],
     ),
     retrieve=extend_schema(
@@ -638,16 +632,6 @@ class FlawPackageVersionView(
     create=extend_schema(
         request=AffectPostSerializer,
     ),
-    list=extend_schema(
-        parameters=[
-            OpenApiParameter(
-                "flaw__is_major_incident",
-                type=OpenApiTypes.BOOL,
-                location=OpenApiParameter.QUERY,
-                deprecated=True,
-            ),
-        ],
-    ),
 )
 class AffectView(SubFlawViewDestroyMixin, ModelViewSet):
     queryset = Affect.objects.prefetch_related(
@@ -810,16 +794,6 @@ class AffectCVSSView(ModelViewSet):
 @extend_schema_view(
     create=extend_schema(
         request=TrackerPostSerializer,
-    ),
-    list=extend_schema(
-        parameters=[
-            OpenApiParameter(
-                "affects__flaw__is_major_incident",
-                type=OpenApiTypes.BOOL,
-                location=OpenApiParameter.QUERY,
-                deprecated=True,
-            ),
-        ],
     ),
 )
 class TrackerView(ModelViewSet):

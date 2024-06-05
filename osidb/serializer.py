@@ -1345,7 +1345,6 @@ class FlawCVSSPutSerializer(FlawCVSSSerializer):
 @extend_schema_serializer(
     deprecate_fields=[
         "component",
-        "is_major_incident",
     ]
 )
 class FlawSerializer(
@@ -1403,9 +1402,6 @@ class FlawSerializer(
 
     meta_attr = serializers.SerializerMethodField()
 
-    # This line forces the deprecated "is_major_incident" field NOT to change
-    # from boolean to string. Otherwise, some unknown logic turns it into string.
-    is_major_incident = serializers.BooleanField(required=False)
     component = serializers.CharField(required=False)
 
     @extend_schema_field(
@@ -1465,7 +1461,6 @@ class FlawSerializer(
                 "source",
                 "reported_dt",
                 "mitigation",
-                "is_major_incident",
                 "major_incident_state",
                 "nist_cvss_validation",
                 "affects",
