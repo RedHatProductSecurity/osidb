@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Split BBSync enablement switch into flaw and tracker ones (OSIDB-2820)
 - Set "Target Release" field in Jira trackers (OSIDB-2727)
 - Tracker resolution is now readonly (OSIDB-2746)
+- Remove is_triage property from Tracker (OSIDB-2853)
 
 ### Fixed
 - Fix incorrect ACLs for flaw drafts (OSIDB-2263)

@@ -3,7 +3,6 @@ import pytest
 import apps.trackers.common as common
 from apps.sla.framework import SLAFramework
 from apps.trackers.constants import TRACKERS_API_VERSION
-from osidb.models import Tracker
 
 
 @pytest.fixture(autouse=True)
@@ -61,18 +60,6 @@ def api_version() -> str:
 @pytest.fixture
 def test_app_api_uri(test_app_scheme_host, api_version) -> str:
     return f"{test_app_scheme_host}/api/{api_version}"
-
-
-@pytest.fixture
-def fake_triage() -> None:
-    """
-    fake triage tracker property to be always True
-    """
-    is_triage = getattr(Tracker, "is_triage")
-    setattr(Tracker, "is_triage", property(lambda self: True))
-    yield
-    # cleanup after the test run
-    setattr(Tracker, "is_triage", is_triage)
 
 
 @pytest.fixture()

@@ -2602,15 +2602,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         )
 
     @property
-    def is_triage(self):
-        """
-        triage tracker has a non-published flaw state attached
-        """
-        # TODO this is only a placeholder for now
-        # it is to be determined and implemented
-        return False
-
-    @property
     def is_compliance_priority(self) -> bool:
         """
         Check and return whether this affect module, component and update stream combination is

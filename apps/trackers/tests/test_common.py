@@ -688,7 +688,7 @@ until the embargo has lifted. Please post the patch only to the \
             "Reproducers, if any, will remain confidential and never be made public, unless done so by the security team."
         )
 
-    def test_triage(self, fake_triage):
+    def test_triage(self):
         """
         test triage tracker description generation
         """
