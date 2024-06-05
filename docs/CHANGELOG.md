@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Redesign of flaw comments to make them independent of Bugzilla (OSIDB-2760)
 - Allow filling trackers for flaws without bz_id (OSIDB-2819)
 - Split BBSync enablement switch into flaw and tracker ones (OSIDB-2820)
+- Enable tracker suggestions for affects with new affectedness (OSIDB-2843)
 
 ### Fixed
 - Fix incorrect ACLs for flaw drafts (OSIDB-2263)

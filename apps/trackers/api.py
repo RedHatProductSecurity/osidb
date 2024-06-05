@@ -46,12 +46,18 @@ class TrackerFileSuggestionView(APIView):
 
             selected_affects = Affect.objects.filter(flaw__uuid__in=flaw_uuids)
             affects = selected_affects.filter(
-                affectedness=Affect.AffectAffectedness.AFFECTED,
-                resolution__in=[
-                    Affect.AffectResolution.FIX,
-                    Affect.AffectResolution.DELEGATED,
-                ],
-                ps_module__in=active_module_names,
+                Q(
+                    affectedness=Affect.AffectAffectedness.AFFECTED,
+                    resolution__in=[
+                        Affect.AffectResolution.FIX,
+                        Affect.AffectResolution.DELEGATED,
+                    ],
+                )
+                | Q(
+                    affectedness=Affect.AffectAffectedness.NEW,
+                    resolution=Affect.AffectResolution.NOVALUE,
+                ),
+                Q(ps_module__in=active_module_names),
             ).exclude(
                 (Q(flaw__acl_read=embargoed_acl) | Q(acl_read=embargoed_acl))
                 & Q(ps_module__in=exclude_private)
