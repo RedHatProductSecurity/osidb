@@ -179,6 +179,9 @@ class IncludeMetaAttrMixin(serializers.ModelSerializer):
         # Instantiate the superclass normally
         super().__init__(*args, **kwargs)
 
+        self._include_meta_attr = []
+        self._next_level_include_meta_attr = {}
+
         request = self.context.get("request")
 
         # Get include meta attr from request
