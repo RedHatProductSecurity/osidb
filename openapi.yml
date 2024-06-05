@@ -2690,6 +2690,10 @@ paths:
           type: string
           format: date-time
       - in: query
+        name: comment_zero
+        schema:
+          type: string
+      - in: query
         name: component
         schema:
           type: array
@@ -2747,6 +2751,10 @@ paths:
         schema:
           type: string
           format: date-time
+      - in: query
+        name: cve_description
+        schema:
+          type: string
       - in: query
         name: cve_id
         schema:
@@ -2875,10 +2883,6 @@ paths:
         schema:
           type: string
       - in: query
-        name: description
-        schema:
-          type: string
-      - in: query
         name: embargoed
         schema:
           type: boolean
@@ -2987,9 +2991,11 @@ paths:
             - -affects__updated_dt
             - -affects__uuid
             - -bz_id
+            - -comment_zero
             - -component
             - -components
             - -created_dt
+            - -cve_description
             - -cve_id
             - -cvss_scores__comment
             - -cvss_scores__created_dt
@@ -2999,7 +3005,6 @@ paths:
             - -cvss_scores__uuid
             - -cvss_scores__vector
             - -cwe_id
-            - -description
             - -embargoed
             - -impact
             - -major_incident_state
@@ -3012,10 +3017,9 @@ paths:
             - -references__url
             - -references__uuid
             - -reported_dt
-            - -requires_summary
+            - -requires_cve_description
             - -source
             - -statement
-            - -summary
             - -team_id
             - -title
             - -unembargo_dt
@@ -3048,9 +3052,11 @@ paths:
             - affects__updated_dt
             - affects__uuid
             - bz_id
+            - comment_zero
             - component
             - components
             - created_dt
+            - cve_description
             - cve_id
             - cvss_scores__comment
             - cvss_scores__created_dt
@@ -3060,7 +3066,6 @@ paths:
             - cvss_scores__uuid
             - cvss_scores__vector
             - cwe_id
-            - description
             - embargoed
             - impact
             - major_incident_state
@@ -3073,10 +3078,9 @@ paths:
             - references__url
             - references__uuid
             - reported_dt
-            - requires_summary
+            - requires_cve_description
             - source
             - statement
-            - summary
             - team_id
             - title
             - unembargo_dt
@@ -3232,7 +3236,7 @@ paths:
           type: string
           format: date-time
       - in: query
-        name: requires_summary
+        name: requires_cve_description
         schema:
           type: string
           enum:
@@ -3340,10 +3344,6 @@ paths:
           - XPDF
       - in: query
         name: statement
-        schema:
-          type: string
-      - in: query
-        name: summary
         schema:
           type: string
       - in: query
@@ -7337,13 +7337,13 @@ components:
           items:
             type: string
           readOnly: true
-        description:
+        comment_zero:
           type: string
-        summary:
+        cve_description:
           type: string
-        requires_summary:
+        requires_cve_description:
           oneOf:
-          - $ref: '#/components/schemas/RequiresSummaryEnum'
+          - $ref: '#/components/schemas/RequiresCveDescriptionEnum'
           - $ref: '#/components/schemas/BlankEnum'
         statement:
           type: string
@@ -7499,10 +7499,10 @@ components:
       - affects
       - alerts
       - classification
+      - comment_zero
       - comments
       - created_dt
       - cvss_scores
-      - description
       - embargoed
       - meta_attr
       - package_versions
@@ -8018,13 +8018,13 @@ components:
           items:
             type: string
           readOnly: true
-        description:
+        comment_zero:
           type: string
-        summary:
+        cve_description:
           type: string
-        requires_summary:
+        requires_cve_description:
           oneOf:
-          - $ref: '#/components/schemas/RequiresSummaryEnum'
+          - $ref: '#/components/schemas/RequiresCveDescriptionEnum'
           - $ref: '#/components/schemas/BlankEnum'
         statement:
           type: string
@@ -8175,10 +8175,10 @@ components:
       - affects
       - alerts
       - classification
+      - comment_zero
       - comments
       - created_dt
       - cvss_scores
-      - description
       - embargoed
       - meta_attr
       - package_versions
@@ -8746,7 +8746,7 @@ components:
           type: string
       required:
       - reason
-    RequiresSummaryEnum:
+    RequiresCveDescriptionEnum:
       enum:
       - REQUESTED
       - APPROVED
