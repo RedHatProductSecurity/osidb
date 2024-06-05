@@ -22,7 +22,7 @@ from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ViewSet, ViewSetMixin
 
-from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER, JIRA_TOKEN
+from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import (
@@ -892,41 +892,56 @@ class AlertView(ModelViewSet):
 class JiraStageForwarderView(APIView):
     """authenticated view which performs http forwarding specifically for Jira stage"""
 
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    # Set up proxy configuration and JIRA authentication
     proxies = {"https": HTTPS_PROXY}
-    headers = {"Authorization": f"Bearer {JIRA_TOKEN}", "Accept": "application/json"}
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, *args, **kwargs):
         """perform JIRA stage HTTP GET"""
+
         path_value = request.GET.get("path")
         target_url = f"{JIRA_SERVER}{path_value}"
-        headers = dict(request.headers)
+        headers = {
+            "Accept": "application/json",
+        }
         params = request.GET.copy()
-        params.pop("path")
+        jira_api_key = request.headers.get("Jira-Api-Key")
+        if jira_api_key:
+            headers["Authorization"] = f"Bearer {jira_api_key}"
+        else:
+            raise ValidationError({"Jira-Api-Key": "This HTTP header is required."})
+
         response = requests.get(
             target_url,
             proxies=self.proxies,
             params=params,
-            headers=headers.update(self.headers),
+            headers=headers,
             timeout=30,
         )
         return Response(response.json(), status=response.status_code)
 
     def create(self, request, *args, **kwargs):
         """perform JIRA stage HTTP POST"""
+
         path_value = request.GET.get("path")
         target_url = f"{JIRA_SERVER}{path_value}"
-        headers = dict(request.headers)
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        }
         params = request.GET.copy()
-        params.pop("path")
+        jira_api_key = request.headers.get("Jira-Api-Key")
+        if jira_api_key:
+            headers["Authorization"] = f"Bearer {jira_api_key}"
+        else:
+            raise ValidationError({"Jira-Api-Key": "This HTTP header is required."})
+
         response = requests.post(
             target_url,
             data=request.POST,
             proxies=self.proxies,
             params=params,
-            headers=headers.update(self.headers),
+            headers=headers,
             timeout=30,
         )
         return Response(response.json, status=response.status_code)
