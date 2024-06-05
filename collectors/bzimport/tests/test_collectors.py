@@ -320,6 +320,46 @@ class TestBugzillaTrackerCollector:
         assert affect1 in list(tracker.affects.all())
         assert affect2 not in list(tracker.affects.all())
 
+    @pytest.mark.vcr
+    def test_sync_with_non_bz_flaws(self, bz_tracker_collector):
+        ps_module = PsModuleFactory(bts_name="bugzilla", name="rhcertification-9")
+        PsUpdateStreamFactory(name="rhcertification-9", ps_module=ps_module)
+
+        flaw1 = FlawFactory(
+            uuid="12472365-87e0-4376-be09-c1d4b4cbc6b0",
+            bz_id=None,
+            embargoed=False,
+        )
+        affect1 = AffectFactory(
+            flaw=flaw1,
+            affectedness=Affect.AffectAffectedness.NEW,
+            ps_module="rhcertification-9",
+            ps_component="ssh",
+        )
+
+        flaw2 = FlawFactory(
+            uuid="8ea223a7-7805-4d55-9a12-46d8b49b70a3",
+            bz_id=None,
+            embargoed=False,
+        )
+        affect2 = AffectFactory(
+            flaw=flaw2,
+            affectedness=Affect.AffectAffectedness.NEW,
+            ps_module="rhcertification-9",
+            ps_component="ssh",
+        )
+        # no Bugzilla flaws
+        assert all(flaw for flaw in Flaw.objects.all() if not flaw.bz_id)
+
+        bz_tracker_collector.sync_tracker("2280681")
+
+        # make sure the links are there
+        tracker = Tracker.objects.first()
+        assert tracker
+        assert tracker.affects.count() == 2
+        assert affect1 in list(tracker.affects.all())
+        assert affect2 in list(tracker.affects.all())
+
 
 class TestMetadataCollector:
     @pytest.mark.vcr
