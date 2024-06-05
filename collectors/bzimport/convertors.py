@@ -166,6 +166,7 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
         returns the list of related affects
         """
         affects = []
+        # Bugzilla flaws
         for bz_id in self._raw["blocks"]:
             try:
                 flaw = Flaw.objects.get(meta_attr__bz_id=bz_id)
@@ -185,7 +186,7 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
                     {
                         "name": "tracker_no_affect",
                         "description": (
-                            f"Bugzilla tracker {bz_id} is associated with flaw "
+                            f"Bugzilla tracker {self.bz_id} is associated with flaw "
                             f"{flaw.cve_id or flaw.bz_id} but there is no associated affect "
                             f"({self.ps_module}:{self.ps_component})"
                         ),
@@ -195,7 +196,48 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
                 continue
 
             affects.append(affect)
-        return affects
+
+        try:
+            whiteboard = json.loads(self._raw["whiteboard"])
+        except json.JSONDecodeError:
+            return affects
+
+        if not isinstance(whiteboard, dict) or "flaws" not in whiteboard:
+            return affects
+
+        # non-Bugzilla flaws
+        for flaw_uuid in whiteboard["flaws"]:
+            try:
+                flaw = Flaw.objects.get(uuid=flaw_uuid)
+            except Flaw.DoesNotExist:
+                # no such flaw
+                continue
+
+            try:
+                affect = flaw.affects.get(
+                    ps_module=self.ps_module,
+                    ps_component=self.ps_component,
+                )
+            except Affect.DoesNotExist:
+                # tracker created against
+                # non-existing affect
+                self.alert(
+                    {
+                        "name": "tracker_no_affect",
+                        "description": (
+                            f"Bugzilla tracker {self.bz_id} is associated with flaw "
+                            f"{flaw.uuid} but there is no associated affect "
+                            f"({self.ps_module}:{self.ps_component})"
+                        ),
+                        "alert_type": Alert.AlertType.ERROR,
+                    }
+                )
+                continue
+
+            affects.append(affect)
+
+        # prevent eventual duplicates
+        return list(set(affects))
 
     def _normalize(self) -> dict:
         """
@@ -223,6 +265,7 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
             "updated_dt": self._raw["last_change_time"],
             "blocks": json.dumps(self._raw["blocks"]),
             "groups": json.dumps(self._raw["groups"]),
+            "whiteboard": self._raw["whiteboard"],
         }
 
 
