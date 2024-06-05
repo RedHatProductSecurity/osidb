@@ -147,7 +147,7 @@ class TestEndpoints(object):
                 "description": "random description",
                 "priority": 1,  # is more prior than default one
                 "conditions": [
-                    "is major incident"
+                    "major incident state is approved"
                 ],  # major incident flaws are classified here
                 "states": [],  # this is not valid but OK for this test
             }

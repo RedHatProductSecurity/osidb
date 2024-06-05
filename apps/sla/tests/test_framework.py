@@ -251,7 +251,7 @@ name: Major Incident
 description: only for very serious cases
 conditions:
   flaw:
-    - is major incident
+    - major incident state is approved
 sla:
   duration: {mi_duration}
   start: reported date

@@ -23,14 +23,29 @@
 #      the chosen SLA policy and flaw-affect-tracker combination
 ---
 name: Major Incident
-description: >
-  SLA policy applied to requested or approved
-  Major Incident or CISA Major Incident
+description: SLA policy applied to approved Major Incident
 conditions:
   affect:
     - is not community
   flaw:
-    - is major incident
+    - major incident state is approved
+    - is not embargoed
+sla:
+  duration: 5
+  start:
+    latest:
+      - major incident start date
+      - unembargo date
+  type: business days
+
+---
+name: CISA Major Incident
+description: SLA policy applied to approved CISA Major Incident
+conditions:
+  affect:
+    - is not community
+  flaw:
+    - major incident state is cisa approved
     - is not embargoed
 sla:
   duration: 5

@@ -519,41 +519,51 @@ class TestSLAPolicy:
             [
                 (
                     {
-                        "flaw": ["is major incident"],
+                        "flaw": ["major incident state is approved"],
                     },
                     [],
-                    ["is major incident"],
+                    ["major incident state is approved"],
                     [],
                 ),
                 (
                     {
-                        "flaw": ["is major incident", "is not embargoed"],
+                        "flaw": [
+                            "major incident state is cisa approved",
+                            "is not embargoed",
+                        ],
                     },
                     [],
-                    ["is major incident", "is not embargoed"],
-                    [],
-                ),
-                (
-                    {
-                        "affect": ["is compliance priority"],
-                        "flaw": ["is major incident", "is not embargoed"],
-                    },
-                    ["is compliance priority"],
-                    ["is major incident", "is not embargoed"],
+                    ["major incident state is cisa approved", "is not embargoed"],
                     [],
                 ),
                 (
                     {
                         "affect": ["is compliance priority"],
                         "flaw": [
-                            "is major incident",
+                            "major incident state is approved",
+                            "is not embargoed",
+                        ],
+                    },
+                    ["is compliance priority"],
+                    ["major incident state is approved", "is not embargoed"],
+                    [],
+                ),
+                (
+                    {
+                        "affect": ["is compliance priority"],
+                        "flaw": [
+                            "major incident state is approved",
                             "is not embargoed",
                             "state is not triage",
                         ],
                         "tracker": ["aggregated impact is critical"],
                     },
                     ["is compliance priority"],
-                    ["is major incident", "is not embargoed", "state is not triage"],
+                    [
+                        "major incident state is approved",
+                        "is not embargoed",
+                        "state is not triage",
+                    ],
                     ["aggregated impact is critical"],
                 ),
                 (
@@ -621,7 +631,7 @@ class TestSLAPolicy:
                         "is compliance priority",
                     ],
                     "flaw": [
-                        "is major incident",
+                        "major incident state is approved",
                         "is not embargoed",
                     ],
                     "tracker": [
@@ -684,7 +694,7 @@ class TestSLAPolicy:
                         "ps_component is dnf",
                     ],
                     "flaw": [
-                        "is major incident",
+                        "major incident state is approved",
                         "is not embargoed",
                     ],
                 },

@@ -50,23 +50,6 @@ class TestCheck:
         factory(flaw)
         assert check(flaw), f'check for "{check.name}" failed.'
 
-    def test_function_value(self):
-        """
-        test if a function without parameters can be used as condition can be checked
-        """
-        check = Check("is_major_incident_temp")
-        # alias
-        check_alias = Check("is major incident")
-
-        flaw = FlawFactory(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
-        AffectFactory(flaw=flaw)
-        assert check(flaw) and check_alias(flaw), f'check for "{check.name}" failed.'
-
-        flaw.major_incident_state = Flaw.FlawMajorIncident.NOVALUE
-        assert not check_alias(flaw) and not check(
-            flaw
-        ), f'check for "{check.name}" should have failed, but passed.'
-
     @pytest.mark.parametrize(
         "field",
         [
@@ -660,7 +643,7 @@ class TestFlaw:
                 "description": "random description",
                 "priority": 1,  # is more prior than default one
                 "conditions": [
-                    "is_major_incident_temp"
+                    "major_incident_state_is_approved"
                 ],  # major incident flaws are classified here
                 "states": [],  # this is not valid but OK for this test
             }
