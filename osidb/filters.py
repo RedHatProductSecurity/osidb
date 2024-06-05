@@ -248,7 +248,6 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     changed_before = DateTimeFilter(
         field_name="updated_dt", method="changed_before_filter"
     )
-    is_major_incident = BooleanFilter(method="is_major_incident_filter")
 
     bz_id = NumberFilter(field_name="meta_attr__bz_id", lookup_expr="exact")
     tracker_ids = CharInFilter(
@@ -288,24 +287,6 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
         Returns a Flaw if it or any of its affects/trackers have been updated before `value`
         """
         return queryset.filter(local_updated_dt__lte=value)
-
-    def is_major_incident_filter(self, queryset, name, value):
-        """
-        Based on the `value`, returns all Flaws which are (or are not) Major Incidents.
-        """
-        if value:
-            return queryset.filter(
-                major_incident_state__in=[
-                    Flaw.FlawMajorIncident.REQUESTED,
-                    Flaw.FlawMajorIncident.APPROVED,
-                    Flaw.FlawMajorIncident.CISA_APPROVED,
-                ]
-            )
-        return queryset.filter(
-            major_incident_state__in=[
-                Flaw.FlawMajorIncident.REJECTED,
-            ]
-        )
 
     def component_filter(self, queryset, name, value):
         """
@@ -434,7 +415,6 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
         "component",
         "embargoed",
         "description",
-        "is_major_incident",
         "statement",
         "summary",
         "title",
@@ -455,7 +435,6 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
     embargoed = BooleanFilter(field_name="embargoed")
     trackers__embargoed = BooleanFilter(field_name="trackers__embargoed")
     flaw__embargoed = BooleanFilter(field_name="flaw__embargoed")
-    flaw__is_major_incident = BooleanFilter(method="is_major_incident_filter")
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
     flaw__component = CharInFilter(
         field_name="flaw__components", lookup_expr="contains"
@@ -463,24 +442,6 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
     flaw__components = CharInFilter(
         field_name="flaw__components", lookup_expr="contains"
     )
-
-    def is_major_incident_filter(self, queryset, name, value):
-        """
-        Based on the `value`, returns all Flaws which are (or are not) Major Incidents.
-        """
-        if value:
-            return queryset.filter(
-                flaw__major_incident_state__in=[
-                    Flaw.FlawMajorIncident.REQUESTED,
-                    Flaw.FlawMajorIncident.APPROVED,
-                    Flaw.FlawMajorIncident.CISA_APPROVED,
-                ]
-            )
-        return queryset.filter(
-            flaw__major_incident_state__in=[
-                Flaw.FlawMajorIncident.REJECTED,
-            ]
-        )
 
     class Meta:
         model = Affect
@@ -555,7 +516,6 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
         "embargoed",
         "flaw__component",
         "flaw__embargoed",
-        "flaw__is_major_incident",
         "trackers__embargoed",
     ] + list(Meta.fields.keys())
     order = OrderingFilter(fields=order_fields)
@@ -568,31 +528,12 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
     embargoed = BooleanFilter(field_name="embargoed")
     affects__embargoed = BooleanFilter(field_name="affects__embargoed")
     affects__flaw__embargoed = BooleanFilter(field_name="flaw__embargoed")
-    affects__flaw__is_major_incident = BooleanFilter(method="is_major_incident_filter")
     affects__flaw__component = CharInFilter(
         field_name="affects__flaw__components", lookup_expr="contains"
     )
     affects__flaw__components = CharInFilter(
         field_name="affects__flaw__components", lookup_expr="contains"
     )
-
-    def is_major_incident_filter(self, queryset, name, value):
-        """
-        Based on the `value`, returns all Flaws which are (or are not) Major Incidents.
-        """
-        if value:
-            return queryset.filter(
-                affects__flaw__major_incident_state__in=[
-                    Flaw.FlawMajorIncident.REQUESTED,
-                    Flaw.FlawMajorIncident.APPROVED,
-                    Flaw.FlawMajorIncident.CISA_APPROVED,
-                ]
-            )
-        return queryset.filter(
-            affects__flaw__major_incident_state__in=[
-                Flaw.FlawMajorIncident.REJECTED,
-            ]
-        )
 
     class Meta:
         model = Tracker
@@ -652,7 +593,6 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
         "embargoed",
         "affects__embargoed",
         "affects__flaw__embargoed",
-        "affects__flaw__is_major_incident",
         "affects__flaw__component",
     ] + list(Meta.fields.keys())
     order = OrderingFilter(fields=order_fields)
