@@ -110,7 +110,7 @@ class TestEndpoints(object):
         state_first = State(
             {
                 "name": WorkflowModel.WorkflowState.TRIAGE,
-                "requirements": ["has description"],
+                "requirements": ["has comment_zero"],
                 "jira_state": "To Do",
                 "jira_resolution": None,
             }
@@ -261,7 +261,7 @@ class TestEndpoints(object):
 
         state_second = {
             "name": WorkflowModel.WorkflowState.DONE,
-            "requirements": ["has summary"],
+            "requirements": ["has cve_description"],
             "jira_state": "Closed",
             "jira_resolution": "Done",
         }
@@ -277,7 +277,7 @@ class TestEndpoints(object):
         )
         workflow_framework.register_workflow(workflow)
 
-        flaw = FlawFactory(cwe_id="", summary="", task_key="TASK-123")
+        flaw = FlawFactory(cwe_id="", cve_description="", task_key="TASK-123")
         AffectFactory(flaw=flaw)
 
         assert flaw.classification["workflow"] == "DEFAULT"
@@ -311,7 +311,7 @@ class TestEndpoints(object):
         )
 
         flaw = Flaw.objects.get(pk=flaw.pk)
-        flaw.summary = "valid summary"
+        flaw.cve_description = "valid cve_description"
         flaw.save()
 
         response = auth_client().post(

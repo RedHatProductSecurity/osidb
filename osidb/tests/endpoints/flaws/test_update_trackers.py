@@ -65,7 +65,7 @@ class TestEndpointsFlawsUpdateTrackers:
         )
 
         flaw_data = {
-            "description": flaw.description,
+            "comment_zero": flaw.comment_zero,
             "embargoed": flaw.embargoed,
             "impact": "MODERATE",  # tracker update trigger
             "title": flaw.title,
@@ -91,7 +91,7 @@ class TestEndpointsFlawsUpdateTrackers:
         "to_create,to_update,triggered",
         [
             ({"title": "old"}, {"title": "new"}, False),
-            ({"description": "old"}, {"description": "new"}, False),
+            ({"comment_zero": "old"}, {"comment_zero": "new"}, False),
             ({"cve_id": "CVE-2000-1111"}, {"cve_id": "CVE-2000-1111"}, False),
             ({"cve_id": "CVE-2000-1111"}, {"cve_id": "CVE-2000-2222"}, True),
             ({"impact": "IMPORTANT"}, {"impact": "LOW"}, False),
@@ -143,7 +143,7 @@ class TestEndpointsFlawsUpdateTrackers:
         )
 
         flaw_data = {
-            "description": flaw.description,
+            "comment_zero": flaw.comment_zero,
             "embargoed": flaw.embargoed,
             "title": flaw.title,
             "updated_dt": flaw.updated_dt,

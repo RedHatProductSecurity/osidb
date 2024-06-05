@@ -96,13 +96,13 @@ def no_future_date(value: datetime) -> None:
         )
 
 
-# check flaw summary is present and contains required metadata
+# check flaw cve_description is present and contains required metadata
 
 # check that a flaw with a Red Hat-assigned CVE contains all necessary metadata
 
-# check summary does not contain the word EMBARGOED if the flaw is public.
+# check cve_description does not contain the word EMBARGOED if the flaw is public.
 
-# check summary contains the word EMBARGOED if the flaw is embargoed.
+# check cve_description contains the word EMBARGOED if the flaw is embargoed.
 
 # check that an embargoed flaw is not linked to any public tracker.
 

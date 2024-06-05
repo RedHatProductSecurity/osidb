@@ -1225,7 +1225,7 @@ class TestGenerateFlags:
         """
         flaw = FlawFactory.build(
             major_incident_state=mi_state,
-            requires_summary=Flaw.FlawRequiresSummary.NOVALUE,
+            requires_cve_description=Flaw.FlawRequiresCVEDescription.NOVALUE,
             nist_cvss_validation=Flaw.FlawNistCvssValidation.NOVALUE,
         )
         flaw.save(raise_validation_error=False)
@@ -1241,25 +1241,25 @@ class TestGenerateFlags:
             assert flags == []
 
     @pytest.mark.parametrize(
-        "requires_summary,requires_doc_text,should_convert",
+        "requires_cve_description,requires_doc_text,should_convert",
         [
             # flags to convert
-            (Flaw.FlawRequiresSummary.REQUESTED, "?", True),
-            (Flaw.FlawRequiresSummary.APPROVED, "+", True),
-            (Flaw.FlawRequiresSummary.REJECTED, "-", True),
+            (Flaw.FlawRequiresCVEDescription.REQUESTED, "?", True),
+            (Flaw.FlawRequiresCVEDescription.APPROVED, "+", True),
+            (Flaw.FlawRequiresCVEDescription.REJECTED, "-", True),
             # a flag to ignore
-            (Flaw.FlawRequiresSummary.NOVALUE, None, False),
+            (Flaw.FlawRequiresCVEDescription.NOVALUE, None, False),
         ],
     )
     def test_generate_requires_doc_text(
-        self, requires_summary, requires_doc_text, should_convert
+        self, requires_cve_description, requires_doc_text, should_convert
     ):
         """
-        Tests that requires_summary is correctly converted into requires_doc_text flag.
+        Tests that requires_cve_description is correctly converted into requires_doc_text flag.
         Other flag-producing fields are set not to produce flags for ease of testing.
         """
         flaw = FlawFactory.build(
-            requires_summary=requires_summary,
+            requires_cve_description=requires_cve_description,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             nist_cvss_validation=Flaw.FlawNistCvssValidation.NOVALUE,
         )
@@ -1295,7 +1295,7 @@ class TestGenerateFlags:
         flaw = FlawFactory.build(
             nist_cvss_validation=field_state,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
-            requires_summary=Flaw.FlawRequiresSummary.NOVALUE,
+            requires_cve_description=Flaw.FlawRequiresCVEDescription.NOVALUE,
         )
         flaw.save(raise_validation_error=False)
 

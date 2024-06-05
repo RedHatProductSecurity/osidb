@@ -342,7 +342,7 @@ class TrackerQueryBuilder:
             reference_url = self._description_bugzilla_link(flaw.bz_id)
 
             description_parts.append(f"{flaw.title}\n{reference_url}")
-            description_parts.append(flaw.description)
+            description_parts.append(flaw.comment_zero)
 
         description_parts.append("~~~")
         return description_parts

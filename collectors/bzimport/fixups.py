@@ -212,7 +212,7 @@ class FlawFixer:
     def fix_description(self) -> None:
         """description fixup"""
         if "description" in self.flaw_json:
-            self.flaw_obj.description = self.flaw_json["description"]
+            self.flaw_obj.comment_zero = self.flaw_json["description"]
         else:
             self.errors.append("no description")
             # here we do not have to default as the
@@ -221,10 +221,10 @@ class FlawFixer:
     def fix_summary(self) -> None:
         """summary fixup"""
         if "cf_release_notes" in self.flaw_json:
-            self.flaw_obj.summary = self.flaw_json["cf_release_notes"]
+            self.flaw_obj.cve_description = self.flaw_json["cf_release_notes"]
         else:
             self.errors.append("no cf_release_notes")
-            self.flaw_obj.summary = ""
+            self.flaw_obj.cve_description = ""
 
     def fix_unembargo_dt(self) -> None:
         """unembargo_dt fixup"""

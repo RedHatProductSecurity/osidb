@@ -58,7 +58,7 @@ class TestEmbargo(object):
             components=["kernel"],
             source=source,
             title="some description",
-            description="test",
+            comment_zero="test",
             reported_dt=timezone.now(),
             unembargo_dt=unembargo_dt,
         )
@@ -77,7 +77,7 @@ class TestEmbargo(object):
                 cve_id="CVE-2000-11111",
                 impact="LOW",
                 title="test",
-                description="test",
+                comment_zero="test",
                 embargoed=embargoed,
                 reported_dt=timezone.now(),
             )

@@ -19,8 +19,8 @@ class TestSearch:
 
         FlawFactory(
             title="CVE-2022-1234 kernel: TITLE",
-            description="DESCRIPTION",
-            summary="SUMMARY",
+            comment_zero="COMMENT_ZERO",
+            cve_description="CVE_DESCRIPTION",
             statement="STATEMENT",
             embargoed=False,
         )
@@ -30,12 +30,12 @@ class TestSearch:
         body = response.json()
         assert body["count"] == 1
 
-        response = auth_client().get(f"{test_api_uri}/flaws?search=description")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=comment_zero")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
 
-        response = auth_client().get(f"{test_api_uri}/flaws?search=summary")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=cve_description")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -79,11 +79,11 @@ class TestSearch:
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
             title="TITLE",
-            description="DESCRIPTION",
+            comment_zero="COMMENT_ZERO",
             impact=Impact.CRITICAL,
             components=["kernel"],
             source=FlawSource.INTERNET,
-            summary="SUMMARY",
+            cve_description="CVE_DESCRIPTION",
             statement="STATEMENT",
             acl_read=acl_read,
             acl_write=acl_write,
@@ -107,28 +107,28 @@ class TestSearch:
         body = response.json()
         assert body["count"] == 0
 
-        response = auth_client().get(f"{test_api_uri}/flaws?search=description")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=comment_zero")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
 
-        flaw.description = "NOMOREDESCRIPTION"
+        flaw.comment_zero = "NOMORECOMMENT_ZERO"
         assert flaw.save() is None
 
-        response = auth_client().get(f"{test_api_uri}/flaws?search=description")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=comment_zero")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
 
-        response = auth_client().get(f"{test_api_uri}/flaws?search=summary")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=cve_description")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
 
-        flaw.summary = "NOMORESUMMARY"
+        flaw.cve_description = "NOMORECVEDESCRIPTION"
         assert flaw.save() is None
 
-        response = auth_client().get(f"{test_api_uri}/flaws?search=summary")
+        response = auth_client().get(f"{test_api_uri}/flaws?search=cve_description")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -155,17 +155,17 @@ class TestSearch:
 
         FlawFactory(
             title="CVE-2022-1234 kernel: words",
-            description="words",
-            summary="words",
+            comment_zero="words",
+            cve_description="words",
             statement="words",
             embargoed=False,
         )
 
         FlawFactory(embargoed=False, title="CVE-2022-1234 kernel: words")
 
-        FlawFactory(description="words", embargoed=False)
+        FlawFactory(comment_zero="words", embargoed=False)
 
-        FlawFactory(summary="words")
+        FlawFactory(cve_description="words")
 
         FlawFactory(statement="words")
 
@@ -179,15 +179,15 @@ class TestSearch:
         )  # 5 Flaws have "words" in a text field, "word" should match due to stemming
         # First / most relevant match should be the Flaw with "words" in every field (most number of matches)
         assert body["results"][0]["title"] == "CVE-2022-1234 kernel: words"
-        assert body["results"][0]["description"] == "words"
-        assert body["results"][0]["summary"] == "words"
+        assert body["results"][0]["comment_zero"] == "words"
+        assert body["results"][0]["cve_description"] == "words"
         assert body["results"][0]["statement"] == "words"
 
         # Following results are ranked based on what field "word" appears in
-        # Matches in title are weighted highest (1.0), followed by description (0.4), summary (0.2), and statement (0.1)
+        # Matches in title are weighted highest (1.0), followed by comment_zero (0.4), cve_description (0.2), and statement (0.1)
         assert body["results"][1]["title"] == "CVE-2022-1234 kernel: words"
-        assert body["results"][2]["description"] == "words"
-        assert body["results"][3]["summary"] == "words"
+        assert body["results"][2]["comment_zero"] == "words"
+        assert body["results"][3]["cve_description"] == "words"
         assert body["results"][4]["statement"] == "words"
 
     def test_search_flaws_on_particular_columns(self, auth_client, test_api_uri):
@@ -199,8 +199,8 @@ class TestSearch:
 
         FlawFactory(
             title="title",
-            description="description",
-            summary="summary",
+            comment_zero="comment_zero",
+            cve_description="cve_description",
             embargoed=False,
             statement="statement",
             team_id=1234,
@@ -210,8 +210,8 @@ class TestSearch:
 
         FlawFactory(
             title="other summary",
-            description="this is a flaw",
-            summary="spooky flaw",
+            comment_zero="this is a flaw",
+            cve_description="spooky flaw",
             embargoed=False,
             statement="other",
             team_id=1235,
@@ -225,12 +225,14 @@ class TestSearch:
         body = response.json()
         assert body["count"] == 1
 
-        response = auth_client().get(f"{test_api_uri}/flaws?description=description")
+        response = auth_client().get(f"{test_api_uri}/flaws?comment_zero=comment_zero")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
 
-        response = auth_client().get(f"{test_api_uri}/flaws?summary=summary")
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?cve_description=cve_description"
+        )
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
@@ -269,24 +271,24 @@ class TestSearch:
 
         FlawFactory(
             title="title",
-            description="description",
-            summary="summary",
+            comment_zero="comment_zero",
+            cve_description="cve_description",
             embargoed=False,
             statement="statement",
             cve_id="CVE-2001-0414",
         )
         FlawFactory(
             title="other flaw",
-            description="description",
-            summary="summary",
+            comment_zero="comment_zero",
+            cve_description="cve_description",
             embargoed=False,
             statement="statement",
             cve_id="CVE-2001-0489",
         )
         FlawFactory(
             title="flaw with different CVE",
-            description="description",
-            summary="summary",
+            comment_zero="comment_zero",
+            cve_description="cve_description",
             embargoed=False,
             statement="statement",
             cve_id="CVE-2008-0514",

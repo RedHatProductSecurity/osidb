@@ -57,10 +57,10 @@ class TestFlawSaver:
         return Flaw(
             cve_id="CVE-2000-1234",
             title="title",
-            description="description",
+            comment_zero="comment_zero",
             impact=Impact.CRITICAL,
             major_incident_state=Flaw.FlawMajorIncident.REQUESTED,
-            requires_summary=Flaw.FlawRequiresSummary.NOVALUE,
+            requires_cve_description=Flaw.FlawRequiresCVEDescription.NOVALUE,
             nist_cvss_validation=Flaw.FlawNistCvssValidation.REJECTED,
             created_dt=timezone.now(),
             updated_dt=timezone.now(),
@@ -210,7 +210,7 @@ class TestFlawSaver:
         assert flaw is not None
         assert flaw.cve_id == "CVE-2000-1234"
         assert flaw.title == "title"
-        assert flaw.description == "description"
+        assert flaw.comment_zero == "comment_zero"
         assert flaw.impact == Impact.CRITICAL
         assert flaw.acl_read == acls
         assert flaw.acl_write == acls_write
@@ -220,7 +220,7 @@ class TestFlawSaver:
         assert flaw.cvss_scores.first() == cvss_score
         assert flaw.package_versions.first() == package
         assert flaw.major_incident_state == Flaw.FlawMajorIncident.REQUESTED
-        assert flaw.requires_summary == Flaw.FlawRequiresSummary.NOVALUE
+        assert flaw.requires_cve_description == Flaw.FlawRequiresCVEDescription.NOVALUE
         assert flaw.nist_cvss_validation == Flaw.FlawNistCvssValidation.REJECTED
 
         assert affect is not None
@@ -771,21 +771,23 @@ class TestFlawConvertor:
         assert flaw.major_incident_state == result
 
     @pytest.mark.parametrize(
-        "requires_doc_text,setter,requires_summary",
+        "requires_doc_text,setter,requires_cve_description",
         [
-            ("", "", Flaw.FlawRequiresSummary.NOVALUE),
-            ("-", "", Flaw.FlawRequiresSummary.REJECTED),
-            ("?", "", Flaw.FlawRequiresSummary.REQUESTED),
-            ("+", "joe@redhat.com", Flaw.FlawRequiresSummary.APPROVED),
-            ("+", "bugzilla@redhat.com", Flaw.FlawRequiresSummary.REQUESTED),
+            ("", "", Flaw.FlawRequiresCVEDescription.NOVALUE),
+            ("-", "", Flaw.FlawRequiresCVEDescription.REJECTED),
+            ("?", "", Flaw.FlawRequiresCVEDescription.REQUESTED),
+            ("+", "joe@redhat.com", Flaw.FlawRequiresCVEDescription.APPROVED),
+            ("+", "bugzilla@redhat.com", Flaw.FlawRequiresCVEDescription.REQUESTED),
             # a flag may not be present
-            (None, "", Flaw.FlawRequiresSummary.NOVALUE),
+            (None, "", Flaw.FlawRequiresCVEDescription.NOVALUE),
         ],
     )
-    def test_flag_requires_summary(self, requires_doc_text, setter, requires_summary):
+    def test_flag_requires_cve_description(
+        self, requires_doc_text, setter, requires_cve_description
+    ):
         """
         Tests that requires_doc_text flag from Bugzilla is correctly
-        converted into requires_summary in OSIDB.
+        converted into requires_cve_description in OSIDB.
         """
         flaw_bug = self.get_flaw_bug()
         flaw_bug["flags"] = []
@@ -811,7 +813,7 @@ class TestFlawConvertor:
 
         flaw = Flaw.objects.first()
         assert flaw is not None
-        assert flaw.requires_summary == requires_summary
+        assert flaw.requires_cve_description == requires_cve_description
 
     @pytest.mark.parametrize(
         "flag_value,mapped_result",
@@ -1264,7 +1266,7 @@ class TestFlawConvertor:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.major_incident_state == Flaw.FlawMajorIncident.REQUESTED
-        assert flaw.requires_summary == Flaw.FlawRequiresSummary.APPROVED
+        assert flaw.requires_cve_description == Flaw.FlawRequiresCVEDescription.APPROVED
         assert flaw.nist_cvss_validation == Flaw.FlawNistCvssValidation.REJECTED
 
     @pytest.mark.enable_signals
@@ -1279,7 +1281,7 @@ class TestFlawConvertor:
             bz_id="123",
             embargoed=False,
             reported_dt="2000-01-01T01:01:01Z",
-            summary="test",
+            cve_description="test",
             unembargo_dt="2000-01-01T01:01:01Z",
         )
         affect = AffectFactory(
@@ -1333,7 +1335,7 @@ class TestFlawConvertor:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.reported_dt is None
-        assert flaw.summary == ""
+        assert flaw.cve_description == ""
         assert flaw.unembargo_dt is None
 
         assert Affect.objects.count() == 1

@@ -230,7 +230,7 @@ class OSVCollector(Collector):
 
             return refs
 
-        def get_description(data: dict) -> str:
+        def get_comment_zero(data: dict) -> str:
             #  https://ossf.github.io/osv-schema/#summary-details-fields
             return data.get("details", "")
 
@@ -274,7 +274,7 @@ class OSVCollector(Collector):
                 return ""
 
         content = {
-            "description": get_description(osv_vuln),
+            "comment_zero": get_comment_zero(osv_vuln),
             "title": get_title(osv_vuln),
             "cvss_scores": get_cvss(osv_vuln),
             "cwe_id": get_cwes(osv_vuln),

@@ -263,8 +263,8 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     # Else when field_name is specified, search only that field
 
     title = CharFilter(field_name="title", method="search_helper")
-    description = CharFilter(field_name="description", method="search_helper")
-    summary = CharFilter(field_name="summary", method="search_helper")
+    comment_zero = CharFilter(field_name="comment_zero", method="search_helper")
+    cve_description = CharFilter(field_name="cve_description", method="search_helper")
     statement = CharFilter(field_name="statement", method="search_helper")
     embargoed = BooleanFilter(field_name="embargoed")
     workflow_state = ChoiceInFilter(
@@ -325,7 +325,7 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
             + DATE_LOOKUP_EXPRS,
             "components": ["exact"],
             "major_incident_state": ["exact"],
-            "requires_summary": ["exact"],
+            "requires_cve_description": ["exact"],
             "nist_cvss_validation": ["exact"],
             # Workflow fields
             "workflow_state": ["exact"],
@@ -414,9 +414,9 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
         "cve_id",
         "component",
         "embargoed",
-        "description",
+        "comment_zero",
         "statement",
-        "summary",
+        "cve_description",
         "title",
     ] + list(Meta.fields.keys())
     order = OrderingFilter(fields=order_fields)

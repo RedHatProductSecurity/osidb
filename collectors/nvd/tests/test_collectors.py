@@ -255,7 +255,7 @@ class TestNVDCollector:
                 },
             ],
             "cwe_id": "(CWE-190|CWE-835)",
-            "description": "The ip6_find_1stfragopt function allows local users to cause a denial of service.",
+            "comment_zero": "The ip6_find_1stfragopt function allows local users to cause a denial of service.",
             "references": [
                 {
                     "url": "https://nvd.nist.gov/vuln/detail/CVE-2017-7542",
@@ -325,7 +325,7 @@ class TestNVDCollector:
         assert flaw.acl_write == internal_write_groups
         assert flaw.cve_id == cve_id
         assert flaw.cwe_id == snippet_content["cwe_id"]
-        assert flaw.description == snippet_content["description"]
+        assert flaw.comment_zero == snippet_content["comment_zero"]
         assert flaw.reported_dt
         assert flaw.source == snippet_content["source"]
         assert flaw.task_key == "OSIM-1982"

@@ -60,7 +60,7 @@ class TestEndpointsFlawsUnembargo:
 
         with freeze_time(timezone.datetime(2030, 10, 10, tzinfo=timezone.utc)):
             flaw_data = {
-                "description": flaw.description,
+                "comment_zero": flaw.comment_zero,
                 "embargoed": False,
                 "title": flaw.title,
                 "updated_dt": flaw.updated_dt,
@@ -141,7 +141,7 @@ class TestEndpointsFlawsUnembargo:
 
         with freeze_time(timezone.datetime(2030, 10, 10, tzinfo=timezone.utc)):
             flaw_data = {
-                "description": flaw.description,
+                "comment_zero": flaw.comment_zero,
                 "embargoed": False,
                 "title": flaw.title,
                 "updated_dt": flaw.updated_dt,
@@ -209,7 +209,7 @@ class TestEndpointsFlawsUnembargo:
 
         with freeze_time(timezone.datetime(2030, 10, 10, tzinfo=timezone.utc)):
             flaw_data = {
-                "description": flaw1.description,
+                "comment_zero": flaw1.comment_zero,
                 "embargoed": False,
                 "title": flaw1.title,
                 "updated_dt": flaw1.updated_dt,
@@ -231,7 +231,7 @@ class TestEndpointsFlawsUnembargo:
 
         with freeze_time(timezone.datetime(2040, 10, 10, tzinfo=timezone.utc)):
             flaw_data = {
-                "description": flaw2.description,
+                "comment_zero": flaw2.comment_zero,
                 "embargoed": False,
                 "title": flaw2.title,
                 "updated_dt": flaw2.updated_dt,

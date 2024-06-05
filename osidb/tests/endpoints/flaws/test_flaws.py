@@ -113,7 +113,7 @@ class TestEndpointsFlaws:
 
         flaw1 = FlawFactory.build(
             major_incident_state=Flaw.FlawMajorIncident.APPROVED,
-            requires_summary=Flaw.FlawRequiresSummary.APPROVED,
+            requires_cve_description=Flaw.FlawRequiresCVEDescription.APPROVED,
             nist_cvss_validation=Flaw.FlawNistCvssValidation.NOVALUE,
         )
         flaw1.save(raise_validation_error=False)
@@ -124,7 +124,9 @@ class TestEndpointsFlaws:
         )
         AffectFactory(flaw=flaw1)
         assert flaw1.save() is None
-        assert flaw1.requires_summary == Flaw.FlawRequiresSummary.APPROVED
+        assert (
+            flaw1.requires_cve_description == Flaw.FlawRequiresCVEDescription.APPROVED
+        )
         FlawCommentFactory(flaw=flaw1)
         response = auth_client().get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
         assert response.status_code == 200
@@ -1201,7 +1203,6 @@ class TestEndpointsFlaws:
         ldap_test_username,
         ldap_test_password,
     ):
-
         """retrieve specific flaw from endpoint using generated auth token"""
 
         # get token
@@ -1217,7 +1218,7 @@ class TestEndpointsFlaws:
         set_user_acls(settings.ALL_GROUPS)
         flaw1 = FlawFactory.build(
             major_incident_state=Flaw.FlawMajorIncident.APPROVED,
-            requires_summary=Flaw.FlawRequiresSummary.APPROVED,
+            requires_cve_description=Flaw.FlawRequiresCVEDescription.APPROVED,
         )
         flaw1.save(raise_validation_error=False)
         FlawReferenceFactory(
@@ -1228,7 +1229,9 @@ class TestEndpointsFlaws:
         AffectFactory(flaw=flaw1)
 
         assert flaw1.save() is None
-        assert flaw1.requires_summary == Flaw.FlawRequiresSummary.APPROVED
+        assert (
+            flaw1.requires_cve_description == Flaw.FlawRequiresCVEDescription.APPROVED
+        )
         FlawCommentFactory(flaw=flaw1)
 
         # attempt to access with unauthenticated client using good token value
@@ -1251,7 +1254,7 @@ class TestEndpointsFlaws:
             "impact": "CRITICAL",
             "component": "curl",
             "source": "INTERNET",
-            "description": "test",
+            "comment_zero": "test",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "embargoed": False,
@@ -1283,7 +1286,7 @@ class TestEndpointsFlaws:
             "impact": "CRITICAL",
             "component": "curl",
             "source": "INTERNET",
-            "description": "test",
+            "comment_zero": "test",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "embargoed": False,
@@ -1339,7 +1342,7 @@ class TestEndpointsFlaws:
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
                 "title": f"{flaw.title} appended test title",
-                "description": flaw.description,
+                "comment_zero": flaw.comment_zero,
                 "impact": flaw.impact,
                 "source": flaw.source,
                 "embargoed": False,
@@ -1353,7 +1356,7 @@ class TestEndpointsFlaws:
         body = response.json()
         assert original_body["title"] != body["title"]
         assert "appended test title" in body["title"]
-        assert original_body["description"] == body["description"]
+        assert original_body["comment_zero"] == body["comment_zero"]
 
     @pytest.mark.parametrize("embargoed", [True, False])
     @pytest.mark.parametrize(
@@ -1393,7 +1396,7 @@ class TestEndpointsFlaws:
             {
                 "cve_id": new_cve_id,
                 "title": flaw.title,
-                "description": flaw.description,
+                "comment_zero": flaw.comment_zero,
                 "embargoed": embargoed,
                 "updated_dt": flaw.updated_dt,
             },
@@ -1484,7 +1487,7 @@ class TestEndpointsFlaws:
             f"{test_api_uri}/flaws/{flaw.uuid}",
             {
                 "title": flaw.title,
-                "description": flaw.description,
+                "comment_zero": flaw.comment_zero,
                 "embargoed": embargoed,
                 "unembargo_dt": new_date,
                 "updated_dt": flaw.updated_dt,
@@ -1515,7 +1518,7 @@ class TestEndpointsFlaws:
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
                 "title": f"{flaw.title} appended test title",
-                "description": flaw.description,
+                "comment_zero": flaw.comment_zero,
                 "impact": flaw.impact,
                 "source": flaw.source,
                 "embargoed": flaw.embargoed,

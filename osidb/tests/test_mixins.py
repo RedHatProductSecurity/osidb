@@ -260,7 +260,7 @@ class TestTrackingMixin:
         return Flaw(
             title="title",
             cwe_id="CWE-1",
-            description="description",
+            comment_zero="comment_zero",
             impact=Impact.LOW,
             components=["curl"],
             source=FlawSource.INTERNET,
@@ -450,7 +450,7 @@ class TestTrackingMixin:
         kwargs = dict(
             title="title",
             cwe_id="CWE-1",
-            description="description",
+            comment_zero="comment_zero",
             impact=Impact.LOW,
             components=["curl"],
             source=FlawSource.INTERNET,
@@ -568,7 +568,7 @@ class TestBugzillaJiraMixinInteration:
         flaw = Flaw(
             title="title",
             cwe_id="CWE-1",
-            description="description",
+            comment_zero="comment_zero",
             impact=Impact.LOW,
             components=["curl"],
             source=FlawSource.INTERNET,
@@ -618,7 +618,7 @@ class TestBugzillaJiraMixinInteration:
 
         flaw_data = {
             "title": "Foo",
-            "description": "test",
+            "comment_zero": "test",
             "impact": "LOW",
             "component": "curl",
             "source": "DEBIAN",
