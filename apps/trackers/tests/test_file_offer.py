@@ -627,3 +627,91 @@ class TestTrackerSuggestions:
             # The unacked stream must be deselected when fedramp streams are selected.
             # Ref. sfm2/api/blueprints/tracker_bp.py::trackers_file_offer
             assert not streams_dict["stream-2"]["selected"]
+
+    @pytest.mark.parametrize(
+        "affectedness,resolution,should_suggest",
+        [
+            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.NOVALUE, True),
+            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.WONTFIX, False),
+            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.OOSS, False),
+            (
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.DELEGATED,
+                True,
+            ),
+            (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.FIX, True),
+            (
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.WONTFIX,
+                False,
+            ),
+            (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.OOSS, False),
+            (
+                Affect.AffectAffectedness.NOTAFFECTED,
+                Affect.AffectResolution.NOVALUE,
+                False,
+            ),
+        ],
+    )
+    def test_trackers_file_offer_affect_states(
+        self,
+        auth_client,
+        test_app_api_uri,
+        user_token,
+        affectedness,
+        resolution,
+        should_suggest,
+    ):
+        """
+        Test that we can suggest trackers only for the
+        following combination of Affectedness,Resolution:
+         - (NEW, None)
+         - (AFFECTED, DELEGATED)
+         - (AFFECTED, FIX) - legacy combination
+
+        POST -> /file
+        """
+
+        flaw = FlawFactory(
+            embargoed=False,
+            impact=Impact.MODERATE,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        ps_module = PsModuleFactory(name="test-module")
+
+        affect = Affect(
+            impact=Impact.MODERATE,
+            flaw=flaw,
+            affectedness=affectedness,
+            resolution=resolution,
+            ps_component="component-1",
+            ps_module=ps_module.name,
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
+        )
+        affect.save(
+            raise_validation_error=False
+        )  # allow legacy (affectedness,resolution)
+
+        PsUpdateStream(
+            name="stream-2",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            unacked_to_ps_module=ps_module,
+        ).save()
+
+        headers = {"HTTP_JiraAuthentication": user_token}
+        response = auth_client().post(
+            f"{test_app_api_uri}/file",
+            data={"flaw_uuids": [flaw.uuid]},
+            format="json",
+            **headers,
+        )
+        res = response.json()
+
+        if should_suggest:
+            assert len(res["not_applicable"]) == 0
+            assert res["modules_components"][0]["affect"]["uuid"] == str(affect.uuid)
+        else:
+            assert len(res["modules_components"]) == 0
+            assert res["not_applicable"][0]["uuid"] == str(affect.uuid)
