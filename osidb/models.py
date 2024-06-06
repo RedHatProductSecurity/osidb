@@ -2831,9 +2831,6 @@ class FlawAcknowledgment(ACLMixin, BugzillaSyncMixin, TrackingMixin):
         Flaw, on_delete=models.CASCADE, related_name="acknowledgments"
     )
 
-    # non operational meta data
-    meta_attr = HStoreField(default=dict)
-
     objects = FlawAcknowledgmentManager()
 
     class Meta:

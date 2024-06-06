@@ -874,7 +874,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                 name,
                 affiliation,
                 from_upstream=from_upstream,
-                meta_attr=acknowledgment_json,
                 acl_read=self.acl_read,
                 acl_write=self.acl_write,
                 created_dt=self.flaw_bug["creation_time"],

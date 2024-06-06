@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove FlawMeta (OSIDB-2744)
 - Remove "is_major_incident" field from Flaw (OSIDB-2741)
 - Remove "meta_attr" field from FlawReference (OSIDB-2854)
+- Remove "meta_attr" field from FlawAcknowledgment (OSIDB-2854)
 
 ## [3.7.3] - 2024-05-28
 ### Fixed
