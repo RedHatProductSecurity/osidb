@@ -2021,9 +2021,9 @@ paths:
                     type: string
           description: ''
   /osidb/api/v1/affects/bulk:
-    put:
-      operationId: osidb_api_v1_affects_bulk_update
-      description: Bulk update endpoint. Expects a list of dict Affect objects.
+    post:
+      operationId: osidb_api_v1_affects_bulk_create
+      description: Bulk create endpoint. Expects a list of dict Affect objects.
       tags:
       - osidb
       requestBody:
@@ -2032,17 +2032,17 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/Affect'
+                $ref: '#/components/schemas/AffectPost'
           application/x-www-form-urlencoded:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/Affect'
+                $ref: '#/components/schemas/AffectPost'
           multipart/form-data:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/Affect'
+                $ref: '#/components/schemas/AffectPost'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -2052,7 +2052,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/AffectBulkPutResponse'
+                - $ref: '#/components/schemas/AffectBulkPostPutResponse'
                 - type: object
                   properties:
                     dt:
@@ -2064,6 +2064,74 @@ paths:
                       type: string
                     version:
                       type: string
+          description: ''
+    put:
+      operationId: osidb_api_v1_affects_bulk_update
+      description: Bulk update endpoint. Expects a list of dict Affect objects.
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/AffectBulkPut'
+          application/x-www-form-urlencoded:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/AffectBulkPut'
+          multipart/form-data:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/AffectBulkPut'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/AffectBulkPostPutResponse'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    delete:
+      operationId: osidb_api_v1_affects_bulk_destroy
+      description: Bulk delete endpoint. Expects a list of Affect uuids.
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
           description: ''
   /osidb/api/v1/alerts:
     get:
@@ -6691,7 +6759,7 @@ components:
       - trackers
       - updated_dt
       - uuid
-    AffectBulkPutResponse:
+    AffectBulkPostPutResponse:
       type: object
       properties:
         results:
@@ -6700,6 +6768,106 @@ components:
             $ref: '#/components/schemas/Affect'
       required:
       - results
+    AffectBulkPut:
+      type: object
+      description: Affect serializer
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        flaw:
+          type: string
+          format: uuid
+          nullable: true
+        affectedness:
+          oneOf:
+          - $ref: '#/components/schemas/AffectednessEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        resolution:
+          oneOf:
+          - $ref: '#/components/schemas/ResolutionEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        ps_module:
+          type: string
+          maxLength: 100
+        ps_product:
+          type: string
+          readOnly: true
+        ps_component:
+          type: string
+          maxLength: 255
+        impact:
+          oneOf:
+          - $ref: '#/components/schemas/ImpactEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        trackers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tracker'
+          readOnly: true
+        meta_attr:
+          type: object
+          properties:
+            affectedness:
+              type: string
+            component:
+              type: string
+            impact:
+              type: string
+            module_name:
+              type: string
+            module_stream:
+              type: string
+            ps_component:
+              type: string
+            ps_module:
+              type: string
+            ps_product:
+              type: string
+            resolution:
+              type: string
+          readOnly: true
+        delegated_resolution:
+          type: string
+          readOnly: true
+        cvss_scores:
+          type: array
+          items:
+            $ref: '#/components/schemas/AffectCVSS'
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - alerts
+      - created_dt
+      - cvss_scores
+      - delegated_resolution
+      - embargoed
+      - flaw
+      - meta_attr
+      - ps_component
+      - ps_module
+      - ps_product
+      - trackers
+      - updated_dt
+      - uuid
     AffectCVSS:
       type: object
       description: AffectCVSS serializer
@@ -8805,6 +8973,12 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
+        sync_to_bz:
+          type: boolean
+          writeOnly: true
+          description: Setting sync_to_bz to false disables flaw sync with Bugzilla
+            after this operation. Use only as part of bulk actions and trigger a flaw
+            bugzilla sync afterwards. Does nothing if BZ is disabled.
       required:
       - alerts
       - created_dt
@@ -8887,6 +9061,12 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
+        sync_to_bz:
+          type: boolean
+          writeOnly: true
+          description: Setting sync_to_bz to false disables flaw sync with Bugzilla
+            after this operation. Use only as part of bulk actions and trigger a flaw
+            bugzilla sync afterwards. Does nothing if BZ is disabled.
       required:
       - alerts
       - created_dt

@@ -262,6 +262,91 @@ class TestEndpointsAffectsBulk:
         assert orig_uuids == new_uuids
         assert len(body["results"]) == len(request_affects)
 
+    def test_affect_create_bulk(self, auth_client, test_api_uri):
+        """
+        Test the bulk creation of Affect records via a REST API PUT request.
+        """
+        flaw = FlawFactory(cve_id="CVE-2345-6789")
+        affects = []
+        for i in range(20):
+            affects.append(AffectFactory(flaw=flaw))
+
+        assert Affect.objects.count() == 20
+
+        nonbulk_response = auth_client().get(
+            f"{test_api_uri}/affects?flaw__cve_id=CVE-2345-6789"
+        )
+        assert nonbulk_response.status_code == 200
+
+        bulk_request = {}
+        i = 0
+        for aff in nonbulk_response.json()["results"]:
+            tmp_aff = dict(aff)
+            del tmp_aff["uuid"]
+            del tmp_aff["created_dt"]
+            del tmp_aff["updated_dt"]
+            del tmp_aff["alerts"]
+            tmp_aff["ps_module"] = f"psmodule{i}"
+            bulk_request[i] = tmp_aff
+            i += 1
+
+        assert Affect.objects.all().delete()
+        assert Affect.objects.count() == 0
+
+        response = auth_client().post(
+            f"{test_api_uri}/affects/bulk",
+            bulk_request.values(),
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+
+        assert response.status_code == 200
+        assert Affect.objects.count() == 20
+
+        for returned_aff in response.json()["results"]:
+            i = int(returned_aff["ps_module"][8:])
+            requested_aff = bulk_request[i]
+            received_aff = dict(returned_aff)
+            del received_aff["uuid"]
+            del received_aff["created_dt"]
+            del received_aff["updated_dt"]
+            del received_aff["alerts"]
+            # For shorter debugging output
+            assert sorted(received_aff.keys()) == sorted(requested_aff.keys())
+            assert received_aff == requested_aff
+
+    def test_affect_delete_bulk(self, auth_client, test_api_uri):
+        """
+        Test the bulk deletion of Affect records via a REST API PUT request.
+        """
+        flaw = FlawFactory(cve_id="CVE-2345-6789")
+        affects = []
+        for i in range(20):
+            affects.append(AffectFactory(flaw=flaw))
+
+        assert Affect.objects.count() == 20
+
+        nonbulk_response = auth_client().get(
+            f"{test_api_uri}/affects?flaw__cve_id=CVE-2345-6789"
+        )
+        assert nonbulk_response.status_code == 200
+
+        bulk_request = []
+        for aff in nonbulk_response.json()["results"]:
+            bulk_request.append(aff["uuid"])
+
+        response = auth_client().delete(
+            f"{test_api_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+
+        assert response.status_code == 200
+        assert Affect.objects.count() == 0
+
 
 class TestEndpointsAffectsUpdateTrackers:
     """
