@@ -2693,6 +2693,8 @@ class FlawCommentManager(ACLMixinManager, TrackingMixinManager):
                 external_system_id=external_system_id,
             )
             flawcomment.meta_attr = comment
+            for attr, value in extra_fields.items():
+                setattr(flawcomment, attr, value)
             return flawcomment
         except MultipleObjectsReturned:
             # When sync is run multiple times concurrently, each thread may
