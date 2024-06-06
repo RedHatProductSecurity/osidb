@@ -15,7 +15,7 @@ class TrackerFileSuggestionView(APIView):
     @extend_schema(
         request=FlawUUIDListSerializer,
         description="Given a list of flaws, generates a list of suggested trackers to file.",
-        responses=TrackerSuggestionSerializer(many=True),
+        responses=TrackerSuggestionSerializer,
     )
     def post(self, request, *args, **kwargs):
         """

@@ -6415,19 +6415,19 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TrackerSuggestion'
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
+                allOf:
+                - $ref: '#/components/schemas/TrackerSuggestion'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
           description: ''
   /workflows/:
     get:
@@ -8211,10 +8211,8 @@ components:
       properties:
         ps_module:
           type: string
-          format: uuid
         ps_component:
           type: string
-          format: uuid
         streams:
           type: array
           items:
@@ -8222,8 +8220,7 @@ components:
         selected:
           type: boolean
         affect:
-          type: string
-          readOnly: true
+          $ref: '#/components/schemas/Affect'
       required:
       - affect
       - ps_component
@@ -8926,8 +8923,9 @@ components:
           items:
             $ref: '#/components/schemas/ModuleComponent'
         not_applicable:
-          type: string
-          readOnly: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Affect'
       required:
       - modules_components
       - not_applicable

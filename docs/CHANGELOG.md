@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tracker resolution is now readonly (OSIDB-2746)
 - Remove is_triage property from Tracker (OSIDB-2853)
 - Enable tracker suggestions for affects with new affectedness (OSIDB-2843)
+- Correct endpoint for tracker filing schema (OSIDB-2847)
 
 ### Fixed
 - Fix incorrect ACLs for flaw drafts (OSIDB-2263)
