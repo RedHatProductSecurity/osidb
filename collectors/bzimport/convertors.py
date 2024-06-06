@@ -904,7 +904,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                 flaw,
                 url,
                 type=_type,
-                meta_attr=reference_json,
                 acl_read=self.acl_read,
                 acl_write=self.acl_write,
                 created_dt=self.flaw_bug["creation_time"],

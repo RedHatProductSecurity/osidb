@@ -1270,7 +1270,6 @@ class FlawReferenceSerializer(
     AlertMixinSerializer,
     BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
-    IncludeMetaAttrMixin,
     TrackingMixinSerializer,
 ):
     """FlawReference serializer"""
