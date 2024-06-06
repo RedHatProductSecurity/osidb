@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tracker resolution is now readonly (OSIDB-2746)
 - Enable tracker suggestions for affects with new affectedness (OSIDB-2843)
 - Correct endpoint for tracker filing schema (OSIDB-2847)
+- Renamed Flaw "description" to "comment_zero" and "summary" to "cve_description" (OSIDB-2740)
 
 ### Fixed
 - Fix incorrect ACLs for flaw drafts (OSIDB-2263)
