@@ -1063,7 +1063,6 @@ class FlawAcknowledgmentSerializer(
     AlertMixinSerializer,
     BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
-    IncludeMetaAttrMixin,
     TrackingMixinSerializer,
 ):
     """FlawAcknowledgment serializer"""
@@ -1270,7 +1269,6 @@ class FlawReferenceSerializer(
     AlertMixinSerializer,
     BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
-    IncludeMetaAttrMixin,
     TrackingMixinSerializer,
 ):
     """FlawReference serializer"""

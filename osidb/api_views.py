@@ -471,7 +471,6 @@ class SubFlawViewGetMixin:
         return super().get_serializer(*args, **kwargs)
 
 
-@include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
 @extend_schema_view(
     create=extend_schema(
@@ -490,7 +489,6 @@ class FlawAcknowledgmentView(
     filterset_class = FlawAcknowledgmentFilter
 
 
-@include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
 @extend_schema_view(
     create=extend_schema(

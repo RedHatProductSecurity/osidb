@@ -3511,18 +3511,6 @@ paths:
         description: 'Include only specified fields in the response. Multiple values
           may be separated by commas. Dot notation can be used to filter on related
           model fields. Example: `include_fields=field,related_model_field.field`'
-      - in: query
-        name: include_meta_attr
-        schema:
-          type: array
-          items:
-            type: string
-        description: 'Specify which keys from meta_attr field should be retrieved,
-          multiple values may be separated by commas. Dot notation can be used to
-          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
-          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
-          keys from meta_attr. Omit this parameter to not include meta_attr fields
-          at all. '
       - name: limit
         required: false
         in: query
@@ -3685,18 +3673,6 @@ paths:
         description: 'Include only specified fields in the response. Multiple values
           may be separated by commas. Dot notation can be used to filter on related
           model fields. Example: `include_fields=field,related_model_field.field`'
-      - in: query
-        name: include_meta_attr
-        schema:
-          type: array
-          items:
-            type: string
-        description: 'Specify which keys from meta_attr field should be retrieved,
-          multiple values may be separated by commas. Dot notation can be used to
-          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
-          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
-          keys from meta_attr. Omit this parameter to not include meta_attr fields
-          at all. '
       tags:
       - osidb
       security:
@@ -4850,18 +4826,6 @@ paths:
         description: 'Include only specified fields in the response. Multiple values
           may be separated by commas. Dot notation can be used to filter on related
           model fields. Example: `include_fields=field,related_model_field.field`'
-      - in: query
-        name: include_meta_attr
-        schema:
-          type: array
-          items:
-            type: string
-        description: 'Specify which keys from meta_attr field should be retrieved,
-          multiple values may be separated by commas. Dot notation can be used to
-          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
-          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
-          keys from meta_attr. Omit this parameter to not include meta_attr fields
-          at all. '
       - name: limit
         required: false
         in: query
@@ -5032,18 +4996,6 @@ paths:
         description: 'Include only specified fields in the response. Multiple values
           may be separated by commas. Dot notation can be used to filter on related
           model fields. Example: `include_fields=field,related_model_field.field`'
-      - in: query
-        name: include_meta_attr
-        schema:
-          type: array
-          items:
-            type: string
-        description: 'Specify which keys from meta_attr field should be retrieved,
-          multiple values may be separated by commas. Dot notation can be used to
-          specify meta_attr keys on related models. Example: `include_meta_attr=key,related_model.key`Use
-          wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
-          keys from meta_attr. Omit this parameter to not include meta_attr fields
-          at all. '
       tags:
       - osidb
       security:
