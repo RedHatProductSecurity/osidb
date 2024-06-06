@@ -865,7 +865,6 @@ class JiraStageForwarderView(APIView):
     """authenticated view which performs http forwarding specifically for Jira stage"""
 
     proxies = {"https": HTTPS_PROXY}
-
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, *args, **kwargs):
@@ -875,6 +874,8 @@ class JiraStageForwarderView(APIView):
         target_url = f"{JIRA_SERVER}{path_value}"
         headers = {
             "Accept": "application/json",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "User-Agent": "OSIM",
         }
         params = request.GET.copy()
         jira_api_key = request.headers.get("Jira-Api-Key")
@@ -892,7 +893,7 @@ class JiraStageForwarderView(APIView):
         )
         return Response(response.json(), status=response.status_code)
 
-    def create(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         """perform JIRA stage HTTP POST"""
 
         path_value = request.GET.get("path")
@@ -900,6 +901,8 @@ class JiraStageForwarderView(APIView):
         headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "User-Agent": "OSIM",
         }
         params = request.GET.copy()
         jira_api_key = request.headers.get("Jira-Api-Key")
@@ -910,13 +913,13 @@ class JiraStageForwarderView(APIView):
 
         response = requests.post(
             target_url,
-            data=request.POST,
+            data=request.body,
             proxies=self.proxies,
             params=params,
             headers=headers,
-            timeout=30,
+            timeout=60,
         )
-        return Response(response.json, status=response.status_code)
+        return Response(response.json(), status=response.status_code)
 
     def options(self, request, *args, **kwargs):
         """always return same OPTIONS"""
