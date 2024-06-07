@@ -304,7 +304,7 @@ interactions:
       message: OK
 - request:
     body: '{"fields": {"issuetype": {"id": "17"}, "project": {"id": "12337520"}, "summary":
-      "From OSV collector", "description": "some description", "labels": ["flawuuid:dd5394ca-f495-4a04-a79d-a575fb94cd1f",
+      "From OSV collector", "description": "some comment_zero", "labels": ["flawuuid:dd5394ca-f495-4a04-a79d-a575fb94cd1f",
       "impact:"], "priority": {"name": "Undefined"}}}'
     headers:
       Accept:
@@ -446,7 +446,7 @@ interactions:
         very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
         "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
-        [], "timeoriginalestimate": null, "description": "some description", "customfield_12314040":
+        [], "timeoriginalestimate": null, "description": "some comment_zero", "customfield_12314040":
         null, "customfield_12320844": null, "archiveddate": null, "timetracking":
         {}, "customfield_12320842": null, "customfield_12310243": null, "attachment":
         [], "aggregatetimeestimate": null, "customfield_12316542": {"self": "https://example.com/rest/api/2/customFieldOption/14655",
@@ -637,7 +637,7 @@ interactions:
     body: '{"product": "Security Response", "op_sys": "Linux", "platform": "All",
       "version": "unspecified", "component": "vulnerability-draft", "cf_release_notes":
       "", "severity": "unspecified", "priority": "unspecified", "summary": "From OSV
-      collector", "description": "some description", "comment_is_private": false,
+      collector", "description": "some comment_zero", "comment_is_private": false,
       "alias": ["GHSA-0013"], "keywords": ["Security"], "flags": [], "groups": ["redhat"],
       "cc": [], "cf_srtnotes": "{\"reported\": \"2024-05-28T13:11:44Z\", \"external_ids\":
       [\"GHSA-0013\"], \"references\": [{\"type\": \"source\", \"url\": \"https://osv.dev/vulnerability/GHSA-0013\",
@@ -809,7 +809,7 @@ interactions:
         "comments": [{"creation_time": "2024-05-28T13:11:49Z", "count": 0, "is_private":
         false, "time": "2024-05-28T13:11:49Z", "bug_id": 2280635, "tags": [], "creator_id":
         425662, "creator": "nobody@redhat.com", "private_groups": [], "attachment_id":
-        null, "id": 18006767, "text": "some description"}], "cf_qa_whiteboard": "",
+        null, "id": 18006767, "text": "some comment_zero"}], "cf_qa_whiteboard": "",
         "assigned_to_detail": {"partner": false, "real_name": "INVALID USER", "email":
         "prodsec-dev@redhat.com", "name": "prodsec-dev@redhat.com", "active": true,
         "id": 377884, "insider": true}, "blocks": [], "assigned_to": "prodsec-dev@redhat.com",
@@ -834,7 +834,7 @@ interactions:
         "cf_srtnotes": "{\"reported\": \"2024-05-28T13:11:44Z\", \"external_ids\":
         [\"GHSA-0013\"], \"references\": [{\"type\": \"source\", \"url\": \"https://example.com/vulnerability/GHSA-0013\",
         \"description\": null}], \"cvss3\": \"8.1/CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H\",
-        \"source\": \"osv\", \"cwe\": \"CWE-110\"}", "description": "some description",
+        \"source\": \"osv\", \"cwe\": \"CWE-110\"}", "description": "some comment_zero",
         "depends_on": [], "keywords": ["Security"]}], "total_matches": 1}'
     headers:
       Access-Control-Allow-Headers:
@@ -894,10 +894,10 @@ interactions:
         "version": ["unspecified"], "cf_last_closed": null, "is_cc_accessible": true,
         "dupe_of": null, "comments": [{"id": 18006767, "tags": [], "is_private": false,
         "creator_id": 425662, "bug_id": 2280635, "time": "2024-05-28T13:11:49Z", "text":
-        "some description", "count": 0, "creation_time": "2024-05-28T13:11:49Z", "creator":
+        "some comment_zero", "count": 0, "creation_time": "2024-05-28T13:11:49Z", "creator":
         "nobody@redhat.com", "attachment_id": null, "private_groups": []}], "alias":
         ["GHSA-0013"], "is_confirmed": true, "cf_cust_facing": "---", "target_release":
-        ["---"], "cf_embargoed": null, "description": "some description", "sub_components":
+        ["---"], "cf_embargoed": null, "description": "some comment_zero", "sub_components":
         {}, "cf_pgm_internal": "", "keywords": ["Security"], "cf_qe_conditional_nak":
         [], "docs_contact": "", "cf_environment": "", "whiteboard": "", "assigned_to_detail":
         {"id": 377884, "real_name": "INVALID USER", "email": "prodsec-dev@redhat.com",
@@ -968,7 +968,7 @@ interactions:
     body:
       string: '{"comments": {}, "bugs": {"2280635": {"comments": [{"id": 18006767,
         "is_private": false, "tags": [], "creator_id": 425662, "bug_id": 2280635,
-        "time": "2024-05-28T13:11:49Z", "text": "some description", "count": 0, "creation_time":
+        "time": "2024-05-28T13:11:49Z", "text": "some comment_zero", "count": 0, "creation_time":
         "2024-05-28T13:11:49Z", "creator": "nobody@redhat.com", "attachment_id":
         null, "private_groups": []}]}}}'
     headers:

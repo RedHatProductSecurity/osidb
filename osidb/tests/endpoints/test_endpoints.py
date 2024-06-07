@@ -83,7 +83,7 @@ class TestEndpointsACLs:
         """
         flaw_data = {
             "title": "Foo",
-            "description": "test",
+            "comment_zero": "test",
             "impact": "LOW",
             "component": "curl",
             "source": "DEBIAN",
@@ -143,7 +143,7 @@ class TestEndpointsACLs:
             f"{test_api_uri}/flaws/{flaw.uuid}",
             {
                 "title": f"{flaw.title} appended test title",
-                "description": flaw.description,
+                "comment_zero": flaw.comment_zero,
                 "embargoed": embargoed,
                 "updated_dt": flaw.updated_dt,
             },
@@ -179,7 +179,7 @@ class TestEndpointsACLs:
                 f"{test_api_uri}/flaws/{flaw.uuid}",
                 {
                     "title": flaw.title.replace("EMBARGOED", "").strip(),
-                    "description": flaw.description,
+                    "comment_zero": flaw.comment_zero,
                     "embargoed": False,
                     "updated_dt": flaw.updated_dt,
                 },
@@ -199,7 +199,7 @@ class TestEndpointsACLs:
         """
         flaw_data = {
             "title": "EMBARGOED Foo",
-            "description": "test",
+            "comment_zero": "test",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": None,
             "embargoed": True,
@@ -228,7 +228,7 @@ class TestEndpointsACLs:
             f"{test_api_uri}/flaws/{flaw.uuid}",
             {
                 "title": f"{flaw.title} appended test title",
-                "description": flaw.description,
+                "comment_zero": flaw.comment_zero,
                 "embargoed": False,
                 "updated_dt": flaw.updated_dt,
                 "bz_api_key": "SECRET",
@@ -341,7 +341,7 @@ class TestEndpointsBZAPIKey:
         """
         flaw_data = {
             "title": "Foo",
-            "description": "test",
+            "comment_zero": "test",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "embargoed": False,
@@ -365,7 +365,7 @@ class TestEndpointsBZAPIKey:
             f"{test_api_uri}/flaws/{flaw.uuid}",
             {
                 "title": f"{flaw.title} appended test title",
-                "description": flaw.description,
+                "comment_zero": flaw.comment_zero,
                 "embargoed": False,
                 "updated_dt": flaw.updated_dt,
             },
@@ -398,7 +398,7 @@ class TestDeprecationHandling:
 
         flaw_data = {
             "title": "Foo",
-            "description": "test",
+            "comment_zero": "test",
             "impact": "LOW",
             "source": "DEBIAN",
             "reported_dt": "2022-11-22T15:55:22.830Z",
@@ -455,7 +455,7 @@ class TestDeprecationHandling:
             f"{test_api_uri}/flaws/{flaw.uuid}",
             {
                 "title": flaw.title,
-                "description": flaw.description,
+                "comment_zero": flaw.comment_zero,
                 "component": "golang: encoding",
                 "embargoed": False,
                 "updated_dt": flaw.updated_dt,

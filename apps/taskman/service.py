@@ -159,7 +159,7 @@ class JiraTaskmanQuerier(JiraQuerier):
                 "issuetype": {},
                 "project": {},
                 "summary": summary,
-                "description": flaw.description,
+                "description": flaw.comment_zero,
                 "labels": labels,
                 "priority": {"name": IMPACT_TO_JIRA_PRIORITY[flaw.impact]},
             }

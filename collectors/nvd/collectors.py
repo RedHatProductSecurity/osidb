@@ -111,9 +111,9 @@ class NVDQuerier:
             else:
                 return None
 
-        def get_description(descriptions: list) -> Union[str, None]:
+        def get_comment_zero(descriptions: list) -> Union[str, None]:
             """
-            Return English description from `descriptions`.
+            Return English comment_zero from `descriptions`.
             """
             return [d.value for d in descriptions if d.lang == "en"][0] or None
 
@@ -153,7 +153,7 @@ class NVDQuerier:
                         )
                     ),
                     "cwe_id": get_cwes(vulnerability),
-                    "description": get_description(vulnerability.descriptions),
+                    "comment_zero": get_comment_zero(vulnerability.descriptions),
                     "references": get_references(vulnerability),
                     "source": Snippet.Source.NVD,
                     "title": "From NVD collector",
@@ -264,7 +264,7 @@ class NVDCollector(Collector, NVDQuerier):
                         source=Snippet.Source.NVD, external_id=cve_id
                     )
                 except Snippet.DoesNotExist:
-                    if should_create_snippet(item["description"]):
+                    if should_create_snippet(item["comment_zero"]):
                         snippet = Snippet(
                             source=Snippet.Source.NVD, external_id=cve_id, content=item
                         )

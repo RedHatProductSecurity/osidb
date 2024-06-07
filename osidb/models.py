@@ -86,8 +86,8 @@ def search_helper(
         vector = (
             SearchVector("title", weight="A")
             + SearchVector("cve_id", weight="A")
-            + SearchVector("description", weight="B")
-            + SearchVector("summary", weight="C")
+            + SearchVector("comment_zero", weight="B")
+            + SearchVector("cve_description", weight="C")
             + SearchVector("statement", weight="D")
         )
 
@@ -497,7 +497,7 @@ class FlawManager(ACLMixinManager, TrackingMixinManager):
     def fts_search(q):
         """full text search using postgres FTS via django.contrib.postgres"""
         return search_helper(Flaw.objects.get_queryset(), (), q)
-        # Search default Flaw fields (title, description, summary, statement) with default weights
+        # Search default Flaw fields (title, comment_zero, cve_description, statement) with default weights
         # If search has no results, this will now return an empty queryset
 
 
@@ -559,20 +559,20 @@ class Flaw(
         APPROVED = "APPROVED"
         REJECTED = "REJECTED"
 
-    class FlawRequiresSummary(models.TextChoices):
+    class FlawRequiresCVEDescription(models.TextChoices):
         """
-        Stores summary state from the requires_doc_text flag in BZ.
+        Stores cve_description state from the requires_doc_text flag in BZ.
 
         The flag states have the following meaning:
 
-        * ( ) "" (no value): summary was not filled in
-        * (?) "REQUESTED": summary was filled in and a review was requested;
+        * ( ) "" (no value): cve_description was not filled in
+        * (?) "REQUESTED": cve_description was filled in and a review was requested;
               this includes also the "+" state set by "bugzilla@redhat.com"
-        * (+) "APPROVED" (set by PS member): summary was reviewed and approved;
-              this is the only state where summary is propagated to the flaw's CVE page
-        * (-) "REJECTED": summary is not required for this flaw
+        * (+) "APPROVED" (set by PS member): cve_description was reviewed and approved;
+              this is the only state where cve_description is propagated to the flaw's CVE page
+        * (-) "REJECTED": cve_description is not required for this flaw
 
-        Note that if a flaw is MI or CISA MI, requires_summary should be "APPROVED".
+        Note that if a flaw is MI or CISA MI, requires_cve_description should be "APPROVED".
         """
 
         NOVALUE = ""
@@ -610,13 +610,13 @@ class Flaw(
     title = models.TextField()
 
     # from BZ description
-    description = models.TextField()
+    comment_zero = models.TextField()
 
     # from doc_text summary
-    summary = models.TextField(blank=True)
+    cve_description = models.TextField(blank=True)
 
-    requires_summary = models.CharField(
-        choices=FlawRequiresSummary.choices, max_length=20, blank=True
+    requires_cve_description = models.CharField(
+        choices=FlawRequiresCVEDescription.choices, max_length=20, blank=True
     )
 
     # if redhat cve-id then this is required, from srtnotes "statement"
@@ -840,31 +840,31 @@ class Flaw(
                 "NIST CVSSv3 and RH CVSSv3 scores assigned.",
             )
 
-    def _validate_impact_and_summary(self):
+    def _validate_impact_and_cve_description(self):
         """
         Checks that if impact has MODERATE, IMPORTANT or CRITICAL value set,
-        then summary must not be missing.
+        then cve_description must not be missing.
         """
         if (
             self.impact in [Impact.MODERATE, Impact.IMPORTANT, Impact.CRITICAL]
-            and not self.summary
+            and not self.cve_description
         ):
             self.alert(
-                "impact_without_summary",
-                f"Summary cannot be missing if impact is {self.impact}.",
+                "impact_without_cve_description",
+                f"cve_description cannot be missing if impact is {self.impact}.",
             )
 
-    def _validate_summary_and_requires_summary(self):
+    def _validate_cve_description_and_requires_cve_description(self):
         """
-        Checks that if summary is missing, then requires_summary must not have
+        Checks that if cve_description is missing, then requires_cve_description must not have
         REQUESTED or APPROVED value set.
         """
-        if not self.summary and self.requires_summary in [
-            self.FlawRequiresSummary.REQUESTED,
-            self.FlawRequiresSummary.APPROVED,
+        if not self.cve_description and self.requires_cve_description in [
+            self.FlawRequiresCVEDescription.REQUESTED,
+            self.FlawRequiresCVEDescription.APPROVED,
         ]:
             raise ValidationError(
-                f"requires_summary cannot be {self.requires_summary} if summary is "
+                f"requires_cve_description cannot be {self.requires_cve_description} if cve_description is "
                 f"missing."
             )
 
@@ -963,8 +963,8 @@ class Flaw(
         Validate that a Flaw that is Major Incident complies with the following:
         * has a mitigation
         * has a statement
-        * has a summary
-        * requires_summary is APPROVED
+        * has a cve_description
+        * requires_cve_description is APPROVED
         * has exactly one article
         """
         if self.major_incident_state != Flaw.FlawMajorIncident.APPROVED:
@@ -982,16 +982,16 @@ class Flaw(
                 "Flaw marked as Major Incident does not have a statement.",
             )
 
-        if not self.summary:
+        if not self.cve_description:
             self.alert(
-                "mi_summary_missing",
-                "Flaw marked as Major Incident does not have a summary.",
+                "mi_cve_description_missing",
+                "Flaw marked as Major Incident does not have a cve_description.",
             )
 
-        if self.requires_summary != self.FlawRequiresSummary.APPROVED:
+        if self.requires_cve_description != self.FlawRequiresCVEDescription.APPROVED:
             self.alert(
-                "mi_summary_not_reviewed",
-                "Flaw marked as Major Incident does not have a summary reviewed.",
+                "mi_cve_description_not_reviewed",
+                "Flaw marked as Major Incident does not have a cve_description reviewed.",
             )
 
         article = self.references.filter(type=FlawReference.FlawReferenceType.ARTICLE)
@@ -1005,8 +1005,8 @@ class Flaw(
         """
         Validate that a Flaw that is CISA Major Incident complies with the following:
         * has a statement
-        * has a summary
-        * requires_summary is APPROVED
+        * has a cve_description
+        * requires_cve_description is APPROVED
         """
         if self.major_incident_state != Flaw.FlawMajorIncident.CISA_APPROVED:
             return
@@ -1017,16 +1017,16 @@ class Flaw(
                 "Flaw marked as CISA Major Incident does not have a statement.",
             )
 
-        if not self.summary:
+        if not self.cve_description:
             self.alert(
-                "cisa_mi_summary_missing",
-                "Flaw marked as CISA Major Incident does not have a summary.",
+                "cisa_mi_cve_description_missing",
+                "Flaw marked as CISA Major Incident does not have a cve_description.",
             )
 
-        if self.requires_summary != self.FlawRequiresSummary.APPROVED:
+        if self.requires_cve_description != self.FlawRequiresCVEDescription.APPROVED:
             self.alert(
-                "cisa_mi_summary_not_reviewed",
-                "Flaw marked as CISA Major Incident does not have a summary reviewed.",
+                "cisa_mi_cve_description_not_reviewed",
+                "Flaw marked as CISA Major Incident does not have a cve_description reviewed.",
             )
 
     def _validate_embargoing_public_flaw(self):
@@ -1162,9 +1162,9 @@ class Flaw(
     def _validate_special_handling_modules(self):
         """
         Alerts in case flaw affects a special handling module
-        but miss summary or statement
+        but miss cve_description or statement
         """
-        if self.statement and self.summary:
+        if self.statement and self.cve_description:
             return
 
         affected_modules = self.affects.values_list("ps_module")
@@ -1172,11 +1172,11 @@ class Flaw(
             special_handling_features__isnull=False, name__in=affected_modules
         )
         if special_modules.exists():
-            if not self.summary:
+            if not self.cve_description:
                 self.alert(
-                    "special_handling_flaw_missing_summary",
+                    "special_handling_flaw_missing_cve_description",
                     f"Affected modules ({','.join(special_modules.values_list('name', flat=True))}) "
-                    "are marked as special handling but flaw does not contain summary.",
+                    "are marked as special handling but flaw does not contain cve_description.",
                 )
             if not self.statement:
                 self.alert(
@@ -1912,20 +1912,20 @@ class Affect(
     def _validate_special_handling_modules(self):
         """
         Alerts in case flaw affects a special handling module
-        but miss summary or statement
+        but miss cve_description or statement
         """
-        if not self.flaw or self.flaw.statement and self.flaw.summary:
+        if not self.flaw or self.flaw.statement and self.flaw.cve_description:
             return
 
         special_module = PsModule.objects.filter(
             special_handling_features__isnull=False, name=self.ps_module
         )
         if special_module.exists():
-            if not self.flaw.summary:
+            if not self.flaw.cve_description:
                 self.flaw.alert(
-                    "special_handling_flaw_missing_summary",
+                    "special_handling_flaw_missing_cve_description",
                     f"Affected module ({special_module.first().name}) "
-                    "are marked as special handling but flaw does not contain summary.",
+                    "are marked as special handling but flaw does not contain cve_description.",
                 )
             if not self.flaw.statement:
                 self.flaw.alert(

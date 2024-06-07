@@ -545,7 +545,7 @@ affects their package, before starting the update process."""
         flaw = FlawFactory(
             bz_id="12345",
             cve_id="CVE-2020-12345",
-            description="this flaw is very hard to fix",
+            comment_zero="this flaw is very hard to fix",
             embargoed=False,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             title="serious flaw",
@@ -601,7 +601,7 @@ this flaw is very hard to fix
         flaw = FlawFactory(
             bz_id="12345",
             cve_id="CVE-2020-12345",
-            description="this flaw is very hard to fix",
+            comment_zero="this flaw is very hard to fix",
             embargoed=True,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             title="serious flaw",

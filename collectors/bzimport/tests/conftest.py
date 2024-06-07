@@ -62,11 +62,6 @@ def bz_tracker_collector():
 
 
 @pytest.fixture
-def bz_bug_requires_summary():
-    return "2086753"
-
-
-@pytest.fixture
 def public_read_groups():
     return [uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_READ_GROUPS)]
 

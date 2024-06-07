@@ -57,9 +57,9 @@ class TestCheck:
             "cwe_id",
             "created_dt",
             "impact",
-            "description",
+            "comment_zero",
             "title",
-            "summary",
+            "cve_description",
             "source",
         ],
     )
@@ -68,7 +68,7 @@ class TestCheck:
         test that flaw containing requested properties passes in check
         """
         # most of properties are being auto generated as non-null by factory
-        flaw = FlawFactory(cwe_id="CWE-1", summary="random summary")
+        flaw = FlawFactory(cwe_id="CWE-1", cve_description="random cve_description")
         check = Check(f"has {field}")
 
         assert check(flaw), f'check for "{check.name}" failed.'
@@ -80,9 +80,9 @@ class TestCheck:
             ("cwe_id", ""),
             ("created_dt", ""),
             ("impact", Impact.NOVALUE),
-            ("description", ""),
+            ("comment_zero", ""),
             ("title", ""),
-            ("summary", ""),
+            ("cve_description", ""),
             ("source", ""),
         ],
     )
@@ -260,7 +260,7 @@ class TestState:
             "has cve_id",
             "has impact",
             "not cwe",
-            "not description",
+            "not comment_zero",
             "not title",
         ]
         state = State(
@@ -274,7 +274,7 @@ class TestState:
         flaw = FlawFactory()
         # fields set outside factory to skip validation
         flaw.cwe_id = ""
-        flaw.description = ""
+        flaw.comment_zero = ""
         flaw.title = ""
 
         assert state.accepts(
@@ -311,11 +311,11 @@ class TestWorkflow:
     @pytest.mark.parametrize(
         "conditions",
         [
-            ["has description"],
-            ["has description", "has title"],
-            ["not description"],
-            ["not description", "not title"],
-            ["has description", "not title"],
+            ["has comment_zero"],
+            ["has comment_zero", "has title"],
+            ["not comment_zero"],
+            ["not comment_zero", "not title"],
+            ["has comment_zero", "not title"],
         ],
     )
     def test_satisfied_conditions(self, conditions):
@@ -346,11 +346,11 @@ class TestWorkflow:
     @pytest.mark.parametrize(
         "conditions",
         [
-            ["has description"],
-            ["has description", "has title"],
-            ["not description"],
-            ["not description", "not title"],
-            ["has description", "not title"],
+            ["has comment_zero"],
+            ["has comment_zero", "has title"],
+            ["not comment_zero"],
+            ["not comment_zero", "not title"],
+            ["has comment_zero", "not title"],
         ],
     )
     def test_unsatisfied_conditions(self, conditions):
@@ -401,7 +401,7 @@ class TestWorkflow:
         }
         state_first = {
             "name": "first state",
-            "requirements": ["has description"],
+            "requirements": ["has comment_zero"],
             "jira_state": "To Do",
             "jira_resolution": None,
         }
@@ -424,7 +424,7 @@ class TestWorkflow:
         flaw = Flaw()
         assert_state_equals(workflow.classify(flaw), state_new)
 
-        flaw.description = "valid description"
+        flaw.comment_zero = "valid comment_zero"
         assert_state_equals(workflow.classify(flaw), state_first)
 
         flaw.title = "valid title"
@@ -503,7 +503,7 @@ class TestWorkflowFramework:
         }
         state_first = {
             "name": WorkflowModel.WorkflowState.TRIAGE,
-            "requirements": ["has description"],
+            "requirements": ["has comment_zero"],
             "jira_state": "To Do",
             "jira_resolution": None,
         }
@@ -548,14 +548,14 @@ class TestWorkflowFramework:
         workflow_framework.register_workflow(workflow_reject)
 
         flaw = FlawFactory()
-        flaw.description = ""
+        flaw.comment_zero = ""
         flaw.title = ""
 
         classified_workflow, classified_state = workflow_framework.classify(flaw)
         assert_workflow_equals(classified_workflow, workflow_main)
         assert_state_equals(classified_state, state_new)
 
-        flaw.description = "valid description"
+        flaw.comment_zero = "valid comment_zero"
         classified_workflow, classified_state = workflow_framework.classify(flaw)
         assert_state_equals(classified_state, state_first)
 
@@ -608,7 +608,7 @@ class TestFlaw:
                 "name": WorkflowModel.WorkflowState.TRIAGE,
                 "jira_state": "To Do",
                 "jira_resolution": None,
-                "requirements": ["has description"],
+                "requirements": ["has comment_zero"],
             }
         )
         state_second = State(
@@ -692,7 +692,7 @@ class TestFlaw:
 
         state_second = {
             "name": WorkflowModel.WorkflowState.DONE,
-            "requirements": ["has summary"],
+            "requirements": ["has cve_description"],
             "jira_state": "Refinement",
             "jira_resolution": None,
         }
@@ -708,7 +708,7 @@ class TestFlaw:
         )
         workflow_framework.register_workflow(workflow)
 
-        flaw = FlawFactory(cwe_id="", summary="")
+        flaw = FlawFactory(cwe_id="", cve_description="")
         AffectFactory(flaw=flaw)
 
         assert flaw.classification["workflow"] == "DEFAULT"
@@ -725,14 +725,14 @@ class TestFlaw:
             == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
         )
 
-        with pytest.raises(MissingRequirementsException, match="has summary"):
+        with pytest.raises(MissingRequirementsException, match="has cve_description"):
             flaw.promote()
         assert (
             flaw.classification["state"]
             == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
         )
 
-        flaw.summary = "valid summary"
+        flaw.cve_description = "valid cve_description"
         assert flaw.promote() is None
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
 

@@ -73,7 +73,7 @@ class TestFlaw:
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
             title="title",
-            description="description",
+            comment_zero="comment_zero",
             impact=Impact.CRITICAL,
             source=FlawSource.APPLE,
             statement="statement",
@@ -81,7 +81,7 @@ class TestFlaw:
             nist_cvss_validation=Flaw.FlawNistCvssValidation.REQUESTED,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
-            requires_summary=Flaw.FlawRequiresSummary.APPROVED,
+            requires_cve_description=Flaw.FlawRequiresCVEDescription.APPROVED,
             # META
             meta_attr=meta_attr,
         )
@@ -203,7 +203,7 @@ class TestFlaw:
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
             title="title",
-            description="description",
+            comment_zero="comment_zero",
             impact=Impact.CRITICAL,
             components=["curl"],
             source=FlawSource.INTERNET,
@@ -223,7 +223,7 @@ class TestFlaw:
             cwe_id="CWE-1",
             title="first",
             unembargo_dt=tzdatetime(2000, 1, 1),
-            description="description",
+            comment_zero="comment_zero",
             impact=Impact.LOW,
             components=["curl"],
             source=FlawSource.INTERNET,
@@ -239,7 +239,7 @@ class TestFlaw:
         Flaw.objects.create_flaw(
             bz_id="12345",
             title="second",
-            description="description",
+            comment_zero="comment_zero",
             impact=Impact.LOW,
             source=FlawSource.INTERNET,
             acl_read=self.acl_read,
@@ -428,7 +428,7 @@ class TestFlaw:
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
             title="title",
-            description="description",
+            comment_zero="comment_zero",
             impact=Impact.CRITICAL,
             components=["curl"],
             source=FlawSource.INTERNET,
@@ -450,7 +450,7 @@ class TestFlaw:
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
             title="title",
-            description="description",
+            comment_zero="comment_zero",
             impact=Impact.CRITICAL,
             components=["curl"],
             source=FlawSource.INTERNET,
@@ -471,7 +471,7 @@ class TestFlaw:
             reported_dt=datetime_with_tz,
             unembargo_dt=datetime_with_tz,
             title="title",
-            description="description",
+            comment_zero="comment_zero",
             impact=Impact.CRITICAL,
             components=["curl"],
             source=FlawSource.INTERNET,
@@ -945,7 +945,7 @@ class TestFlawValidators:
             # fields below are set to avoid any alerts
             embargoed=False,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
-            summary="summary",
+            cve_description="cve_description",
             statement="statement",
         )
         flaw.save(raise_validation_error=False)
@@ -1038,27 +1038,29 @@ class TestFlawValidators:
             assert flaw.save() is None
 
     @pytest.mark.parametrize(
-        "impact,summary,should_alert,alert",
+        "impact,cve_description,should_alert,alert",
         [
-            (Impact.MODERATE, "", True, "impact_without_summary"),
-            (Impact.IMPORTANT, "", True, "impact_without_summary"),
-            (Impact.CRITICAL, "", True, "impact_without_summary"),
+            (Impact.MODERATE, "", True, "impact_without_cve_description"),
+            (Impact.IMPORTANT, "", True, "impact_without_cve_description"),
+            (Impact.CRITICAL, "", True, "impact_without_cve_description"),
             # everything below is correct
             (Impact.LOW, "", False, None),
-            (Impact.LOW, "summary", False, None),
-            (Impact.MODERATE, "summary", False, None),
-            (Impact.IMPORTANT, "summary", False, None),
-            (Impact.CRITICAL, "summary", False, None),
+            (Impact.LOW, "cve_description", False, None),
+            (Impact.MODERATE, "cve_description", False, None),
+            (Impact.IMPORTANT, "cve_description", False, None),
+            (Impact.CRITICAL, "cve_description", False, None),
         ],
     )
-    def test_validate_impact_and_summary(self, impact, summary, should_alert, alert):
+    def test_validate_impact_and_cve_description(
+        self, impact, cve_description, should_alert, alert
+    ):
         """
         Tests that if impact has MODERATE, IMPORTANT or CRITICAL value set,
-        then summary must not be missing.
+        then cve_description must not be missing.
         """
         flaw = FlawFactory(
             impact=impact,
-            summary=summary,
+            cve_description=cve_description,
             # fields below are set to avoid any alerts
             embargoed=False,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
@@ -1073,34 +1075,34 @@ class TestFlawValidators:
 
         if should_alert:
             assert flaw.alerts.count() == 1
-            assert flaw.alerts.filter(name="impact_without_summary").exists()
+            assert flaw.alerts.filter(name=alert).exists()
         else:
             assert not flaw.alerts.exists()
 
     @pytest.mark.parametrize(
-        "requires_summary,summary,should_raise",
+        "requires_cve_description,cve_description,should_raise",
         [
-            (Flaw.FlawRequiresSummary.REQUESTED, "", True),
-            (Flaw.FlawRequiresSummary.APPROVED, "", True),
+            (Flaw.FlawRequiresCVEDescription.REQUESTED, "", True),
+            (Flaw.FlawRequiresCVEDescription.APPROVED, "", True),
             # everything below is correct
-            (Flaw.FlawRequiresSummary.NOVALUE, "summary", False),
-            (Flaw.FlawRequiresSummary.NOVALUE, "", False),
-            (Flaw.FlawRequiresSummary.REJECTED, "summary", False),
-            (Flaw.FlawRequiresSummary.REJECTED, "", False),
-            (Flaw.FlawRequiresSummary.REQUESTED, "summary", False),
-            (Flaw.FlawRequiresSummary.APPROVED, "summary", False),
+            (Flaw.FlawRequiresCVEDescription.NOVALUE, "cve_description", False),
+            (Flaw.FlawRequiresCVEDescription.NOVALUE, "", False),
+            (Flaw.FlawRequiresCVEDescription.REJECTED, "cve_description", False),
+            (Flaw.FlawRequiresCVEDescription.REJECTED, "", False),
+            (Flaw.FlawRequiresCVEDescription.REQUESTED, "cve_description", False),
+            (Flaw.FlawRequiresCVEDescription.APPROVED, "cve_description", False),
         ],
     )
-    def test_validate_summary_and_requires_summary(
-        self, requires_summary, summary, should_raise
+    def test_validate_cve_description_and_requires_cve_description(
+        self, requires_cve_description, cve_description, should_raise
     ):
         """
-        Tests that if summary is missing, then requires_summary must not have
+        Tests that if cve_description is missing, then requires_cve_description must not have
         REQUESTED or APPROVED value set.
         """
         flaw = FlawFactory.build(
-            summary=summary,
-            requires_summary=requires_summary,
+            cve_description=cve_description,
+            requires_cve_description=requires_cve_description,
             # fields below are set to avoid any alerts
             embargoed=False,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
@@ -1110,9 +1112,7 @@ class TestFlawValidators:
         AffectFactory(flaw=flaw)
 
         if should_raise:
-            error_msg = (
-                f"requires_summary cannot be {requires_summary} if summary is missing."
-            )
+            error_msg = f"requires_cve_description cannot be {requires_cve_description} if cve_description is missing."
             with pytest.raises(ValidationError, match=error_msg):
                 flaw.save()
         else:
@@ -1310,9 +1310,9 @@ class TestFlawValidators:
             major_incident_state=state,
             mitigation="mitigation",
             statement="statement",
-            summary="summary",
+            cve_description="cve_description",
             embargoed=False,
-            requires_summary=Flaw.FlawRequiresSummary.APPROVED,
+            requires_cve_description=Flaw.FlawRequiresCVEDescription.APPROVED,
         )
         flaw.save(raise_validation_error=False)
 
@@ -1331,14 +1331,14 @@ class TestFlawValidators:
             assert flaw.save() is None
 
     @pytest.mark.parametrize(
-        "mitigation,statement,summary,requires_summary,article,should_alert,alerts",
+        "mitigation,statement,cve_description,requires_cve_description,article,should_alert,alerts",
         [
             # all good
             (
                 "mitigation text",
                 "statement text",
-                "summary text",
-                Flaw.FlawRequiresSummary.APPROVED,
+                "cve_description text",
+                Flaw.FlawRequiresCVEDescription.APPROVED,
                 [
                     FlawReference.FlawReferenceType.ARTICLE,
                     "https://access.redhat.com/link123",
@@ -1350,8 +1350,8 @@ class TestFlawValidators:
             (
                 "",
                 "statement text",
-                "summary text",
-                Flaw.FlawRequiresSummary.APPROVED,
+                "cve_description text",
+                Flaw.FlawRequiresCVEDescription.APPROVED,
                 [
                     FlawReference.FlawReferenceType.ARTICLE,
                     "https://access.redhat.com/link123",
@@ -1363,8 +1363,8 @@ class TestFlawValidators:
             (
                 "mitigation text",
                 "",
-                "summary text",
-                Flaw.FlawRequiresSummary.APPROVED,
+                "cve_description text",
+                Flaw.FlawRequiresCVEDescription.APPROVED,
                 [
                     FlawReference.FlawReferenceType.ARTICLE,
                     "https://access.redhat.com/link123",
@@ -1372,64 +1372,64 @@ class TestFlawValidators:
                 True,
                 ["mi_statement_missing"],
             ),
-            # empty summary
+            # empty cve_description
             (
                 "mitigation text",
                 "statement text",
                 "",
-                Flaw.FlawRequiresSummary.NOVALUE,
+                Flaw.FlawRequiresCVEDescription.NOVALUE,
                 [
                     FlawReference.FlawReferenceType.ARTICLE,
                     "https://access.redhat.com/link123",
                 ],
                 True,
-                ["mi_summary_missing", "mi_summary_not_reviewed"],
+                ["mi_cve_description_missing", "mi_cve_description_not_reviewed"],
             ),
-            # summary review missing
+            # cve_description review missing
             (
                 "mitigation text",
                 "statement text",
-                "summary text",
-                Flaw.FlawRequiresSummary.NOVALUE,
+                "cve_description text",
+                Flaw.FlawRequiresCVEDescription.NOVALUE,
                 [
                     FlawReference.FlawReferenceType.ARTICLE,
                     "https://access.redhat.com/link123",
                 ],
                 True,
-                ["mi_summary_not_reviewed"],
+                ["mi_cve_description_not_reviewed"],
             ),
-            # summary review requested
+            # cve_description review requested
             (
                 "mitigation text",
                 "statement text",
-                "summary text",
-                Flaw.FlawRequiresSummary.REQUESTED,
+                "cve_description text",
+                Flaw.FlawRequiresCVEDescription.REQUESTED,
                 [
                     FlawReference.FlawReferenceType.ARTICLE,
                     "https://access.redhat.com/link123",
                 ],
                 True,
-                ["mi_summary_not_reviewed"],
+                ["mi_cve_description_not_reviewed"],
             ),
-            # summary review not required
+            # cve_description review not required
             (
                 "mitigation text",
                 "statement text",
-                "summary text",
-                Flaw.FlawRequiresSummary.REJECTED,
+                "cve_description text",
+                Flaw.FlawRequiresCVEDescription.REJECTED,
                 [
                     FlawReference.FlawReferenceType.ARTICLE,
                     "https://access.redhat.com/link123",
                 ],
                 True,
-                ["mi_summary_not_reviewed"],
+                ["mi_cve_description_not_reviewed"],
             ),
             # article missing
             (
                 "mitigation text",
                 "statement text",
-                "summary text",
-                Flaw.FlawRequiresSummary.APPROVED,
+                "cve_description text",
+                Flaw.FlawRequiresCVEDescription.APPROVED,
                 [
                     FlawReference.FlawReferenceType.EXTERNAL,
                     "https://httpd.apache.org/link123",
@@ -1443,8 +1443,8 @@ class TestFlawValidators:
         self,
         mitigation,
         statement,
-        summary,
-        requires_summary,
+        cve_description,
+        requires_cve_description,
         article,
         should_alert,
         alerts,
@@ -1453,16 +1453,16 @@ class TestFlawValidators:
         Tests that a Flaw that is Major Incident complies with the following:
         * has a mitigation
         * has a statement
-        * has a summary
-        * requires_summary is APPROVED
+        * has a cve_description
+        * requires_cve_description is APPROVED
         * has exactly one article
         """
         flaw = FlawFactory(
             major_incident_state=Flaw.FlawMajorIncident.APPROVED,
             mitigation=mitigation,
             statement=statement,
-            summary=summary,
-            requires_summary=requires_summary,
+            cve_description=cve_description,
+            requires_cve_description=requires_cve_description,
             embargoed=False,  # to simplify fields that a flaw requires
             impact=Impact.LOW,
         )
@@ -1483,77 +1483,80 @@ class TestFlawValidators:
             assert not flaw.alerts.exists()
 
     @pytest.mark.parametrize(
-        "statement,summary,requires_summary,should_alert,alerts",
+        "statement,cve_description,requires_cve_description,should_alert,alerts",
         [
             # all good
             (
                 "statement text",
-                "summary text",
-                Flaw.FlawRequiresSummary.APPROVED,
+                "cve_description text",
+                Flaw.FlawRequiresCVEDescription.APPROVED,
                 False,
                 None,
             ),
             # empty statement
             (
                 "",
-                "summary text",
-                Flaw.FlawRequiresSummary.APPROVED,
+                "cve_description text",
+                Flaw.FlawRequiresCVEDescription.APPROVED,
                 True,
                 ["cisa_mi_statement_missing"],
             ),
-            # empty summary
+            # empty cve_description
             (
                 "statement text",
                 "",
-                Flaw.FlawRequiresSummary.NOVALUE,
+                Flaw.FlawRequiresCVEDescription.NOVALUE,
                 True,
-                ["cisa_mi_summary_missing", "cisa_mi_summary_not_reviewed"],
+                [
+                    "cisa_mi_cve_description_missing",
+                    "cisa_mi_cve_description_not_reviewed",
+                ],
             ),
-            # summary review missing
+            # cve_description review missing
             (
                 "statement text",
-                "summary text",
-                Flaw.FlawRequiresSummary.NOVALUE,
+                "cve_description text",
+                Flaw.FlawRequiresCVEDescription.NOVALUE,
                 True,
-                ["cisa_mi_summary_not_reviewed"],
+                ["cisa_mi_cve_description_not_reviewed"],
             ),
-            # summary review requested
+            # cve_description review requested
             (
                 "statement text",
-                "summary text",
-                Flaw.FlawRequiresSummary.REQUESTED,
+                "cve_description text",
+                Flaw.FlawRequiresCVEDescription.REQUESTED,
                 True,
-                ["cisa_mi_summary_not_reviewed"],
+                ["cisa_mi_cve_description_not_reviewed"],
             ),
-            # summary review not required
+            # cve_description review not required
             (
                 "statement text",
-                "summary text",
-                Flaw.FlawRequiresSummary.REJECTED,
+                "cve_description text",
+                Flaw.FlawRequiresCVEDescription.REJECTED,
                 True,
-                ["cisa_mi_summary_not_reviewed"],
+                ["cisa_mi_cve_description_not_reviewed"],
             ),
         ],
     )
     def test_validate_cisa_major_incident_fields(
         self,
         statement,
-        summary,
-        requires_summary,
+        cve_description,
+        requires_cve_description,
         should_alert,
         alerts,
     ):
         """
         Tests that a Flaw that is CISA Major Incident complies with the following:
         * has a statement
-        * has a summary
-        * requires_summary is APPROVED
+        * has a cve_description
+        * requires_cve_description is APPROVED
         """
         flaw = FlawFactory(
             major_incident_state=Flaw.FlawMajorIncident.CISA_APPROVED,
             statement=statement,
-            summary=summary,
-            requires_summary=requires_summary,
+            cve_description=cve_description,
+            requires_cve_description=requires_cve_description,
             embargoed=False,  # to simplify fields that a flaw requires
             impact=Impact.LOW,
         )
@@ -1734,7 +1737,7 @@ class TestFlawValidators:
             embargoed=False,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             impact=start_impact,
-            summary="summary",
+            cve_description="cve_description",
         )
         ps_module = PsModuleFactory(bts_name="bugzilla")
         affect = AffectFactory(
@@ -2190,7 +2193,7 @@ class TestFlawValidators:
     def test_special_handling_modules(self):
         """
         Test that flaw affecting special handling modules raise
-        alerts if missing statement or summary
+        alerts if missing statement or cve_description
         """
         PsModuleFactory(
             special_handling_features=["special-feature"], name="test-special-feature"
@@ -2199,38 +2202,38 @@ class TestFlawValidators:
         # Test that none of the models will raise alerts
         flaw1 = FlawFactory(
             statement="statement",
-            summary="summary",
-            requires_summary=Flaw.FlawRequiresSummary.NOVALUE,
+            cve_description="cve_description",
+            requires_cve_description=Flaw.FlawRequiresCVEDescription.NOVALUE,
             impact=Impact.LOW,
         )
         AffectFactory(flaw=flaw1, ps_module="test-special-feature")
         flaw1.save()
 
         assert not flaw1.alerts.filter(
-            name="special_handling_flaw_missing_summary"
+            name="special_handling_flaw_missing_cve_description"
         ).exists()
         assert not flaw1.alerts.filter(
             name="special_handling_flaw_missing_statement"
         ).exists()
 
         # Test from Flaw validation perspective
-        flaw1.summary = ""
+        flaw1.cve_description = ""
         flaw1.statement = ""
         flaw1.save()
 
         assert flaw1.alerts.filter(
-            name="special_handling_flaw_missing_summary"
+            name="special_handling_flaw_missing_cve_description"
         ).exists()
         assert flaw1.alerts.filter(
             name="special_handling_flaw_missing_statement"
         ).exists()
 
         # Test from Affect validation perspective
-        flaw2 = FlawFactory(statement="", summary="", impact=Impact.LOW)
+        flaw2 = FlawFactory(statement="", cve_description="", impact=Impact.LOW)
         AffectFactory(flaw=flaw2, ps_module="test-special-feature")
 
         assert flaw2.alerts.filter(
-            name="special_handling_flaw_missing_summary"
+            name="special_handling_flaw_missing_cve_description"
         ).exists()
         assert flaw2.alerts.filter(
             name="special_handling_flaw_missing_statement"

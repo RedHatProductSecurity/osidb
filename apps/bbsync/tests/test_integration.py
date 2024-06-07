@@ -68,7 +68,7 @@ class TestBBSyncIntegration:
         flaw_data = {
             "cve_id": "CVE-2024-0126",
             "title": "Foo",
-            "description": "test",
+            "comment_zero": "test",
             "impact": "LOW",
             "component": "curl",
             "source": "INTERNET",
@@ -104,7 +104,7 @@ class TestBBSyncIntegration:
             bz_id="2008346",
             cve_id="CVE-2021-0773",
             title="Foo",
-            description="test",
+            comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-13T12:54:13Z",
@@ -121,7 +121,7 @@ class TestBBSyncIntegration:
         flaw_data = {
             "cve_id": "CVE-2021-0773",
             "title": "Bar",
-            "description": "test",
+            "comment_zero": "test",
             "reported_dt": flaw.reported_dt,
             "unembargo_dt": flaw.unembargo_dt,
             "updated_dt": flaw.updated_dt,
@@ -149,7 +149,7 @@ class TestBBSyncIntegration:
             bz_id="2008346",
             cve_id="CVE-2021-0773",
             title="Foo",
-            description="test",
+            comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2024-03-14T09:55:39Z",
@@ -198,7 +198,7 @@ class TestBBSyncIntegration:
             cve_id="",
             components=["ssh"],
             title="I cannot ssh into Matrix",
-            description="test",
+            comment_zero="test",
             impact="MODERATE",
             source="CUSTOMER",
             reported_dt="2022-04-26T00:00:00Z",
@@ -222,7 +222,7 @@ class TestBBSyncIntegration:
         flaw_data = {
             "cve_id": "CVE-2000-3000",
             "title": flaw.title,
-            "description": flaw.description,
+            "comment_zero": flaw.comment_zero,
             "updated_dt": flaw.updated_dt,
             "embargoed": False,
         }
@@ -249,7 +249,7 @@ class TestBBSyncIntegration:
             cve_id="CVE-2000-3000",
             components=["ssh"],
             title="I cannot ssh into Matrix",
-            description="test",
+            comment_zero="test",
             impact="MODERATE",
             source="CUSTOMER",
             reported_dt="2022-04-26T00:00:00Z",
@@ -273,7 +273,7 @@ class TestBBSyncIntegration:
         flaw_data = {
             "cve_id": None,
             "title": flaw.title,
-            "description": flaw.description,
+            "comment_zero": flaw.comment_zero,
             "updated_dt": flaw.updated_dt,
             "embargoed": False,
         }
@@ -301,7 +301,7 @@ class TestBBSyncIntegration:
             cve_id="CVE-2022-0508",
             cwe_id="CWE-100",
             components=["shower"],
-            description="the water is everywhere",
+            comment_zero="the water is everywhere",
             embargoed=True,
             impact="IMPORTANT",
             meta_attr={"bz_id": "2012106", "last_change_time": last_change_time},
@@ -309,7 +309,7 @@ class TestBBSyncIntegration:
             reported_dt="2022-05-09T00:00:00Z",
             source="CUSTOMER",
             statement="I do not like this",
-            summary="something got wrong in my shower",
+            cve_description="something got wrong in my shower",
             title="water overflow",
             unembargo_dt="2022-06-16T00:00:00Z",
             updated_dt=last_change_time,
@@ -326,7 +326,7 @@ class TestBBSyncIntegration:
         )
 
         flaw_data = {
-            "description": flaw.description,
+            "comment_zero": flaw.comment_zero,
             "embargoed": flaw.embargoed,
             "title": flaw.title,
             "unembargo_dt": None,
@@ -356,7 +356,7 @@ class TestBBSyncIntegration:
                 cve_id="CVE-2004-2493",
                 components=["test"],
                 title="totally descriptive",
-                description="test",
+                comment_zero="test",
                 impact="LOW",
                 reported_dt="2000-01-01T01:01:01Z",
                 unembargo_dt="2000-11-11T22:22:22Z",
@@ -385,7 +385,7 @@ class TestBBSyncIntegration:
         flaw_data = {
             "cve_id": "CVE-2004-2493",
             "title": "totally descriptive",
-            "description": "test",
+            "comment_zero": "test",
             "reported_dt": flaw.reported_dt,
             "unembargo_dt": flaw.unembargo_dt,
             "updated_dt": flaw.updated_dt,
@@ -424,7 +424,7 @@ class TestBBSyncIntegration:
                 cve_id="CVE-2004-2493",
                 components=["test"],
                 title="totally descriptive",
-                description="test",
+                comment_zero="test",
                 impact="LOW",
                 major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
                 reported_dt="2000-01-01T01:01:01Z",
@@ -555,7 +555,7 @@ class TestBBSyncIntegration:
         flaw_data = {
             "cve_id": "CVE-2004-2493",
             "title": "totally descriptive",
-            "description": "test",
+            "comment_zero": "test",
             "reported_dt": flaw.reported_dt,
             "unembargo_dt": flaw.unembargo_dt,
             "updated_dt": flaw.updated_dt,
@@ -592,7 +592,7 @@ class TestBBSyncIntegration:
             bz_id="2008346",
             cve_id="CVE-2021-0773",
             title="Foo",
-            description="test",
+            comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-17T11:24:14Z",
@@ -635,7 +635,7 @@ class TestBBSyncIntegration:
             bz_id="2008346",
             cve_id="CVE-2021-0773",
             title="Foo",
-            description="test",
+            comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-17T15:33:54Z",
@@ -685,7 +685,7 @@ class TestBBSyncIntegration:
             bz_id="2008346",
             cve_id="CVE-2021-0773",
             title="Foo",
-            description="test",
+            comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-17T15:38:53Z",
@@ -727,7 +727,7 @@ class TestBBSyncIntegration:
         flaw_data = {
             "cve_id": "CVE-2021-0773",
             "title": "Foo",
-            "description": "test",
+            "comment_zero": "test",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "embargoed": False,
@@ -753,7 +753,7 @@ class TestBBSyncIntegration:
             bz_id="2009119",
             cve_id="CVE-2022-0313",
             title="Foo",
-            description="test",
+            comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-31T16:41:41Z",
@@ -764,7 +764,7 @@ class TestBBSyncIntegration:
             bz_id="2009119",
             cve_id="CVE-2022-0314",
             title="Foo",
-            description="test",
+            comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-31T16:41:41Z",
@@ -788,7 +788,7 @@ class TestBBSyncIntegration:
         flaw_data = {
             "cve_id": "CVE-2022-0313",
             "title": "Bar",  # new title
-            "description": "test",
+            "comment_zero": "test",
             "reported_dt": flaw1.reported_dt,
             "unembargo_dt": flaw1.unembargo_dt,
             "updated_dt": flaw1.updated_dt,
@@ -816,7 +816,7 @@ class TestBBSyncIntegration:
             bz_id="2009119",
             cve_id="CVE-2022-0313",
             title="Foo",
-            description="test",
+            comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-31T16:41:41Z",
@@ -827,7 +827,7 @@ class TestBBSyncIntegration:
             bz_id="2009119",
             cve_id="CVE-2022-0314",
             title="Foo",
-            description="test",
+            comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
             updated_dt="2023-03-31T16:41:41Z",
@@ -851,7 +851,7 @@ class TestBBSyncIntegration:
         flaw_data = {
             "cve_id": None,  # attemt to remove CVE ID
             "title": "Foo",
-            "description": "test",
+            "comment_zero": "test",
             "reported_dt": flaw1.reported_dt,
             "unembargo_dt": flaw1.unembargo_dt,
             "updated_dt": flaw1.updated_dt,
@@ -907,7 +907,7 @@ class TestFlawDraftBBSyncIntegration:
                 },
             ],
             "cwe_id": "CWE-110",
-            "description": "some description",
+            "comment_zero": "some comment_zero",
             "references": [
                 {
                     "url": f"https://osv.dev/vulnerability/{ext_id}"
@@ -931,7 +931,7 @@ class TestFlawDraftBBSyncIntegration:
         assert flaw.cve_id == cve_id
         assert flaw.cvss_scores.all().count() == 1
         assert flaw.cwe_id == content["cwe_id"]
-        assert flaw.description == content["description"]
+        assert flaw.comment_zero == content["comment_zero"]
         assert flaw.references.all().count() == 1
         assert flaw.reported_dt
         assert flaw.source == source

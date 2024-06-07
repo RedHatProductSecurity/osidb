@@ -136,7 +136,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         """
         generate query attributes not requiring conditional processing
         """
-        self._query["cf_release_notes"] = self.flaw.summary
+        self._query["cf_release_notes"] = self.flaw.cve_description
         self._query["severity"] = self.IMPACT_TO_SEVERITY_PRIORITY[self.flaw.impact]
         self._query["priority"] = self.IMPACT_TO_SEVERITY_PRIORITY[self.flaw.impact]
 
@@ -186,7 +186,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         generate query for flaw description on create
         """
         if self.creation:
-            self._query["description"] = self.flaw.description
+            self._query["description"] = self.flaw.comment_zero
             self._query["comment_is_private"] = False
 
     def generate_alias(self):
@@ -253,16 +253,16 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
 
     def generate_requires_doc_text_flag(self):
         """
-        Generate requires_doc_text flag from requires_summary.
+        Generate requires_doc_text flag from requires_cve_description
         """
         flags_to_write = {
-            Flaw.FlawRequiresSummary.REQUESTED: "?",
-            Flaw.FlawRequiresSummary.APPROVED: "+",
-            Flaw.FlawRequiresSummary.REJECTED: "-",
+            Flaw.FlawRequiresCVEDescription.REQUESTED: "?",
+            Flaw.FlawRequiresCVEDescription.APPROVED: "+",
+            Flaw.FlawRequiresCVEDescription.REJECTED: "-",
             # flag NOVALUE is ignored
         }
 
-        if bz_value := flags_to_write.get(self.flaw.requires_summary):
+        if bz_value := flags_to_write.get(self.flaw.requires_cve_description):
             self._query["flags"].append(
                 {"name": "requires_doc_text", "status": bz_value}
             )

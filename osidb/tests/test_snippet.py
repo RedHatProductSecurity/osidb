@@ -39,7 +39,7 @@ class TestSnippet:
         assert flaw.cve_id == content["cve_id"]
         assert flaw.cvss_scores.count() == 1
         assert flaw.cwe_id == content["cwe_id"]
-        assert flaw.description == content["description"]
+        assert flaw.comment_zero == content["comment_zero"]
         assert flaw.meta_attr == {}
         assert flaw.references.count() == 1
         assert flaw.reported_dt

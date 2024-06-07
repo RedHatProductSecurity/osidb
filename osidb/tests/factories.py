@@ -67,7 +67,7 @@ class FlawFactory(BaseFactory):
 
         fallback = factory.Faker("random_element", elements=["", "foo"])
 
-        impact_requiring_summary = factory.LazyAttribute(
+        impact_requiring_cve_description = factory.LazyAttribute(
             lambda f: f.impact in [Impact.MODERATE, Impact.IMPORTANT, Impact.CRITICAL]
         )
 
@@ -76,15 +76,15 @@ class FlawFactory(BaseFactory):
             in [Flaw.FlawMajorIncident.APPROVED, Flaw.FlawMajorIncident.CISA_APPROVED]
         )
 
-        not_mi_with_summary = factory.Faker(
-            "random_element", elements=list(Flaw.FlawRequiresSummary)
+        not_mi_with_cve_description = factory.Faker(
+            "random_element", elements=list(Flaw.FlawRequiresCVEDescription)
         )
 
-        not_mi_without_summary = factory.Faker(
+        not_mi_without_cve_description = factory.Faker(
             "random_element",
             elements=[
-                Flaw.FlawRequiresSummary.NOVALUE,
-                Flaw.FlawRequiresSummary.REJECTED,
+                Flaw.FlawRequiresCVEDescription.NOVALUE,
+                Flaw.FlawRequiresCVEDescription.REJECTED,
             ],
         )
 
@@ -98,7 +98,7 @@ class FlawFactory(BaseFactory):
         "random_element", elements=list(set(Impact) - {Impact.NOVALUE})
     )
     components = factory.List([factory.Faker("word") for _ in range(3)])
-    description = factory.LazyAttribute(lambda c: f"Description for {c.cve_id}")
+    comment_zero = factory.LazyAttribute(lambda c: f"Comment zero for {c.cve_id}")
     title = factory.Maybe(
         "embargoed",
         yes_declaration=factory.LazyAttribute(
@@ -126,24 +126,30 @@ class FlawFactory(BaseFactory):
             # Flaw.FlawNistCvssValidation.REJECTED,
         ],
     )
-    summary = factory.LazyAttribute(
-        lambda f: "I am a spooky CVE"
-        if f.is_mi
-        else ("random summary" if f.impact_requiring_summary else f.fallback)
+    cve_description = factory.LazyAttribute(
+        lambda f: (
+            "I am a spooky CVE"
+            if f.is_mi
+            else (
+                "random cve_description"
+                if f.impact_requiring_cve_description
+                else f.fallback
+            )
+        )
     )
 
     @factory.lazy_attribute
-    def requires_summary(self):
-        if not self.is_mi and self.summary:
-            return self.not_mi_with_summary
-        elif not self.is_mi and not self.summary:
-            return self.not_mi_without_summary
-        elif self.is_mi and self.summary:
-            return Flaw.FlawRequiresSummary.APPROVED
-        # MI without summary is not a valid combination and should never happen,
+    def requires_cve_description(self):
+        if not self.is_mi and self.cve_description:
+            return self.not_mi_with_cve_description
+        elif not self.is_mi and not self.cve_description:
+            return self.not_mi_without_cve_description
+        elif self.is_mi and self.cve_description:
+            return Flaw.FlawRequiresCVEDescription.APPROVED
+        # MI without cve_description is not a valid combination and should never happen,
         # but leaving it here to cover all possibilities
         else:
-            return Flaw.FlawRequiresSummary.NOVALUE
+            return Flaw.FlawRequiresCVEDescription.NOVALUE
 
     mitigation = factory.LazyAttribute(
         lambda f: "CVE mitigation" if f.is_mi else f.fallback
@@ -521,7 +527,7 @@ class SnippetFactory(factory.django.DjangoModelFactory):
                 }
             ],
             "cwe_id": "CWE-110",
-            "description": "some description",
+            "comment_zero": "some comment zero",
             "references": [
                 {"url": self.url, "type": FlawReference.FlawReferenceType.SOURCE}
             ],

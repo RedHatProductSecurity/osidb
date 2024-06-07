@@ -586,9 +586,9 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         return valid_pairs.get(flags_from_bz, Flaw.FlawMajorIncident.INVALID)
 
     @cached_property
-    def requires_summary(self):
+    def requires_cve_description(self):
         """
-        A requires_summary state created from the requires_doc_text flag.
+        A requires_cve_description state created from the requires_doc_text flag.
         """
         # Default values
         status = ""
@@ -602,13 +602,13 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
 
         # this combination is set automatically by BZ when Doc Text is added
         if setter == "bugzilla@redhat.com" and status == "+":
-            return Flaw.FlawRequiresSummary.REQUESTED
+            return Flaw.FlawRequiresCVEDescription.REQUESTED
 
         pairs = {
-            "": Flaw.FlawRequiresSummary.NOVALUE,
-            "-": Flaw.FlawRequiresSummary.REJECTED,
-            "?": Flaw.FlawRequiresSummary.REQUESTED,
-            "+": Flaw.FlawRequiresSummary.APPROVED,
+            "": Flaw.FlawRequiresCVEDescription.NOVALUE,
+            "-": Flaw.FlawRequiresCVEDescription.REJECTED,
+            "?": Flaw.FlawRequiresCVEDescription.REQUESTED,
+            "+": Flaw.FlawRequiresCVEDescription.APPROVED,
         }
 
         return pairs.get(status)
@@ -846,7 +846,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
             cve_id=cve_id,
             meta_attr=self.get_meta_attr(cve_id),
             major_incident_state=self.major_incident_state,
-            requires_summary=self.requires_summary,
+            requires_cve_description=self.requires_cve_description,
             nist_cvss_validation=self.nist_cvss_validation,
             created_dt=self.flaw_bug["creation_time"],
             updated_dt=self.flaw_bug["last_change_time"],
