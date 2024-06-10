@@ -598,6 +598,22 @@ class TestFlaw:
         f.save()
         assert f.cve_id is None
 
+    @pytest.mark.enable_signals
+    def test_major_incident_start_dt(self):
+        """
+        Test that the signal to set the MI start date is correctly called.
+        """
+        f = FlawFactory(
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        # Initially it is not a MI so it should have no date
+        assert f.major_incident_start_dt is None
+        with freeze_time(tzdatetime(2077, 1, 1, 13, 39, 0)):
+            f.major_incident_state = Flaw.FlawMajorIncident.APPROVED
+            f.save()
+            assert f.major_incident_start_dt == timezone.now()
+
 
 class TestImpact:
     @pytest.mark.parametrize(

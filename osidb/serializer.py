@@ -1600,6 +1600,7 @@ class FlawSerializer(
                 "reported_dt",
                 "mitigation",
                 "major_incident_state",
+                "major_incident_start_dt",
                 "nist_cvss_validation",
                 "affects",
                 "comments",

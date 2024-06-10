@@ -59,6 +59,18 @@ def get_jira_user_id(email: str) -> str:
         return ""
 
 
+def update_major_incident_start_dt(flaw: Flaw) -> None:
+    # Set the date when the flaw became a MI if needed
+    is_major_incident = flaw.major_incident_state in {
+        Flaw.FlawMajorIncident.APPROVED,
+        Flaw.FlawMajorIncident.CISA_APPROVED,
+    }
+    if is_major_incident and flaw.major_incident_start_dt is None:
+        flaw.major_incident_start_dt = timezone.now()
+    elif not is_major_incident:
+        flaw.major_incident_start_dt = None
+
+
 @receiver(post_save, sender=User)
 def auto_create_profile(sender, instance, created, **kwargs):
     if created:
@@ -76,8 +88,9 @@ def populate_cvss_score(sender, instance, **kwargs):
 
 
 @receiver(pre_save, sender=Flaw)
-def update_local_updated_dt_flaw(sender, instance, **kwargs):
+def update_flaw_fields(sender, instance, **kwargs):
     instance.local_updated_dt = timezone.now()
+    update_major_incident_start_dt(instance)
 
 
 @receiver(post_save, sender=Affect)

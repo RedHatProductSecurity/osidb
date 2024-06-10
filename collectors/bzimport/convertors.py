@@ -586,6 +586,24 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         return valid_pairs.get(flags_from_bz, Flaw.FlawMajorIncident.INVALID)
 
     @cached_property
+    def major_incident_start_dt(self):
+        """
+        If the flaw is an approved major incident, the start date is assumed to be
+        the date when the hightouch/hightouch-lite flag was created.
+        """
+        if self.major_incident_state in {
+            Flaw.FlawMajorIncident.APPROVED,
+            Flaw.FlawMajorIncident.CISA_APPROVED,
+        }:
+            # Get the date of the first "+" flag we find
+            for flag in self.flags:
+                if (
+                    flag["name"] in {"hightouch", "hightouch-lite"}
+                    and flag["status"] == "+"
+                ):
+                    return flag["creation_date"]
+
+    @cached_property
     def requires_cve_description(self):
         """
         A requires_cve_description state created from the requires_doc_text flag.
@@ -845,6 +863,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
             cve_id=cve_id,
             meta_attr=self.get_meta_attr(cve_id),
             major_incident_state=self.major_incident_state,
+            major_incident_start_dt=self.major_incident_start_dt,
             requires_cve_description=self.requires_cve_description,
             nist_cvss_validation=self.nist_cvss_validation,
             created_dt=self.flaw_bug["creation_time"],
