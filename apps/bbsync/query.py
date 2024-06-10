@@ -178,8 +178,12 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         # 5) add trailing space delimiter in case of non-empty CVE IDs
         cve_ids = cve_ids + " " if cve_ids else cve_ids
 
-        component = self.flaw.component + ": " if self.flaw.component else ""
-        self._query["summary"] = embargoed + cve_ids + component + self.flaw.title
+        components = (
+            ": ".join([component for component in self.flaw.components]) + ": "
+            if self.flaw.components
+            else ""
+        )
+        self._query["summary"] = embargoed + cve_ids + components + self.flaw.title
 
     def generate_description(self):
         """

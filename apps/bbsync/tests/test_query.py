@@ -42,44 +42,51 @@ pytestmark = pytest.mark.unit
 
 class TestGenerateBasics:
     @pytest.mark.parametrize(
-        "component,cve_id,embargoed,title,summary",
+        "components,cve_id,embargoed,title,summary",
         [
             (
-                "fat",
+                ["fat"],
                 None,
                 False,
                 "hamster",
                 "fat: hamster",
             ),
             (
-                "fat",
+                ["fat"],
                 None,
                 True,
                 "hamster",
                 "EMBARGOED fat: hamster",
             ),
             (
-                "fat",
+                ["fat"],
                 "CVE-2000-12345",
                 True,
                 "hamster",
                 "EMBARGOED CVE-2000-12345 fat: hamster",
             ),
             (
-                "fat",
+                ["fat"],
                 "CVE-2000-12345",
                 False,
                 "hamster",
                 "CVE-2000-12345 fat: hamster",
             ),
+            (
+                ["fat", "fluffy"],
+                "CVE-2000-12345",
+                False,
+                "hamster",
+                "CVE-2000-12345 fat: fluffy: hamster",
+            ),
         ],
     )
-    def test_generate_summary(self, component, cve_id, embargoed, title, summary):
+    def test_generate_summary(self, components, cve_id, embargoed, title, summary):
         """
         test generating of summary
         """
         flaw = FlawFactory(
-            components=[component],
+            components=components,
             cve_id=cve_id,
             embargoed=embargoed,
             title=title,

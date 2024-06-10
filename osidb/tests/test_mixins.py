@@ -620,7 +620,7 @@ class TestBugzillaJiraMixinInteration:
             "title": "Foo",
             "comment_zero": "test",
             "impact": "LOW",
-            "component": "curl",
+            "components": ["curl"],
             "source": "DEBIAN",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",

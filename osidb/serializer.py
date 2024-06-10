@@ -1406,11 +1406,6 @@ class FlawCVSSPutSerializer(FlawCVSSSerializer):
     pass
 
 
-@extend_schema_serializer(
-    deprecate_fields=[
-        "component",
-    ]
-)
 class FlawSerializer(
     ACLMixinSerializer,
     JiraTaskSyncMixinSerializer,
@@ -1466,8 +1461,6 @@ class FlawSerializer(
 
     meta_attr = serializers.SerializerMethodField()
 
-    component = serializers.CharField(required=False)
-
     @extend_schema_field(
         {
             "type": "object",
@@ -1512,7 +1505,6 @@ class FlawSerializer(
                 "uuid",
                 "cve_id",
                 "impact",
-                "component",
                 "components",
                 "title",
                 "trackers",
@@ -1552,13 +1544,6 @@ class FlawSerializer(
             for group in self.embargoed2acls(validated_data)["acl_read"]
         )
 
-    def create(self, validated_data):
-        component = validated_data.pop("component", None)
-        components = validated_data.pop("components", None)
-        if component and not components:
-            validated_data["components"] = [component]
-        return super().create(validated_data)
-
     def update(self, new_flaw, validated_data):
         """
         perform the flaw instance update
@@ -1570,13 +1555,6 @@ class FlawSerializer(
 
         # store the old flaw for the later comparison
         old_flaw = Flaw.objects.get(uuid=new_flaw.uuid)
-
-        # if old field is used without the new one, parse old field, otherwise ignore component
-        component = validated_data.pop("component", None)
-        components = validated_data.pop("components", None)
-        if component and not components:
-            # Split the component and update the components to provide retro-compatibility
-            validated_data["components"] = [component]
 
         #####################
         # 2) update actions #

@@ -145,7 +145,6 @@ class TestFlawFixer:
         flaw_fixer = FlawFixer(flaw, {"summary": summary}, None)
         flaw_fixer.fix_title()
         assert flaw.title == title
-        assert flaw.component == component
         assert len(components) == len(flaw.components)
         for comp in components:
             assert comp in flaw.components

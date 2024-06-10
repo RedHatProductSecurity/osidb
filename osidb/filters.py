@@ -239,7 +239,6 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     cve_id = CharInFilter(field_name="cve_id")
     cve_id__isempty = EmptyOrNullStringFilter(field_name="cve_id")
 
-    component = CharInFilter(method="component_filter")
     components = CharInFilter(field_name="components", lookup_expr="contains")
 
     changed_after = DateTimeFilter(
@@ -287,15 +286,6 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
         Returns a Flaw if it or any of its affects/trackers have been updated before `value`
         """
         return queryset.filter(local_updated_dt__lte=value)
-
-    def component_filter(self, queryset, name, value):
-        """
-        Based on the `value`, returns all Flaws which contains all components listed separated by colon.
-        This enables retro compactibility with deprecated field `component`.
-        """
-        if value:
-            return queryset.filter(components__contains=value)
-        return queryset
 
     class Meta:
         """
@@ -412,7 +402,6 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     order_fields = [
         "bz_id",
         "cve_id",
-        "component",
         "embargoed",
         "comment_zero",
         "statement",
@@ -436,9 +425,6 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
     trackers__embargoed = BooleanFilter(field_name="trackers__embargoed")
     flaw__embargoed = BooleanFilter(field_name="flaw__embargoed")
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
-    flaw__component = CharInFilter(
-        field_name="flaw__components", lookup_expr="contains"
-    )
     flaw__components = CharInFilter(
         field_name="flaw__components", lookup_expr="contains"
     )
@@ -514,7 +500,6 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
     order_fields = [
         "cvss_scores__cvss_version",
         "embargoed",
-        "flaw__component",
         "flaw__embargoed",
         "trackers__embargoed",
     ] + list(Meta.fields.keys())
@@ -528,9 +513,6 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
     embargoed = BooleanFilter(field_name="embargoed")
     affects__embargoed = BooleanFilter(field_name="affects__embargoed")
     affects__flaw__embargoed = BooleanFilter(field_name="flaw__embargoed")
-    affects__flaw__component = CharInFilter(
-        field_name="affects__flaw__components", lookup_expr="contains"
-    )
     affects__flaw__components = CharInFilter(
         field_name="affects__flaw__components", lookup_expr="contains"
     )
@@ -593,7 +575,6 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
         "embargoed",
         "affects__embargoed",
         "affects__flaw__embargoed",
-        "affects__flaw__component",
     ] + list(Meta.fields.keys())
     order = OrderingFilter(fields=order_fields)
 
