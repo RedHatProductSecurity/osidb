@@ -705,6 +705,13 @@ class Flaw(
         """convert to string"""
         return str(self.uuid)
 
+    def save(self, *args, **kwargs):
+        # Automatically convert empty string values to null, since validation is skipped for
+        # empty strings
+        if self.cve_id == "":
+            self.cve_id = None
+        super().save(*args, **kwargs)
+
     def _validate_rh_nist_cvss_score_diff(self):
         """
         Checks that the difference between the RH and NIST CVSSv3 score is not >= 1.0.
