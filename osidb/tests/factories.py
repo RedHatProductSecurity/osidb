@@ -335,19 +335,6 @@ class FlawCommentFactory(factory.django.DjangoModelFactory):
 
     flaw = factory.SubFactory(FlawFactory)
 
-    meta_attr = {
-        "id": "1285930",
-        "tags": "[]",
-        "text": "some comment text",
-        "time": "2006-03-30T11:56:45Z",
-        "count": "0",
-        "bug_id": "187353",
-        "creator": "nonexistantuser@redhat.com",
-        "creator_id": "9999",
-        "is_private": "False",
-        "creation_time": "2006-03-30T11:56:45Z",
-    }
-
 
 class FlawAcknowledgmentFactory(factory.django.DjangoModelFactory):
     class Meta:

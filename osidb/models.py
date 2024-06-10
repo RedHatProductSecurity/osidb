@@ -2677,14 +2677,13 @@ class FlawCommentManager(ACLMixinManager, TrackingMixinManager):
         return super().get_queryset().filter(external_system_id="")
 
     @staticmethod
-    def create_flawcomment(flaw, external_system_id, comment, **extra_fields):
+    def create_flawcomment(flaw, external_system_id, **extra_fields):
         """return a new flawcomment or update an existing flawcomment without saving"""
         try:
             flawcomment = FlawComment.objects.get(
                 flaw=flaw,
                 external_system_id=external_system_id,
             )
-            flawcomment.meta_attr = comment
             for attr, value in extra_fields.items():
                 setattr(flawcomment, attr, value)
             return flawcomment
@@ -2704,7 +2703,6 @@ class FlawCommentManager(ACLMixinManager, TrackingMixinManager):
             return FlawComment(
                 flaw=flaw,
                 external_system_id=external_system_id,
-                meta_attr=comment,
                 **extra_fields,
             )
 
@@ -2735,9 +2733,6 @@ class FlawComment(
 
     # whether the comment is internal or not
     is_private = models.BooleanField(default=False)
-
-    # comment meta data
-    meta_attr = HStoreField(default=dict)
 
     # one flaw can have many comments
     flaw = models.ForeignKey(Flaw, on_delete=models.CASCADE, related_name="comments")
