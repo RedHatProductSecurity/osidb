@@ -144,18 +144,6 @@ class TestFlaw:
         comment2 = FlawComment.objects.create_flawcomment(
             vuln_1,
             "9999991",
-            {
-                "id": "1285930",
-                "tags": "[]",
-                "text": "some comment text",
-                "time": "2006-03-30T11:56:45Z",
-                "count": "0",
-                "bug_id": "187353",
-                "creator": "nonexistantuser@redhat.com",
-                "creator_id": "9999991",
-                "is_private": "False",
-                "creation_time": "2006-03-30T11:56:45Z",
-            },
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             text="some comment text",

@@ -819,7 +819,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
             FlawComment.objects.create_flawcomment(
                 flaw,
                 comment["id"],
-                comment,
                 created_dt=timezone.datetime.strptime(
                     comment["creation_time"], BZ_DT_FMT
                 ),

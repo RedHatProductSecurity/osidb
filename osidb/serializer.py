@@ -729,7 +729,6 @@ class CommentSerializer(AlertMixinSerializer, TrackingMixinSerializer):
                 "order",
                 "creator",
                 "is_private",
-                "meta_attr",
             ]
             + AlertMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
@@ -1686,7 +1685,6 @@ class FlawCommentSerializer(
     ACLMixinSerializer,
     BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
-    IncludeMetaAttrMixin,
 ):
     """FlawComment serializer for use by flaw_comments endpoint"""
 
