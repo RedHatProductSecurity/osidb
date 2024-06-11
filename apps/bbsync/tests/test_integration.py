@@ -70,7 +70,7 @@ class TestBBSyncIntegration:
             "title": "Foo",
             "comment_zero": "test",
             "impact": "LOW",
-            "component": "curl",
+            "components": ["curl"],
             "source": "INTERNET",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
@@ -92,7 +92,7 @@ class TestBBSyncIntegration:
         assert response.status_code == 200
         assert response.json()["cve_id"] == "CVE-2024-0126"
         assert response.json()["title"] == "Foo"
-        assert response.json()["component"] == "curl"
+        assert "curl" in response.json()["components"]
         assert response.json()["mitigation"] == "mitigation"
 
     @pytest.mark.vcr
@@ -739,7 +739,7 @@ class TestBBSyncIntegration:
             HTTP_BUGZILLA_API_KEY="SECRET",
         )
         assert response.status_code == 400
-        assert "Component value is required" in str(response.content)
+        assert "Components value is required" in str(response.content)
 
     @pytest.mark.vcr
     def test_flaw_update_multi_cve(self, auth_client, test_api_uri):

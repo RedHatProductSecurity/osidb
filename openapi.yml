@@ -863,15 +863,6 @@ paths:
           may be separated by commas. Dot notation can be used to filter on related
           model fields. Example: `exclude_fields=field,related_model_field.field`'
       - in: query
-        name: flaw__component
-        schema:
-          type: array
-          items:
-            type: string
-        description: Multiple values may be separated by commas.
-        explode: false
-        style: form
-      - in: query
         name: flaw__components
         schema:
           type: array
@@ -1187,7 +1178,6 @@ paths:
             - -cvss_scores__uuid
             - -cvss_scores__vector
             - -embargoed
-            - -flaw__component
             - -flaw__components
             - -flaw__created_dt
             - -flaw__cve_id
@@ -1225,7 +1215,6 @@ paths:
             - cvss_scores__uuid
             - cvss_scores__vector
             - embargoed
-            - flaw__component
             - flaw__components
             - flaw__created_dt
             - flaw__cve_id
@@ -2694,15 +2683,6 @@ paths:
         schema:
           type: string
       - in: query
-        name: component
-        schema:
-          type: array
-          items:
-            type: string
-        description: Multiple values may be separated by commas.
-        explode: false
-        style: form
-      - in: query
         name: components
         schema:
           type: array
@@ -2992,7 +2972,6 @@ paths:
             - -affects__uuid
             - -bz_id
             - -comment_zero
-            - -component
             - -components
             - -created_dt
             - -cve_description
@@ -3053,7 +3032,6 @@ paths:
             - affects__uuid
             - bz_id
             - comment_zero
-            - component
             - components
             - created_dt
             - cve_description
@@ -5632,15 +5610,6 @@ paths:
         schema:
           type: boolean
       - in: query
-        name: affects__flaw__component
-        schema:
-          type: array
-          items:
-            type: string
-        description: Multiple values may be separated by commas.
-        explode: false
-        style: form
-      - in: query
         name: affects__flaw__components
         schema:
           type: array
@@ -6070,7 +6039,6 @@ paths:
             - -affects__affectedness
             - -affects__created_dt
             - -affects__embargoed
-            - -affects__flaw__component
             - -affects__flaw__components
             - -affects__flaw__created_dt
             - -affects__flaw__cve_id
@@ -6100,7 +6068,6 @@ paths:
             - affects__affectedness
             - affects__created_dt
             - affects__embargoed
-            - affects__flaw__component
             - affects__flaw__components
             - affects__flaw__created_dt
             - affects__flaw__cve_id
@@ -7322,9 +7289,6 @@ components:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
           - $ref: '#/components/schemas/BlankEnum'
-        component:
-          type: string
-          deprecated: true
         components:
           type: array
           items:
@@ -8003,9 +7967,6 @@ components:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
           - $ref: '#/components/schemas/BlankEnum'
-        component:
-          type: string
-          deprecated: true
         components:
           type: array
           items:

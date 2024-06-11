@@ -543,12 +543,6 @@ class TestEndpointsFlaws:
         assert response.status_code == 200
         assert response.json()["count"] == 2
 
-        response = auth_client().get(
-            f"{test_api_uri}/flaws?component=different-component"
-        )
-        assert response.status_code == 200
-        assert response.json()["count"] == 1
-
     def test_list_flaws_filter_by_bz_id(self, auth_client, test_api_uri):
         """retrieve list of flaws from endpoint"""
         response = auth_client().get(f"{test_api_uri}/flaws")
@@ -1252,7 +1246,7 @@ class TestEndpointsFlaws:
             "cwe_id": "CWE-1",
             "title": "Foo",
             "impact": "CRITICAL",
-            "component": "curl",
+            "components": ["curl"],
             "source": "INTERNET",
             "comment_zero": "test",
             "reported_dt": "2022-11-22T15:55:22.830Z",
@@ -1273,7 +1267,7 @@ class TestEndpointsFlaws:
         response = auth_client().get(f"{test_api_uri}/flaws/{created_uuid}")
         assert response.status_code == 200
         assert response.json()["cve_id"] == "CVE-2021-0666"
-        assert response.json()["component"] == "curl"
+        assert "curl" in response.json()["components"]
 
     def test_flaw_draft_create(self, auth_client, test_api_uri):
         """
@@ -1284,7 +1278,7 @@ class TestEndpointsFlaws:
             "cwe_id": "CWE-1",
             "title": "Foo",
             "impact": "CRITICAL",
-            "component": "curl",
+            "components": ["curl"],
             "source": "INTERNET",
             "comment_zero": "test",
             "reported_dt": "2022-11-22T15:55:22.830Z",

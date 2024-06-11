@@ -85,7 +85,7 @@ class TestEndpointsACLs:
             "title": "Foo",
             "comment_zero": "test",
             "impact": "LOW",
-            "component": "curl",
+            "components": ["curl"],
             "source": "DEBIAN",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": None if embargoed else "2000-1-1T22:03:26.065Z",
@@ -384,90 +384,3 @@ class TestCustomExceptionHandling:
         response = APIClient().get(url)
         assert response.status_code == 409
         assert response.json()["detail"] == "This was a big failure"
-
-
-class TestDeprecationHandling:
-    """
-    test that deprecated fields provides retro-compatibility
-    """
-
-    def test_flaw_components_create(self, auth_client, test_api_uri):
-        """
-        test that Flaw model accepts component on creation
-        """
-
-        flaw_data = {
-            "title": "Foo",
-            "comment_zero": "test",
-            "impact": "LOW",
-            "source": "DEBIAN",
-            "reported_dt": "2022-11-22T15:55:22.830Z",
-            "mitigation": "mitigation",
-            "embargoed": False,
-            "unembargo_dt": "2000-1-1T22:03:26.065Z",
-            "component": "curl",
-        }
-        response = auth_client().post(
-            f"{test_api_uri}/flaws",
-            flaw_data,
-            format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
-        )
-        assert response.status_code == 201
-        body = response.json()
-        created_uuid = body["uuid"]
-
-        flaw = Flaw.objects.get(pk=created_uuid)
-        assert flaw.component == "curl"
-        assert flaw.components == ["curl"]
-
-        flaw_data["component"] = "golang: archive/zip"
-
-        response = auth_client().post(
-            f"{test_api_uri}/flaws",
-            flaw_data,
-            format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
-        )
-        assert response.status_code == 201
-        body = response.json()
-        created_uuid = body["uuid"]
-
-        flaw = Flaw.objects.get(pk=created_uuid)
-        assert flaw.component == "golang: archive/zip"
-        # don't parse manual multi-component
-        assert "golang: archive/zip" in flaw.components
-
-    def test_flaw_components_update(self, auth_client, test_api_uri):
-        """
-        test that Flaw model accepts component on update
-        """
-        flaw = FlawFactory(embargoed=False, components=["golang", "archive/zip"])
-        AffectFactory(flaw=flaw)
-
-        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
-        assert response.status_code == 200
-        original_body = response.json()
-
-        response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
-            {
-                "title": flaw.title,
-                "comment_zero": flaw.comment_zero,
-                "component": "golang: encoding",
-                "embargoed": False,
-                "updated_dt": flaw.updated_dt,
-            },
-            format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
-        )
-        assert response.status_code == 200
-        body = response.json()
-        assert original_body["components"] != body["components"]
-        assert body["component"] == "golang: encoding"
-        # don't parse manual multi-component
-        assert "golang: encoding" in body["components"]
-        assert "archive/zip" not in body["components"]

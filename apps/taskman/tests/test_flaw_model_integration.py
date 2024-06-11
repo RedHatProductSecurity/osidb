@@ -133,7 +133,7 @@ class TestFlawModelIntegration(object):
             "cwe_id": "CWE-1",
             "title": "Foo",
             "impact": "CRITICAL",
-            "component": "curl",
+            "components": ["curl"],
             "source": "INTERNET",
             "comment_zero": "test",
             "reported_dt": "2022-11-22T15:55:22.830Z",

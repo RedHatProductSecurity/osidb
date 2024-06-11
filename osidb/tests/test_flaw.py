@@ -1711,7 +1711,7 @@ class TestFlawValidators:
         """
         test that flaw cannot have an empty component
         """
-        with pytest.raises(ValidationError, match="Component value is required"):
+        with pytest.raises(ValidationError, match="Components value is required"):
             FlawFactory(components=None)
 
     @pytest.mark.parametrize(

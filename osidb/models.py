@@ -39,7 +39,6 @@ from apps.trackers.constants import SYNC_TO_JIRA
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.constants import BZ_API_KEY, FLAW_PLACEHOLDER_KEYWORD
 
-from .helpers import deprecate_field as deprecate_field_custom
 from .helpers import ps_update_stream_natural_keys
 from .mixins import (
     ACLMixin,
@@ -596,13 +595,6 @@ class Flaw(
     # flaw severity, from srtnotes "impact"
     impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
 
-    # flaw component was originally a part of the Bugzilla summary
-    # so the value may depend on how successfully it was parsed
-    component = deprecate_field_custom(
-        models.CharField(max_length=100, blank=True),
-        # required to keep backwards compatibility
-        return_instead=lambda self: self.components[-1] if self.components else "",
-    )
     components = fields.ArrayField(
         models.CharField(max_length=100, blank=True), default=list, blank=True
     )
@@ -1101,15 +1093,15 @@ class Flaw(
         if not self.impact:
             raise ValidationError("Impact value is required.")
 
-    def _validate_nonempty_component(self):
+    def _validate_nonempty_components(self):
         """
-        check that the component is not empty
+        check that the component list is not empty
 
         we cannot enforce this by model definition
-        as the old flaws may have no component
+        as the old flaws may have no components
         """
         if not self.components:
-            raise ValidationError("Component value is required.")
+            raise ValidationError("Components value is required.")
 
     def _validate_unsupported_impact_change(self):
         """
