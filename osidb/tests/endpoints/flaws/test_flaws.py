@@ -11,7 +11,15 @@ from rest_framework import status
 
 from osidb.core import set_user_acls
 from osidb.filters import FlawFilter
-from osidb.models import Affect, Flaw, FlawComment, FlawReference, FlawSource, Tracker
+from osidb.models import (
+    Affect,
+    Flaw,
+    FlawComment,
+    FlawCVSS,
+    FlawReference,
+    FlawSource,
+    Tracker,
+)
 from osidb.tests.factories import (
     AffectFactory,
     FlawAcknowledgmentFactory,
@@ -254,33 +262,87 @@ class TestEndpointsFlaws:
                 raise Exception("Unexpected response code - must be 200 or 400")
 
     @pytest.mark.parametrize(
-        "is_empty,cve_id",
+        "field_name",
         [
-            (True, None),
+            ("cve_id"),
+            ("cve_description"),
+            ("cwe_id"),
+            ("statement"),
+            ("mitigation"),
+            ("owner"),
+        ],
+    )
+    @pytest.mark.parametrize(
+        "is_empty,field_content",
+        [
             (True, ""),
             (False, "CVE-2024-271828"),
         ],
     )
-    def test_list_flaws_empty_cve(self, is_empty, cve_id, auth_client, test_api_uri):
-        """Test that filtering by null or empty CVEs works."""
+    def test_list_flaws_empty_text(
+        self, field_name, is_empty, field_content, auth_client, test_api_uri
+    ):
+        """
+        Test that filtering by null or empty text works for the text fields that have this filter enabled.
+        """
         response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
 
-        FlawFactory(cve_id=cve_id)
+        flaw = FlawFactory.build(**{field_name: field_content})
+        # Skip validation error for malformed CVE/CWD, we only care that it has
+        # some content not that it is valid
+        flaw.save(raise_validation_error=False)
 
         # Filter is true: matches null and empty strings
-        response = auth_client().get(f"{test_api_uri}/flaws?cve_id__isempty=1")
+        response = auth_client().get(f"{test_api_uri}/flaws?{field_name}__isempty=1")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == (1 if is_empty else 0)
 
         # Filter is false: matches non-null and non-empty strings
-        response = auth_client().get(f"{test_api_uri}/flaws?cve_id__isempty=0")
+        response = auth_client().get(f"{test_api_uri}/flaws?{field_name}__isempty=0")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == (0 if is_empty else 1)
+
+    @pytest.mark.parametrize(
+        "issuer,version,filter_name",
+        [
+            (FlawCVSS.CVSSIssuer.REDHAT, FlawCVSS.CVSSVersion.VERSION2, "cvss2_rh"),
+            (FlawCVSS.CVSSIssuer.REDHAT, FlawCVSS.CVSSVersion.VERSION3, "cvss3_rh"),
+            (FlawCVSS.CVSSIssuer.REDHAT, FlawCVSS.CVSSVersion.VERSION4, "cvss4_rh"),
+            (FlawCVSS.CVSSIssuer.NIST, FlawCVSS.CVSSVersion.VERSION2, "cvss2_nist"),
+            (FlawCVSS.CVSSIssuer.NIST, FlawCVSS.CVSSVersion.VERSION3, "cvss3_nist"),
+            (FlawCVSS.CVSSIssuer.NIST, FlawCVSS.CVSSVersion.VERSION4, "cvss4_nist"),
+        ],
+    )
+    def test_list_flaws_empty_cvss(
+        self, issuer, version, filter_name, auth_client, test_api_uri
+    ):
+        """Test that filtering by non-existing CVSS scores works."""
+        response = auth_client().get(f"{test_api_uri}/flaws")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
+
+        flaw = FlawFactory()
+
+        response = auth_client().get(f"{test_api_uri}/flaws?{filter_name}__isempty=1")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+
+        FlawCVSSFactory(
+            flaw=flaw,
+            issuer=issuer,
+            version=version,
+        )
+        response = auth_client().get(f"{test_api_uri}/flaws?{filter_name}__isempty=1")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
 
     @freeze_time(datetime(2021, 11, 23))
     @pytest.mark.enable_signals
