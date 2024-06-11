@@ -6,6 +6,7 @@ import logging
 from typing import Type
 from urllib.parse import urljoin
 
+import pghistory
 import pkg_resources
 import requests
 from django.conf import settings
@@ -49,6 +50,7 @@ from .serializer import (
     AffectPostSerializer,
     AffectSerializer,
     AlertSerializer,
+    AuditSerializer,
     FlawAcknowledgmentPostSerializer,
     FlawAcknowledgmentPutSerializer,
     FlawAcknowledgmentSerializer,
@@ -1046,3 +1048,16 @@ class JiraStageForwarderView(APIView):
         }
         # Return a response with the allowed methods and headers
         return Response(status=200, headers=headers)
+
+
+class AuditView(ModelViewSet):
+    """basic view of audit history events"""
+
+    queryset = pghistory.models.Events.objects.all().order_by("-pgh_created_at")
+    serializer_class = AuditSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ["pgh_slug", "pgh_label", "pgh_obj_model", "pgh_created_at"]
+    http_method_names = get_valid_http_methods(
+        ModelViewSet, excluded=["delete", "post", "update"]
+    )
+    permission_classes = [IsAuthenticatedOrReadOnly]

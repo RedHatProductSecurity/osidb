@@ -34,6 +34,8 @@ READONLY_MODE: bool = get_env("OSIDB_READONLY_MODE", default="False", is_bool=Tr
 
 # Application definition
 INSTALLED_APPS = [
+    "pgtrigger",
+    "pghistory",
     "apps.bbsync",
     "apps.exploits",
     "apps.sla",
@@ -77,6 +79,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "pghistory.middleware.HistoryMiddleware",  # adds request user to audit history context
     "django.middleware.gzip.GZipMiddleware",
     "osidb.middleware.PgCommon",
 ]
@@ -293,3 +296,7 @@ CORS_ALLOW_HEADERS = (
     *get_env("OSIDB_CORS_ALLOW_HEADERS", default="[]", is_json=True),
 )
 CORS_ALLOW_CREDENTIALS = True
+
+# audit history is immutable
+# NOTE: this will have to be switched to False to bulk import historical BZ
+PGHISTORY_APPEND_ONLY = True

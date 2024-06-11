@@ -877,3 +877,81 @@ def forwards_func(...):
 
 The `set_user_acls` is the important part here, you should apply it to both
 the forwards and backwards function before performing any database operations.
+
+### History audit
+
+We generate an audit of activity on Flaw and Affect. This information is
+surfaced up to the REST API via usage of **include_history=True** url param.
+
+To retrieve raw events related to an entity use the **.events**: 
+```python
+flaw1 = Flaw.objects.all()[1]
+print(flaw1.events.count())
+```
+This provides queryset of entity snapshots over time.
+
+Alternately, to retrieve Events specific to any entity one can employ the 
+**pghistory.models.Events** entrypoint with **tracks** method.
+```python
+flaw1 = Flaw.objects.all()[1]
+print(pghistory.models.Events.objects.tracks(flaw1).count())
+```
+This approach helpfully returns diff of changes from previous events.
+
+We can retrieve all events specific to any entity including any foreign key
+relationships using **references** method. 
+```python
+flaw1 = Flaw.objects.all()[1]
+print(pghistory.models.Events.objects.references(flaw1).count())
+```
+This would include events on the specific Flaw and Affect events
+linked to the Flaw.
+
+To dynamically add context to any audit event:
+```python
+with pghistory.context(somekey="somevalue"):
+    # do something
+```
+
+This context can then be searched using normal django filterset approaches:
+```python
+pghistory.models.Events.objects.references(flaw1)
+                .filter(pgh_context__somekey="somevalue")
+                .count()
+```
+                
+#### Disabling history audit
+
+We can dynamically disable using django-pgtrigger, in code, using the **pgtrigger.ignore** primitive:
+
+```
+with pgtrigger.ignore($TRIGGER_URI(S)):
+    #execute code ignoring trigger(s)
+```
+
+which we might employ in django migrations.
+
+Alternately, we can temporarily disable event triggers at the pg table level with 'brute force'
+by directly disabling in postgres with something like:
+
+```
+ALTER TABLE osidb_flaw DISABLE TRIGGER ALL;
+ALTER TABLE osidb_affect DISABLE TRIGGER ALL;
+```
+
+For operations it is probably best to use management command
+
+To list triggers:
+```
+> python3 manage.py pgtrigger ls
+```
+
+To disable a trigger:
+```
+> python3 manage.py pgtrigger disable osidb.Flaw:insert_insert
+```
+
+To disable a trigger:
+```
+> python3 manage.py pgtrigger enable osidb.Flaw:insert_insert
+```
