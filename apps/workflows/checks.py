@@ -30,7 +30,7 @@ class CheckParser:
         "group": "group_key",
         "state": "workflow_state",
         "team": "team_id",
-        "trackers": "trackers_filed",
+        "has_trackers": "trackers_filed",
     }
 
     # the list of properties which return text choices

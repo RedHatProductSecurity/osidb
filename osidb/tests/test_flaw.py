@@ -267,13 +267,10 @@ class TestFlaw:
         ps_module = PsModuleFactory(bts_name="bugzilla")
         fix_affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
             flaw=flaw,
         )
-        # Skip validation as FIX is not a valid resolution anymore, but there may be historical
-        # data that still uses it
-        fix_affect.resolution = Affect.AffectResolution.FIX
-        fix_affect.save(raise_validation_error=False)
         assert not flaw.trackers_filed
         TrackerFactory(
             affects=(fix_affect,),
@@ -281,12 +278,11 @@ class TestFlaw:
             type=Tracker.TrackerType.BUGZILLA,
         )
         assert flaw.trackers_filed
-        fix_affect = AffectFactory(
+        AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
             flaw=flaw,
         )
-        fix_affect.resolution = Affect.AffectResolution.FIX
-        fix_affect.save(raise_validation_error=False)
         assert not flaw.trackers_filed
 
     def test_delegated_affects(self):
