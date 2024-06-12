@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import Set, Union
 
+import pghistory
 import pytest
 from django.conf import settings
 from django.utils import timezone
@@ -1655,3 +1656,54 @@ class TestEndpointsFlaws:
 
         assert fetched_affect_ids == affect_ids
         assert fetched_tracker_ids == tracker_ids
+
+    def test_flaw_history(self, auth_client, test_api_uri):
+        """ """
+
+        with pghistory.context(source="testcase"):
+
+            flaw = FlawFactory()
+            FlawFactory()
+
+            ps_module = PsModuleFactory(bts_name="octopus")
+            affects = [
+                AffectFactory(
+                    flaw=flaw,
+                    affectedness=Affect.AffectAffectedness.AFFECTED,
+                    resolution=Affect.AffectResolution.DELEGATED,
+                    ps_module=ps_module.name,
+                )
+                for _ in range(5)
+            ]
+            assert len(affects) == 5
+            affects_other = [
+                AffectFactory(
+                    flaw=flaw,
+                    affectedness=Affect.AffectAffectedness.AFFECTED,
+                    resolution=Affect.AffectResolution.DELEGATED,
+                    ps_module=ps_module.name,
+                )
+                for _ in range(5)
+            ]
+            assert len(affects_other) == 5
+
+            response = auth_client().get(
+                f"{test_api_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
+            )
+
+            assert response.status_code == 200
+            body = response.json()
+            assert body["count"] == 1
+            flaw = body["results"][0]
+
+            assert "history" in flaw
+            assert len(flaw["history"]) == 1
+            flaw1_history1 = flaw["history"][0]
+
+            assert flaw1_history1["pgh_label"] == "insert"
+            assert flaw1_history1["pgh_context"] == {"source": "testcase"}
+
+            assert len(flaw["affects"]) == 10
+
+            affect1 = flaw["affects"][0]
+            assert len(affect1["history"]) == 1

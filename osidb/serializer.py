@@ -8,11 +8,13 @@ from collections import defaultdict
 from distutils.util import strtobool
 from typing import Dict, List, Tuple
 
+import pghistory
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import BadRequest
 from django.db.models import Max
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
+from pghistory.models import Events
 from rest_framework import serializers
 
 from apps.bbsync.mixins import BugzillaSyncMixin
@@ -494,6 +496,79 @@ class AlertMixinSerializer(serializers.ModelSerializer):
         fields = ["alerts"]
 
 
+class AuditSerializer(serializers.ModelSerializer):
+
+    pgh_data = serializers.SerializerMethodField()
+
+    def get_pgh_data(self, obj):
+        # remove acls from entity snapshot
+        data = obj.pgh_data
+        data.pop("acl_read")
+        data.pop("acl_write")
+        return obj.pgh_data
+
+    class Meta:
+        model = Events
+        fields = [
+            "pgh_created_at",
+            "pgh_slug",
+            "pgh_obj_model",
+            "pgh_obj_id",
+            "pgh_label",
+            "pgh_context",
+            "pgh_diff",
+            "pgh_data",
+        ]
+
+
+class HistoricalEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Events
+        fields = [
+            "pgh_created_at",
+            "pgh_slug",
+            "pgh_label",
+            "pgh_context",
+            "pgh_diff",
+        ]
+
+
+class HistoryMixinSerializer(serializers.ModelSerializer):
+
+    history = serializers.SerializerMethodField()
+
+    def __init__(self, *args, **kwargs):
+        # Instantiate the superclass normally
+        super().__init__(*args, **kwargs)
+
+        request = self.context.get("request")
+        include_history_param = None
+        # Get include history from request
+        if request:
+            include_history_param = request.query_params.get("include_history")
+        else:
+            include_history_param = self.context.get("include_history")
+
+        if include_history_param is None:
+            self.fields.pop("history", None)
+
+    @extend_schema_field(HistoricalEventSerializer(many=True, read_only=True))
+    def get_history(self, obj):
+        """history events serializer getter"""
+        history = pghistory.models.Events.objects.tracks(obj)
+        serializer = HistoricalEventSerializer(
+            instance=history, many=True, read_only=True
+        )
+        return serializer.data
+
+    class Meta:
+        """filter fields"""
+
+        model = Events
+        abstract = True
+        fields = ["history"]
+
+
 class TrackerSerializer(
     ACLMixinSerializer,
     AlertMixinSerializer,
@@ -894,6 +969,7 @@ class AffectSerializer(
     IncludeMetaAttrMixin,
     BugzillaAPIKeyMixin,
     JiraAPIKeyMixin,
+    HistoryMixinSerializer,
 ):
     """Affect serializer"""
 
@@ -964,6 +1040,7 @@ class AffectSerializer(
             + ACLMixinSerializer.Meta.fields
             + AlertMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
+            + HistoryMixinSerializer.Meta.fields
         )
 
     def update(self, new_affect, validated_data):
@@ -1416,6 +1493,7 @@ class FlawSerializer(
     BugzillaAPIKeyMixin,
     JiraAPIKeyMixin,
     AlertMixinSerializer,
+    HistoryMixinSerializer,
 ):
     """serialize flaw model"""
 
@@ -1490,6 +1568,11 @@ class FlawSerializer(
                     trackers__external_system_id__in=tracker_ids.split(",")
                 )
 
+            # If we have requested history on Flaw, then apply it to affects as well
+            include_history = request.query_params.get("include_history")
+            if include_history:
+                context["include_history"] = include_history
+
         serializer = AffectSerializer(
             instance=affects, many=True, read_only=True, context=context
         )
@@ -1530,6 +1613,7 @@ class FlawSerializer(
             + TrackingMixinSerializer.Meta.fields
             + WorkflowModelSerializer.Meta.fields
             + AlertMixinSerializer.Meta.fields
+            + HistoryMixinSerializer.Meta.fields
         )
 
     def _is_public(self, flaw, validated_data):

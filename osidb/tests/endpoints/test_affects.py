@@ -215,6 +215,34 @@ class TestEndpointsAffects:
         assert response.status_code == status.HTTP_200_OK
         assert AffectCVSS.objects.count() == 0
 
+    def test_affect_history(self, auth_client, test_api_uri):
+        """ """
+        flaw1 = FlawFactory()
+        ps_module = PsModuleFactory()
+        affect = AffectFactory(
+            flaw=flaw1,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+
+        response = auth_client().get(f"{test_api_uri}/affects?include_history=True")
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        affect1 = body["results"][0]
+        assert "history" in affect1
+        assert len(affect1["history"]) == 1
+
+        response = auth_client().get(
+            f"{test_api_uri}/affects/{str(affect.uuid)}?include_history=True"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert "history" in body
+        assert len(body["history"]) == 1
+
 
 class TestEndpointsAffectsBulk:
     """

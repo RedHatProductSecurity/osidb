@@ -12,6 +12,7 @@ from .api_views import (
     AffectCVSSView,
     AffectView,
     AlertView,
+    AuditView,
     FlawAcknowledgmentView,
     FlawCommentView,
     FlawCVSSView,
@@ -56,6 +57,7 @@ router.register(
 )
 router.register(r"trackers", TrackerView)
 router.register(r"alerts", AlertView)
+router.register(r"audit", AuditView)
 
 urlpatterns = [
     path("healthy", healthy),

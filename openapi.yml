@@ -2275,6 +2275,144 @@ paths:
                     version:
                       type: string
           description: ''
+  /osidb/api/v1/audit:
+    get:
+      operationId: osidb_api_v1_audit_list
+      description: basic view of audit history events
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: pgh_created_at
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: pgh_label
+        schema:
+          type: string
+      - in: query
+        name: pgh_obj_model
+        schema:
+          type: string
+      - in: query
+        name: pgh_slug
+        schema:
+          type: string
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedAuditList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v1/audit/{pgh_slug}:
+    get:
+      operationId: osidb_api_v1_audit_retrieve
+      description: basic view of audit history events
+      parameters:
+      - in: path
+        name: pgh_slug
+        schema:
+          type: string
+          description: The unique identifier across all event tables.
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Audit'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: osidb_api_v1_audit_update
+      description: basic view of audit history events
+      parameters:
+      - in: path
+        name: pgh_slug
+        schema:
+          type: string
+          description: The unique identifier across all event tables.
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Audit'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Audit'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Audit'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Audit'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /osidb/api/v1/flaws:
     get:
       operationId: osidb_api_v1_flaws_list
@@ -7118,6 +7256,47 @@ components:
       - WARNING
       - ERROR
       type: string
+    Audit:
+      type: object
+      properties:
+        pgh_created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          description: When the event was created.
+        pgh_slug:
+          type: string
+          description: The unique identifier across all event tables.
+        pgh_obj_model:
+          type: string
+          description: The object model.
+          maxLength: 64
+        pgh_obj_id:
+          type: string
+          nullable: true
+          description: The primary key of the object.
+        pgh_label:
+          type: string
+          description: The event label.
+        pgh_context:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          description: The context associated with the event.
+        pgh_diff:
+          type: object
+          additionalProperties: {}
+          description: The diff between the previous event of the same label.
+        pgh_data:
+          type: string
+          readOnly: true
+      required:
+      - pgh_created_at
+      - pgh_data
+      - pgh_diff
+      - pgh_label
+      - pgh_obj_model
+      - pgh_slug
     BlankEnum:
       enum:
       - ''
@@ -8426,6 +8605,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Alert'
+    PaginatedAuditList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Audit'
     PaginatedEPSSList:
       type: object
       properties:
