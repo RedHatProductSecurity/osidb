@@ -419,7 +419,8 @@ class SubFlawViewDestroyMixin:
     @extend_schema(
         responses={
             200: {},
-        }
+        },
+        parameters=[bz_api_key_param],
     )
     def destroy(self, request, *args, **kwargs):
         """
@@ -479,9 +480,11 @@ class SubFlawViewGetMixin:
 @extend_schema_view(
     create=extend_schema(
         request=FlawAcknowledgmentPostSerializer,
+        parameters=[bz_api_key_param],
     ),
     update=extend_schema(
         request=FlawAcknowledgmentPutSerializer,
+        parameters=[bz_api_key_param],
     ),
 )
 class FlawAcknowledgmentView(
@@ -497,9 +500,11 @@ class FlawAcknowledgmentView(
 @extend_schema_view(
     create=extend_schema(
         request=FlawReferencePostSerializer,
+        parameters=[bz_api_key_param],
     ),
     update=extend_schema(
         request=FlawReferencePutSerializer,
+        parameters=[bz_api_key_param],
     ),
 )
 class FlawReferenceView(SubFlawViewDestroyMixin, SubFlawViewGetMixin, ModelViewSet):
@@ -513,9 +518,11 @@ class FlawReferenceView(SubFlawViewDestroyMixin, SubFlawViewGetMixin, ModelViewS
 @extend_schema_view(
     create=extend_schema(
         request=FlawCVSSPostSerializer,
+        parameters=[bz_api_key_param],
     ),
     update=extend_schema(
         request=FlawCVSSPutSerializer,
+        parameters=[bz_api_key_param],
     ),
 )
 class FlawCVSSView(SubFlawViewGetMixin, SubFlawViewDestroyMixin, ModelViewSet):
@@ -563,6 +570,7 @@ def whoami(request: Request) -> Response:
         request=FlawCommentPostSerializer,
         parameters=[
             flaw_id,
+            bz_api_key_param,
         ],
     ),
     list=extend_schema(
@@ -611,9 +619,11 @@ class FlawCommentView(SubFlawViewGetMixin, ModelViewSet):
 @extend_schema_view(
     create=extend_schema(
         request=FlawPackageVersionPostSerializer,
+        parameters=[bz_api_key_param],
     ),
     update=extend_schema(
         request=FlawPackageVersionPutSerializer,
+        parameters=[bz_api_key_param],
     ),
 )
 class FlawPackageVersionView(
@@ -649,6 +659,7 @@ class AffectView(SubFlawViewDestroyMixin, ModelViewSet):
     @extend_schema(
         request=AffectBulkPutSerializer(many=True),
         responses=AffectBulkPostPutResponseSerializer,
+        parameters=[bz_api_key_param, jira_api_key_param],
     )
     @action(methods=["PUT"], detail=False, url_path="bulk")
     def bulk_put(self, request, *args, **kwargs):
@@ -659,6 +670,11 @@ class AffectView(SubFlawViewDestroyMixin, ModelViewSet):
         bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
         if not bz_api_key:
             raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
+
+        if not request.META.get("HTTP_JIRA_API_KEY"):
+            # Needed by AffectSerializer.update_trackers(), better explicit than implicit
+            # because update_trackers executes with its own check only in specific circumstances.
+            raise ValidationError({"Jira-Api-Key": "This HTTP header is required."})
 
         # TODO sometime: Some of these actions probably belong to another layer, perhaps serializer.
 
@@ -723,6 +739,7 @@ class AffectView(SubFlawViewDestroyMixin, ModelViewSet):
     @extend_schema(
         request=AffectPostSerializer(many=True),
         responses=AffectBulkPostPutResponseSerializer,
+        parameters=[bz_api_key_param],
     )
     @bulk_put.mapping.post
     def bulk_post(self, request, *args, **kwargs):
@@ -790,6 +807,7 @@ class AffectView(SubFlawViewDestroyMixin, ModelViewSet):
         # Ignored because of https://github.com/tfranzel/drf-spectacular/issues/379
         # and https://swagger.io/docs/specification/describing-request-body/#:~:text=GET%2C-,DELETE,-and%20HEAD%20are
         request={"type": "array", "items": {"type": "string"}},
+        parameters=[bz_api_key_param],
     )
     @bulk_put.mapping.delete
     def bulk_delete(self, request, *args, **kwargs):
@@ -838,9 +856,11 @@ class AffectView(SubFlawViewDestroyMixin, ModelViewSet):
 @extend_schema_view(
     create=extend_schema(
         request=AffectCVSSPostSerializer,
+        parameters=[bz_api_key_param],
     ),
     update=extend_schema(
         request=AffectCVSSPutSerializer,
+        parameters=[bz_api_key_param],
     ),
 )
 class AffectCVSSView(ModelViewSet):
@@ -884,7 +904,8 @@ class AffectCVSSView(ModelViewSet):
     @extend_schema(
         responses={
             200: {},
-        }
+        },
+        parameters=[bz_api_key_param],
     )
     def destroy(self, request, *args, **kwargs):
         """

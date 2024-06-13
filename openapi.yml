@@ -1672,6 +1672,12 @@ paths:
     post:
       operationId: osidb_api_v1_affects_cvss_scores_create
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: affect_id
         schema:
@@ -1773,6 +1779,12 @@ paths:
     put:
       operationId: osidb_api_v1_affects_cvss_scores_update
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: affect_id
         schema:
@@ -1823,6 +1835,12 @@ paths:
       operationId: osidb_api_v1_affects_cvss_scores_destroy
       description: Destroy the instance and proxy the delete to Bugzilla.
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: affect_id
         schema:
@@ -1981,6 +1999,12 @@ paths:
       operationId: osidb_api_v1_affects_destroy
       description: Destroy the instance and proxy the delete to Bugzilla
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: uuid
         schema:
@@ -2013,6 +2037,13 @@ paths:
     post:
       operationId: osidb_api_v1_affects_bulk_create
       description: Bulk create endpoint. Expects a list of dict Affect objects.
+      parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       tags:
       - osidb
       requestBody:
@@ -2057,6 +2088,19 @@ paths:
     put:
       operationId: osidb_api_v1_affects_bulk_update
       description: Bulk update endpoint. Expects a list of dict Affect objects.
+      parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
+      - in: header
+        name: Jira-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Jira authentication.
+        required: true
       tags:
       - osidb
       requestBody:
@@ -2101,6 +2145,13 @@ paths:
     delete:
       operationId: osidb_api_v1_affects_bulk_destroy
       description: Bulk delete endpoint. Expects a list of Affect uuids.
+      parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       tags:
       - osidb
       security:
@@ -3827,6 +3878,12 @@ paths:
     post:
       operationId: osidb_api_v1_flaws_acknowledgments_create
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: flaw_id
         schema:
@@ -3928,6 +3985,12 @@ paths:
     put:
       operationId: osidb_api_v1_flaws_acknowledgments_update
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: flaw_id
         schema:
@@ -3978,6 +4041,12 @@ paths:
       operationId: osidb_api_v1_flaws_acknowledgments_destroy
       description: Destroy the instance and proxy the delete to Bugzilla
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: flaw_id
         schema:
@@ -4103,6 +4172,12 @@ paths:
         comments are not guaranteed to keep their original UUIDs, especially if multiple
         comments are created simultaneously.
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: flaw_id
         schema:
@@ -4385,6 +4460,12 @@ paths:
     post:
       operationId: osidb_api_v1_flaws_cvss_scores_create
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: flaw_id
         schema:
@@ -4486,6 +4567,12 @@ paths:
     put:
       operationId: osidb_api_v1_flaws_cvss_scores_update
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: flaw_id
         schema:
@@ -4536,6 +4623,12 @@ paths:
       operationId: osidb_api_v1_flaws_cvss_scores_destroy
       description: Destroy the instance and proxy the delete to Bugzilla
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: flaw_id
         schema:
@@ -4728,6 +4821,12 @@ paths:
     post:
       operationId: osidb_api_v1_flaws_package_versions_create
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: flaw_id
         schema:
@@ -4829,6 +4928,12 @@ paths:
     put:
       operationId: osidb_api_v1_flaws_package_versions_update
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: flaw_id
         schema:
@@ -4879,6 +4984,12 @@ paths:
       operationId: osidb_api_v1_flaws_package_versions_destroy
       description: Destroy the instance and proxy the delete to Bugzilla
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: flaw_id
         schema:
@@ -5126,6 +5237,12 @@ paths:
     post:
       operationId: osidb_api_v1_flaws_references_create
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: flaw_id
         schema:
@@ -5227,6 +5344,12 @@ paths:
     put:
       operationId: osidb_api_v1_flaws_references_update
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: flaw_id
         schema:
@@ -5277,6 +5400,12 @@ paths:
       operationId: osidb_api_v1_flaws_references_destroy
       description: Destroy the instance and proxy the delete to Bugzilla
       parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
       - in: path
         name: flaw_id
         schema:
