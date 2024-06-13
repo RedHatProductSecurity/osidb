@@ -591,6 +591,13 @@ class TestFlaw:
             affect = AffectFactory()
         assert affect.ps_product == ps_product_name
 
+    def test_cve_id_nullified(self):
+        """Test an empty string CVE is converted into a null value."""
+        f = FlawFactory()
+        f.cve_id = ""
+        f.save()
+        assert f.cve_id is None
+
 
 class TestImpact:
     @pytest.mark.parametrize(

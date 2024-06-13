@@ -1464,7 +1464,10 @@ class TestEndpointsFlaws:
         assert response.status_code == 200
         body = response.json()
         assert body["embargoed"] == embargoed
-        assert body["cve_id"] == new_cve_id
+        if new_cve_id:
+            assert body["cve_id"] == new_cve_id
+        else:
+            assert body["cve_id"] is None
 
     @pytest.mark.parametrize(
         "embargoed,old_date,new_date,alerts",
