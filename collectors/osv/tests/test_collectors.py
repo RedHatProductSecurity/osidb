@@ -14,7 +14,7 @@ class TestOSVCollector:
     # NOTE: cassette updates may be required to comply with published date
     @pytest.mark.vcr
     @pytest.mark.default_cassette("TestOSVCollector.test_collect_osv_record.yaml")
-    @pytest.mark.parametrize("start_date", [None, make_aware(datetime(2024, 1, 1))])
+    @pytest.mark.parametrize("start_date", [None, make_aware(datetime(2023, 1, 1))])
     def test_collect_osv_record(self, start_date):
         """Test fetching a single OSV record."""
         osv_id = "GO-2023-1494"
@@ -34,7 +34,7 @@ class TestOSVCollector:
 
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.all().first()
-        assert flaw.task_key == "OSIM-1975"
+        assert flaw.task_key == "OSIM-16311"
         assert json.loads(flaw.meta_attr["alias"]) == [cve_id]
         assert json.loads(flaw.meta_attr["external_ids"]) == [f"{osv_id}/{cve_id}"]
         assert flaw.reported_dt
@@ -75,7 +75,7 @@ class TestOSVCollector:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.cve_id is None
-        assert flaw.task_key == "OSIM-1976"
+        assert flaw.task_key == "OSIM-16312"
         assert json.loads(flaw.meta_attr["alias"]) == [osv_id]
         assert json.loads(flaw.meta_attr["external_ids"]) == [osv_id]
 

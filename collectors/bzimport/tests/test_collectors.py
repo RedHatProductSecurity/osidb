@@ -3,7 +3,6 @@ from datetime import datetime
 import pytest
 from django.db.utils import IntegrityError
 from django.utils import timezone
-from freezegun import freeze_time
 
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.collectors import BugzillaQuerier, MetadataCollector
@@ -141,7 +140,7 @@ class TestBZImportCollector:
         """
         test that an embargoed flaw loaded from Bugzilla is preserved as embargoed
         """
-        flaw_id = "1984057"
+        flaw_id = "1629662"
         assert Flaw.objects.count() == 0
         flaw_collector.sync_flaw(flaw_id)
         assert Flaw.objects.filter(meta_attr__bz_id=flaw_id).exists()
@@ -167,19 +166,19 @@ class TestBugzillaTrackerCollector:
         PsUpdateStreamFactory(name="update-stream")
 
         assert Tracker.objects.count() == 0
-        bz_tracker_collector.sync_tracker("577404")
+        bz_tracker_collector.sync_tracker("1629664")
 
         trackers = Tracker.objects.all()
         assert len(trackers) == 1
 
         tracker = trackers.first()
-        assert tracker.external_system_id == "577404"
+        assert tracker.external_system_id == "1629664"
         assert tracker.type == Tracker.TrackerType.BUGZILLA
-        assert tracker.status == "CLOSED"
-        assert tracker.resolution == "NOTABUG"
+        assert tracker.status == "NEW"
+        assert tracker.resolution == ""
         # no affect, thus this should be empty
         assert list(tracker.affects.all()) == []
-        assert tracker.ps_update_stream == "update-stream"
+        assert tracker.ps_update_stream == "epel-all"
 
     @pytest.mark.vcr
     def test_sync_embargoed_tracker(self, bz_tracker_collector):
@@ -187,7 +186,7 @@ class TestBugzillaTrackerCollector:
         test that an embargoed tracker loaded from Bugzilla is preserved as embargoed
         reproducer for https://issues.redhat.com/browse/OSIDB-2118
         """
-        tracker_id = "1984058"
+        tracker_id = "1642774"
         assert Tracker.objects.count() == 0
         bz_tracker_collector.sync_tracker(tracker_id)
         assert Tracker.objects.filter(external_system_id=tracker_id).exists()
@@ -195,23 +194,23 @@ class TestBugzillaTrackerCollector:
 
     @pytest.mark.vcr
     def test_sync_with_affect(self, bz_tracker_collector):
-        ps_module = PsModuleFactory(bts_name="bugzilla", name="module")
-        PsUpdateStreamFactory(name="update-stream", ps_module=ps_module)
+        ps_module = PsModuleFactory(bts_name="bugzilla", name="epel-all")
+        PsUpdateStreamFactory(name="epel-all", ps_module=ps_module)
 
         flaw = FlawFactory(
-            bz_id="577401",
+            bz_id="1629662",
             embargoed=False,
         )
         affect = AffectFactory.create(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module="module",
-            ps_component="spamass-milter",
+            ps_module="epel-all",
+            ps_component="jhead",
         )
         creation_dt = datetime(2011, 1, 1, tzinfo=timezone.utc)
         TrackerFactory.create(
             affects=(affect,),
-            external_system_id="577404",
+            external_system_id="1629664",
             type=Tracker.TrackerType.BUGZILLA,
             embargoed=affect.flaw.is_embargoed,
             created_dt=creation_dt,
@@ -223,50 +222,48 @@ class TestBugzillaTrackerCollector:
         assert tracker.updated_dt == creation_dt
         assert affect in list(tracker.affects.all())
 
-        update_dt = datetime(2012, 1, 1, tzinfo=timezone.utc)
-        with freeze_time(update_dt):
-            bz_tracker_collector.sync_tracker("577404")
+        bz_tracker_collector.sync_tracker("1629664")
 
         tracker = Tracker.objects.first()
         # should be updated from the bz values
         assert tracker.created_dt == datetime(
-            2010, 3, 26, 21, 10, 29, tzinfo=timezone.utc
+            2018, 9, 17, 9, 21, 54, tzinfo=timezone.utc
         )
         assert tracker.updated_dt == datetime(
-            2010, 4, 13, 22, 20, 14, tzinfo=timezone.utc
+            2018, 9, 17, 9, 22, 0, tzinfo=timezone.utc
         )
-        assert tracker.resolution == "NOTABUG"
-        assert tracker.status == "CLOSED"
+        assert tracker.status == "NEW"
+        assert tracker.resolution == ""
         assert affect in list(tracker.affects.all())
 
     @pytest.mark.vcr
     def test_sync_with_multiple_affects(self, bz_tracker_collector):
-        ps_module = PsModuleFactory(bts_name="bugzilla", name="certificate_system_10")
-        PsUpdateStreamFactory(name="certificate_system_10.2.1", ps_module=ps_module)
+        ps_module = PsModuleFactory(bts_name="bugzilla", name="epel-7")
+        PsUpdateStreamFactory(name="epel-7", ps_module=ps_module)
 
         flaw1 = FlawFactory(
-            bz_id="1982889",
+            bz_id="1343538",
             embargoed=False,
         )
         affect1 = AffectFactory(
             flaw=flaw1,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module="certificate_system_10",
-            ps_component="ssh",
+            ps_module="epel-7",
+            ps_component="struts",
         )
 
         flaw2 = FlawFactory(
-            bz_id="2015935",
+            bz_id="1343540",
             embargoed=False,
         )
         affect2 = AffectFactory(
             flaw=flaw2,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module="certificate_system_10",
-            ps_component="ssh",
+            ps_module="epel-7",
+            ps_component="struts",
         )
 
-        bz_tracker_collector.sync_tracker("2022501")
+        bz_tracker_collector.sync_tracker("1343542")
 
         tracker = Tracker.objects.first()
         assert tracker.affects.count() == 2
@@ -275,34 +272,34 @@ class TestBugzillaTrackerCollector:
 
     @pytest.mark.vcr
     def test_sync_with_removed_affect(self, bz_tracker_collector):
-        ps_module = PsModuleFactory(bts_name="bugzilla", name="certificate_system_10")
-        PsUpdateStreamFactory(name="certificate_system_10.2.1", ps_module=ps_module)
+        ps_module = PsModuleFactory(bts_name="bugzilla", name="openstack-rdo")
+        PsUpdateStreamFactory(name="openstack-rdo", ps_module=ps_module)
 
         flaw1 = FlawFactory(
-            bz_id="1982889",
+            bz_id="1765660",
             embargoed=False,
         )
         affect1 = AffectFactory(
             flaw=flaw1,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module="certificate_system_10",
-            ps_component="ssh",
+            ps_module="openstack-rdo",
+            ps_component="novnc",
         )
 
         flaw2 = FlawFactory(
-            bz_id="2015935",
+            bz_id="1417567",
             embargoed=False,
         )
         affect2 = AffectFactory(
             flaw=flaw2,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module="certificate_system_10",
-            ps_component="ssh",
+            ps_module="openstack-rdo",
+            ps_component="novnc",
         )
 
         TrackerFactory(
             affects=[affect1, affect2],
-            external_system_id="2022501",
+            external_system_id="1765663",
             type=Tracker.TrackerType.BUGZILLA,
             embargoed=False,
         )
@@ -312,7 +309,7 @@ class TestBugzillaTrackerCollector:
         assert affect1 in list(tracker.affects.all())
         assert affect2 in list(tracker.affects.all())
 
-        bz_tracker_collector.sync_tracker("2022501")
+        bz_tracker_collector.sync_tracker("1765663")
 
         # make sure the second link was removed
         tracker = Tracker.objects.first()

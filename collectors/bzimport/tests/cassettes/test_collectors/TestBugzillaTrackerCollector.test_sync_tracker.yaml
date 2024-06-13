@@ -16,7 +16,7 @@ interactions:
     uri: https://example.com/rest/version
   response:
     body:
-      string: '{"version": "5.0.4.rh72"}'
+      string: '{"version": "5.0.4.rh97"}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -26,30 +26,24 @@ interactions:
       - private, must-revalidate
       Connection:
       - keep-alive
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Length:
+      - '24'
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 23 Jun 2022 13:09:55 GMT
-      ETag:
-      - N+BsQ7i/1W9hh3ZOgehzwQ
+      - Thu, 13 Jun 2024 13:37:10 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
-      Vary:
-      - Accept-Encoding,User-Agent
       X-content-type-options:
       - nosniff
       X-xss-protection:
       - 1; mode=block
-      content-length:
-      - '24'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.b55a33b8.1655989795.a989c
+      - 0.692645f.1718285830.144c4c6d
       x-rh-edge-request-id:
-      - a989c
+      - 144c4c6d
     status:
       code: 200
       message: OK
@@ -70,8 +64,8 @@ interactions:
     uri: https://example.com/rest/user?ids=1
   response:
     body:
-      string: '{"users": [{"can_login": true, "email": "aander07@packetmaster.com",
-        "name": "aander07@packetmaster.com", "id": 1, "real_name": "Need Real Name"}]}'
+      string: '{"users": [{"id": 1, "email": "aander07@packetmaster.com", "name":
+        "aander07@packetmaster.com", "can_login": true, "real_name": "Need Real Name"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -81,30 +75,24 @@ interactions:
       - private, must-revalidate
       Connection:
       - keep-alive
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
+      Content-Length:
+      - '137'
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 23 Jun 2022 13:09:55 GMT
-      ETag:
-      - Bzigpk5BKkP43rGInQ0TDw
+      - Thu, 13 Jun 2024 13:37:10 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
-      Vary:
-      - Accept-Encoding,User-Agent
       X-content-type-options:
       - nosniff
       X-xss-protection:
       - 1; mode=block
-      content-length:
-      - '137'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.b55a33b8.1655989795.a99f1
+      - 0.692645f.1718285830.144c5155
       x-rh-edge-request-id:
-      - a99f1
+      - 144c5155
     status:
       code: 200
       message: OK
@@ -122,46 +110,82 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=577404
+    uri: https://example.com/rest/bug/1629664?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
   response:
     body:
-      string: '{"limit": "20", "offset": 0, "total_matches": 1, "bugs": [{"cc_detail":
-        [{"id": 163483, "email": "bressers@redhat.com", "real_name": "Josh Bressers",
-        "name": "bressers@redhat.com"}, {"id": 8542, "email": "paul@city-fan.org",
-        "name": "paul@city-fan.org", "real_name": "Paul Howarth"}], "severity": "medium",
-        "target_milestone": "---", "whiteboard": "", "assigned_to": "paul@city-fan.org",
-        "summary": "CVE-2010-1132 spamass-milter: remote command execution [update-stream]", "creator_detail":
-        {"email": "vdanen@redhat.com", "id": 275188, "real_name": "Vincent Danen",
-        "name": "vdanen@redhat.com"}, "is_cc_accessible": true, "cf_cust_facing":
-        "---", "alias": [], "qa_contact": "extras-qa@fedoraproject.org", "platform":
-        "All", "assigned_to_detail": {"email": "paul@city-fan.org", "id": 8542, "real_name":
-        "Paul Howarth", "name": "paul@city-fan.org"}, "comments": [{"tags": [], "id":
-        2742308, "bug_id": 577404, "count": 0, "creator": "vdanen@redhat.com", "creation_time":
-        "2010-03-26T21:10:29Z", "creator_id": 275188, "is_private": false, "text":
-        "fedora-11 tracking bug for spamass-milter: see blocks bug list for full details
-        of the security issue(s).\n\nThis bug is never intended to be made public,
-        please put any public notes\nin the ''blocks'' bugs.\n\n\n[bug automatically
-        created by: add-tracking-bugs]", "time": "2010-03-26T21:10:29Z", "attachment_id":
-        null}], "depends_on": [], "cf_doc_type": "Release Note", "cf_devel_whiteboard":
-        "", "classification": "Fedora", "description": "fedora-11 tracking bug for
-        spamass-milter: see blocks bug list for full details of the security issue(s).\n\nThis
-        bug is never intended to be made public, please put any public notes\nin the
-        ''blocks'' bugs.\n\n\n[bug automatically created by: add-tracking-bugs]",
-        "status": "CLOSED", "version": ["11"], "creation_time": "2010-03-26T21:10:29Z",
-        "product": "Fedora", "cf_pgm_internal": "", "tags": [], "qa_contact_detail":
-        {"real_name": "Fedora Extras Quality Assurance", "name": "extras-qa@fedoraproject.org",
-        "email": "extras-qa@fedoraproject.org", "id": 171387}, "docs_contact": "",
-        "op_sys": "Linux", "creator": "vdanen@redhat.com", "last_change_time": "2010-04-13T22:20:14Z",
-        "resolution": "NOTABUG", "cf_conditional_nak": [], "is_confirmed": true, "cf_release_notes":
-        "", "is_open": false, "is_creator_accessible": true, "flags": [], "cc": ["bressers@redhat.com",
-        "paul@city-fan.org"], "cf_last_closed": "2010-03-26T23:37:51Z", "cf_qe_conditional_nak":
-        [], "component": ["spamass-milter"], "dupe_of": null, "estimated_time": 0,
-        "blocks": [577401], "remaining_time": 0, "deadline": null, "id": 577404, "keywords":
-        ["Security", "SecurityTracking"], "actual_time": 0, "url": "", "sub_components":
-        {}, "external_bugs": [], "cf_pm_score": "0", "cf_clone_of": null, "cf_fixed_in":
-        "", "priority": "medium", "cf_type": "---", "target_release": ["---"], "see_also":
-        [], "cf_build_id": "", "groups": [], "cf_qa_whiteboard": "", "cf_environment":
-        "", "cf_internal_whiteboard": ""}]}'
+      string: '{"faults": [], "bugs": [{"cf_conditional_nak": [], "keywords": ["Security",
+        "SecurityTracking"], "depends_on": [], "comments": [{"private_groups": [],
+        "id": 12021771, "count": 0, "bug_id": 1629664, "attachment_id": null, "creation_time":
+        "2018-09-17T09:21:54Z", "is_private": false, "creator_id": 391044, "time":
+        "2018-09-17T09:21:54Z", "creator": "anemec@redhat.com", "tags": [], "text":
+        "\nThis is an automatically created tracking bug!  It was created to ensure\nthat
+        one or more security vulnerabilities are fixed in affected versions\nof epel-all.\n\nFor
+        comments that are specific to the vulnerability please use bugs filed\nagainst
+        the \"Security Response\" product referenced in the \"Blocks\" field.\n\nFor
+        more information see:\nhttps://example.com/wiki/Security/TrackingBugs\n\nWhen
+        submitting as an update, use the fedpkg template provided in the next\ncomment(s).  This
+        will include the bug IDs of this tracking bug as well as\nthe relevant top-level
+        CVE bugs.\n\nPlease also mention the CVE IDs being fixed in the RPM changelog
+        and the\nfedpkg commit message.\n\nNOTE: this issue affects multiple supported
+        versions of Fedora EPEL. While\nonly one tracking bug has been filed, please
+        correct all affected versions\nat the same time.  If you need to fix the versions
+        independent of each\nother, you may clone this bug as appropriate."}, {"tags":
+        [], "text": "Use the following template to for the ''fedpkg update'' request
+        to submit an\nupdate for this issue as it contains the top-level parent bug(s)
+        as well as\nthis tracking bug.  This will ensure that all associated bugs
+        get updated\nwhen new packages are pushed to stable.\n\n=====\n\n# bugfix,
+        security, enhancement, newpackage (required)\ntype=security\n\n# testing,
+        stable\nrequest=testing\n\n# Bug numbers: 1234,9876\nbugs=1629662,1629664\n\n#
+        Description of your update\nnotes=Security fix for [PUT CVEs HERE]\n\n# Enable
+        request automation based on the stable/unstable karma thresholds\nautokarma=True\nstable_karma=3\nunstable_karma=-3\n\n#
+        Automatically close bugs when this marked as stable\nclose_bugs=True\n\n#
+        Suggest that users restart after update\nsuggest_reboot=False\n\n======\n\nAdditionally,
+        you may opt to use the bodhi web interface to submit updates:\n\nhttps://example.com/updates/new",
+        "creator": "anemec@redhat.com", "creator_id": 391044, "time": "2018-09-17T09:21:58Z",
+        "creation_time": "2018-09-17T09:21:58Z", "is_private": false, "attachment_id":
+        null, "bug_id": 1629664, "id": 12021772, "private_groups": [], "count": 1}],
+        "docs_contact": "", "cf_embargoed": null, "cf_qa_whiteboard": "", "cc": ["adrian@lisas.de"],
+        "alias": [], "cf_cust_facing": "---", "priority": "low", "url": "", "id":
+        1629664, "cc_detail": [{"insider": false, "active": true, "real_name": "Adrian
+        Reber", "partner": false, "name": "adrian@lisas.de", "id": 22225, "email":
+        "adrian@lisas.de"}], "flags": [{"is_active": 1, "status": "-", "name": "requires_doc_text",
+        "creation_date": "2018-09-17T09:21:54Z", "id": 3727582, "setter": "bugzilla@redhat.com",
+        "modification_date": "2018-09-17T09:21:54Z", "type_id": 415}], "cf_environment":
+        "", "severity": "low", "cf_internal_whiteboard": "", "version": ["epel7"],
+        "qa_contact": "extras-qa@fedoraproject.org", "is_creator_accessible": true,
+        "classification": "Fedora", "data_category": "Public", "sub_components": {},
+        "cf_type": "---", "description": "\nThis is an automatically created tracking
+        bug!  It was created to ensure\nthat one or more security vulnerabilities
+        are fixed in affected versions\nof epel-all.\n\nFor comments that are specific
+        to the vulnerability please use bugs filed\nagainst the \"Security Response\"
+        product referenced in the \"Blocks\" field.\n\nFor more information see:\nhttps://example.com/wiki/Security/TrackingBugs\n\nWhen
+        submitting as an update, use the fedpkg template provided in the next\ncomment(s).  This
+        will include the bug IDs of this tracking bug as well as\nthe relevant top-level
+        CVE bugs.\n\nPlease also mention the CVE IDs being fixed in the RPM changelog
+        and the\nfedpkg commit message.\n\nNOTE: this issue affects multiple supported
+        versions of Fedora EPEL. While\nonly one tracking bug has been filed, please
+        correct all affected versions\nat the same time.  If you need to fix the versions
+        independent of each\nother, you may clone this bug as appropriate.", "component":
+        ["jhead"], "cf_doc_type": "Release Note", "assigned_to": "adrian@lisas.de",
+        "platform": "Unspecified", "assigned_to_detail": {"insider": false, "real_name":
+        "Adrian Reber", "active": true, "partner": false, "name": "adrian@lisas.de",
+        "id": 22225, "email": "adrian@lisas.de"}, "target_release": ["---"], "cf_clone_of":
+        null, "is_cc_accessible": true, "cf_pgm_internal": "", "cf_major_incident":
+        null, "cf_devel_whiteboard": "", "creator": "anemec@redhat.com", "remaining_time":
+        0, "groups": [], "target_milestone": "---", "cf_release_notes": "", "is_open":
+        true, "cf_fixed_in": "", "whiteboard": "", "status": "NEW", "resolution":
+        "", "actual_time": 0, "blocks": [1629662], "is_confirmed": true, "cf_pm_score":
+        "0", "cf_build_id": "", "update_token": "1718285831-__VFLMnc0V_6uuTCTOSBuyWCDue2DI3Cmt29Y0FQNnw",
+        "cf_last_closed": null, "last_change_time": "2018-09-17T09:22:00Z", "dupe_of":
+        null, "qa_contact_detail": {"name": "extras-qa@fedoraproject.org", "id": 171387,
+        "email": "extras-qa@fedoraproject.org", "insider": false, "real_name": "Fedora
+        Extras Quality Assurance", "active": true, "partner": false}, "estimated_time":
+        0, "creation_time": "2018-09-17T09:21:54Z", "external_bugs": [], "product":
+        "Fedora EPEL", "cf_qe_conditional_nak": [], "op_sys": "Unspecified", "summary":
+        "CVE-2018-17088 jhead: Integer overflow in gpsinfo.c while running jhead [epel-all]",
+        "creator_detail": {"name": "anemec@redhat.com", "id": 391044, "email": "anemec@redhat.com",
+        "insider": false, "real_name": "Andrej Nemec", "active": false, "partner":
+        false}, "deadline": null, "tags": []}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -171,30 +195,26 @@ interactions:
       - private, must-revalidate
       Connection:
       - keep-alive
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 23 Jun 2022 13:09:57 GMT
-      ETag:
-      - T1+G+xvpoJZNM6I49OPhdw
+      - Thu, 13 Jun 2024 13:37:11 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       Vary:
-      - Accept-Encoding,User-Agent
+      - Accept-Encoding
       X-content-type-options:
       - nosniff
       X-xss-protection:
       - 1; mode=block
       content-length:
-      - '2750'
+      - '5682'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.b55a33b8.1655989797.a9b88
+      - 0.692645f.1718285830.144c57a8
       x-rh-edge-request-id:
-      - a9b88
+      - 144c57a8
     status:
       code: 200
       message: OK

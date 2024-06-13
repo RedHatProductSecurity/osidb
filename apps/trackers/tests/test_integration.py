@@ -45,7 +45,7 @@ class TestTrackerSaver:
             version="1.0",
         )
         flaw = FlawFactory(
-            bz_id="2013494",
+            bz_id="2217733",
             embargoed=False,
             impact=Impact.IMPORTANT,
             title="sample title",
@@ -110,7 +110,7 @@ class TestTrackerSaver:
             version="1.0",
         )
         flaw = FlawFactory(
-            bz_id="2013494",
+            bz_id="2217733",
             embargoed=False,
             impact=Impact.IMPORTANT,
         )
@@ -124,15 +124,15 @@ class TestTrackerSaver:
 
         # 2) define a tracker model instance
         #    according an exising Bugzilla tracker
-        tracker_id = "2018651"
-        updated_dt = "2024-05-03T12:44:32Z"
+        tracker_id = "2291491"
+        updated_dt = "2024-06-13T14:25:38Z"
         tracker = TrackerFactory(
             affects=[affect],
             bz_id=tracker_id,
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
-            meta_attr={"blocks": ["2013494"], "updated_dt": updated_dt},
+            meta_attr={"blocks": ["2217733"], "updated_dt": updated_dt},
             updated_dt=timezone.datetime.strptime(updated_dt, BZ_DT_FMT),
         )
         assert tracker.bz_id == tracker_id
@@ -190,7 +190,7 @@ class TestTrackerAPI:
             version="1.0",
         )
         flaw = FlawFactory(
-            bz_id="2013494",
+            bz_id="2217733",
             cve_id=None,
             embargoed=False,
             impact=Impact.IMPORTANT,
@@ -262,7 +262,7 @@ class TestTrackerAPI:
             version="1.0",
         )
         flaw = FlawFactory(
-            bz_id="2013494",
+            bz_id="2217733",
             embargoed=False,
             impact=Impact.IMPORTANT,
         )
@@ -276,15 +276,15 @@ class TestTrackerAPI:
 
         # 2) define a tracker model instance
         #    according an exising Bugzilla tracker
-        tracker_id = "2017676"
-        updated_dt = "2023-09-13T08:34:21Z"
+        tracker_id = "2291491"
+        updated_dt = "2024-06-13T14:29:58Z"
         tracker = TrackerFactory(
             affects=[affect],
             bz_id=tracker_id,
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream1.name,
             type=Tracker.TrackerType.BUGZILLA,
-            meta_attr={"blocks": ["2013494"], "updated_dt": updated_dt},
+            meta_attr={"blocks": ["2217733"], "updated_dt": updated_dt},
             updated_dt=timezone.datetime.strptime(updated_dt, BZ_DT_FMT),
         )
 
@@ -345,12 +345,14 @@ class TestTrackerAPI:
             version="4.8",
         )
         flaw = FlawFactory(
-            bz_id="1997880",
+            uuid="675df471-7375-4ba1-9d0f-c178a8a58ae7",
+            bz_id="2217733",
             cve_id=None,
             embargoed=False,
             impact=Impact.LOW,
             title="sample title",
-            updated_dt=timezone.datetime.strptime("2023-12-05T16:17:13Z", BZ_DT_FMT),
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            updated_dt=timezone.datetime.strptime("2024-06-13T14:42:15Z", BZ_DT_FMT),
         )
         affect = AffectFactory(
             flaw=flaw,
@@ -407,7 +409,9 @@ class TestTrackerAPI:
         assert tracker.ps_update_stream == "openshift-4.8.z"
         assert tracker.status == "New"
         assert not tracker.resolution
-        assert "flaw:bz#1997880" in json.loads(tracker.meta_attr["labels"])
+        labels = json.loads(tracker.meta_attr["labels"])
+        assert "flaw:bz#2217733" in labels
+        assert "flawuuid:675df471-7375-4ba1-9d0f-c178a8a58ae7" in labels
         assert tracker.affects.count() == 1
         assert tracker.affects.first() == affect
         assert not tracker.alerts.exists()
@@ -465,12 +469,13 @@ class TestTrackerAPI:
         )
         # flaw to keep linked
         flaw1 = FlawFactory(
-            bz_id="1997880",
+            bz_id="1663908",
             cve_id=None,
             embargoed=False,
             impact=Impact.LOW,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             title="sample title",
-            updated_dt=timezone.datetime.strptime("2023-12-15T12:39:47Z", BZ_DT_FMT),
+            updated_dt=timezone.datetime.strptime("2023-07-07T08:33:20Z", BZ_DT_FMT),
         )
         affect1 = AffectFactory(
             flaw=flaw1,
@@ -482,12 +487,13 @@ class TestTrackerAPI:
         )
         # flaw to unlink
         flaw2 = FlawFactory(
-            bz_id="1988648",
+            bz_id="1656210",
             cve_id=None,
             embargoed=False,
             impact=Impact.LOW,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             title="sample title",
-            updated_dt=timezone.datetime.strptime("2023-12-06T17:12:12Z", BZ_DT_FMT),
+            updated_dt=timezone.datetime.strptime("2023-07-07T08:30:56Z", BZ_DT_FMT),
         )
         affect2 = AffectFactory(
             flaw=flaw2,
@@ -499,12 +505,13 @@ class TestTrackerAPI:
         )
         # flaw to link
         flaw3 = FlawFactory(
-            bz_id="1984541",
+            bz_id="1663907",
             cve_id=None,
             embargoed=False,
             impact=Impact.LOW,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             title="sample title",
-            updated_dt=timezone.datetime.strptime("2024-04-26T20:34:45Z", BZ_DT_FMT),
+            updated_dt=timezone.datetime.strptime("2023-07-07T08:35:40Z", BZ_DT_FMT),
         )
         affect3 = AffectFactory(
             flaw=flaw3,
@@ -518,7 +525,7 @@ class TestTrackerAPI:
         # 2) define a tracker model instance
         #    according an exising Bugzilla tracker
         tracker_id = "OSIDB-920"
-        updated_dt = "2024-05-02T16:13:20Z"
+        updated_dt = "2024-06-17T12:41:00Z"
         tracker = TrackerFactory(
             affects=[affect1, affect2],
             bz_id=tracker_id,
@@ -556,8 +563,8 @@ class TestTrackerAPI:
         assert not tracker.embargoed
         assert tracker.type == Tracker.TrackerType.JIRA
         assert tracker.ps_update_stream == ps_update_stream2.name
-        assert "flaw:bz#1984541" in json.loads(tracker.meta_attr["labels"])
-        assert "flaw:bz#1997880" in json.loads(tracker.meta_attr["labels"])
+        assert "flaw:bz#1663908" in json.loads(tracker.meta_attr["labels"])
+        assert "flaw:bz#1663907" in json.loads(tracker.meta_attr["labels"])
         assert tracker.affects.count() == 2
         assert affect1 in tracker.affects.all()
         assert affect3 in tracker.affects.all()

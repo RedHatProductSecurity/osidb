@@ -16,7 +16,7 @@ interactions:
     uri: https://example.com/rest/version
   response:
     body:
-      string: '{"version": "5.0.4.rh95"}'
+      string: '{"version": "5.0.4.rh97"}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -31,7 +31,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 30 Apr 2024 13:52:39 GMT
+      - Thu, 13 Jun 2024 13:51:16 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -41,9 +41,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a5361060.1714485159.83910092
+      - 0.692645f.1718286675.1481f57e
       x-rh-edge-request-id:
-      - '83910092'
+      - 1481f57e
     status:
       code: 200
       message: OK
@@ -64,8 +64,8 @@ interactions:
     uri: https://example.com/rest/user?ids=1
   response:
     body:
-      string: '{"users": [{"id": 1, "email": "aander07@packetmaster.com", "name":
-        "aander07@packetmaster.com", "real_name": "Need Real Name", "can_login": true}]}'
+      string: '{"users": [{"real_name": "Need Real Name", "can_login": true, "name":
+        "aander07@packetmaster.com", "email": "aander07@packetmaster.com", "id": 1}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -80,7 +80,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 30 Apr 2024 13:52:40 GMT
+      - Thu, 13 Jun 2024 13:51:16 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -90,9 +90,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a5361060.1714485160.8391054f
+      - 0.692645f.1718286676.1481fb3c
       x-rh-edge-request-id:
-      - 8391054f
+      - 1481fb3c
     status:
       code: 200
       message: OK
@@ -110,56 +110,87 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2022501
+    uri: https://example.com/rest/bug/1343542?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
   response:
     body:
-      string: '{"offset": 0, "limit": "20", "total_matches": 1, "bugs": [{"cf_deadline_type":
-        null, "cc": ["alee@redhat.com", "cfu@redhat.com", "jmagne@redhat.com", "osoukup@redhat.com"],
-        "cf_fixed_in": "", "cc_detail": [{"active": true, "real_name": "Ade Lee",
-        "email": "alee@redhat.com", "name": "alee@redhat.com", "insider": true, "id":
-        194784, "partner": false}, {"active": true, "real_name": "Christina Fu", "partner":
-        false, "name": "cfu@redhat.com", "email": "cfu@redhat.com", "insider": true,
-        "id": 172340}, {"active": true, "real_name": "Jack Magne", "name": "jmagne@redhat.com",
-        "insider": true, "email": "jmagne@redhat.com", "id": 172343, "partner": false},
-        {"active": true, "real_name": "Ondrej Soukup", "partner": false, "email":
-        "osoukup@redhat.com", "insider": true, "name": "osoukup@redhat.com", "id":
-        412888}], "groups": ["redhat"], "last_change_time": "2024-04-30T13:25:52Z",
-        "target_milestone": "rc", "data_category": "Red Hat", "assigned_to": "nobody@redhat.com",
-        "cf_release_notes": "", "cf_qe_conditional_nak": [], "is_confirmed": true,
-        "priority": "high", "cf_devel_whiteboard": "", "resolution": "", "actual_time":
-        0, "summary": "[CISA Major Incident] CVE-2020-1234 ssh: problem (has acknowledgments,
-        references) [certificate_system_10.2.1]", "cf_embargoed": null, "cf_environment":
-        "", "cf_verified": [], "creation_time": "2024-02-28T14:51:02Z", "status":
-        "NEW", "is_open": true, "is_cc_accessible": true, "version": ["10.2"], "sub_components":
-        {}, "external_bugs": [], "op_sys": "Unspecified", "creator_detail": {"real_name":
-        "James Reichard", "active": true, "partner": false, "id": 464884, "email":
-        "jreichar@redhat.com", "insider": true, "name": "jreichar@redhat.com"}, "keywords":
-        ["Security", "SecurityTracking"], "cf_last_closed": null, "cf_clone_of": null,
-        "url": "", "cf_doc_type": "No Doc Update", "deadline": "2023-05-29", "cf_cust_facing":
-        "---", "description": "certificate_system_10 tracking bug for ssh: see the
-        bugs linked in the \"Blocks\" field of this bug for full details of the security
-        issue(s).\n\nThis bug is never intended to be made public, please put any
-        public notes in the blocked bugs.", "severity": "high", "classification":
-        "Red Hat", "dupe_of": null, "target_release": ["---"], "cf_build_id": "",
-        "cf_final_deadline": null, "cf_internal_whiteboard": "", "cf_target_upstream_version":
-        "", "remaining_time": 0, "tags": [], "whiteboard": "", "cf_qa_whiteboard":
-        "", "blocks": [1982889, 2015935], "platform": "Unspecified", "cf_major_incident":
-        null, "flags": [{"status": "-", "is_active": 1, "id": 5255051, "name": "requires_doc_text",
-        "creation_date": "2024-02-28T14:51:02Z", "modification_date": "2024-02-28T14:51:02Z",
-        "type_id": 415, "setter": "bugzilla@redhat.com"}], "assigned_to_detail": {"active":
-        true, "real_name": "Nobody", "email": "nobody@redhat.com", "insider": false,
-        "name": "nobody@redhat.com", "id": 29451, "partner": false}, "cf_conditional_nak":
-        [], "is_creator_accessible": true, "depends_on": [], "creator": "jreichar@redhat.com",
-        "cf_deadline": null, "product": "Red Hat Certificate System", "estimated_time":
-        0, "id": 2022501, "docs_contact": "", "cf_partner": [], "component": ["Other"],
-        "alias": [], "comments": [{"private_groups": [], "id": 15711594, "text": "certificate_system_10
-        tracking bug for ssh: see the bugs linked in the \"Blocks\" field of this
-        bug for full details of the security issue(s).\n\nThis bug is never intended
-        to be made public, please put any public notes in the blocked bugs.", "tags":
-        [], "count": 0, "bug_id": 2022501, "creation_time": "2024-02-28T14:51:02Z",
-        "attachment_id": null, "is_private": false, "time": "2024-02-28T14:51:02Z",
-        "creator_id": 464884, "creator": "jreichar@redhat.com"}], "qa_contact": "",
-        "cf_pgm_internal": "", "cf_pm_score": "0"}]}'
+      string: '{"bugs": [{"data_category": "Public", "classification": "Fedora", "is_creator_accessible":
+        true, "qa_contact": "extras-qa@fedoraproject.org", "cf_doc_type": "Release
+        Note", "component": ["struts"], "description": "\nThis is an automatically
+        created tracking bug!  It was created to ensure\nthat one or more security
+        vulnerabilities are fixed in affected versions\nof Fedora EPEL.\n\nFor comments
+        that are specific to the vulnerability please use bugs filed\nagainst the
+        \"Security Response\" product referenced in the \"Blocks\" field.\n\nFor more
+        information see:\nhttps://example.com/wiki/Security/TrackingBugs\n\nWhen submitting
+        as an update, use the fedpkg template provided in the next\ncomment(s).  This
+        will include the bug IDs of this tracking bug as well as\nthe relevant top-level
+        CVE bugs.\n\nPlease also mention the CVE IDs being fixed in the RPM changelog
+        and the\nfedpkg commit message.\n\n[bug automatically created by: add-tracking-bugs]",
+        "cf_type": "---", "sub_components": {}, "cf_clone_of": null, "assigned_to_detail":
+        {"active": true, "real_name": "Orphan Owner", "insider": false, "partner":
+        false, "name": "extras-orphan@fedoraproject.org", "email": "extras-orphan@fedoraproject.org",
+        "id": 173606}, "target_release": ["---"], "platform": "All", "assigned_to":
+        "extras-orphan@fedoraproject.org", "cf_devel_whiteboard": "", "cf_major_incident":
+        null, "cf_pgm_internal": "", "is_cc_accessible": true, "depends_on": [], "comments":
+        [{"creator_id": 384315, "time": "2016-06-07T12:40:06Z", "text": "\nThis is
+        an automatically created tracking bug!  It was created to ensure\nthat one
+        or more security vulnerabilities are fixed in affected versions\nof Fedora
+        EPEL.\n\nFor comments that are specific to the vulnerability please use bugs
+        filed\nagainst the \"Security Response\" product referenced in the \"Blocks\"
+        field.\n\nFor more information see:\nhttps://example.com/wiki/Security/TrackingBugs\n\nWhen
+        submitting as an update, use the fedpkg template provided in the next\ncomment(s).  This
+        will include the bug IDs of this tracking bug as well as\nthe relevant top-level
+        CVE bugs.\n\nPlease also mention the CVE IDs being fixed in the RPM changelog
+        and the\nfedpkg commit message.\n\n[bug automatically created by: add-tracking-bugs]",
+        "tags": [], "creator": "amaris@redhat.com", "private_groups": [], "id": 9394087,
+        "count": 0, "bug_id": 1343542, "creation_time": "2016-06-07T12:40:06Z", "attachment_id":
+        null, "is_private": false}, {"attachment_id": null, "creation_time": "2016-06-07T12:40:11Z",
+        "is_private": false, "bug_id": 1343542, "count": 1, "private_groups": [],
+        "id": 9394088, "tags": [], "creator": "amaris@redhat.com", "text": "\nUse
+        the following template to for the ''fedpkg update'' request to submit an\nupdate
+        for this issue as it contains the top-level parent bug(s) as well as\nthis
+        tracking bug.  This will ensure that all associated bugs get updated\nwhen
+        new packages are pushed to stable.\n\n=====\n\n# bugfix, security, enhancement,
+        newpackage (required)\ntype=security\n\n# testing, stable\nrequest=testing\n\n#
+        Bug numbers: 1234,9876\nbugs=1343538,1343540,1343542\n\n# Description of your
+        update\nnotes=Security fix for CVE-2016-1181, CVE-2016-1182\n\n# Enable request
+        automation based on the stable/unstable karma thresholds\nautokarma=True\nstable_karma=3\nunstable_karma=-3\n\n#
+        Automatically close bugs when this marked as stable\nclose_bugs=True\n\n#
+        Suggest that users restart after update\nsuggest_reboot=False\n\n======\n\nAdditionally,
+        you may opt to use the bodhi web interface to submit updates:\n\nhttps://example.com/updates/new",
+        "time": "2016-06-07T12:40:11Z", "creator_id": 384315}, {"creator": "puntogil@libero.it",
+        "text": "Seem a duplicate of CVE-2015-0899. Already fixed\nhttps://example.com/show_bug.cgi?id=CVE-2015-0899",
+        "tags": [], "time": "2016-06-07T14:57:25Z", "creator_id": 316402, "attachment_id":
+        null, "creation_time": "2016-06-07T14:57:25Z", "is_private": false, "bug_id":
+        1343542, "count": 2, "id": 9394744, "private_groups": []}, {"private_groups":
+        [], "id": 15006631, "count": 3, "attachment_id": null, "is_private": false,
+        "creation_time": "2021-04-28T12:34:10Z", "bug_id": 1343542, "creator_id":
+        449139, "time": "2021-04-28T12:34:10Z", "text": "This package has changed
+        maintainer in Fedora. Reassigning to the new maintainer of this component.",
+        "creator": "fedora-admin-xmlrpc@fedoraproject.org", "tags": []}], "cf_conditional_nak":
+        [], "keywords": ["Security", "SecurityTracking"], "cf_qa_whiteboard": "",
+        "cf_embargoed": null, "docs_contact": "", "id": 1343542, "priority": "high",
+        "url": "", "cf_cust_facing": "---", "alias": [], "cc": ["mmraka@redhat.com"],
+        "version": ["epel7"], "severity": "high", "cf_internal_whiteboard": "", "cf_environment":
+        "", "flags": [{"status": "-", "is_active": 1, "name": "requires_doc_text",
+        "creation_date": "2016-06-07T12:40:06Z", "id": 2679450, "modification_date":
+        "2016-06-07T12:40:06Z", "setter": "bugzilla@redhat.com", "type_id": 415}],
+        "cc_detail": [{"real_name": "Michael Mr\u00e1ka", "active": true, "insider":
+        true, "partner": false, "name": "mmraka@redhat.com", "email": "mmraka@redhat.com",
+        "id": 244271}], "update_token": "1718286677-mn5KWK2ngp2KPSnLfoXPWrvhiPUMqwWRqHGknQhK9D4",
+        "cf_build_id": "", "cf_pm_score": "0", "is_confirmed": true, "blocks": [1343538,
+        1343540], "actual_time": 0, "resolution": "", "dupe_of": null, "last_change_time":
+        "2021-04-28T12:34:10Z", "cf_last_closed": null, "creator_detail": {"id": 384315,
+        "email": "amaris@redhat.com", "name": "amaris@redhat.com", "partner": false,
+        "insider": false, "real_name": "Adam Mari\u0161", "active": false}, "summary":
+        "CVE-2016-1181 CVE-2016-1182 struts: various flaws [epel-7]", "op_sys": "Linux",
+        "cf_qe_conditional_nak": [], "product": "Fedora EPEL", "creation_time": "2016-06-07T12:40:06Z",
+        "external_bugs": [], "qa_contact_detail": {"name": "extras-qa@fedoraproject.org",
+        "email": "extras-qa@fedoraproject.org", "id": 171387, "real_name": "Fedora
+        Extras Quality Assurance", "active": true, "insider": false, "partner": false},
+        "estimated_time": 0, "tags": [], "deadline": null, "groups": [], "remaining_time":
+        0, "creator": "amaris@redhat.com", "cf_release_notes": "", "target_milestone":
+        "---", "status": "NEW", "whiteboard": "", "cf_fixed_in": "", "is_open": true}],
+        "faults": []}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -172,7 +203,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 30 Apr 2024 13:52:40 GMT
+      - Thu, 13 Jun 2024 13:51:17 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       Vary:
@@ -182,13 +213,13 @@ interactions:
       X-xss-protection:
       - 1; mode=block
       content-length:
-      - '3480'
+      - '6008'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a5361060.1714485160.83910fd9
+      - 0.692645f.1718286676.1482025d
       x-rh-edge-request-id:
-      - 83910fd9
+      - 1482025d
     status:
       code: 200
       message: OK

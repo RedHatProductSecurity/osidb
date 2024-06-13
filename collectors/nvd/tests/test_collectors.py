@@ -282,7 +282,7 @@ class TestNVDCollector:
                 **data,
                 embargoed=False,
                 meta_attr={"external_ids": f'["{cve_id}"]', "alias": f'["{cve_id}"]'},
-                task_key="OSIM-1982",
+                task_key="OSIM-16309",
                 acl_write=internal_write_groups,
                 acl_read=internal_read_groups,
             )
@@ -328,7 +328,7 @@ class TestNVDCollector:
         assert flaw.comment_zero == snippet_content["comment_zero"]
         assert flaw.reported_dt
         assert flaw.source == snippet_content["source"]
-        assert flaw.task_key == "OSIM-1982"
+        assert flaw.task_key == "OSIM-16309"
         assert flaw.title == snippet_content["title"]
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
         assert json.loads(flaw.meta_attr["external_ids"]) == [cve_id]

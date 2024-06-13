@@ -30,3 +30,17 @@ def internal_read_groups():
 @pytest.fixture
 def internal_write_groups():
     return [uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])]
+
+
+@pytest.fixture(autouse=True)
+def pin_envs(monkeypatch) -> None:
+    """
+    the tests should be immune to what .env you build the testrunner with
+    """
+    import apps.taskman.mixins as task_mixins
+    import osidb.models as models
+    import osidb.serializer as serializer
+
+    monkeypatch.setattr(task_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", False)
+    monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", False)
+    monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", False)

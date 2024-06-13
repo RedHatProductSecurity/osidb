@@ -101,13 +101,13 @@ class TestBBSyncIntegration:
         test updating a flaw with Bugzilla two-way sync
         """
         flaw = FlawFactory(
-            bz_id="2008346",
+            bz_id="2293325",
             cve_id="CVE-2021-0773",
             title="Foo",
             comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
-            updated_dt="2023-03-13T12:54:13Z",
+            updated_dt="2024-06-14T13:37:31Z",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -132,6 +132,7 @@ class TestBBSyncIntegration:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
 
@@ -146,13 +147,13 @@ class TestBBSyncIntegration:
         test creating a flaw cvss v4 with Bugzilla two-way sync
         """
         flaw = FlawFactory(
-            bz_id="2008346",
+            bz_id="2293325",
             cve_id="CVE-2021-0773",
             title="Foo",
             comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
-            updated_dt="2024-03-14T09:55:39Z",
+            updated_dt="2024-06-14T13:42:13Z",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             embargoed=False,
@@ -194,7 +195,7 @@ class TestBBSyncIntegration:
         test adding a CVE to an existing CVE-less flaw
         """
         flaw = FlawFactory(
-            bz_id="1995562",
+            bz_id="2293325",
             cve_id="",
             components=["ssh"],
             title="I cannot ssh into Matrix",
@@ -203,7 +204,8 @@ class TestBBSyncIntegration:
             source="CUSTOMER",
             reported_dt="2022-04-26T00:00:00Z",
             unembargo_dt="2022-04-27T00:00:00Z",
-            updated_dt="2023-05-22T14:39:11Z",
+            updated_dt="2024-06-14T13:46:01Z",
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             embargoed=False,
         )
         PsModuleFactory(name="jbcs-1")
@@ -245,7 +247,7 @@ class TestBBSyncIntegration:
         test removing of a CVE from a flaw
         """
         flaw = FlawFactory(
-            bz_id="1995562",
+            bz_id="2293325",
             cve_id="CVE-2000-3000",
             components=["ssh"],
             title="I cannot ssh into Matrix",
@@ -254,7 +256,8 @@ class TestBBSyncIntegration:
             source="CUSTOMER",
             reported_dt="2022-04-26T00:00:00Z",
             unembargo_dt="2022-04-27T00:00:00Z",
-            updated_dt="2023-05-22T14:42:14Z",
+            updated_dt="2024-06-14T13:54:41Z",
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             embargoed=False,
         )
         PsModuleFactory(name="jbcs-1")
@@ -291,12 +294,11 @@ class TestBBSyncIntegration:
         assert response.json()["cve_id"] is None
 
     @pytest.mark.vcr
-    @freeze_time(timezone.datetime(2023, 5, 26))
     def test_flaw_update_remove_unembargo_dt(self, auth_client, test_api_uri):
         """
         test removing unembargo_dt from an embargoed flaw
         """
-        last_change_time = "2023-05-26T13:10:44Z"
+        last_change_time = "2024-02-08T16:51:02Z"
         flaw = FlawFactory.build(
             cve_id="CVE-2022-0508",
             cwe_id="CWE-100",
@@ -304,7 +306,8 @@ class TestBBSyncIntegration:
             comment_zero="the water is everywhere",
             embargoed=True,
             impact="IMPORTANT",
-            meta_attr={"bz_id": "2012106", "last_change_time": last_change_time},
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            meta_attr={"bz_id": "2044578", "last_change_time": last_change_time},
             mitigation="call a repairman",
             reported_dt="2022-05-09T00:00:00Z",
             source="CUSTOMER",
@@ -351,7 +354,7 @@ class TestBBSyncIntegration:
         """
         # freeze time so there is no late unembargo
         with freeze_time(timezone.datetime(2000, 11, 11)):
-            last_change_time = "2024-02-06T09:43:57Z"
+            last_change_time = "2024-06-17T08:13:47Z"
             flaw = FlawFactory(
                 cve_id="CVE-2004-2493",
                 components=["test"],
@@ -363,7 +366,7 @@ class TestBBSyncIntegration:
                 updated_dt=last_change_time,
                 # we expect the existing groups to be stored in metadata
                 meta_attr={
-                    "bz_id": "1984642",
+                    "bz_id": "2044578",
                     "groups": '["qe_staff", "security"]',
                     "last_change_time": last_change_time,
                 },
@@ -413,15 +416,15 @@ class TestBBSyncIntegration:
         test flaw unembargo with Bugzilla two-way sync
         """
         # change time on one place for easier update
-        flaw_last_change_time = "2024-05-03T14:03:53Z"
-        tracker1_last_change_time = "2024-05-03T14:09:44Z"
+        flaw_last_change_time = "2024-06-17T08:39:02Z"
+        tracker1_last_change_time = "2024-06-17T08:36:56Z"
         # TODO no mid-air collision detection
         tracker2_last_change_time = "2000-01-01T00:00:00Z"
 
         # freeze time so there is no late unembargo
         with freeze_time(timezone.datetime(2000, 11, 11)):
             flaw = FlawFactory(
-                cve_id="CVE-2004-2493",
+                cve_id="CVE-2022-0500",
                 components=["test"],
                 title="totally descriptive",
                 comment_zero="test",
@@ -432,7 +435,7 @@ class TestBBSyncIntegration:
                 updated_dt=flaw_last_change_time,
                 # we expect the existing groups to be stored in metadata
                 meta_attr={
-                    "bz_id": "1984642",
+                    "bz_id": "2044578",
                     "groups": '["qe_staff", "security"]',
                     "last_change_time": flaw_last_change_time,
                 },
@@ -474,7 +477,7 @@ class TestBBSyncIntegration:
         )
         tracker1 = TrackerFactory(
             affects=[affect1],
-            bz_id="2021859",
+            bz_id="2293420",
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream1.name,
             type=Tracker.TrackerType.BUGZILLA,
@@ -482,7 +485,7 @@ class TestBBSyncIntegration:
             status="NEW",
             # we expect the existing groups to be stored in metadata
             meta_attr={
-                "bz_id": "2021859",
+                "bz_id": "2293420",
                 "groups": '["security"]',
                 "last_change_time": tracker1_last_change_time,
             },
@@ -490,8 +493,8 @@ class TestBBSyncIntegration:
         ps_module2 = PsModuleFactory(
             bts_name="jboss",
             bts_groups={"public": ["redhat"]},
-            bts_key="RHEL",
-            name="rhel-8",
+            bts_key="COST",
+            name="cost-management",
             default_cc=[],
             component_cc={},
         )
@@ -500,17 +503,16 @@ class TestBBSyncIntegration:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module2.name,
-            ps_component="openssl",
+            ps_component="cost-management",
             impact=None,
         )
         ps_update_stream2 = PsUpdateStreamFactory(
-            name="rhel-8",
+            name="costmanagement-metrics-operator-container",
             ps_module=ps_module2,
-            version="rhel-8.10.0",
         )
         tracker2 = TrackerFactory(
             affects=[affect2],
-            external_system_id="RHEL-12102",
+            external_system_id="COST-4669",
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream2.name,
             type=Tracker.TrackerType.JIRA,
@@ -553,7 +555,7 @@ class TestBBSyncIntegration:
         )
 
         flaw_data = {
-            "cve_id": "CVE-2004-2493",
+            "cve_id": "CVE-2022-0500",
             "title": "totally descriptive",
             "comment_zero": "test",
             "reported_dt": flaw.reported_dt,
@@ -589,15 +591,16 @@ class TestBBSyncIntegration:
         test creating a flaw affect with Bugzilla two-way sync
         """
         flaw = FlawFactory(
-            bz_id="2008346",
-            cve_id="CVE-2021-0773",
+            bz_id="2044578",
+            cve_id="CVE-2022-0500",
             title="Foo",
             comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
-            updated_dt="2023-03-17T11:24:14Z",
+            updated_dt="2024-06-17T08:46:13Z",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
         PsModuleFactory(name="rhel-8")
 
@@ -631,14 +634,15 @@ class TestBBSyncIntegration:
         """
         test updating a flaw affect with Bugzilla two-way sync
         """
+        updated_dt = "2024-06-17T10:36:57Z"
         flaw = FlawFactory(
-            bz_id="2008346",
-            cve_id="CVE-2021-0773",
+            bz_id="2044578",
+            cve_id="CVE-2022-0500",
             title="Foo",
             comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
-            updated_dt="2023-03-17T15:33:54Z",
+            updated_dt=updated_dt,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -649,7 +653,7 @@ class TestBBSyncIntegration:
             ps_component="kernel",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            updated_dt="2023-03-17T15:33:54Z",
+            updated_dt=updated_dt,
         )
 
         affect_data = {
@@ -682,15 +686,16 @@ class TestBBSyncIntegration:
         test deleting a flaw affect with Bugzilla two-way sync
         """
         flaw = FlawFactory(
-            bz_id="2008346",
-            cve_id="CVE-2021-0773",
+            bz_id="2044578",
+            cve_id="CVE-2022-0500",
             title="Foo",
             comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
-            updated_dt="2023-03-17T15:38:53Z",
+            updated_dt="2024-06-17T10:45:27Z",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
         PsModuleFactory(name="rhel-8")
         # we need to create an extra affect
@@ -749,25 +754,26 @@ class TestBBSyncIntegration:
         note that this single flaw in Bugzilla actually
         corresponds to multiple flaws in OSIDB
         """
+        updated_dt = "2024-06-17T10:53:49Z"
         flaw1 = FlawFactory(
-            bz_id="2009119",
+            bz_id="2044578",
             cve_id="CVE-2022-0313",
             title="Foo",
             comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
-            updated_dt="2023-03-31T16:41:41Z",
+            updated_dt=updated_dt,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
         flaw2 = FlawFactory(
-            bz_id="2009119",
-            cve_id="CVE-2022-0314",
+            bz_id="2044578",
+            cve_id="CVE-2022-0500",
             title="Foo",
             comment_zero="test",
             reported_dt="2022-11-22T15:55:22.830Z",
             unembargo_dt="2000-1-1T22:03:26.065Z",
-            updated_dt="2023-03-31T16:41:41Z",
+            updated_dt=updated_dt,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
@@ -803,7 +809,7 @@ class TestBBSyncIntegration:
         assert response.status_code == 200
         # both OSIDB flaws should be impacted by the modification
         assert Flaw.objects.get(cve_id="CVE-2022-0313").title == "Bar"
-        assert Flaw.objects.get(cve_id="CVE-2022-0314").title == "Bar"
+        assert Flaw.objects.get(cve_id="CVE-2022-0500").title == "Bar"
 
     def test_flaw_update_multi_cve_restricted(self, auth_client, test_api_uri):
         """
@@ -872,9 +878,9 @@ class TestFlawDraftBBSyncIntegration:
     @pytest.mark.parametrize(
         "source,cve_id,ext_id,jira_id",
         [
-            (Snippet.Source.NVD, "CVE-2000-0048", "CVE-2000-0048", "OSIM-2470"),
-            (Snippet.Source.OSV, "CVE-2000-0049", "GHSA-0012", "OSIM-2471"),
-            (Snippet.Source.OSV, None, "GHSA-0013", "OSIM-2472"),
+            (Snippet.Source.NVD, "CVE-2000-0054", "CVE-2000-0054", "OSIM-16306"),
+            (Snippet.Source.OSV, "CVE-2000-0055", "GHSA-0014", "OSIM-16307"),
+            (Snippet.Source.OSV, None, "GHSA-0015", "OSIM-16308"),
         ],
     )
     def test_flaw_draft_create(
