@@ -71,6 +71,25 @@ class EmptyOrNullStringFilter(BooleanFilter):
         return method(query)
 
 
+class EmptyCvssFilter(BooleanFilter):
+    """Filter by whether the flaw has any CVSS with the given issuer and version."""
+
+    def __init__(self, issuer, version, *args, **kwargs):
+        self.issuer = issuer
+        self.version = version
+        super().__init__(*args, **kwargs)
+
+    def filter(self, queryset, value):
+        if value in EMPTY_VALUES:
+            return queryset
+
+        method = queryset.exclude if value else queryset.filter
+        query = Q(cvss_scores__issuer=self.issuer) & Q(
+            cvss_scores__version=self.version
+        )
+        return method(query).distinct()
+
+
 class DistinctFilterSet(FilterSet):
     """
     Custom FilterSet which enforces the distinct for field names that starts
@@ -237,8 +256,6 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     DISTINCT_FIELDS_PREFIXES = ("affects__",)
 
     cve_id = CharInFilter(field_name="cve_id")
-    cve_id__isempty = EmptyOrNullStringFilter(field_name="cve_id")
-
     components = CharInFilter(field_name="components", lookup_expr="contains")
 
     changed_after = DateTimeFilter(
@@ -274,6 +291,32 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
         field_name="affects__trackers__embargoed"
     )
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
+
+    # Emptiness filters
+    cve_id__isempty = EmptyOrNullStringFilter(field_name="cve_id")
+    cve_description__isempty = EmptyOrNullStringFilter(field_name="cve_description")
+    statement__isempty = EmptyOrNullStringFilter(field_name="statement")
+    mitigation__isempty = EmptyOrNullStringFilter(field_name="mitigation")
+    owner__isempty = EmptyOrNullStringFilter(field_name="owner")
+    cwe_id__isempty = EmptyOrNullStringFilter(field_name="cwe_id")
+    cvss2_rh__isempty = EmptyCvssFilter(
+        issuer=FlawCVSS.CVSSIssuer.REDHAT, version=FlawCVSS.CVSSVersion.VERSION2
+    )
+    cvss3_rh__isempty = EmptyCvssFilter(
+        issuer=FlawCVSS.CVSSIssuer.REDHAT, version=FlawCVSS.CVSSVersion.VERSION3
+    )
+    cvss4_rh__isempty = EmptyCvssFilter(
+        issuer=FlawCVSS.CVSSIssuer.REDHAT, version=FlawCVSS.CVSSVersion.VERSION4
+    )
+    cvss2_nist__isempty = EmptyCvssFilter(
+        issuer=FlawCVSS.CVSSIssuer.NIST, version=FlawCVSS.CVSSVersion.VERSION2
+    )
+    cvss3_nist__isempty = EmptyCvssFilter(
+        issuer=FlawCVSS.CVSSIssuer.NIST, version=FlawCVSS.CVSSVersion.VERSION3
+    )
+    cvss4_nist__isempty = EmptyCvssFilter(
+        issuer=FlawCVSS.CVSSIssuer.NIST, version=FlawCVSS.CVSSVersion.VERSION4
+    )
 
     def changed_after_filter(self, queryset, name, value):
         """

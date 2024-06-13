@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add bulk-enabling parameter "sync_to_bz" to POST for Trackers (OSIDB-2609)
 - Add bulk POST, DELETE for Affects (OSIDB-2722)
 - Add audit history to Flaws and Affects (OSIDB-2269)
+- Implement search on emptiness for several fields (OSIDB-2815)
 
 ### Changed
 - Make workflows API RESTful (OSIDB-1716)

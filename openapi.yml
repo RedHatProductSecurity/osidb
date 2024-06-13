@@ -2874,6 +2874,10 @@ paths:
         schema:
           type: string
       - in: query
+        name: cve_description__isempty
+        schema:
+          type: boolean
+      - in: query
         name: cve_id
         schema:
           type: array
@@ -2884,6 +2888,30 @@ paths:
         style: form
       - in: query
         name: cve_id__isempty
+        schema:
+          type: boolean
+      - in: query
+        name: cvss2_nist__isempty
+        schema:
+          type: boolean
+      - in: query
+        name: cvss2_rh__isempty
+        schema:
+          type: boolean
+      - in: query
+        name: cvss3_nist__isempty
+        schema:
+          type: boolean
+      - in: query
+        name: cvss3_rh__isempty
+        schema:
+          type: boolean
+      - in: query
+        name: cvss4_nist__isempty
+        schema:
+          type: boolean
+      - in: query
+        name: cvss4_rh__isempty
         schema:
           type: boolean
       - in: query
@@ -3001,6 +3029,10 @@ paths:
         schema:
           type: string
       - in: query
+        name: cwe_id__isempty
+        schema:
+          type: boolean
+      - in: query
         name: embargoed
         schema:
           type: boolean
@@ -3061,6 +3093,10 @@ paths:
           - INVALID
           - REJECTED
           - REQUESTED
+      - in: query
+        name: mitigation__isempty
+        schema:
+          type: boolean
       - in: query
         name: nist_cvss_validation
         schema:
@@ -3210,6 +3246,10 @@ paths:
         name: owner
         schema:
           type: string
+      - in: query
+        name: owner__isempty
+        schema:
+          type: boolean
       - in: query
         name: references__created_dt
         schema:
@@ -3462,6 +3502,10 @@ paths:
         name: statement
         schema:
           type: string
+      - in: query
+        name: statement__isempty
+        schema:
+          type: boolean
       - in: query
         name: team_id
         schema:
