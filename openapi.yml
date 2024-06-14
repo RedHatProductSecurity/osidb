@@ -3673,6 +3673,7 @@ paths:
           items:
             type: string
             enum:
+            - ''
             - DONE
             - NEW
             - PRE_SECONDARY_ASSESSMENT
@@ -7803,6 +7804,7 @@ components:
             state:
               type: string
               enum:
+              - ''
               - NEW
               - TRIAGE
               - PRE_SECONDARY_ASSESSMENT
@@ -8475,6 +8477,7 @@ components:
             state:
               type: string
               enum:
+              - ''
               - NEW
               - TRIAGE
               - PRE_SECONDARY_ASSESSMENT

@@ -151,6 +151,7 @@ class WorkflowModel(models.Model):
     class WorkflowState(models.TextChoices):
         """allowable workflow states"""
 
+        NOVALUE = ""
         NEW = "NEW"
         TRIAGE = "TRIAGE"
         PRE_SECONDARY_ASSESSMENT = "PRE_SECONDARY_ASSESSMENT"
@@ -163,7 +164,7 @@ class WorkflowModel(models.Model):
         choices=WorkflowState.choices,
         max_length=24,
         blank=True,
-        default=WorkflowState.NEW,
+        default=WorkflowState.NOVALUE,
     )
     owner = models.CharField(max_length=60, blank=True)
     group_key = models.CharField(max_length=60, blank=True)
