@@ -1288,10 +1288,23 @@ class Flaw(
 
     @property
     def trackers_filed(self):
-        """check that all affects with FIX resolution have associated trackers filed"""
+        """
+        check that all affects in
+        NEW:NOVALUE or AFFECTED:DELEGATED
+        have associated trackers filed
+        """
         return all(
             affect.trackers.exists()
-            for affect in self.affects.filter(resolution=Affect.AffectResolution.FIX)
+            for affect in self.affects.filter(
+                affectedness=Affect.AffectAffectedness.NEW,
+                resolution=Affect.AffectResolution.NOVALUE,
+            )
+        ) and all(
+            affect.trackers.exists()
+            for affect in self.affects.filter(
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+            )
         )
 
     @property

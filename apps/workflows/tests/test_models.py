@@ -238,6 +238,80 @@ class TestCheck:
         )
         assert check(instance), f"Check failed: {check.name}"
 
+    @pytest.mark.parametrize(
+        "affectedness,resolution,trackers_required",
+        [
+            (
+                Affect.AffectAffectedness.NEW,
+                Affect.AffectResolution.NOVALUE,
+                True,
+            ),
+            (
+                Affect.AffectAffectedness.NEW,
+                Affect.AffectResolution.WONTFIX,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.NEW,
+                Affect.AffectResolution.OOSS,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.DELEGATED,
+                True,
+            ),
+            (
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.WONTFIX,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.OOSS,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.NOTAFFECTED,
+                Affect.AffectResolution.NOVALUE,
+                False,
+            ),
+        ],
+    )
+    def test_has_trackers(self, affectedness, resolution, trackers_required):
+        """
+        test that the check of the filed trackers works correctly
+        """
+        flaw = FlawFactory()
+
+        check = Check("has trackers", Flaw)
+        assert check.name == "has trackers"
+        # the auto-generated description is
+        # actually not great for this case
+        assert check.description == (
+            "check that all affects in\n"
+            "NEW:NOVALUE or AFFECTED:DELEGATED\n"
+            "have associated trackers filed"
+        )
+        # with no affects there is nothing which should have trackers
+        assert check(flaw), f"Check failed: {check.name}"
+
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=affectedness,
+            resolution=resolution,
+        )
+
+        if not trackers_required:
+            assert check(flaw)
+
+        else:
+            assert not check(flaw)
+            tracker = TrackerFactory.build()
+            tracker.save(raise_validation_error=False)
+            tracker.affects.add(affect)
+            assert check(flaw)
+
 
 class TestState:
     def test_empty_requirements(self):
