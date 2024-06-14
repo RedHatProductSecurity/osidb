@@ -2109,7 +2109,7 @@ class AffectCVSSManager(ACLMixinManager, TrackingMixinManager):
             )
 
 
-class CVSS(ACLMixin, BugzillaSyncMixin, TrackingMixin):
+class CVSS(ACLMixin, BugzillaSyncMixin, NullStrFieldsMixin, TrackingMixin):
     class CVSSVersion(models.TextChoices):
         VERSION2 = "V2", "version 2"
         VERSION3 = "V3", "version 3"

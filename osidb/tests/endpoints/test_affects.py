@@ -169,6 +169,55 @@ class TestEndpointsAffects:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["uuid"] == cvss_uuid
 
+    @pytest.mark.parametrize(
+        "skip_value,request_provided_value,resulting_value",
+        [
+            (False, "something", "something"),
+            (False, "", ""),
+            (False, None, ""),  # null converted to ""
+            (True, None, ""),  # omitted value converted to ""
+        ],
+    )
+    @pytest.mark.enable_signals
+    def test_affectcvss_create_comment(
+        self,
+        auth_client,
+        test_api_uri,
+        skip_value,
+        request_provided_value,
+        resulting_value,
+    ):
+        """
+        Test the behavior of comment in creation of AffectCVSS records via a REST API POST request.
+        """
+        flaw = FlawFactory()
+        affect = AffectFactory(flaw=flaw)
+        cvss_data = {
+            "comment": request_provided_value,
+            "issuer": AffectCVSS.CVSSIssuer.REDHAT,
+            "cvss_version": AffectCVSS.CVSSVersion.VERSION3,
+            "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+            "embargoed": flaw.embargoed,
+        }
+        if skip_value:
+            del cvss_data["comment"]
+
+        # Tests "POST" on affects/{uuid}/cvss_scores
+        response = auth_client().post(
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores",
+            data=cvss_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        cvss_uuid = response.data["uuid"]
+        assert response.data["comment"] == resulting_value
+
+        # Tests "GET" on affects/{uuid}/cvss_scores/{uuid}
+        response = auth_client().get(
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss_uuid}"
+        )
+        assert response.data["comment"] == resulting_value
+
     @pytest.mark.enable_signals
     def test_affectcvss_update(self, auth_client, test_api_uri):
         """
