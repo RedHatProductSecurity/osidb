@@ -15,7 +15,7 @@ states:
   - name: TRIAGE
     description: >
       Queue captain has taken a ticket off the incoming queue and will
-      evalute if it should be rejected or qualified for further steps in
+      evaluate if it should be rejected or qualified for further steps in
       the workflow.
     jira_state: Refinement
     jira_resolution: null
