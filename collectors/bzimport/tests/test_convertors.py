@@ -3,6 +3,7 @@ import uuid
 import pytest
 from django.utils import timezone
 
+from collectors.bzimport.constants import BZ_DT_FMT
 from collectors.bzimport.convertors import FlawConvertor, FlawSaver
 from osidb.models import (
     Affect,
@@ -748,11 +749,19 @@ class TestFlawConvertor:
         flaw_bug["flags"] = []
 
         if hightouch is not None:
-            flag = {"name": "hightouch", "status": hightouch}
+            flag = {
+                "name": "hightouch",
+                "status": hightouch,
+                "creation_date": timezone.now(),
+            }
             flaw_bug["flags"].append(flag)
 
         if hightouch_lite is not None:
-            flag = {"name": "hightouch-lite", "status": hightouch_lite}
+            flag = {
+                "name": "hightouch-lite",
+                "status": hightouch_lite,
+                "creation_date": timezone.now(),
+            }
             flaw_bug["flags"].append(flag)
 
         fc = FlawConvertor(
@@ -1450,6 +1459,53 @@ class TestFlawConvertor:
 
         assert flaw.acl_read == ldap_read_group
         assert flaw.acl_write == ldap_write_group
+
+    @pytest.mark.parametrize(
+        "hightouch,hightouch_lite,creation_date",
+        [
+            (None, None, None),  # no flags
+            ("-", "-", None),  # rejected
+            ("+", "", "2021-09-15T08:19:46Z"),  # approved
+        ],
+    )
+    def test_major_incident_start_dt(self, hightouch, hightouch_lite, creation_date):
+        """
+        Test that if the appropriate flags are set to be a MI, then the MI start
+        date is properly set from the flag creation date.
+        """
+        flaw_bug = self.get_flaw_bug()
+        flaw_bug["flags"] = []
+
+        if hightouch is not None and hightouch_lite is not None:
+            # hightouch flag
+            flag = {
+                "name": "hightouch",
+                "status": hightouch,
+                "creation_date": creation_date,
+            }
+            flaw_bug["flags"].append(flag)
+            flag = {
+                "name": "hightouch-lite",
+                "status": hightouch_lite,
+                "creation_date": creation_date,
+            }
+            flaw_bug["flags"].append(flag)
+
+        fc = FlawConvertor(
+            flaw_bug,
+            [],
+            None,
+        )
+        [flaw] = fc.bug2flaws()
+        flaw.save()
+
+        flaw = Flaw.objects.first()
+        assert flaw is not None
+        if creation_date is not None:
+            expected_start_dt = timezone.datetime.strptime(creation_date, BZ_DT_FMT)
+        else:
+            expected_start_dt = None
+        assert flaw.major_incident_start_dt == expected_start_dt
 
 
 class TestFlawConvertorFixedIn:

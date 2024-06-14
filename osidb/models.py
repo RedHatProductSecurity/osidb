@@ -541,7 +541,6 @@ class Flaw(
         REJECTED = "REJECTED"
         APPROVED = "APPROVED"
         CISA_APPROVED = "CISA_APPROVED"
-
         INVALID = "INVALID"
 
     class FlawNistCvssValidation(models.TextChoices):
@@ -644,19 +643,9 @@ class Flaw(
         choices=FlawMajorIncident.choices, max_length=20, blank=True
     )
 
-    @property
-    def major_incident_start_dt(self) -> timezone.datetime:
-        """
-        the moment when the Major Incident started
-        """
-        # TODO
-        # we currently do not have this information available
-        # so we assume that this was always Major Incident
-        if self.major_incident_state in [
-            Flaw.FlawMajorIncident.APPROVED,
-            Flaw.FlawMajorIncident.CISA_APPROVED,
-        ]:
-            return self.reported_dt
+    # The date when the flaw became a major incident, or null if it's not a major incident.
+    # This field is either synced with BZ or handled by a signal.
+    major_incident_start_dt = models.DateTimeField(null=True, blank=True)
 
     @property
     def is_draft(self) -> bool:

@@ -54,7 +54,11 @@ class SLA:
         """
         compute SLA start moment for the given instance
         """
-        return self.get_start(getattr(instance, date) for date in self.dates)
+        return self.get_start(
+            getattr(instance, date)
+            for date in self.dates
+            if getattr(instance, date) is not None
+        )
 
     def end(self, instance):
         """

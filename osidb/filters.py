@@ -358,6 +358,10 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
             + DATE_LOOKUP_EXPRS,
             "components": ["exact"],
             "major_incident_state": ["exact"],
+            "major_incident_start_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
             "requires_cve_description": ["exact"],
             "nist_cvss_validation": ["exact"],
             # Workflow fields

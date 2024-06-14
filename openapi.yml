@@ -3134,6 +3134,46 @@ paths:
         schema:
           type: integer
       - in: query
+        name: major_incident_start_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: major_incident_start_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: major_incident_start_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: major_incident_start_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: major_incident_start_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: major_incident_start_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: major_incident_start_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: major_incident_start_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
         name: major_incident_state
         schema:
           type: string
@@ -3211,6 +3251,7 @@ paths:
             - -cwe_id
             - -embargoed
             - -impact
+            - -major_incident_start_dt
             - -major_incident_state
             - -nist_cvss_validation
             - -owner
@@ -3271,6 +3312,7 @@ paths:
             - cwe_id
             - embargoed
             - impact
+            - major_incident_start_dt
             - major_incident_state
             - nist_cvss_validation
             - owner
@@ -7655,6 +7697,10 @@ components:
           oneOf:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        major_incident_start_dt:
+          type: string
+          format: date-time
+          nullable: true
         nist_cvss_validation:
           oneOf:
           - $ref: '#/components/schemas/NistCvssValidationEnum'
@@ -8328,6 +8374,10 @@ components:
           oneOf:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        major_incident_start_dt:
+          type: string
+          format: date-time
+          nullable: true
         nist_cvss_validation:
           oneOf:
           - $ref: '#/components/schemas/NistCvssValidationEnum'
