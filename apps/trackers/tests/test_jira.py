@@ -23,6 +23,7 @@ from osidb.models import (
     ContractPriority,
     Flaw,
     Impact,
+    PsUpdateStream,
     Tracker,
 )
 from osidb.tests.factories import (
@@ -875,6 +876,45 @@ sla:
         else:
             with pytest.raises(NoTargetReleaseVersionAvailableError):
                 query_builder.generate_target_release()
+
+    def test_generate_target_release_empty_string(self):
+        """
+        test generation of Target Release/Target Version fields
+        with PsUpdateStream.target_release being an empty string
+
+        reproducer of https://issues.redhat.com/browse/OSIDB-2909
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            target_release="",
+        )
+        assert PsUpdateStream.objects.first().target_release == ""
+        affect = AffectFactory(
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=ps_update_stream.name,
+            embargoed=affect.flaw.embargoed,
+        )
+
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="customfield_12311240",
+            field_name="Target Release",
+            allowed_values=["random"],
+        )
+
+        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder._query = {"fields": {}}
+
+        # should not raise here
+        query_builder.generate_target_release()
+        assert not query_builder._query["fields"]
 
 
 def validate_minimum_key_value(minimum: Dict[str, Any], evaluated: Dict[str, Any]):
