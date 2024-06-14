@@ -346,7 +346,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         Generate target release field from the PsUpdateStream's data.
         """
         value = self.ps_update_stream.target_release
-        if value is None:
+        if not value:
             return
 
         # Try to use Jira field "Target Release"

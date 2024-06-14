@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix FlawReference article count validation (OSIDB-2651)
 - Fix not being able to set CVE ID to an empty string through the API (OSIDB-2702)
 - Comments not properly updating when syncing from Bugzilla (OSIDB-1385)
+- Account for empty string in target release of PS update stream (OSIDB-2909)
 
 ### Removed
 - Remove "type" field from Affect (OSIDB-2743)
