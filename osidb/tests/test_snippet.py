@@ -1,6 +1,7 @@
 import pytest
 
-from apps.workflows.workflow import WorkflowModel
+from apps.workflows.models import Workflow
+from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
 from osidb.tests.factories import FlawFactory, SnippetFactory
 
@@ -26,6 +27,25 @@ class TestSnippet:
         """
         Tests the creation of a flaw from a snippet.
         """
+        workflow = Workflow(
+            {
+                "name": "main workflow",
+                "description": "a workflow to test classification",
+                "priority": 100,
+                "conditions": [],
+                "states": [
+                    {
+                        "name": WorkflowModel.WorkflowState.NEW,
+                        "requirements": [],
+                        "jira_state": "New",
+                        "jira_resolution": None,
+                    }
+                ],
+            }
+        )
+        workflow_framework = WorkflowFramework()
+        workflow_framework.register_workflow(workflow)
+
         snippet = SnippetFactory(source=Snippet.Source.NVD)
         content = snippet.content
 

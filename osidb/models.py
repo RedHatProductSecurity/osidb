@@ -1076,9 +1076,12 @@ class Flaw(
 
         if not Affect.objects.filter(flaw=self).exists():
             err = ValidationError("Flaw does not contain any affects.")
-            # When a flaw in a "new" workflow state is modified, allow saving
+            # When a flaw without state or in a "new" workflow state is modified, allow saving
             # with no affects but issue an alert
-            if self.workflow_state == WorkflowModel.WorkflowState.NEW:
+            if self.workflow_state in {
+                WorkflowModel.WorkflowState.NOVALUE,
+                WorkflowModel.WorkflowState.NEW,
+            }:
                 self.alert(
                     "_validate_flaw_without_affect",
                     err.message,
@@ -1356,6 +1359,7 @@ class Flaw(
         def _create_new_flaw():
             issue = jtq.create_or_update_task(self)
             self.task_key = issue.data["key"]
+            self.workflow_state = WorkflowModel.WorkflowState.NEW
             self.save(*args, **kwargs)
 
         if not JIRA_TASKMAN_AUTO_SYNC_FLAW or not jira_token:

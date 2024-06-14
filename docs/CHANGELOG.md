@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add audit history to Flaws and Affects (OSIDB-2269)
 - Implement search on emptiness for several fields (OSIDB-2815)
 - Add major_incident_start_dt field (OSIDB-2728)
+- Add empty value to workflow_state (OSIDB-2881)
 
 ### Changed
 - Make workflows API RESTful (OSIDB-1716)
@@ -63,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove "meta_attr" field from FlawReference (OSIDB-2854)
 - Remove "meta_attr" field from FlawAcknowledgment (OSIDB-2854)
 - Remove "component" field from Flaw (OSIDB-2839)
-- Remove "meta_attr" field from from FlawComment (OSIDB-2747)
+- Remove "meta_attr" field from FlawComment (OSIDB-2747)
 
 ## [3.7.3] - 2024-05-28
 ### Fixed
