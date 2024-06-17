@@ -1775,7 +1775,9 @@ class Affect(
                 or self.resolution != old_affect.resolution
             ):
                 raise ValidationError(
-                    f"{self.resolution} is not a valid resolution for {self.affectedness}."
+                    f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has an invalid "
+                    f"affectedness/resolution combination: {self.resolution} is not a valid resolution "
+                    f"for {self.affectedness}."
                 )
 
             # If modifying something else from a record with an invalid combination, e.g. the
@@ -1783,7 +1785,8 @@ class Affect(
             self.alert(
                 "flaw_historical_affect_status",
                 f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has a "
-                "historical affectedness/resolution combination which is not valid anymore.",
+                "historical affectedness/resolution combination which is not valid anymore: "
+                f"{self.resolution} is not a valid resolution for {self.affectedness}.",
             )
 
     def _validate_affect_status_resolution(self):
@@ -1797,7 +1800,9 @@ class Affect(
             not in AFFECTEDNESS_HISTORICAL_VALID_RESOLUTIONS[self.affectedness]
         ):
             raise ValidationError(
-                f"{self.resolution} is not a valid resolution for {self.affectedness}."
+                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has an invalid "
+                f"affectedness/resolution combination: {self.resolution} is not a valid resolution "
+                f"for {self.affectedness}."
             )
 
     def _validate_notaffected_open_tracker(self):
@@ -1890,11 +1895,8 @@ class Affect(
         )
         if not bts_component.exists():
             alert_text = (
-                'Component "{}" for {} did not match BTS component (in {}) '
-                "nor component from Product Definitions"
-            )
-            alert_text = alert_text.format(
-                component, self.ps_module, ps_module.bts_name
+                f'Component "{component}" for {self.ps_module} did not match BTS component '
+                f"(in {ps_module.bts_name}) nor component from Product Definitions"
             )
             self.alert(
                 "flaw_affects_unknown_component",
@@ -1903,8 +1905,8 @@ class Affect(
 
     def _validate_wontreport_products(self):
         """
-        Validate that affected/wontreport only can be used for
-        products associated with services
+        Validate that wontreport resolution only can be used for
+        products associated with services.
         """
         if self.resolution == Affect.AffectResolution.WONTREPORT:
             ps_module = PsModule.objects.filter(name=self.ps_module).first()
@@ -1913,20 +1915,22 @@ class Affect(
                 or ps_module.ps_product.short_name not in SERVICES_PRODUCTS
             ):
                 raise ValidationError(
-                    "wontreport can only be associated with service products"
+                    f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as WONTREPORT, "
+                    f"which can only be used for service products."
                 )
 
     def _validate_wontreport_severity(self):
         """
         Validate that wontreport only can be used for
-        low or moderate severity flaws
+        low or moderate severity flaws.
         """
         if (
             self.resolution == Affect.AffectResolution.WONTREPORT
             and self.impact not in [Impact.LOW, Impact.MODERATE]
         ):
             raise ValidationError(
-                "wontreport can only be associated with low or moderate severity"
+                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has impact {self.impact} "
+                f"and is marked as WONTREPORT, which can only be used with low or moderate impact."
             )
 
     def _validate_special_handling_modules(self):

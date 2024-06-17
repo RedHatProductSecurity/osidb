@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Correct endpoint for tracker filing schema (OSIDB-2847)
 - Renamed Flaw "description" to "comment_zero" and "summary" to "cve_description" (OSIDB-2740)
 - Update the workflow check of filed trackers (OSIDB-2799)
+- Improve affect validation error messages (OSIDB-2893)
 
 ### Fixed
 - Fix incorrect ACLs for flaw drafts (OSIDB-2263)
