@@ -7174,6 +7174,7 @@ components:
           format: uuid
         comment:
           type: string
+          nullable: true
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
@@ -7224,6 +7225,7 @@ components:
       properties:
         comment:
           type: string
+          nullable: true
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
@@ -7268,6 +7270,7 @@ components:
       properties:
         comment:
           type: string
+          nullable: true
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
@@ -7980,13 +7983,14 @@ components:
       type: object
       description: FlawCVSS serializer
       properties:
-        comment:
-          type: string
-        cvss_version:
-          $ref: '#/components/schemas/CvssVersionEnum'
         flaw:
           type: string
           format: uuid
+        comment:
+          type: string
+          nullable: true
+        cvss_version:
+          $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
           $ref: '#/components/schemas/IssuerEnum'
         score:
@@ -8005,6 +8009,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -8014,11 +8023,6 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
       required:
       - alerts
       - created_dt
@@ -8035,6 +8039,7 @@ components:
       properties:
         comment:
           type: string
+          nullable: true
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
@@ -8055,14 +8060,14 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
         alerts:
           type: array
           items:
             $ref: '#/components/schemas/Alert'
+          readOnly: true
+        created_dt:
+          type: string
+          format: date-time
           readOnly: true
       required:
       - alerts
@@ -8079,6 +8084,7 @@ components:
       properties:
         comment:
           type: string
+          nullable: true
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
@@ -8099,6 +8105,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -8108,11 +8119,6 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
       required:
       - alerts
       - created_dt

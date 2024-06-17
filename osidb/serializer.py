@@ -27,6 +27,7 @@ from .exceptions import DataInconsistencyException
 from .helpers import differ, ensure_list
 from .mixins import ACLMixin, Alert, AlertMixin, TrackingMixin
 from .models import (
+    CVSS,
     Affect,
     AffectCVSS,
     Erratum,
@@ -919,30 +920,44 @@ class JiraTaskSyncMixinSerializer(JiraAPIKeyMixin, serializers.ModelSerializer):
         abstract = True
 
 
-class AffectCVSSSerializer(
+class AbstractCVSSSerializer(
     ACLMixinSerializer,
     AlertMixinSerializer,
     BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
     TrackingMixinSerializer,
 ):
+    """Abstract serializer for FlawCVSS and AffectCVSS serializer"""
+
+    cvss_version = serializers.ChoiceField(choices=CVSS.CVSSVersion, source="version")
+    score = serializers.FloatField(read_only=True)
+    comment = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+
+    class Meta:
+        abstract = True
+        fields = (
+            # Also add "affect" or "flaw" for AffectCVSS or FlawCVSS
+            ["comment", "cvss_version", "issuer", "score", "uuid", "vector"]
+            + ACLMixinSerializer.Meta.fields
+            + AlertMixinSerializer.Meta.fields
+            + TrackingMixinSerializer.Meta.fields
+        )
+
+
+class AffectCVSSSerializer(
+    AbstractCVSSSerializer,
+):
     """AffectCVSS serializer"""
 
     cvss_version = serializers.ChoiceField(
         choices=AffectCVSS.CVSSVersion, source="version"
     )
-    score = serializers.FloatField(read_only=True)
 
     class Meta:
         """filter fields"""
 
         model = AffectCVSS
-        fields = (
-            ["affect", "comment", "cvss_version", "issuer", "score", "uuid", "vector"]
-            + ACLMixinSerializer.Meta.fields
-            + AlertMixinSerializer.Meta.fields
-            + TrackingMixinSerializer.Meta.fields
-        )
+        fields = ["affect"] + AbstractCVSSSerializer.Meta.fields
 
 
 @extend_schema_serializer(exclude_fields=["affect", "updated_dt"])
@@ -1442,29 +1457,19 @@ class FlawReferencePutSerializer(FlawReferenceSerializer):
 
 
 class FlawCVSSSerializer(
-    ACLMixinSerializer,
-    BugzillaSyncMixinSerializer,
-    IncludeExcludeFieldsMixin,
-    TrackingMixinSerializer,
-    AlertMixinSerializer,
+    AbstractCVSSSerializer,
 ):
     """FlawCVSS serializer"""
 
     cvss_version = serializers.ChoiceField(
         choices=FlawCVSS.CVSSVersion, source="version"
     )
-    score = serializers.FloatField(read_only=True)
 
     class Meta:
         """filter fields"""
 
         model = FlawCVSS
-        fields = (
-            ["comment", "cvss_version", "flaw", "issuer", "score", "uuid", "vector"]
-            + ACLMixinSerializer.Meta.fields
-            + TrackingMixinSerializer.Meta.fields
-            + AlertMixinSerializer.Meta.fields
-        )
+        fields = ["flaw"] + AbstractCVSSSerializer.Meta.fields
 
 
 @extend_schema_serializer(exclude_fields=["updated_dt", "flaw"])
