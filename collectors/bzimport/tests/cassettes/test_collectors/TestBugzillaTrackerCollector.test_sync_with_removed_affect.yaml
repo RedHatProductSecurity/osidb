@@ -16,7 +16,7 @@ interactions:
     uri: https://example.com/rest/version
   response:
     body:
-      string: '{"version": "5.0.4.rh95"}'
+      string: '{"version": "5.0.4.rh97"}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -31,7 +31,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 30 Apr 2024 14:08:15 GMT
+      - Thu, 13 Jun 2024 14:02:50 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -41,9 +41,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a5361060.1714486095.840a8095
+      - 0.1d92645f.1718287370.33c16d54
       x-rh-edge-request-id:
-      - 840a8095
+      - 33c16d54
     status:
       code: 200
       message: OK
@@ -64,8 +64,8 @@ interactions:
     uri: https://example.com/rest/user?ids=1
   response:
     body:
-      string: '{"users": [{"name": "aander07@packetmaster.com", "id": 1, "real_name":
-        "Need Real Name", "can_login": true, "email": "aander07@packetmaster.com"}]}'
+      string: '{"users": [{"id": 1, "email": "aander07@packetmaster.com", "name":
+        "aander07@packetmaster.com", "can_login": true, "real_name": "Need Real Name"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -80,7 +80,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 30 Apr 2024 14:08:15 GMT
+      - Thu, 13 Jun 2024 14:02:50 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -90,9 +90,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a5361060.1714486095.840a86b2
+      - 0.1d92645f.1718287370.33c1719e
       x-rh-edge-request-id:
-      - 840a86b2
+      - 33c1719e
     status:
       code: 200
       message: OK
@@ -110,56 +110,76 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=2022501
+    uri: https://example.com/rest/bug/1765663?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
   response:
     body:
-      string: '{"bugs": [{"comments": [{"tags": [], "count": 0, "private_groups":
-        [], "id": 15711594, "text": "certificate_system_10 tracking bug for ssh: see
-        the bugs linked in the \"Blocks\" field of this bug for full details of the
-        security issue(s).\n\nThis bug is never intended to be made public, please
-        put any public notes in the blocked bugs.", "creation_time": "2024-02-28T14:51:02Z",
-        "bug_id": 2022501, "is_private": false, "attachment_id": null, "time": "2024-02-28T14:51:02Z",
-        "creator_id": 464884, "creator": "jreichar@redhat.com"}], "alias": [], "cf_pm_score":
-        "0", "cf_pgm_internal": "", "qa_contact": "", "component": ["Other"], "cf_partner":
-        [], "estimated_time": 0, "id": 2022501, "docs_contact": "", "product": "Red
-        Hat Certificate System", "cf_deadline": null, "creator": "jreichar@redhat.com",
-        "flags": [{"modification_date": "2024-02-28T14:51:02Z", "type_id": 415, "setter":
-        "bugzilla@redhat.com", "status": "-", "is_active": 1, "id": 5255051, "name":
-        "requires_doc_text", "creation_date": "2024-02-28T14:51:02Z"}], "is_creator_accessible":
-        true, "depends_on": [], "cf_conditional_nak": [], "assigned_to_detail": {"partner":
-        false, "name": "nobody@redhat.com", "email": "nobody@redhat.com", "insider":
-        false, "id": 29451, "active": true, "real_name": "Nobody"}, "blocks": [1982889],
-        "cf_qa_whiteboard": "", "whiteboard": "", "cf_major_incident": null, "platform":
-        "Unspecified", "cf_final_deadline": null, "target_release": ["---"], "cf_build_id":
-        "", "classification": "Red Hat", "dupe_of": null, "tags": [], "cf_internal_whiteboard":
-        "", "remaining_time": 0, "cf_target_upstream_version": "", "description":
-        "certificate_system_10 tracking bug for ssh: see the bugs linked in the \"Blocks\"
-        field of this bug for full details of the security issue(s).\n\nThis bug is
-        never intended to be made public, please put any public notes in the blocked
-        bugs.", "severity": "high", "cf_doc_type": "No Doc Update", "deadline": "2023-05-29",
-        "url": "", "cf_cust_facing": "---", "keywords": ["Security", "SecurityTracking"],
-        "creator_detail": {"active": true, "real_name": "James Reichard", "partner":
-        false, "name": "jreichar@redhat.com", "email": "jreichar@redhat.com", "insider":
-        true, "id": 464884}, "external_bugs": [], "op_sys": "Unspecified", "sub_components":
-        {}, "version": ["10.2"], "is_cc_accessible": true, "cf_last_closed": null,
-        "cf_clone_of": null, "creation_time": "2024-02-28T14:51:02Z", "cf_verified":
-        [], "status": "NEW", "is_open": true, "actual_time": 0, "cf_environment":
-        "", "cf_embargoed": null, "summary": "[CISA Major Incident] CVE-2020-1234
-        ssh: problem (has acknowledgments, references) [certificate_system_10.2.1]",
-        "is_confirmed": true, "resolution": "", "cf_devel_whiteboard": "", "priority":
-        "high", "assigned_to": "nobody@redhat.com", "cf_qe_conditional_nak": [], "cf_release_notes":
-        "", "last_change_time": "2024-04-30T14:04:11Z", "target_milestone": "rc",
-        "data_category": "Red Hat", "cc_detail": [{"real_name": "Ade Lee", "active":
-        true, "partner": false, "id": 194784, "name": "alee@redhat.com", "insider":
-        true, "email": "alee@redhat.com"}, {"insider": true, "email": "cfu@redhat.com",
-        "name": "cfu@redhat.com", "id": 172340, "partner": false, "active": true,
-        "real_name": "Christina Fu"}, {"active": true, "real_name": "Jack Magne",
-        "name": "jmagne@redhat.com", "insider": true, "email": "jmagne@redhat.com",
-        "id": 172343, "partner": false}, {"active": true, "real_name": "Ondrej Soukup",
-        "partner": false, "insider": true, "email": "osoukup@redhat.com", "name":
-        "osoukup@redhat.com", "id": 412888}], "groups": ["redhat"], "cf_fixed_in":
-        "", "cc": ["alee@redhat.com", "cfu@redhat.com", "jmagne@redhat.com", "osoukup@redhat.com"],
-        "cf_deadline_type": null}], "total_matches": 1, "offset": 0, "limit": "20"}'
+      string: '{"bugs": [{"depends_on": [], "comments": [{"text": "\nThis is an automatically
+        created tracking bug!  It was created to ensure\nthat one or more security
+        vulnerabilities are fixed in affected versions\nof openstack-rdo.\n\nFor comments
+        that are specific to the vulnerability please use bugs filed\nagainst the
+        \"Security Response\" product referenced in the \"Blocks\" field.\n\nFor more
+        information see:\nhttps://example.com/wiki/Security/TrackingBugs\n\nWhen submitting
+        as an update, use the fedpkg template provided in the next\ncomment(s).  This
+        will include the bug IDs of this tracking bug as well as\nthe relevant top-level
+        CVE bugs.\n\nPlease also mention the CVE IDs being fixed in the RPM changelog
+        and the\nfedpkg commit message.", "tags": [], "creator": "gsuckevi@redhat.com",
+        "time": "2019-10-25T16:48:57Z", "creator_id": 440012, "bug_id": 1765663, "is_private":
+        false, "attachment_id": null, "creation_time": "2019-10-25T16:48:57Z", "count":
+        0, "id": 13288416, "private_groups": []}], "keywords": ["Security", "SecurityTracking"],
+        "cf_conditional_nak": [], "docs_contact": "", "cf_qa_whiteboard": "", "cf_embargoed":
+        null, "alias": [], "cf_cust_facing": "---", "cc": ["jjoyce@redhat.com", "jschluet@redhat.com",
+        "lhh@redhat.com", "lpeer@redhat.com", "mburns@redhat.com", "sclewis@redhat.com",
+        "slinaber@redhat.com", "srevivo@redhat.com"], "id": 1765663, "url": "", "priority":
+        "medium", "cc_detail": [{"name": "jjoyce@redhat.com", "id": 393063, "email":
+        "jjoyce@redhat.com", "insider": true, "active": true, "real_name": "Jason
+        Joyce", "partner": false}, {"partner": false, "active": true, "real_name":
+        "Jon Schlueter", "insider": true, "email": "jschluet@redhat.com", "id": 381739,
+        "name": "jschluet@redhat.com"}, {"id": 84977, "email": "lhh@redhat.com", "name":
+        "lhh@redhat.com", "partner": false, "insider": true, "active": true, "real_name":
+        "Lon Hohberger"}, {"partner": false, "insider": true, "active": true, "real_name":
+        "lpeer", "id": 287527, "email": "lpeer@redhat.com", "name": "lpeer@redhat.com"},
+        {"partner": false, "real_name": "Mike Burns", "active": true, "insider": true,
+        "email": "mburns@redhat.com", "id": 269350, "name": "mburns@redhat.com"},
+        {"insider": true, "active": true, "real_name": "Scott Lewis", "partner": false,
+        "name": "sclewis@redhat.com", "id": 316793, "email": "sclewis@redhat.com"},
+        {"insider": true, "real_name": "Steve Linabery", "active": true, "partner":
+        false, "name": "slinaber@redhat.com", "id": 269094, "email": "slinaber@redhat.com"},
+        {"real_name": "Shai Revivo", "active": true, "insider": true, "partner": false,
+        "name": "srevivo@redhat.com", "email": "srevivo@redhat.com", "id": 354886}],
+        "severity": "medium", "cf_internal_whiteboard": "", "version": ["unspecified"],
+        "flags": [{"type_id": 415, "id": 4275131, "modification_date": "2019-10-25T16:48:57Z",
+        "setter": "bugzilla@redhat.com", "creation_date": "2019-10-25T16:48:57Z",
+        "status": "-", "is_active": 1, "name": "requires_doc_text"}], "cf_environment":
+        "", "is_creator_accessible": true, "qa_contact": "srevivo@redhat.com", "data_category":
+        "Public", "classification": "Community", "sub_components": {}, "description":
+        "\nThis is an automatically created tracking bug!  It was created to ensure\nthat
+        one or more security vulnerabilities are fixed in affected versions\nof openstack-rdo.\n\nFor
+        comments that are specific to the vulnerability please use bugs filed\nagainst
+        the \"Security Response\" product referenced in the \"Blocks\" field.\n\nFor
+        more information see:\nhttps://example.com/wiki/Security/TrackingBugs\n\nWhen
+        submitting as an update, use the fedpkg template provided in the next\ncomment(s).  This
+        will include the bug IDs of this tracking bug as well as\nthe relevant top-level
+        CVE bugs.\n\nPlease also mention the CVE IDs being fixed in the RPM changelog
+        and the\nfedpkg commit message.", "component": ["novnc"], "cf_doc_type": "No
+        Doc Update", "target_release": ["trunk"], "assigned_to_detail": {"id": 298074,
+        "email": "eglynn@redhat.com", "name": "eglynn@redhat.com", "partner": false,
+        "insider": true, "real_name": "Eoghan Glynn", "active": true}, "assigned_to":
+        "eglynn@redhat.com", "platform": "Unspecified", "cf_clone_of": null, "cf_major_incident":
+        null, "is_cc_accessible": true, "cf_pgm_internal": "", "cf_devel_whiteboard":
+        "", "creator": "gsuckevi@redhat.com", "remaining_time": 0, "groups": [], "target_milestone":
+        "---", "cf_release_notes": "", "is_open": true, "whiteboard": "", "status":
+        "NEW", "cf_fixed_in": "", "actual_time": 0, "blocks": [1765660], "is_confirmed":
+        true, "resolution": "", "cf_build_id": "", "update_token": "1718287371-3HIt5vIJ-tLgI2YlHcFho_iToQ-FUxZZxGffurMy_Cc",
+        "cf_pm_score": "0", "last_change_time": "2021-06-22T00:30:41Z", "cf_last_closed":
+        null, "dupe_of": null, "external_bugs": [], "creation_time": "2019-10-25T16:48:57Z",
+        "product": "RDO", "qa_contact_detail": {"name": "srevivo@redhat.com", "id":
+        354886, "email": "srevivo@redhat.com", "insider": true, "active": true, "real_name":
+        "Shai Revivo", "partner": false}, "estimated_time": 0, "summary": "CVE-2017-18635
+        novnc: XSS vulnerability via the messages propagated to the status field [openstack-rdo]",
+        "creator_detail": {"partner": false, "real_name": "Guilherme de Almeida Suckevicz",
+        "active": true, "insider": true, "email": "gsuckevi@redhat.com", "id": 440012,
+        "name": "gsuckevi@redhat.com"}, "cf_qe_conditional_nak": [], "op_sys": "Unspecified",
+        "tags": [], "deadline": null}], "faults": []}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -172,7 +192,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Tue, 30 Apr 2024 14:08:16 GMT
+      - Thu, 13 Jun 2024 14:02:51 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       Vary:
@@ -182,13 +202,13 @@ interactions:
       X-xss-protection:
       - 1; mode=block
       content-length:
-      - '3472'
+      - '5635'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.a5361060.1714486096.840a9228
+      - 0.1d92645f.1718287370.33c1783d
       x-rh-edge-request-id:
-      - 840a9228
+      - 33c1783d
     status:
       code: 200
       message: OK

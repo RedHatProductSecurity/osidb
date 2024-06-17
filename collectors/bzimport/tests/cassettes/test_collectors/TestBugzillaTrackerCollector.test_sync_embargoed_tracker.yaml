@@ -13,10 +13,10 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/version
+    uri: https://example.com/rest/version
   response:
     body:
-      string: '{"version": "5.0.4.rh94"}'
+      string: '{"version": "5.0.4.rh97"}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -28,26 +28,22 @@ interactions:
       - keep-alive
       Content-Length:
       - '24'
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Fri, 09 Feb 2024 08:12:07 GMT
+      - Thu, 13 Jun 2024 13:38:36 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.6f361060.1707466327.db13f7e7
+      - 0.692645f.1718285916.1451a173
       x-rh-edge-request-id:
-      - db13f7e7
+      - 1451a173
     status:
       code: 200
       message: OK
@@ -65,12 +61,11 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/user?ids=1
+    uri: https://example.com/rest/user?ids=1
   response:
     body:
-      string: '{"users": [{"name": "aander07@packetmaster.com", "real_name": "Need
-        Real Name", "can_login": true, "email": "aander07@packetmaster.com", "id":
-        1}]}'
+      string: '{"users": [{"can_login": true, "email": "aander07@packetmaster.com",
+        "name": "aander07@packetmaster.com", "id": 1, "real_name": "Need Real Name"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -82,26 +77,22 @@ interactions:
       - keep-alive
       Content-Length:
       - '137'
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Fri, 09 Feb 2024 08:12:07 GMT
+      - Thu, 13 Jun 2024 13:38:36 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.6f361060.1707466327.db13fac6
+      - 0.692645f.1718285916.1451a664
       x-rh-edge-request-id:
-      - db13fac6
+      - 1451a664
     status:
       code: 200
       message: OK
@@ -119,81 +110,81 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://bugzilla.redhat.com/rest/bug?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&id=1984058
+    uri: https://example.com/rest/bug/1642774?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
   response:
     body:
-      string: '{"offset": 0, "bugs": [{"flags": [{"modification_date": "2021-08-31T08:47:45Z",
-        "status": "?", "id": 5117054, "type_id": 1189, "name": "aos-3.11.x", "creation_date":
-        "2021-08-31T08:47:45Z", "setter": "osoukup@redhat.com", "is_active": 1}, {"name":
-        "requires_doc_text", "id": 5117055, "type_id": 415, "is_active": 1, "setter":
-        "bugzilla@redhat.com", "creation_date": "2021-08-31T08:47:45Z", "status":
-        "-", "modification_date": "2021-08-31T08:47:45Z"}], "cf_major_incident": null,
-        "cf_conditional_nak": [], "is_open": true, "cf_embargoed": null, "whiteboard":
-        "component:thing", "id": 1984058, "deadline": null, "tags": [], "product":
-        "OpenShift Container Platform", "creation_time": "2021-08-31T08:47:45Z", "cf_devel_whiteboard":
-        "", "op_sys": "Unspecified", "cf_release_notes": "", "assigned_to_detail":
-        {"partner": false, "real_name": "Nobody", "email": "nobody@redhat.com", "insider":
-        false, "name": "nobody@redhat.com", "id": 29451, "active": true}, "target_release":
-        ["3.11.z"], "cf_last_closed": null, "cf_qe_conditional_nak": [], "is_creator_accessible":
-        true, "assigned_to": "nobody@redhat.com", "groups": ["qe_staff", "security",
-        "team ocp_embargoes"], "severity": "medium", "is_cc_accessible": true, "creator":
-        "osoukup@redhat.com", "summary": "EMBARGOED thing: openshift: thing [openshift-enterprise-3.11-default]",
-        "cc": ["bmontgom@redhat.com", "eparis@redhat.com", "jialiu@redhat.com", "security-response-team@bot.bugzilla.redhat.com",
-        "wsun@redhat.com", "xtian@redhat.com", "xxia@redhat.com"], "cf_verified":
-        [], "alias": [], "status": "NEW", "cf_cust_facing": "---", "component": ["Security"],
-        "docs_contact": "", "last_change_time": "2023-07-13T02:54:35Z", "cf_fixed_in":
-        "", "dupe_of": null, "resolution": "", "depends_on": [], "cf_qa_whiteboard":
-        "", "version": ["3.11.0"], "keywords": ["Security", "SecurityTracking", "Unconfirmed"],
-        "actual_time": 0, "comments": [{"bug_id": 1984058, "count": 0, "text": "openshift-enterprise-3.11
-        tracking bug for thing: see the bugs linked in the \"Blocks\" field of this
-        bug for full details of the security issue(s).\n\nThis bug is never intended
-        to be made public, please put any public notes in the blocked bugs.\n\nImpact:
-        Moderate\nPublic Date: not set\nPM Fix/Wontfix Decision By: 29-Nov-2021\nResolve
-        Bug By: 365 calendar days from the public date\n\nIn case the dates above
+      string: '{"faults": [], "bugs": [{"whiteboard": "component:kernel", "status":
+        "NEW", "cf_fixed_in": "", "is_open": true, "cf_release_notes": "", "cf_verified":
+        [], "target_milestone": "---", "groups": ["security"], "creator": "pharvey@redhat.com",
+        "remaining_time": 0, "cf_target_upstream_version": "", "tags": [], "deadline":
+        "2019-09-27", "summary": "CVE-2018-17972 kernel: Unprivileged users able to
+        inspect kernel stacks of arbitrary tasks [openshift-online-3]", "creator_detail":
+        {"name": "pharvey@redhat.com", "email": "pharvey@redhat.com", "id": 426684,
+        "real_name": "Paul Harvey", "active": false, "insider": false, "partner":
+        false}, "cf_qe_conditional_nak": [], "op_sys": "Unspecified", "creation_time":
+        "2018-10-25T04:35:42Z", "external_bugs": [], "product": "OpenShift Online",
+        "estimated_time": 0, "qa_contact_detail": {"email": "wsun@redhat.com", "id":
+        332917, "name": "wsun@redhat.com", "partner": false, "active": true, "real_name":
+        "Wei Sun", "insider": true}, "dupe_of": null, "last_change_time": "2024-05-29T05:48:26Z",
+        "cf_last_closed": null, "cf_build_id": "", "update_token": "1718285917-iwEhi9xgwRD8iK8rgSnK8U1pJJTigAjZ5RZY3MU4vSc",
+        "cf_pm_score": "0", "actual_time": 0, "is_confirmed": true, "blocks": [1636349],
+        "resolution": "", "cf_internal_whiteboard": "", "severity": "medium", "version":
+        ["3.x"], "flags": [{"type_id": 415, "id": 3779595, "setter": "bugzilla@redhat.com",
+        "modification_date": "2018-10-25T04:35:42Z", "creation_date": "2018-10-25T04:35:42Z",
+        "is_active": 1, "status": "-", "name": "requires_doc_text"}], "cf_environment":
+        "", "cc_detail": [{"insider": true, "active": true, "real_name": "Abhishek
+        Gupta", "partner": false, "name": "abhgupta@redhat.com", "id": 311107, "email":
+        "abhgupta@redhat.com"}, {"partner": false, "real_name": "Dave Baker", "active":
+        true, "insider": true, "email": "dbaker@redhat.com", "id": 408934, "name":
+        "dbaker@redhat.com"}, {"name": "jialiu@redhat.com", "email": "jialiu@redhat.com",
+        "id": 284934, "real_name": "Johnny Liu", "active": true, "insider": true,
+        "partner": false}, {"active": true, "real_name": "Luke Meyer", "insider":
+        true, "partner": false, "name": "lmeyer@redhat.com", "email": "lmeyer@redhat.com",
+        "id": 145775}, {"partner": false, "real_name": "Ondrej Soukup", "active":
+        true, "insider": true, "email": "osoukup@redhat.com", "id": 412888, "name":
+        "osoukup@redhat.com"}, {"partner": false, "insider": true, "active": true,
+        "real_name": "Product Security", "id": 489232, "email": "security-response-team@bot.bugzilla.redhat.com",
+        "name": "security-response-team@bot.bugzilla.redhat.com"}, {"real_name": "",
+        "active": true, "insider": true, "partner": false, "name": "sthangav@redhat.com",
+        "email": "sthangav@redhat.com", "id": 408078}, {"real_name": "Tracy Rankin",
+        "active": true, "insider": true, "partner": false, "name": "trankin@redhat.com",
+        "email": "trankin@redhat.com", "id": 387166}, {"partner": false, "insider":
+        true, "real_name": "Xiaoli Tian", "active": true, "id": 291334, "email": "xtian@redhat.com",
+        "name": "xtian@redhat.com"}], "id": 1642774, "url": "", "priority": "medium",
+        "cf_cust_facing": "---", "alias": [], "cc": ["abhgupta@redhat.com", "dbaker@redhat.com",
+        "jialiu@redhat.com", "lmeyer@redhat.com", "osoukup@redhat.com", "security-response-team@bot.bugzilla.redhat.com",
+        "sthangav@redhat.com", "trankin@redhat.com", "xtian@redhat.com"], "cf_qa_whiteboard":
+        "", "cf_embargoed": null, "docs_contact": "", "depends_on": [], "comments":
+        [{"count": 0, "id": 12138749, "private_groups": [], "bug_id": 1642774, "creation_time":
+        "2018-10-25T04:35:42Z", "is_private": false, "attachment_id": null, "time":
+        "2018-10-25T04:35:42Z", "creator_id": 426684, "creator": "pharvey@redhat.com",
+        "text": "openshift-online-3 tracking bug for kernel: see blocks bug list for
+        full details of the security issue(s).\n\nThis bug is never intended to be
+        made public, please put any public notes in the blocked bugs.\n\nImpact: Moderate\nPublic
+        Date: 27-Sep-2018\nResolve Bug By: 27-Sep-2019\n\nIn case the dates above
         are already past, please evaluate this bug in your next prioritization review
         and make a decision then. Remember to explicitly set CLOSED:WONTFIX if you
         decide not to fix this bug.\n\nPlease see the Security Errata Policy for further
-        details: https://docs.engineering.redhat.com/x/9RBqB\n\nNOTE THIS ISSUE IS
-        CURRENTLY EMBARGOED, DO NOT MAKE PUBLIC COMMITS OR COMMENTS ABOUT THIS ISSUE.\n\nWARNING:
-        NOTICE THAT REMOVING THE \"SECURITY\" GROUP FROM THIS TRACKER MAY BREAK THE
-        EMBARGO.", "id": 15297476, "creator": "osoukup@redhat.com", "time": "2021-08-31T08:47:45Z",
-        "tags": [], "creation_time": "2021-08-31T08:47:45Z", "creator_id": 412888,
-        "private_groups": [], "attachment_id": null, "is_private": false}], "qa_contact":
-        "", "cf_partner": [], "blocks": [1984057], "external_bugs": [], "cf_pm_score":
-        "0", "platform": "Unspecified", "cf_build_id": "", "cf_target_upstream_version":
-        "", "creator_detail": {"name": "osoukup@redhat.com", "active": true, "id":
-        412888, "real_name": "Ondrej Soukup", "partner": false, "insider": true, "email":
-        "osoukup@redhat.com"}, "cf_environment": "", "cf_clone_of": null, "cf_doc_type":
-        "No Doc Update", "cf_pgm_internal": "", "priority": "medium", "classification":
-        "Red Hat", "cf_internal_whiteboard": "", "estimated_time": 0, "url": "", "sub_components":
-        {}, "description": "openshift-enterprise-3.11 tracking bug for thing: see
-        the bugs linked in the \"Blocks\" field of this bug for full details of the
-        security issue(s).\n\nThis bug is never intended to be made public, please
-        put any public notes in the blocked bugs.\n\nImpact: Moderate\nPublic Date:
-        not set\nPM Fix/Wontfix Decision By: 29-Nov-2021\nResolve Bug By: 365 calendar
-        days from the public date\n\nIn case the dates above are already past, please
-        evaluate this bug in your next prioritization review and make a decision then.
-        Remember to explicitly set CLOSED:WONTFIX if you decide not to fix this bug.\n\nPlease
-        see the Security Errata Policy for further details: https://docs.engineering.redhat.com/x/9RBqB\n\nNOTE
-        THIS ISSUE IS CURRENTLY EMBARGOED, DO NOT MAKE PUBLIC COMMITS OR COMMENTS
-        ABOUT THIS ISSUE.\n\nWARNING: NOTICE THAT REMOVING THE \"SECURITY\" GROUP
-        FROM THIS TRACKER MAY BREAK THE EMBARGO.", "remaining_time": 0, "target_milestone":
-        "---", "cc_detail": [{"active": true, "id": 342077, "name": "bmontgom@redhat.com",
-        "insider": true, "email": "bmontgom@redhat.com", "real_name": "Bill Montgomery",
-        "partner": false}, {"real_name": "Eric Paris", "partner": false, "insider":
-        true, "email": "eparis@redhat.com", "name": "eparis@redhat.com", "active":
-        true, "id": 165117}, {"email": "jialiu@redhat.com", "insider": true, "partner":
-        false, "real_name": "Johnny Liu", "id": 284934, "active": true, "name": "jialiu@redhat.com"},
-        {"name": "security-response-team@bot.bugzilla.redhat.com", "active": true,
-        "id": 464788, "real_name": "security-response-team", "partner": false, "insider":
-        false, "email": "security-response-team@bot.bugzilla.redhat.com"}, {"email":
-        "wsun@redhat.com", "insider": true, "partner": false, "real_name": "Wei Sun",
-        "id": 332917, "active": true, "name": "wsun@redhat.com"}, {"email": "xtian@redhat.com",
-        "insider": true, "partner": false, "real_name": "Xiaoli Tian", "id": 291334,
-        "active": true, "name": "xtian@redhat.com"}, {"email": "xxia@redhat.com",
-        "insider": true, "partner": false, "real_name": "Xingxing Xia", "id": 385377,
-        "active": true, "name": "xxia@redhat.com"}], "data_category": "Security Restricted",
-        "is_confirmed": true}], "total_matches": 1, "limit": "20"}'
+        details: https://example.com/policy-guide/#policy-errata\n\nReproducers, if
+        any, will remain confidential and never be made public, unless done so by
+        the security team.", "tags": []}], "cf_partner": [], "cf_conditional_nak":
+        [], "keywords": ["Security", "SecurityTracking"], "cf_devel_whiteboard": "",
+        "cf_major_incident": null, "is_cc_accessible": true, "cf_pgm_internal": "",
+        "cf_clone_of": null, "assigned_to_detail": {"partner": false, "insider": true,
+        "real_name": "Abhishek Gupta", "active": true, "id": 311107, "email": "abhgupta@redhat.com",
+        "name": "abhgupta@redhat.com"}, "target_release": ["---"], "assigned_to":
+        "abhgupta@redhat.com", "platform": "Unspecified", "description": "openshift-online-3
+        tracking bug for kernel: see blocks bug list for full details of the security
+        issue(s).\n\nThis bug is never intended to be made public, please put any
+        public notes in the blocked bugs.\n\nImpact: Moderate\nPublic Date: 27-Sep-2018\nResolve
+        Bug By: 27-Sep-2019\n\nIn case the dates above are already past, please evaluate
+        this bug in your next prioritization review and make a decision then. Remember
+        to explicitly set CLOSED:WONTFIX if you decide not to fix this bug.\n\nPlease
+        see the Security Errata Policy for further details: https://example.com/policy-guide/#policy-errata\n\nReproducers,
+        if any, will remain confidential and never be made public, unless done so
+        by the security team.", "cf_doc_type": "Release Note", "component": ["Security"],
+        "sub_components": {}, "data_category": "Security Restricted", "classification":
+        "Red Hat", "is_creator_accessible": true, "qa_contact": "wsun@redhat.com"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -203,30 +194,26 @@ interactions:
       - private, must-revalidate
       Connection:
       - keep-alive
-      Content-Security-Policy:
-      - frame-ancestors 'self' bugzilla.redhat.com
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Fri, 09 Feb 2024 08:12:08 GMT
+      - Thu, 13 Jun 2024 13:38:37 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       Vary:
       - Accept-Encoding
       X-content-type-options:
       - nosniff
-      X-frame-options:
-      - ALLOW-FROM=https://bugzilla.redhat.com/
       X-xss-protection:
       - 1; mode=block
       content-length:
-      - '7819'
+      - '6304'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.6f361060.1707466328.db140042
+      - 0.692645f.1718285916.1451ad9a
       x-rh-edge-request-id:
-      - db140042
+      - 1451ad9a
     status:
       code: 200
       message: OK
