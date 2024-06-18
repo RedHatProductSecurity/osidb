@@ -469,6 +469,7 @@ def collector(
     data_models: Optional[List[Type[models.Model]]] = None,
     depends_on: Optional[List[str]] = None,
     dry_run: Optional[bool] = None,
+    enabled: Optional[bool] = True,
 ):
     """
     collector definition decorator
@@ -481,12 +482,19 @@ def collector(
                   depends on, may be left None
     dry_run     - determines whether the collector saves the
                   data or just logs them, may be left None
+    enabled:    - whether the collector is to be executed as a celery
+                  task or not
     """
 
     def wrapper(func):
 
         if crontab is None:
             raise RuntimeError("Collector crontab must be defined")
+
+        if not enabled:
+            # Return the original function so it can still be called from a shell,
+            # but do not register it in celery
+            return func
 
         name = Collector.get_name_from_entity(func)
 

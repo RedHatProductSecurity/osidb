@@ -7,6 +7,7 @@ from celery.utils.log import get_task_logger
 from collectors.framework.models import collector
 
 from .collectors import NVDCollector
+from .constants import NVD_COLLECTOR_ENABLED
 
 logger = get_task_logger(__name__)
 
@@ -18,6 +19,7 @@ logger = get_task_logger(__name__)
     # and one day as it proceeds by 100 days starting at 1999
     crontab=crontab(minute="*/10"),
     depends_on=["collectors.bzimport.tasks.flaw_collector"],
+    enabled=NVD_COLLECTOR_ENABLED,
 )
 def nvd_collector(collector_obj) -> str:
     """NVD collector"""

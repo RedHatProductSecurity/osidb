@@ -89,6 +89,16 @@ OSIDB_CORS_ALLOW_HEADERS='["bugzilla-api-key", "jira-api-key"]'
 # To enable snippets creation in collectors (when date is not set, all snippets are created)
 SNIPPET_CREATION=1
 SNIPPET_CREATION_START="2024-01-01"
+
+# Collector switches: set to 0 to turn each collector off, or 1 to turn it on (default)
+FLAW_COLLECTOR_ENABLED=1
+BZ_TRACKER_COLLECTOR_ENABLED=1
+BZ_METADATA_COLLECTOR_ENABLED=1
+ERRATA_COLLECTOR_ENABLED=1
+JIRA_TRACKER_COLLECTOR_ENABLED=1
+JIRA_METADATA_COLLECTOR_ENABLED=1
+NVD_COLLECTOR_ENABLED=1
+OSV_COLLECTOR_ENABLED=1
 ```
 
 The `.env` file is loaded automatically by podman-compose. It is also loaded as environment variables in a few Makefile targets (run `grep -rF '.env ' mk/` to see which ones).

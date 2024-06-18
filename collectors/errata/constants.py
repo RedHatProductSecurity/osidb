@@ -15,3 +15,8 @@ RETRYABLE_ERRORS = (ProtocolError, RequestException, SSLError, TimeoutError)
 
 ERRATA_TOOL_SERVER = get_env("ET_URL")
 ERRATA_TOOL_XMLRPC_BASE_URL = f"{ERRATA_TOOL_SERVER}/errata/errata_service"
+
+# Switch to turn the collector on/off
+ERRATA_COLLECTOR_ENABLED = get_env(
+    "ERRATA_COLLECTOR_ENABLED", default="True", is_bool=True
+)
