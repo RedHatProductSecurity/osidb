@@ -56,27 +56,6 @@ sla:
   type: business days
 
 ---
-name: Critical Compliance Priority
-description: >
-  SLA policy applied to critical impact on
-  compliance priority module, component and stream
-conditions:
-  affect:
-    - aggregated impact is critical
-    - is not community
-  flaw:
-    - is not embargoed
-  tracker:
-    - is compliance priority
-sla:
-  duration: 7
-  start:
-    latest:
-      - reported date
-      - unembargo date
-  type: calendar days
-
----
 name: Critical
 description: SLA policy applied to critical impact
 conditions:
@@ -86,31 +65,10 @@ conditions:
   flaw:
     - is not embargoed
 sla:
-  duration: 30
+  duration: 7
   start:
     latest:
-      - reported date
-      - unembargo date
-  type: calendar days
-
----
-name: Important Compliance Priority
-description: >
-  SLA policy applied to important impact on
-  compliance priority module, component and stream
-conditions:
-  affect:
-    - aggregated impact is important
-    - is not community
-  flaw:
-    - is not embargoed
-  tracker:
-    - is compliance priority
-sla:
-  duration: 21
-  start:
-    latest:
-      - reported date
+      - created date
       - unembargo date
   type: calendar days
 
@@ -124,31 +82,10 @@ conditions:
   flaw:
     - is not embargoed
 sla:
-  duration: 60
+  duration: 21
   start:
     latest:
-      - reported date
-      - unembargo date
-  type: calendar days
-
----
-name: Moderate Compliance Priority
-description: >
-  SLA policy applied to moderate impact on
-  compliance priority module, component and stream
-conditions:
-  affect:
-    - aggregated impact is moderate
-    - is not community
-  flaw:
-    - is not embargoed
-  tracker:
-    - is compliance priority
-sla:
-  duration: 50
-  start:
-    latest:
-      - reported date
+      - created date
       - unembargo date
   type: calendar days
 
@@ -162,10 +99,10 @@ conditions:
   flaw:
     - is not embargoed
 sla:
-  duration: 90
+  duration: 50
   start:
     latest:
-      - reported date
+      - created date
       - unembargo date
   type: calendar days
 
@@ -182,6 +119,6 @@ sla:
   duration: 180
   start:
     latest:
-      - reported date
+      - created date
       - unembargo date
   type: calendar days
