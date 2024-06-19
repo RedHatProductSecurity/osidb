@@ -7,7 +7,7 @@ from celery.utils.log import get_task_logger
 from collectors.framework.models import collector
 from osidb.models import Erratum
 
-from .constants import ERRATA_TOOL_SERVER
+from .constants import ERRATA_COLLECTOR_ENABLED, ERRATA_TOOL_SERVER
 from .core import (
     get_all_errata,
     get_batch_end,
@@ -27,6 +27,7 @@ logger = get_task_logger(__name__)
         "collectors.bzimport.tasks.bztracker_collector",
         "collectors.jiraffe.tasks.jira_tracker_collector",
     ],
+    enabled=ERRATA_COLLECTOR_ENABLED,
 )
 def errata_collector(collector_obj) -> str:
     """Errata Tool collector"""
