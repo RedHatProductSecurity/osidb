@@ -129,7 +129,9 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         generate component to differentiate between flaw and flaw draft
         """
         self._query["component"] = (
-            "vulnerability-draft" if self.flaw.is_draft else "vulnerability"
+            "vulnerability-draft"
+            if self.flaw.workflow_state == Flaw.WorkflowState.NEW
+            else "vulnerability"
         )
 
     def generate_unconditional(self):
