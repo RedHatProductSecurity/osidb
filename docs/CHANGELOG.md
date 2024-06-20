@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add major_incident_start_dt field (OSIDB-2728)
 - Add empty value to workflow_state (OSIDB-2881)
 - Generate Jira tracker "components" field (OSIDB-2988)
+- Rudimentary API request logging (OSIDB-2514)
 
 ### Changed
 - Make workflows API RESTful (OSIDB-1716)

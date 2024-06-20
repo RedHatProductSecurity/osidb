@@ -8,12 +8,14 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from osidb.api_views import RudimentaryUserPathLoggingMixin
+
 from .models import CollectorFramework
 
 logger = logging.getLogger(__name__)
 
 
-class index(APIView):
+class index(RudimentaryUserPathLoggingMixin, APIView):
     """index API endpoint"""
 
     @extend_schema(
@@ -38,7 +40,7 @@ class index(APIView):
         )
 
 
-class healthy(APIView):
+class healthy(RudimentaryUserPathLoggingMixin, APIView):
     """unauthenticated collector health check API endpoint"""
 
     permission_classes = [AllowAny]
@@ -51,7 +53,7 @@ class healthy(APIView):
         return Response()
 
 
-class status(APIView):
+class status(RudimentaryUserPathLoggingMixin, APIView):
     """collector status API endpoint"""
 
     @extend_schema(

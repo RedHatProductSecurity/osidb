@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from apps.taskman.service import JiraTaskmanQuerier
-from osidb.api_views import get_valid_http_methods
+from osidb.api_views import RudimentaryUserPathLoggingMixin, get_valid_http_methods
 
 from .exceptions import WorkflowsException
 from .helpers import get_flaw_or_404, str2bool
@@ -26,7 +26,7 @@ from .workflow import WorkflowFramework
 logger = logging.getLogger(__name__)
 
 
-class index(APIView):
+class index(RudimentaryUserPathLoggingMixin, APIView):
     """index API endpoint"""
 
     def get(self, request, *args, **kwargs):
@@ -42,7 +42,7 @@ class index(APIView):
 
 
 # TODO do we need this when Workflows is baked into OSIDB service ?
-class healthy(APIView):
+class healthy(RudimentaryUserPathLoggingMixin, APIView):
     """unauthenticated health check API endpoint"""
 
     permission_classes = [AllowAny]
@@ -55,7 +55,7 @@ class healthy(APIView):
         return Response()
 
 
-class adjust(APIView):
+class adjust(RudimentaryUserPathLoggingMixin, APIView):
     """workflow adjustion API endpoint"""
 
     http_method_names = get_valid_http_methods(ModelViewSet)
@@ -81,7 +81,7 @@ class adjust(APIView):
         )
 
 
-class promote(APIView):
+class promote(RudimentaryUserPathLoggingMixin, APIView):
     """workflow promote API endpoint"""
 
     http_method_names = get_valid_http_methods(ModelViewSet)
@@ -131,7 +131,7 @@ class promote(APIView):
             return Response({"errors": str(e)}, status=status.HTTP_409_CONFLICT)
 
 
-class reject(APIView):
+class reject(RudimentaryUserPathLoggingMixin, APIView):
     """workflow reject API endpoint"""
 
     http_method_names = get_valid_http_methods(ModelViewSet)
@@ -188,7 +188,7 @@ class reject(APIView):
             return Response({"errors": str(e)}, status=status.HTTP_409_CONFLICT)
 
 
-class classification(APIView):
+class classification(RudimentaryUserPathLoggingMixin, APIView):
     """workflow classification API endpoint"""
 
     @extend_schema(
@@ -237,7 +237,7 @@ class classification(APIView):
         return Response(response)
 
 
-class workflows(APIView):
+class workflows(RudimentaryUserPathLoggingMixin, APIView):
     """workflow info API endpoint"""
 
     def get(self, request, *args, **kwargs):
