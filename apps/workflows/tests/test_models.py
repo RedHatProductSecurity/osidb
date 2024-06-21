@@ -661,7 +661,7 @@ class TestFlaw:
         """test that flaw gets workflow:state assigned on creation"""
         flaw = FlawFactory()
         assert flaw.workflow_name
-        assert flaw.workflow_state
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.NOVALUE
 
     @pytest.mark.enable_signals
     def test_adjust(self):
@@ -739,7 +739,9 @@ class TestFlaw:
     @pytest.mark.enable_signals
     def test_adjust_no_change(self):
         """test that adjusting classification has no effect without flaw modification"""
-        flaw = FlawFactory()  # random flaw
+        flaw = FlawFactory(
+            workflow_state=WorkflowModel.WorkflowState.NEW
+        )  # random flaw
         classification = flaw.classification
         flaw.adjust_classification()
         assert classification == flaw.classification
@@ -782,7 +784,11 @@ class TestFlaw:
         )
         workflow_framework.register_workflow(workflow)
 
-        flaw = FlawFactory(cwe_id="", cve_description="")
+        flaw = FlawFactory(
+            cwe_id="",
+            cve_description="",
+            workflow_state=WorkflowModel.WorkflowState.NEW,
+        )
         AffectFactory(flaw=flaw)
 
         assert flaw.classification["workflow"] == "DEFAULT"
