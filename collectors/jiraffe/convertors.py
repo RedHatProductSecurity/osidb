@@ -2,12 +2,16 @@
 transform Jira issue into OSIDB tracker model
 """
 import json
+import logging
 import uuid
 from functools import cached_property
 
 from django.conf import settings
 from django.db import transaction
 
+from apps.taskman.constants import JIRA_AUTH_TOKEN
+from apps.workflows.workflow import WorkflowFramework
+from collectors.bzimport.constants import BZ_API_KEY
 from osidb.core import generate_acls, set_user_acls
 from osidb.mixins import Alert
 from osidb.models import Affect, Flaw, Tracker
@@ -18,6 +22,119 @@ from ..utils import (
     tracker_summary2module_component,
 )
 from .constants import JIRA_BZ_ID_LABEL_RE
+
+logger = logging.getLogger(__name__)
+
+
+class JiraTaskConvertor:
+    def __init__(
+        self,
+        task_data,
+    ):
+        self._raw = task_data
+        # important that this is last as it might require other fields on self
+        self.task_data = self._normalize()
+        # set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
+        # celery workers should be able to read/write any information in order to fulfill their jobs
+        set_user_acls(settings.ALL_GROUPS)
+
+    def get_field_attr(self, issue, field, attr=""):
+        """
+        field value getter helper
+
+        it is possible that the value of a field is
+        not always a Field object (can be None)
+        """
+        if hasattr(issue.fields, field):
+            if attr and hasattr(getattr(issue.fields, field), attr):
+                return getattr(getattr(issue.fields, field), attr)
+            else:
+                return getattr(issue.fields, field)
+
+        return None
+
+    def _normalize(self) -> dict:
+        """
+        raw data normalization
+        """
+        status = self.get_field_attr(self._raw, "status", "name")
+        resolution = self.get_field_attr(self._raw, "resolution", "name")
+        workflow, state = WorkflowFramework().jira_to_state(status, resolution)
+
+        return {
+            "external_system_id": self._raw.key,
+            "labels": self._raw.fields.labels,
+            "owner": self.get_field_attr(self._raw, "assignee", "name"),
+            "jira_status": status,
+            "jira_resolution": resolution,
+            "workflow_state": state,
+            "workflow_name": workflow,
+            "team_id": self.get_field_attr(self._raw, "customfield_12313240", "id"),
+            "group_key": self.get_field_attr(self._raw, "customfield_12311140"),
+        }
+
+    @property
+    def flaw(self):
+        if not self.task_data["workflow_name"]:
+            logger.error(
+                f"Ignoring Jira task ({self.task_data['external_system_id']})"
+                "due invalid combination of status and resolution"
+                f"({self.task_data['jira_status']}),{self.task_data['jira_resolution']})."
+            )
+            return None
+
+        impact = ""
+        flaw = None
+        for label in self.task_data["labels"]:
+            if label.startswith("flawuuid:"):
+                flaw_uuid = label.split(":")[1]
+                try:
+                    flaw = Flaw.objects.get(uuid=flaw_uuid)
+                except Flaw.DoesNotExist:
+                    logger.error(f"Ignoring task with invalid flaw uuid ({flaw_uuid}).")
+
+            if label.startswith("impact:"):
+                impact = label.split(":")[1]
+
+        if not flaw:
+            logger.error(
+                f"Ignoring task ({self.task_data['external_system_id']}) without label containing flaw uuid."
+            )
+            return None
+
+        impact = impact if impact else flaw.impact
+
+        # Avoid updating timestamp of flaws without real changes
+        has_changes = flaw and (
+            flaw.impact != impact
+            or flaw.team_id != self.task_data["team_id"]
+            or flaw.owner != self.task_data["owner"]
+            or flaw.task_key != self.task_data["external_system_id"]
+            or flaw.group_key != self.task_data["group_key"]
+            or flaw.workflow_name != self.task_data["workflow_name"]
+            or flaw.workflow_state != self.task_data["workflow_state"]
+            or flaw.impact != impact
+        )
+
+        if has_changes:
+            flaw.impact = impact
+            flaw.team_id = self.task_data["team_id"]
+            flaw.owner = self.task_data["owner"]
+            flaw.task_key = self.task_data["external_system_id"]
+            flaw.group_key = self.task_data["group_key"]
+            flaw.workflow_name = self.task_data["workflow_name"]
+            flaw.workflow_state = self.task_data["workflow_state"]
+            flaw.impact = impact
+            return JiraTaskSaver(flaw)
+        return None
+
+
+class JiraTaskSaver:
+    def __init__(self, flaw):
+        self.flaw = flaw
+
+    def save(self):
+        self.flaw.save(jira_token=JIRA_AUTH_TOKEN, bz_api_key=BZ_API_KEY)
 
 
 class TrackerSaver:

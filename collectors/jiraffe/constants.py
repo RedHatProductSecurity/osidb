@@ -6,6 +6,7 @@ from osidb.helpers import get_env
 JIRA_SERVER = get_env("JIRA_URL", default="https://issues.redhat.com")
 JIRA_TOKEN = get_env("JIRA_AUTH_TOKEN")
 HTTPS_PROXY = get_env("HTTPS_TASKMAN_PROXY")
+JIRA_TASKMAN_PROJECT_KEY = get_env("JIRA_TASKMAN_PROJECT_KEY", default="OSIM")
 
 # Jira datetime format string
 JIRA_DT_FMT = "%Y-%m-%d %H:%M"

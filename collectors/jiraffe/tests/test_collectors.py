@@ -4,11 +4,20 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
+import collectors.jiraffe.collectors as collectors
+import collectors.jiraffe.convertors as convertors
+import osidb.models as models
+from apps.taskman.constants import JIRA_AUTH_TOKEN
+from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
 from collectors.bzimport.collectors import FlawCollector
 from collectors.framework.models import CollectorMetadata
-from collectors.jiraffe.collectors import JiraTrackerCollector, MetadataCollector
-from osidb.models import Affect, Flaw, Tracker
+from collectors.jiraffe.collectors import (
+    JiraTaskCollector,
+    JiraTrackerCollector,
+    MetadataCollector,
+)
+from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -18,6 +27,61 @@ from osidb.tests.factories import (
 )
 
 pytestmark = pytest.mark.unit
+
+
+class TestJiraTaskCollector:
+    @pytest.mark.vcr
+    def test_collect(self, monkeypatch):
+        """
+        test the Jira collector run
+        """
+        jira_token = JIRA_AUTH_TOKEN if JIRA_AUTH_TOKEN else "USER_JIRA_TOKEN"
+        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(convertors, "JIRA_AUTH_TOKEN", jira_token)
+        monkeypatch.setattr(collectors, "JIRA_TOKEN", jira_token)
+
+        collector = JiraTaskCollector()
+        jtq = JiraTaskmanQuerier(token=jira_token)
+
+        # remove randomness for VCR usage
+        uuid = "fb145b06-82a7-4851-a429-541288633d16"
+        flaw = FlawFactory(uuid=uuid, embargoed=False, impact=Impact.IMPORTANT)
+        AffectFactory(flaw=flaw)
+        flaw.tasksync(force_creation=True, jira_token=jira_token)
+        assert flaw.impact == Impact.IMPORTANT
+
+        assert flaw.task_key
+
+        issue = jtq.jira_conn.issue(flaw.task_key).raw
+        assert issue["fields"]["status"]["name"] == "New"
+        assert not issue["fields"]["resolution"]
+        assert f"flawuuid:{str(uuid)}" in issue["fields"]["labels"]
+        assert f"impact:{Impact.IMPORTANT}" in issue["fields"]["labels"]
+
+        # Manually modify Jira task status and impact
+        data = {
+            "fields": {
+                "labels": [f"flawuuid:{str(uuid)}", f"impact:{Impact.LOW}"],
+            }
+        }
+        url = f"{jtq.jira_conn._get_url('issue')}/{flaw.task_key}"
+        jtq.jira_conn._session.put(url, json.dumps(data))
+        jtq.jira_conn.transition_issue(
+            issue=flaw.task_key,
+            transition="Refinement",
+        )
+        issue = jtq.jira_conn.issue(flaw.task_key).raw
+        assert issue["fields"]["status"]["name"] == "Refinement"
+        assert f"flawuuid:{str(uuid)}" in issue["fields"]["labels"]
+        assert f"impact:{Impact.LOW}" in issue["fields"]["labels"]
+        assert not issue["fields"]["resolution"]
+
+        collector.collect(flaw.task_key)
+
+        # refresh instance
+        flaw = Flaw.objects.get(uuid=flaw.uuid)
+        assert flaw.impact == Impact.LOW
+        assert flaw.workflow_state == "TRIAGE"
 
 
 class TestJiraTrackerCollector:
