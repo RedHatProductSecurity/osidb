@@ -458,7 +458,7 @@ interactions:
         "cf_internal_whiteboard": "", "severity": "low", "flags": [], "cf_environment":
         "", "cc_detail": [], "id": 2291456, "priority": "low", "url": "", "alias":
         [], "cf_cust_facing": "---", "cc": [], "dupe_of": null, "last_change_time":
-        "2024-06-13T07:44:56Z", "cf_last_closed": null, "update_token": "1718264700-AYsM6vsmL7pwQn0IDwVI5eXQNox2vucufD2nxyJWtXI",
+        "2024-06-13T07:44:56Z", "cf_last_closed": null,
         "cf_build_id": "", "cf_pm_score": "0", "is_confirmed": true, "blocks": [],
         "actual_time": 0, "resolution": "", "tags": [], "deadline": null, "creator_detail":
         {"id": 412888, "email": "osoukup@redhat.com", "name": "osoukup@redhat.com",
@@ -541,7 +541,7 @@ interactions:
         null, "last_change_time": "2024-06-13T07:44:56Z", "creator_detail": {"name":
         "osoukup@redhat.com", "email": "osoukup@redhat.com", "partner": false, "id":
         412888, "insider": true, "real_name": "Ondrej Soukup", "active": true}, "sub_components":
-        {}, "cf_qe_conditional_nak": [], "update_token": "1718264700-AYsM6vsmL7pwQn0IDwVI5eXQNox2vucufD2nxyJWtXI",
+        {}, "cf_qe_conditional_nak": [],
         "cc": [], "data_category": "Public", "cf_build_id": "", "assigned_to_detail":
         {"name": "prodsec-dev@redhat.com", "email": "prodsec-dev@redhat.com", "partner":
         false, "id": 377884, "active": true, "insider": true, "real_name": "Product
@@ -2385,7 +2385,7 @@ interactions:
       string: '{"faults": [], "bugs": [{"cf_last_closed": null, "last_change_time":
         "2024-06-13T07:45:28Z", "dupe_of": null, "resolution": "", "actual_time":
         0, "blocks": [], "is_confirmed": true, "cf_pm_score": "0", "cf_build_id":
-        "", "update_token": "1718264730-VQl0VjSz1ZxKQpekvzzGmd_Jj9PfOAh6EuUNJpPDAkc",
+        "",
         "deadline": null, "tags": [], "estimated_time": 0, "external_bugs": [], "creation_time":
         "2024-06-13T07:44:56Z", "product": "Security Response", "op_sys": "Linux",
         "cf_qe_conditional_nak": [], "summary": "curl: Foo", "creator_detail": {"insider":
@@ -2489,7 +2489,7 @@ interactions:
         "creator": "osoukup@redhat.com", "remaining_time": 0, "whiteboard": "", "status":
         "NEW", "cf_fixed_in": "", "is_open": true, "cf_release_notes": "", "target_milestone":
         "---", "dupe_of": null, "last_change_time": "2024-06-13T07:45:28Z", "cf_last_closed":
-        null, "cf_build_id": "", "update_token": "1718264731-gwQl5soHzqOJAMwSO30tG3F3EfeHvYwi04aM7k2Ze00",
+        null, "cf_build_id": "",
         "cf_pm_score": "0", "actual_time": 0, "is_confirmed": true, "blocks": [],
         "resolution": "", "tags": [], "deadline": null, "summary": "curl: Foo", "creator_detail":
         {"name": "osoukup@redhat.com", "id": 412888, "email": "osoukup@redhat.com",
@@ -3935,8 +3935,7 @@ interactions:
         ["Security"], "classification": "Other", "cf_fixed_in": "", "docs_contact":
         "", "remaining_time": 0, "tags": [], "cc_detail": [], "is_creator_accessible":
         true, "is_cc_accessible": true, "actual_time": 0, "platform": "All", "product":
-        "Security Response", "cf_qa_whiteboard": "", "cf_pgm_internal": "", "update_token":
-        "1718264740-YhdY5hbFX6y8G9zzk9_jIwgh77P9P_O_4IR7IWTF3Rk", "cc": [], "cf_build_id":
+        "Security Response", "cf_qa_whiteboard": "", "cf_pgm_internal": "", "cc": [], "cf_build_id":
         "", "data_category": "Public", "assigned_to_detail": {"active": true, "insider":
         true, "real_name": "Product Security DevOps Team", "partner": false, "email":
         "prodsec-dev@redhat.com", "name": "prodsec-dev@redhat.com", "id": 377884},
@@ -4016,7 +4015,7 @@ interactions:
         "osoukup@redhat.com", "id": 412888, "email": "osoukup@redhat.com"}, "summary":
         "curl: Foo", "cf_qe_conditional_nak": [], "op_sys": "Linux", "tags": [], "deadline":
         null, "is_confirmed": true, "blocks": [], "actual_time": 0, "resolution":
-        "", "update_token": "1718264741-mswZFN4iP0cQU70OKIp0HxQl-Ltdatl0nRgxvO5tjQ0",
+        "",
         "cf_build_id": "", "cf_pm_score": "0", "last_change_time": "2024-06-13T07:45:28Z",
         "cf_last_closed": null, "dupe_of": null, "target_milestone": "---", "cf_release_notes":
         "", "is_open": true, "status": "NEW", "whiteboard": "", "cf_fixed_in": "",

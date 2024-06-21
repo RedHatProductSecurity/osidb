@@ -20,6 +20,17 @@ from osidb.core import set_user_acls
 base_url_pattern = re.compile(r"(https?://)[^/]+")
 
 
+def strip_bz_update_token(body):
+    body = json.loads(body)
+    bugs = body.get("bugs", [])
+    if isinstance(bugs, list):
+        for bug in bugs:
+            bug.pop("update_token", None)
+    if bugs:
+        body["bugs"] = bugs
+    return json.dumps(body).encode("utf-8")
+
+
 def strip_private_bz_comments(body):
     body = json.loads(body)
     bugs = body.get("bugs", [])
@@ -71,6 +82,7 @@ def filter_response(response):
         response["body"]["string"] = clean_product_definitions_contacts(
             response["body"]["string"]
         )
+        response["body"]["string"] = strip_bz_update_token(response["body"]["string"])
     except Exception:
         ...
     return response

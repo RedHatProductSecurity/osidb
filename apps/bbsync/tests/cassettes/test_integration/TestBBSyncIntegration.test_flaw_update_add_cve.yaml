@@ -370,7 +370,7 @@ interactions:
         "", "cc_detail": [], "id": 2293325, "priority": "medium", "url": "", "cf_cust_facing":
         "---", "alias": ["CVE-2000-3000", "CVE-2021-0773"], "cc": [], "dupe_of": null,
         "last_change_time": "2024-06-14T13:49:14Z", "cf_last_closed": null, "cf_build_id":
-        "", "update_token": "1718372957-PT7930uM9_Exlj9hKfQLsaGkUm9NsZ3Zm54sJwjEQyk",
+        "",
         "cf_pm_score": "0", "actual_time": 0, "blocks": [], "is_confirmed": true,
         "resolution": "", "tags": [], "deadline": null, "summary": "CVE-2000-3000
         ssh: I cannot ssh into Matrix", "creator_detail": {"partner": false, "active":
@@ -437,7 +437,7 @@ interactions:
         "osoukup@redhat.com"}, "summary": "CVE-2000-3000 ssh: I cannot ssh into Matrix",
         "op_sys": "Linux", "cf_qe_conditional_nak": [], "last_change_time": "2024-06-14T13:49:14Z",
         "cf_last_closed": null, "dupe_of": null, "blocks": [], "is_confirmed": true,
-        "actual_time": 0, "resolution": "", "update_token": "1718372957-PT7930uM9_Exlj9hKfQLsaGkUm9NsZ3Zm54sJwjEQyk",
+        "actual_time": 0, "resolution": "",
         "cf_build_id": "", "cf_pm_score": "0", "is_open": true, "status": "NEW", "whiteboard":
         "", "cf_fixed_in": "", "target_milestone": "---", "cf_release_notes": "random
         cve_description", "remaining_time": 0, "creator": "osoukup@redhat.com", "groups":

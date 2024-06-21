@@ -1052,8 +1052,7 @@ interactions:
         "email": "ahanwate@redhat.com", "id": 468140}, "summary": "continue: start:
         history: sample title", "cf_last_closed": "2023-06-27T11:40:44Z", "last_change_time":
         "2024-06-13T14:46:22Z", "dupe_of": null, "resolution": "ERRATA", "is_confirmed":
-        true, "blocks": [], "actual_time": 0, "cf_pm_score": "0", "update_token":
-        "1718289993-cZv7G3VSPHn_-Z9-lyNrefkTVn5ICAQvfEOPmWJXH-M", "cf_build_id": "",
+        true, "blocks": [], "actual_time": 0, "cf_pm_score": "0", "cf_build_id": "",
         "is_open": false, "cf_fixed_in": "jQuery 3.5.0", "status": "CLOSED", "whiteboard":
         "", "target_milestone": "---", "cf_release_notes": "foo", "remaining_time":
         0, "creator": "ahanwate@redhat.com", "groups": []}]}'
@@ -1115,8 +1114,7 @@ interactions:
         "name": "ahanwate@redhat.com"}, "cf_qe_conditional_nak": [], "op_sys": "Linux",
         "creation_time": "2023-06-27T04:14:32Z", "external_bugs": [], "product": "Security
         Response", "estimated_time": 0, "dupe_of": null, "last_change_time": "2024-06-13T14:46:22Z",
-        "cf_last_closed": "2023-06-27T11:40:44Z", "cf_build_id": "", "update_token":
-        "1718289995-C5u7deKOMXbzQ-GypzTrkB-SCdVzkxdpcfLTKymclE4", "cf_pm_score": "0",
+        "cf_last_closed": "2023-06-27T11:40:44Z", "cf_build_id": "", "cf_pm_score": "0",
         "actual_time": 0, "is_confirmed": true, "blocks": [], "resolution": "ERRATA",
         "severity": "low", "cf_internal_whiteboard": "", "version": ["unspecified"],
         "cf_environment": "", "flags": [{"name": "requires_doc_text", "status": "+",
@@ -1946,7 +1944,7 @@ interactions:
         "is_cc_accessible": true, "cf_major_incident": null, "groups": [], "remaining_time":
         0, "creator": "ahanwate@redhat.com", "cf_release_notes": "foo", "target_milestone":
         "---", "cf_fixed_in": "jQuery 3.5.0", "status": "CLOSED", "whiteboard": "",
-        "is_open": false, "cf_pm_score": "0", "update_token": "1718289999-vYXCA_stmuvIwTTUpX1CreTGYYyuH_l1DBFTyrCZhdc",
+        "is_open": false, "cf_pm_score": "0",
         "cf_build_id": "", "resolution": "ERRATA", "blocks": [], "is_confirmed": true,
         "actual_time": 0, "dupe_of": null, "cf_last_closed": "2023-06-27T11:40:44Z",
         "last_change_time": "2024-06-13T14:46:22Z", "op_sys": "Linux", "cf_qe_conditional_nak":
@@ -2069,7 +2067,6 @@ interactions:
         "smaestri@redhat.com", "sostapov@redhat.com", "spoore@redhat.com", "sthorger@redhat.com",
         "stransky@redhat.com", "tojeline@redhat.com", "tom.jenkinson@redhat.com",
         "tpopela@redhat.com", "trodgers@redhat.com", "tvignaud@redhat.com", "vereddy@redhat.com"],
-        "update_token": "1718290000-kPw6NEVPFieZNvTdIZ3hoH1bJDtb0ksbcfaHfeTpUiU",
         "cf_major_incident": null, "op_sys": "Linux", "flags": [{"id": 5946605, "name":
         "requires_doc_text", "is_active": 1, "creation_date": "2023-07-03T04:57:24Z",
         "modification_date": "2023-07-03T12:26:30Z", "status": "+", "setter": "rtillery@redhat.com",

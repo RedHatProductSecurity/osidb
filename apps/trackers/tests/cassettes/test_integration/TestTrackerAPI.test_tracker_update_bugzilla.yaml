@@ -355,8 +355,7 @@ interactions:
         "email": "rhcert-qe@redhat.com", "id": 408554, "name": "rhcert-qe@redhat.com"},
         "estimated_time": 0, "product": "Red Hat Certification Program", "creation_time":
         "2024-06-13T14:25:38Z", "external_bugs": [], "dupe_of": null, "cf_last_closed":
-        null, "last_change_time": "2024-06-13T14:36:25Z", "cf_pm_score": "0", "update_token":
-        "1718289386-CWAmYGobekphAO88irBmJ6UcIQ2lSMoy7zp2oIywj2k", "cf_build_id": "",
+        null, "last_change_time": "2024-06-13T14:36:25Z", "cf_pm_score": "0", "cf_build_id": "",
         "resolution": "", "blocks": [2217733], "is_confirmed": true, "actual_time":
         0, "cf_fixed_in": "", "status": "NEW", "whiteboard": "{\"flaws\": [\"d6d57555-e899-497a-990e-3593955226ef\"]}",
         "is_open": true, "cf_release_notes": "", "target_milestone": "---", "cf_verified":

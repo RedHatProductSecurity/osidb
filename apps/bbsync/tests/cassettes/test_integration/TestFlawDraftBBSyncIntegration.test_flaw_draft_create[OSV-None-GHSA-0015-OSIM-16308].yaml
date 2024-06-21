@@ -842,7 +842,7 @@ interactions:
         "nobody@redhat.com", "id": 425662, "name": "nobody@redhat.com"}, "summary":
         "From OSV collector", "op_sys": "Linux", "cf_qe_conditional_nak": [], "product":
         "Security Response", "creation_time": "2024-06-17T08:55:44Z", "external_bugs":
-        [], "estimated_time": 0, "tags": [], "deadline": null, "update_token": "1718614545-c4df4FKk9MwMPBxMmFWE_1s2V07UZHh-LUEBv71MFSg",
+        [], "estimated_time": 0, "tags": [], "deadline": null,
         "cf_build_id": "", "cf_pm_score": "0", "is_confirmed": true, "blocks": [],
         "actual_time": 0, "resolution": "", "dupe_of": null, "last_change_time": "2024-06-17T08:55:44Z",
         "cf_last_closed": null, "cf_release_notes": "", "target_milestone": "---",
@@ -903,7 +903,7 @@ interactions:
         true}, "summary": "From OSV collector", "op_sys": "Linux", "cf_qe_conditional_nak":
         [], "product": "Security Response", "creation_time": "2024-06-17T08:55:44Z",
         "external_bugs": [], "estimated_time": 0, "dupe_of": null, "last_change_time":
-        "2024-06-17T08:55:44Z", "cf_last_closed": null, "update_token": "1718614546-XCZqs9CkLDMXzsmQ24edv5Ogdsfqiqm5DzP9xzJiBDQ",
+        "2024-06-17T08:55:44Z", "cf_last_closed": null,
         "cf_build_id": "", "cf_pm_score": "0", "is_confirmed": true, "blocks": [],
         "actual_time": 0, "resolution": "", "status": "NEW", "whiteboard": "", "cf_fixed_in":
         "", "is_open": true, "cf_release_notes": "", "target_milestone": "---", "groups":

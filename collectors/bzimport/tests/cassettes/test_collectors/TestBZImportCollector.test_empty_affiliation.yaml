@@ -181,7 +181,7 @@ interactions:
         are affected.\"}", "data_category": "Public", "cf_build_id": "", "assigned_to_detail":
         {"insider": false, "real_name": "Nobody", "active": true, "email": "nobody@redhat.com",
         "name": "nobody@redhat.com", "partner": false, "id": 29451}, "cf_cust_facing":
-        "---", "update_token": "1718280779-vikRIB7hbRn5_-bJFQdPXCgieb82rcWk8QHpt3uk8pc",
+        "---",
         "cc": ["gblomqui@redhat.com", "mabashia@redhat.com", "smcdonal@redhat.com"],
         "cf_qe_conditional_nak": [], "creator_detail": {"id": 406891, "partner": false,
         "email": "btarraso@redhat.com", "name": "btarraso@redhat.com", "active": true,
@@ -360,7 +360,7 @@ interactions:
         "partner": false}, "sub_components": {}, "cf_build_id": "", "assigned_to_detail":
         {"insider": false, "real_name": "Nobody", "active": true, "name": "nobody@redhat.com",
         "email": "nobody@redhat.com", "partner": false, "id": 29451}, "data_category":
-        "Public", "cf_cust_facing": "---", "update_token": "1718280780-xhHFiLLqT67wxDd1kdOTOMC1sayaEezXh8TdGMkBv8Y",
+        "Public", "cf_cust_facing": "---",
         "cc": ["gblomqui@redhat.com", "mabashia@redhat.com", "smcdonal@redhat.com"],
         "alias": ["CVE-2020-10709"], "cf_environment": "", "flags": [{"is_active":
         1, "creation_date": "2020-04-16T13:08:13Z", "modification_date": "2020-04-16T13:08:13Z",

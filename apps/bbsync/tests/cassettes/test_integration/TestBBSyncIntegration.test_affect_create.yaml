@@ -524,7 +524,7 @@ interactions:
         "mchehab@infradead.org", "nmurray@redhat.com", "osoukup@redhat.com", "ptalbert@redhat.com",
         "qzhao@redhat.com", "rvrbovsk@redhat.com", "scweaver@redhat.com", "security-response-team@bot.bugzilla.redhat.com",
         "steved@redhat.com", "vkumar@redhat.com", "vmalik@redhat.com", "walters@redhat.com",
-        "williams@redhat.com", "zulinx86@gmail.com"], "update_token": "1718620624-9iZ3vLAJJma8JZfggCMe1ZfsLcfts6d4EScGJI8idZw",
+        "williams@redhat.com", "zulinx86@gmail.com"],
         "cf_cust_facing": "---", "cf_build_id": "", "data_category": "Public", "assigned_to_detail":
         {"id": 29451, "name": "nobody@redhat.com", "email": "nobody@redhat.com", "partner":
         false, "real_name": "Nobody", "insider": false, "active": true}, "cf_major_incident":
@@ -789,8 +789,7 @@ interactions:
         "", "cf_major_incident": null, "last_change_time": "2024-06-17T10:36:57Z",
         "creator_detail": {"active": true, "insider": true, "real_name": "Pedro Sampaio",
         "email": "psampaio@redhat.com", "name": "psampaio@redhat.com", "partner":
-        false, "id": 409354}, "sub_components": {}, "cf_qe_conditional_nak": [], "update_token":
-        "1718620625-YHm8Ovtyuq-SmUfm7lqQot71hv8G5XdonjU4N7vP6M4", "cc": ["acaringi@redhat.com",
+        false, "id": 409354}, "sub_components": {}, "cf_qe_conditional_nak": [], "cc": ["acaringi@redhat.com",
         "adscvr@gmail.com", "airlied@redhat.com", "alciregi@posteo.net", "allarkin@redhat.com",
         "bhu@redhat.com", "carnil@debian.org", "chwhite@redhat.com", "crwood@redhat.com",
         "dvlasenk@redhat.com", "hdegoede@redhat.com", "hkrzesin@redhat.com", "jarod@redhat.com",

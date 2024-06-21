@@ -918,7 +918,7 @@ interactions:
         "assigned_to_detail": {"active": true, "real_name": "Product Security DevOps
         Team", "insider": true, "id": 377884, "name": "prodsec-dev@redhat.com", "partner":
         false, "email": "prodsec-dev@redhat.com"}, "data_category": "Red Hat", "cf_build_id":
-        "", "cf_cust_facing": "---", "update_token": "1718628311-gBneIDvP7PIdlf3QklYBOWiZX2PPzOYkXJIscnr1WjE",
+        "", "cf_cust_facing": "---",
         "cc": [], "flags": [], "op_sys": "Linux", "alias": ["CVE-2020-8911"], "cf_environment":
         "", "cf_major_incident": null, "last_change_time": "2024-06-17T12:45:08Z",
         "target_release": ["---"], "cf_conditional_nak": [], "target_milestone": "---",
@@ -1025,8 +1025,7 @@ interactions:
         "", "cf_embargoed": null, "docs_contact": "", "id": 2293432, "priority": "unspecified",
         "url": "", "alias": ["CVE-2020-8911"], "cf_cust_facing": "---", "cc": [],
         "severity": "unspecified", "cf_internal_whiteboard": "", "version": ["unspecified"],
-        "cf_environment": "", "flags": [], "cc_detail": [], "cf_build_id": "", "update_token":
-        "1718628311-gBneIDvP7PIdlf3QklYBOWiZX2PPzOYkXJIscnr1WjE", "cf_pm_score": "0",
+        "cf_environment": "", "flags": [], "cc_detail": [], "cf_build_id": "", "cf_pm_score": "0",
         "actual_time": 0, "blocks": [], "is_confirmed": true, "resolution": "", "dupe_of":
         null, "last_change_time": "2024-06-17T12:45:08Z", "cf_last_closed": null,
         "summary": "CVE-2020-8911 Use of risky cryptographic algorithm in github.com/aws/aws-sdk-go",
@@ -2004,7 +2003,7 @@ interactions:
         "cf_embargoed": null, "creator_detail": {"id": 425662, "partner": false, "email":
         "nobody@redhat.com", "name": "nobody@redhat.com", "active": true, "real_name":
         "nobody", "insider": true}, "sub_components": {}, "cf_qe_conditional_nak":
-        [], "update_token": "1718628320-w4vXwcUf5GXPz-LgSckQJlCr0SAxsiN2DsbGNGqIIxg",
+        [],
         "cc": [], "cf_build_id": "", "data_category": "Red Hat", "assigned_to_detail":
         {"id": 377884, "email": "prodsec-dev@redhat.com", "partner": false, "name":
         "prodsec-dev@redhat.com", "real_name": "Product Security DevOps Team", "insider":
@@ -2101,7 +2100,7 @@ interactions:
         "nobody@redhat.com"}, "estimated_time": 0, "external_bugs": [], "creation_time":
         "2024-06-17T12:45:18Z", "product": "Security Response", "dupe_of": null, "cf_last_closed":
         null, "last_change_time": "2024-06-17T12:45:18Z", "cf_pm_score": "0", "cf_build_id":
-        "", "update_token": "1718628321-Lb14kcnQiHrSQEZF_MLL5hdQGrTz2d0BRl8_ejWXqT4",
+        "",
         "resolution": "", "actual_time": 0, "is_confirmed": true, "blocks": [], "cf_fixed_in":
         "", "whiteboard": "", "status": "NEW", "is_open": true, "cf_release_notes":
         "", "target_milestone": "---", "groups": ["redhat"], "creator": "nobody@redhat.com",

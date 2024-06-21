@@ -173,7 +173,7 @@ interactions:
         "---", "cc": ["adrian@lisas.de"], "id": 1629664, "priority": "low", "url":
         "", "last_change_time": "2018-09-17T09:22:00Z", "cf_last_closed": null, "dupe_of":
         null, "actual_time": 0, "is_confirmed": true, "blocks": [1629662], "resolution":
-        "", "cf_build_id": "", "update_token": "1718286187-KxbrihMr2kGghwEw3gFA4d5Vk2g8DodaA1Zbm_mGmwg",
+        "", "cf_build_id": "",
         "cf_pm_score": "0", "tags": [], "deadline": null, "external_bugs": [], "creation_time":
         "2018-09-17T09:21:54Z", "product": "Fedora EPEL", "qa_contact_detail": {"name":
         "extras-qa@fedoraproject.org", "id": 171387, "email": "extras-qa@fedoraproject.org",

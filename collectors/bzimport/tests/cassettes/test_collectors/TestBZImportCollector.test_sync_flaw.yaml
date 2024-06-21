@@ -152,7 +152,6 @@ interactions:
         "cf_build_id": "", "cc": ["berrange@redhat.com", "jdenemar@redhat.com", "jrusnack@redhat.com",
         "mjc@redhat.com", "security-response-team@redhat.com", "vdanen@redhat.com",
         "veillard@redhat.com", "virt-maint@redhat.com", "xen-maint@redhat.com", "yimwang@redhat.com"],
-        "update_token": "1718280680-KQCLaCSjAj0XLguhsPRkXzkqeNqzJ7AhrX2DgwcjK_E",
         "cf_srtnotes": "{\"affects\": [{\"affectedness\": \"notaffected\", \"cvss2\":
         null, \"cvss3\": null, \"impact\": null, \"ps_component\": \"libvirt\", \"ps_module\":
         \"rhel-6\", \"resolution\": null}, {\"affectedness\": \"affected\", \"cvss2\":
@@ -436,7 +435,6 @@ interactions:
         Security"}, "cc": ["berrange@redhat.com", "jdenemar@redhat.com", "jrusnack@redhat.com",
         "mjc@redhat.com", "security-response-team@redhat.com", "vdanen@redhat.com",
         "veillard@redhat.com", "virt-maint@redhat.com", "xen-maint@redhat.com", "yimwang@redhat.com"],
-        "update_token": "1718280681-M7C3uRefpz1pp3jQt3Hu5gvOGCg35GWk7qt48ldPvGA",
         "cf_srtnotes": "{\"affects\": [{\"affectedness\": \"notaffected\", \"cvss2\":
         null, \"cvss3\": null, \"impact\": null, \"ps_component\": \"libvirt\", \"ps_module\":
         \"rhel-6\", \"resolution\": null}, {\"affectedness\": \"affected\", \"cvss2\":

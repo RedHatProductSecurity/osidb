@@ -418,7 +418,7 @@ interactions:
         "whiteboard": "", "status": "NEW", "is_open": true, "cf_release_notes": "something
         got wrong in my shower", "target_milestone": "---", "dupe_of": null, "cf_last_closed":
         null, "last_change_time": "2024-06-17T08:13:47Z", "cf_pm_score": "0", "cf_build_id":
-        "", "update_token": "1718612032-dW8OnPNiFd8pBOAhdUCDX-mGZ598o9OLenzVN9fHGrM",
+        "",
         "resolution": "", "actual_time": 0, "is_confirmed": true, "blocks": [2050770],
         "deadline": null, "tags": [], "cf_qe_conditional_nak": [], "op_sys": "Linux",
         "summary": "EMBARGOED CVE-2022-0508 shower: water overflow", "creator_detail":
@@ -687,7 +687,7 @@ interactions:
         "full_url": "https://example.com/support/cases/%id%", "url": "https://example.com/errata/",
         "id": 139, "can_send": 0, "can_get": 0}}], "creation_time": "2022-01-24T19:05:54Z",
         "product": "Security Response", "deadline": null, "tags": [], "cf_pm_score":
-        "0", "cf_build_id": "", "update_token": "1718612033--NzUU-owgHESlm4yBACYHdTZ1BM_5EMKU3ZQn9g_Kts",
+        "0", "cf_build_id": "",
         "resolution": "", "actual_time": 0, "blocks": [2050770], "is_confirmed": true,
         "dupe_of": null, "cf_last_closed": null, "last_change_time": "2024-06-17T08:13:47Z",
         "cf_release_notes": "something got wrong in my shower", "target_milestone":

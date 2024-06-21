@@ -374,8 +374,7 @@ interactions:
         "alias": [], "op_sys": "Linux", "cf_environment": "", "flags": [{"status":
         "+", "setter": "bugzilla@redhat.com", "type_id": 415, "name": "requires_doc_text",
         "id": 6115851, "modification_date": "2024-06-14T13:54:41Z", "creation_date":
-        "2024-06-14T13:42:13Z", "is_active": 1}], "cf_major_incident": null, "update_token":
-        "1718373334-iwiO_H62EqM-ufiOsOZCfJ6uPFEufIiTjgqcW37y47U", "cc": [], "data_category":
+        "2024-06-14T13:42:13Z", "is_active": 1}], "cf_major_incident": null, "cc": [], "data_category":
         "Public", "cf_build_id": "", "assigned_to_detail": {"active": true, "real_name":
         "Product Security DevOps Team", "insider": true, "id": 377884, "email": "prodsec-dev@redhat.com",
         "name": "prodsec-dev@redhat.com", "partner": false}, "cf_cust_facing": "---",
@@ -456,7 +455,7 @@ interactions:
         "---", "cf_build_id": "", "data_category": "Public", "assigned_to_detail":
         {"partner": false, "email": "prodsec-dev@redhat.com", "name": "prodsec-dev@redhat.com",
         "id": 377884, "insider": true, "real_name": "Product Security DevOps Team",
-        "active": true}, "cc": [], "update_token": "1718373334-iwiO_H62EqM-ufiOsOZCfJ6uPFEufIiTjgqcW37y47U",
+        "active": true}, "cc": [],
         "cf_qe_conditional_nak": [], "sub_components": {}, "creator_detail": {"id":
         412888, "partner": false, "email": "osoukup@redhat.com", "name": "osoukup@redhat.com",
         "active": true, "real_name": "Ondrej Soukup", "insider": true}, "cf_last_closed":
