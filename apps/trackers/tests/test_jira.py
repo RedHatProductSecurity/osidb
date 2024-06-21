@@ -10,6 +10,7 @@ import pytest
 from django.utils.timezone import datetime, make_aware
 
 from apps.trackers.exceptions import (
+    ComponentUnavailableError,
     NoSecurityLevelAvailableError,
     NoTargetReleaseVersionAvailableError,
 )
@@ -915,6 +916,85 @@ sla:
         # should not raise here
         query_builder.generate_target_release()
         assert not query_builder._query["fields"]
+
+    @pytest.mark.parametrize(
+        "bts_key,jpf_avail,component,default_component,result_component,result_exception",
+        [
+            ("fooproj", True, "component", None, "component", False),
+            ("fooproj", True, "barfoo", None, "foobar", False),
+            ("fooproj", True, "imaginary", None, "imaginary", True),
+            ("fooproj", True, "compo/nent", None, "compo/nent", False),
+            ("fooproj", True, "comp/onent", None, "comp/onent", True),
+            ("fooproj", False, "comp/onent", None, "comp/onent", False),
+            ("fooproj", True, "comp/onent", "comp-bar", "comp-bar", False),
+            ("fooproj", False, "comp/onent", "comp-bar", "comp/onent", False),
+            ("RHEL", True, "compo/nent", None, "nent", False),
+            ("RHEL", True, "comp/onent", None, "onent", True),
+            ("RHEL", False, "comp/onent", None, "onent", False),
+            ("RHEL", True, "barfoo", None, "foobar", False),
+        ],
+    )
+    def test_generate_component(
+        self,
+        bts_key,
+        jpf_avail,
+        component,
+        default_component,
+        result_component,
+        result_exception,
+    ):
+        """
+        Test that "components" field is generated for a new tracker
+        """
+
+        ps_module = PsModuleFactory(
+            bts_name="jboss",
+            private_trackers_allowed=True,
+            component_overrides={"barfoo": "foobar"},
+            bts_key=bts_key,
+            default_component=default_component,
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+        )
+        flaw = FlawFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            ps_component=component,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=ps_update_stream.name,
+            embargoed=flaw.embargoed,
+        )
+        if jpf_avail:
+            JiraProjectFieldsFactory(
+                project_key=ps_module.bts_key,
+                field_id="components",
+                field_name="components",
+                allowed_values=[
+                    "comp-foo",
+                    "comp-bar",
+                    "component",
+                    "foobar",
+                    "compo/nent",
+                    "nent",
+                ],
+            )
+
+        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder._query = {"fields": {}}
+        if result_exception:
+            with pytest.raises(ComponentUnavailableError):
+                query_builder.generate_component()
+        else:
+            query_builder.generate_component()
+            assert query_builder.query["fields"]["components"] == [
+                {"name": result_component}
+            ]
 
 
 def validate_minimum_key_value(minimum: Dict[str, Any], evaluated: Dict[str, Any]):

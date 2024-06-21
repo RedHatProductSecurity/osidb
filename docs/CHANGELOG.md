@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement search on emptiness for several fields (OSIDB-2815)
 - Add major_incident_start_dt field (OSIDB-2728)
 - Add empty value to workflow_state (OSIDB-2881)
+- Generate Jira tracker "components" field (OSIDB-2988)
 
 ### Changed
 - Make workflows API RESTful (OSIDB-1716)

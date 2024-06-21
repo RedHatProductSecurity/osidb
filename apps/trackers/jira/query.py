@@ -8,6 +8,7 @@ from functools import cached_property
 from apps.sla.framework import SLAFramework
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import (
+    ComponentUnavailableError,
     NoPriorityAvailableError,
     NoSecurityLevelAvailableError,
     NoTargetReleaseVersionAvailableError,
@@ -88,6 +89,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         generate query
         """
         self.generate_base()
+        self.generate_component()
         self.generate_priority()
         self.generate_description()
         self.generate_labels()
@@ -108,6 +110,68 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         }
         if self.tracker.external_system_id:
             self._query["key"] = self.tracker.external_system_id
+
+    def generate_component(self):
+        """
+        Generate Jira "components" field (with 1 component)
+        """
+
+        component = self.ps_component
+
+        try:
+            allowed_component_values = JiraProjectFields.objects.get(
+                project_key=self.ps_module.bts_key, field_id="components"
+            ).allowed_values
+        except JiraProjectFields.DoesNotExist:
+            # In some cases this information is not available. In that case, Jira will return
+            # its own error if the component is invalid. So in that case, skip OSIDB-side checks.
+            # JiraProjectFields may not be available
+            # - in tests
+            # - when OSIDB is run freshly without running product_definitions_collector and metadata_collector first
+            # - if metadata_collector fails for some reason
+            allowed_component_values = None
+
+        # Component override, mirrors SFM2
+        what_component = "component"  # just to display correct exception msg when component is not found
+
+        if (
+            self.ps_module.component_overrides
+            and self.ps_component in self.ps_module.component_overrides
+        ):
+            what_component = "overridden component"
+            override = self.ps_module.component_overrides[self.ps_component]
+            if override is not None:
+                component = (
+                    override["component"] if isinstance(override, dict) else override
+                )
+        elif self.ps_module.bts_key == "RHEL" and component != (
+            parsed_bz_component := self.ps_component.split("/")[-1]
+            if "/" in self.ps_component
+            else self.ps_component
+        ):
+            # RHEL-specific modular ps_component splitting
+            # FIXME: make this not be RHEL specific (this line brought over from SFM2, not sure about current status as of 2024-06)
+            what_component = "modular rpm component"
+            component = parsed_bz_component
+        elif (
+            self.ps_module.default_component
+            and allowed_component_values
+            and component not in allowed_component_values
+        ):
+            # Use default when ps_component does not match a Jira component
+            what_component = "default component"
+            component = self.ps_module.default_component
+            logger.warning(
+                f"""Component "{self.ps_component}" overriden to default "{component}" for ps_module "{self.ps_module.name}" and ps_update_stream "{self.ps_update_stream.name}"."""
+            )
+
+        if allowed_component_values and component not in allowed_component_values:
+            raise ComponentUnavailableError(
+                f"""Tracker {what_component} "{component}" is not valid for """
+                f"Jira project {self.ps_module.bts_key}."
+            )
+
+        self._query["fields"]["components"] = [{"name": component}]
 
     def generate_priority(self):
         """
