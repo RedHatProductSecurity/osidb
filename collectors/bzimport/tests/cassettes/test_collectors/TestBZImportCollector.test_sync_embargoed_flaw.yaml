@@ -180,7 +180,7 @@ interactions:
         "id": 1629662, "url": "", "priority": "low", "last_change_time": "2024-06-13T13:29:02Z",
         "cf_last_closed": "2019-06-10T10:37:57Z", "dupe_of": null, "actual_time":
         0, "blocks": [], "is_confirmed": true, "resolution": "UPSTREAM", "cf_build_id":
-        "", "update_token": "1718285460-6-fxT8PdPOG7IynvkCeiHb9oa2mlvvCb9VJEStWnzFU",
+        "",
         "cf_pm_score": "0", "tags": [], "deadline": null, "external_bugs": [], "creation_time":
         "2018-09-17T09:21:31Z", "product": "Security Response", "estimated_time":
         0, "summary": "CVE-2018-17088 jhead: Integer overflow in gpsinfo.c while running
@@ -253,8 +253,7 @@ interactions:
         true, "remaining_time": 0, "tags": [], "product": "Security Response", "cf_qa_whiteboard":
         "", "cf_pgm_internal": "", "is_cc_accessible": true, "actual_time": 0, "platform":
         "All", "last_change_time": "2024-06-13T13:29:02Z", "flags": [], "alias": ["CVE-2018-17088"],
-        "op_sys": "Linux", "cf_environment": "", "cf_major_incident": null, "update_token":
-        "1718285461-PHRxu4SpLcXQf-K_2p-2g-REtDtuz8NdQbaVtVaxM_4", "cc": ["adrian@lisas.de",
+        "op_sys": "Linux", "cf_environment": "", "cf_major_incident": null, "cc": ["adrian@lisas.de",
         "osoukup@redhat.com", "security-response-team@bot.bugzilla.redhat.com"], "assigned_to_detail":
         {"email": "security-response-team@redhat.com", "partner": false, "name": "security-response-team@redhat.com",
         "id": 164808, "active": false, "insider": false, "real_name": "Red Hat Product

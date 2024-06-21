@@ -176,7 +176,7 @@ interactions:
         "2016-06-07T12:40:06Z", "setter": "bugzilla@redhat.com", "type_id": 415}],
         "cc_detail": [{"real_name": "Michael Mr\u00e1ka", "active": true, "insider":
         true, "partner": false, "name": "mmraka@redhat.com", "email": "mmraka@redhat.com",
-        "id": 244271}], "update_token": "1718286677-mn5KWK2ngp2KPSnLfoXPWrvhiPUMqwWRqHGknQhK9D4",
+        "id": 244271}],
         "cf_build_id": "", "cf_pm_score": "0", "is_confirmed": true, "blocks": [1343538,
         1343540], "actual_time": 0, "resolution": "", "dupe_of": null, "last_change_time":
         "2021-04-28T12:34:10Z", "cf_last_closed": null, "creator_detail": {"id": 384315,

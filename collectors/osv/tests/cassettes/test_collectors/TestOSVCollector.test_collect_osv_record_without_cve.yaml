@@ -907,7 +907,7 @@ interactions:
         "sub_components": {}, "data_category": "Red Hat", "cf_build_id": "", "assigned_to_detail":
         {"active": true, "real_name": "Product Security DevOps Team", "insider": true,
         "id": 377884, "email": "prodsec-dev@redhat.com", "name": "prodsec-dev@redhat.com",
-        "partner": false}, "cf_cust_facing": "---", "update_token": "1718627705-b1wrRsu5IA-GkOpyRv8idEUQp8nVzuzbo7J9RTNUy8k",
+        "partner": false}, "cf_cust_facing": "---",
         "cc": [], "cf_srtnotes": "{\"reported\": \"2024-06-17T12:34:59Z\", \"external_ids\":
         [\"GHSA-3hwm-922r-47hw\"], \"references\": [{\"type\": \"source\", \"url\":
         \"https://example.com/vulnerability/GHSA-3hwm-922r-47hw\", \"description\":
@@ -1039,7 +1039,6 @@ interactions:
         "groups": ["redhat"], "target_milestone": "---", "cf_release_notes": "", "is_open":
         true, "cf_fixed_in": "", "status": "NEW", "whiteboard": "", "resolution":
         "", "is_confirmed": true, "blocks": [], "actual_time": 0, "cf_pm_score": "0",
-        "update_token": "1718627706-9O_s-elZ1lz_SexnOiW6VLcuPjk1EhCPW2PF8vQtGvw",
         "cf_build_id": "", "cf_last_closed": null, "last_change_time": "2024-06-17T12:35:03Z",
         "dupe_of": null, "estimated_time": 0, "product": "Security Response", "creation_time":
         "2024-06-17T12:35:03Z", "external_bugs": [], "op_sys": "Linux", "cf_qe_conditional_nak":

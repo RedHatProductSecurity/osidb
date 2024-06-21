@@ -269,7 +269,7 @@ interactions:
   response:
     body:
       string: '{"bugs": [{"resolution": "", "blocks": [2217733], "is_confirmed": true,
-        "actual_time": 0, "cf_pm_score": "0", "update_token": "1718288740-merupKL77nxByk3FCirUPtZU8KVGiqW3jJLJLL0dClg",
+        "actual_time": 0, "cf_pm_score": "0",
         "cf_build_id": "", "cf_last_closed": null, "last_change_time": "2024-06-13T14:25:38Z",
         "dupe_of": null, "estimated_time": 0, "qa_contact_detail": {"id": 408554,
         "email": "rhcert-qe@redhat.com", "name": "rhcert-qe@redhat.com", "partner":

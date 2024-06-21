@@ -826,7 +826,7 @@ interactions:
         "---", "assigned_to_detail": {"active": true, "real_name": "Product Security
         DevOps Team", "insider": true, "id": 377884, "name": "prodsec-dev@redhat.com",
         "email": "prodsec-dev@redhat.com", "partner": false}, "cf_build_id": "", "data_category":
-        "Public", "cc": [], "update_token": "1718264370-rVF3mTwFK9kLvv7jOeUzvdp8xL-mJTbqz_POdOI5eZA",
+        "Public", "cc": [],
         "cf_qe_conditional_nak": [], "sub_components": {}, "creator_detail": {"active":
         true, "insider": true, "real_name": "Ondrej Soukup", "partner": false, "email":
         "osoukup@redhat.com", "name": "osoukup@redhat.com", "id": 412888}, "last_change_time":
@@ -892,7 +892,7 @@ interactions:
   response:
     body:
       string: '{"bugs": [{"dupe_of": null, "last_change_time": "2024-06-13T07:39:28Z",
-        "cf_last_closed": null, "cf_build_id": "", "update_token": "1718264371-ONBayv1tYnyLTlyGyMHYl1JU39HpRNTtmC2-9YqH700",
+        "cf_last_closed": null, "cf_build_id": "",
         "cf_pm_score": "0", "actual_time": 0, "blocks": [], "is_confirmed": true,
         "resolution": "", "tags": [], "deadline": null, "summary": "curl: title",
         "creator_detail": {"email": "osoukup@redhat.com", "id": 412888, "name": "osoukup@redhat.com",
@@ -2231,8 +2231,7 @@ interactions:
         "---", "priority": "low", "url": "", "id": 2291455, "cc_detail": [], "flags":
         [], "cf_environment": "", "severity": "low", "cf_internal_whiteboard": "",
         "version": ["unspecified"], "resolution": "", "actual_time": 0, "blocks":
-        [], "is_confirmed": true, "cf_pm_score": "0", "cf_build_id": "", "update_token":
-        "1718264380-6rDExbVoKG0aXjPr97I8IwVts1fhhz-VngpMvtVMs5Y", "cf_last_closed":
+        [], "is_confirmed": true, "cf_pm_score": "0", "cf_build_id": "", "cf_last_closed":
         null, "last_change_time": "2024-06-13T07:39:38Z", "dupe_of": null, "estimated_time":
         0, "creation_time": "2024-06-13T07:39:28Z", "external_bugs": [], "product":
         "Security Response", "cf_qe_conditional_nak": [], "op_sys": "Linux", "summary":
@@ -2292,7 +2291,7 @@ interactions:
     body:
       string: '{"bugs": [{"groups": [], "remaining_time": 0, "creator": "osoukup@redhat.com",
         "cf_release_notes": "", "target_milestone": "---", "status": "NEW", "whiteboard":
-        "", "cf_fixed_in": "", "is_open": true, "update_token": "1718264381-CGrPHZ00K0Aszo34tIZ1GWBHPiwb8pM7-PR_pIY0Ut4",
+        "", "cf_fixed_in": "", "is_open": true,
         "cf_build_id": "", "cf_pm_score": "0", "blocks": [], "is_confirmed": true,
         "actual_time": 0, "resolution": "", "dupe_of": null, "last_change_time": "2024-06-13T07:39:38Z",
         "cf_last_closed": null, "creator_detail": {"real_name": "Ondrej Soukup", "active":
@@ -3779,7 +3778,7 @@ interactions:
         \"low\", \"source\": \"internet\", \"cwe\": \"CWE-1\", \"affects\": [{\"ps_module\":
         \"ps-module-0\", \"ps_component\": \"ps-component-0\", \"affectedness\": \"affected\",
         \"resolution\": \"delegated\", \"impact\": \"critical\", \"cvss2\": null,
-        \"cvss3\": null, \"cvss4\": null}]}", "cc": [], "update_token": "1718264388-GbsD1a74ZWie9LAqtKyzh2UxAIwSJS-8cijwWGAtuhg",
+        \"cvss3\": null, \"cvss4\": null}]}", "cc": [],
         "cf_cust_facing": "---", "assigned_to_detail": {"id": 377884, "name": "prodsec-dev@redhat.com",
         "partner": false, "email": "prodsec-dev@redhat.com", "real_name": "Product
         Security DevOps Team", "insider": true, "active": true}, "cf_build_id": "",
@@ -3864,7 +3863,7 @@ interactions:
         null, "assigned_to_detail": {"active": true, "real_name": "Product Security
         DevOps Team", "insider": true, "id": 377884, "name": "prodsec-dev@redhat.com",
         "partner": false, "email": "prodsec-dev@redhat.com"}, "cf_build_id": "", "data_category":
-        "Public", "cf_cust_facing": "---", "update_token": "1718264389-SxuSIo3KIq-APANhPTjbYFZTtoQSPjFlysGRCj2snTc",
+        "Public", "cf_cust_facing": "---",
         "cc": [], "cf_qe_conditional_nak": [], "creator_detail": {"active": true,
         "real_name": "Ondrej Soukup", "insider": true, "id": 412888, "email": "osoukup@redhat.com",
         "partner": false, "name": "osoukup@redhat.com"}, "sub_components": {}}], "faults":

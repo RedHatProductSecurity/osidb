@@ -169,7 +169,7 @@ interactions:
         "", "creator": "gsuckevi@redhat.com", "remaining_time": 0, "groups": [], "target_milestone":
         "---", "cf_release_notes": "", "is_open": true, "whiteboard": "", "status":
         "NEW", "cf_fixed_in": "", "actual_time": 0, "blocks": [1765660], "is_confirmed":
-        true, "resolution": "", "cf_build_id": "", "update_token": "1718287371-3HIt5vIJ-tLgI2YlHcFho_iToQ-FUxZZxGffurMy_Cc",
+        true, "resolution": "", "cf_build_id": "",
         "cf_pm_score": "0", "last_change_time": "2021-06-22T00:30:41Z", "cf_last_closed":
         null, "dupe_of": null, "external_bugs": [], "creation_time": "2019-10-25T16:48:57Z",
         "product": "RDO", "qa_contact_detail": {"name": "srevivo@redhat.com", "id":

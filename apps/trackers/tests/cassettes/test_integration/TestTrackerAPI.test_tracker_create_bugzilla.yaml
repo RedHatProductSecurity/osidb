@@ -271,7 +271,7 @@ interactions:
       string: '{"faults": [], "bugs": [{"creator_detail": {"id": 412888, "email":
         "osoukup@redhat.com", "name": "osoukup@redhat.com", "partner": false, "real_name":
         "Ondrej Soukup", "insider": true, "active": true}, "sub_components": {}, "cf_qe_conditional_nak":
-        [], "update_token": "1718289200-qbeBh1JNVOTQ0UVaItb1QlZkC62aCjM-fWDxDo0kVLM",
+        [],
         "cc": [], "data_category": "Engineering", "assigned_to_detail": {"real_name":
         "Jianwei Weng", "insider": true, "active": true, "id": 283338, "email": "jweng@redhat.com",
         "partner": false, "name": "jweng@redhat.com"}, "cf_build_id": "", "cf_cust_facing":

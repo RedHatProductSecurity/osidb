@@ -334,7 +334,7 @@ interactions:
   response:
     body:
       string: '{"faults": [], "bugs": [{"dupe_of": null, "last_change_time": "2024-06-14T13:42:13Z",
-        "cf_last_closed": null, "cf_build_id": "", "update_token": "1718372534-d0p6_5EVLXGze9YuWAb3LPexqOQCvMCmSAkJ71vi8j4",
+        "cf_last_closed": null, "cf_build_id": "",
         "cf_pm_score": "0", "actual_time": 0, "blocks": [], "is_confirmed": true,
         "resolution": "", "tags": [], "deadline": null, "summary": "CVE-2021-0773
         rather: go: class: Bar", "creator_detail": {"active": true, "real_name": "Ondrej
@@ -441,7 +441,7 @@ interactions:
         ["CVE-2021-0773"], "cc": [], "id": 2293325, "url": "", "priority": "low",
         "last_change_time": "2024-06-14T13:42:13Z", "cf_last_closed": null, "dupe_of":
         null, "actual_time": 0, "is_confirmed": true, "blocks": [], "resolution":
-        "", "cf_build_id": "", "update_token": "1718372535-kVeg2qxLu4ASVKVTfxDqTDFbA1NKSvId8hJ0--9gciM",
+        "", "cf_build_id": "",
         "cf_pm_score": "0", "tags": [], "deadline": null, "creation_time": "2024-06-14T13:37:31Z",
         "external_bugs": [], "product": "Security Response", "estimated_time": 0,
         "summary": "CVE-2021-0773 rather: go: class: Bar", "creator_detail": {"name":

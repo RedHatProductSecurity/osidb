@@ -175,7 +175,7 @@ interactions:
         0, "groups": [], "target_milestone": "---", "cf_release_notes": "", "is_open":
         true, "cf_fixed_in": "", "whiteboard": "", "status": "NEW", "resolution":
         "", "actual_time": 0, "blocks": [1629662], "is_confirmed": true, "cf_pm_score":
-        "0", "cf_build_id": "", "update_token": "1718285831-__VFLMnc0V_6uuTCTOSBuyWCDue2DI3Cmt29Y0FQNnw",
+        "0", "cf_build_id": "",
         "cf_last_closed": null, "last_change_time": "2018-09-17T09:22:00Z", "dupe_of":
         null, "qa_contact_detail": {"name": "extras-qa@fedoraproject.org", "id": 171387,
         "email": "extras-qa@fedoraproject.org", "insider": false, "real_name": "Fedora

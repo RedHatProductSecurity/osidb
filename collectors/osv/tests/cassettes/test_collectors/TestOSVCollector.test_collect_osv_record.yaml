@@ -893,7 +893,7 @@ interactions:
         "assigned_to_detail": {"id": 377884, "email": "prodsec-dev@redhat.com", "partner":
         false, "name": "prodsec-dev@redhat.com", "active": true, "real_name": "Product
         Security DevOps Team", "insider": true}, "cf_build_id": "", "data_category":
-        "Red Hat", "cc": [], "update_token": "1718627483-zuddOfV6tR7Q2Rpy7osHtWM1wXtpZMaXMJrNnEG5XJk",
+        "Red Hat", "cc": [],
         "cf_srtnotes": "{\"reported\": \"2024-06-17T12:31:17Z\", \"external_ids\":
         [\"GO-2023-1494/CVE-2014-125064\"], \"references\": [{\"type\": \"source\",
         \"url\": \"https://example.com/vulnerability/GO-2023-1494\", \"description\":
@@ -980,7 +980,7 @@ interactions:
         {}, "assigned_to_detail": {"id": 377884, "email": "prodsec-dev@redhat.com",
         "name": "prodsec-dev@redhat.com", "partner": false, "real_name": "Product
         Security DevOps Team", "insider": true, "active": true}, "data_category":
-        "Red Hat", "cf_build_id": "", "cf_cust_facing": "---", "update_token": "1718627484-NLQ-CfGWH5TTsn0CBCuj3seF00g3sfIrNIHIqFNQxkY",
+        "Red Hat", "cf_build_id": "", "cf_cust_facing": "---",
         "cc": [], "url": "", "status": "NEW", "external_bugs": [], "groups": ["redhat"],
         "creator": "nobody@redhat.com", "version": ["unspecified"], "cf_last_closed":
         null, "is_open": true, "cf_pm_score": "0", "depends_on": [], "id": 2293430,

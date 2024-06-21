@@ -342,7 +342,7 @@ interactions:
         "cf_fixed_in": "Linux kernel 5.17-rc1", "target_milestone": "---", "cf_release_notes":
         "random cve_description", "last_change_time": "2024-06-17T10:47:31Z", "cf_last_closed":
         null, "dupe_of": null, "actual_time": 0, "is_confirmed": true, "blocks": [],
-        "resolution": "", "cf_build_id": "", "update_token": "1718621256-1wPEqSK_562D_oFu9Xrsk_b_I-_tVN174pnQJukIOOM",
+        "resolution": "", "cf_build_id": "",
         "cf_pm_score": "0", "tags": [], "deadline": null, "external_bugs": [{"ext_description":
         "None", "ext_status": "None", "bug_id": 2044578, "id": 2302847, "ext_priority":
         "None", "is_migration_link": 0, "ext_bz_bug_id": "03269484", "ext_bz_id":
@@ -799,7 +799,6 @@ interactions:
         "ptalbert@redhat.com", "qzhao@redhat.com", "rvrbovsk@redhat.com", "scweaver@redhat.com",
         "security-response-team@bot.bugzilla.redhat.com", "steved@redhat.com", "vkumar@redhat.com",
         "vmalik@redhat.com", "walters@redhat.com", "williams@redhat.com", "zulinx86@gmail.com"],
-        "update_token": "1718621257-R4lMp6m_gmVLQLZDjHCFsJ6l0BrSfhX-7EmdAKhgCjw",
         "cf_cust_facing": "---", "data_category": "Security Restricted", "cf_build_id":
         "", "assigned_to_detail": {"active": true, "insider": false, "real_name":
         "Nobody", "email": "nobody@redhat.com", "name": "nobody@redhat.com", "partner":

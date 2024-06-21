@@ -899,8 +899,7 @@ interactions:
         "op_sys": "Linux", "last_change_time": "2024-06-17T11:30:21Z", "sub_components":
         {}, "creator_detail": {"id": 425662, "email": "nobody@redhat.com", "name":
         "nobody@redhat.com", "partner": false, "active": true,
-        "real_name": "nobody", "insider": true}, "cf_qe_conditional_nak": [], "cc": [], "update_token":
-        "1718623823-5PNbgRw6jqxCj_sW8yv9XwqRPxgEX00-hhpkEx-jeSk", "cf_cust_facing":
+        "real_name": "nobody", "insider": true}, "cf_qe_conditional_nak": [], "cc": [], "cf_cust_facing":
         "---", "data_category": "Red Hat", "assigned_to_detail": {"email": "prodsec-dev@redhat.com",
         "partner": false, "name": "prodsec-dev@redhat.com", "id": 377884, "insider":
         true, "real_name": "Product Security DevOps Team", "active": true}, "cf_build_id":
@@ -1000,7 +999,7 @@ interactions:
         "email": "nobody@redhat.com", "name": "nobody@redhat.com"}, "summary":
         "CVE-2017-7542 From NVD collector", "op_sys": "Linux", "cf_qe_conditional_nak":
         [], "tags": [], "deadline": null, "blocks": [], "is_confirmed": true, "actual_time":
-        0, "resolution": "", "update_token": "1718623824-TiLICY9MM8k244XcOKvoDqdP4uYtsyFq0_DuEH_nikk",
+        0, "resolution": "",
         "cf_build_id": "", "cf_pm_score": "0", "last_change_time": "2024-06-17T11:30:21Z",
         "cf_last_closed": null, "dupe_of": null, "target_milestone": "---", "cf_release_notes":
         "", "is_open": true, "status": "NEW", "whiteboard": "", "cf_fixed_in": "",

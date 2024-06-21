@@ -461,7 +461,7 @@ interactions:
         "type_id": 1209, "status": "?"}, {"status": "-", "type_id": 415, "setter":
         "osoukup@redhat.com", "name": "requires_doc_text", "id": 5326309, "modification_date":
         "2024-06-17T08:22:16Z", "creation_date": "2022-01-24T19:05:54Z", "is_active":
-        1}], "cf_major_incident": null, "update_token": "1718612542-rkYt5MhuIH_VVqwB1NOBq_pYxDorKVO3yltS76EOC1E",
+        1}], "cf_major_incident": null,
         "cc": ["acaringi@redhat.com", "adscvr@gmail.com", "airlied@redhat.com", "alciregi@posteo.net",
         "allarkin@redhat.com", "bhu@redhat.com", "carnil@debian.org", "chwhite@redhat.com",
         "crwood@redhat.com", "dvlasenk@redhat.com", "hdegoede@redhat.com", "hkrzesin@redhat.com",
@@ -808,7 +808,7 @@ interactions:
         "masami256@gmail.com", "mchehab@infradead.org", "nmurray@redhat.com", "ptalbert@redhat.com",
         "qzhao@redhat.com", "rvrbovsk@redhat.com", "scweaver@redhat.com", "security-response-team@bot.bugzilla.redhat.com",
         "steved@redhat.com", "vkumar@redhat.com", "vmalik@redhat.com", "walters@redhat.com",
-        "williams@redhat.com", "zulinx86@gmail.com"], "update_token": "1718612543-nK6ii95bX6zgiFrCBN2pBQOh0MmmPKrnvH5Wgibn9us",
+        "williams@redhat.com", "zulinx86@gmail.com"],
         "cf_major_incident": null, "alias": ["CVE-2022-0500"], "flags": [{"status":
         "?", "type_id": 788, "setter": "osoukup@redhat.com", "name": "hightouch",
         "id": 6115859, "is_active": 1, "modification_date": "2024-06-17T08:22:16Z",

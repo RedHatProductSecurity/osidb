@@ -126,7 +126,7 @@ interactions:
         "estimated_time": 0, "qa_contact_detail": {"email": "wsun@redhat.com", "id":
         332917, "name": "wsun@redhat.com", "partner": false, "active": true, "real_name":
         "Wei Sun", "insider": true}, "dupe_of": null, "last_change_time": "2024-05-29T05:48:26Z",
-        "cf_last_closed": null, "cf_build_id": "", "update_token": "1718285917-iwEhi9xgwRD8iK8rgSnK8U1pJJTigAjZ5RZY3MU4vSc",
+        "cf_last_closed": null, "cf_build_id": "",
         "cf_pm_score": "0", "actual_time": 0, "is_confirmed": true, "blocks": [1636349],
         "resolution": "", "cf_internal_whiteboard": "", "severity": "medium", "version":
         ["3.x"], "flags": [{"type_id": 415, "id": 3779595, "setter": "bugzilla@redhat.com",

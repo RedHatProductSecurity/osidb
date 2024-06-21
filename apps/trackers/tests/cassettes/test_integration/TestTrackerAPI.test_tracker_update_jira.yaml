@@ -657,7 +657,7 @@ interactions:
         "id": 6115872, "is_active": 1, "modification_date": "2024-06-17T12:46:41Z",
         "creation_date": "2024-06-17T12:46:41Z"}], "alias": ["CVE-2018-20535"], "op_sys":
         "Linux", "cf_environment": "", "cc": ["dominik@greysector.net", "java-sig-commits@lists.fedoraproject.org",
-        "mizdebsk@redhat.com", "nickc@redhat.com"], "update_token": "1718628403-D4SG4-pw-amBbCpnz8goBzS9LbKHlfi3PrG4R4UiAvE",
+        "mizdebsk@redhat.com", "nickc@redhat.com"],
         "cf_cust_facing": "---", "cf_build_id": "", "data_category": "Public", "assigned_to_detail":
         {"id": 29451, "email": "nobody@redhat.com", "name": "nobody@redhat.com", "partner":
         false, "active": true, "real_name": "Nobody", "insider": false}, "sub_components":
@@ -789,8 +789,7 @@ interactions:
         null, "whiteboard": "", "component": ["vulnerability"], "id": 1663907, "depends_on":
         [1663909, 1671502, 1671503], "cf_pm_score": "0", "is_open": true, "version":
         ["unspecified"], "creator": "anemec@redhat.com", "cf_last_closed": null, "groups":
-        [], "external_bugs": [], "url": "", "status": "ASSIGNED", "update_token":
-        "1718628404-DqJG6wzQmQOZEm-l1j_Y04rfmeIFpK1ONEXewc2ZxGo", "cc": ["dominik@greysector.net",
+        [], "external_bugs": [], "url": "", "status": "ASSIGNED", "cc": ["dominik@greysector.net",
         "java-sig-commits@lists.fedoraproject.org", "mizdebsk@redhat.com", "nickc@redhat.com"],
         "data_category": "Public", "cf_build_id": "", "assigned_to_detail": {"insider":
         false, "real_name": "Nobody", "active": true, "email": "nobody@redhat.com",
@@ -1344,8 +1343,7 @@ interactions:
         "version": ["unspecified"], "creator": "lpardo@redhat.com", "cf_last_closed":
         null, "creator_detail": {"name": "lpardo@redhat.com", "email": "lpardo@redhat.com",
         "partner": false, "id": 416947, "active": true, "insider": true, "real_name":
-        "Laura Pardo"}, "sub_components": {}, "cf_qe_conditional_nak": [], "update_token":
-        "1718628410-Qa0MWth03zdea6_N0IHoPjI40ttemCWoIGqtP7uV3QU", "cc": ["dominik@greysector.net",
+        "Laura Pardo"}, "sub_components": {}, "cf_qe_conditional_nak": [], "cc": ["dominik@greysector.net",
         "java-sig-commits@lists.fedoraproject.org", "mizdebsk@redhat.com", "nickc@redhat.com"],
         "data_category": "Public", "cf_build_id": "", "assigned_to_detail": {"real_name":
         "Nobody", "insider": false, "active": true, "id": 29451, "name": "nobody@redhat.com",
@@ -1462,7 +1460,7 @@ interactions:
         \"foo\", \"statement\": \"Statement for None\"}", "data_category": "Public",
         "assigned_to_detail": {"email": "nobody@redhat.com", "name": "nobody@redhat.com",
         "partner": false, "id": 29451, "active": true, "insider": false, "real_name":
-        "Nobody"}, "cf_build_id": "", "cf_cust_facing": "---", "update_token": "1718628411-KyP5gdxzkE9rU9AzIUXAI9KiBWRVuFw_jQtbzg-yj8Y",
+        "Nobody"}, "cf_build_id": "", "cf_cust_facing": "---",
         "cc": ["dominik@greysector.net", "java-sig-commits@lists.fedoraproject.org",
         "mizdebsk@redhat.com", "nickc@redhat.com"], "cf_qe_conditional_nak": [], "creator_detail":
         {"id": 416947, "name": "lpardo@redhat.com", "partner": false, "email": "lpardo@redhat.com",
@@ -1776,7 +1774,7 @@ interactions:
         "", "flags": [], "cf_major_incident": null, "data_category": "Public", "cf_build_id":
         "", "assigned_to_detail": {"insider": false, "real_name": "Nobody", "active":
         true, "email": "nobody@redhat.com", "partner": false, "name": "nobody@redhat.com",
-        "id": 29451}, "cf_cust_facing": "---", "update_token": "1718628414-vLyHXc6CGyXTVSAhJ87tdIcwus47gI3P-xO8s6t-eZw",
+        "id": 29451}, "cf_cust_facing": "---",
         "cc": ["dominik@greysector.net", "java-sig-commits@lists.fedoraproject.org",
         "mizdebsk@redhat.com", "nickc@redhat.com"], "cf_qe_conditional_nak": [], "creator_detail":
         {"insider": false, "real_name": "Andrej Nemec", "active": false, "name": "anemec@redhat.com",
@@ -1932,7 +1930,6 @@ interactions:
         "partner": false, "id": 29451, "active": true, "insider": false, "real_name":
         "Nobody"}, "cf_build_id": "", "data_category": "Public", "cc": ["dominik@greysector.net",
         "java-sig-commits@lists.fedoraproject.org", "mizdebsk@redhat.com", "nickc@redhat.com"],
-        "update_token": "1718628414-vLyHXc6CGyXTVSAhJ87tdIcwus47gI3P-xO8s6t-eZw",
         "cf_qe_conditional_nak": [], "sub_components": {}, "creator_detail": {"insider":
         false, "real_name": "Andrej Nemec", "active": false, "name": "anemec@redhat.com",
         "partner": false, "email": "anemec@redhat.com", "id": 391044}}]}'
@@ -2114,7 +2111,7 @@ interactions:
         \"low\", \"cvss2\": null, \"cvss3\": null, \"cvss4\": null}], \"public\":
         \"2024-05-25T06:18:13Z\", \"reported\": \"1990-12-02T22:54:49Z\", \"impact\":
         \"low\", \"source\": \"internet\", \"cwe\": \"CWE-1\", \"mitigation\": \"foo\",
-        \"statement\": \"Statement for None\"}", "update_token": "1718628416-FY0t7IwVrEC6ZvWmrkOxiOtYNc_cSRFJsV9HrSOX0O0",
+        \"statement\": \"Statement for None\"}",
         "cc": ["dominik@greysector.net", "java-sig-commits@lists.fedoraproject.org",
         "mizdebsk@redhat.com", "nickc@redhat.com"], "cf_build_id": "", "assigned_to_detail":
         {"real_name": "Nobody", "insider": false, "active": true, "id": 29451, "email":
@@ -2261,7 +2258,6 @@ interactions:
         "Linux", "cf_qe_conditional_nak": [], "product": "Security Response", "creation_time":
         "2018-12-04T22:45:26Z", "external_bugs": [], "estimated_time": 0, "dupe_of":
         null, "last_change_time": "2024-06-17T12:46:48Z", "cf_last_closed": null,
-        "update_token": "1718628418-T6-ekNrEaMmj2UfRtBD2R09_eRpfrMKEabs5AJbaWc8",
         "cf_build_id": "", "cf_pm_score": "0", "is_confirmed": true, "blocks": [],
         "actual_time": 0, "resolution": ""}]}'
     headers:
@@ -2396,7 +2392,7 @@ interactions:
         false, "insider": false, "partner": false}, "summary": "better: child: least:
         sample title", "estimated_time": 0, "product": "Security Response", "creation_time":
         "2019-01-07T09:53:43Z", "external_bugs": [], "deadline": null, "tags": [],
-        "cf_pm_score": "0", "update_token": "1718628420-o7FM3k-2cbxCGUJMVsdgHePBjnMnNebKfeddQaw6H94",
+        "cf_pm_score": "0",
         "cf_build_id": "", "resolution": "", "blocks": [], "is_confirmed": true, "actual_time":
         0, "dupe_of": null, "cf_last_closed": null, "last_change_time": "2024-06-17T12:46:41Z",
         "url": "", "priority": "low", "id": 1663907, "cc": ["dominik@greysector.net",
@@ -2517,7 +2513,7 @@ interactions:
         "real_name": "Andrej Nemec", "insider": false, "partner": false, "name": "anemec@redhat.com",
         "email": "anemec@redhat.com", "id": 391044}, "deadline": null, "tags": [],
         "resolution": "", "actual_time": 0, "is_confirmed": true, "blocks": [], "cf_pm_score":
-        "0", "cf_build_id": "", "update_token": "1718628421-bYgnVH35ETdKkWBhCKGCjTF_RZ5R_g3OoVLZjwalqxY",
+        "0", "cf_build_id": "",
         "cf_last_closed": null, "last_change_time": "2024-06-17T12:46:41Z", "dupe_of":
         null, "cc": ["dominik@greysector.net", "java-sig-commits@lists.fedoraproject.org",
         "mizdebsk@redhat.com", "nickc@redhat.com"], "cf_cust_facing": "---", "alias":

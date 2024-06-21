@@ -290,7 +290,7 @@ interactions:
         true, "partner": false, "name": "osoukup@redhat.com", "id": 412888, "email":
         "osoukup@redhat.com"}, "summary": "CVE-2024-0126 curl: Foo", "cf_qe_conditional_nak":
         [], "op_sys": "Linux", "tags": [], "deadline": null, "is_confirmed": true,
-        "blocks": [], "actual_time": 0, "resolution": "", "update_token": "1718372252-G30XBGK0RvbKwOjAH0M5Z7WA639x1APge1nde_aeoTo",
+        "blocks": [], "actual_time": 0, "resolution": "",
         "cf_build_id": "", "cf_pm_score": "0", "last_change_time": "2024-06-14T13:37:31Z",
         "cf_last_closed": null, "dupe_of": null, "target_milestone": "---", "cf_release_notes":
         "", "is_open": true, "status": "NEW", "whiteboard": "", "cf_fixed_in": "",
@@ -366,7 +366,7 @@ interactions:
         0, "creator": "osoukup@redhat.com", "cf_fixed_in": "", "status": "NEW", "whiteboard":
         "", "is_open": true, "cf_release_notes": "", "target_milestone": "---", "dupe_of":
         null, "cf_last_closed": null, "last_change_time": "2024-06-14T13:37:31Z",
-        "cf_pm_score": "0", "update_token": "1718372253-Gig_p52VlCfyyffjHV9ZWIrtxyWZfIuImsH05KBB-7s",
+        "cf_pm_score": "0",
         "cf_build_id": "", "resolution": "", "is_confirmed": true, "blocks": [], "actual_time":
         0, "deadline": null, "tags": [], "op_sys": "Linux", "cf_qe_conditional_nak":
         [], "creator_detail": {"partner": false, "active": true, "real_name": "Ondrej

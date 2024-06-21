@@ -335,7 +335,7 @@ interactions:
         "component": ["redhat-certification"], "cf_verified": [], "id": 2291491, "depends_on":
         [], "is_open": true, "cf_pm_score": "0", "cf_last_closed": null, "version":
         ["1.0"], "creator": "osoukup@redhat.com", "groups": ["devel"], "external_bugs":
-        [], "status": "NEW", "url": "", "cc": [], "update_token": "1718289000--a8Jd4jhTTtU6KTTR-mePl7evbHmALl6oG480VPTXHA",
+        [], "status": "NEW", "url": "", "cc": [],
         "cf_cust_facing": "---", "assigned_to_detail": {"id": 283338, "partner": false,
         "email": "jweng@redhat.com", "name": "jweng@redhat.com", "real_name": "Jianwei
         Weng", "insider": true, "active": true}, "cf_build_id": "", "data_category":

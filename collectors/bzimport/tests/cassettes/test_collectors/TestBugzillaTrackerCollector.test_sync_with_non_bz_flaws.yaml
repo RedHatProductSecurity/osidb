@@ -151,7 +151,6 @@ interactions:
         "id": 412888, "email": "osoukup@redhat.com", "name": "osoukup@redhat.com"},
         "deadline": "2004-03-28", "tags": [], "resolution": "", "actual_time": 0,
         "is_confirmed": true, "blocks": [], "cf_pm_score": "0", "cf_build_id": "",
-        "update_token": "1718287656-bdT7sqpYonkUZLD0YjuqRlcEZCDBo_sjBvWdTz8mmAo",
         "cf_last_closed": null, "last_change_time": "2024-06-05T11:24:13Z", "dupe_of":
         null}]}'
     headers:

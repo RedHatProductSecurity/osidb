@@ -518,7 +518,7 @@ interactions:
         "osoukup@redhat.com"}, "cf_qe_conditional_nak": [], "op_sys": "Linux", "external_bugs":
         [], "creation_time": "2024-06-14T13:37:31Z", "product": "Security Response",
         "estimated_time": 0, "dupe_of": null, "last_change_time": "2024-06-14T13:46:01Z",
-        "cf_last_closed": null, "cf_build_id": "", "update_token": "1718372763-0uUNZPz7IJaDFzCF2eXFfhznj6zLgPgZQQjurXwTkYw",
+        "cf_last_closed": null, "cf_build_id": "",
         "cf_pm_score": "0", "actual_time": 0, "blocks": [], "is_confirmed": true,
         "resolution": ""}], "faults": []}'
     headers:
@@ -592,8 +592,7 @@ interactions:
         "osoukup@redhat.com"}, "cf_cust_facing": "---", "cf_build_id": "", "assigned_to_detail":
         {"id": 377884, "email": "prodsec-dev@redhat.com", "partner": false, "name":
         "prodsec-dev@redhat.com", "real_name": "Product Security DevOps Team", "insider":
-        true, "active": true}, "data_category": "Public", "cc": [], "update_token":
-        "1718372763-0uUNZPz7IJaDFzCF2eXFfhznj6zLgPgZQQjurXwTkYw", "cf_major_incident":
+        true, "active": true}, "data_category": "Public", "cc": [], "cf_major_incident":
         null, "op_sys": "Linux", "flags": [{"creation_date": "2024-06-14T13:42:13Z",
         "modification_date": "2024-06-14T13:46:01Z", "is_active": 1, "id": 6115851,
         "name": "requires_doc_text", "setter": "bugzilla@redhat.com", "type_id": 415,

@@ -584,7 +584,7 @@ interactions:
         "psampaio@redhat.com", "email": "psampaio@redhat.com", "id": 409354}, "summary":
         "CVE-2022-0500 test: totally descriptive", "cf_last_closed": null, "last_change_time":
         "2024-06-17T08:46:13Z", "dupe_of": null, "resolution": "", "blocks": [], "is_confirmed":
-        true, "actual_time": 0, "cf_pm_score": "0", "update_token": "1718613979-luXajtLhP79K-LFOYFvo7ab_M-LL1Wsp7XGZSVvcppA",
+        true, "actual_time": 0, "cf_pm_score": "0",
         "cf_build_id": ""}], "faults": []}'
     headers:
       Access-Control-Allow-Headers:
@@ -715,7 +715,7 @@ interactions:
         \"Statement for CVE-2022-0500\"}", "cf_build_id": "", "data_category": "Public",
         "assigned_to_detail": {"active": true, "insider": false, "real_name": "Nobody",
         "name": "nobody@redhat.com", "partner": false, "email": "nobody@redhat.com",
-        "id": 29451}, "cf_cust_facing": "---", "update_token": "1718613980-6YdVNd_HEfwBvxJNDkRQFtW8MUqhOqRX06D7pUiXYdc",
+        "id": 29451}, "cf_cust_facing": "---",
         "cc": ["acaringi@redhat.com", "adscvr@gmail.com", "airlied@redhat.com", "alciregi@posteo.net",
         "allarkin@redhat.com", "bhu@redhat.com", "carnil@debian.org", "chwhite@redhat.com",
         "crwood@redhat.com", "dvlasenk@redhat.com", "hdegoede@redhat.com", "hkrzesin@redhat.com",
@@ -1306,7 +1306,7 @@ interactions:
       string: '{"faults": [], "bugs": [{"cf_build_id": "", "assigned_to_detail": {"partner":
         false, "email": "jweng@redhat.com", "name": "jweng@redhat.com", "id": 283338,
         "insider": true, "real_name": "Jianwei Weng", "active": true}, "data_category":
-        "Engineering", "cf_cust_facing": "---", "update_token": "1718613985-uuOeniEm0Fu9LY1QJiMqvBer3PYsY7UTbPwrgir3Ffg",
+        "Engineering", "cf_cust_facing": "---",
         "cc": ["security-response-team@bot.bugzilla.redhat.com"], "cf_qe_conditional_nak":
         [], "creator_detail": {"real_name": "Ondrej Soukup", "insider": true, "active":
         true, "id": 412888, "partner": false, "email": "osoukup@redhat.com", "name":
@@ -1849,7 +1849,6 @@ interactions:
         "ptalbert@redhat.com", "qzhao@redhat.com", "rvrbovsk@redhat.com", "scweaver@redhat.com",
         "security-response-team@bot.bugzilla.redhat.com", "steved@redhat.com", "vkumar@redhat.com",
         "vmalik@redhat.com", "walters@redhat.com", "williams@redhat.com", "zulinx86@gmail.com"],
-        "update_token": "1718613988-tUBq-v1rqYP4WoLgEAJRXQVdiMluX3_hdiOzTwVUHrQ",
         "cf_cust_facing": "---", "cf_build_id": "", "data_category": "Public", "assigned_to_detail":
         {"partner": false, "name": "nobody@redhat.com", "email": "nobody@redhat.com",
         "id": 29451, "active": true, "insider": false, "real_name": "Nobody"}, "cf_major_incident":
@@ -2089,7 +2088,7 @@ interactions:
         "name": "hightouch-lite", "id": 6115860}, {"creation_date": "2022-01-24T19:05:54Z",
         "modification_date": "2024-06-17T08:22:16Z", "is_active": 1, "id": 5326309,
         "name": "requires_doc_text", "setter": "osoukup@redhat.com", "type_id": 415,
-        "status": "-"}], "cf_major_incident": null, "update_token": "1718613989-NX8ztGQBr3nX7Or43LrRc6QmubK_VbMM6SIsVhbO08A",
+        "status": "-"}], "cf_major_incident": null,
         "cc": ["acaringi@redhat.com", "adscvr@gmail.com", "airlied@redhat.com", "alciregi@posteo.net",
         "allarkin@redhat.com", "bhu@redhat.com", "carnil@debian.org", "chwhite@redhat.com",
         "crwood@redhat.com", "dvlasenk@redhat.com", "hdegoede@redhat.com", "hkrzesin@redhat.com",
@@ -2503,8 +2502,7 @@ interactions:
         "partner": false, "id": 412888}, "sub_components": {}, "cf_build_id": "",
         "data_category": "Engineering", "assigned_to_detail": {"name": "jweng@redhat.com",
         "email": "jweng@redhat.com", "partner": false, "id": 283338, "insider": true,
-        "real_name": "Jianwei Weng", "active": true}, "cf_cust_facing": "---", "update_token":
-        "1718613992-NIWR_-HdmeIpYIpm1mL70ICsN0iwCsuMvvNSFn_w2Yk", "cc": ["security-response-team@bot.bugzilla.redhat.com"],
+        "real_name": "Jianwei Weng", "active": true}, "cf_cust_facing": "---", "cc": ["security-response-team@bot.bugzilla.redhat.com"],
         "cf_target_upstream_version": "", "creation_time": "2024-06-17T08:35:39Z",
         "cf_embargoed": null, "description": "rhcertification-8 tracking bug for openssl:
         see the bugs linked in the \"Blocks\" field of this bug for full details of

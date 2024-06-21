@@ -354,7 +354,7 @@ interactions:
         "insider": true, "partner": false}, "summary": "CVE-2022-0313 CVE-2022-0500
         charge: each: mother: Bar", "cf_last_closed": null, "last_change_time": "2024-06-17T10:57:29Z",
         "dupe_of": null, "resolution": "", "blocks": [], "is_confirmed": true, "actual_time":
-        0, "cf_pm_score": "0", "update_token": "1718621854-IoidG5dMF1giAZVMdoaMdfC9kT08ZrPUSLfDgY-Xs8U",
+        0, "cf_pm_score": "0",
         "cf_build_id": "", "cc_detail": [{"active": true, "real_name": "Augusto Caringi",
         "insider": true, "partner": false, "name": "acaringi@redhat.com", "email":
         "acaringi@redhat.com", "id": 408364}, {"id": 448206, "email": "adscvr@gmail.com",
@@ -798,7 +798,6 @@ interactions:
         "ptalbert@redhat.com", "qzhao@redhat.com", "rvrbovsk@redhat.com", "scweaver@redhat.com",
         "security-response-team@bot.bugzilla.redhat.com", "steved@redhat.com", "vkumar@redhat.com",
         "vmalik@redhat.com", "walters@redhat.com", "williams@redhat.com", "zulinx86@gmail.com"],
-        "update_token": "1718621855-Tf18SVPMg-h2R8fWcWz5uVKmqUprQ69jybhkYXua_7k",
         "cf_qe_conditional_nak": [], "sub_components": {}, "creator_detail": {"active":
         true, "insider": true, "real_name": "Pedro Sampaio", "partner": false, "email":
         "psampaio@redhat.com", "name": "psampaio@redhat.com", "id": 409354}, "cf_embargoed":
