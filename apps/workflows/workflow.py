@@ -127,8 +127,8 @@ class WorkflowFramework:
                     state.jira_state == jira_state
                     and state.jira_resolution == jira_resolution
                 ):
-                    return state.name
-        return None
+                    return workflow.name, state.name
+        return None, None
 
     def jira_status(self, instance):
         """

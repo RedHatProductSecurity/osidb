@@ -1413,8 +1413,11 @@ class Flaw(
                 resolution = resolution["name"] if resolution else None
 
                 framework = WorkflowFramework()
-                workflow_state = framework.jira_to_state(status, resolution)
+                workflow_name, workflow_state = framework.jira_to_state(
+                    status, resolution
+                )
                 self.workflow_state = workflow_state
+                self.workflow_name = workflow_name
                 self.save(*args, **kwargs)
         except Flaw.DoesNotExist:
             # we're handling a new OSIDB-authored flaw -- create
