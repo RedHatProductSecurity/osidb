@@ -215,7 +215,7 @@ class JiraAffectCCBuilder(BaseAffectCCBuilder):
         # complicated to refactor without risks too endangering our schedule. (as of 2024-04)
 
         # NOTE That SFM2 for Jira tracker creation uses ps_module.component_overrides only for
-        #      generating Jira "components" field, which OSIDB doesn't do, but not for CC lists;
+        #      generating Jira "components" field, but not for CC lists;
         #      CC list creation is based solely on ps_component, not on bz_component.
         #      Therefore ps2bz_component is not reused here.
         # Parse BZ component

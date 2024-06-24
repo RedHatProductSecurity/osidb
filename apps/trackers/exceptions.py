@@ -7,6 +7,10 @@ class BTSException(Exception):
     """base exception class for BTS specific exceptions"""
 
 
+class ComponentUnavailableError(BTSException):
+    """exception class for BTS not supporting the given component in the given project"""
+
+
 class NoPriorityAvailableError(BTSException):
     """exception class for missing correct priority corresponding to Impact"""
 
