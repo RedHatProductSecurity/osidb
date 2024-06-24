@@ -3,6 +3,7 @@ implement osidb rest api views
 """
 
 import logging
+from datetime import datetime
 from typing import Type
 from urllib.parse import urljoin
 
@@ -73,7 +74,8 @@ from .serializer import (
 )
 from .validators import CVE_RE_STR
 
-logger = logging.getLogger(__name__)
+# Use only for RudimentaryUserPathLoggingMixin
+api_logger = logging.getLogger("api_req")
 
 
 @api_view(["GET"])
@@ -83,7 +85,92 @@ def healthy(request: Request) -> Response:
     return Response()
 
 
-class StatusView(APIView):
+class RudimentaryUserPathLoggingMixin:
+    # Provides rudimentary visibility into API requests, users, time of processing via logging.
+    # This is a stop-gap solution and not fit for enhancement.
+    # Logs must be sent and stored securely w.r.t. the data sent there:
+    # - username
+    # - HTTP method and path
+    # - how long the request took
+    # - time of event (added implicitly by the logger)
+    # (This is not a docstring so as not to pollute the generated schema.)
+
+    def initialize_request(self, request, *args, **kwargs):
+        """
+        Log beginning of API request.
+        """
+
+        request = super().initialize_request(request, *args, **kwargs)
+
+        if getattr(self, "swagger_fake_view", False):
+            return request
+
+        try:
+            # Different sources suggest different behavior of request.user.
+            # Local testing shows that str(request.user) is always nonempty
+            # (AnonymousUser or the username).
+            # However, as this is not fully explored and probably not worth it,
+            # allow seeing unexpected states in the logs.
+            if request.user and request.user.is_authenticated and request.user.username:
+                user = f"USER:{request.user.username}"
+            elif request.user and request.user.is_authenticated:
+                # Probably shouldn't happen.
+                user = f"USER_AUTH_NOUSERNAME:{str(request.user)}"
+            elif request.user and request.user.username:
+                user = f"USER_UNAUTH:{request.user.username}"
+            elif request.user:
+                user = f"USER_UNAUTH_NOUSERNAME:{str(request.user)}"
+            else:
+                user = f"USER_NONE:{repr(request.user)}"
+        except:  # noqa: E722 Using bare except on purpose
+            # Probably only happens when generating schema,
+            # preempting that using getattr(self, "swagger_fake_view", False)
+            # is much more performant, but leaving this try/except
+            # so that the logging doesn't break normal operation
+            # in an unexpected cornercase (not enough time to investigate deeply).
+            user = "USER_EXCEPTION"
+
+        method = request.method.upper()
+        path = request.path
+
+        request._rudimentary_user_path_logging = {
+            "method": method,
+            "path": path,
+            "start": datetime.now(),
+            "user": user,
+        }
+
+        log_message = f"{user} at {method} {path}"
+        api_logger.info(log_message)
+
+        return request
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        """
+        Log end of API request.
+        """
+        response = super().finalize_response(request, response, *args, **kwargs)
+
+        if getattr(self, "swagger_fake_view", False):
+            return response
+
+        end = datetime.now()
+
+        timediff = end - request._rudimentary_user_path_logging["start"]
+        ms_number = timediff.total_seconds() * 1000
+        ms_formatted = "{:6.0f}".format(ms_number)
+
+        user = request._rudimentary_user_path_logging["user"]
+        method = request._rudimentary_user_path_logging["method"]
+        path = request._rudimentary_user_path_logging["path"]
+
+        log_message = f"END in {ms_formatted} ms {user} at {method} {path}"
+        api_logger.info(log_message)
+
+        return response
+
+
+class StatusView(RudimentaryUserPathLoggingMixin, APIView):
     """authenticated view containing status osidb service"""
 
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -112,7 +199,7 @@ class StatusView(APIView):
         )
 
 
-class ManifestView(APIView):
+class ManifestView(RudimentaryUserPathLoggingMixin, APIView):
     """authenticated view containing project manifest information"""
 
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -372,7 +459,7 @@ def include_exclude_fields_extend_schema_view(
         parameters=[id_param],
     ),
 )
-class FlawView(ModelViewSet):
+class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
     queryset = Flaw.objects.prefetch_related(
         "acknowledgments",
         "affects",
@@ -488,7 +575,10 @@ class SubFlawViewGetMixin:
     ),
 )
 class FlawAcknowledgmentView(
-    SubFlawViewDestroyMixin, SubFlawViewGetMixin, ModelViewSet
+    RudimentaryUserPathLoggingMixin,
+    SubFlawViewDestroyMixin,
+    SubFlawViewGetMixin,
+    ModelViewSet,
 ):
     serializer_class = FlawAcknowledgmentSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
@@ -507,7 +597,12 @@ class FlawAcknowledgmentView(
         parameters=[bz_api_key_param],
     ),
 )
-class FlawReferenceView(SubFlawViewDestroyMixin, SubFlawViewGetMixin, ModelViewSet):
+class FlawReferenceView(
+    RudimentaryUserPathLoggingMixin,
+    SubFlawViewDestroyMixin,
+    SubFlawViewGetMixin,
+    ModelViewSet,
+):
     serializer_class = FlawReferenceSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -525,7 +620,12 @@ class FlawReferenceView(SubFlawViewDestroyMixin, SubFlawViewGetMixin, ModelViewS
         parameters=[bz_api_key_param],
     ),
 )
-class FlawCVSSView(SubFlawViewGetMixin, SubFlawViewDestroyMixin, ModelViewSet):
+class FlawCVSSView(
+    RudimentaryUserPathLoggingMixin,
+    SubFlawViewGetMixin,
+    SubFlawViewDestroyMixin,
+    ModelViewSet,
+):
     serializer_class = FlawCVSSSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -607,7 +707,9 @@ def whoami(request: Request) -> Response:
         ],
     ),
 )
-class FlawCommentView(SubFlawViewGetMixin, ModelViewSet):
+class FlawCommentView(
+    RudimentaryUserPathLoggingMixin, SubFlawViewGetMixin, ModelViewSet
+):
     serializer_class = FlawCommentSerializer
     filterset_class = FlawCommentFilter
     http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete", "put"])
@@ -627,7 +729,10 @@ class FlawCommentView(SubFlawViewGetMixin, ModelViewSet):
     ),
 )
 class FlawPackageVersionView(
-    SubFlawViewGetMixin, SubFlawViewDestroyMixin, ModelViewSet
+    RudimentaryUserPathLoggingMixin,
+    SubFlawViewGetMixin,
+    SubFlawViewDestroyMixin,
+    ModelViewSet,
 ):
     serializer_class = FlawPackageVersionSerializer
     filterset_class = FlawPackageVersionFilter
@@ -644,7 +749,9 @@ class FlawPackageVersionView(
         request=AffectPostSerializer,
     ),
 )
-class AffectView(SubFlawViewDestroyMixin, ModelViewSet):
+class AffectView(
+    RudimentaryUserPathLoggingMixin, SubFlawViewDestroyMixin, ModelViewSet
+):
     queryset = Affect.objects.prefetch_related(
         "cvss_scores",
         "trackers",
@@ -863,7 +970,7 @@ class AffectView(SubFlawViewDestroyMixin, ModelViewSet):
         parameters=[bz_api_key_param],
     ),
 )
-class AffectCVSSView(ModelViewSet):
+class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
     serializer_class = AffectCVSSSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -931,7 +1038,7 @@ class AffectCVSSView(ModelViewSet):
         request=TrackerPostSerializer,
     ),
 )
-class TrackerView(ModelViewSet):
+class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
     queryset = Tracker.objects.prefetch_related("errata", "affects").all()
     serializer_class = TrackerSerializer
     filterset_class = TrackerFilter
@@ -986,7 +1093,7 @@ class TrackerView(ModelViewSet):
         ],
     ),
 )
-class AlertView(ModelViewSet):
+class AlertView(RudimentaryUserPathLoggingMixin, ModelViewSet):
     queryset = Alert.objects.all()
     serializer_class = AlertSerializer
     filterset_class = AlertFilter
@@ -998,7 +1105,7 @@ class AlertView(ModelViewSet):
 
 # TODO: this view is temporary/undocumented and only applies to accessing JIRA stage and someday should be removed
 @extend_schema(exclude=True)
-class JiraStageForwarderView(APIView):
+class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
     """authenticated view which performs http forwarding specifically for Jira stage"""
 
     proxies = {"https": HTTPS_PROXY}
@@ -1071,7 +1178,7 @@ class JiraStageForwarderView(APIView):
         return Response(status=200, headers=headers)
 
 
-class AuditView(ModelViewSet):
+class AuditView(RudimentaryUserPathLoggingMixin, ModelViewSet):
     """basic view of audit history events"""
 
     queryset = pghistory.models.Events.objects.all().order_by("-pgh_created_at")

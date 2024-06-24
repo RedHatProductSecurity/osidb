@@ -204,6 +204,7 @@ LOGGING = {
         },
         "celery": {"handlers": ["celery"], "level": "INFO", "propagate": True},
         "osidb": {"level": "WARNING", "handlers": ["console"], "propagate": False},
+        "api_req": {"level": "INFO", "handlers": ["console"], "propagate": False},
         "django_auth_ldap": {"level": "WARNING", "handlers": ["console"]},
         # app loggers
         **{

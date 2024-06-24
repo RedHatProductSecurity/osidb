@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from osidb.api_views import RudimentaryUserPathLoggingMixin
 from osidb.mixins import ACLMixin
 from osidb.models import Affect, PsModule
 
@@ -11,7 +12,7 @@ from .product_definition_handlers.base import ProductDefinitionRules
 from .serializer import FlawUUIDListSerializer, TrackerSuggestionSerializer
 
 
-class TrackerFileSuggestionView(APIView):
+class TrackerFileSuggestionView(RudimentaryUserPathLoggingMixin, APIView):
     @extend_schema(
         request=FlawUUIDListSerializer,
         description="Given a list of flaws, generates a list of suggested trackers to file.",

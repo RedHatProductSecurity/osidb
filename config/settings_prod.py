@@ -147,7 +147,7 @@ if get_env("MPP", is_bool=True, default="False"):
                     "backupCount": LOG_FILE_COUNT,
                 },
                 "console": {
-                    "level": "WARNING",
+                    "level": "INFO",
                     "class": "logging.handlers.RotatingFileHandler",
                     "formatter": "verbose",
                     "filename": "/var/log/prod-django.log",
