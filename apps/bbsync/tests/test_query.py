@@ -193,24 +193,22 @@ class TestGenerateBasics:
         assert bbq.query["summary"] == "hammer: is too heavy"
 
     @pytest.mark.parametrize(
-        "is_draft,result",
+        "workflow_state,result",
         [
-            (True, "vulnerability-draft"),
-            (False, "vulnerability"),
+            (WorkflowModel.WorkflowState.NOVALUE, "vulnerability"),
+            (WorkflowModel.WorkflowState.NEW, "vulnerability-draft"),
+            (WorkflowModel.WorkflowState.TRIAGE, "vulnerability"),
+            (WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT, "vulnerability"),
+            (WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT, "vulnerability"),
+            (WorkflowModel.WorkflowState.DONE, "vulnerability"),
+            (WorkflowModel.WorkflowState.REJECTED, "vulnerability"),
         ],
     )
-    def test_generate_component(self, is_draft, result):
+    def test_generate_component(self, workflow_state, result):
         """
         test generating of component
         """
-        flaw = FlawFactory(
-            cve_id="CVE-2000-1001",
-            workflow_state=WorkflowModel.WorkflowState.NEW,
-            meta_attr={
-                "bz_id": "1000",
-                "bz_component": "vulnerability-draft" if is_draft else "vulnerability",
-            },
-        )
+        flaw = FlawFactory(workflow_state=workflow_state)
 
         bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["component"] == result
