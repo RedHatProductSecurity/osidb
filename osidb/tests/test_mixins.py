@@ -586,6 +586,7 @@ class TestBugzillaJiraMixinInteration:
         PsModuleFactory(name="ps-module-0")
         assert flaw.bz_id
         assert flaw.task_key
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
         assert flaw.meta_attr["bz_component"] == "vulnerability-draft"
 
         AffectFactory(flaw=flaw, ps_module="ps-module-0")
@@ -643,6 +644,7 @@ class TestBugzillaJiraMixinInteration:
         PsModuleFactory(name="ps-module-0")
         assert flaw.bz_id
         assert flaw.task_key
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
         assert flaw.meta_attr["bz_component"] == "vulnerability-draft"
 
         AffectFactory(flaw=flaw, ps_module="ps-module-0")

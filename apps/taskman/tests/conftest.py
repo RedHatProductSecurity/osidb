@@ -4,7 +4,10 @@ import pytest
 from django.conf import settings
 from taskman.constants import JIRA_AUTH_TOKEN, TASKMAN_API_VERSION
 
+import apps.taskman.mixins as mixins
 import apps.taskman.service as service
+import osidb.models as models
+import osidb.serializer as serializer
 from osidb.constants import OSIDB_API_VERSION
 
 
@@ -56,6 +59,9 @@ def pin_envs(monkeypatch) -> None:
     """
     the tests should be immune to what .env you build the testrunner with
     """
+    monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+    monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+    monkeypatch.setattr(mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
     monkeypatch.setenv("HTTPS_PROXY", "http://squid.corp.redhat.com:3128")
     monkeypatch.setenv("JIRA_TASKMAN_URL", "https://example.com/")
     monkeypatch.setenv("JIRA_TASKMAN_AUTO_SYNC_FLAW", "1")

@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Update the SLA policy
+- Make Taskman service validate Jira token (OSIDB-2203)
 
 ### Fixed
 - Workflow state of flaws without task automatically changes to 'NEW' (OSIDB-2989)

@@ -16,7 +16,11 @@ from collectors.jiraffe.core import JiraQuerier
 from osidb.models import Flaw, Impact, PsProduct
 
 from .constants import JIRA_TASKMAN_PROJECT_KEY, JIRA_TASKMAN_URL
-from .exceptions import JiraTaskErrorException, MissingJiraTokenException
+from .exceptions import (
+    JiraTaskErrorException,
+    MissingJiraTokenException,
+    TaskWritePermissionsException,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +86,19 @@ class JiraTaskmanQuerier(JiraQuerier):
 
     def create_or_update_task(self, flaw: Flaw) -> Response:
         """Creates or updates a task using Flaw data"""
+        token_validation_url = f"{self.jira_conn._get_url('mypermissions')}?projectKey={JIRA_TASKMAN_PROJECT_KEY}"
+
+        # This request raises exception for unauthenticated users
+        permission_response = self.jira_conn._session.get(token_validation_url)
+
+        permissions = permission_response.json().get(
+            "permissions", {"CREATE_ISSUES": {"havePermission": False}}
+        )
+        if not permissions["CREATE_ISSUES"]["havePermission"]:
+            raise TaskWritePermissionsException(
+                f"Token is valid for {JIRA_TASKMAN_URL} but user doesn't have write permission in {JIRA_TASKMAN_PROJECT_KEY} project."
+            )
+
         data = self._generate_task_data(flaw)
         data["fields"]["issuetype"]["id"] = self.jira_conn.issue_type_by_name(
             "Story"
