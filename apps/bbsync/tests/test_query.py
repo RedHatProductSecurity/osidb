@@ -1184,7 +1184,14 @@ class TestGenerateGroups:
 
 
 class TestGenerateComment:
-    def test_generate_comment(self):
+    @pytest.mark.parametrize(
+        "is_private",
+        [
+            (False),
+            (True),
+        ],
+    )
+    def test_generate_comment(self, is_private):
         """
         test generating a new comment
         """
@@ -1196,13 +1203,14 @@ class TestGenerateComment:
             external_system_id="",
             created_dt=timezone.now(),
             updated_dt=timezone.now(),
+            is_private=is_private,
         )
         assert FlawComment.objects.pending().count() == 1
 
         bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["comment"] == {
             "body": "Hello World",
-            "is_private": False,
+            "is_private": is_private,
         }
 
 
