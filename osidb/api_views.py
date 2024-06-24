@@ -1058,6 +1058,35 @@ class JiraStageForwarderView(APIView):
         )
         return Response(response.json(), status=response.status_code)
 
+    def put(self, request, *args, **kwargs):
+        """perform JIRA stage HTTP PUT"""
+
+        path_value = request.GET.get("path")
+        target_url = f"{JIRA_SERVER}{path_value}"
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "User-Agent": "OSIM",
+        }
+        jira_api_key = request.headers.get("Jira-Api-Key")
+        if jira_api_key:
+            headers["Authorization"] = f"Bearer {jira_api_key}"
+        else:
+            raise ValidationError({"Jira-Api-Key": "This HTTP header is required."})
+
+        response = requests.put(
+            target_url,
+            data=request.body,
+            proxies=self.proxies,
+            headers=headers,
+            timeout=60,
+        )
+
+        return Response(
+            response.json() if response.text else None, status=response.status_code
+        )
+
     def options(self, request, *args, **kwargs):
         """always return same OPTIONS"""
         allowed_methods = ["GET", "POST"]
