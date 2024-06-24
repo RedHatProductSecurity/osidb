@@ -1,6 +1,7 @@
 """
 Bugzilla collector
 """
+
 import time
 from datetime import datetime, timedelta
 from typing import Union
@@ -17,6 +18,11 @@ from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.convertors import BugzillaTrackerConvertor, FlawConvertor
 from collectors.framework.models import Collector, CollectorMetadata
 from osidb.models import Flaw, PsModule
+from osidb.sync_manager import (
+    BZTrackerDownloadManager,
+    BZTrackerLinkManager,
+    FlawDownloadManager,
+)
 
 from .constants import (
     ANALYSIS_TASK_PRODUCT,
@@ -486,14 +492,12 @@ class FlawCollector(Collector):
 
         flaw_ids = [(i, i) for i in batch] if batch is not None else self.get_batch()
 
-        # TODO good candidate for parallelizing
-        for flaw_id, _ in flaw_ids:
-            success, failure = self.collect_flaw(flaw_id)
+        FlawDownloadManager.check_for_reschedules()
 
-            if success:
-                successes.append(success)
-            if failure:
-                failures.append(failure)
+        for flaw_id, _ in flaw_ids:
+            download_manager = FlawDownloadManager.get_sync_manager(flaw_id)
+            download_manager.schedule()
+            successes.append(flaw_id)
 
         # with specified batch we stop here
         if batch is not None:
@@ -629,18 +633,14 @@ class BugzillaTrackerCollector(Collector):
 
         start_dt = timezone.now()
 
+        BZTrackerDownloadManager.check_for_reschedules()
+        BZTrackerLinkManager.check_for_reschedules()
+
         tracker_ids = self.get_batch()
         for tracker_id, _ in tracker_ids:
-            logger.debug(f"Fetching Bugzilla tracker with ID {tracker_id}")
-
-            try:
-                self.sync_tracker(tracker_id)
-                successes.append(tracker_id)
-            except Exception as e:
-                logger.exception(
-                    f"Bugzilla tracker bug with id {tracker_id} import error: {str(e)}"
-                )
-                failures.append(tracker_id)
+            download_manager = BZTrackerDownloadManager.get_sync_manager(tracker_id)
+            download_manager.schedule()
+            successes.append(tracker_id)
 
         complete = bool(self.is_complete or len(tracker_ids) < self.BATCH_SIZE)
         new_updated_until_dt = tracker_ids[-1][1] if tracker_ids else start_dt

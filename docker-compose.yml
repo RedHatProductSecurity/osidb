@@ -107,6 +107,7 @@ services:
 
     osidb-data:
       image: docker.io/library/postgres:13
+      shm_size: 1gb  # Needed for more consecutive connections
       hostname: osidb-data
       container_name: osidb-data
       environment:

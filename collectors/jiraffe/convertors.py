@@ -1,6 +1,7 @@
 """
 transform Jira issue into OSIDB tracker model
 """
+
 import json
 import logging
 import uuid
@@ -13,15 +14,13 @@ from apps.taskman.constants import JIRA_AUTH_TOKEN
 from apps.workflows.workflow import WorkflowFramework
 from collectors.bzimport.constants import BZ_API_KEY
 from osidb.core import generate_acls, set_user_acls
-from osidb.mixins import Alert
-from osidb.models import Affect, Flaw, Tracker
+from osidb.models import Flaw, Tracker
 from osidb.validators import CVE_RE_STR
 
 from ..utils import (
     tracker_parse_update_stream_component,
     tracker_summary2module_component,
 )
-from .constants import JIRA_BZ_ID_LABEL_RE
 
 logger = logging.getLogger(__name__)
 
@@ -216,13 +215,6 @@ class TrackerConvertor:
         """
         raise NotImplementedError
 
-    @property
-    def affects(self) -> list:
-        """
-        returns the list of related affects
-        """
-        raise NotImplementedError
-
     def alert(self, alert) -> None:
         """
         store conversion alert
@@ -278,7 +270,7 @@ class TrackerConvertor:
         """
         return TrackerSaver(
             self._gen_tracker_object(),
-            self.affects,
+            [],  # Affects are linked later using sync managers
             self.alerts,
         )
 
@@ -338,9 +330,11 @@ class JiraTrackerConvertor(TrackerConvertor):
             "status": self.get_field_attr(self._raw, "status", "name"),
             "resolution": self.get_field_attr(self._raw, "resolution", "name"),
             "created_dt": self._raw.fields.created,
-            "updated_dt": self._raw.fields.updated
-            if self._raw.fields.updated
-            else self._raw.fields.created,
+            "updated_dt": (
+                self._raw.fields.updated
+                if self._raw.fields.updated
+                else self._raw.fields.created
+            ),
         }
 
     @property
@@ -388,110 +382,3 @@ class JiraTrackerConvertor(TrackerConvertor):
         so the ACL validations may properly compare the result
         """
         return [uuid.UUID(acl) for acl in generate_acls(self.groups_write)]
-
-    @property
-    def affects(self) -> list:
-        """
-        returns the list of related affects
-        """
-        # to ensure the maximum possible linkage retrieval
-        # we use multiple methods to find the related flaws
-        #
-        # this ensures the restoration of links
-        # which has one of the sides broken
-        flaws = set()
-
-        # 1) linking from the flaw side
-        for flaw in Flaw.objects.filter(
-            meta_attr__jira_trackers__contains=self._raw.key
-        ):
-            # we need to double check the tracker ID
-            # as eg. OSIDB-123 is contained in OSIDB-1234
-            for item in json.loads(flaw.meta_attr["jira_trackers"]):
-                if self._raw.key == item["key"]:
-                    flaws.add(flaw)
-
-        # 2) linking from the tracker side
-        for label in self._raw.fields.labels:
-            if CVE_RE_STR.match(label):
-                try:
-                    flaws.add(Flaw.objects.get(cve_id=label))
-                except Flaw.DoesNotExist:
-                    # tracker created against
-                    # non-existing CVE ID
-                    self.alert(
-                        {
-                            "name": "tracker_no_flaw",
-                            "description": (
-                                f"Jira tracker {self._raw.key} is supposed to be associated with "
-                                f"flaw {label} which however does not exist"
-                            ),
-                            "alert_type": Alert.AlertType.ERROR,
-                        }
-                    )
-                    continue
-
-            if label.startswith("flawuuid:"):
-                flaw_uuid = label.split(":")[1]
-                try:
-                    flaws.add(Flaw.objects.get(uuid=flaw_uuid))
-                except Flaw.DoesNotExist:
-                    # tracker created against
-                    # non-existing flaw UUID
-                    self.alert(
-                        {
-                            "name": "tracker_no_flaw",
-                            "description": (
-                                f"Jira tracker {self._raw.key} is supposed to be associated with "
-                                f"flaw {flaw_uuid} which however does not exist"
-                            ),
-                            "alert_type": Alert.AlertType.ERROR,
-                        }
-                    )
-                    continue
-
-            if match := JIRA_BZ_ID_LABEL_RE.match(label):
-                if not (
-                    linked_flaws := Flaw.objects.filter(meta_attr__bz_id=match.group(1))
-                ):
-                    # tracker created against
-                    # non-existing BZ ID
-                    self.alert(
-                        {
-                            "name": "tracker_no_flaw",
-                            "description": (
-                                f"Jira tracker {self._raw.key} is supposed to be associated with "
-                                f"flaw {match.group(1)} which however does not exist"
-                            ),
-                            "alert_type": Alert.AlertType.ERROR,
-                        }
-                    )
-                    continue
-
-                flaws.update(linked_flaws)
-
-        affects = []
-        for flaw in flaws:
-            try:
-                affect = flaw.affects.get(
-                    ps_module=self.ps_module,
-                    ps_component=self.ps_component,
-                )
-            except Affect.DoesNotExist:
-                # tracker created against
-                # non-existing affect
-                self.alert(
-                    {
-                        "name": "tracker_no_affect",
-                        "description": (
-                            f"Jira tracker {self._raw.key} is associated with flaw "
-                            f"{flaw.cve_id or flaw.bz_id} but there is no associated affect "
-                            f"({self.ps_module}:{self.ps_component})"
-                        ),
-                        "alert_type": Alert.AlertType.ERROR,
-                    }
-                )
-                continue
-
-            affects.append(affect)
-        return affects
