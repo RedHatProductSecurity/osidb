@@ -32,7 +32,7 @@ def flaw_collector(collector_obj):
 @collector(
     base=BugzillaTrackerCollector,
     crontab=crontab(),
-    depends_on=["collectors.bzimport.tasks.flaw_collector"],
+    depends_on=["collectors.product_definitions.tasks.product_definitions_collector"],
     enabled=BZ_TRACKER_COLLECTOR_ENABLED,
 )
 def bztracker_collector(collector_obj):
