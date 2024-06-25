@@ -66,7 +66,7 @@ class TestSnippet:
         assert flaw.snippets.count() == 1
         assert flaw.source == snippet.source
         assert flaw.title == content["title"]
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.NOVALUE
 
         flaw_cvss = flaw.cvss_scores.all().first()
         assert flaw_cvss.issuer == FlawCVSS.CVSSIssuer.NIST

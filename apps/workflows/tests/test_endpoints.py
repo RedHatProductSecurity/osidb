@@ -190,7 +190,7 @@ class TestEndpoints(object):
         """
         test authenticated workflow classification adjusting API endpoint with no flaw modification
         """
-        flaw = FlawFactory()
+        flaw = FlawFactory(workflow_state=WorkflowModel.WorkflowState.NEW)
         response = auth_client().post(f"{test_api_uri}/workflows/{flaw.uuid}/adjust")
         assert response.status_code == 200
         body = response.json()
@@ -398,7 +398,7 @@ class TestEndpoints(object):
         AffectFactory(flaw=flaw)
 
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NOVALUE
         headers = {"HTTP_JIRA_API_KEY": user_token}
 
         response = auth_client().post(
@@ -412,7 +412,7 @@ class TestEndpoints(object):
         set_user_acls(settings.ALL_GROUPS)
         flaw = Flaw.objects.get(pk=flaw.pk)
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NOVALUE
 
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reject",
