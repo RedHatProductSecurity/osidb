@@ -5628,6 +5628,12 @@ paths:
           type: string
         description: User generated api key for Jira authentication.
         required: true
+      - in: query
+        name: create_jira_task
+        schema:
+          type: boolean
+        description: If set to true, it will trigger the creation of a Jira task if
+          the flaw doesn't already have one associated.
       - in: path
         name: id
         schema:

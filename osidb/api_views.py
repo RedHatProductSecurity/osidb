@@ -456,7 +456,18 @@ def include_exclude_fields_extend_schema_view(
     ),
     update=extend_schema(
         responses=FlawSerializer,
-        parameters=[id_param],
+        parameters=[
+            id_param,
+            OpenApiParameter(
+                "create_jira_task",
+                type={"type": "boolean"},
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "If set to true, it will trigger the creation of a Jira task if "
+                    "the flaw doesn't already have one associated."
+                ),
+            ),
+        ],
     ),
 )
 class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
