@@ -1,6 +1,7 @@
 """
 Celery tasks for the JIRA Collector
 """
+
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
 
@@ -17,7 +18,7 @@ logger = get_task_logger(__name__)
     base=JiraTrackerCollector,
     crontab=crontab(),  # run every minute
     data_models=[Tracker],
-    depends_on=["collectors.bzimport.tasks.flaw_collector"],
+    depends_on=["collectors.product_definitions.tasks.product_definitions_collector"],
     enabled=JIRA_TRACKER_COLLECTOR_ENABLED,
 )
 def jira_tracker_collector(collector_obj):

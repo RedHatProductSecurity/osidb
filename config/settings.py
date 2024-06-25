@@ -3,6 +3,7 @@ Django base settings for osidb
 
 
 """
+
 import socket
 from pathlib import Path
 
@@ -155,9 +156,9 @@ CELERY_TASK_IGNORE_RESULT = False
 CELERY_TASK_ROUTES = (
     [
         (
-            "collector.bzimport.tasks.extract*",
+            "sync_manager*",  # Scheduled sync tasks go to 'slow' queue
             {"queue": "slow"},
-        ),  # slow_* tasks go to 'slow' queue
+        ),
         ("*", {"queue": "fast"}),  # default other tasks go to 'fast'
     ],
 )

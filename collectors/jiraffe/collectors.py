@@ -1,6 +1,7 @@
 """
 Jira collector
 """
+
 from typing import List, Union
 
 from celery.utils.log import get_task_logger
@@ -13,6 +14,7 @@ from jira.exceptions import JIRAError
 from apps.trackers.models import JiraProjectFields
 from collectors.framework.models import Collector, CollectorMetadata
 from osidb.models import PsModule
+from osidb.sync_manager import JiraTrackerLinkManager
 
 from .convertors import JiraTrackerConvertor
 from .core import JiraQuerier
@@ -79,6 +81,8 @@ class JiraTrackerCollector(Collector):
         start_dt = timezone.now()
         updated_trackers = []
 
+        JiraTrackerLinkManager.check_for_reschedules()
+
         # fetch the next batch of Jira trackers by default
         # but can be overridden by a given tracker ID
         batch_data, period_end = (
@@ -91,6 +95,11 @@ class JiraTrackerCollector(Collector):
         for tracker_data in batch_data:
             self.save(JiraTrackerConvertor(tracker_data).tracker)
             updated_trackers.append(tracker_data.key)
+
+        # Schedule linking tracker => affect
+        for updated_tracker_id in updated_trackers:
+            link_manager = JiraTrackerLinkManager.get_sync_manager(updated_tracker_id)
+            link_manager.schedule()
 
         logger.info(
             f"Jira trackers were updated for the following IDs: {', '.join(updated_trackers)}"
