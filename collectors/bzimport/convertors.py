@@ -6,6 +6,7 @@ import logging
 import re
 import uuid
 from collections import defaultdict
+from datetime import timedelta
 from functools import cached_property
 
 from django.conf import settings
@@ -832,7 +833,22 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
     def get_comments(self, flaw):
         """get FlawComment Django models"""
         # Delete orphaned / temporary comments
-        FlawComment.objects.pending().filter(flaw=flaw).delete()
+        # TODO & WARNING: If fetch from bz is disabled, sync to bz is disabled,
+        #                 pending comments accumulate and then fetch from bz is
+        #                 enabled, the pending comments get deleted, which will
+        #                 look like data loss.
+        # <hack>
+        # Therefore, limit the potential data loss to the past minute.
+        # TODO: This should be rectified by completely rewriting the comments functionality:
+        #       - Creating comments should just save to DB without any comm with BZ
+        #       - An independent thing saves comments to BZ on a best-effort basis
+        #         without redownloading
+        #       - Nothing ever loads data from BZ to OSIDB
+        past_minute = timezone.now() - timedelta(minutes=1)
+        # </hack>
+        FlawComment.objects.pending().filter(flaw=flaw).filter(
+            created_dt__gte=past_minute
+        ).delete()
         return [
             FlawComment.objects.create_flawcomment(
                 flaw,

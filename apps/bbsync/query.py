@@ -409,9 +409,10 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         pending_comments = FlawComment.objects.pending().filter(flaw=self.flaw)
 
         if pending_comments.exists():
+            comment = pending_comments.first()
             self._query["comment"] = {
-                "body": pending_comments.first().text,
-                "is_private": False,
+                "body": comment.text,
+                "is_private": comment.is_private,
             }
 
     def generate_fixed_in(self):
