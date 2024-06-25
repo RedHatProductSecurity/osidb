@@ -3,8 +3,11 @@ Task Manager API endpoints
 """
 import json
 import logging
+from typing import List, Tuple
 
 from django.db import models
+from django.utils import timezone
+from jira import Issue
 from jira.exceptions import JIRAError
 from rest_framework.response import Response
 
@@ -199,3 +202,24 @@ class JiraTaskmanQuerier(JiraQuerier):
                 str(e.response.json()),
             )
             return Response(data=e.response.json(), status=e.status_code)
+
+    def query_tasks(
+        self, query_list: List[Tuple[str, str, str]]
+    ) -> List[Tuple[str, str, str]]:
+        """
+        update query dictionary to query tasks
+        """
+        query_list.append(("project", "=", JIRA_TASKMAN_PROJECT_KEY))
+        query_list.append(("type", "=", "Story"))
+        return query_list
+
+    def get_task_period(
+        self, updated_after: timezone.datetime, updated_before: timezone.datetime
+    ) -> List[Issue]:
+        """
+        get list of tasks updated during the given period
+        """
+        query_list = []
+        query_list = self.query_tasks(query_list)
+        query_list = self.query_updated(query_list, updated_after, updated_before)
+        return self.run_query(query_list)

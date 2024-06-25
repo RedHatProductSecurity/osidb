@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Generate Jira tracker "components" field (OSIDB-2988)
 - Rudimentary API request logging (OSIDB-2514)
 - Add query param to force creation of Jira task for old flaws on update (OSIDB-2882)
+- Add collector for Jira tasks manually edited (OSIDB-1930)
 
 ### Changed
 - Update the SLA policy
