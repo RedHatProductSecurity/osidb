@@ -219,3 +219,72 @@ class TestFlawModelIntegration(object):
         )
         assert response.status_code == 200
         assert sync_count == 1
+
+    def test_create_jira_task_param(
+        self, monkeypatch, auth_client, test_osidb_api_uri, bz_api_key, user_token
+    ):
+        def mock_create_or_update_task(self, flaw):
+            flaw.task_key = "TASK-123"
+            flaw.save()
+            return Response(
+                data={
+                    "key": "TASK-123",
+                    "fields": {"status": {"name": "New"}, "resolution": None},
+                },
+                status=200,
+            )
+
+        monkeypatch.setattr(
+            JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
+        )
+
+        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw)
+        flaw.task_key = ""
+        flaw.save()
+
+        # Update flaw with no task without using the create_jira_task param:
+        # it should not create any task
+        response = auth_client().put(
+            f"{test_osidb_api_uri}/flaws/{flaw.uuid}",
+            {
+                "uuid": flaw.uuid,
+                "cve_id": flaw.cve_id,
+                "title": f"{flaw.title} appended test title",
+                "comment_zero": flaw.comment_zero,
+                "impact": flaw.impact,
+                "source": flaw.source,
+                "embargoed": False,
+                "updated_dt": flaw.updated_dt,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_api_key,
+            HTTP_JIRA_API_KEY=user_token,
+        )
+        assert response.status_code == 200
+        assert not flaw.task_key
+
+        # Now use the create_jira_task to force the creation of a task for the flaw
+        flaw = Flaw.objects.get(uuid=flaw.uuid)
+        response = auth_client().put(
+            f"{test_osidb_api_uri}/flaws/{flaw.uuid}?create_jira_task=1",
+            {
+                "uuid": flaw.uuid,
+                "cve_id": flaw.cve_id,
+                "title": f"{flaw.title} appended test title",
+                "comment_zero": flaw.comment_zero,
+                "impact": flaw.impact,
+                "source": flaw.source,
+                "embargoed": False,
+                "updated_dt": flaw.updated_dt,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_api_key,
+            HTTP_JIRA_API_KEY=user_token,
+        )
+        assert response.status_code == 200
+        flaw = Flaw.objects.get(uuid=flaw.uuid)
+        assert flaw.task_key

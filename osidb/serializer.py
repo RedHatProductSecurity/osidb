@@ -1659,6 +1659,13 @@ class FlawSerializer(
         if old_flaw.is_embargoed and self._is_public(new_flaw, validated_data):
             new_flaw.unembargo()
 
+        # Force Jira task creation if requested
+        request = self.context.get("request")
+        if request:
+            create_jira_task = request.query_params.get("create_jira_task")
+            if create_jira_task:
+                new_flaw.tasksync(jira_token=self.get_jira_token(), force_creation=True)
+
         # perform regular flaw update
         new_flaw = super().update(new_flaw, validated_data)
 
