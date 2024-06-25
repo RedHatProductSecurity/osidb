@@ -28,7 +28,9 @@ class WrongBtsWithJiraAffectCCBuilderError(Exception):
 
 
 class BaseAffectCCBuilder:
-    def __init__(self, affect: Affect, embargoed: bool) -> None:
+    def __init__(
+        self, affect: Affect, embargoed: bool, bts_name_override: Optional[str] = None
+    ) -> None:
         """
         init stuff
         expects a valid affect
@@ -37,6 +39,10 @@ class BaseAffectCCBuilder:
         self.ps_module = affect.ps_module
         self.ps_component = affect.ps_component
         self.ps_module_obj = PsModule.objects.get(name=affect.ps_module)
+        # In some specific scenarios (see OSIDB-2985) we need to generate CC lists
+        # in Bugzilla format even for Jira tracker PS modules (namely when generating Flaw CC list),
+        # in such scenarios we need to override the CC list format
+        self.bts_name = bts_name_override or self.ps_module_obj.bts_name
         self.embargoed = embargoed
 
         super().__init__()
@@ -46,7 +52,7 @@ class BaseAffectCCBuilder:
         """
         check that this PS module is tracked in Bugzilla
         """
-        return self.ps_module_obj.bts_name == "bugzilla"
+        return self.bts_name == "bugzilla"
 
     @cached_property
     def cc(self) -> List[str]:
@@ -101,10 +107,10 @@ class BaseAffectCCBuilder:
         if not contact:
             return cc
 
-        if self.ps_module_obj.bts_name == "bugzilla":
+        if self.bts_name == "bugzilla":
             return contact.bz_username
 
-        elif self.ps_module_obj.bts_name == "jboss":
+        elif self.bts_name == "jboss":
             return contact.jboss_username
 
         else:
@@ -195,12 +201,14 @@ class JiraAffectCCBuilder(BaseAffectCCBuilder):
     multi-affect Trackers.
     """
 
-    def __init__(self, affect: Affect, embargoed: bool) -> None:
+    def __init__(
+        self, affect: Affect, embargoed: bool, bts_name_override: Optional[str] = None
+    ) -> None:
         """
         init stuff, works only for Jira
         expects a valid affect
         """
-        super().__init__(affect, embargoed)
+        super().__init__(affect, embargoed, bts_name_override)
 
         if self.ps_module_obj.bts_name != "jboss":
             raise WrongBtsWithJiraAffectCCBuilderError
@@ -239,12 +247,14 @@ class BugzillaAffectCCBuilder(BaseAffectCCBuilder):
        multi-affect Trackers.
     """
 
-    def __init__(self, affect: Affect, embargoed: bool) -> None:
+    def __init__(
+        self, affect: Affect, embargoed: bool, bts_name_override: Optional[str] = None
+    ) -> None:
         """
         init stuff
         expects a valid affect
         """
-        super().__init__(affect, embargoed)
+        super().__init__(affect, embargoed, bts_name_override)
 
         self.bz_component = self.ps2bz_component() if self.is_bugzilla else None
 
@@ -480,5 +490,7 @@ class BugzillaFlawCCBuilder:
         affect_cc_builder_class = (
             RHSCLBugzillaAffectCCBuilder if affect.is_rhscl else BugzillaAffectCCBuilder
         )
-        affect_cc_builder = affect_cc_builder_class(affect, self.flaw.is_embargoed)
+        affect_cc_builder = affect_cc_builder_class(
+            affect, self.flaw.is_embargoed, bts_name_override="bugzilla"
+        )
         return affect_cc_builder.cc
