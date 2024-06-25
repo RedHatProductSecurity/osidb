@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from apps.bbsync.cc import CCBuilder, RHSCLAffectCCBuilder
+from apps.bbsync.cc import AffectCCBuilder, CCBuilder, RHSCLAffectCCBuilder
 from apps.bbsync.constants import RHSCL_BTS_KEY, USER_BLACKLIST
 from apps.bbsync.tests.factories import BugzillaComponentFactory, BugzillaProductFactory
 from osidb.models import Affect, Flaw, PsModule
@@ -456,21 +456,21 @@ class TestAffectCCBuilder:
             bts_name=bts_name,
         )
 
-        cc_builder = CCBuilder(flaw)
-        add_cc, remove_cc = cc_builder.content
+        cc_builder = AffectCCBuilder(affect, False)
+        cc_list = set(cc_builder.cc)
         if mod.bts_name == "bugzilla":
-            assert add_cc == [
+            assert cc_list == {
                 "cat@redhat.com",
                 "dog@redhat.com",
                 "duck@fedora.org",
-            ]
+            }
         else:
-            assert add_cc == [
+            assert cc_list == {
                 "cat",
                 "dog",
                 "duck@fedora.org",
-            ]
-        assert not remove_cc
+            }
+        # assert not remove_cc
 
     def test_expand_alias(self):
         """
@@ -508,14 +508,64 @@ class TestAffectCCBuilder:
             jboss_username="hotdog@email.org",
         )
 
+        cc_builder1 = AffectCCBuilder(affect1, False)
+        cc_list1 = set(cc_builder1.cc)
+        assert cc_list1 == {
+            "catfish@email.org",
+            "duck@fedora.org",
+        }
+
+        cc_builder2 = AffectCCBuilder(affect2, False)
+        cc_list2 = set(cc_builder2.cc)
+        assert cc_list2 == {
+            "horse@redhat.com",
+            "hotdog@email.org",
+        }
+
+    def test_bts_name_override(self):
+        """
+        test that CC aliases are created based on override bts name
+        """
+        flaw = FlawFactory(embargoed=False)
+        affect1 = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        PsModuleFactory(
+            bts_name="bugzilla",
+            name=affect1.ps_module,
+            default_cc=["cat", "duck@fedora.org"],
+        )
+        PsContactFactory(
+            username="cat",
+            bz_username="catfish@email.org",
+            jboss_username="tomcat@domain.de",
+        )
+        affect2 = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        PsModuleFactory(
+            bts_name="jboss",
+            name=affect2.ps_module,
+            default_cc=["dog", "horse@redhat.com"],
+        )
+        PsContactFactory(
+            username="dog",
+            bz_username="puppy@domain.au",
+            jboss_username="hotdog@email.org",
+        )
+
         cc_builder = CCBuilder(flaw)
         add_cc, remove_cc = cc_builder.content
-        assert add_cc == [
+        assert set(add_cc) == {
             "catfish@email.org",
             "duck@fedora.org",
             "horse@redhat.com",
-            "hotdog@email.org",
-        ]
+            "puppy@domain.au",
+        }
         assert not remove_cc
 
     @pytest.mark.parametrize(
