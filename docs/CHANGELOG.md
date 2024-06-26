@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Flaw CC list builder to generate CCs in Bugzilla format
   for both Bugzilla and Jira tracked PS modules (OSIDB-2985)
 - Flaw commments create action respects is_private (OSIDB-3003)
+- Keep vulnerability-draft BZ component when rejecting flaw draft (OSIDB-3023)
 
 ## [4.0.0] - 2024-06-17
 ### Added

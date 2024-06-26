@@ -201,17 +201,60 @@ class TestGenerateBasics:
             (WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT, "vulnerability"),
             (WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT, "vulnerability"),
             (WorkflowModel.WorkflowState.DONE, "vulnerability"),
-            (WorkflowModel.WorkflowState.REJECTED, "vulnerability"),
+            (WorkflowModel.WorkflowState.REJECTED, "vulnerability-draft"),
         ],
     )
-    def test_generate_component(self, workflow_state, result):
+    @pytest.mark.parametrize("has_meta_attr", [True, False])
+    def test_generate_component_before_bz_sync_or_with_draft_component(
+        self, workflow_state, result, has_meta_attr
+    ):
         """
-        test generating of component
+        Test that component is set to "vulnerability-draft" in NEW and REJECTED
+        workflow states and to "vulnerability" in other states when the flaw
+        hasn't been synced to bugzilla yet or when its component was previously
+        set to "vulnerability-draft".
         """
-        flaw = FlawFactory(workflow_state=workflow_state)
+        if has_meta_attr:
+            flaw = FlawFactory(
+                workflow_state=workflow_state,
+                meta_attr={"bz_id": "123", "bz_component": "vulnerability-draft"},
+            )
+        else:
+            flaw = FlawFactory(
+                workflow_state=workflow_state,
+                meta_attr={},
+            )
 
         bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["component"] == result
+
+    @pytest.mark.parametrize(
+        "workflow_state",
+        [
+            WorkflowModel.WorkflowState.NOVALUE,
+            WorkflowModel.WorkflowState.NEW,
+            WorkflowModel.WorkflowState.TRIAGE,
+            WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT,
+            WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
+            WorkflowModel.WorkflowState.DONE,
+            WorkflowModel.WorkflowState.REJECTED,
+        ],
+    )
+    def test_generate_component_after_bz_sync_with_regular_component(
+        self, workflow_state
+    ):
+        """
+        Test that component is set always to "vulnerability" in all workflow
+        states when the flaw has been synced to bugzilla already with component
+        previously set to "vulnerability".
+        """
+        flaw = FlawFactory(
+            workflow_state=workflow_state,
+            meta_attr={"bz_id": "123", "bz_component": "vulnerability"},
+        )
+
+        bbq = FlawBugzillaQueryBuilder(flaw)
+        assert bbq.query["component"] == "vulnerability"
 
     def test_generate_alias_cve_id(self):
         """
