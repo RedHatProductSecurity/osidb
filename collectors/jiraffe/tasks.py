@@ -19,8 +19,7 @@ logger = get_task_logger(__name__)
 
 @collector(
     base=JiraTaskCollector,
-    # run once a day at 8:53pm
-    crontab=crontab(hour=20, minute=53),
+    crontab=crontab(),  # run every minute
     data_models=[Flaw],
     enabled=JIRA_TASK_COLLECTOR_ENABLED,
 )
