@@ -651,7 +651,7 @@ class TrackerSerializer(
             "resolution",
         ]
 
-    def create(self, validated_data):
+    def create(self, validated_data):  # TODO?
         """
         perform the tracker instance creation
         """
