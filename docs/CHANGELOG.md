@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Fixed
 - Keep vulnerability-draft BZ component when rejecting flaw draft (OSIDB-3023)
+- Fix external sync order in serializers (OSIDB-3029)
 
 ## [4.1.0] - 2024-06-25
 ### Added

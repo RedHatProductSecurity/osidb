@@ -832,20 +832,11 @@ class AffectView(
                 {"flaw": "Provided affects belong to multiple flaws."}
             )
 
-        def dummy(*args, **kwargs):
-            pass
-
         # Second, save the updated affects to the database, but not sync with BZ.
         ret = []
         for serializer in validated_serializers:
-            # NOTE This takes about 300 milliseconds on local laptop per instance.
-
-            # Make the serializer's and model's mixins and .bzsync() not make requests to bugzilla.
-            # Leave the jira token as is, so that AffectSerializer.update() can still update
-            # Trackers in Jira as necessary.
-            serializer.get_bz_api_key = dummy
-            self.perform_update(serializer)
-
+            # Make the serializer skip the sync for each affect
+            serializer.save(skip_bz_sync=True)
             ret.append(serializer.data)
 
         # Third, proxy the update to Bugzilla
@@ -892,23 +883,11 @@ class AffectView(
                 {"flaw": "Provided affects belong to multiple flaws."}
             )
 
-        def dummy(*args, **kwargs):
-            pass
-
         # Second, save the updated affects to the database, but not sync with BZ.
         ret = []
         for serializer in validated_serializers:
-            # NOTE This takes about 300 milliseconds on local laptop per instance.
-
-            # Make the serializer's and model's mixins and .bzsync() not make requests to bugzilla.
-            # Leave the jira token as is, so that AffectSerializer.update() can still update
-            # Trackers in Jira as necessary.
-            # This also inherently performs additional validation, e.g. for
-            # duplicates among the submitted affects. Relying on the whole
-            # transaction being aborted if a validation fails.
-            serializer.get_bz_api_key = dummy
-            self.perform_update(serializer)
-
+            # Make the serializer skip the sync for each affect
+            serializer.save(skip_bz_sync=True)
             ret.append(serializer.data)
 
         # Third, proxy the update to Bugzilla
