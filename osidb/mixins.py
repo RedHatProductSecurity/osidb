@@ -50,7 +50,10 @@ class TrackingMixin(models.Model):
             # otherwise assume that there was a conflicting parallel change
             if db_self is not None and db_self.updated_dt != self.updated_dt:
                 raise DataInconsistencyException(
-                    "Save operation based on an outdated model instance"
+                    "Save operation based on an outdated model instance: "
+                    f"Updated datetime in the request {self.updated_dt} "
+                    f"differes from the DB {db_self.updated_dt}. "
+                    "You need to refresh."
                 )
 
             # auto-set updated_dt as now on any change

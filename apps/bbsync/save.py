@@ -99,7 +99,10 @@ class BugzillaSaver(BugzillaQuerier):
         """
         if self.actual_last_change != self.stored_last_change:
             raise DataInconsistencyException(
-                "Save operation based on an outdated model instance"
+                "Save operation based on an outdated model instance: "
+                f"Bugzilla last change time {self.actual_last_change} "
+                f"differs from OSIDB {self.stored_last_change}. "
+                "You need to wait a minute for the data refresh."
             )
 
     @property
