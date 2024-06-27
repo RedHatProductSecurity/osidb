@@ -128,7 +128,9 @@ class SyncManager(models.Model):
             self.save()
         logger.info(f"{self.__class__.__name__} {self.sync_id}: Sync failed")
         if self.permanently_failed:
-            logger.info(f"{self.__class__.__name__} {self.sync_id}: Sync permanently")
+            logger.info(
+                f"{self.__class__.__name__} {self.sync_id}: Sync failed permanently"
+            )
         raise exception
 
     def revoke_sync_task(self, celery_task):
@@ -306,7 +308,7 @@ class FlawDownloadManager(SyncManager):
         result = super().__str__()
 
         flaws = Flaw.objects.filter(meta_attr__bz_id=self.sync_id)
-        cves = [f.cve_id for f in flaws]
+        cves = [f.cve_id or f.uuid for f in flaws]
         result += f"Flaws: {cves}\n"
 
         return result
@@ -367,93 +369,101 @@ class BZTrackerLinkManager(SyncManager):
     """
 
     @staticmethod
-    @app.task(name="sync_manager.bz_tracker_link", bind=True)
-    def sync_task(self, tracker_id):
+    def link_tracker_with_affects(tracker_id):
+        # Code adapted from collectors.bzimport.convertors.BugzillaTrackerConvertor.affects
+
         from osidb.models import Affect, Flaw, Tracker
 
+        tracker = Tracker.objects.get(external_system_id=tracker_id)
+
+        affects = []
+        failed_flaws = []
+        failed_affects = []
+
+        # Bugzilla flaws
+        for bz_id in json.loads(tracker.meta_attr["blocks"]):
+            flaws = Flaw.objects.filter(meta_attr__bz_id=str(bz_id))
+            if not flaws:
+                failed_flaws.append(bz_id)
+            for flaw in flaws:
+                try:
+                    affect = flaw.affects.get(
+                        ps_module=tracker.meta_attr["ps_module"],
+                        ps_component=tracker.meta_attr["ps_component"],
+                    )
+                except Affect.DoesNotExist:
+                    failed_affects.append(
+                        (
+                            bz_id,
+                            tracker.meta_attr["ps_module"],
+                            tracker.meta_attr["ps_component"],
+                        )
+                    )
+                else:
+                    affects.append(affect)
+
+        # Check whiteboard
+        process_whiteboard = True
+        try:
+            whiteboard = json.loads(tracker.meta_attr["whiteboard"])
+        except json.JSONDecodeError:
+            process_whiteboard = False
+        else:
+            if not isinstance(whiteboard, dict) or "flaws" not in whiteboard:
+                process_whiteboard = False
+
+        # Non-Bugzilla flaws
+        if process_whiteboard:
+            for flaw_uuid in whiteboard["flaws"]:
+                try:
+                    flaw = Flaw.objects.get(uuid=flaw_uuid)
+                except Flaw.DoesNotExist:
+                    # no such flaw
+                    continue
+
+                try:
+                    affect = flaw.affects.get(
+                        ps_module=tracker.meta_attr["ps_module"],
+                        ps_component=tracker.meta_attr["ps_component"],
+                    )
+                except Affect.DoesNotExist:
+                    # tracker created against
+                    # non-existing affect
+                    failed_affects.append(
+                        (
+                            flaw_uuid,
+                            tracker.meta_attr["ps_module"],
+                            tracker.meta_attr["ps_component"],
+                        )
+                    )
+                    continue
+
+                affects.append(affect)
+
+        # Prevent eventual duplicates
+        affects = list(set(affects))
+
+        with transaction.atomic():
+            tracker.affects.clear()
+            tracker.affects.add(*affects)
+
+        return affects, failed_flaws, failed_affects
+
+    @staticmethod
+    @app.task(name="sync_manager.bz_tracker_link", bind=True)
+    def sync_task(self, tracker_id):
         linker = BZTrackerLinkManager.get_sync_manager(tracker_id)
         linker.started(self)
 
         set_user_acls(settings.ALL_GROUPS)
 
-        # Code adapted from collectors.bzimport.convertors.BugzillaTrackerConvertor.affects
         try:
-            tracker = Tracker.objects.get(external_system_id=tracker_id)
-
-            affects = []
-            failed_flaws = []
-            failed_affects = []
-
-            # Bugzilla flaws
-            for bz_id in json.loads(tracker.meta_attr["blocks"]):
-                flaws = Flaw.objects.filter(meta_attr__bz_id=str(bz_id))
-                if not flaws:
-                    failed_flaws.append(bz_id)
-                for flaw in flaws:
-                    try:
-                        affect = flaw.affects.get(
-                            ps_module=tracker.meta_attr["ps_module"],
-                            ps_component=tracker.meta_attr["ps_component"],
-                        )
-                    except Affect.DoesNotExist:
-                        failed_affects.append(
-                            (
-                                bz_id,
-                                tracker.meta_attr["ps_module"],
-                                tracker.meta_attr["ps_component"],
-                            )
-                        )
-                    else:
-                        affects.append(affect)
-
-            # Check whiteboard
-            process_whiteboard = True
-            try:
-                whiteboard = json.loads(tracker.meta_attr["whiteboard"])
-            except json.JSONDecodeError:
-                process_whiteboard = False
-            else:
-                if not isinstance(whiteboard, dict) or "flaws" not in whiteboard:
-                    process_whiteboard = False
-
-            # Non-Bugzilla flaws
-            if process_whiteboard:
-                for flaw_uuid in whiteboard["flaws"]:
-                    try:
-                        flaw = Flaw.objects.get(uuid=flaw_uuid)
-                    except Flaw.DoesNotExist:
-                        # no such flaw
-                        continue
-
-                    try:
-                        affect = flaw.affects.get(
-                            ps_module=tracker.meta_attr["ps_module"],
-                            ps_component=tracker.meta_attr["ps_component"],
-                        )
-                    except Affect.DoesNotExist:
-                        # tracker created against
-                        # non-existing affect
-                        failed_affects.append(
-                            (
-                                flaw_uuid,
-                                tracker.meta_attr["ps_module"],
-                                tracker.meta_attr["ps_component"],
-                            )
-                        )
-                        continue
-
-                    affects.append(affect)
-
-            # Prevent eventual duplicates
-            affects = list(set(affects))
-
-            with transaction.atomic():
-                tracker.affects.clear()
-                tracker.affects.add(*affects)
+            result = BZTrackerLinkManager.link_tracker_with_affects(tracker_id)
         except Exception as e:
             linker.failed(e)
         else:
             # Handle link failures
+            affects, failed_flaws, failed_affects = result
             if failed_flaws:
                 linker.failed(
                     RuntimeError(
@@ -498,86 +508,90 @@ class JiraTrackerLinkManager(SyncManager):
     """
 
     @staticmethod
-    @app.task(name="sync_manager.jira_tracker_link", bind=True)
-    def sync_task(self, tracker_id):
+    def link_tracker_with_affects(tracker_id):
+        # Code adapted from collectors.jiraffe.convertors.JiraTrackerConvertor.affects
+
         from collectors.jiraffe.constants import JIRA_BZ_ID_LABEL_RE
         from osidb.models import Affect, Flaw, Tracker
         from osidb.validators import CVE_RE_STR
 
+        tracker = Tracker.objects.get(external_system_id=tracker_id)
+
+        failed_flaws = []
+        failed_affects = []
+
+        flaws = set()
+
+        # 1) linking from the flaw side
+        for flaw in Flaw.objects.filter(meta_attr__jira_trackers__contains=tracker_id):
+            # we need to double check the tracker ID
+            # as eg. OSIDB-123 is contained in OSIDB-1234
+            for item in json.loads(flaw.meta_attr["jira_trackers"]):
+                if tracker_id == item["key"]:
+                    flaws.add(flaw)
+
+        # 2) linking from the tracker side
+        for label in tracker.meta_attr["labels"]:
+            if CVE_RE_STR.match(label):
+                try:
+                    flaws.add(Flaw.objects.get(cve_id=label))
+                except Flaw.DoesNotExist:
+                    failed_flaws.append(label)
+                    continue
+
+            if match := JIRA_BZ_ID_LABEL_RE.match(label):
+                if not (
+                    linked_flaws := Flaw.objects.filter(meta_attr__bz_id=match.group(1))
+                ):
+                    # tracker created against
+                    # non-existing BZ ID
+                    failed_flaws.append(match.group(1))
+                    continue
+
+                flaws.update(linked_flaws)
+
+        affects = []
+        for flaw in flaws:
+            try:
+                affect = flaw.affects.get(
+                    ps_module=tracker.meta_attr["ps_module"],
+                    ps_component=tracker.meta_attr["ps_component"],
+                )
+            except Affect.DoesNotExist:
+                # tracker created against
+                # non-existing affect
+                failed_affects.append(
+                    (
+                        flaw.bz_id,
+                        tracker.meta_attr["ps_module"],
+                        tracker.meta_attr["ps_component"],
+                    )
+                )
+                continue
+
+            affects.append(affect)
+
+        with transaction.atomic():
+            tracker.affects.clear()
+            tracker.affects.add(*affects)
+
+        return affects, failed_flaws, failed_affects
+
+    @staticmethod
+    @app.task(name="sync_manager.jira_tracker_link", bind=True)
+    def sync_task(self, tracker_id):
         linker = JiraTrackerLinkManager.get_sync_manager(tracker_id)
         linker.started(self)
 
         set_user_acls(settings.ALL_GROUPS)
 
-        # Code adapted from collectors.jiraffe.convertors.JiraTrackerConvertor.affects
         try:
-            tracker = Tracker.objects.get(external_system_id=tracker_id)
-
-            failed_flaws = []
-            failed_affects = []
-
-            flaws = set()
-
-            # 1) linking from the flaw side
-            for flaw in Flaw.objects.filter(
-                meta_attr__jira_trackers__contains=tracker_id
-            ):
-                # we need to double check the tracker ID
-                # as eg. OSIDB-123 is contained in OSIDB-1234
-                for item in json.loads(flaw.meta_attr["jira_trackers"]):
-                    if tracker_id == item["key"]:
-                        flaws.add(flaw)
-
-            # 2) linking from the tracker side
-            for label in tracker.meta_attr["labels"]:
-                if CVE_RE_STR.match(label):
-                    try:
-                        flaws.add(Flaw.objects.get(cve_id=label))
-                    except Flaw.DoesNotExist:
-                        failed_flaws.append(label)
-                        continue
-
-                if match := JIRA_BZ_ID_LABEL_RE.match(label):
-                    if not (
-                        linked_flaws := Flaw.objects.filter(
-                            meta_attr__bz_id=match.group(1)
-                        )
-                    ):
-                        # tracker created against
-                        # non-existing BZ ID
-                        failed_flaws.append(match.group(1))
-                        continue
-
-                    flaws.update(linked_flaws)
-
-            affects = []
-            for flaw in flaws:
-                try:
-                    affect = flaw.affects.get(
-                        ps_module=tracker.meta_attr["ps_module"],
-                        ps_component=tracker.meta_attr["ps_component"],
-                    )
-                except Affect.DoesNotExist:
-                    # tracker created against
-                    # non-existing affect
-                    failed_affects.append(
-                        (
-                            flaw.bz_id,
-                            tracker.meta_attr["ps_module"],
-                            tracker.meta_attr["ps_component"],
-                        )
-                    )
-                    continue
-
-                affects.append(affect)
-
-            with transaction.atomic():
-                tracker.affects.clear()
-                tracker.affects.add(*affects)
+            result = JiraTrackerLinkManager.link_tracker_with_affects(tracker_id)
         except Exception as e:
             linker.failed(e)
         else:
             # Handle link failures
+            affects, failed_flaws, failed_affects = result
             if failed_flaws:
                 linker.failed(
                     RuntimeError(

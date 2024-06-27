@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0149_bztrackerdownloadmanager_bztrackerlinkmanager_flawdownloadmanager_jiratrackerlinkmanager'),
+        ('osidb', '0151_syncmanagers'),
     ]
 
     operations = [

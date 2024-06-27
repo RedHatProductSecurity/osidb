@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0148_alter_workflow_state'),
+        ('osidb', '0150_alter_flawcomment'),
     ]
 
     operations = [

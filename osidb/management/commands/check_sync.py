@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
+from osidb.core import set_user_acls
 from osidb.models import Flaw, Tracker
 from osidb.sync_manager import (
     BZTrackerDownloadManager,
@@ -11,6 +13,8 @@ from osidb.sync_manager import (
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
+        set_user_acls(settings.ALL_GROUPS)
+
         print(f"Flaws: {Flaw.objects.count()}")
         print(f"Trackers: {Tracker.objects.count()}")
         print()
