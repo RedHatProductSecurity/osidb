@@ -225,7 +225,6 @@ class TestFlawModelIntegration(object):
     ):
         def mock_create_or_update_task(self, flaw):
             flaw.task_key = "TASK-123"
-            flaw.save()
             return Response(
                 data={
                     "key": "TASK-123",
@@ -287,4 +286,4 @@ class TestFlawModelIntegration(object):
         )
         assert response.status_code == 200
         flaw = Flaw.objects.get(uuid=flaw.uuid)
-        assert flaw.task_key
+        assert flaw.task_key == "TASK-123"
