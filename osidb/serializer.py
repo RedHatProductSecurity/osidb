@@ -852,8 +852,11 @@ class BugzillaSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSerializ
         perform the ordinary instance create
         with providing BZ API key while saving
         """
+        skip_bz_sync = validated_data.pop("skip_bz_sync", False)
+
         instance = super().create(validated_data)
-        instance.bzsync(bz_api_key=self.get_bz_api_key())
+        if not skip_bz_sync:
+            instance.bzsync(bz_api_key=self.get_bz_api_key())
         return instance
 
     def update(self, instance, validated_data):
@@ -861,8 +864,11 @@ class BugzillaSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSerializ
         perform the ordinary instance update
         with providing BZ API key while saving
         """
+        skip_bz_sync = validated_data.pop("skip_bz_sync", False)
+
         instance = super().update(instance, validated_data)
-        instance.bzsync(bz_api_key=self.get_bz_api_key())
+        if not skip_bz_sync:
+            instance.bzsync(bz_api_key=self.get_bz_api_key())
         return instance
 
     class Meta:
