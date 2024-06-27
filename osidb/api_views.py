@@ -131,7 +131,7 @@ class RudimentaryUserPathLoggingMixin:
             user = "USER_EXCEPTION"
 
         method = request.method.upper()
-        path = request.path
+        path = request.get_full_path()
 
         request._rudimentary_user_path_logging = {
             "method": method,
