@@ -9,7 +9,7 @@ import pgtrigger.migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0150_auto_20240624_0708'),
+        ('osidb', '0150_syncmanager_links'),
     ]
 
     operations = [
