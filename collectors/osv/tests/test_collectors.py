@@ -75,7 +75,7 @@ class TestOSVCollector:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.cve_id is None
-        assert flaw.task_key == "OSIM-16312"
+        assert flaw.task_key == "OSIM-497"
         assert json.loads(flaw.meta_attr["alias"]) == [osv_id]
         assert json.loads(flaw.meta_attr["external_ids"]) == [osv_id]
 
