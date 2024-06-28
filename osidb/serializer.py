@@ -841,7 +841,7 @@ class BugzillaBareSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSeri
         abstract = True
 
 
-class BugzillaSyncMixinSerializer(BugzillaBareSyncMixinSerializer):
+class BugzillaSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSerializer):
     """
     serializer mixin class implementing special handling of the models
     which need to perform Bugzilla sync as part of the save procedure
@@ -852,12 +852,11 @@ class BugzillaSyncMixinSerializer(BugzillaBareSyncMixinSerializer):
         perform the ordinary instance create
         with providing BZ API key while saving
         """
-        # NOTE: This won't work for many-to-many fields as
-        # some logic from original .create() was overwritten.
-        # Consider BugzillaBareSyncMixinSerializer for these.
+        skip_bz_sync = validated_data.pop("skip_bz_sync", False)
 
-        instance = self.Meta.model(**validated_data)
-        instance = super().create(instance)
+        instance = super().create(validated_data)
+        if not skip_bz_sync:
+            instance.bzsync(bz_api_key=self.get_bz_api_key())
         return instance
 
     def update(self, instance, validated_data):
@@ -865,14 +864,11 @@ class BugzillaSyncMixinSerializer(BugzillaBareSyncMixinSerializer):
         perform the ordinary instance update
         with providing BZ API key while saving
         """
-        # NOTE: This won't work for many-to-many fields as
-        # some logic from original .create() was overwritten
-        # Consider BugzillaBareSyncMixinSerializer for these.
+        skip_bz_sync = validated_data.pop("skip_bz_sync", False)
 
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-
-        instance = super().update(instance)
+        instance = super().update(instance, validated_data)
+        if not skip_bz_sync:
+            instance.bzsync(bz_api_key=self.get_bz_api_key())
         return instance
 
     class Meta:
@@ -1489,8 +1485,8 @@ class FlawCVSSPutSerializer(FlawCVSSSerializer):
 
 class FlawSerializer(
     ACLMixinSerializer,
-    JiraTaskSyncMixinSerializer,
     BugzillaSyncMixinSerializer,
+    JiraTaskSyncMixinSerializer,
     TrackingMixinSerializer,
     WorkflowModelSerializer,
     IncludeExcludeFieldsMixin,

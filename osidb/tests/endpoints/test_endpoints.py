@@ -11,7 +11,7 @@ from rest_framework.test import APIClient
 
 from osidb.core import generate_acls, set_user_acls
 from osidb.helpers import ensure_list
-from osidb.models import Affect, Flaw
+from osidb.models import Affect, Flaw, Impact
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
@@ -342,11 +342,21 @@ class TestEndpointsBZAPIKey:
         flaw_data = {
             "title": "Foo",
             "comment_zero": "test",
+            "components": ["test"],
+            "impact": Impact.LOW,
+            "source": "REDHAT",
             "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "embargoed": False,
+            "jira_api_key": "SECRET",
         }
-        response = auth_client().post(f"{test_api_uri}/flaws", flaw_data, format="json")
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
         assert response.status_code == 400
         assert '"Bugzilla-Api-Key":"This HTTP header is required."' in str(
             response.content
