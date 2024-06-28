@@ -245,9 +245,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Thu, 27 Jun 2024 17:50:29 GMT
+      - Mon, 24 Jun 2024 22:16:37 GMT
       Expires:
-      - Thu, 27 Jun 2024 17:50:29 GMT
+      - Mon, 24 Jun 2024 22:16:37 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -266,11 +266,11 @@ interactions:
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 1070x164041x1
+      - 1336x269989x1
       x-asessionid:
-      - 1lc0unb
+      - 1ezwhqu
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -282,65 +282,13 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4e24c317.1719510629.224f3631
+      - 0.d4292117.1719267397.ae757ad
       x-rh-edge-request-id:
-      - 224f3631
+      - ae757ad
       x-seraph-loginreason:
       - OK
       x-xss-protection:
       - 1; mode=block
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.32.0
-    method: GET
-    uri: https://example.com/v1/vulns/GO-2023-1494
-  response:
-    body:
-      string: '{"id": "GO-2023-1494", "summary": "SQL injection in github.com/elgs/gosqljson",
-        "details": "There is a potential for SQL injection through manipulation of
-        the sqlStatement argument.", "aliases": ["CVE-2014-125064", "GHSA-g7mw-9pf9-p2pm"],
-        "modified": "2024-05-20T16:03:47Z", "published": "2023-02-01T23:23:34Z", "database_specific":
-        {"url": "https://example.com/vuln/GO-2023-1494", "review_status": "REVIEWED"},
-        "references": [{"type": "FIX", "url": "https://example.com/elgs/gosqljson/commit/2740b331546cb88eb61771df4c07d389e9f0363a"}],
-        "affected": [{"package": {"name": "github.com/elgs/gosqljson", "ecosystem":
-        "Go", "purl": "pkg:golang/github.com/elgs/gosqljson"}, "ranges": [{"type":
-        "SEMVER", "events": [{"introduced": "0"}, {"fixed": "0.0.0-20220916234230-750f26ee23c7"}]}],
-        "ecosystem_specific": {"imports": [{"symbols": ["ExecDb", "QueryDbToArray",
-        "QueryDbToArrayJson", "QueryDbToMap", "QueryDbToMapJson"], "path": "github.com/elgs/gosqljson"}]},
-        "database_specific": {"source": "https://example.com/ID/GO-2023-1494.json"}}],
-        "schema_version": "1.6.0"}'
-    headers:
-      Content-Length:
-      - '1007'
-      Date:
-      - Mon, 17 Jun 2024 12:31:17 GMT
-      Server:
-      - Google Frontend
-      X-Cloud-Trace-Context:
-      - a90a0c83c58ee002d599fe1b8ff7e9dd
-      alt-svc:
-      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
-      content-type:
-      - application/json
-      grpc-accept-encoding:
-      - identity, deflate, gzip
-      grpc-message:
-      - ''
-      grpc-status:
-      - '0'
-      x-envoy-decorator-operation:
-      - ingress GetVulnById
     status:
       code: 200
       message: OK
@@ -372,7 +320,12 @@ interactions:
         problem that impairs or prevents the functions of the product.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Bug","subtask":false,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/16","id":"16","description":"Created
         by Jira Software - do not edit or delete. Issue type for a big user story
         that needs to be broken down.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13267&avatarType=issuetype","name":"Epic","subtask":false,"avatarId":13267},{"self":"https://example.com/rest/api/2/issuetype/11406","id":"11406","description":"Expresses
-        areas of concern for a project or program''s success.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype","name":"Risk","subtask":false,"avatarId":13268},{"self":"https://example.com/rest/api/2/issuetype/2","id":"2","description":"Feature
+        areas of concern for a project or program''s success.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype","name":"Risk","subtask":false,"avatarId":13268},{"self":"https://example.com/rest/api/2/issuetype/10100","id":"10100","description":"A
+        large product/portfolio goal or focus area that has clear start and completion
+        criteria","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10800","id":"10800","description":"Represents
+        a research-related task.''","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/12102","id":"12102","description":"Organizational
+        objective focused on a measurable outcome. May be in support of larger strategic
+        goals.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Outcome","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/2","id":"2","description":"Feature
         requests from customers and/or users","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature
         Request","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/13","id":"13","description":"An
         enhancement to or refactoring of existing functionality that is not configurable
@@ -396,22 +349,10 @@ interactions:
         Upgrade Subtask","subtask":true,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/12","id":"12","description":"A
         task tracking an update to a bundled component or revision of component upstream
         of the project.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Component
-        Upgrade","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/10100","id":"10100","description":"A
-        large product/portfolio goal or focus area that has clear start and completion
-        criteria","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/12102","id":"12102","description":"Organizational
-        objective focused on a measurable outcome. May be in support of larger strategic
-        goals.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Outcome","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10800","id":"10800","description":"Represents
-        a research-related task.''","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/12200","id":"12200","description":"Represents
-        a Test","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test.png","name":"Test","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12201","id":"12201","description":"Represents
-        a Test Set","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-set.png","name":"Test
-        Set","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12202","id":"12202","description":"Represents
-        a Test Execution","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-execution.png","name":"Test
-        Execution","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12203","id":"12203","description":"Represents
-        a Pre-Condition","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/pre-condition.png","name":"Pre-Condition","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12204","id":"12204","description":"Represents
-        a Test Plan","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-plan.png","name":"Test
-        Plan","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12205","id":"12205","description":"Represents
-        a Sub Test Execution","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/sub-test-execution.png","name":"Sub
-        Test Execution","subtask":true},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
+        Upgrade","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11401","id":"11401","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"RFE","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
+        or a well-defined set of functionality that delivers business value. Features
+        can include additions or changes to existing functionality. Features can easily
+        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
         of a library dependency","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Library
         Upgrade","subtask":false,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/15","id":"15","description":"A
         clarification needed to a specification based on community feedback","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Clarification","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/19","id":"19","description":"Issue
@@ -432,10 +373,7 @@ interactions:
         Task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Docs
         Task","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10400","id":"10400","description":"Objectives
         and Key Results","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13274&avatarType=issuetype","name":"OKR","subtask":false,"avatarId":13274},{"self":"https://example.com/rest/api/2/issuetype/10500","id":"10500","description":"Policies
-        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
-        or a well-defined set of functionality that delivers business value. Features
-        can include additions or changes to existing functionality. Features can easily
-        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
+        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
         issue requiring coordinated response","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10304&avatarType=issuetype","name":"Flare","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10900","id":"10900","description":"This
         issue type is created for Service Desk functions in Jira Software","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Service
         Request","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/10901","id":"10901","description":"Used
@@ -456,7 +394,7 @@ interactions:
         Sub-task","subtask":true,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/11300","id":"11300","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Next
         Action","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11400","id":"11400","description":"This
         is a Business Unit Initiative a.k.a. \"BUI\"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"BU
-        Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11401","id":"11401","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"RFE","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11402","id":"11402","description":"General
+        Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11402","id":"11402","description":"General
         issue to be triaged","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Issue","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11404","id":"11404","description":"HSS
         PA tracking issue for Milestones","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Milestone","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11405","id":"11405","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Build
         Task","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11407","id":"11407","description":"RT355021","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Report","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11408","id":"11408","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Schedule","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11409","id":"11409","description":"For
@@ -483,7 +421,7 @@ interactions:
         Security Exception","subtask":false,"avatarId":40577},{"self":"https://example.com/rest/api/2/issuetype/12100","id":"12100","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Objective","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/12101","id":"12101","description":"Large,
         strategic focus area typically defined by leadership teams to achieve organizational
         long-term vision.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=50977&avatarType=issuetype","name":"Strategic
-        Goal","subtask":false,"avatarId":50977},{"self":"https://example.com/rest/api/2/issuetype/12300","id":"12300","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Vulnerability","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/12301","id":"12301","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=53261&avatarType=issuetype","name":"Weakness","subtask":false,"avatarId":53261},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
+        Goal","subtask":false,"avatarId":50977},{"self":"https://example.com/rest/api/2/issuetype/12206","id":"12206","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=55783&avatarType=issuetype","name":"Weakness","subtask":false,"avatarId":55783},{"self":"https://example.com/rest/api/2/issuetype/12207","id":"12207","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=55784&avatarType=issuetype","name":"Vulnerability","subtask":false,"avatarId":55784},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
         new feature of the product, which has yet to be developed.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"New
         Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10200","id":"10200","description":"An
         improvement or enhancement to an existing feature or task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Improvement","subtask":false,"avatarId":13270}]'
@@ -495,9 +433,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:31:18 GMT
+      - Mon, 24 Jun 2024 22:16:38 GMT
       Expires:
-      - Mon, 17 Jun 2024 12:31:18 GMT
+      - Mon, 24 Jun 2024 22:16:38 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -506,35 +444,35 @@ interactions:
       - User-Agent
       - Accept-Encoding
       X-RateLimit-Limit:
-      - '-1'
+      - '5'
       X-RateLimit-Remaining:
-      - '9223372036854775807'
+      - '4'
       content-length:
-      - '26200'
+      - '24569'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 751x420293x2
+      - 1336x269990x1
       x-asessionid:
-      - 1y4lvmp
+      - 5ojh56
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
       x-ratelimit-fillrate:
-      - '-1'
+      - '5'
       x-ratelimit-interval-seconds:
       - '1'
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.7df06e68.1718627477.f9473bc
+      - 0.d4292117.1719267398.ae75910
       x-rh-edge-request-id:
-      - f9473bc
+      - ae75910
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -612,9 +550,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:31:18 GMT
+      - Mon, 24 Jun 2024 22:16:38 GMT
       Expires:
-      - Mon, 17 Jun 2024 12:31:18 GMT
+      - Mon, 24 Jun 2024 22:16:38 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -623,9 +561,9 @@ interactions:
       - User-Agent
       - Accept-Encoding
       X-RateLimit-Limit:
-      - '-1'
+      - '5'
       X-RateLimit-Remaining:
-      - '9223372036854775807'
+      - '3'
       content-length:
       - '4024'
       referrer-policy:
@@ -633,25 +571,25 @@ interactions:
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 751x420294x2
+      - 1336x269991x1
       x-asessionid:
-      - 1c3xp0e
+      - uqp5bu
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
       x-ratelimit-fillrate:
-      - '-1'
+      - '5'
       x-ratelimit-interval-seconds:
       - '1'
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.7df06e68.1718627478.f9474e2
+      - 0.d4292117.1719267398.ae75b14
       x-rh-edge-request-id:
-      - f9474e2
+      - ae75b14
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -661,10 +599,8 @@ interactions:
       message: OK
 - request:
     body: '{"fields": {"issuetype": {"id": "17"}, "project": {"id": "12337520"}, "summary":
-      "CVE-2014-125064 SQL injection in github.com/elgs/gosqljson", "description":
-      "There is a potential for SQL injection through manipulation of the sqlStatement
-      argument.", "labels": ["flawuuid:3deb3486-3894-4a82-af55-25ba255fe1f7", "impact:"],
-      "priority": {"name": "Undefined"}}}'
+      "some description", "description": "test", "labels": ["flawuuid:73cbc51f-4774-4357-a80a-8f433759020f",
+      "impact:LOW"], "priority": {"name": "Minor"}}}'
     headers:
       Accept:
       - application/json,*.*;q=0.9
@@ -675,7 +611,7 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '358'
+      - '230'
       Content-Type:
       - application/json
       User-Agent:
@@ -686,7 +622,7 @@ interactions:
     uri: https://example.com/rest/api/2/issue
   response:
     body:
-      string: '{"id": "15942625", "key": "OSIM-16311", "self": "https://example.com/rest/api/2/issue/15942625"}'
+      string: '{"id": "16089754", "key": "OSIM-92", "self": "https://example.com/rest/api/2/issue/16089754"}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -695,9 +631,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:31:19 GMT
+      - Mon, 24 Jun 2024 22:16:39 GMT
       Expires:
-      - Mon, 17 Jun 2024 12:31:19 GMT
+      - Mon, 24 Jun 2024 22:16:39 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -706,35 +642,35 @@ interactions:
       - User-Agent
       - Accept-Encoding
       X-RateLimit-Limit:
-      - '-1'
+      - '5'
       X-RateLimit-Remaining:
-      - '9223372036854775807'
+      - '3'
       content-length:
-      - '103'
+      - '100'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 751x420295x2
+      - 1336x269993x1
       x-asessionid:
-      - jn2ziv
+      - 1bm3egh
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
       x-ratelimit-fillrate:
-      - '-1'
+      - '5'
       x-ratelimit-interval-seconds:
       - '1'
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.7df06e68.1718627478.f94761d
+      - 0.d4292117.1719267398.ae75c36
       x-rh-edge-request-id:
-      - f94761d
+      - ae75c36
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -760,16 +696,16 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-16311
+    uri: https://example.com/rest/api/2/issue/OSIM-92
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "15942625", "self": "https://example.com/rest/api/2/issue/15942625",
-        "key": "OSIM-16311", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
+        "id": "16089754", "self": "https://example.com/rest/api/2/issue/16089754",
+        "key": "OSIM-92", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
         "id": "17", "description": "Created by Jira Software - do not edit or delete.
         Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12324544":
-        "0.0", "customfield_12318341": null, "timespent": null, "customfield_12320940":
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
+        null, "customfield_12324540": "0.0", "timespent": null, "customfield_12320940":
         null, "project": {"self": "https://example.com/rest/api/2/project/12337520",
         "id": "12337520", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
         "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
@@ -778,69 +714,67 @@ interactions:
         "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@3c774c17[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@11f0bdf8[overall=PullRequestOverallBean{stateCount=0,
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@59b4c4ac[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@259119f1[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2be0eeb4[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@3f6b894d[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@b7ac14a[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@2e69268c[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2d0f8bb[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@6112384d[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3c3fc5b4[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@5b05c9f9[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5e95e702[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@2e356ccd[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@39e7b4d2[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@14947c8e[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@456cc1a2[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@4f27d945[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4b62b557[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@7ca5c0b9[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5fe76f5e[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@2e7b6816[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@70edb883[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@229f0e2f[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
         "resolutiondate": null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
         null, "customfield_12316841": null, "customfield_12315950": null, "customfield_12310940":
         null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://example.com/rest/api/2/issue/OSIM-16311/watchers", "watchCount":
-        1, "isWatching": true}, "created": "2024-06-17T12:31:18.656+0000", "customfield_12321240":
-        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/10300",
-        "iconUrl": "https://example.com/images/icons/priorities/trivial.svg", "name":
-        "Undefined", "id": "10300"}, "labels": ["flawuuid:3deb3486-3894-4a82-af55-25ba255fe1f7",
-        "impact:"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
+        "https://example.com/rest/api/2/issue/OSIM-92/watchers", "watchCount": 1,
+        "isWatching": true}, "created": "2024-06-24T22:16:38.433+0000", "customfield_12321240":
+        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/4",
+        "iconUrl": "https://example.com/images/icons/priorities/minor.svg", "name":
+        "Minor", "id": "4"}, "labels": ["flawuuid:73cbc51f-4774-4357-a80a-8f433759020f",
+        "impact:LOW"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
         "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
-        null, "timeestimate": null, "versions": [], "issuelinks": [], "customfield_12325240":
-        null, "assignee": null, "updated": "2024-06-17T12:31:18.656+0000", "customfield_12313942":
-        null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
+        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
+        null, "updated": "2024-06-24T22:16:38.433+0000", "customfield_12313942": null,
+        "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
         very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
         "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
-        [], "timeoriginalestimate": null, "description": "There is a potential for
-        SQL injection through manipulation of the sqlStatement argument.", "customfield_12314040":
+        [], "timeoriginalestimate": null, "description": "test", "customfield_12314040":
         null, "customfield_12320844": null, "archiveddate": null, "timetracking":
         {}, "customfield_12320842": null, "customfield_12310243": null, "attachment":
         [], "aggregatetimeestimate": null, "customfield_12316542": {"self": "https://example.com/rest/api/2/customFieldOption/14655",
         "value": "False", "id": "14655", "disabled": false}, "customfield_12317313":
         null, "customfield_12316543": {"self": "https://example.com/rest/api/2/customFieldOption/14657",
-        "value": "False", "id": "14657", "disabled": false}, "customfield_12310840":
-        "9223372036854775807", "customfield_12316544": "None", "customfield_12323640":
-        null, "summary": "CVE-2014-125064 SQL injection in github.com/elgs/gosqljson",
-        "customfield_12323642": null, "creator": {"self": "https://example.com/rest/api/2/user?username=nobody%40redhat.com",
-        "name": "nobody@redhat.com", "key": "nobody", "emailAddress": "nobody+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=nobody&avatarId=29772",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=nobody&avatarId=29772",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=nobody&avatarId=29772",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=nobody&avatarId=29772"},
-        "displayName": "nobody", "active": true, "timeZone": "Europe/Prague"},
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12316544":
+        "None", "customfield_12310840": "9223372036854775807", "summary": "some description",
+        "customfield_12323640": null, "customfield_12323642": null, "creator": {"self":
+        "https://example.com/rest/api/2/user?username=concosta%40redhat.com", "name":
+        "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
         "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "reporter": {"self": "https://example.com/rest/api/2/user?username=nobody%40redhat.com",
-        "name": "nobody@redhat.com", "key": "nobody", "emailAddress": "nobody+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=nobody&avatarId=29772",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=nobody&avatarId=29772",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=nobody&avatarId=29772",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=nobody&avatarId=29772"},
-        "displayName": "nobody", "active": true, "timeZone": "Europe/Prague"},
-        "customfield_12320850": null, "aggregateprogress": {"progress": 0, "total":
-        0}, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
-        null, "customfield_12323645": null, "environment": null, "customfield_12315542":
-        null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
-        "0.0", "customfield_12313240": null, "duedate": null, "customfield_12311140":
-        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
-        "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt": 0}, "votes":
-        {"self": "https://example.com/rest/api/2/issue/OSIM-16311/votes", "votes":
-        0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
+        "customfield_12320850": null, "reporter": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
+        "aggregateprogress": {"progress": 0, "total": 0}, "customfield_12323644":
+        null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
+        null, "environment": null, "customfield_12315542": null, "customfield_12315740":
+        null, "customfield_12313441": "", "customfield_12313440": "0.0", "customfield_12313240":
+        null, "duedate": null, "customfield_12311140": null, "customfield_12319742":
+        null, "progress": {"progress": 0, "total": 0}, "comment": {"comments": [],
+        "maxResults": 0, "total": 0, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-92/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
         0, "maxResults": 20, "total": 0, "worklogs": []}, "customfield_12310213":
-        null, "archivedby": null, "customfield_12311940": "1|zemjow:"}}'
+        null, "archivedby": null, "customfield_12311940": "2|i10rq7:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -849,9 +783,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:31:19 GMT
+      - Mon, 24 Jun 2024 22:16:39 GMT
       Expires:
-      - Mon, 17 Jun 2024 12:31:19 GMT
+      - Mon, 24 Jun 2024 22:16:39 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -860,35 +794,35 @@ interactions:
       - User-Agent
       - Accept-Encoding
       X-RateLimit-Limit:
-      - '-1'
+      - '5'
       X-RateLimit-Remaining:
-      - '9223372036854775807'
+      - '4'
       content-length:
-      - '8854'
+      - '8743'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 751x420296x2
+      - 1336x269994x1
       x-asessionid:
-      - 126x8jm
+      - 1uskhys
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
       x-ratelimit-fillrate:
-      - '-1'
+      - '5'
       x-ratelimit-interval-seconds:
       - '1'
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.7df06e68.1718627479.f947ad4
+      - 0.d4292117.1719267399.ae7669c
       x-rh-edge-request-id:
-      - f947ad4
+      - ae7669c
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -900,473 +834,358 @@ interactions:
     body: null
     headers:
       Accept:
-      - '*/*'
+      - application/json,*.*;q=0.9
       Accept-Encoding:
       - gzip, deflate
+      Cache-Control:
+      - no-cache
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       User-Agent:
-      - python-bugzilla/3.2.0
+      - python-requests/2.32.0
+      X-Atlassian-Token:
+      - no-check
     method: GET
-    uri: https://example.com/rest/version
+    uri: https://example.com/rest/api/2/mypermissions?projectKey=OSIM
   response:
     body:
-      string: '{"version": "5.0.4.rh97"}'
+      string: '{"message": "Client must be authenticated to access this resource.",
+        "status-code": 401}'
     headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
       Cache-Control:
-      - private, must-revalidate
+      - max-age=0, no-cache, no-store
       Connection:
       - keep-alive
-      Content-Length:
-      - '24'
       Content-Type:
-      - application/json; charset=UTF-8
+      - application/json;charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:31:20 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.64f06e68.1718627480.c37bbfc
-      x-rh-edge-request-id:
-      - c37bbfc
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://example.com/rest/user?ids=1
-  response:
-    body:
-      string: '{"users": [{"name": "aander07@packetmaster.com", "id": 1, "email":
-        "aander07@packetmaster.com", "real_name": "Need Real Name", "can_login": true}]}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '137'
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Mon, 17 Jun 2024 12:31:20 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.64f06e68.1718627480.c37bd0b
-      x-rh-edge-request-id:
-      - c37bd0b
-    status:
-      code: 200
-      message: OK
-- request:
-    body: '{"product": "Security Response", "op_sys": "Linux", "platform": "All",
-      "version": "unspecified", "component": "vulnerability-draft", "cf_release_notes":
-      "", "severity": "unspecified", "priority": "unspecified", "summary": "CVE-2014-125064
-      SQL injection in github.com/elgs/gosqljson", "description": "There is a potential
-      for SQL injection through manipulation of the sqlStatement argument.", "comment_is_private":
-      false, "alias": ["CVE-2014-125064"], "keywords": ["Security"], "flags": [],
-      "groups": ["redhat"], "cc": [], "cf_srtnotes": "{\"reported\": \"2024-06-17T12:31:17Z\",
-      \"external_ids\": [\"GO-2023-1494/CVE-2014-125064\"], \"references\": [{\"type\":
-      \"source\", \"url\": \"https://osv.dev/vulnerability/GO-2023-1494\", \"description\":
-      null}, {\"type\": \"external\", \"url\": \"https://github.com/elgs/gosqljson/commit/2740b331546cb88eb61771df4c07d389e9f0363a\",
-      \"description\": null}], \"source\": \"osv\"}"}'
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '922'
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: POST
-    uri: https://example.com/rest/bug
-  response:
-    body:
-      string: '{"id": 2293430}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '14'
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Mon, 17 Jun 2024 12:31:22 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.64f06e68.1718627480.c37be6f
-      x-rh-edge-request-id:
-      - c37be6f
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://example.com/rest/version
-  response:
-    body:
-      string: '{"version": "5.0.4.rh97"}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '24'
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Mon, 17 Jun 2024 12:31:22 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.7df06e68.1718627482.f948728
-      x-rh-edge-request-id:
-      - f948728
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://example.com/rest/user?ids=1
-  response:
-    body:
-      string: '{"users": [{"real_name": "Need Real Name", "can_login": true, "email":
-        "aander07@packetmaster.com", "name": "aander07@packetmaster.com", "id": 1}]}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '137'
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Mon, 17 Jun 2024 12:31:23 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.7df06e68.1718627482.f9487ac
-      x-rh-edge-request-id:
-      - f9487ac
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://example.com/rest/bug/2293430?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
-  response:
-    body:
-      string: '{"faults": [], "bugs": [{"resolution": "", "cf_doc_type": "If docs
-        needed, set a value", "cf_internal_whiteboard": "", "dupe_of": null, "is_confirmed":
-        true, "priority": "unspecified", "comments": [{"time": "2024-06-17T12:31:21Z",
-        "creator": "nobody@redhat.com", "creation_time": "2024-06-17T12:31:21Z",
-        "bug_id": 2293430, "text": "There is a potential for SQL injection through
-        manipulation of the sqlStatement argument.", "private_groups": [], "attachment_id":
-        null, "tags": [], "creator_id": 425662, "is_private": false, "count": 0, "id":
-        18020057}], "status": "NEW", "url": "", "groups": ["redhat"], "external_bugs":
-        [], "cf_last_closed": null, "version": ["unspecified"], "creator": "nobody@redhat.com",
-        "cf_pm_score": "0", "is_open": true, "id": 2293430, "depends_on": [], "component":
-        ["vulnerability-draft"], "whiteboard": "", "deadline": null, "blocks": [],
-        "cf_major_incident": null, "cf_environment": "", "flags": [], "alias": ["CVE-2014-125064"],
-        "op_sys": "Linux", "last_change_time": "2024-06-17T12:31:21Z", "cf_qe_conditional_nak":
-        [], "sub_components": {}, "creator_detail": {"email": "nobody@redhat.com",
-        "partner": false, "name": "nobody@redhat.com", "id": 425662, "insider":
-        true, "real_name": "nobody", "active": true}, "cf_cust_facing": "---",
-        "assigned_to_detail": {"id": 377884, "email": "prodsec-dev@redhat.com", "partner":
-        false, "name": "prodsec-dev@redhat.com", "active": true, "real_name": "Product
-        Security DevOps Team", "insider": true}, "cf_build_id": "", "data_category":
-        "Red Hat", "cc": [],
-        "cf_srtnotes": "{\"reported\": \"2024-06-17T12:31:17Z\", \"external_ids\":
-        [\"GO-2023-1494/CVE-2014-125064\"], \"references\": [{\"type\": \"source\",
-        \"url\": \"https://example.com/vulnerability/GO-2023-1494\", \"description\":
-        null}, {\"type\": \"external\", \"url\": \"https://example.com/elgs/gosqljson/commit/2740b331546cb88eb61771df4c07d389e9f0363a\",
-        \"description\": null}], \"source\": \"osv\"}", "cf_embargoed": null, "creation_time":
-        "2024-06-17T12:31:21Z", "description": "There is a potential for SQL injection
-        through manipulation of the sqlStatement argument.", "cf_conditional_nak":
-        [], "target_release": ["---"], "target_milestone": "---", "is_creator_accessible":
-        true, "cc_detail": [], "tags": [], "remaining_time": 0, "cf_pgm_internal":
-        "", "cf_qa_whiteboard": "", "product": "Security Response", "platform": "All",
-        "actual_time": 0, "is_cc_accessible": true, "qa_contact": "", "severity":
-        "unspecified", "summary": "CVE-2014-125064 SQL injection in github.com/elgs/gosqljson",
-        "assigned_to": "prodsec-dev@redhat.com", "cf_release_notes": "", "cf_clone_of":
-        null, "docs_contact": "", "cf_fixed_in": "", "classification": "Other", "keywords":
-        ["Security"], "cf_devel_whiteboard": "", "estimated_time": 0}]}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Mon, 17 Jun 2024 12:31:23 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
+      - Mon, 24 Jun 2024 22:16:40 GMT
+      Expires:
+      - Mon, 24 Jun 2024 22:16:40 GMT
+      Pragma:
+      - no-cache
       Vary:
+      - User-Agent
       - Accept-Encoding
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
+      WWW-Authenticate:
+      - OAuth realm="https%3A%2F%2Fissues.stage.redhat.com"
       content-length:
-      - '2653'
+      - '85'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-dc-stg-mpp-0
+      x-arequestid:
+      - 1336x269996x1
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
       x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
+      - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.7df06e68.1718627483.f94896f
+      - 0.d4292117.1719267400.ae774dd
       x-rh-edge-request-id:
-      - f94896f
+      - ae774dd
+      x-xss-protection:
+      - 1; mode=block
     status:
-      code: 200
-      message: OK
+      code: 401
+      message: Unauthorized
 - request:
     body: null
     headers:
       Accept:
-      - '*/*'
+      - application/json,*.*;q=0.9
       Accept-Encoding:
       - gzip, deflate
+      Cache-Control:
+      - no-cache
       Connection:
       - keep-alive
       Content-Type:
       - application/json
       User-Agent:
-      - python-bugzilla/3.2.0
+      - python-requests/2.32.0
+      X-Atlassian-Token:
+      - no-check
     method: GET
-    uri: https://example.com/rest/bug/2293430?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
+    uri: https://example.com/rest/api/2/mypermissions?projectKey=ISO
   response:
     body:
-      string: '{"bugs": [{"cf_fixed_in": "", "docs_contact": "", "classification":
-        "Other", "keywords": ["Security"], "cf_devel_whiteboard": "", "estimated_time":
-        0, "qa_contact": "", "assigned_to": "prodsec-dev@redhat.com", "severity":
-        "unspecified", "summary": "CVE-2014-125064 SQL injection in github.com/elgs/gosqljson",
-        "cf_release_notes": "", "cf_clone_of": null, "cf_qa_whiteboard": "", "cf_pgm_internal":
-        "", "product": "Security Response", "platform": "All", "actual_time": 0, "is_cc_accessible":
-        true, "is_creator_accessible": true, "cc_detail": [], "tags": [], "remaining_time":
-        0, "cf_srtnotes": "{\"reported\": \"2024-06-17T12:31:17Z\", \"external_ids\":
-        [\"GO-2023-1494/CVE-2014-125064\"], \"references\": [{\"type\": \"source\",
-        \"url\": \"https://example.com/vulnerability/GO-2023-1494\", \"description\":
-        null}, {\"type\": \"external\", \"url\": \"https://example.com/elgs/gosqljson/commit/2740b331546cb88eb61771df4c07d389e9f0363a\",
-        \"description\": null}], \"source\": \"osv\"}", "creation_time": "2024-06-17T12:31:21Z",
-        "cf_embargoed": null, "description": "There is a potential for SQL injection
-        through manipulation of the sqlStatement argument.", "target_release": ["---"],
-        "cf_conditional_nak": [], "target_milestone": "---", "op_sys": "Linux", "cf_environment":
-        "", "alias": ["CVE-2014-125064"], "flags": [], "cf_major_incident": null,
-        "last_change_time": "2024-06-17T12:31:21Z", "cf_qe_conditional_nak": [], "creator_detail":
-        {"id": 425662, "partner": false, "email": "nobody@redhat.com", "name": "nobody@redhat.com",
-        "active": true, "real_name": "nobody", "insider": true}, "sub_components":
-        {}, "assigned_to_detail": {"id": 377884, "email": "prodsec-dev@redhat.com",
-        "name": "prodsec-dev@redhat.com", "partner": false, "real_name": "Product
-        Security DevOps Team", "insider": true, "active": true}, "data_category":
-        "Red Hat", "cf_build_id": "", "cf_cust_facing": "---",
-        "cc": [], "url": "", "status": "NEW", "external_bugs": [], "groups": ["redhat"],
-        "creator": "nobody@redhat.com", "version": ["unspecified"], "cf_last_closed":
-        null, "is_open": true, "cf_pm_score": "0", "depends_on": [], "id": 2293430,
-        "component": ["vulnerability-draft"], "whiteboard": "", "blocks": [], "deadline":
-        null, "resolution": "", "cf_internal_whiteboard": "", "cf_doc_type": "If docs
-        needed, set a value", "dupe_of": null, "is_confirmed": true, "comments": [{"text":
-        "There is a potential for SQL injection through manipulation of the sqlStatement
-        argument.", "private_groups": [], "time": "2024-06-17T12:31:21Z", "creator":
-        "nobody@redhat.com", "creation_time": "2024-06-17T12:31:21Z", "bug_id":
-        2293430, "creator_id": 425662, "tags": [], "is_private": false, "count": 0,
-        "id": 18020057, "attachment_id": null}], "priority": "unspecified"}], "faults":
-        []}'
+      string: '{"permissions": {"ARCHIVE_ISSUES": {"id": "-1", "key": "ARCHIVE_ISSUES",
+        "name": "Archive Issues", "type": "PROJECT", "description": "Ability to archive
+        issues for a specific project.", "havePermission": false}, "VIEW_WORKFLOW_READONLY":
+        {"id": "45", "key": "VIEW_WORKFLOW_READONLY", "name": "View Read-Only Workflow",
+        "type": "PROJECT", "description": "admin.permissions.descriptions.VIEW_WORKFLOW_READONLY",
+        "havePermission": true, "deprecatedKey": true}, "CREATE_ISSUES": {"id": "11",
+        "key": "CREATE_ISSUES", "name": "Create Issues", "type": "PROJECT", "description":
+        "Ability to create issues.", "havePermission": false}, "VIEW_DEV_TOOLS": {"id":
+        "29", "key": "VIEW_DEV_TOOLS", "name": "View Development Tools", "type": "PROJECT",
+        "description": "Allows users in a software project to view development-related
+        information on the issue, such as commits, reviews and build information.",
+        "havePermission": false}, "BULK_CHANGE": {"id": "33", "key": "BULK_CHANGE",
+        "name": "Bulk Change", "type": "GLOBAL", "description": "Ability to modify
+        a collection of issues at once. For example, resolve multiple issues in one
+        step.", "havePermission": true}, "CREATE_ATTACHMENT": {"id": "19", "key":
+        "CREATE_ATTACHMENT", "name": "Create Attachments", "type": "PROJECT", "description":
+        "Users with this permission may create attachments.", "havePermission": false,
+        "deprecatedKey": true}, "DELETE_OWN_COMMENTS": {"id": "37", "key": "DELETE_OWN_COMMENTS",
+        "name": "Delete Own Comments", "type": "PROJECT", "description": "Ability
+        to delete own comments made on issues.", "havePermission": true}, "WORK_ON_ISSUES":
+        {"id": "20", "key": "WORK_ON_ISSUES", "name": "Work On Issues", "type": "PROJECT",
+        "description": "Ability to log work done against an issue. Only useful if
+        Time Tracking is turned on.", "havePermission": false}, "PROJECT_ADMIN": {"id":
+        "23", "key": "PROJECT_ADMIN", "name": "Administer Projects", "type": "PROJECT",
+        "description": "Ability to administer a project in Jira.", "havePermission":
+        false, "deprecatedKey": true}, "COMMENT_EDIT_ALL": {"id": "34", "key": "COMMENT_EDIT_ALL",
+        "name": "Edit All Comments", "type": "PROJECT", "description": "Ability to
+        edit all comments made on issues.", "havePermission": false, "deprecatedKey":
+        true}, "ATTACHMENT_DELETE_OWN": {"id": "39", "key": "ATTACHMENT_DELETE_OWN",
+        "name": "Delete Own Attachments", "type": "PROJECT", "description": "Users
+        with this permission may delete own attachments.", "havePermission": false,
+        "deprecatedKey": true}, "WORKLOG_DELETE_OWN": {"id": "42", "key": "WORKLOG_DELETE_OWN",
+        "name": "Delete Own Worklogs", "type": "PROJECT", "description": "Ability
+        to delete own worklogs made on issues.", "havePermission": false, "deprecatedKey":
+        true}, "CLOSE_ISSUE": {"id": "18", "key": "CLOSE_ISSUE", "name": "Close Issues",
+        "type": "PROJECT", "description": "Ability to close issues. Often useful where
+        your developers resolve issues, and a QA department closes them.", "havePermission":
+        false, "deprecatedKey": true}, "MANAGE_WATCHER_LIST": {"id": "32", "key":
+        "MANAGE_WATCHER_LIST", "name": "Manage Watchers", "type": "PROJECT", "description":
+        "Ability to manage the watchers of an issue.", "havePermission": true, "deprecatedKey":
+        true}, "VIEW_VOTERS_AND_WATCHERS": {"id": "31", "key": "VIEW_VOTERS_AND_WATCHERS",
+        "name": "View Voters and Watchers", "type": "PROJECT", "description": "Ability
+        to view the voters and watchers of an issue.", "havePermission": true}, "ADD_COMMENTS":
+        {"id": "15", "key": "ADD_COMMENTS", "name": "Add Comments", "type": "PROJECT",
+        "description": "Ability to comment on issues.", "havePermission": true}, "COMMENT_DELETE_ALL":
+        {"id": "36", "key": "COMMENT_DELETE_ALL", "name": "Delete All Comments", "type":
+        "PROJECT", "description": "Ability to delete all comments made on issues.",
+        "havePermission": false, "deprecatedKey": true}, "CREATE_ISSUE": {"id": "11",
+        "key": "CREATE_ISSUE", "name": "Create Issues", "type": "PROJECT", "description":
+        "Ability to create issues.", "havePermission": false, "deprecatedKey": true},
+        "DELETE_OWN_ATTACHMENTS": {"id": "39", "key": "DELETE_OWN_ATTACHMENTS", "name":
+        "Delete Own Attachments", "type": "PROJECT", "description": "Users with this
+        permission may delete own attachments.", "havePermission": false}, "DELETE_ALL_ATTACHMENTS":
+        {"id": "38", "key": "DELETE_ALL_ATTACHMENTS", "name": "Delete All Attachments",
+        "type": "PROJECT", "description": "Users with this permission may delete all
+        attachments.", "havePermission": false}, "ASSIGN_ISSUE": {"id": "13", "key":
+        "ASSIGN_ISSUE", "name": "Assign Issues", "type": "PROJECT", "description":
+        "Ability to assign issues to other people.", "havePermission": false, "deprecatedKey":
+        true}, "LINK_ISSUE": {"id": "21", "key": "LINK_ISSUE", "name": "Link Issues",
+        "type": "PROJECT", "description": "Ability to link issues together and create
+        linked issues. Only useful if issue linking is turned on.", "havePermission":
+        true, "deprecatedKey": true}, "EDIT_OWN_WORKLOGS": {"id": "40", "key": "EDIT_OWN_WORKLOGS",
+        "name": "Edit Own Worklogs", "type": "PROJECT", "description": "Ability to
+        edit own worklogs made on issues.", "havePermission": false}, "CREATE_ATTACHMENTS":
+        {"id": "19", "key": "CREATE_ATTACHMENTS", "name": "Create Attachments", "type":
+        "PROJECT", "description": "Users with this permission may create attachments.",
+        "havePermission": false}, "EDIT_ALL_WORKLOGS": {"id": "41", "key": "EDIT_ALL_WORKLOGS",
+        "name": "Edit All Worklogs", "type": "PROJECT", "description": "Ability to
+        edit all worklogs made on issues.", "havePermission": false}, "SCHEDULE_ISSUE":
+        {"id": "28", "key": "SCHEDULE_ISSUE", "name": "Schedule Issues", "type": "PROJECT",
+        "description": "Ability to view or edit an issue''s due date.", "havePermission":
+        false, "deprecatedKey": true}, "CLOSE_ISSUES": {"id": "18", "key": "CLOSE_ISSUES",
+        "name": "Close Issues", "type": "PROJECT", "description": "Ability to close
+        issues. Often useful where your developers resolve issues, and a QA department
+        closes them.", "havePermission": false}, "SET_ISSUE_SECURITY": {"id": "26",
+        "key": "SET_ISSUE_SECURITY", "name": "Set Issue Security", "type": "PROJECT",
+        "description": "Ability to set the level of security on an issue so that only
+        people in that security level can see the issue.", "havePermission": false},
+        "SCHEDULE_ISSUES": {"id": "28", "key": "SCHEDULE_ISSUES", "name": "Schedule
+        Issues", "type": "PROJECT", "description": "Ability to view or edit an issue''s
+        due date.", "havePermission": false}, "WORKLOG_DELETE_ALL": {"id": "43", "key":
+        "WORKLOG_DELETE_ALL", "name": "Delete All Worklogs", "type": "PROJECT", "description":
+        "Ability to delete all worklogs made on issues.", "havePermission": false,
+        "deprecatedKey": true}, "COMMENT_DELETE_OWN": {"id": "37", "key": "COMMENT_DELETE_OWN",
+        "name": "Delete Own Comments", "type": "PROJECT", "description": "Ability
+        to delete own comments made on issues.", "havePermission": true, "deprecatedKey":
+        true}, "ADMINISTER_PROJECTS": {"id": "23", "key": "ADMINISTER_PROJECTS", "name":
+        "Administer Projects", "type": "PROJECT", "description": "Ability to administer
+        a project in Jira.", "havePermission": false}, "DELETE_ALL_COMMENTS": {"id":
+        "36", "key": "DELETE_ALL_COMMENTS", "name": "Delete All Comments", "type":
+        "PROJECT", "description": "Ability to delete all comments made on issues.",
+        "havePermission": false}, "RESOLVE_ISSUES": {"id": "14", "key": "RESOLVE_ISSUES",
+        "name": "Resolve Issues", "type": "PROJECT", "description": "Ability to resolve
+        and reopen issues. This includes the ability to set a fix version.", "havePermission":
+        false}, "VIEW_READONLY_WORKFLOW": {"id": "45", "key": "VIEW_READONLY_WORKFLOW",
+        "name": "View Read-Only Workflow", "type": "PROJECT", "description": "Users
+        with this permission may view a read-only version of a workflow.", "havePermission":
+        true}, "ADMINISTER": {"id": "0", "key": "ADMINISTER", "name": "Jira Administrators",
+        "type": "GLOBAL", "description": "Ability to perform most administration functions
+        (excluding Import & Export, SMTP Configuration, etc.).", "havePermission":
+        false}, "GLOBAL_BROWSE_ARCHIVE": {"id": "-1", "key": "GLOBAL_BROWSE_ARCHIVE",
+        "name": "Browse Archive", "type": "GLOBAL", "description": "Ability to browse
+        all archived issues.", "havePermission": false}, "MOVE_ISSUES": {"id": "25",
+        "key": "MOVE_ISSUES", "name": "Move Issues", "type": "PROJECT", "description":
+        "Ability to move issues between projects or between workflows of the same
+        project (if applicable). Note the user can only move issues to a project he
+        or she has the create permission for.", "havePermission": false}, "TRANSITION_ISSUES":
+        {"id": "46", "key": "TRANSITION_ISSUES", "name": "Transition Issues", "type":
+        "PROJECT", "description": "Ability to transition issues.", "havePermission":
+        false}, "EDIT_SPRINT_NAME_AND_GOAL_PERMISSION": {"id": "-1", "key": "EDIT_SPRINT_NAME_AND_GOAL_PERMISSION",
+        "name": "Edit Sprints", "type": "PROJECT", "description": "Ability to edit
+        sprint name and goal.", "havePermission": false}, "SYSTEM_ADMIN": {"id": "44",
+        "key": "SYSTEM_ADMIN", "name": "Jira System Administrators", "type": "GLOBAL",
+        "description": "Ability to perform all administration functions. There must
+        be at least one group with this permission.", "havePermission": false}, "DELETE_OWN_WORKLOGS":
+        {"id": "42", "key": "DELETE_OWN_WORKLOGS", "name": "Delete Own Worklogs",
+        "type": "PROJECT", "description": "Ability to delete own worklogs made on
+        issues.", "havePermission": false}, "BROWSE": {"id": "10", "key": "BROWSE",
+        "name": "Browse Projects", "type": "PROJECT", "description": "Ability to browse
+        projects and the issues within them.", "havePermission": true, "deprecatedKey":
+        true}, "EDIT_ISSUE": {"id": "12", "key": "EDIT_ISSUE", "name": "Edit Issues",
+        "type": "PROJECT", "description": "Ability to edit issues.", "havePermission":
+        false, "deprecatedKey": true}, "MODIFY_REPORTER": {"id": "30", "key": "MODIFY_REPORTER",
+        "name": "Modify Reporter", "type": "PROJECT", "description": "Ability to modify
+        the reporter when creating or editing an issue.", "havePermission": false},
+        "EDIT_ISSUES": {"id": "12", "key": "EDIT_ISSUES", "name": "Edit Issues", "type":
+        "PROJECT", "description": "Ability to edit issues.", "havePermission": false},
+        "MANAGE_WATCHERS": {"id": "32", "key": "MANAGE_WATCHERS", "name": "Manage
+        Watchers", "type": "PROJECT", "description": "Ability to manage the watchers
+        of an issue.", "havePermission": true}, "EDIT_OWN_COMMENTS": {"id": "35",
+        "key": "EDIT_OWN_COMMENTS", "name": "Edit Own Comments", "type": "PROJECT",
+        "description": "Ability to edit own comments made on issues.", "havePermission":
+        true}, "ASSIGN_ISSUES": {"id": "13", "key": "ASSIGN_ISSUES", "name": "Assign
+        Issues", "type": "PROJECT", "description": "Ability to assign issues to other
+        people.", "havePermission": false}, "BROWSE_PROJECTS": {"id": "10", "key":
+        "BROWSE_PROJECTS", "name": "Browse Projects", "type": "PROJECT", "description":
+        "Ability to browse projects and the issues within them.", "havePermission":
+        true}, "gtmhub-view-OKRs-permissions": {"id": "-1", "key": "gtmhub-view-OKRs-permissions",
+        "name": "View OKRs", "type": "GLOBAL", "description": "Ability to view Quantive
+        Results OKRs (Objective and key results) that are linked to a given issue",
+        "havePermission": false}, "RESTORE_ISSUES": {"id": "-1", "key": "RESTORE_ISSUES",
+        "name": "Restore Issues", "type": "PROJECT", "description": "Ability to restore
+        issues for a specific project.", "havePermission": false}, "BROWSE_ARCHIVE":
+        {"id": "-1", "key": "BROWSE_ARCHIVE", "name": "Browse Project Archive", "type":
+        "PROJECT", "description": "Ability to browse archived issues from a specific
+        project.", "havePermission": false}, "A4J_PERM_IMPERSONATE_ACTOR_GLOBAL":
+        {"id": "-1", "key": "A4J_PERM_IMPERSONATE_ACTOR_GLOBAL", "name": "Impersonate
+        users in A4J global scope", "type": "GLOBAL", "description": "Having the permission
+        allows to select other user as automation rule actor", "havePermission": true},
+        "VIEW_VERSION_CONTROL": {"id": "29", "key": "VIEW_VERSION_CONTROL", "name":
+        "View Development Tools", "type": "PROJECT", "description": "Allows users
+        to view development-related information on the view issue screen, like commits,
+        reviews and build information.", "havePermission": false, "deprecatedKey":
+        true}, "START_STOP_SPRINTS_PERMISSION": {"id": "-1", "key": "START_STOP_SPRINTS_PERMISSION",
+        "name": "Start/Complete Sprints", "type": "PROJECT", "description": "Ability
+        to start and complete sprints.", "havePermission": false}, "WORK_ISSUE": {"id":
+        "20", "key": "WORK_ISSUE", "name": "Work On Issues", "type": "PROJECT", "description":
+        "Ability to log work done against an issue. Only useful if Time Tracking is
+        turned on.", "havePermission": false, "deprecatedKey": true}, "COMMENT_ISSUE":
+        {"id": "15", "key": "COMMENT_ISSUE", "name": "Add Comments", "type": "PROJECT",
+        "description": "Ability to comment on issues.", "havePermission": true, "deprecatedKey":
+        true}, "WORKLOG_EDIT_ALL": {"id": "41", "key": "WORKLOG_EDIT_ALL", "name":
+        "Edit All Worklogs", "type": "PROJECT", "description": "Ability to edit all
+        worklogs made on issues.", "havePermission": false, "deprecatedKey": true},
+        "EDIT_ALL_COMMENTS": {"id": "34", "key": "EDIT_ALL_COMMENTS", "name": "Edit
+        All Comments", "type": "PROJECT", "description": "Ability to edit all comments
+        made on issues.", "havePermission": false}, "DELETE_ISSUE": {"id": "16", "key":
+        "DELETE_ISSUE", "name": "Delete Issues", "type": "PROJECT", "description":
+        "Ability to delete issues.", "havePermission": false, "deprecatedKey": true},
+        "MANAGE_SPRINTS_PERMISSION": {"id": "-1", "key": "MANAGE_SPRINTS_PERMISSION",
+        "name": "Manage Sprints", "type": "PROJECT", "description": "Ability to manage
+        sprints.", "havePermission": false}, "USER_PICKER": {"id": "27", "key": "USER_PICKER",
+        "name": "Browse Users", "type": "GLOBAL", "description": "Ability to select
+        a user or group from a popup window as well as the ability to use the ''share''
+        issues feature. Users with this permission will also be able to see names
+        of all users and groups in the system.", "havePermission": true}, "CREATE_SHARED_OBJECTS":
+        {"id": "22", "key": "CREATE_SHARED_OBJECTS", "name": "Create Shared Objects",
+        "type": "GLOBAL", "description": "Ability to share dashboards and filters
+        with other users, groups and roles.", "havePermission": true}, "ATTACHMENT_DELETE_ALL":
+        {"id": "38", "key": "ATTACHMENT_DELETE_ALL", "name": "Delete All Attachments",
+        "type": "PROJECT", "description": "Users with this permission may delete all
+        attachments.", "havePermission": false, "deprecatedKey": true}, "DELETE_ISSUES":
+        {"id": "16", "key": "DELETE_ISSUES", "name": "Delete Issues", "type": "PROJECT",
+        "description": "Ability to delete issues.", "havePermission": false}, "MANAGE_GROUP_FILTER_SUBSCRIPTIONS":
+        {"id": "24", "key": "MANAGE_GROUP_FILTER_SUBSCRIPTIONS", "name": "Manage Group
+        Filter Subscriptions", "type": "GLOBAL", "description": "Ability to manage
+        (create and delete) group filter subscriptions.", "havePermission": true},
+        "RESOLVE_ISSUE": {"id": "14", "key": "RESOLVE_ISSUE", "name": "Resolve Issues",
+        "type": "PROJECT", "description": "Ability to resolve and reopen issues. This
+        includes the ability to set a fix version.", "havePermission": false, "deprecatedKey":
+        true}, "A4J_PERM_IMPERSONATE_ACTOR_PROJECT": {"id": "-1", "key": "A4J_PERM_IMPERSONATE_ACTOR_PROJECT",
+        "name": "Impersonate users in A4J project scope", "type": "PROJECT", "description":
+        "Having the permission allows to select other user as automation rule actor",
+        "havePermission": false}, "ASSIGNABLE_USER": {"id": "17", "key": "ASSIGNABLE_USER",
+        "name": "Assignable User", "type": "PROJECT", "description": "Users with this
+        permission may be assigned to issues.", "havePermission": true}, "TRANSITION_ISSUE":
+        {"id": "46", "key": "TRANSITION_ISSUE", "name": "Transition Issues", "type":
+        "PROJECT", "description": "Ability to transition issues.", "havePermission":
+        false, "deprecatedKey": true}, "COMMENT_EDIT_OWN": {"id": "35", "key": "COMMENT_EDIT_OWN",
+        "name": "Edit Own Comments", "type": "PROJECT", "description": "Ability to
+        edit own comments made on issues.", "havePermission": true, "deprecatedKey":
+        true}, "MOVE_ISSUE": {"id": "25", "key": "MOVE_ISSUE", "name": "Move Issues",
+        "type": "PROJECT", "description": "Ability to move issues between projects
+        or between workflows of the same project (if applicable). Note the user can
+        only move issues to a project he or she has the create permission for.", "havePermission":
+        false, "deprecatedKey": true}, "WORKLOG_EDIT_OWN": {"id": "40", "key": "WORKLOG_EDIT_OWN",
+        "name": "Edit Own Worklogs", "type": "PROJECT", "description": "Ability to
+        edit own worklogs made on issues.", "havePermission": false, "deprecatedKey":
+        true}, "DELETE_ALL_WORKLOGS": {"id": "43", "key": "DELETE_ALL_WORKLOGS", "name":
+        "Delete All Worklogs", "type": "PROJECT", "description": "Ability to delete
+        all worklogs made on issues.", "havePermission": false}, "LINK_ISSUES": {"id":
+        "21", "key": "LINK_ISSUES", "name": "Link Issues", "type": "PROJECT", "description":
+        "Ability to link issues together and create linked issues. Only useful if
+        issue linking is turned on.", "havePermission": true}, "gtmhub-view-OKRs-prj-permissions":
+        {"id": "-1", "key": "gtmhub-view-OKRs-prj-permissions", "name": "View OKRs",
+        "type": "PROJECT", "description": "Ability to view Quantive Results OKRs (Objective
+        and key results) that are linked to a given issue", "havePermission": false}}}'
     headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
       Cache-Control:
-      - private, must-revalidate
+      - max-age=0, no-cache, no-store
       Connection:
       - keep-alive
       Content-Type:
-      - application/json; charset=UTF-8
+      - application/json;charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:31:24 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
+      - Mon, 24 Jun 2024 22:16:41 GMT
+      Expires:
+      - Mon, 24 Jun 2024 22:16:41 GMT
+      Pragma:
+      - no-cache
+      Retry-After:
+      - '0'
       Vary:
+      - User-Agent
       - Accept-Encoding
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
+      X-RateLimit-Limit:
+      - '5'
+      X-RateLimit-Remaining:
+      - '4'
       content-length:
-      - '2653'
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.7df06e68.1718627483.f948c2e
-      x-rh-edge-request-id:
-      - f948c2e
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://example.com/rest/bug/2293430/comment
-  response:
-    body:
-      string: '{"comments": {}, "bugs": {"2293430": {"comments": [{"bug_id": 2293430,
-        "is_private": false, "attachment_id": null, "creation_time": "2024-06-17T12:31:21Z",
-        "private_groups": [], "id": 18020057, "count": 0, "text": "There is a potential
-        for SQL injection through manipulation of the sqlStatement argument.", "tags":
-        [], "creator": "nobody@redhat.com", "creator_id": 425662, "time": "2024-06-17T12:31:21Z"}]}}}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '382'
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Mon, 17 Jun 2024 12:31:24 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      X-content-type-options:
+      - '16346'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-dc-stg-mpp-0
+      x-arequestid:
+      - 1336x269997x1
+      x-asessionid:
+      - asmi0o
+      x-content-type-options:
       - nosniff
-      X-xss-protection:
-      - 1; mode=block
+      x-frame-options:
+      - SAMEORIGIN
+      x-ratelimit-fillrate:
+      - '5'
+      x-ratelimit-interval-seconds:
+      - '1'
       x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
+      - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.7df06e68.1718627484.f948edb
+      - 0.d4292117.1719267401.ae777ed
       x-rh-edge-request-id:
-      - f948edb
+      - ae777ed
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
     status:
       code: 200
       message: OK

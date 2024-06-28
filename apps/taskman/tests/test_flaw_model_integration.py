@@ -2,11 +2,13 @@ from datetime import datetime
 
 import pytest
 from django.utils.timezone import make_aware
+from jira.exceptions import JIRAError
 from rest_framework.response import Response
 
 import apps.taskman.mixins as mixins
 import osidb.models as models
 import osidb.serializer as serializer
+from apps.taskman.exceptions import TaskWritePermissionsException
 from apps.taskman.service import JiraTaskmanQuerier
 from osidb.models import Flaw, FlawSource, Impact
 from osidb.tests.factories import AffectFactory, FlawFactory
@@ -287,3 +289,68 @@ class TestFlawModelIntegration(object):
         assert response.status_code == 200
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         assert flaw.task_key == "TASK-123"
+
+    @pytest.mark.vcr
+    def test_token_validation(self, monkeypatch, acl_read, acl_write, user_token):
+        """
+        Test that service is able validate user authentication and raise errors
+        """
+        # Remove randomness to reuse VCR every possible time
+        uuid1 = "73cbc51f-4774-4357-a80a-8f433759020f"
+        uuid2 = "323e22a9-5cc5-4627-ba66-19c8eea26e51"
+
+        jira_token = user_token
+        reported_dt = make_aware(datetime.now())
+        flaw = Flaw(
+            uuid=uuid1,
+            acl_read=acl_read,
+            acl_write=acl_write,
+            cwe_id="CWE-1",
+            impact="LOW",
+            components=["kernel"],
+            source="REDHAT",
+            title="some description",
+            comment_zero="test",
+            reported_dt=reported_dt,
+            unembargo_dt=reported_dt,
+        )
+
+        # Valid token; everything should work
+        assert flaw.save(jira_token=jira_token) is None
+        assert flaw.task_key
+        assert Flaw.objects.get(uuid=uuid1)
+
+        flaw = Flaw(
+            uuid=uuid2,
+            acl_read=acl_read,
+            acl_write=acl_write,
+            cwe_id="CWE-1",
+            impact="LOW",
+            components=["kernel"],
+            source="REDHAT",
+            title="some description",
+            comment_zero="test",
+            reported_dt=reported_dt,
+            unembargo_dt=reported_dt,
+        )
+        with pytest.raises(
+            JIRAError, match="Client must be authenticated to access this resource."
+        ):
+            # Invalid token; Jira library should raise exception
+            flaw.save(jira_token="invalid_token")  # nosec
+
+        assert Flaw.objects.filter(uuid=uuid2).count() == 0
+
+        # enforce project without writing permissions
+        import apps.taskman.service as service
+
+        monkeypatch.setattr(service, "JIRA_TASKMAN_PROJECT_KEY", "ISO")
+
+        with pytest.raises(
+            TaskWritePermissionsException,
+            match="user doesn't have write permission in ISO project.",
+        ):
+            # Valid token for a project without permissions; should raise custom exception
+            flaw.save(jira_token=jira_token)
+
+        assert Flaw.objects.filter(uuid=uuid2).count() == 0

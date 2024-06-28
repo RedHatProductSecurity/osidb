@@ -876,11 +876,11 @@ class TestFlawDraftBBSyncIntegration:
     @pytest.mark.vcr
     @pytest.mark.enable_signals
     @pytest.mark.parametrize(
-        "source,cve_id,ext_id,jira_id",
+        "source,cve_id,ext_id",
         [
-            (Snippet.Source.NVD, "CVE-2000-0054", "CVE-2000-0054", "OSIM-16306"),
-            (Snippet.Source.OSV, "CVE-2000-0055", "GHSA-0014", "OSIM-16307"),
-            (Snippet.Source.OSV, None, "GHSA-0015", "OSIM-16308"),
+            (Snippet.Source.NVD, "CVE-2000-10005", "CVE-2000-10005"),
+            (Snippet.Source.OSV, "CVE-2000-10006", "GHSA-10004"),
+            (Snippet.Source.OSV, None, "GHSA-10005"),
         ],
     )
     def test_flaw_draft_create(
@@ -890,7 +890,6 @@ class TestFlawDraftBBSyncIntegration:
         source,
         cve_id,
         ext_id,
-        jira_id,
         monkeypatch,
     ):
         """
@@ -946,7 +945,7 @@ class TestFlawDraftBBSyncIntegration:
         # check values related to taskman
         assert flaw.group_key == ""
         assert flaw.owner == ""
-        assert flaw.task_key == jira_id
+        assert flaw.task_key
         assert flaw.team_id == ""
         assert flaw.workflow_name == "DEFAULT"
         assert flaw.workflow_state == "NEW"

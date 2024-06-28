@@ -38,11 +38,11 @@ interactions:
       Content-Length:
       - '1600'
       Date:
-      - Mon, 17 Jun 2024 12:45:04 GMT
+      - Fri, 28 Jun 2024 12:01:50 GMT
       Server:
       - Google Frontend
       X-Cloud-Trace-Context:
-      - ef71398b1c614d7e10cdab9a76891b24
+      - 08f8a51e6f29b8e560c15f42485b1f40
       alt-svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       content-type:
@@ -76,6 +76,299 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
+    uri: https://example.com/rest/api/2/mypermissions?projectKey=OSIM
+  response:
+    body:
+      string: '{"permissions": {"ARCHIVE_ISSUES": {"id": "-1", "key": "ARCHIVE_ISSUES",
+        "name": "Archive Issues", "type": "PROJECT", "description": "Ability to archive
+        issues for a specific project.", "havePermission": true}, "VIEW_WORKFLOW_READONLY":
+        {"id": "45", "key": "VIEW_WORKFLOW_READONLY", "name": "View Read-Only Workflow",
+        "type": "PROJECT", "description": "admin.permissions.descriptions.VIEW_WORKFLOW_READONLY",
+        "havePermission": true, "deprecatedKey": true}, "CREATE_ISSUES": {"id": "11",
+        "key": "CREATE_ISSUES", "name": "Create Issues", "type": "PROJECT", "description":
+        "Ability to create issues.", "havePermission": true}, "VIEW_DEV_TOOLS": {"id":
+        "29", "key": "VIEW_DEV_TOOLS", "name": "View Development Tools", "type": "PROJECT",
+        "description": "Allows users in a software project to view development-related
+        information on the issue, such as commits, reviews and build information.",
+        "havePermission": true}, "BULK_CHANGE": {"id": "33", "key": "BULK_CHANGE",
+        "name": "Bulk Change", "type": "GLOBAL", "description": "Ability to modify
+        a collection of issues at once. For example, resolve multiple issues in one
+        step.", "havePermission": true}, "CREATE_ATTACHMENT": {"id": "19", "key":
+        "CREATE_ATTACHMENT", "name": "Create Attachments", "type": "PROJECT", "description":
+        "Users with this permission may create attachments.", "havePermission": true,
+        "deprecatedKey": true}, "DELETE_OWN_COMMENTS": {"id": "37", "key": "DELETE_OWN_COMMENTS",
+        "name": "Delete Own Comments", "type": "PROJECT", "description": "Ability
+        to delete own comments made on issues.", "havePermission": true}, "WORK_ON_ISSUES":
+        {"id": "20", "key": "WORK_ON_ISSUES", "name": "Work On Issues", "type": "PROJECT",
+        "description": "Ability to log work done against an issue. Only useful if
+        Time Tracking is turned on.", "havePermission": true}, "PROJECT_ADMIN": {"id":
+        "23", "key": "PROJECT_ADMIN", "name": "Administer Projects", "type": "PROJECT",
+        "description": "Ability to administer a project in Jira.", "havePermission":
+        true, "deprecatedKey": true}, "COMMENT_EDIT_ALL": {"id": "34", "key": "COMMENT_EDIT_ALL",
+        "name": "Edit All Comments", "type": "PROJECT", "description": "Ability to
+        edit all comments made on issues.", "havePermission": true, "deprecatedKey":
+        true}, "ATTACHMENT_DELETE_OWN": {"id": "39", "key": "ATTACHMENT_DELETE_OWN",
+        "name": "Delete Own Attachments", "type": "PROJECT", "description": "Users
+        with this permission may delete own attachments.", "havePermission": true,
+        "deprecatedKey": true}, "WORKLOG_DELETE_OWN": {"id": "42", "key": "WORKLOG_DELETE_OWN",
+        "name": "Delete Own Worklogs", "type": "PROJECT", "description": "Ability
+        to delete own worklogs made on issues.", "havePermission": true, "deprecatedKey":
+        true}, "CLOSE_ISSUE": {"id": "18", "key": "CLOSE_ISSUE", "name": "Close Issues",
+        "type": "PROJECT", "description": "Ability to close issues. Often useful where
+        your developers resolve issues, and a QA department closes them.", "havePermission":
+        true, "deprecatedKey": true}, "MANAGE_WATCHER_LIST": {"id": "32", "key": "MANAGE_WATCHER_LIST",
+        "name": "Manage Watchers", "type": "PROJECT", "description": "Ability to manage
+        the watchers of an issue.", "havePermission": true, "deprecatedKey": true},
+        "VIEW_VOTERS_AND_WATCHERS": {"id": "31", "key": "VIEW_VOTERS_AND_WATCHERS",
+        "name": "View Voters and Watchers", "type": "PROJECT", "description": "Ability
+        to view the voters and watchers of an issue.", "havePermission": true}, "ADD_COMMENTS":
+        {"id": "15", "key": "ADD_COMMENTS", "name": "Add Comments", "type": "PROJECT",
+        "description": "Ability to comment on issues.", "havePermission": true}, "COMMENT_DELETE_ALL":
+        {"id": "36", "key": "COMMENT_DELETE_ALL", "name": "Delete All Comments", "type":
+        "PROJECT", "description": "Ability to delete all comments made on issues.",
+        "havePermission": true, "deprecatedKey": true}, "CREATE_ISSUE": {"id": "11",
+        "key": "CREATE_ISSUE", "name": "Create Issues", "type": "PROJECT", "description":
+        "Ability to create issues.", "havePermission": true, "deprecatedKey": true},
+        "DELETE_OWN_ATTACHMENTS": {"id": "39", "key": "DELETE_OWN_ATTACHMENTS", "name":
+        "Delete Own Attachments", "type": "PROJECT", "description": "Users with this
+        permission may delete own attachments.", "havePermission": true}, "DELETE_ALL_ATTACHMENTS":
+        {"id": "38", "key": "DELETE_ALL_ATTACHMENTS", "name": "Delete All Attachments",
+        "type": "PROJECT", "description": "Users with this permission may delete all
+        attachments.", "havePermission": true}, "ASSIGN_ISSUE": {"id": "13", "key":
+        "ASSIGN_ISSUE", "name": "Assign Issues", "type": "PROJECT", "description":
+        "Ability to assign issues to other people.", "havePermission": true, "deprecatedKey":
+        true}, "LINK_ISSUE": {"id": "21", "key": "LINK_ISSUE", "name": "Link Issues",
+        "type": "PROJECT", "description": "Ability to link issues together and create
+        linked issues. Only useful if issue linking is turned on.", "havePermission":
+        true, "deprecatedKey": true}, "EDIT_OWN_WORKLOGS": {"id": "40", "key": "EDIT_OWN_WORKLOGS",
+        "name": "Edit Own Worklogs", "type": "PROJECT", "description": "Ability to
+        edit own worklogs made on issues.", "havePermission": true}, "CREATE_ATTACHMENTS":
+        {"id": "19", "key": "CREATE_ATTACHMENTS", "name": "Create Attachments", "type":
+        "PROJECT", "description": "Users with this permission may create attachments.",
+        "havePermission": true}, "EDIT_ALL_WORKLOGS": {"id": "41", "key": "EDIT_ALL_WORKLOGS",
+        "name": "Edit All Worklogs", "type": "PROJECT", "description": "Ability to
+        edit all worklogs made on issues.", "havePermission": true}, "SCHEDULE_ISSUE":
+        {"id": "28", "key": "SCHEDULE_ISSUE", "name": "Schedule Issues", "type": "PROJECT",
+        "description": "Ability to view or edit an issue''s due date.", "havePermission":
+        true, "deprecatedKey": true}, "CLOSE_ISSUES": {"id": "18", "key": "CLOSE_ISSUES",
+        "name": "Close Issues", "type": "PROJECT", "description": "Ability to close
+        issues. Often useful where your developers resolve issues, and a QA department
+        closes them.", "havePermission": true}, "SET_ISSUE_SECURITY": {"id": "26",
+        "key": "SET_ISSUE_SECURITY", "name": "Set Issue Security", "type": "PROJECT",
+        "description": "Ability to set the level of security on an issue so that only
+        people in that security level can see the issue.", "havePermission": true},
+        "SCHEDULE_ISSUES": {"id": "28", "key": "SCHEDULE_ISSUES", "name": "Schedule
+        Issues", "type": "PROJECT", "description": "Ability to view or edit an issue''s
+        due date.", "havePermission": true}, "WORKLOG_DELETE_ALL": {"id": "43", "key":
+        "WORKLOG_DELETE_ALL", "name": "Delete All Worklogs", "type": "PROJECT", "description":
+        "Ability to delete all worklogs made on issues.", "havePermission": true,
+        "deprecatedKey": true}, "COMMENT_DELETE_OWN": {"id": "37", "key": "COMMENT_DELETE_OWN",
+        "name": "Delete Own Comments", "type": "PROJECT", "description": "Ability
+        to delete own comments made on issues.", "havePermission": true, "deprecatedKey":
+        true}, "ADMINISTER_PROJECTS": {"id": "23", "key": "ADMINISTER_PROJECTS", "name":
+        "Administer Projects", "type": "PROJECT", "description": "Ability to administer
+        a project in Jira.", "havePermission": true}, "DELETE_ALL_COMMENTS": {"id":
+        "36", "key": "DELETE_ALL_COMMENTS", "name": "Delete All Comments", "type":
+        "PROJECT", "description": "Ability to delete all comments made on issues.",
+        "havePermission": true}, "RESOLVE_ISSUES": {"id": "14", "key": "RESOLVE_ISSUES",
+        "name": "Resolve Issues", "type": "PROJECT", "description": "Ability to resolve
+        and reopen issues. This includes the ability to set a fix version.", "havePermission":
+        true}, "VIEW_READONLY_WORKFLOW": {"id": "45", "key": "VIEW_READONLY_WORKFLOW",
+        "name": "View Read-Only Workflow", "type": "PROJECT", "description": "Users
+        with this permission may view a read-only version of a workflow.", "havePermission":
+        true}, "ADMINISTER": {"id": "0", "key": "ADMINISTER", "name": "Jira Administrators",
+        "type": "GLOBAL", "description": "Ability to perform most administration functions
+        (excluding Import & Export, SMTP Configuration, etc.).", "havePermission":
+        false}, "GLOBAL_BROWSE_ARCHIVE": {"id": "-1", "key": "GLOBAL_BROWSE_ARCHIVE",
+        "name": "Browse Archive", "type": "GLOBAL", "description": "Ability to browse
+        all archived issues.", "havePermission": false}, "MOVE_ISSUES": {"id": "25",
+        "key": "MOVE_ISSUES", "name": "Move Issues", "type": "PROJECT", "description":
+        "Ability to move issues between projects or between workflows of the same
+        project (if applicable). Note the user can only move issues to a project he
+        or she has the create permission for.", "havePermission": true}, "TRANSITION_ISSUES":
+        {"id": "46", "key": "TRANSITION_ISSUES", "name": "Transition Issues", "type":
+        "PROJECT", "description": "Ability to transition issues.", "havePermission":
+        true}, "EDIT_SPRINT_NAME_AND_GOAL_PERMISSION": {"id": "-1", "key": "EDIT_SPRINT_NAME_AND_GOAL_PERMISSION",
+        "name": "Edit Sprints", "type": "PROJECT", "description": "Ability to edit
+        sprint name and goal.", "havePermission": false}, "SYSTEM_ADMIN": {"id": "44",
+        "key": "SYSTEM_ADMIN", "name": "Jira System Administrators", "type": "GLOBAL",
+        "description": "Ability to perform all administration functions. There must
+        be at least one group with this permission.", "havePermission": false}, "DELETE_OWN_WORKLOGS":
+        {"id": "42", "key": "DELETE_OWN_WORKLOGS", "name": "Delete Own Worklogs",
+        "type": "PROJECT", "description": "Ability to delete own worklogs made on
+        issues.", "havePermission": true}, "BROWSE": {"id": "10", "key": "BROWSE",
+        "name": "Browse Projects", "type": "PROJECT", "description": "Ability to browse
+        projects and the issues within them.", "havePermission": true, "deprecatedKey":
+        true}, "EDIT_ISSUE": {"id": "12", "key": "EDIT_ISSUE", "name": "Edit Issues",
+        "type": "PROJECT", "description": "Ability to edit issues.", "havePermission":
+        true, "deprecatedKey": true}, "MODIFY_REPORTER": {"id": "30", "key": "MODIFY_REPORTER",
+        "name": "Modify Reporter", "type": "PROJECT", "description": "Ability to modify
+        the reporter when creating or editing an issue.", "havePermission": true},
+        "EDIT_ISSUES": {"id": "12", "key": "EDIT_ISSUES", "name": "Edit Issues", "type":
+        "PROJECT", "description": "Ability to edit issues.", "havePermission": true},
+        "MANAGE_WATCHERS": {"id": "32", "key": "MANAGE_WATCHERS", "name": "Manage
+        Watchers", "type": "PROJECT", "description": "Ability to manage the watchers
+        of an issue.", "havePermission": true}, "EDIT_OWN_COMMENTS": {"id": "35",
+        "key": "EDIT_OWN_COMMENTS", "name": "Edit Own Comments", "type": "PROJECT",
+        "description": "Ability to edit own comments made on issues.", "havePermission":
+        true}, "ASSIGN_ISSUES": {"id": "13", "key": "ASSIGN_ISSUES", "name": "Assign
+        Issues", "type": "PROJECT", "description": "Ability to assign issues to other
+        people.", "havePermission": true}, "BROWSE_PROJECTS": {"id": "10", "key":
+        "BROWSE_PROJECTS", "name": "Browse Projects", "type": "PROJECT", "description":
+        "Ability to browse projects and the issues within them.", "havePermission":
+        true}, "gtmhub-view-OKRs-permissions": {"id": "-1", "key": "gtmhub-view-OKRs-permissions",
+        "name": "View OKRs", "type": "GLOBAL", "description": "Ability to view Quantive
+        Results OKRs (Objective and key results) that are linked to a given issue",
+        "havePermission": false}, "RESTORE_ISSUES": {"id": "-1", "key": "RESTORE_ISSUES",
+        "name": "Restore Issues", "type": "PROJECT", "description": "Ability to restore
+        issues for a specific project.", "havePermission": true}, "BROWSE_ARCHIVE":
+        {"id": "-1", "key": "BROWSE_ARCHIVE", "name": "Browse Project Archive", "type":
+        "PROJECT", "description": "Ability to browse archived issues from a specific
+        project.", "havePermission": true}, "A4J_PERM_IMPERSONATE_ACTOR_GLOBAL": {"id":
+        "-1", "key": "A4J_PERM_IMPERSONATE_ACTOR_GLOBAL", "name": "Impersonate users
+        in A4J global scope", "type": "GLOBAL", "description": "Having the permission
+        allows to select other user as automation rule actor", "havePermission": true},
+        "VIEW_VERSION_CONTROL": {"id": "29", "key": "VIEW_VERSION_CONTROL", "name":
+        "View Development Tools", "type": "PROJECT", "description": "Allows users
+        to view development-related information on the view issue screen, like commits,
+        reviews and build information.", "havePermission": true, "deprecatedKey":
+        true}, "START_STOP_SPRINTS_PERMISSION": {"id": "-1", "key": "START_STOP_SPRINTS_PERMISSION",
+        "name": "Start/Complete Sprints", "type": "PROJECT", "description": "Ability
+        to start and complete sprints.", "havePermission": true}, "WORK_ISSUE": {"id":
+        "20", "key": "WORK_ISSUE", "name": "Work On Issues", "type": "PROJECT", "description":
+        "Ability to log work done against an issue. Only useful if Time Tracking is
+        turned on.", "havePermission": true, "deprecatedKey": true}, "COMMENT_ISSUE":
+        {"id": "15", "key": "COMMENT_ISSUE", "name": "Add Comments", "type": "PROJECT",
+        "description": "Ability to comment on issues.", "havePermission": true, "deprecatedKey":
+        true}, "WORKLOG_EDIT_ALL": {"id": "41", "key": "WORKLOG_EDIT_ALL", "name":
+        "Edit All Worklogs", "type": "PROJECT", "description": "Ability to edit all
+        worklogs made on issues.", "havePermission": true, "deprecatedKey": true},
+        "EDIT_ALL_COMMENTS": {"id": "34", "key": "EDIT_ALL_COMMENTS", "name": "Edit
+        All Comments", "type": "PROJECT", "description": "Ability to edit all comments
+        made on issues.", "havePermission": true}, "DELETE_ISSUE": {"id": "16", "key":
+        "DELETE_ISSUE", "name": "Delete Issues", "type": "PROJECT", "description":
+        "Ability to delete issues.", "havePermission": false, "deprecatedKey": true},
+        "MANAGE_SPRINTS_PERMISSION": {"id": "-1", "key": "MANAGE_SPRINTS_PERMISSION",
+        "name": "Manage Sprints", "type": "PROJECT", "description": "Ability to manage
+        sprints.", "havePermission": true}, "USER_PICKER": {"id": "27", "key": "USER_PICKER",
+        "name": "Browse Users", "type": "GLOBAL", "description": "Ability to select
+        a user or group from a popup window as well as the ability to use the ''share''
+        issues feature. Users with this permission will also be able to see names
+        of all users and groups in the system.", "havePermission": true}, "CREATE_SHARED_OBJECTS":
+        {"id": "22", "key": "CREATE_SHARED_OBJECTS", "name": "Create Shared Objects",
+        "type": "GLOBAL", "description": "Ability to share dashboards and filters
+        with other users, groups and roles.", "havePermission": true}, "ATTACHMENT_DELETE_ALL":
+        {"id": "38", "key": "ATTACHMENT_DELETE_ALL", "name": "Delete All Attachments",
+        "type": "PROJECT", "description": "Users with this permission may delete all
+        attachments.", "havePermission": true, "deprecatedKey": true}, "DELETE_ISSUES":
+        {"id": "16", "key": "DELETE_ISSUES", "name": "Delete Issues", "type": "PROJECT",
+        "description": "Ability to delete issues.", "havePermission": false}, "MANAGE_GROUP_FILTER_SUBSCRIPTIONS":
+        {"id": "24", "key": "MANAGE_GROUP_FILTER_SUBSCRIPTIONS", "name": "Manage Group
+        Filter Subscriptions", "type": "GLOBAL", "description": "Ability to manage
+        (create and delete) group filter subscriptions.", "havePermission": true},
+        "RESOLVE_ISSUE": {"id": "14", "key": "RESOLVE_ISSUE", "name": "Resolve Issues",
+        "type": "PROJECT", "description": "Ability to resolve and reopen issues. This
+        includes the ability to set a fix version.", "havePermission": true, "deprecatedKey":
+        true}, "A4J_PERM_IMPERSONATE_ACTOR_PROJECT": {"id": "-1", "key": "A4J_PERM_IMPERSONATE_ACTOR_PROJECT",
+        "name": "Impersonate users in A4J project scope", "type": "PROJECT", "description":
+        "Having the permission allows to select other user as automation rule actor",
+        "havePermission": false}, "ASSIGNABLE_USER": {"id": "17", "key": "ASSIGNABLE_USER",
+        "name": "Assignable User", "type": "PROJECT", "description": "Users with this
+        permission may be assigned to issues.", "havePermission": true}, "TRANSITION_ISSUE":
+        {"id": "46", "key": "TRANSITION_ISSUE", "name": "Transition Issues", "type":
+        "PROJECT", "description": "Ability to transition issues.", "havePermission":
+        true, "deprecatedKey": true}, "COMMENT_EDIT_OWN": {"id": "35", "key": "COMMENT_EDIT_OWN",
+        "name": "Edit Own Comments", "type": "PROJECT", "description": "Ability to
+        edit own comments made on issues.", "havePermission": true, "deprecatedKey":
+        true}, "MOVE_ISSUE": {"id": "25", "key": "MOVE_ISSUE", "name": "Move Issues",
+        "type": "PROJECT", "description": "Ability to move issues between projects
+        or between workflows of the same project (if applicable). Note the user can
+        only move issues to a project he or she has the create permission for.", "havePermission":
+        true, "deprecatedKey": true}, "WORKLOG_EDIT_OWN": {"id": "40", "key": "WORKLOG_EDIT_OWN",
+        "name": "Edit Own Worklogs", "type": "PROJECT", "description": "Ability to
+        edit own worklogs made on issues.", "havePermission": true, "deprecatedKey":
+        true}, "DELETE_ALL_WORKLOGS": {"id": "43", "key": "DELETE_ALL_WORKLOGS", "name":
+        "Delete All Worklogs", "type": "PROJECT", "description": "Ability to delete
+        all worklogs made on issues.", "havePermission": true}, "LINK_ISSUES": {"id":
+        "21", "key": "LINK_ISSUES", "name": "Link Issues", "type": "PROJECT", "description":
+        "Ability to link issues together and create linked issues. Only useful if
+        issue linking is turned on.", "havePermission": true}, "gtmhub-view-OKRs-prj-permissions":
+        {"id": "-1", "key": "gtmhub-view-OKRs-prj-permissions", "name": "View OKRs",
+        "type": "PROJECT", "description": "Ability to view Quantive Results OKRs (Objective
+        and key results) that are linked to a given issue", "havePermission": false}}}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Fri, 28 Jun 2024 12:01:50 GMT
+      Expires:
+      - Fri, 28 Jun 2024 12:01:50 GMT
+      Pragma:
+      - no-cache
+      Retry-After:
+      - '0'
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-RateLimit-Limit:
+      - '5'
+      X-RateLimit-Remaining:
+      - '4'
+      content-length:
+      - '16299'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-dc-stg-mpp-1
+      x-arequestid:
+      - 721x215564x1
+      x-asessionid:
+      - lwzaw8
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-ratelimit-fillrate:
+      - '5'
+      x-ratelimit-interval-seconds:
+      - '1'
+      x-rh-edge-cache-status:
+      - NotCacheable from child
+      x-rh-edge-reference-id:
+      - 0.4c24c317.1719576110.8a468307
+      x-rh-edge-request-id:
+      - 8a468307
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*.*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.32.0
+      X-Atlassian-Token:
+      - no-check
+    method: GET
     uri: https://example.com/rest/api/2/issuetype
   response:
     body:
@@ -86,7 +379,12 @@ interactions:
         problem that impairs or prevents the functions of the product.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Bug","subtask":false,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/16","id":"16","description":"Created
         by Jira Software - do not edit or delete. Issue type for a big user story
         that needs to be broken down.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13267&avatarType=issuetype","name":"Epic","subtask":false,"avatarId":13267},{"self":"https://example.com/rest/api/2/issuetype/11406","id":"11406","description":"Expresses
-        areas of concern for a project or program''s success.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype","name":"Risk","subtask":false,"avatarId":13268},{"self":"https://example.com/rest/api/2/issuetype/2","id":"2","description":"Feature
+        areas of concern for a project or program''s success.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype","name":"Risk","subtask":false,"avatarId":13268},{"self":"https://example.com/rest/api/2/issuetype/10100","id":"10100","description":"A
+        large product/portfolio goal or focus area that has clear start and completion
+        criteria","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10800","id":"10800","description":"Represents
+        a research-related task.''","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/12102","id":"12102","description":"Organizational
+        objective focused on a measurable outcome. May be in support of larger strategic
+        goals.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Outcome","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/2","id":"2","description":"Feature
         requests from customers and/or users","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature
         Request","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/13","id":"13","description":"An
         enhancement to or refactoring of existing functionality that is not configurable
@@ -110,22 +408,10 @@ interactions:
         Upgrade Subtask","subtask":true,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/12","id":"12","description":"A
         task tracking an update to a bundled component or revision of component upstream
         of the project.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Component
-        Upgrade","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/10100","id":"10100","description":"A
-        large product/portfolio goal or focus area that has clear start and completion
-        criteria","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/12102","id":"12102","description":"Organizational
-        objective focused on a measurable outcome. May be in support of larger strategic
-        goals.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Outcome","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10800","id":"10800","description":"Represents
-        a research-related task.''","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/12200","id":"12200","description":"Represents
-        a Test","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test.png","name":"Test","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12201","id":"12201","description":"Represents
-        a Test Set","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-set.png","name":"Test
-        Set","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12202","id":"12202","description":"Represents
-        a Test Execution","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-execution.png","name":"Test
-        Execution","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12203","id":"12203","description":"Represents
-        a Pre-Condition","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/pre-condition.png","name":"Pre-Condition","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12204","id":"12204","description":"Represents
-        a Test Plan","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-plan.png","name":"Test
-        Plan","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12205","id":"12205","description":"Represents
-        a Sub Test Execution","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/sub-test-execution.png","name":"Sub
-        Test Execution","subtask":true},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
+        Upgrade","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11401","id":"11401","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"RFE","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
+        or a well-defined set of functionality that delivers business value. Features
+        can include additions or changes to existing functionality. Features can easily
+        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
         of a library dependency","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Library
         Upgrade","subtask":false,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/15","id":"15","description":"A
         clarification needed to a specification based on community feedback","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Clarification","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/19","id":"19","description":"Issue
@@ -146,10 +432,7 @@ interactions:
         Task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Docs
         Task","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10400","id":"10400","description":"Objectives
         and Key Results","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13274&avatarType=issuetype","name":"OKR","subtask":false,"avatarId":13274},{"self":"https://example.com/rest/api/2/issuetype/10500","id":"10500","description":"Policies
-        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
-        or a well-defined set of functionality that delivers business value. Features
-        can include additions or changes to existing functionality. Features can easily
-        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
+        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
         issue requiring coordinated response","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10304&avatarType=issuetype","name":"Flare","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10900","id":"10900","description":"This
         issue type is created for Service Desk functions in Jira Software","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Service
         Request","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/10901","id":"10901","description":"Used
@@ -170,7 +453,7 @@ interactions:
         Sub-task","subtask":true,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/11300","id":"11300","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Next
         Action","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11400","id":"11400","description":"This
         is a Business Unit Initiative a.k.a. \"BUI\"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"BU
-        Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11401","id":"11401","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"RFE","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11402","id":"11402","description":"General
+        Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11402","id":"11402","description":"General
         issue to be triaged","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Issue","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11404","id":"11404","description":"HSS
         PA tracking issue for Milestones","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Milestone","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11405","id":"11405","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Build
         Task","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11407","id":"11407","description":"RT355021","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Report","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11408","id":"11408","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Schedule","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11409","id":"11409","description":"For
@@ -197,7 +480,9 @@ interactions:
         Security Exception","subtask":false,"avatarId":40577},{"self":"https://example.com/rest/api/2/issuetype/12100","id":"12100","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Objective","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/12101","id":"12101","description":"Large,
         strategic focus area typically defined by leadership teams to achieve organizational
         long-term vision.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=50977&avatarType=issuetype","name":"Strategic
-        Goal","subtask":false,"avatarId":50977},{"self":"https://example.com/rest/api/2/issuetype/12300","id":"12300","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Vulnerability","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/12301","id":"12301","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=53261&avatarType=issuetype","name":"Weakness","subtask":false,"avatarId":53261},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
+        Goal","subtask":false,"avatarId":50977},{"self":"https://example.com/rest/api/2/issuetype/12206","id":"12206","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=55783&avatarType=issuetype","name":"Weakness","subtask":false,"avatarId":55783},{"self":"https://example.com/rest/api/2/issuetype/12207","id":"12207","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=55784&avatarType=issuetype","name":"Vulnerability","subtask":false,"avatarId":55784},{"self":"https://example.com/rest/api/2/issuetype/12300","id":"12300","description":"CASE-461","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Epic
+        Story","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/12301","id":"12301","description":"CASE-461","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Epic
+        Bug","subtask":false,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
         new feature of the product, which has yet to be developed.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"New
         Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10200","id":"10200","description":"An
         improvement or enhancement to an existing feature or task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Improvement","subtask":false,"avatarId":13270}]'
@@ -209,9 +494,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:05 GMT
+      - Fri, 28 Jun 2024 12:01:50 GMT
       Expires:
-      - Mon, 17 Jun 2024 12:45:05 GMT
+      - Fri, 28 Jun 2024 12:01:50 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -220,35 +505,35 @@ interactions:
       - User-Agent
       - Accept-Encoding
       X-RateLimit-Limit:
-      - '-1'
+      - '5'
       X-RateLimit-Remaining:
-      - '9223372036854775807'
+      - '3'
       content-length:
-      - '26200'
+      - '25109'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-0
+      - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 765x384882x1
+      - 721x215565x1
       x-asessionid:
-      - 1mnb1xa
+      - 1uscv4a
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
       x-ratelimit-fillrate:
-      - '-1'
+      - '5'
       x-ratelimit-interval-seconds:
       - '1'
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.7df06e68.1718628304.f9f4ac7
+      - 0.4c24c317.1719576110.8a4685ba
       x-rh-edge-request-id:
-      - f9f4ac7
+      - 8a4685ba
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -326,9 +611,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:05 GMT
+      - Fri, 28 Jun 2024 12:01:51 GMT
       Expires:
-      - Mon, 17 Jun 2024 12:45:05 GMT
+      - Fri, 28 Jun 2024 12:01:51 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -337,9 +622,9 @@ interactions:
       - User-Agent
       - Accept-Encoding
       X-RateLimit-Limit:
-      - '-1'
+      - '5'
       X-RateLimit-Remaining:
-      - '9223372036854775807'
+      - '3'
       content-length:
       - '4024'
       referrer-policy:
@@ -347,25 +632,25 @@ interactions:
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-0
+      - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 765x384884x2
+      - 721x215566x1
       x-asessionid:
-      - 8zmtxk
+      - ldg06m
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
       x-ratelimit-fillrate:
-      - '-1'
+      - '5'
       x-ratelimit-interval-seconds:
       - '1'
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.7df06e68.1718628305.f9f4b82
+      - 0.4c24c317.1719576110.8a468b59
       x-rh-edge-request-id:
-      - f9f4b82
+      - 8a468b59
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -381,7 +666,7 @@ interactions:
       encrypted by the V1 EncryptionClient using either the AES-CBC content cipher
       or the KMS key wrap algorithm are vulnerable. Users should migrate to the V1
       EncryptionClientV2 API, which will not create vulnerable files. Old files will
-      remain vulnerable until re-encrypted with the new client.", "labels": ["flawuuid:6b041a11-be2c-4b52-9a86-329e45225b8a",
+      remain vulnerable until re-encrypted with the new client.", "labels": ["flawuuid:38b49df1-f211-41b0-b100-7bcc283c0870",
       "impact:"], "priority": {"name": "Undefined"}}}'
     headers:
       Accept:
@@ -404,55 +689,58 @@ interactions:
     uri: https://example.com/rest/api/2/issue
   response:
     body:
-      string: '{"id": "15942553", "key": "OSIM-16313", "self": "https://example.com/rest/api/2/issue/15942553"}'
+      string: '{"id": "16090953", "key": "OSIM-503", "self": "https://example.com/rest/api/2/issue/16090953"}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
       Connection:
       - keep-alive
+      - Transfer-Encoding
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:06 GMT
+      - Fri, 28 Jun 2024 12:01:52 GMT
       Expires:
-      - Mon, 17 Jun 2024 12:45:06 GMT
+      - Fri, 28 Jun 2024 12:01:52 GMT
       Pragma:
       - no-cache
       Retry-After:
       - '0'
+      Transfer-Encoding:
+      - chunked
       Vary:
       - User-Agent
       - Accept-Encoding
       X-RateLimit-Limit:
-      - '-1'
+      - '5'
       X-RateLimit-Remaining:
-      - '9223372036854775807'
+      - '3'
       content-length:
-      - '103'
+      - '101'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-0
+      - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 765x384885x2
+      - 721x215567x1
       x-asessionid:
-      - xs48qk
+      - 1y7fg79
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
       x-ratelimit-fillrate:
-      - '-1'
+      - '5'
       x-ratelimit-interval-seconds:
       - '1'
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.7df06e68.1718628305.f9f4ce8
+      - 0.4c24c317.1719576111.8a468fd3
       x-rh-edge-request-id:
-      - f9f4ce8
+      - 8a468fd3
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -478,16 +766,16 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-16313
+    uri: https://example.com/rest/api/2/issue/OSIM-503
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "15942553", "self": "https://example.com/rest/api/2/issue/15942553",
-        "key": "OSIM-16313", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
+        "id": "16090953", "self": "https://example.com/rest/api/2/issue/16090953",
+        "key": "OSIM-503", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
         "id": "17", "description": "Created by Jira Software - do not edit or delete.
         Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12324544":
-        "0.0", "customfield_12318341": null, "timespent": null, "customfield_12320940":
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
+        null, "customfield_12324540": "0.0", "timespent": null, "customfield_12320940":
         null, "project": {"self": "https://example.com/rest/api/2/project/12337520",
         "id": "12337520", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
         "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
@@ -496,29 +784,29 @@ interactions:
         "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@ddeb741[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@50663a8d[overall=PullRequestOverallBean{stateCount=0,
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@55a632b9[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5c01e6d6[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@ebe48fd[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@6fedb9f5[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1dccc97[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@6372a5ce[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1ff7f0fd[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@1dd7c0e7[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7a880fbe[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@c2299f4[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2cf2f095[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@f81cd14[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@68e67054[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@3b020cc8[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1014e387[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@11602424[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4adf828c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@6190a353[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@562f7c3d[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@46fe23d8[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@70830269[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@14edad11[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
         "resolutiondate": null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
         null, "customfield_12316841": null, "customfield_12315950": null, "customfield_12310940":
         null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://example.com/rest/api/2/issue/OSIM-16313/watchers", "watchCount":
-        1, "isWatching": true}, "created": "2024-06-17T12:45:05.822+0000", "customfield_12321240":
+        "https://example.com/rest/api/2/issue/OSIM-503/watchers", "watchCount": 1,
+        "isWatching": true}, "created": "2024-06-28T12:01:51.121+0000", "customfield_12321240":
         null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/10300",
         "iconUrl": "https://example.com/images/icons/priorities/trivial.svg", "name":
-        "Undefined", "id": "10300"}, "labels": ["flawuuid:6b041a11-be2c-4b52-9a86-329e45225b8a",
+        "Undefined", "id": "10300"}, "labels": ["flawuuid:38b49df1-f211-41b0-b100-7bcc283c0870",
         "impact:"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
         "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
-        null, "timeestimate": null, "versions": [], "issuelinks": [], "customfield_12325240":
-        null, "assignee": null, "updated": "2024-06-17T12:45:05.822+0000", "customfield_12313942":
-        null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
+        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
+        null, "updated": "2024-06-28T12:01:51.121+0000", "customfield_12313942": null,
+        "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
         very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
         "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
@@ -535,35 +823,34 @@ interactions:
         "customfield_12316542": {"self": "https://example.com/rest/api/2/customFieldOption/14655",
         "value": "False", "id": "14655", "disabled": false}, "customfield_12317313":
         null, "customfield_12316543": {"self": "https://example.com/rest/api/2/customFieldOption/14657",
-        "value": "False", "id": "14657", "disabled": false}, "customfield_12310840":
-        "9223372036854775807", "customfield_12316544": "None", "customfield_12323640":
-        null, "summary": "CVE-2020-8911 Use of risky cryptographic algorithm in github.com/aws/aws-sdk-go",
-        "customfield_12323642": null, "creator": {"self": "https://example.com/rest/api/2/user?username=nobody%40redhat.com",
-        "name": "nobody@redhat.com", "key": "nobody", "emailAddress": "nobody+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=nobody&avatarId=29772",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=nobody&avatarId=29772",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=nobody&avatarId=29772",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=nobody&avatarId=29772"},
-        "displayName": "nobody", "active": true, "timeZone": "Europe/Prague"},
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12316544":
+        "None", "customfield_12310840": "9223372036854775807", "summary": "CVE-2020-8911
+        Use of risky cryptographic algorithm in github.com/aws/aws-sdk-go", "customfield_12323640":
+        null, "customfield_12323642": null, "creator": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
         "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "reporter": {"self": "https://example.com/rest/api/2/user?username=nobody%40redhat.com",
-        "name": "nobody@redhat.com", "key": "nobody", "emailAddress": "nobody+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=nobody&avatarId=29772",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=nobody&avatarId=29772",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=nobody&avatarId=29772",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=nobody&avatarId=29772"},
-        "displayName": "nobody", "active": true, "timeZone": "Europe/Prague"},
-        "customfield_12320850": null, "aggregateprogress": {"progress": 0, "total":
-        0}, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
-        null, "customfield_12323645": null, "environment": null, "customfield_12315542":
-        null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
-        "0.0", "customfield_12313240": null, "duedate": null, "customfield_12311140":
-        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
-        "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt": 0}, "votes":
-        {"self": "https://example.com/rest/api/2/issue/OSIM-16313/votes", "votes":
-        0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
+        "customfield_12320850": null, "reporter": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
+        "aggregateprogress": {"progress": 0, "total": 0}, "customfield_12323644":
+        null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
+        null, "environment": null, "customfield_12315542": null, "customfield_12315740":
+        null, "customfield_12313441": "", "customfield_12313440": "0.0", "customfield_12313240":
+        null, "duedate": null, "customfield_12311140": null, "customfield_12319742":
+        null, "progress": {"progress": 0, "total": 0}, "comment": {"comments": [],
+        "maxResults": 0, "total": 0, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-503/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
         0, "maxResults": 20, "total": 0, "worklogs": []}, "customfield_12310213":
-        null, "archivedby": null, "customfield_12311940": "1|zemjps:"}}'
+        null, "archivedby": null, "customfield_12311940": "2|i10z7j:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -572,9 +859,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:07 GMT
+      - Fri, 28 Jun 2024 12:01:52 GMT
       Expires:
-      - Mon, 17 Jun 2024 12:45:07 GMT
+      - Fri, 28 Jun 2024 12:01:52 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -583,35 +870,35 @@ interactions:
       - User-Agent
       - Accept-Encoding
       X-RateLimit-Limit:
-      - '-1'
+      - '5'
       X-RateLimit-Remaining:
-      - '9223372036854775807'
+      - '4'
       content-length:
-      - '9223'
+      - '9256'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-0
+      - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 765x384887x1
+      - 721x215568x1
       x-asessionid:
-      - 1tin3oy
+      - dmryff
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
       x-ratelimit-fillrate:
-      - '-1'
+      - '5'
       x-ratelimit-interval-seconds:
       - '1'
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.7df06e68.1718628306.f9f505e
+      - 0.4c24c317.1719576112.8a46ab47
       x-rh-edge-request-id:
-      - f9f505e
+      - 8a46ab47
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -636,7 +923,7 @@ interactions:
     uri: https://example.com/rest/version
   response:
     body:
-      string: '{"version": "5.0.4.rh97"}'
+      string: '{"version": "5.0.4.rh98"}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -651,7 +938,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:07 GMT
+      - Fri, 28 Jun 2024 12:01:53 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -661,9 +948,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628307.17c9ee51
+      - 0.4e24c317.1719576112.330c87e0
       x-rh-edge-request-id:
-      - 17c9ee51
+      - 330c87e0
     status:
       code: 200
       message: OK
@@ -684,8 +971,8 @@ interactions:
     uri: https://example.com/rest/user?ids=1
   response:
     body:
-      string: '{"users": [{"id": 1, "email": "aander07@packetmaster.com", "name":
-        "aander07@packetmaster.com", "can_login": true, "real_name": "Need Real Name"}]}'
+      string: '{"users": [{"name": "aander07@packetmaster.com", "real_name": "Need
+        Real Name", "can_login": true, "id": 1, "email": "aander07@packetmaster.com"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -700,7 +987,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:07 GMT
+      - Fri, 28 Jun 2024 12:01:54 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -710,9 +997,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628307.17c9ef1f
+      - 0.4e24c317.1719576113.330c90e6
       x-rh-edge-request-id:
-      - 17c9ef1f
+      - 330c90e6
     status:
       code: 200
       message: OK
@@ -728,7 +1015,7 @@ interactions:
       API, which will not create vulnerable files. Old files will remain vulnerable
       until re-encrypted with the new client.", "comment_is_private": false, "alias":
       ["CVE-2020-8911"], "keywords": ["Security"], "flags": [], "groups": ["redhat"],
-      "cc": [], "cf_srtnotes": "{\"reported\": \"2024-06-17T12:45:04Z\", \"external_ids\":
+      "cc": [], "cf_srtnotes": "{\"reported\": \"2024-06-28T12:01:50Z\", \"external_ids\":
       [\"GO-2022-0646/CVE-2020-8911\"], \"references\": [{\"type\": \"source\", \"url\":
       \"https://osv.dev/vulnerability/GO-2022-0646\", \"description\": null}, {\"type\":
       \"external\", \"url\": \"https://aws.amazon.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
@@ -752,7 +1039,7 @@ interactions:
     uri: https://example.com/rest/bug
   response:
     body:
-      string: '{"id": 2293432}'
+      string: '{"id": 2294457}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -767,7 +1054,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:09 GMT
+      - Fri, 28 Jun 2024 12:01:55 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -777,9 +1064,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628308.17c9f0ac
+      - 0.4e24c317.1719576114.330c9a7f
       x-rh-edge-request-id:
-      - 17c9f0ac
+      - 330c9a7f
     status:
       code: 200
       message: OK
@@ -800,7 +1087,7 @@ interactions:
     uri: https://example.com/rest/version
   response:
     body:
-      string: '{"version": "5.0.4.rh97"}'
+      string: '{"version": "5.0.4.rh98"}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -815,7 +1102,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:10 GMT
+      - Fri, 28 Jun 2024 12:01:56 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -825,9 +1112,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.7df06e68.1718628309.f9f58cc
+      - 0.4e24c317.1719576115.330cb0ac
       x-rh-edge-request-id:
-      - f9f58cc
+      - 330cb0ac
     status:
       code: 200
       message: OK
@@ -848,8 +1135,8 @@ interactions:
     uri: https://example.com/rest/user?ids=1
   response:
     body:
-      string: '{"users": [{"real_name": "Need Real Name", "can_login": true, "id":
-        1, "email": "aander07@packetmaster.com", "name": "aander07@packetmaster.com"}]}'
+      string: '{"users": [{"can_login": true, "email": "aander07@packetmaster.com",
+        "id": 1, "name": "aander07@packetmaster.com", "real_name": "Need Real Name"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -864,7 +1151,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:10 GMT
+      - Fri, 28 Jun 2024 12:01:56 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -874,9 +1161,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.7df06e68.1718628310.f9f599d
+      - 0.4e24c317.1719576116.330cb692
       x-rh-edge-request-id:
-      - f9f599d
+      - 330cb692
     status:
       code: 200
       message: OK
@@ -894,148 +1181,54 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug/2293432?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
+    uri: https://example.com/rest/bug/2294457?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
   response:
     body:
-      string: '{"bugs": [{"dupe_of": null, "is_confirmed": true, "comments": [{"id":
-        18020059, "count": 0, "is_private": false, "tags": [], "creator_id": 425662,
-        "attachment_id": null, "text": "The Go AWS S3 Crypto SDK contains vulnerabilities
-        that can permit an attacker with write access to a bucket to decrypt files
-        in that bucket.\n\nFiles encrypted by the V1 EncryptionClient using either
-        the AES-CBC content cipher or the KMS key wrap algorithm are vulnerable. Users
-        should migrate to the V1 EncryptionClientV2 API, which will not create vulnerable
-        files. Old files will remain vulnerable until re-encrypted with the new client.",
-        "private_groups": [], "time": "2024-06-17T12:45:08Z", "bug_id": 2293432, "creation_time":
-        "2024-06-17T12:45:08Z", "creator": "nobody@redhat.com"}], "priority": "unspecified",
-        "resolution": "", "cf_doc_type": "If docs needed, set a value", "cf_internal_whiteboard":
-        "", "depends_on": [], "id": 2293432, "component": ["vulnerability-draft"],
-        "whiteboard": "", "blocks": [], "deadline": null, "url": "", "status": "NEW",
-        "groups": ["redhat"], "external_bugs": [], "version": ["unspecified"], "creator":
-        "nobody@redhat.com", "cf_last_closed": null, "is_open": true, "cf_pm_score":
-        "0", "cf_qe_conditional_nak": [], "creator_detail": {"id": 425662, "partner":
-        false, "name": "nobody@redhat.com", "email": "nobody@redhat.com", "real_name":
-        "nobody", "insider": true, "active": true}, "sub_components": {},
-        "assigned_to_detail": {"active": true, "real_name": "Product Security DevOps
-        Team", "insider": true, "id": 377884, "name": "prodsec-dev@redhat.com", "partner":
-        false, "email": "prodsec-dev@redhat.com"}, "data_category": "Red Hat", "cf_build_id":
-        "", "cf_cust_facing": "---",
-        "cc": [], "flags": [], "op_sys": "Linux", "alias": ["CVE-2020-8911"], "cf_environment":
-        "", "cf_major_incident": null, "last_change_time": "2024-06-17T12:45:08Z",
-        "target_release": ["---"], "cf_conditional_nak": [], "target_milestone": "---",
-        "cf_srtnotes": "{\"reported\": \"2024-06-17T12:45:04Z\", \"external_ids\":
-        [\"GO-2022-0646/CVE-2020-8911\"], \"references\": [{\"type\": \"source\",
-        \"url\": \"https://example.com/vulnerability/GO-2022-0646\", \"description\":
-        null}, {\"type\": \"external\", \"url\": \"https://example.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
-        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/pull/3403\",
-        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/commit/ae9b9fd92af132cfd8d879809d8611825ba135f4\",
-        \"description\": null}], \"source\": \"osv\"}", "creation_time": "2024-06-17T12:45:08Z",
-        "cf_embargoed": null, "description": "The Go AWS S3 Crypto SDK contains vulnerabilities
-        that can permit an attacker with write access to a bucket to decrypt files
-        in that bucket.\n\nFiles encrypted by the V1 EncryptionClient using either
-        the AES-CBC content cipher or the KMS key wrap algorithm are vulnerable. Users
-        should migrate to the V1 EncryptionClientV2 API, which will not create vulnerable
-        files. Old files will remain vulnerable until re-encrypted with the new client.",
-        "tags": [], "remaining_time": 0, "is_creator_accessible": true, "cc_detail":
-        [], "platform": "All", "actual_time": 0, "is_cc_accessible": true, "cf_qa_whiteboard":
-        "", "cf_pgm_internal": "", "product": "Security Response", "cf_clone_of":
-        null, "qa_contact": "", "assigned_to": "prodsec-dev@redhat.com", "severity":
-        "unspecified", "summary": "CVE-2020-8911 Use of risky cryptographic algorithm
-        in github.com/aws/aws-sdk-go", "cf_release_notes": "", "classification": "Other",
-        "keywords": ["Security"], "cf_devel_whiteboard": "", "estimated_time": 0,
-        "docs_contact": "", "cf_fixed_in": ""}], "faults": []}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Mon, 17 Jun 2024 12:45:11 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      Vary:
-      - Accept-Encoding
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      content-length:
-      - '3630'
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.7df06e68.1718628310.f9f5a8f
-      x-rh-edge-request-id:
-      - f9f5a8f
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://example.com/rest/bug/2293432?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
-  response:
-    body:
-      string: '{"bugs": [{"data_category": "Red Hat", "classification": "Other", "is_creator_accessible":
-        true, "cf_srtnotes": "{\"reported\": \"2024-06-17T12:45:04Z\", \"external_ids\":
-        [\"GO-2022-0646/CVE-2020-8911\"], \"references\": [{\"type\": \"source\",
-        \"url\": \"https://example.com/vulnerability/GO-2022-0646\", \"description\":
-        null}, {\"type\": \"external\", \"url\": \"https://example.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
-        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/pull/3403\",
-        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/commit/ae9b9fd92af132cfd8d879809d8611825ba135f4\",
-        \"description\": null}], \"source\": \"osv\"}", "qa_contact": "", "description":
+      string: '{"faults": [], "bugs": [{"component": ["vulnerability-draft"], "cf_doc_type":
+        "If docs needed, set a value", "severity": "unspecified", "resolution": "",
+        "cf_pm_score": "0", "cf_clone_of": null, "cf_qe_conditional_nak": [], "blocks":
+        [], "alias": ["CVE-2020-8911"], "description": "The Go AWS S3 Crypto SDK contains
+        vulnerabilities that can permit an attacker with write access to a bucket
+        to decrypt files in that bucket.\n\nFiles encrypted by the V1 EncryptionClient
+        using either the AES-CBC content cipher or the KMS key wrap algorithm are
+        vulnerable. Users should migrate to the V1 EncryptionClientV2 API, which will
+        not create vulnerable files. Old files will remain vulnerable until re-encrypted
+        with the new client.", "remaining_time": 0, "is_cc_accessible": true, "actual_time":
+        0, "cf_embargoed": null, "creator": "conrado@redhat.com", "sub_components":
+        {}, "tags": [], "summary": "CVE-2020-8911 Use of risky cryptographic algorithm
+        in github.com/aws/aws-sdk-go", "creator_detail": {"partner": false, "id":
+        482384, "insider": true, "email": "conrado@redhat.com", "real_name": "Conrado
+        Costa", "name": "conrado@redhat.com", "active": true}, "cf_internal_whiteboard":
+        "", "is_creator_accessible": true, "cf_last_closed": null, "url": "", "estimated_time":
+        0, "cf_pgm_internal": "", "cf_conditional_nak": [], "classification": "Other",
+        "groups": ["redhat"], "deadline": null, "cf_major_incident": null, "status":
+        "NEW", "cf_fixed_in": "", "dupe_of": null, "flags": [], "cc_detail": [], "qa_contact":
+        "", "cf_environment": "", "assigned_to_detail": {"insider": true, "id": 377884,
+        "email": "prodsec-dev@redhat.com", "partner": false, "active": true, "real_name":
+        "Product Security DevOps Team", "name": "prodsec-dev@redhat.com"}, "cf_release_notes":
+        "", "product": "Security Response", "docs_contact": "", "priority": "unspecified",
+        "target_release": ["---"], "cf_qa_whiteboard": "", "is_open": true, "is_confirmed":
+        true, "assigned_to": "prodsec-dev@redhat.com", "version": ["unspecified"],
+        "whiteboard": "", "comments": [{"id": 18021218, "creation_time": "2024-06-28T12:01:55Z",
+        "attachment_id": null, "count": 0, "bug_id": 2294457, "is_private": false,
+        "creator_id": 482384, "creator": "conrado@redhat.com", "tags": [], "text":
         "The Go AWS S3 Crypto SDK contains vulnerabilities that can permit an attacker
         with write access to a bucket to decrypt files in that bucket.\n\nFiles encrypted
         by the V1 EncryptionClient using either the AES-CBC content cipher or the
         KMS key wrap algorithm are vulnerable. Users should migrate to the V1 EncryptionClientV2
         API, which will not create vulnerable files. Old files will remain vulnerable
-        until re-encrypted with the new client.", "component": ["vulnerability-draft"],
-        "cf_doc_type": "If docs needed, set a value", "sub_components": {}, "cf_clone_of":
-        null, "target_release": ["---"], "assigned_to_detail": {"name": "prodsec-dev@redhat.com",
-        "email": "prodsec-dev@redhat.com", "id": 377884, "active": true, "real_name":
-        "Product Security DevOps Team", "insider": true, "partner": false}, "assigned_to":
-        "prodsec-dev@redhat.com", "platform": "All", "cf_devel_whiteboard": "", "cf_major_incident":
-        null, "is_cc_accessible": true, "cf_pgm_internal": "", "comments": [{"creator_id":
-        425662, "time": "2024-06-17T12:45:08Z", "creator": "nobody@redhat.com",
-        "text": "The Go AWS S3 Crypto SDK contains vulnerabilities that can permit
-        an attacker with write access to a bucket to decrypt files in that bucket.\n\nFiles
-        encrypted by the V1 EncryptionClient using either the AES-CBC content cipher
-        or the KMS key wrap algorithm are vulnerable. Users should migrate to the
-        V1 EncryptionClientV2 API, which will not create vulnerable files. Old files
-        will remain vulnerable until re-encrypted with the new client.", "tags": [],
-        "id": 18020059, "private_groups": [], "count": 0, "bug_id": 2293432, "is_private":
-        false, "creation_time": "2024-06-17T12:45:08Z", "attachment_id": null}], "depends_on":
-        [], "cf_conditional_nak": [], "keywords": ["Security"], "cf_qa_whiteboard":
-        "", "cf_embargoed": null, "docs_contact": "", "id": 2293432, "priority": "unspecified",
-        "url": "", "alias": ["CVE-2020-8911"], "cf_cust_facing": "---", "cc": [],
-        "severity": "unspecified", "cf_internal_whiteboard": "", "version": ["unspecified"],
-        "cf_environment": "", "flags": [], "cc_detail": [], "cf_build_id": "", "cf_pm_score": "0",
-        "actual_time": 0, "blocks": [], "is_confirmed": true, "resolution": "", "dupe_of":
-        null, "last_change_time": "2024-06-17T12:45:08Z", "cf_last_closed": null,
-        "summary": "CVE-2020-8911 Use of risky cryptographic algorithm in github.com/aws/aws-sdk-go",
-        "creator_detail": {"partner": false, "active": true, "real_name": "nobody",
-        "insider": true, "email": "nobody@redhat.com", "id": 425662, "name": "nobody@redhat.com"},
-        "cf_qe_conditional_nak": [], "op_sys": "Linux", "creation_time": "2024-06-17T12:45:08Z",
-        "external_bugs": [], "product": "Security Response", "estimated_time": 0,
-        "tags": [], "deadline": null, "groups": ["redhat"], "creator": "nobody@redhat.com",
-        "remaining_time": 0, "cf_release_notes": "", "target_milestone": "---", "whiteboard":
-        "", "status": "NEW", "cf_fixed_in": "", "is_open": true}], "faults": []}'
+        until re-encrypted with the new client.", "time": "2024-06-28T12:01:55Z",
+        "private_groups": []}], "creation_time": "2024-06-28T12:01:55Z", "id": 2294457,
+        "cf_devel_whiteboard": "", "depends_on": [], "op_sys": "Linux", "cc": [],
+        "last_change_time": "2024-06-28T12:01:55Z", "cf_cust_facing": "---", "cf_srtnotes":
+        "{\"reported\": \"2024-06-28T12:01:50Z\", \"external_ids\": [\"GO-2022-0646/CVE-2020-8911\"],
+        \"references\": [{\"type\": \"source\", \"url\": \"https://example.com/vulnerability/GO-2022-0646\",
+        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
+        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/pull/3403\",
+        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/commit/ae9b9fd92af132cfd8d879809d8611825ba135f4\",
+        \"description\": null}], \"source\": \"osv\"}", "keywords": ["Security"],
+        "data_category": "Red Hat", "cf_build_id": "", "external_bugs": [], "target_milestone":
+        "---", "platform": "All"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -1048,7 +1241,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:11 GMT
+      - Fri, 28 Jun 2024 12:01:58 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       Vary:
@@ -1058,13 +1251,13 @@ interactions:
       X-xss-protection:
       - 1; mode=block
       content-length:
-      - '3630'
+      - '3624'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.7df06e68.1718628311.f9f5c4e
+      - 0.4e24c317.1719576117.330cbdde
       x-rh-edge-request-id:
-      - f9f5c4e
+      - 330cbdde
     status:
       code: 200
       message: OK
@@ -1082,19 +1275,113 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug/2293432/comment
+    uri: https://example.com/rest/bug/2294457?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
   response:
     body:
-      string: '{"bugs": {"2293432": {"comments": [{"text": "The Go AWS S3 Crypto SDK
-        contains vulnerabilities that can permit an attacker with write access to
-        a bucket to decrypt files in that bucket.\n\nFiles encrypted by the V1 EncryptionClient
+      string: '{"bugs": [{"cf_last_closed": null, "cf_major_incident": null, "status":
+        "NEW", "classification": "Other", "groups": ["redhat"], "deadline": null,
+        "cf_conditional_nak": [], "cf_pgm_internal": "", "estimated_time": 0, "url":
+        "", "alias": ["CVE-2020-8911"], "description": "The Go AWS S3 Crypto SDK contains
+        vulnerabilities that can permit an attacker with write access to a bucket
+        to decrypt files in that bucket.\n\nFiles encrypted by the V1 EncryptionClient
         using either the AES-CBC content cipher or the KMS key wrap algorithm are
         vulnerable. Users should migrate to the V1 EncryptionClientV2 API, which will
         not create vulnerable files. Old files will remain vulnerable until re-encrypted
-        with the new client.", "private_groups": [], "time": "2024-06-17T12:45:08Z",
-        "creator": "nobody@redhat.com", "creation_time": "2024-06-17T12:45:08Z",
-        "bug_id": 2293432, "tags": [], "creator_id": 425662, "is_private": false,
-        "count": 0, "id": 18020059, "attachment_id": null}]}}, "comments": {}}'
+        with the new client.", "cf_clone_of": null, "blocks": [], "cf_qe_conditional_nak":
+        [], "cf_pm_score": "0", "component": ["vulnerability-draft"], "cf_doc_type":
+        "If docs needed, set a value", "resolution": "", "severity": "unspecified",
+        "is_creator_accessible": true, "tags": [], "creator": "conrado@redhat.com",
+        "sub_components": {}, "summary": "CVE-2020-8911 Use of risky cryptographic
+        algorithm in github.com/aws/aws-sdk-go", "creator_detail": {"active": true,
+        "real_name": "Conrado Costa", "name": "conrado@redhat.com", "insider": true,
+        "id": 482384, "email": "conrado@redhat.com", "partner": false}, "cf_internal_whiteboard":
+        "", "is_cc_accessible": true, "actual_time": 0, "remaining_time": 0, "cf_embargoed":
+        null, "cf_cust_facing": "---", "cf_srtnotes": "{\"reported\": \"2024-06-28T12:01:50Z\",
+        \"external_ids\": [\"GO-2022-0646/CVE-2020-8911\"], \"references\": [{\"type\":
+        \"source\", \"url\": \"https://example.com/vulnerability/GO-2022-0646\", \"description\":
+        null}, {\"type\": \"external\", \"url\": \"https://example.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
+        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/pull/3403\",
+        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/commit/ae9b9fd92af132cfd8d879809d8611825ba135f4\",
+        \"description\": null}], \"source\": \"osv\"}", "cc": [], "op_sys": "Linux",
+        "last_change_time": "2024-06-28T12:01:55Z", "cf_devel_whiteboard": "", "depends_on":
+        [], "target_milestone": "---", "platform": "All", "external_bugs": [], "data_category":
+        "Red Hat", "cf_build_id": "", "keywords": ["Security"], "assigned_to_detail":
+        {"active": true, "name": "prodsec-dev@redhat.com", "real_name": "Product Security
+        DevOps Team", "email": "prodsec-dev@redhat.com", "insider": true, "id": 377884,
+        "partner": false}, "cf_release_notes": "", "product": "Security Response",
+        "qa_contact": "", "cf_environment": "", "dupe_of": null, "flags": [], "cc_detail":
+        [], "cf_fixed_in": "", "comments": [{"is_private": false, "creator_id": 482384,
+        "creator": "conrado@redhat.com", "tags": [], "text": "The Go AWS S3 Crypto
+        SDK contains vulnerabilities that can permit an attacker with write access
+        to a bucket to decrypt files in that bucket.\n\nFiles encrypted by the V1
+        EncryptionClient using either the AES-CBC content cipher or the KMS key wrap
+        algorithm are vulnerable. Users should migrate to the V1 EncryptionClientV2
+        API, which will not create vulnerable files. Old files will remain vulnerable
+        until re-encrypted with the new client.", "private_groups": [], "time": "2024-06-28T12:01:55Z",
+        "id": 18021218, "creation_time": "2024-06-28T12:01:55Z", "count": 0, "attachment_id":
+        null, "bug_id": 2294457}], "creation_time": "2024-06-28T12:01:55Z", "id":
+        2294457, "is_open": true, "is_confirmed": true, "assigned_to": "prodsec-dev@redhat.com",
+        "version": ["unspecified"], "whiteboard": "", "cf_qa_whiteboard": "", "docs_contact":
+        "", "priority": "unspecified", "target_release": ["---"]}], "faults": []}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 28 Jun 2024 12:01:58 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '3624'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.4e24c317.1719576118.330cc97b
+      x-rh-edge-request-id:
+      - 330cc97b
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/bug/2294457/comment
+  response:
+    body:
+      string: '{"bugs": {"2294457": {"comments": [{"id": 18021218, "creation_time":
+        "2024-06-28T12:01:55Z", "attachment_id": null, "count": 0, "bug_id": 2294457,
+        "creator_id": 482384, "is_private": false, "tags": [], "creator": "conrado@redhat.com",
+        "text": "The Go AWS S3 Crypto SDK contains vulnerabilities that can permit
+        an attacker with write access to a bucket to decrypt files in that bucket.\n\nFiles
+        encrypted by the V1 EncryptionClient using either the AES-CBC content cipher
+        or the KMS key wrap algorithm are vulnerable. Users should migrate to the
+        V1 EncryptionClientV2 API, which will not create vulnerable files. Old files
+        will remain vulnerable until re-encrypted with the new client.", "private_groups":
+        [], "time": "2024-06-28T12:01:55Z"}]}}, "comments": {}}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -1105,11 +1392,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '733'
+      - '732'
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:12 GMT
+      - Fri, 28 Jun 2024 12:01:59 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -1119,9 +1406,302 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.7df06e68.1718628311.f9f5eb9
+      - 0.4e24c317.1719576118.330cd1cd
       x-rh-edge-request-id:
-      - f9f5eb9
+      - 330cd1cd
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*.*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.32.0
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://example.com/rest/api/2/mypermissions?projectKey=OSIM
+  response:
+    body:
+      string: '{"permissions": {"ARCHIVE_ISSUES": {"id": "-1", "key": "ARCHIVE_ISSUES",
+        "name": "Archive Issues", "type": "PROJECT", "description": "Ability to archive
+        issues for a specific project.", "havePermission": true}, "VIEW_WORKFLOW_READONLY":
+        {"id": "45", "key": "VIEW_WORKFLOW_READONLY", "name": "View Read-Only Workflow",
+        "type": "PROJECT", "description": "admin.permissions.descriptions.VIEW_WORKFLOW_READONLY",
+        "havePermission": true, "deprecatedKey": true}, "CREATE_ISSUES": {"id": "11",
+        "key": "CREATE_ISSUES", "name": "Create Issues", "type": "PROJECT", "description":
+        "Ability to create issues.", "havePermission": true}, "VIEW_DEV_TOOLS": {"id":
+        "29", "key": "VIEW_DEV_TOOLS", "name": "View Development Tools", "type": "PROJECT",
+        "description": "Allows users in a software project to view development-related
+        information on the issue, such as commits, reviews and build information.",
+        "havePermission": true}, "BULK_CHANGE": {"id": "33", "key": "BULK_CHANGE",
+        "name": "Bulk Change", "type": "GLOBAL", "description": "Ability to modify
+        a collection of issues at once. For example, resolve multiple issues in one
+        step.", "havePermission": true}, "CREATE_ATTACHMENT": {"id": "19", "key":
+        "CREATE_ATTACHMENT", "name": "Create Attachments", "type": "PROJECT", "description":
+        "Users with this permission may create attachments.", "havePermission": true,
+        "deprecatedKey": true}, "DELETE_OWN_COMMENTS": {"id": "37", "key": "DELETE_OWN_COMMENTS",
+        "name": "Delete Own Comments", "type": "PROJECT", "description": "Ability
+        to delete own comments made on issues.", "havePermission": true}, "WORK_ON_ISSUES":
+        {"id": "20", "key": "WORK_ON_ISSUES", "name": "Work On Issues", "type": "PROJECT",
+        "description": "Ability to log work done against an issue. Only useful if
+        Time Tracking is turned on.", "havePermission": true}, "PROJECT_ADMIN": {"id":
+        "23", "key": "PROJECT_ADMIN", "name": "Administer Projects", "type": "PROJECT",
+        "description": "Ability to administer a project in Jira.", "havePermission":
+        true, "deprecatedKey": true}, "COMMENT_EDIT_ALL": {"id": "34", "key": "COMMENT_EDIT_ALL",
+        "name": "Edit All Comments", "type": "PROJECT", "description": "Ability to
+        edit all comments made on issues.", "havePermission": true, "deprecatedKey":
+        true}, "ATTACHMENT_DELETE_OWN": {"id": "39", "key": "ATTACHMENT_DELETE_OWN",
+        "name": "Delete Own Attachments", "type": "PROJECT", "description": "Users
+        with this permission may delete own attachments.", "havePermission": true,
+        "deprecatedKey": true}, "WORKLOG_DELETE_OWN": {"id": "42", "key": "WORKLOG_DELETE_OWN",
+        "name": "Delete Own Worklogs", "type": "PROJECT", "description": "Ability
+        to delete own worklogs made on issues.", "havePermission": true, "deprecatedKey":
+        true}, "CLOSE_ISSUE": {"id": "18", "key": "CLOSE_ISSUE", "name": "Close Issues",
+        "type": "PROJECT", "description": "Ability to close issues. Often useful where
+        your developers resolve issues, and a QA department closes them.", "havePermission":
+        true, "deprecatedKey": true}, "MANAGE_WATCHER_LIST": {"id": "32", "key": "MANAGE_WATCHER_LIST",
+        "name": "Manage Watchers", "type": "PROJECT", "description": "Ability to manage
+        the watchers of an issue.", "havePermission": true, "deprecatedKey": true},
+        "VIEW_VOTERS_AND_WATCHERS": {"id": "31", "key": "VIEW_VOTERS_AND_WATCHERS",
+        "name": "View Voters and Watchers", "type": "PROJECT", "description": "Ability
+        to view the voters and watchers of an issue.", "havePermission": true}, "ADD_COMMENTS":
+        {"id": "15", "key": "ADD_COMMENTS", "name": "Add Comments", "type": "PROJECT",
+        "description": "Ability to comment on issues.", "havePermission": true}, "COMMENT_DELETE_ALL":
+        {"id": "36", "key": "COMMENT_DELETE_ALL", "name": "Delete All Comments", "type":
+        "PROJECT", "description": "Ability to delete all comments made on issues.",
+        "havePermission": true, "deprecatedKey": true}, "CREATE_ISSUE": {"id": "11",
+        "key": "CREATE_ISSUE", "name": "Create Issues", "type": "PROJECT", "description":
+        "Ability to create issues.", "havePermission": true, "deprecatedKey": true},
+        "DELETE_OWN_ATTACHMENTS": {"id": "39", "key": "DELETE_OWN_ATTACHMENTS", "name":
+        "Delete Own Attachments", "type": "PROJECT", "description": "Users with this
+        permission may delete own attachments.", "havePermission": true}, "DELETE_ALL_ATTACHMENTS":
+        {"id": "38", "key": "DELETE_ALL_ATTACHMENTS", "name": "Delete All Attachments",
+        "type": "PROJECT", "description": "Users with this permission may delete all
+        attachments.", "havePermission": true}, "ASSIGN_ISSUE": {"id": "13", "key":
+        "ASSIGN_ISSUE", "name": "Assign Issues", "type": "PROJECT", "description":
+        "Ability to assign issues to other people.", "havePermission": true, "deprecatedKey":
+        true}, "LINK_ISSUE": {"id": "21", "key": "LINK_ISSUE", "name": "Link Issues",
+        "type": "PROJECT", "description": "Ability to link issues together and create
+        linked issues. Only useful if issue linking is turned on.", "havePermission":
+        true, "deprecatedKey": true}, "EDIT_OWN_WORKLOGS": {"id": "40", "key": "EDIT_OWN_WORKLOGS",
+        "name": "Edit Own Worklogs", "type": "PROJECT", "description": "Ability to
+        edit own worklogs made on issues.", "havePermission": true}, "CREATE_ATTACHMENTS":
+        {"id": "19", "key": "CREATE_ATTACHMENTS", "name": "Create Attachments", "type":
+        "PROJECT", "description": "Users with this permission may create attachments.",
+        "havePermission": true}, "EDIT_ALL_WORKLOGS": {"id": "41", "key": "EDIT_ALL_WORKLOGS",
+        "name": "Edit All Worklogs", "type": "PROJECT", "description": "Ability to
+        edit all worklogs made on issues.", "havePermission": true}, "SCHEDULE_ISSUE":
+        {"id": "28", "key": "SCHEDULE_ISSUE", "name": "Schedule Issues", "type": "PROJECT",
+        "description": "Ability to view or edit an issue''s due date.", "havePermission":
+        true, "deprecatedKey": true}, "CLOSE_ISSUES": {"id": "18", "key": "CLOSE_ISSUES",
+        "name": "Close Issues", "type": "PROJECT", "description": "Ability to close
+        issues. Often useful where your developers resolve issues, and a QA department
+        closes them.", "havePermission": true}, "SET_ISSUE_SECURITY": {"id": "26",
+        "key": "SET_ISSUE_SECURITY", "name": "Set Issue Security", "type": "PROJECT",
+        "description": "Ability to set the level of security on an issue so that only
+        people in that security level can see the issue.", "havePermission": true},
+        "SCHEDULE_ISSUES": {"id": "28", "key": "SCHEDULE_ISSUES", "name": "Schedule
+        Issues", "type": "PROJECT", "description": "Ability to view or edit an issue''s
+        due date.", "havePermission": true}, "WORKLOG_DELETE_ALL": {"id": "43", "key":
+        "WORKLOG_DELETE_ALL", "name": "Delete All Worklogs", "type": "PROJECT", "description":
+        "Ability to delete all worklogs made on issues.", "havePermission": true,
+        "deprecatedKey": true}, "COMMENT_DELETE_OWN": {"id": "37", "key": "COMMENT_DELETE_OWN",
+        "name": "Delete Own Comments", "type": "PROJECT", "description": "Ability
+        to delete own comments made on issues.", "havePermission": true, "deprecatedKey":
+        true}, "ADMINISTER_PROJECTS": {"id": "23", "key": "ADMINISTER_PROJECTS", "name":
+        "Administer Projects", "type": "PROJECT", "description": "Ability to administer
+        a project in Jira.", "havePermission": true}, "DELETE_ALL_COMMENTS": {"id":
+        "36", "key": "DELETE_ALL_COMMENTS", "name": "Delete All Comments", "type":
+        "PROJECT", "description": "Ability to delete all comments made on issues.",
+        "havePermission": true}, "RESOLVE_ISSUES": {"id": "14", "key": "RESOLVE_ISSUES",
+        "name": "Resolve Issues", "type": "PROJECT", "description": "Ability to resolve
+        and reopen issues. This includes the ability to set a fix version.", "havePermission":
+        true}, "VIEW_READONLY_WORKFLOW": {"id": "45", "key": "VIEW_READONLY_WORKFLOW",
+        "name": "View Read-Only Workflow", "type": "PROJECT", "description": "Users
+        with this permission may view a read-only version of a workflow.", "havePermission":
+        true}, "ADMINISTER": {"id": "0", "key": "ADMINISTER", "name": "Jira Administrators",
+        "type": "GLOBAL", "description": "Ability to perform most administration functions
+        (excluding Import & Export, SMTP Configuration, etc.).", "havePermission":
+        false}, "GLOBAL_BROWSE_ARCHIVE": {"id": "-1", "key": "GLOBAL_BROWSE_ARCHIVE",
+        "name": "Browse Archive", "type": "GLOBAL", "description": "Ability to browse
+        all archived issues.", "havePermission": false}, "MOVE_ISSUES": {"id": "25",
+        "key": "MOVE_ISSUES", "name": "Move Issues", "type": "PROJECT", "description":
+        "Ability to move issues between projects or between workflows of the same
+        project (if applicable). Note the user can only move issues to a project he
+        or she has the create permission for.", "havePermission": true}, "TRANSITION_ISSUES":
+        {"id": "46", "key": "TRANSITION_ISSUES", "name": "Transition Issues", "type":
+        "PROJECT", "description": "Ability to transition issues.", "havePermission":
+        true}, "EDIT_SPRINT_NAME_AND_GOAL_PERMISSION": {"id": "-1", "key": "EDIT_SPRINT_NAME_AND_GOAL_PERMISSION",
+        "name": "Edit Sprints", "type": "PROJECT", "description": "Ability to edit
+        sprint name and goal.", "havePermission": false}, "SYSTEM_ADMIN": {"id": "44",
+        "key": "SYSTEM_ADMIN", "name": "Jira System Administrators", "type": "GLOBAL",
+        "description": "Ability to perform all administration functions. There must
+        be at least one group with this permission.", "havePermission": false}, "DELETE_OWN_WORKLOGS":
+        {"id": "42", "key": "DELETE_OWN_WORKLOGS", "name": "Delete Own Worklogs",
+        "type": "PROJECT", "description": "Ability to delete own worklogs made on
+        issues.", "havePermission": true}, "BROWSE": {"id": "10", "key": "BROWSE",
+        "name": "Browse Projects", "type": "PROJECT", "description": "Ability to browse
+        projects and the issues within them.", "havePermission": true, "deprecatedKey":
+        true}, "EDIT_ISSUE": {"id": "12", "key": "EDIT_ISSUE", "name": "Edit Issues",
+        "type": "PROJECT", "description": "Ability to edit issues.", "havePermission":
+        true, "deprecatedKey": true}, "MODIFY_REPORTER": {"id": "30", "key": "MODIFY_REPORTER",
+        "name": "Modify Reporter", "type": "PROJECT", "description": "Ability to modify
+        the reporter when creating or editing an issue.", "havePermission": true},
+        "EDIT_ISSUES": {"id": "12", "key": "EDIT_ISSUES", "name": "Edit Issues", "type":
+        "PROJECT", "description": "Ability to edit issues.", "havePermission": true},
+        "MANAGE_WATCHERS": {"id": "32", "key": "MANAGE_WATCHERS", "name": "Manage
+        Watchers", "type": "PROJECT", "description": "Ability to manage the watchers
+        of an issue.", "havePermission": true}, "EDIT_OWN_COMMENTS": {"id": "35",
+        "key": "EDIT_OWN_COMMENTS", "name": "Edit Own Comments", "type": "PROJECT",
+        "description": "Ability to edit own comments made on issues.", "havePermission":
+        true}, "ASSIGN_ISSUES": {"id": "13", "key": "ASSIGN_ISSUES", "name": "Assign
+        Issues", "type": "PROJECT", "description": "Ability to assign issues to other
+        people.", "havePermission": true}, "BROWSE_PROJECTS": {"id": "10", "key":
+        "BROWSE_PROJECTS", "name": "Browse Projects", "type": "PROJECT", "description":
+        "Ability to browse projects and the issues within them.", "havePermission":
+        true}, "gtmhub-view-OKRs-permissions": {"id": "-1", "key": "gtmhub-view-OKRs-permissions",
+        "name": "View OKRs", "type": "GLOBAL", "description": "Ability to view Quantive
+        Results OKRs (Objective and key results) that are linked to a given issue",
+        "havePermission": false}, "RESTORE_ISSUES": {"id": "-1", "key": "RESTORE_ISSUES",
+        "name": "Restore Issues", "type": "PROJECT", "description": "Ability to restore
+        issues for a specific project.", "havePermission": true}, "BROWSE_ARCHIVE":
+        {"id": "-1", "key": "BROWSE_ARCHIVE", "name": "Browse Project Archive", "type":
+        "PROJECT", "description": "Ability to browse archived issues from a specific
+        project.", "havePermission": true}, "A4J_PERM_IMPERSONATE_ACTOR_GLOBAL": {"id":
+        "-1", "key": "A4J_PERM_IMPERSONATE_ACTOR_GLOBAL", "name": "Impersonate users
+        in A4J global scope", "type": "GLOBAL", "description": "Having the permission
+        allows to select other user as automation rule actor", "havePermission": true},
+        "VIEW_VERSION_CONTROL": {"id": "29", "key": "VIEW_VERSION_CONTROL", "name":
+        "View Development Tools", "type": "PROJECT", "description": "Allows users
+        to view development-related information on the view issue screen, like commits,
+        reviews and build information.", "havePermission": true, "deprecatedKey":
+        true}, "START_STOP_SPRINTS_PERMISSION": {"id": "-1", "key": "START_STOP_SPRINTS_PERMISSION",
+        "name": "Start/Complete Sprints", "type": "PROJECT", "description": "Ability
+        to start and complete sprints.", "havePermission": true}, "WORK_ISSUE": {"id":
+        "20", "key": "WORK_ISSUE", "name": "Work On Issues", "type": "PROJECT", "description":
+        "Ability to log work done against an issue. Only useful if Time Tracking is
+        turned on.", "havePermission": true, "deprecatedKey": true}, "COMMENT_ISSUE":
+        {"id": "15", "key": "COMMENT_ISSUE", "name": "Add Comments", "type": "PROJECT",
+        "description": "Ability to comment on issues.", "havePermission": true, "deprecatedKey":
+        true}, "WORKLOG_EDIT_ALL": {"id": "41", "key": "WORKLOG_EDIT_ALL", "name":
+        "Edit All Worklogs", "type": "PROJECT", "description": "Ability to edit all
+        worklogs made on issues.", "havePermission": true, "deprecatedKey": true},
+        "EDIT_ALL_COMMENTS": {"id": "34", "key": "EDIT_ALL_COMMENTS", "name": "Edit
+        All Comments", "type": "PROJECT", "description": "Ability to edit all comments
+        made on issues.", "havePermission": true}, "DELETE_ISSUE": {"id": "16", "key":
+        "DELETE_ISSUE", "name": "Delete Issues", "type": "PROJECT", "description":
+        "Ability to delete issues.", "havePermission": false, "deprecatedKey": true},
+        "MANAGE_SPRINTS_PERMISSION": {"id": "-1", "key": "MANAGE_SPRINTS_PERMISSION",
+        "name": "Manage Sprints", "type": "PROJECT", "description": "Ability to manage
+        sprints.", "havePermission": true}, "USER_PICKER": {"id": "27", "key": "USER_PICKER",
+        "name": "Browse Users", "type": "GLOBAL", "description": "Ability to select
+        a user or group from a popup window as well as the ability to use the ''share''
+        issues feature. Users with this permission will also be able to see names
+        of all users and groups in the system.", "havePermission": true}, "CREATE_SHARED_OBJECTS":
+        {"id": "22", "key": "CREATE_SHARED_OBJECTS", "name": "Create Shared Objects",
+        "type": "GLOBAL", "description": "Ability to share dashboards and filters
+        with other users, groups and roles.", "havePermission": true}, "ATTACHMENT_DELETE_ALL":
+        {"id": "38", "key": "ATTACHMENT_DELETE_ALL", "name": "Delete All Attachments",
+        "type": "PROJECT", "description": "Users with this permission may delete all
+        attachments.", "havePermission": true, "deprecatedKey": true}, "DELETE_ISSUES":
+        {"id": "16", "key": "DELETE_ISSUES", "name": "Delete Issues", "type": "PROJECT",
+        "description": "Ability to delete issues.", "havePermission": false}, "MANAGE_GROUP_FILTER_SUBSCRIPTIONS":
+        {"id": "24", "key": "MANAGE_GROUP_FILTER_SUBSCRIPTIONS", "name": "Manage Group
+        Filter Subscriptions", "type": "GLOBAL", "description": "Ability to manage
+        (create and delete) group filter subscriptions.", "havePermission": true},
+        "RESOLVE_ISSUE": {"id": "14", "key": "RESOLVE_ISSUE", "name": "Resolve Issues",
+        "type": "PROJECT", "description": "Ability to resolve and reopen issues. This
+        includes the ability to set a fix version.", "havePermission": true, "deprecatedKey":
+        true}, "A4J_PERM_IMPERSONATE_ACTOR_PROJECT": {"id": "-1", "key": "A4J_PERM_IMPERSONATE_ACTOR_PROJECT",
+        "name": "Impersonate users in A4J project scope", "type": "PROJECT", "description":
+        "Having the permission allows to select other user as automation rule actor",
+        "havePermission": false}, "ASSIGNABLE_USER": {"id": "17", "key": "ASSIGNABLE_USER",
+        "name": "Assignable User", "type": "PROJECT", "description": "Users with this
+        permission may be assigned to issues.", "havePermission": true}, "TRANSITION_ISSUE":
+        {"id": "46", "key": "TRANSITION_ISSUE", "name": "Transition Issues", "type":
+        "PROJECT", "description": "Ability to transition issues.", "havePermission":
+        true, "deprecatedKey": true}, "COMMENT_EDIT_OWN": {"id": "35", "key": "COMMENT_EDIT_OWN",
+        "name": "Edit Own Comments", "type": "PROJECT", "description": "Ability to
+        edit own comments made on issues.", "havePermission": true, "deprecatedKey":
+        true}, "MOVE_ISSUE": {"id": "25", "key": "MOVE_ISSUE", "name": "Move Issues",
+        "type": "PROJECT", "description": "Ability to move issues between projects
+        or between workflows of the same project (if applicable). Note the user can
+        only move issues to a project he or she has the create permission for.", "havePermission":
+        true, "deprecatedKey": true}, "WORKLOG_EDIT_OWN": {"id": "40", "key": "WORKLOG_EDIT_OWN",
+        "name": "Edit Own Worklogs", "type": "PROJECT", "description": "Ability to
+        edit own worklogs made on issues.", "havePermission": true, "deprecatedKey":
+        true}, "DELETE_ALL_WORKLOGS": {"id": "43", "key": "DELETE_ALL_WORKLOGS", "name":
+        "Delete All Worklogs", "type": "PROJECT", "description": "Ability to delete
+        all worklogs made on issues.", "havePermission": true}, "LINK_ISSUES": {"id":
+        "21", "key": "LINK_ISSUES", "name": "Link Issues", "type": "PROJECT", "description":
+        "Ability to link issues together and create linked issues. Only useful if
+        issue linking is turned on.", "havePermission": true}, "gtmhub-view-OKRs-prj-permissions":
+        {"id": "-1", "key": "gtmhub-view-OKRs-prj-permissions", "name": "View OKRs",
+        "type": "PROJECT", "description": "Ability to view Quantive Results OKRs (Objective
+        and key results) that are linked to a given issue", "havePermission": false}}}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Fri, 28 Jun 2024 12:02:00 GMT
+      Expires:
+      - Fri, 28 Jun 2024 12:02:00 GMT
+      Pragma:
+      - no-cache
+      Retry-After:
+      - '0'
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-RateLimit-Limit:
+      - '5'
+      X-RateLimit-Remaining:
+      - '4'
+      content-length:
+      - '16299'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-dc-stg-mpp-0
+      x-arequestid:
+      - 722x591147x1
+      x-asessionid:
+      - 4eg86y
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-ratelimit-fillrate:
+      - '5'
+      x-ratelimit-interval-seconds:
+      - '1'
+      x-rh-edge-cache-status:
+      - NotCacheable from child
+      x-rh-edge-reference-id:
+      - 0.4c24c317.1719576119.8a476335
+      x-rh-edge-request-id:
+      - 8a476335
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
     status:
       code: 200
       message: OK
@@ -1153,7 +1733,12 @@ interactions:
         problem that impairs or prevents the functions of the product.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Bug","subtask":false,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/16","id":"16","description":"Created
         by Jira Software - do not edit or delete. Issue type for a big user story
         that needs to be broken down.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13267&avatarType=issuetype","name":"Epic","subtask":false,"avatarId":13267},{"self":"https://example.com/rest/api/2/issuetype/11406","id":"11406","description":"Expresses
-        areas of concern for a project or program''s success.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype","name":"Risk","subtask":false,"avatarId":13268},{"self":"https://example.com/rest/api/2/issuetype/2","id":"2","description":"Feature
+        areas of concern for a project or program''s success.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype","name":"Risk","subtask":false,"avatarId":13268},{"self":"https://example.com/rest/api/2/issuetype/10100","id":"10100","description":"A
+        large product/portfolio goal or focus area that has clear start and completion
+        criteria","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10800","id":"10800","description":"Represents
+        a research-related task.''","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/12102","id":"12102","description":"Organizational
+        objective focused on a measurable outcome. May be in support of larger strategic
+        goals.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Outcome","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/2","id":"2","description":"Feature
         requests from customers and/or users","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature
         Request","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/13","id":"13","description":"An
         enhancement to or refactoring of existing functionality that is not configurable
@@ -1177,22 +1762,10 @@ interactions:
         Upgrade Subtask","subtask":true,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/12","id":"12","description":"A
         task tracking an update to a bundled component or revision of component upstream
         of the project.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Component
-        Upgrade","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/10100","id":"10100","description":"A
-        large product/portfolio goal or focus area that has clear start and completion
-        criteria","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/12102","id":"12102","description":"Organizational
-        objective focused on a measurable outcome. May be in support of larger strategic
-        goals.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Outcome","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10800","id":"10800","description":"Represents
-        a research-related task.''","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/12200","id":"12200","description":"Represents
-        a Test","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test.png","name":"Test","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12201","id":"12201","description":"Represents
-        a Test Set","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-set.png","name":"Test
-        Set","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12202","id":"12202","description":"Represents
-        a Test Execution","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-execution.png","name":"Test
-        Execution","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12203","id":"12203","description":"Represents
-        a Pre-Condition","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/pre-condition.png","name":"Pre-Condition","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12204","id":"12204","description":"Represents
-        a Test Plan","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/test-plan.png","name":"Test
-        Plan","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/12205","id":"12205","description":"Represents
-        a Sub Test Execution","iconUrl":"https://example.com/download/resources/com.xpandit.plugins.xray/images/sub-test-execution.png","name":"Sub
-        Test Execution","subtask":true},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
+        Upgrade","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11401","id":"11401","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"RFE","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
+        or a well-defined set of functionality that delivers business value. Features
+        can include additions or changes to existing functionality. Features can easily
+        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
         of a library dependency","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Library
         Upgrade","subtask":false,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/15","id":"15","description":"A
         clarification needed to a specification based on community feedback","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Clarification","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/19","id":"19","description":"Issue
@@ -1213,10 +1786,7 @@ interactions:
         Task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Docs
         Task","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10400","id":"10400","description":"Objectives
         and Key Results","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13274&avatarType=issuetype","name":"OKR","subtask":false,"avatarId":13274},{"self":"https://example.com/rest/api/2/issuetype/10500","id":"10500","description":"Policies
-        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
-        or a well-defined set of functionality that delivers business value. Features
-        can include additions or changes to existing functionality. Features can easily
-        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
+        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
         issue requiring coordinated response","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10304&avatarType=issuetype","name":"Flare","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10900","id":"10900","description":"This
         issue type is created for Service Desk functions in Jira Software","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Service
         Request","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/10901","id":"10901","description":"Used
@@ -1237,7 +1807,7 @@ interactions:
         Sub-task","subtask":true,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/11300","id":"11300","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Next
         Action","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11400","id":"11400","description":"This
         is a Business Unit Initiative a.k.a. \"BUI\"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"BU
-        Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11401","id":"11401","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"RFE","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11402","id":"11402","description":"General
+        Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11402","id":"11402","description":"General
         issue to be triaged","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Issue","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11404","id":"11404","description":"HSS
         PA tracking issue for Milestones","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Milestone","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11405","id":"11405","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Build
         Task","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11407","id":"11407","description":"RT355021","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Report","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11408","id":"11408","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Schedule","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11409","id":"11409","description":"For
@@ -1264,7 +1834,9 @@ interactions:
         Security Exception","subtask":false,"avatarId":40577},{"self":"https://example.com/rest/api/2/issuetype/12100","id":"12100","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Objective","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/12101","id":"12101","description":"Large,
         strategic focus area typically defined by leadership teams to achieve organizational
         long-term vision.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=50977&avatarType=issuetype","name":"Strategic
-        Goal","subtask":false,"avatarId":50977},{"self":"https://example.com/rest/api/2/issuetype/12300","id":"12300","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Vulnerability","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/12301","id":"12301","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=53261&avatarType=issuetype","name":"Weakness","subtask":false,"avatarId":53261},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
+        Goal","subtask":false,"avatarId":50977},{"self":"https://example.com/rest/api/2/issuetype/12206","id":"12206","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=55783&avatarType=issuetype","name":"Weakness","subtask":false,"avatarId":55783},{"self":"https://example.com/rest/api/2/issuetype/12207","id":"12207","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=55784&avatarType=issuetype","name":"Vulnerability","subtask":false,"avatarId":55784},{"self":"https://example.com/rest/api/2/issuetype/12300","id":"12300","description":"CASE-461","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Epic
+        Story","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/12301","id":"12301","description":"CASE-461","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Epic
+        Bug","subtask":false,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
         new feature of the product, which has yet to be developed.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"New
         Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10200","id":"10200","description":"An
         improvement or enhancement to an existing feature or task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Improvement","subtask":false,"avatarId":13270}]'
@@ -1276,9 +1848,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:13 GMT
+      - Fri, 28 Jun 2024 12:02:00 GMT
       Expires:
-      - Mon, 17 Jun 2024 12:45:13 GMT
+      - Fri, 28 Jun 2024 12:02:00 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1287,11 +1859,11 @@ interactions:
       - User-Agent
       - Accept-Encoding
       X-RateLimit-Limit:
-      - '-1'
+      - '5'
       X-RateLimit-Remaining:
-      - '9223372036854775807'
+      - '3'
       content-length:
-      - '26200'
+      - '25109'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -1299,23 +1871,23 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 765x384914x1
+      - 722x591148x1
       x-asessionid:
-      - 1y4ps9s
+      - 1uxjqs8
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
       x-ratelimit-fillrate:
-      - '-1'
+      - '5'
       x-ratelimit-interval-seconds:
       - '1'
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628313.17ca0482
+      - 0.4c24c317.1719576120.8a476ae0
       x-rh-edge-request-id:
-      - 17ca0482
+      - 8a476ae0
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1393,9 +1965,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:13 GMT
+      - Fri, 28 Jun 2024 12:02:00 GMT
       Expires:
-      - Mon, 17 Jun 2024 12:45:13 GMT
+      - Fri, 28 Jun 2024 12:02:00 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1404,9 +1976,9 @@ interactions:
       - User-Agent
       - Accept-Encoding
       X-RateLimit-Limit:
-      - '-1'
+      - '5'
       X-RateLimit-Remaining:
-      - '9223372036854775807'
+      - '3'
       content-length:
       - '4024'
       referrer-policy:
@@ -1416,23 +1988,23 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 765x384916x1
+      - 722x591149x1
       x-asessionid:
-      - 1w0unrh
+      - d7aeuo
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
       x-ratelimit-fillrate:
-      - '-1'
+      - '5'
       x-ratelimit-interval-seconds:
       - '1'
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628313.17ca058b
+      - 0.4c24c317.1719576120.8a476e05
       x-rh-edge-request-id:
-      - 17ca058b
+      - 8a476e05
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1448,7 +2020,7 @@ interactions:
       encrypted by the V1 EncryptionClient using either the AES-CBC content cipher
       or the KMS key wrap algorithm are vulnerable. Users should migrate to the V1
       EncryptionClientV2 API, which will not create vulnerable files. Old files will
-      remain vulnerable until re-encrypted with the new client.", "labels": ["flawuuid:c5fe3ac9-ced6-4459-ab47-b93ee72d6148",
+      remain vulnerable until re-encrypted with the new client.", "labels": ["flawuuid:e31c253c-6e09-4c5c-8aeb-b56a089c8b8a",
       "impact:"], "priority": {"name": "Undefined"}}}'
     headers:
       Accept:
@@ -1471,31 +2043,34 @@ interactions:
     uri: https://example.com/rest/api/2/issue
   response:
     body:
-      string: '{"id": "15942554", "key": "OSIM-16314", "self": "https://example.com/rest/api/2/issue/15942554"}'
+      string: '{"id": "16091065", "key": "OSIM-504", "self": "https://example.com/rest/api/2/issue/16091065"}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
       Connection:
-      - close
+      - keep-alive
+      - Transfer-Encoding
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:14 GMT
+      - Fri, 28 Jun 2024 12:02:01 GMT
       Expires:
-      - Mon, 17 Jun 2024 12:45:14 GMT
+      - Fri, 28 Jun 2024 12:02:01 GMT
       Pragma:
       - no-cache
       Retry-After:
       - '0'
+      Transfer-Encoding:
+      - chunked
       Vary:
       - User-Agent
       - Accept-Encoding
       X-RateLimit-Limit:
-      - '-1'
+      - '5'
       X-RateLimit-Remaining:
-      - '9223372036854775807'
+      - '4'
       content-length:
-      - '103'
+      - '101'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -1503,23 +2078,23 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 765x384919x2
+      - 722x591152x3
       x-asessionid:
-      - 1h985ma
+      - 1iurap4
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
       x-ratelimit-fillrate:
-      - '-1'
+      - '5'
       x-ratelimit-interval-seconds:
       - '1'
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628313.17ca06af
+      - 0.4c24c317.1719576120.8a47739e
       x-rh-edge-request-id:
-      - 17ca06af
+      - 8a47739e
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1545,16 +2120,16 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-16314
+    uri: https://example.com/rest/api/2/issue/OSIM-504
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "15942554", "self": "https://example.com/rest/api/2/issue/15942554",
-        "key": "OSIM-16314", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
+        "id": "16091065", "self": "https://example.com/rest/api/2/issue/16091065",
+        "key": "OSIM-504", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
         "id": "17", "description": "Created by Jira Software - do not edit or delete.
         Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12324544":
-        "0.0", "customfield_12318341": null, "timespent": null, "customfield_12320940":
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
+        null, "customfield_12324540": "0.0", "timespent": null, "customfield_12320940":
         null, "project": {"self": "https://example.com/rest/api/2/project/12337520",
         "id": "12337520", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
         "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
@@ -1563,29 +2138,29 @@ interactions:
         "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
         "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
         "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@b39db0d[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4c020853[overall=PullRequestOverallBean{stateCount=0,
+        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@68db6cc4[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1153a520[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@8df2540[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@54c3f498[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4024d8cb[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@563baf68[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@273f65ca[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@6c133281[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@a975d48[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@1dcf39d[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5d11d759[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@28637140[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5f11482a[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@53e78c4d[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7355d616[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@627acae1[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@377f8e9c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@5895e9da[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@52d61b8[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@31b48e3e[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7a74fdfa[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@d581057[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
         "resolutiondate": null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
         null, "customfield_12316841": null, "customfield_12315950": null, "customfield_12310940":
         null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://example.com/rest/api/2/issue/OSIM-16314/watchers", "watchCount":
-        1, "isWatching": true}, "created": "2024-06-17T12:45:13.841+0000", "customfield_12321240":
+        "https://example.com/rest/api/2/issue/OSIM-504/watchers", "watchCount": 1,
+        "isWatching": true}, "created": "2024-06-28T12:02:00.803+0000", "customfield_12321240":
         null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/10300",
         "iconUrl": "https://example.com/images/icons/priorities/trivial.svg", "name":
-        "Undefined", "id": "10300"}, "labels": ["flawuuid:c5fe3ac9-ced6-4459-ab47-b93ee72d6148",
+        "Undefined", "id": "10300"}, "labels": ["flawuuid:e31c253c-6e09-4c5c-8aeb-b56a089c8b8a",
         "impact:"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
         "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
-        null, "timeestimate": null, "versions": [], "issuelinks": [], "customfield_12325240":
-        null, "assignee": null, "updated": "2024-06-17T12:45:13.841+0000", "customfield_12313942":
-        null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
+        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
+        null, "updated": "2024-06-28T12:02:00.803+0000", "customfield_12313942": null,
+        "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
         very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
         "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
@@ -1602,35 +2177,34 @@ interactions:
         "customfield_12316542": {"self": "https://example.com/rest/api/2/customFieldOption/14655",
         "value": "False", "id": "14655", "disabled": false}, "customfield_12317313":
         null, "customfield_12316543": {"self": "https://example.com/rest/api/2/customFieldOption/14657",
-        "value": "False", "id": "14657", "disabled": false}, "customfield_12310840":
-        "9223372036854775807", "customfield_12316544": "None", "customfield_12323640":
-        null, "summary": "CVE-2020-8912 Use of risky cryptographic algorithm in github.com/aws/aws-sdk-go",
-        "customfield_12323642": null, "creator": {"self": "https://example.com/rest/api/2/user?username=nobody%40redhat.com",
-        "name": "nobody@redhat.com", "key": "nobody", "emailAddress": "nobody+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=nobody&avatarId=29772",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=nobody&avatarId=29772",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=nobody&avatarId=29772",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=nobody&avatarId=29772"},
-        "displayName": "nobody", "active": true, "timeZone": "Europe/Prague"},
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12316544":
+        "None", "customfield_12310840": "9223372036854775807", "summary": "CVE-2020-8912
+        Use of risky cryptographic algorithm in github.com/aws/aws-sdk-go", "customfield_12323640":
+        null, "customfield_12323642": null, "creator": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
         "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "reporter": {"self": "https://example.com/rest/api/2/user?username=nobody%40redhat.com",
-        "name": "nobody@redhat.com", "key": "nobody", "emailAddress": "nobody+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=nobody&avatarId=29772",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=nobody&avatarId=29772",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=nobody&avatarId=29772",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=nobody&avatarId=29772"},
-        "displayName": "nobody", "active": true, "timeZone": "Europe/Prague"},
-        "customfield_12320850": null, "aggregateprogress": {"progress": 0, "total":
-        0}, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
-        null, "customfield_12323645": null, "environment": null, "customfield_12315542":
-        null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
-        "0.0", "customfield_12313240": null, "duedate": null, "customfield_12311140":
-        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
-        "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt": 0}, "votes":
-        {"self": "https://example.com/rest/api/2/issue/OSIM-16314/votes", "votes":
-        0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
+        "customfield_12320850": null, "reporter": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
+        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
+        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
+        "aggregateprogress": {"progress": 0, "total": 0}, "customfield_12323644":
+        null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
+        null, "environment": null, "customfield_12315542": null, "customfield_12315740":
+        null, "customfield_12313441": "", "customfield_12313440": "0.0", "customfield_12313240":
+        null, "duedate": null, "customfield_12311140": null, "customfield_12319742":
+        null, "progress": {"progress": 0, "total": 0}, "comment": {"comments": [],
+        "maxResults": 0, "total": 0, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-504/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
         0, "maxResults": 20, "total": 0, "worklogs": []}, "customfield_12310213":
-        null, "archivedby": null, "customfield_12311940": "1|zemjq0:"}}'
+        null, "archivedby": null, "customfield_12311940": "2|i10z7r:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -1639,9 +2213,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:16 GMT
+      - Fri, 28 Jun 2024 12:02:02 GMT
       Expires:
-      - Mon, 17 Jun 2024 12:45:16 GMT
+      - Fri, 28 Jun 2024 12:02:02 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1650,11 +2224,11 @@ interactions:
       - User-Agent
       - Accept-Encoding
       X-RateLimit-Limit:
-      - '-1'
+      - '5'
       X-RateLimit-Remaining:
-      - '9223372036854775807'
+      - '4'
       content-length:
-      - '9224'
+      - '9254'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -1662,23 +2236,23 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 765x384934x2
+      - 722x591154x1
       x-asessionid:
-      - 1ee9wk4
+      - 3d0djw
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
       x-ratelimit-fillrate:
-      - '-1'
+      - '5'
       x-ratelimit-interval-seconds:
       - '1'
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628316.17ca12f1
+      - 0.4c24c317.1719576121.8a479285
       x-rh-edge-request-id:
-      - 17ca12f1
+      - 8a479285
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1703,7 +2277,7 @@ interactions:
     uri: https://example.com/rest/version
   response:
     body:
-      string: '{"version": "5.0.4.rh97"}'
+      string: '{"version": "5.0.4.rh98"}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -1718,7 +2292,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:17 GMT
+      - Fri, 28 Jun 2024 12:02:02 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -1728,9 +2302,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628316.17ca14a4
+      - 0.4e24c317.1719576122.330cfb5b
       x-rh-edge-request-id:
-      - 17ca14a4
+      - 330cfb5b
     status:
       code: 200
       message: OK
@@ -1751,8 +2325,8 @@ interactions:
     uri: https://example.com/rest/user?ids=1
   response:
     body:
-      string: '{"users": [{"name": "aander07@packetmaster.com", "id": 1, "email":
-        "aander07@packetmaster.com", "real_name": "Need Real Name", "can_login": true}]}'
+      string: '{"users": [{"id": 1, "email": "aander07@packetmaster.com", "can_login":
+        true, "real_name": "Need Real Name", "name": "aander07@packetmaster.com"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -1767,7 +2341,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:17 GMT
+      - Fri, 28 Jun 2024 12:02:03 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -1777,9 +2351,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628317.17ca15ac
+      - 0.4e24c317.1719576122.330cff1a
       x-rh-edge-request-id:
-      - 17ca15ac
+      - 330cff1a
     status:
       code: 200
       message: OK
@@ -1795,7 +2369,7 @@ interactions:
       API, which will not create vulnerable files. Old files will remain vulnerable
       until re-encrypted with the new client.", "comment_is_private": false, "alias":
       ["CVE-2020-8912"], "keywords": ["Security"], "flags": [], "groups": ["redhat"],
-      "cc": [], "cf_srtnotes": "{\"reported\": \"2024-06-17T12:45:12Z\", \"external_ids\":
+      "cc": [], "cf_srtnotes": "{\"reported\": \"2024-06-28T12:01:59Z\", \"external_ids\":
       [\"GO-2022-0646/CVE-2020-8912\"], \"references\": [{\"type\": \"source\", \"url\":
       \"https://osv.dev/vulnerability/GO-2022-0646\", \"description\": null}, {\"type\":
       \"external\", \"url\": \"https://aws.amazon.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
@@ -1819,7 +2393,7 @@ interactions:
     uri: https://example.com/rest/bug
   response:
     body:
-      string: '{"id": 2293433}'
+      string: '{"id": 2294458}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -1834,7 +2408,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:18 GMT
+      - Fri, 28 Jun 2024 12:02:04 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -1844,9 +2418,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628317.17ca1782
+      - 0.4e24c317.1719576123.330d0b11
       x-rh-edge-request-id:
-      - 17ca1782
+      - 330d0b11
     status:
       code: 200
       message: OK
@@ -1867,7 +2441,7 @@ interactions:
     uri: https://example.com/rest/version
   response:
     body:
-      string: '{"version": "5.0.4.rh97"}'
+      string: '{"version": "5.0.4.rh98"}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -1882,7 +2456,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:19 GMT
+      - Fri, 28 Jun 2024 12:02:05 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -1892,9 +2466,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628319.17ca1da8
+      - 0.4e24c317.1719576124.330d1d9f
       x-rh-edge-request-id:
-      - 17ca1da8
+      - 330d1d9f
     status:
       code: 200
       message: OK
@@ -1915,8 +2489,8 @@ interactions:
     uri: https://example.com/rest/user?ids=1
   response:
     body:
-      string: '{"users": [{"can_login": true, "real_name": "Need Real Name", "id":
-        1, "email": "aander07@packetmaster.com", "name": "aander07@packetmaster.com"}]}'
+      string: '{"users": [{"email": "aander07@packetmaster.com", "id": 1, "real_name":
+        "Need Real Name", "can_login": true, "name": "aander07@packetmaster.com"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -1931,7 +2505,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:20 GMT
+      - Fri, 28 Jun 2024 12:02:06 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -1941,9 +2515,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628319.17ca1ee1
+      - 0.4e24c317.1719576125.330d2579
       x-rh-edge-request-id:
-      - 17ca1ee1
+      - 330d2579
     status:
       code: 200
       message: OK
@@ -1961,55 +2535,53 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug/2293433?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
+    uri: https://example.com/rest/bug/2294458?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
   response:
     body:
-      string: '{"faults": [], "bugs": [{"platform": "All", "is_cc_accessible": true,
-        "actual_time": 0, "cf_qa_whiteboard": "", "cf_pgm_internal": "", "product":
-        "Security Response", "remaining_time": 0, "tags": [], "is_creator_accessible":
-        true, "cc_detail": [], "keywords": ["Security"], "classification": "Other",
-        "estimated_time": 0, "cf_devel_whiteboard": "", "docs_contact": "", "cf_fixed_in":
-        "", "cf_clone_of": null, "qa_contact": "", "cf_release_notes": "", "assigned_to":
-        "prodsec-dev@redhat.com", "summary": "CVE-2020-8912 Use of risky cryptographic
-        algorithm in github.com/aws/aws-sdk-go", "severity": "unspecified", "component":
-        ["vulnerability-draft"], "depends_on": [], "id": 2293433, "blocks": [], "deadline":
-        null, "whiteboard": "", "groups": ["redhat"], "external_bugs": [], "url":
-        "", "status": "NEW", "is_open": true, "cf_pm_score": "0", "creator": "nobody@redhat.com",
-        "version": ["unspecified"], "cf_last_closed": null, "dupe_of": null, "comments":
-        [{"creator_id": 425662, "tags": [], "is_private": false, "id": 18020060, "count":
-        0, "attachment_id": null, "private_groups": [], "text": "The Go AWS S3 Crypto
-        SDK contains vulnerabilities that can permit an attacker with write access
-        to a bucket to decrypt files in that bucket.\n\nFiles encrypted by the V1
-        EncryptionClient using either the AES-CBC content cipher or the KMS key wrap
-        algorithm are vulnerable. Users should migrate to the V1 EncryptionClientV2
-        API, which will not create vulnerable files. Old files will remain vulnerable
-        until re-encrypted with the new client.", "creator": "nobody@redhat.com",
-        "creation_time": "2024-06-17T12:45:18Z", "bug_id": 2293433, "time": "2024-06-17T12:45:18Z"}],
-        "priority": "unspecified", "is_confirmed": true, "resolution": "", "cf_doc_type":
-        "If docs needed, set a value", "cf_internal_whiteboard": "", "target_milestone":
-        "---", "target_release": ["---"], "cf_conditional_nak": [], "cf_srtnotes":
-        "{\"reported\": \"2024-06-17T12:45:12Z\", \"external_ids\": [\"GO-2022-0646/CVE-2020-8912\"],
+      string: '{"faults": [], "bugs": [{"is_confirmed": true, "cf_conditional_nak":
+        [], "flags": [], "cf_doc_type": "If docs needed, set a value", "cf_environment":
+        "", "priority": "unspecified", "is_open": true, "remaining_time": 0, "assigned_to_detail":
+        {"name": "prodsec-dev@redhat.com", "partner": false, "real_name": "Product
+        Security DevOps Team", "id": 377884, "active": true, "email": "prodsec-dev@redhat.com",
+        "insider": true}, "docs_contact": "", "cf_last_closed": null, "comments":
+        [{"creation_time": "2024-06-28T12:02:04Z", "bug_id": 2294458, "attachment_id":
+        null, "text": "The Go AWS S3 Crypto SDK contains vulnerabilities that can
+        permit an attacker with write access to a bucket to decrypt files in that
+        bucket.\n\nFiles encrypted by the V1 EncryptionClient using either the AES-CBC
+        content cipher or the KMS key wrap algorithm are vulnerable. Users should
+        migrate to the V1 EncryptionClientV2 API, which will not create vulnerable
+        files. Old files will remain vulnerable until re-encrypted with the new client.",
+        "is_private": false, "tags": [], "creator_id": 482384, "time": "2024-06-28T12:02:04Z",
+        "count": 0, "private_groups": [], "id": 18021219, "creator": "conrado@redhat.com"}],
+        "cf_internal_whiteboard": "", "description": "The Go AWS S3 Crypto SDK contains
+        vulnerabilities that can permit an attacker with write access to a bucket
+        to decrypt files in that bucket.\n\nFiles encrypted by the V1 EncryptionClient
+        using either the AES-CBC content cipher or the KMS key wrap algorithm are
+        vulnerable. Users should migrate to the V1 EncryptionClientV2 API, which will
+        not create vulnerable files. Old files will remain vulnerable until re-encrypted
+        with the new client.", "is_cc_accessible": true, "summary": "CVE-2020-8912
+        Use of risky cryptographic algorithm in github.com/aws/aws-sdk-go", "qa_contact":
+        "", "cf_release_notes": "", "creator_detail": {"insider": true, "email": "conrado@redhat.com",
+        "active": true, "id": 482384, "real_name": "Conrado Costa", "partner": false,
+        "name": "conrado@redhat.com"}, "platform": "All", "groups": ["redhat"], "target_release":
+        ["---"], "cf_clone_of": null, "depends_on": [], "blocks": [], "cf_pm_score":
+        "0", "deadline": null, "product": "Security Response", "cf_qa_whiteboard":
+        "", "op_sys": "Linux", "target_milestone": "---", "dupe_of": null, "cf_srtnotes":
+        "{\"reported\": \"2024-06-28T12:01:59Z\", \"external_ids\": [\"GO-2022-0646/CVE-2020-8912\"],
         \"references\": [{\"type\": \"source\", \"url\": \"https://example.com/vulnerability/GO-2022-0646\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/pull/3403\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/commit/ae9b9fd92af132cfd8d879809d8611825ba135f4\",
-        \"description\": null}], \"source\": \"osv\"}", "description": "The Go AWS
-        S3 Crypto SDK contains vulnerabilities that can permit an attacker with write
-        access to a bucket to decrypt files in that bucket.\n\nFiles encrypted by
-        the V1 EncryptionClient using either the AES-CBC content cipher or the KMS
-        key wrap algorithm are vulnerable. Users should migrate to the V1 EncryptionClientV2
-        API, which will not create vulnerable files. Old files will remain vulnerable
-        until re-encrypted with the new client.", "creation_time": "2024-06-17T12:45:18Z",
-        "cf_embargoed": null, "creator_detail": {"id": 425662, "partner": false, "email":
-        "nobody@redhat.com", "name": "nobody@redhat.com", "active": true, "real_name":
-        "nobody", "insider": true}, "sub_components": {}, "cf_qe_conditional_nak":
-        [],
-        "cc": [], "cf_build_id": "", "data_category": "Red Hat", "assigned_to_detail":
-        {"id": 377884, "email": "prodsec-dev@redhat.com", "partner": false, "name":
-        "prodsec-dev@redhat.com", "real_name": "Product Security DevOps Team", "insider":
-        true, "active": true}, "cf_cust_facing": "---", "cf_environment": "", "alias":
-        ["CVE-2020-8912"], "flags": [], "op_sys": "Linux", "cf_major_incident": null,
-        "last_change_time": "2024-06-17T12:45:18Z"}]}'
+        \"description\": null}], \"source\": \"osv\"}", "alias": ["CVE-2020-8912"],
+        "cf_major_incident": null, "status": "NEW", "keywords": ["Security"], "classification":
+        "Other", "estimated_time": 0, "cf_embargoed": null, "cf_cust_facing": "---",
+        "cc": [], "cf_pgm_internal": "", "data_category": "Red Hat", "resolution":
+        "", "cc_detail": [], "creator": "conrado@redhat.com", "component": ["vulnerability-draft"],
+        "whiteboard": "", "sub_components": {}, "is_creator_accessible": true, "url":
+        "", "cf_build_id": "", "actual_time": 0, "version": ["unspecified"], "external_bugs":
+        [], "tags": [], "cf_devel_whiteboard": "", "id": 2294458, "cf_qe_conditional_nak":
+        [], "creation_time": "2024-06-28T12:02:04Z", "last_change_time": "2024-06-28T12:02:04Z",
+        "severity": "unspecified", "cf_fixed_in": "", "assigned_to": "prodsec-dev@redhat.com"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -2022,7 +2594,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:20 GMT
+      - Fri, 28 Jun 2024 12:02:06 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       Vary:
@@ -2032,13 +2604,13 @@ interactions:
       X-xss-protection:
       - 1; mode=block
       content-length:
-      - '3630'
+      - '3624'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628320.17ca213f
+      - 0.4e24c317.1719576126.330d2998
       x-rh-edge-request-id:
-      - 17ca213f
+      - 330d2998
     status:
       code: 200
       message: OK
@@ -2056,55 +2628,55 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug/2293433?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
+    uri: https://example.com/rest/bug/2294458?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
   response:
     body:
-      string: '{"faults": [], "bugs": [{"cf_devel_whiteboard": "", "is_cc_accessible":
-        true, "cf_pgm_internal": "", "cf_major_incident": null, "cf_clone_of": null,
-        "assigned_to": "prodsec-dev@redhat.com", "platform": "All", "target_release":
-        ["---"], "assigned_to_detail": {"id": 377884, "email": "prodsec-dev@redhat.com",
-        "name": "prodsec-dev@redhat.com", "partner": false, "insider": true, "active":
-        true, "real_name": "Product Security DevOps Team"}, "description": "The Go
-        AWS S3 Crypto SDK contains vulnerabilities that can permit an attacker with
-        write access to a bucket to decrypt files in that bucket.\n\nFiles encrypted
-        by the V1 EncryptionClient using either the AES-CBC content cipher or the
-        KMS key wrap algorithm are vulnerable. Users should migrate to the V1 EncryptionClientV2
-        API, which will not create vulnerable files. Old files will remain vulnerable
-        until re-encrypted with the new client.", "cf_doc_type": "If docs needed,
-        set a value", "component": ["vulnerability-draft"], "sub_components": {},
-        "classification": "Other", "data_category": "Red Hat", "cf_srtnotes": "{\"reported\":
-        \"2024-06-17T12:45:12Z\", \"external_ids\": [\"GO-2022-0646/CVE-2020-8912\"],
-        \"references\": [{\"type\": \"source\", \"url\": \"https://example.com/vulnerability/GO-2022-0646\",
-        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
+      string: '{"faults": [], "bugs": [{"classification": "Other", "deadline": null,
+        "groups": ["redhat"], "status": "NEW", "cf_major_incident": null, "estimated_time":
+        0, "url": "", "cf_conditional_nak": [], "cf_pgm_internal": "", "cf_last_closed":
+        null, "is_creator_accessible": true, "is_cc_accessible": true, "actual_time":
+        0, "remaining_time": 0, "cf_embargoed": null, "cf_internal_whiteboard": "",
+        "creator": "conrado@redhat.com", "summary": "CVE-2020-8912 Use of risky cryptographic
+        algorithm in github.com/aws/aws-sdk-go", "tags": [], "sub_components": {},
+        "creator_detail": {"name": "conrado@redhat.com", "real_name": "Conrado Costa",
+        "active": true, "partner": false, "email": "conrado@redhat.com", "id": 482384,
+        "insider": true}, "blocks": [], "cf_qe_conditional_nak": [], "cf_clone_of":
+        null, "alias": ["CVE-2020-8912"], "description": "The Go AWS S3 Crypto SDK
+        contains vulnerabilities that can permit an attacker with write access to
+        a bucket to decrypt files in that bucket.\n\nFiles encrypted by the V1 EncryptionClient
+        using either the AES-CBC content cipher or the KMS key wrap algorithm are
+        vulnerable. Users should migrate to the V1 EncryptionClientV2 API, which will
+        not create vulnerable files. Old files will remain vulnerable until re-encrypted
+        with the new client.", "cf_doc_type": "If docs needed, set a value", "severity":
+        "unspecified", "resolution": "", "component": ["vulnerability-draft"], "cf_pm_score":
+        "0", "external_bugs": [], "target_milestone": "---", "platform": "All", "keywords":
+        ["Security"], "cf_build_id": "", "data_category": "Red Hat", "last_change_time":
+        "2024-06-28T12:02:04Z", "cc": [], "op_sys": "Linux", "cf_cust_facing": "---",
+        "cf_srtnotes": "{\"reported\": \"2024-06-28T12:01:59Z\", \"external_ids\":
+        [\"GO-2022-0646/CVE-2020-8912\"], \"references\": [{\"type\": \"source\",
+        \"url\": \"https://example.com/vulnerability/GO-2022-0646\", \"description\":
+        null}, {\"type\": \"external\", \"url\": \"https://example.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/pull/3403\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/aws/aws-sdk-go/commit/ae9b9fd92af132cfd8d879809d8611825ba135f4\",
-        \"description\": null}], \"source\": \"osv\"}", "qa_contact": "", "is_creator_accessible":
-        true, "flags": [], "cf_environment": "", "severity": "unspecified", "cf_internal_whiteboard":
-        "", "version": ["unspecified"], "cc_detail": [], "url": "", "priority": "unspecified",
-        "id": 2293433, "cc": [], "alias": ["CVE-2020-8912"], "cf_cust_facing": "---",
-        "cf_embargoed": null, "cf_qa_whiteboard": "", "docs_contact": "", "keywords":
-        ["Security"], "cf_conditional_nak": [], "comments": [{"text": "The Go AWS
-        S3 Crypto SDK contains vulnerabilities that can permit an attacker with write
-        access to a bucket to decrypt files in that bucket.\n\nFiles encrypted by
-        the V1 EncryptionClient using either the AES-CBC content cipher or the KMS
-        key wrap algorithm are vulnerable. Users should migrate to the V1 EncryptionClientV2
-        API, which will not create vulnerable files. Old files will remain vulnerable
-        until re-encrypted with the new client.", "creator": "nobody@redhat.com",
-        "tags": [], "time": "2024-06-17T12:45:18Z", "creator_id": 425662, "bug_id":
-        2293433, "is_private": false, "creation_time": "2024-06-17T12:45:18Z", "attachment_id":
-        null, "count": 0, "private_groups": [], "id": 18020060}], "depends_on": [],
-        "deadline": null, "tags": [], "op_sys": "Linux", "cf_qe_conditional_nak":
-        [], "summary": "CVE-2020-8912 Use of risky cryptographic algorithm in github.com/aws/aws-sdk-go",
-        "creator_detail": {"partner": false, "real_name": "nobody", "active":
-        true, "insider": true, "email": "nobody@redhat.com", "id": 425662, "name":
-        "nobody@redhat.com"}, "estimated_time": 0, "external_bugs": [], "creation_time":
-        "2024-06-17T12:45:18Z", "product": "Security Response", "dupe_of": null, "cf_last_closed":
-        null, "last_change_time": "2024-06-17T12:45:18Z", "cf_pm_score": "0", "cf_build_id":
-        "",
-        "resolution": "", "actual_time": 0, "is_confirmed": true, "blocks": [], "cf_fixed_in":
-        "", "whiteboard": "", "status": "NEW", "is_open": true, "cf_release_notes":
-        "", "target_milestone": "---", "groups": ["redhat"], "creator": "nobody@redhat.com",
-        "remaining_time": 0}]}'
+        \"description\": null}], \"source\": \"osv\"}", "depends_on": [], "cf_devel_whiteboard":
+        "", "version": ["unspecified"], "whiteboard": "", "is_confirmed": true, "is_open":
+        true, "assigned_to": "prodsec-dev@redhat.com", "id": 2294458, "comments":
+        [{"id": 18021219, "creation_time": "2024-06-28T12:02:04Z", "count": 0, "attachment_id":
+        null, "bug_id": 2294458, "is_private": false, "creator_id": 482384, "tags":
+        [], "creator": "conrado@redhat.com", "text": "The Go AWS S3 Crypto SDK contains
+        vulnerabilities that can permit an attacker with write access to a bucket
+        to decrypt files in that bucket.\n\nFiles encrypted by the V1 EncryptionClient
+        using either the AES-CBC content cipher or the KMS key wrap algorithm are
+        vulnerable. Users should migrate to the V1 EncryptionClientV2 API, which will
+        not create vulnerable files. Old files will remain vulnerable until re-encrypted
+        with the new client.", "private_groups": [], "time": "2024-06-28T12:02:04Z"}],
+        "creation_time": "2024-06-28T12:02:04Z", "target_release": ["---"], "docs_contact":
+        "", "priority": "unspecified", "cf_qa_whiteboard": "", "cf_environment": "",
+        "qa_contact": "", "cf_release_notes": "", "product": "Security Response",
+        "assigned_to_detail": {"email": "prodsec-dev@redhat.com", "id": 377884, "insider":
+        true, "partner": false, "active": true, "name": "prodsec-dev@redhat.com",
+        "real_name": "Product Security DevOps Team"}, "cf_fixed_in": "", "flags":
+        [], "cc_detail": [], "dupe_of": null}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -2117,7 +2689,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:21 GMT
+      - Fri, 28 Jun 2024 12:02:07 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       Vary:
@@ -2127,13 +2699,13 @@ interactions:
       X-xss-protection:
       - 1; mode=block
       content-length:
-      - '3630'
+      - '3624'
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628320.17ca235a
+      - 0.4e24c317.1719576126.330d31f3
       x-rh-edge-request-id:
-      - 17ca235a
+      - 330d31f3
     status:
       code: 200
       message: OK
@@ -2151,19 +2723,19 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
-    uri: https://example.com/rest/bug/2293433/comment
+    uri: https://example.com/rest/bug/2294458/comment
   response:
     body:
-      string: '{"comments": {}, "bugs": {"2293433": {"comments": [{"creator": "nobody@redhat.com",
-        "text": "The Go AWS S3 Crypto SDK contains vulnerabilities that can permit
-        an attacker with write access to a bucket to decrypt files in that bucket.\n\nFiles
-        encrypted by the V1 EncryptionClient using either the AES-CBC content cipher
-        or the KMS key wrap algorithm are vulnerable. Users should migrate to the
-        V1 EncryptionClientV2 API, which will not create vulnerable files. Old files
-        will remain vulnerable until re-encrypted with the new client.", "tags": [],
-        "time": "2024-06-17T12:45:18Z", "creator_id": 425662, "creation_time": "2024-06-17T12:45:18Z",
-        "is_private": false, "attachment_id": null, "bug_id": 2293433, "count": 0,
-        "id": 18020060, "private_groups": []}]}}}'
+      string: '{"bugs": {"2294458": {"comments": [{"creator_id": 482384, "time": "2024-06-28T12:02:04Z",
+        "tags": [], "private_groups": [], "count": 0, "id": 18021219, "creator": "conrado@redhat.com",
+        "creation_time": "2024-06-28T12:02:04Z", "bug_id": 2294458, "is_private":
+        false, "attachment_id": null, "text": "The Go AWS S3 Crypto SDK contains vulnerabilities
+        that can permit an attacker with write access to a bucket to decrypt files
+        in that bucket.\n\nFiles encrypted by the V1 EncryptionClient using either
+        the AES-CBC content cipher or the KMS key wrap algorithm are vulnerable. Users
+        should migrate to the V1 EncryptionClientV2 API, which will not create vulnerable
+        files. Old files will remain vulnerable until re-encrypted with the new client."}]}},
+        "comments": {}}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -2174,11 +2746,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '733'
+      - '732'
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Mon, 17 Jun 2024 12:45:21 GMT
+      - Fri, 28 Jun 2024 12:02:08 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -2188,9 +2760,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.8ef06e68.1718628321.17ca2628
+      - 0.4e24c317.1719576127.330d3959
       x-rh-edge-request-id:
-      - 17ca2628
+      - 330d3959
     status:
       code: 200
       message: OK
