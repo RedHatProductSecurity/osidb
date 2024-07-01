@@ -992,7 +992,7 @@ interactions:
       message: OK
 - request:
     body: '{"fields": {"labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
-      "impact:LOW"]}}'
+      "impact:IMPORTANT"]}}'
     headers:
       Accept:
       - application/json,*.*;q=0.9
@@ -1301,7 +1301,7 @@ interactions:
         null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/3",
         "iconUrl": "https://example.com/images/icons/priorities/major.svg", "name":
         "Major", "id": "3"}, "labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
-        "impact:LOW"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
+        "impact:IMPORTANT"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
         "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
@@ -1454,7 +1454,7 @@ interactions:
         null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/3",
         "iconUrl": "https://example.com/images/icons/priorities/major.svg", "name":
         "Major", "id": "3"}, "labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
-        "impact:LOW"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
+        "impact:IMPORTANT"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
         "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
@@ -2159,7 +2159,7 @@ interactions:
     body: '{"fields": {"issuetype": {"id": "17"}, "project": {"id": "12337520"}, "summary":
       "CVE-2020-10000 kernel: some description", "description": "Comment zero for
       CVE-2020-10000", "labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
-      "impact:LOW", "major_incident"], "priority": {"name": "Minor"}}}'
+      "impact:IMPORTANT", "major_incident"], "priority": {"name": "Minor"}}}'
     headers:
       Accept:
       - application/json,*.*;q=0.9
@@ -2284,7 +2284,7 @@ interactions:
         null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/4",
         "iconUrl": "https://example.com/images/icons/priorities/minor.svg", "name":
         "Minor", "id": "4"}, "labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
-        "impact:LOW", "major_incident"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
+        "impact:IMPORTANT", "major_incident"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
         "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
         "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
