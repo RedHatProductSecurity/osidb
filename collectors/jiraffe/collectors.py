@@ -89,8 +89,8 @@ class JiraTaskCollector(Collector):
             else "No Flaw were updated."
         )
 
-        if task_data is not None:
-            return f"Jira task sync of {task_data} completed"
+        if task_id is not None:
+            return f"Jira task sync of {task_id} completed"
 
         # when we get to the future with the period end
         # the initial sync is done and the data are complete
