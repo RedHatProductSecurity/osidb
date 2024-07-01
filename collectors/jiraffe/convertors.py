@@ -83,7 +83,6 @@ class JiraTaskConvertor:
             )
             return None
 
-        impact = ""
         flaw = None
         for label in self.task_data["labels"]:
             if label.startswith("flawuuid:"):
@@ -93,38 +92,28 @@ class JiraTaskConvertor:
                 except Flaw.DoesNotExist:
                     logger.error(f"Ignoring task with invalid flaw uuid ({flaw_uuid}).")
 
-            if label.startswith("impact:"):
-                impact = label.split(":")[1]
-
         if not flaw:
             logger.error(
                 f"Ignoring task ({self.task_data['external_system_id']}) without label containing flaw uuid."
             )
             return None
-
-        impact = impact if impact else flaw.impact
-
         # Avoid updating timestamp of flaws without real changes
         has_changes = flaw and (
-            flaw.impact != impact
-            or flaw.team_id != self.task_data["team_id"]
+            flaw.team_id != self.task_data["team_id"]
             or flaw.owner != self.task_data["owner"]
             or flaw.task_key != self.task_data["external_system_id"]
             or flaw.group_key != self.task_data["group_key"]
             or flaw.workflow_name != self.task_data["workflow_name"]
             or flaw.workflow_state != self.task_data["workflow_state"]
-            or flaw.impact != impact
         )
 
         if has_changes:
-            flaw.impact = impact
             flaw.team_id = self.task_data["team_id"]
             flaw.owner = self.task_data["owner"]
             flaw.task_key = self.task_data["external_system_id"]
             flaw.group_key = self.task_data["group_key"]
             flaw.workflow_name = self.task_data["workflow_name"]
             flaw.workflow_state = self.task_data["workflow_state"]
-            flaw.impact = impact
             return JiraTaskSaver(flaw)
         return None
 
@@ -134,7 +123,11 @@ class JiraTaskSaver:
         self.flaw = flaw
 
     def save(self):
-        self.flaw.save(jira_token=JIRA_AUTH_TOKEN, bz_api_key=BZ_API_KEY)
+        self.flaw.save(
+            bz_api_key=BZ_API_KEY,
+            jira_token=JIRA_AUTH_TOKEN,
+            raise_validation_error=False,
+        )
 
 
 class TrackerSaver:

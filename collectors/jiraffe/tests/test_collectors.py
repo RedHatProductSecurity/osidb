@@ -58,10 +58,10 @@ class TestJiraTaskCollector:
         assert f"flawuuid:{str(uuid)}" in issue["fields"]["labels"]
         assert f"impact:{Impact.IMPORTANT}" in issue["fields"]["labels"]
 
-        # Manually modify Jira task status and impact
+        # Manually modify Jira task status
         data = {
             "fields": {
-                "labels": [f"flawuuid:{str(uuid)}", f"impact:{Impact.LOW}"],
+                "labels": [f"flawuuid:{str(uuid)}", f"impact:{Impact.IMPORTANT}"],
             }
         }
         url = f"{jtq.jira_conn._get_url('issue')}/{flaw.task_key}"
@@ -73,14 +73,13 @@ class TestJiraTaskCollector:
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Refinement"
         assert f"flawuuid:{str(uuid)}" in issue["fields"]["labels"]
-        assert f"impact:{Impact.LOW}" in issue["fields"]["labels"]
+        assert f"impact:{Impact.IMPORTANT}" in issue["fields"]["labels"]
         assert not issue["fields"]["resolution"]
 
         collector.collect(flaw.task_key)
 
         # refresh instance
         flaw = Flaw.objects.get(uuid=flaw.uuid)
-        assert flaw.impact == Impact.LOW
         assert flaw.workflow_state == "TRIAGE"
 
 
