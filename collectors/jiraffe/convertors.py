@@ -134,7 +134,11 @@ class JiraTaskSaver:
         self.flaw = flaw
 
     def save(self):
-        self.flaw.save(jira_token=JIRA_AUTH_TOKEN, bz_api_key=BZ_API_KEY)
+        self.flaw.save(
+            bz_api_key=BZ_API_KEY,
+            jira_token=JIRA_AUTH_TOKEN,
+            raise_validation_error=False,
+        )
 
 
 class TrackerSaver:
