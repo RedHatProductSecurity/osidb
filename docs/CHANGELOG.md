@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Keep vulnerability-draft BZ component when rejecting flaw draft (OSIDB-3023)
 - Fix external sync order in serializers (OSIDB-3029)
+- Make Taskman service validate Jira token (OSIDB-2203)
 
 ## [4.1.0] - 2024-06-25
 ### Added
@@ -22,7 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Update the SLA policy
-- Make Taskman service validate Jira token (OSIDB-2203)
 
 ### Fixed
 - Workflow state of flaws without task automatically changes to 'NEW' (OSIDB-2989)
