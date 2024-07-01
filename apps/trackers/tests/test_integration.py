@@ -382,7 +382,7 @@ class TestTrackerAPI:
         )
 
         # 2) create tracker in OSIDB and Jira
-        tracker_data = {
+        tracker_data = {  # TODO?
             "affects": [affect.uuid],
             "embargoed": flaw.embargoed,
             "ps_update_stream": ps_update_stream.name,

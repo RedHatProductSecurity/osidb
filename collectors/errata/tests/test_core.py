@@ -303,7 +303,7 @@ class TestErrataToolCollection:
 
     @pytest.mark.default_cassette(JIRA_CASSETTE)
     @pytest.mark.vcr
-    def test_skip_linking_when_trackers_missing(
+    def test_skip_linking_when_trackers_missing(  # TODO?
         self, sample_erratum_with_jira_issues, sample_erratum_name
     ):
         """Test that a given (et_id, advisory_name) pair can have its data fetched, saved to the DB, and not linked"""
