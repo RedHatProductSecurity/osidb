@@ -268,6 +268,29 @@ class TestFlawModelIntegration(object):
         assert response.status_code == 200
         assert not flaw.task_key
 
+        # Update flaw with failing validations:
+        # it should not create any task
+        flaw = Flaw.objects.get(uuid=flaw.uuid)
+        response = auth_client().put(
+            f"{test_osidb_api_uri}/flaws/{flaw.uuid}",
+            {
+                "uuid": flaw.uuid,
+                "cve_id": flaw.cve_id,
+                "title": f"{flaw.title} appended test title",
+                "comment_zero": flaw.comment_zero,
+                "impact": flaw.impact,
+                "source": "",  # empty source should fail validations
+                "embargoed": False,
+                "updated_dt": flaw.updated_dt,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_api_key,
+            HTTP_JIRA_API_KEY=user_token,
+        )
+        assert "Source value is required" in str(response.content)
+        assert response.status_code == 400
+        assert not flaw.task_key
+
         # Now use the create_jira_task to force the creation of a task for the flaw
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         response = auth_client().put(
