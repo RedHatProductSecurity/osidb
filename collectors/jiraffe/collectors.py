@@ -78,10 +78,13 @@ class JiraTaskCollector(Collector):
 
         # process data
         for task_data in batch_data:
-            flaw = JiraTaskConvertor(task_data).flaw
-            if flaw:
-                self.save(flaw)
-                updated_tasks.append(task_data.key)
+            # perform this as a transaction to avoid
+            # collision between loading and saving the flaw
+            with transaction.atomic():
+                flaw = JiraTaskConvertor(task_data).flaw
+                if flaw:
+                    self.save(flaw)
+                    updated_tasks.append(task_data.key)
 
         logger.info(
             f"Flaws were updated for the following task IDs: {', '.join(updated_tasks)}"
