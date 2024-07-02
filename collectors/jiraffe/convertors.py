@@ -137,6 +137,7 @@ class JiraTaskSaver:
 
     def save(self):
         self.flaw.save(
+            auto_timestamps=False,
             bz_api_key=BZ_API_KEY,
             jira_token=JIRA_AUTH_TOKEN,
             raise_validation_error=False,
