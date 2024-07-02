@@ -169,6 +169,8 @@ class JiraTaskmanQuerier(JiraQuerier):
             Flaw.FlawMajorIncident.CISA_APPROVED,
         ]:
             labels.append("major_incident")
+        if flaw.cve_id:
+            labels.append(flaw.cve_id)
         if not flaw.cve_id or flaw.cve_id in flaw.title:
             summary = flaw.title
         else:
