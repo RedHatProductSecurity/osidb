@@ -290,7 +290,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
             project_key=self.ps_module.bts_key, field_name="Affects Version/s"
         )
         # project may or may not support versions so it is optional
-        if versions.exists() and self.ps_update_stream.version is not None:
+        if versions.exists() and self.ps_update_stream.version:
             self._query["fields"]["versions"] = [
                 {"name": self.ps_update_stream.version}
             ]

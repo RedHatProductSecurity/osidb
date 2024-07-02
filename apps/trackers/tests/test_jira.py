@@ -996,6 +996,69 @@ sla:
                 {"name": result_component}
             ]
 
+    @pytest.mark.parametrize(
+        "field_present,pd_version,generated_response,generated_version",
+        [
+            (True, "1.2.3", True, "1.2.3"),
+            (True, None, False, None),
+            (True, "", False, None),
+            (False, "1.2.3", False, None),
+            (False, None, False, None),
+            (False, "", False, None),
+        ],
+    )
+    def test_generate_version(
+        self, field_present, pd_version, generated_response, generated_version
+    ):
+        """
+        test that version is not generated for null/empty versions
+        """
+        if field_present:
+            JiraProjectFields(
+                project_key="FOOPROJECT",
+                field_id="versions",
+                field_name="Affects Version/s",
+                allowed_values=["1.2.3"],
+            ).save()
+
+        flaw = FlawFactory(
+            embargoed=False,
+            bz_id="123",
+            cve_id="CVE-2999-1000",
+            impact=Impact.MODERATE,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="some description",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module="foo-module",
+            ps_component="foo-component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=Impact.LOW,
+        )
+        ps_module = PsModuleFactory(
+            name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
+        )
+        stream = PsUpdateStreamFactory(
+            ps_module=ps_module, name="bar-1.2.3", version=pd_version
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=stream.name,
+            embargoed=flaw.is_embargoed,
+        )
+
+        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder._query = {"fields": {}}
+        query_builder.generate_versions()
+        if generated_response:
+            assert query_builder.query["fields"]["versions"] == [
+                {"name": generated_version}
+            ]
+        else:
+            assert "versions" not in query_builder.query["fields"]
+
 
 def validate_minimum_key_value(minimum: Dict[str, Any], evaluated: Dict[str, Any]):
     """
