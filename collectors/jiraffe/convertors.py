@@ -85,6 +85,19 @@ class JiraTaskConvertor:
 
         flaw = None
         for label in self.task_data["labels"]:
+            if CVE_RE_STR.match(label):
+                try:
+                    flaw = Flaw.objects.get(cve_id=label)
+                    # prioritize CVE ID over UUID if possible
+                    # so the linking is OSIDB instance independent
+                    # by immediately leaving the for cycle here
+                    break
+                except Flaw.DoesNotExist:
+                    logger.error(
+                        f"The task {self.task_data['external_system_id']} "
+                        f"has a label with unknown/non-existing CVE ID {label}."
+                    )
+
             if label.startswith("flawuuid:"):
                 flaw_uuid = label.split(":")[1]
                 try:
@@ -124,6 +137,7 @@ class JiraTaskSaver:
 
     def save(self):
         self.flaw.save(
+            auto_timestamps=False,
             bz_api_key=BZ_API_KEY,
             jira_token=JIRA_AUTH_TOKEN,
             raise_validation_error=False,

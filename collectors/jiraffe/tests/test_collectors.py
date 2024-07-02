@@ -1,4 +1,5 @@
 import json
+import uuid
 
 import pytest
 from django.utils import timezone
@@ -81,6 +82,21 @@ class TestJiraTaskCollector:
         # refresh instance
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         assert flaw.workflow_state == "TRIAGE"
+
+    @pytest.mark.vcr
+    def test_link_on_cve(self, monkeypatch):
+        monkeypatch.setattr(collectors, "JIRA_TOKEN", "SECRET")
+
+        # some random UUID
+        flaw = FlawFactory(cve_id="CVE-2024-34703")
+        # this is super-unprobable to happen but based
+        # on the review feedback I am adding the assert
+        assert flaw.uuid != uuid.UUID("9d9132a4-0484-48a5-b484-185abf39b771")
+        assert not flaw.task_key
+
+        collector = JiraTaskCollector()
+        collector.collect("OSIM-156")
+        assert Flaw.objects.get(uuid=flaw.uuid).task_key
 
 
 class TestJiraTrackerCollector:

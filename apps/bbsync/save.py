@@ -3,7 +3,7 @@ from datetime import datetime
 import requests
 from django.utils.timezone import make_aware
 
-from collectors.bzimport.collectors import BugzillaQuerier
+from collectors.bzimport.collectors import BugzillaQuerier, FlawCollector
 from osidb.constants import DATETIME_FMT
 from osidb.exceptions import DataInconsistencyException
 from osidb.models import Flaw
@@ -66,9 +66,27 @@ class BugzillaSaver(BugzillaQuerier):
         """
         update a bug underlying the model instance in Bugilla
         """
-        old_instance = self.model.objects.get(uuid=self.instance.uuid)
-        bugzilla_query_builder = self.query_builder(self.instance, old_instance)
-        self.check_collisions()  # check for collisions right before the update
+        try:
+            old_instance = self.model.objects.get(uuid=self.instance.uuid)
+            bugzilla_query_builder = self.query_builder(self.instance, old_instance)
+            self.check_collisions()  # check for collisions right before the update
+        except DataInconsistencyException:
+            if not isinstance(self.instance, Flaw):
+                raise
+
+            # to mitigate user discomfort and also possible service errors
+            # we handle the flaws more gently here attempting to resync
+            flaw_collector = FlawCollector()
+            flaw_collector.sync_flaw(self.instance.bz_id)
+
+            # resync from the DB and repeat the query building
+            old_instance = self.model.objects.get(uuid=self.instance.uuid)
+            self.instance.meta_attr = (
+                old_instance.meta_attr
+            )  # update metadata after refresh
+            bugzilla_query_builder = self.query_builder(self.instance, old_instance)
+            self.check_collisions()  # if still colliding then something is very wrong
+
         try:
             self.bz_conn.update_bugs(
                 [self.instance.bz_id], bugzilla_query_builder.query
