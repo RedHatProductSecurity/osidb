@@ -72,6 +72,7 @@ from .serializer import (
     TrackerSerializer,
     UserSerializer,
 )
+from .throttles import AffectUserRateThrottle
 from .validators import CVE_RE_STR
 
 # Use only for RudimentaryUserPathLoggingMixin
@@ -785,6 +786,7 @@ class AffectView(
     filterset_class = AffectFilter
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
+    throttle_classes = [AffectUserRateThrottle]
 
     @extend_schema(
         request=AffectBulkPutSerializer(many=True),

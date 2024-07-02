@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Implement message throttling in the API (OSIDB-894)
+
 ### Changed
 - special_handling_flaw_missing_cve_description Alert to
   special_consideration_flaw_missing_cve_description (OSIDB-2955)
