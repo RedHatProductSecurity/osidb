@@ -2729,11 +2729,13 @@ class FlawCommentManager(ACLMixinManager, TrackingMixinManager):
             # keeping the first instance deterministically keeps that one
             # instance even if this is also run multiple times concurrently.
 
-            f = FlawComment.objects.filter(
+            comments = FlawComment.objects.filter(
                 flaw=flaw, external_system_id=external_system_id
             )
+            comment_uuid = comments.first().uuid
             # "Cannot use 'limit' or 'offset' with delete", so can't do f[1:].delete()
-            f.exclude(uuid=f.first().uuid).delete()
+            comments.exclude(uuid=comment_uuid).delete()
+            return FlawComment.objects.get(uuid=comment_uuid)
         except ObjectDoesNotExist:
             return FlawComment(
                 flaw=flaw,
