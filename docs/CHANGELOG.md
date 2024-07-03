@@ -4,17 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [4.1.2] - 2024-07-03
 ### Added
-- extend flaw-task linking to primarily use the CVE ID
+- Extend flaw-task linking to primarily use the CVE ID
 
 ### Fixed
-- fix OSIDB-Bugzilla mid-air collision issues (OSIDB-3083)
+- Fix Jira task collector (OSIDB-3064)
+- Fix OSIDB-Bugzilla mid-air collision issues (OSIDB-3083)
 - Null version of PsUpdateStream is not sent to Jira when creating a tracker (OSIDB-3078)
 
 ## [4.1.1] - 2024-06-28
 ### Added
-- prefetch Alerts related models for each API endpoint (OSIDB-3053)
+- Prefetch Alerts related models for each API endpoint (OSIDB-3053)
 
 ### Fixed
 - Keep vulnerability-draft BZ component when rejecting flaw draft (OSIDB-3023)
