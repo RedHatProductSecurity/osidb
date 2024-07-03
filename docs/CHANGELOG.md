@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+- special_handling_flaw_missing_cve_description Alert to
+  special_consideration_flaw_missing_cve_description (OSIDB-2955)
+- special_handling_flaw_missing_statement Alert to
+  special_consideration_flaw_missing_statement (OSIDB-2955)
+
 ### Fixed
 - Fix duplicate comment issue leading in internal server error (OSIDB-3086)
 

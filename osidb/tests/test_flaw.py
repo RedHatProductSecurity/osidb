@@ -33,6 +33,7 @@ from osidb.tests.factories import (
     PsModuleFactory,
     PsProductFactory,
     PsUpdateStreamFactory,
+    SpecialConsiderationPackageFactory,
     TrackerFactory,
 )
 
@@ -2217,14 +2218,12 @@ class TestFlawValidators:
         else:
             assert entity.save() is None
 
-    def test_special_handling_modules(self):
+    def test_special_consideration_flaw(self):
         """
-        Test that flaw affecting special handling modules raise
-        alerts if missing statement or cve_description
+        Test that a flaw affecting special consideration packages(s) alerts when
+        missing cve_description or statement
         """
-        PsModuleFactory(
-            special_handling_features=["special-feature"], name="test-special-feature"
-        )
+        special_consideration_package = SpecialConsiderationPackageFactory()
 
         # Test that none of the models will raise alerts
         flaw1 = FlawFactory(
@@ -2233,14 +2232,14 @@ class TestFlawValidators:
             requires_cve_description=Flaw.FlawRequiresCVEDescription.NOVALUE,
             impact=Impact.LOW,
         )
-        AffectFactory(flaw=flaw1, ps_module="test-special-feature")
+        AffectFactory(flaw=flaw1, ps_component=special_consideration_package.name)
         flaw1.save()
 
         assert not flaw1.alerts.filter(
-            name="special_handling_flaw_missing_cve_description"
+            name="special_consideration_flaw_missing_cve_description"
         ).exists()
         assert not flaw1.alerts.filter(
-            name="special_handling_flaw_missing_statement"
+            name="special_consideration_flaw_missing_statement"
         ).exists()
 
         # Test from Flaw validation perspective
@@ -2249,21 +2248,21 @@ class TestFlawValidators:
         flaw1.save()
 
         assert flaw1.alerts.filter(
-            name="special_handling_flaw_missing_cve_description"
+            name="special_consideration_flaw_missing_cve_description"
         ).exists()
         assert flaw1.alerts.filter(
-            name="special_handling_flaw_missing_statement"
+            name="special_consideration_flaw_missing_statement"
         ).exists()
 
         # Test from Affect validation perspective
         flaw2 = FlawFactory(statement="", cve_description="", impact=Impact.LOW)
-        AffectFactory(flaw=flaw2, ps_module="test-special-feature")
+        AffectFactory(flaw=flaw2, ps_component=special_consideration_package.name)
 
         assert flaw2.alerts.filter(
-            name="special_handling_flaw_missing_cve_description"
+            name="special_consideration_flaw_missing_cve_description"
         ).exists()
         assert flaw2.alerts.filter(
-            name="special_handling_flaw_missing_statement"
+            name="special_consideration_flaw_missing_statement"
         ).exists()
 
     def test_validate_private_source_no_ack(
