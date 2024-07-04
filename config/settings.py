@@ -255,7 +255,11 @@ if DEBUG:
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-        }
+        },
+        # Used for tests which require a cache
+        "locmem": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        },
     }
 
 # Settings for the drf-spectacular package
