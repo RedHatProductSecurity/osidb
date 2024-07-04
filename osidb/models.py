@@ -1158,30 +1158,30 @@ class Flaw(
                 "OSIDB does not support write operations on placeholder flaws"
             )
 
-    def _validate_special_handling_modules(self):
+    def _validate_special_consideration_flaw(self):
         """
-        Alerts in case flaw affects a special handling module
-        but miss cve_description or statement
+        Checks that a flaw affecting special consideration package(s) has both
+        cve_description and statement
         """
-        if self.statement and self.cve_description:
+        if self.cve_description and self.statement:
             return
 
-        affected_modules = self.affects.values_list("ps_module")
-        special_modules = PsModule.objects.filter(
-            special_handling_features__isnull=False, name__in=affected_modules
-        )
-        if special_modules.exists():
+        affected_ps_components = self.affects.values_list("ps_component")
+        affected_special_consideration_packages = (
+            SpecialConsiderationPackage.objects.filter(name__in=affected_ps_components)
+        ).values_list("name", flat=True)
+        if affected_special_consideration_packages.exists():
             if not self.cve_description:
                 self.alert(
-                    "special_handling_flaw_missing_cve_description",
-                    f"Affected modules ({','.join(special_modules.values_list('name', flat=True))}) "
-                    "are marked as special handling but flaw does not contain cve_description.",
+                    "special_consideration_flaw_missing_cve_description",
+                    "Flaw affecting special consideration package(s) "
+                    f"{', '.join(affected_special_consideration_packages)} is missing cve_description.",
                 )
             if not self.statement:
                 self.alert(
-                    "special_handling_flaw_missing_statement",
-                    f"Affected modules ({','.join(special_modules.values_list('name', flat=True))}) "
-                    "are marked as special handling but flaw does not contain statement.",
+                    "special_consideration_flaw_missing_statement",
+                    "Flaw affecting special consideration package(s) "
+                    f"{', '.join(affected_special_consideration_packages)} is missing statement.",
                 )
 
     def _validate_private_source_no_ack(self):
@@ -1936,29 +1936,29 @@ class Affect(
                 f"and is marked as WONTREPORT, which can only be used with low or moderate impact."
             )
 
-    def _validate_special_handling_modules(self):
+    def _validate_special_consideration_flaw(self):
         """
-        Alerts in case flaw affects a special handling module
-        but miss cve_description or statement
+        Checks that a flaw affecting special consideration package(s) has both
+        cve_description and statement
         """
-        if not self.flaw or self.flaw.statement and self.flaw.cve_description:
+        if not self.flaw or (self.flaw.cve_description and self.flaw.statement):
             return
 
-        special_module = PsModule.objects.filter(
-            special_handling_features__isnull=False, name=self.ps_module
-        )
-        if special_module.exists():
+        affected_special_consideration_package = (
+            SpecialConsiderationPackage.objects.filter(name=self.ps_component)
+        ).values_list("name", flat=True)
+        if affected_special_consideration_package.exists():
             if not self.flaw.cve_description:
                 self.flaw.alert(
-                    "special_handling_flaw_missing_cve_description",
-                    f"Affected module ({special_module.first().name}) "
-                    "are marked as special handling but flaw does not contain cve_description.",
+                    "special_consideration_flaw_missing_cve_description",
+                    "Flaw affecting special consideration package "
+                    f"{affected_special_consideration_package} is missing cve_description.",
                 )
             if not self.flaw.statement:
                 self.flaw.alert(
-                    "special_handling_flaw_missing_statement",
-                    f"Affected module ({special_module.first().name}) "
-                    "are marked as special handling but flaw does not contain statement.",
+                    "special_consideration_flaw_missing_statement",
+                    "Flaw affecting special consideration package "
+                    f"{affected_special_consideration_package} is missing statement.",
                 )
 
     @property

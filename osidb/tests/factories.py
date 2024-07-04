@@ -30,6 +30,7 @@ from osidb.models import (
     PsProduct,
     PsUpdateStream,
     Snippet,
+    SpecialConsiderationPackage,
     Tracker,
 )
 
@@ -803,3 +804,13 @@ class ErratumFactory(BaseFactory):
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     updated_dt = factory.LazyAttribute(lambda f: f.created_dt)
     shipped_dt = factory.LazyAttribute(lambda f: f.created_dt)
+
+
+class SpecialConsiderationPackageFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = SpecialConsiderationPackage
+
+    name = factory.sequence(lambda n: f"component{n}")
+
+    def __new__(cls, *args, **kwargs) -> SpecialConsiderationPackage:
+        return super().__new__(*args, **kwargs)
