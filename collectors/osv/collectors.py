@@ -130,13 +130,12 @@ class OSVCollector(Collector):
                         continue
                     try:
                         created, updated = self.save_snippet(osv_id, cve_ids, content)
+                        new_count += created
+                        updated_count += updated
                     except Exception as exc:
                         logger.error(
                             f"Failed to save snippet data for {osv_id} (error: {exc}): {content}"
                         )
-                        continue
-                    new_count += created
-                    updated_count += updated
             except requests.exceptions.RequestException as exc:
                 logger.error(f"Failed to fetch OSV vulns for {ecosystem}: {exc}")
                 continue
