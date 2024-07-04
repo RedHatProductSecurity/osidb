@@ -2,10 +2,12 @@ import json
 
 import pytest
 from django.utils import timezone
+from jira.exceptions import JIRAError
 
+from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.workflow import WorkflowModel
 from collectors.framework.models import CollectorMetadata
-from collectors.nvd.collectors import NVDCollector
+from collectors.nvd.collectors import NVDCollector, NVDCollectorException
 from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource, Snippet
 from osidb.tests.factories import FlawCVSSFactory, FlawFactory, FlawReferenceFactory
 
@@ -388,3 +390,26 @@ class TestNVDCollector:
         flaws = Flaw.objects.filter(cve_id=cve_id, source=FlawSource.NVD)
 
         assert len(snippets) == len(flaws) == 0
+
+    @pytest.mark.vcr
+    def test_atomicity(self, monkeypatch):
+        """
+        Test that flaw is not created if any error occurs during the flaw creation.
+        """
+
+        def mock_create_or_update_task(self, flaw):
+            raise JIRAError(status_code=401)
+
+        monkeypatch.setattr(
+            JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
+        )
+
+        nvdc = NVDCollector()
+        nvdc.snippet_creation_enabled = True
+        nvdc.snippet_creation_start_date = None
+
+        with pytest.raises(NVDCollectorException):
+            nvdc.collect(cve="CVE-2024-2231")
+
+        assert Snippet.objects.all().count() == 1
+        assert Flaw.objects.all().count() == 0
