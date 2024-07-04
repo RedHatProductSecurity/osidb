@@ -142,9 +142,9 @@ class TestFlaw:
         assert affect2 in all_affects
 
         comment1 = FlawCommentFactory(flaw=vuln_1)
-        comment2 = FlawComment.objects.create_flawcomment(
-            vuln_1,
-            "9999991",
+        comment2 = FlawComment(
+            flaw=vuln_1,
+            external_system_id="9999991",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             text="some comment text",
@@ -610,26 +610,6 @@ class TestFlaw:
             f.major_incident_state = Flaw.FlawMajorIncident.APPROVED
             f.save()
             assert f.major_incident_start_dt == timezone.now()
-
-
-class TestFlawComment:
-    def test_multiple_objects_returned(self):
-        """
-        test that the MultipleObjectsReturned case of create_flawcomment is handled well
-        this is the reproducer for https://issues.redhat.com/browse/OSIDB-3086
-        """
-        flaw = FlawFactory()
-        flaw_comment = FlawCommentFactory(flaw=flaw)
-        FlawCommentFactory(
-            flaw=flaw, external_system_id=flaw_comment.external_system_id
-        )
-        assert (
-            FlawComment.objects.create_flawcomment(
-                flaw,
-                flaw_comment.external_system_id,
-            )
-            is not None
-        ), "FlawComment.create_flawcomment returned None"
 
 
 class TestImpact:

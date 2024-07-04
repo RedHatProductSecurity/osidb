@@ -1507,6 +1507,222 @@ class TestFlawConvertor:
             expected_start_dt = None
         assert flaw.major_incident_start_dt == expected_start_dt
 
+    def test_comments(self):
+        """
+        test comment conversion and test that once bzimport is deleted,
+        bifurcated comment history doesn't get synced from bz to osidb
+        """
+        flaw_bug = self.get_flaw_bug()
+        assert FlawComment.objects.count() == 0
+
+        # Simulate initial bzimport
+        bz_comment_1 = {
+            "text": "test comment",
+            "count": 1,
+            "id": 123,
+            "is_private": False,
+            "creator": "test@redhat.com",
+            "creation_time": "2010-07-12T11:27:47Z",
+        }
+
+        fbc = FlawConvertor(
+            flaw_bug,
+            [
+                bz_comment_1,
+            ],
+            None,
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        assert Flaw.objects.count() == 0
+        assert FlawComment.objects.count() == 0
+        flaw.save()
+        assert FlawComment.objects.count() == 1
+
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.cve_id == "CVE-2000-1234"
+
+        comment = FlawComment.objects.get(external_system_id=123)
+
+        assert comment.external_system_id == "123"
+        assert comment.text == "test comment"
+        assert comment.synced_to_bz is True
+        assert comment.flaw == flaw
+
+        # Creating a new comment in OSIDB
+        FlawComment(
+            order=2,
+            external_system_id="",
+            text="test comment 2",
+            synced_to_bz=False,
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
+            flaw=flaw,
+        ).save()
+        assert FlawComment.objects.count() == 2
+
+        # bzimport will not do anything with the comment, it exists only in OSIDB
+        fbc = FlawConvertor(
+            flaw_bug,
+            [
+                bz_comment_1,
+            ],
+            None,
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        assert Flaw.objects.count() == 1
+        assert FlawComment.objects.count() == 2
+        flaw.save()
+        assert Flaw.objects.count() == 1
+        assert FlawComment.objects.count() == 2
+        flaw = Flaw.objects.first()
+
+        comment = FlawComment.objects.get(external_system_id=123)
+
+        assert comment.external_system_id == "123"
+        assert comment.text == "test comment"
+        assert comment.synced_to_bz is True
+        assert comment.flaw == flaw
+
+        comment = FlawComment.objects.get(order=2)
+
+        assert comment.external_system_id == ""
+        assert comment.text == "test comment 2"
+        assert comment.synced_to_bz is False  # not synced TO nor FROM bz
+        assert comment.flaw == flaw
+
+        comment_2_uuid = comment.uuid
+
+        # Simulating bbsync and bzimport obtaining an external_system_id for the
+        # second comment created in OSIDB and synced to BZ
+        bz_comment_2 = {
+            "text": "test comment 2",
+            "count": 2,
+            "id": 124,
+            "is_private": False,
+            "creator": "test@redhat.com",
+            "creation_time": "2010-07-12T11:27:48Z",
+        }
+
+        # bzimport will not do anything with the first comment and will update
+        # the second comment in place
+        fbc = FlawConvertor(
+            flaw_bug,
+            [
+                bz_comment_1,
+                bz_comment_2,
+            ],
+            None,
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        assert Flaw.objects.count() == 1
+        assert FlawComment.objects.count() == 2
+        flaw.save()
+        assert Flaw.objects.count() == 1
+        assert FlawComment.objects.count() == 2
+        flaw = Flaw.objects.first()
+
+        comment = FlawComment.objects.get(external_system_id=123)
+
+        assert comment.external_system_id == "123"
+        assert comment.text == "test comment"
+        assert comment.synced_to_bz is True
+        assert comment.flaw == flaw
+
+        comment = FlawComment.objects.get(order=2)
+
+        assert comment.external_system_id == "124"  # updated
+        assert comment.text == "test comment 2"
+        assert comment.synced_to_bz is True  # switched by bzimport
+        assert comment.flaw == flaw
+        assert comment.uuid == comment_2_uuid
+
+        # Creating another new comment in OSIDB
+        FlawComment(
+            order=3,
+            external_system_id="",
+            text="test comment 3",
+            synced_to_bz=False,
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
+            flaw=flaw,
+        ).save()
+        assert FlawComment.objects.count() == 3
+
+        # Simulating new BZ comments when bzimport was already turned off,
+        # bifurcating comment history
+        bz_comment_3 = {
+            "text": "test comment bz 3",
+            "count": 3,
+            "id": 125,
+            "is_private": False,
+            "creator": "test@redhat.com",
+            "creation_time": "2010-07-12T11:27:49Z",
+        }
+
+        bz_comment_4 = {
+            "text": "test comment bz 4",
+            "count": 4,
+            "id": 126,
+            "is_private": False,
+            "creator": "test@redhat.com",
+            "creation_time": "2010-07-12T11:27:50Z",
+        }
+
+        # bzimport will not do anything with the existing OSIDB comments and will skip
+        # BZ comments since the bifurcation point
+        fbc = FlawConvertor(
+            flaw_bug,
+            [
+                bz_comment_1,
+                bz_comment_2,
+                bz_comment_3,
+                bz_comment_4,
+            ],
+            None,
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        assert Flaw.objects.count() == 1
+        assert FlawComment.objects.count() == 3
+        flaw.save()
+        assert Flaw.objects.count() == 1
+        assert FlawComment.objects.count() == 3
+        flaw = Flaw.objects.first()
+
+        comment = FlawComment.objects.get(external_system_id=123)
+
+        assert comment.external_system_id == "123"
+        assert comment.text == "test comment"
+        assert comment.synced_to_bz is True
+        assert comment.flaw == flaw
+
+        comment = FlawComment.objects.get(order=2)
+
+        assert comment.external_system_id == "124"
+        assert comment.text == "test comment 2"
+        assert comment.synced_to_bz is True
+        assert comment.flaw == flaw
+        assert comment.uuid == comment_2_uuid
+
+        comment = FlawComment.objects.get(order=3)
+
+        assert comment.external_system_id == ""
+        assert comment.text == "test comment 3"
+        assert comment.synced_to_bz is False
+        assert comment.flaw == flaw
+
 
 class TestFlawConvertorFixedIn:
     def init_models(self, fixed_in):

@@ -18,7 +18,6 @@ from django.contrib.postgres.search import (
 )
 from django.core.exceptions import (
     FieldDoesNotExist,
-    MultipleObjectsReturned,
     ObjectDoesNotExist,
     ValidationError,
 )
@@ -2702,48 +2701,6 @@ class Erratum(TrackingMixin):
         return str(self.advisory_name)
 
 
-class FlawCommentManager(ACLMixinManager, TrackingMixinManager):
-    """flawcomment manager"""
-
-    def pending(self):
-        """
-        Get new pending comments that are about to be submitted to bugzilla.
-        """
-        return super().get_queryset().filter(external_system_id="")
-
-    @staticmethod
-    def create_flawcomment(flaw, external_system_id, **extra_fields):
-        """return a new flawcomment or update an existing flawcomment without saving"""
-        try:
-            flawcomment = FlawComment.objects.get(
-                flaw=flaw,
-                external_system_id=external_system_id,
-            )
-            for attr, value in extra_fields.items():
-                setattr(flawcomment, attr, value)
-            return flawcomment
-        except MultipleObjectsReturned:
-            # When sync is run multiple times concurrently, each thread may
-            # create a new instance for the same comment. On a followup sync
-            # we see this. Because FlawComments are ordered by uuid, always
-            # keeping the first instance deterministically keeps that one
-            # instance even if this is also run multiple times concurrently.
-
-            comments = FlawComment.objects.filter(
-                flaw=flaw, external_system_id=external_system_id
-            )
-            comment_uuid = comments.first().uuid
-            # "Cannot use 'limit' or 'offset' with delete", so can't do f[1:].delete()
-            comments.exclude(uuid=comment_uuid).delete()
-            return FlawComment.objects.get(uuid=comment_uuid)
-        except ObjectDoesNotExist:
-            return FlawComment(
-                flaw=flaw,
-                external_system_id=external_system_id,
-                **extra_fields,
-            )
-
-
 class FlawComment(
     ACLMixin,
     BugzillaSyncMixin,
@@ -2756,6 +2713,9 @@ class FlawComment(
 
     # external comment id
     external_system_id = models.CharField(max_length=100, blank=True)
+
+    # For bbsync/query.py to mark whether it was sent to BZ
+    synced_to_bz = models.BooleanField(default=False)
 
     # explicitly define comment ordering, from BZ comment 'count'
     order = models.IntegerField(null=True)
@@ -2774,8 +2734,6 @@ class FlawComment(
     # one flaw can have many comments
     flaw = models.ForeignKey(Flaw, on_delete=models.CASCADE, related_name="comments")
 
-    objects = FlawCommentManager()
-
     def __str__(self):
         return str(self.uuid)
 
@@ -2791,6 +2749,14 @@ class FlawComment(
 
         indexes = TrackingMixin.Meta.indexes + [
             GinIndex(fields=["acl_read"]),
+        ]
+
+        # Ensure that it's not possible to have two bzimports running concurrently
+        # and succeed while creating numbering conditions impossible to handle later.
+        constraints = [
+            models.UniqueConstraint(
+                fields=["flaw", "order"], name="unique_per_flaw_comment_nums"
+            ),
         ]
 
     def bzsync(self, *args, bz_api_key=None, **kwargs):

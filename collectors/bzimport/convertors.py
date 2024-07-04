@@ -6,7 +6,6 @@ import logging
 import re
 import uuid
 from collections import defaultdict
-from datetime import timedelta
 from functools import cached_property
 
 from django.conf import settings
@@ -831,45 +830,113 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         return [affects, affects_cvss_scores]
 
     def get_comments(self, flaw):
-        """get FlawComment Django models"""
-        # Delete orphaned / temporary comments
-        # TODO & WARNING: If fetch from bz is disabled, sync to bz is disabled,
-        #                 pending comments accumulate and then fetch from bz is
-        #                 enabled, the pending comments get deleted, which will
-        #                 look like data loss.
-        # <hack>
-        # Therefore, limit the potential data loss to the past minute.
-        # TODO: This should be rectified by completely rewriting the comments functionality:
-        #       - Creating comments should just save to DB without any comm with BZ
-        #       - An independent thing saves comments to BZ on a best-effort basis
-        #         without redownloading
-        #       - Nothing ever loads data from BZ to OSIDB
-        past_minute = timezone.now() - timedelta(minutes=1)
-        # </hack>
-        FlawComment.objects.pending().filter(flaw=flaw).filter(
-            created_dt__gte=past_minute
-        ).delete()
-        return [
-            FlawComment.objects.create_flawcomment(
-                flaw,
-                comment["id"],
-                created_dt=timezone.datetime.strptime(
-                    comment["creation_time"], BZ_DT_FMT
-                ),
-                # comment modifications are complicated to parse
-                # so let us simply duplicate the creation ones
-                updated_dt=timezone.datetime.strptime(
-                    comment["creation_time"], BZ_DT_FMT
-                ),
-                order=comment["count"],
-                text=comment["text"],
-                creator=comment["creator"],
-                is_private=comment.get("is_private", False),
-                acl_read=self.acl_read,
-                acl_write=self.acl_write,
-            )
-            for comment in self.flaw_comments
-        ]
+        """
+        Get new and in-place updated FlawComment Django models for saving with the Flaw.
+        - Comments are iterated from number zero, those with identical text between
+          OSIDB & BZ are updated in-place, as long as a diverging comment has not been
+          encountered (then the update stops, after that point, pairing the comments
+          would be ambiguous and error-prone).
+        - If no diverging comment has been encountered, new comments existing only in BZ
+          are created as new FlawComment models.
+        - If a diverging comment has been encountered, the sync stops there, the rest of
+          the BZ comments (with equal and higher "count") are ignored, and for the rest of
+          OSIDB comments only ACLs are updated.
+        """
+
+        # Historically, OSIDB has always allowed comment numbers to have holes,
+        # e.g. 0, 3, 5, 6, 7. This can be caused by the BZ user not having permissions
+        # to the given comments. It is beside the point whether we should allow that
+        # or not because this has always been the state of the OSIDB data as of 2024-07
+        # when get_comments is heavily changed.
+        # Moreover, a large number of tests depend on that and there's no resources
+        # to fix those tests as of 2024-07.
+        dict_database = {c.order: c for c in FlawComment.objects.filter(flaw=flaw)}
+        dict_bugzilla = {c["count"]: c for c in self.flaw_comments}
+
+        max_database = max(dict_database.keys() or [-1])
+        max_bugzilla = max(dict_bugzilla.keys() or [-1])
+
+        max_common = min([max_database, max_bugzilla])
+
+        comments_to_save = []
+
+        for i in range(max([max_database, max_bugzilla]) + 1):
+            if i <= max_common:
+                db_comment = dict_database.get(i)
+                bz_comment = dict_bugzilla.get(i)
+
+                if db_comment is None and bz_comment is None:
+                    # Both contain the same hole, assume no history bifurcation at this point.
+                    pass
+
+                elif db_comment.text == bz_comment.get("text"):
+                    # Identical comments both in OSIDB and BZ, just update OSIDB from BZ.
+
+                    db_comment.external_system_id = bz_comment["id"]
+                    # Since it is IN BZ, and we're getting it FROM BZ, there's no point to
+                    # sending it back TO BZ, so we can say it's already synced to BZ.
+                    db_comment.synced_to_bz = True
+                    db_comment.created_dt = timezone.datetime.strptime(
+                        bz_comment["creation_time"], BZ_DT_FMT
+                    )
+                    # comment modifications are complicated to parse
+                    # so let us simply duplicate the creation ones
+                    db_comment.updated_dt = timezone.datetime.strptime(
+                        bz_comment["creation_time"], BZ_DT_FMT
+                    )
+                    db_comment.creator = bz_comment["creator"]
+                    db_comment.is_private = bz_comment.get("is_private", False)
+                    db_comment.acl_read = self.acl_read
+                    db_comment.acl_write = self.acl_write
+                    comments_to_save.append(db_comment)
+                else:
+                    # Reached the end of comments created while bzimport was active.
+                    # It means that bzimport has been disabled and the histories diverged.
+                    # Send the rest of the DB version comments for processing as is.
+                    for j in range(i, max_database + 1):
+                        db_comment = dict_database.get(j)
+                        if db_comment is not None:
+                            db_comment.acl_read = self.acl_read
+                            db_comment.acl_write = self.acl_write
+                            comments_to_save.append(db_comment)
+                    # And stop, since the rest of the BZ comments is irrelevant now.
+                    # Those are from a time after disabling bzimport and letting the
+                    # histories diverge.
+                    break
+            else:
+                # Reaching this means that histories didn't diverge yet (just one side is incomplete).
+                if i > max_bugzilla:
+                    # New comment(s) added in OSIDB without syncing to bugzilla
+                    # (maybe bbsync failed, maybe bbsync was disabled).
+                    pass
+                else:  # i > max_database
+                    # This means bzimport is either still active or that it was disabled and new
+                    # comments weren't made in OSIDB yet since disabling.
+                    bz_comment = dict_bugzilla.get(i)
+                    if bz_comment is not None:
+                        new_comment = FlawComment(
+                            flaw=flaw,
+                            external_system_id=bz_comment["id"],
+                            # Since it is IN BZ, and we're getting it FROM BZ, there's no point to
+                            # sending it back TO BZ, so we can say it's already synced to BZ.
+                            synced_to_bz=True,
+                            created_dt=timezone.datetime.strptime(
+                                bz_comment["creation_time"], BZ_DT_FMT
+                            ),
+                            # comment modifications are complicated to parse
+                            # so let us simply duplicate the creation ones
+                            updated_dt=timezone.datetime.strptime(
+                                bz_comment["creation_time"], BZ_DT_FMT
+                            ),
+                            order=bz_comment["count"],
+                            text=bz_comment["text"],
+                            creator=bz_comment["creator"],
+                            is_private=bz_comment.get("is_private", False),
+                            acl_read=self.acl_read,
+                            acl_write=self.acl_write,
+                        )
+                        comments_to_save.append(new_comment)
+        return comments_to_save
 
     def get_flaw(self, cve_id, full_match=False):
         """get Flaw Django model"""

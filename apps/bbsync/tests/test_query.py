@@ -1239,22 +1239,27 @@ class TestGenerateComment:
         test generating a new comment
         """
         flaw = FlawFactory()
-        assert FlawComment.objects.pending().count() == 0
         FlawCommentFactory(
             flaw=flaw,
             text="Hello World",
             external_system_id="",
+            synced_to_bz=False,
             created_dt=timezone.now(),
             updated_dt=timezone.now(),
             is_private=is_private,
         )
-        assert FlawComment.objects.pending().count() == 1
+        orig_updated_dt = FlawComment.objects.get(external_system_id="").updated_dt
+        assert FlawComment.objects.get(external_system_id="").synced_to_bz is False
 
         bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["comment"] == {
             "body": "Hello World",
             "is_private": is_private,
         }
+        assert FlawComment.objects.get(external_system_id="").synced_to_bz is True
+        assert (
+            FlawComment.objects.get(external_system_id="").updated_dt == orig_updated_dt
+        )
 
 
 class TestGenerateFlags:

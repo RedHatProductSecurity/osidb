@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fix duplicate comment issue leading in internal server error (OSIDB-3086)
+- Handle flaw comments with&without bzimport or bifurcated history (OSIDB-3030)
 
 ## [4.1.2] - 2024-07-03
 ### Added
