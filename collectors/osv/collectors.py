@@ -7,6 +7,7 @@ from zipfile import ZipFile
 import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db import transaction
 from django.utils import dateparse, timezone
 
 from apps.taskman.constants import JIRA_AUTH_TOKEN
@@ -18,6 +19,10 @@ from osidb.models import FlawCVSS, FlawReference, Snippet
 from osidb.validators import CVE_RE_STR
 
 logger = get_task_logger(__name__)
+
+
+class OSVCollectorException(Exception):
+    """exception for OSV Collector"""
 
 
 class OSVCollector(Collector):
@@ -106,7 +111,15 @@ class OSVCollector(Collector):
             # Surface an exception when collecting an individual OSV vulnerability
             osv_vuln = self.fetch_osv_vuln_by_id(osv_id)
             osv_id, cve_ids, content = self.extract_content(osv_vuln)
-            self.save_snippet(osv_id, cve_ids, content)
+
+            try:
+                with transaction.atomic():
+                    self.save_snippet(osv_id, cve_ids, content)
+            except Exception as exc:
+                message = f"Failed to save snippet and flaw for {osv_id}. Error: {exc}."
+                logger.error(message)
+                raise OSVCollectorException(message) from exc
+
             return f"OSV collection for {osv_id} was successful."
 
         for ecosystem in self.SUPPORTED_OSV_ECOSYSTEMS:
@@ -129,13 +142,18 @@ class OSVCollector(Collector):
                     ):
                         continue
                     try:
-                        created, updated = self.save_snippet(osv_id, cve_ids, content)
-                        new_count += created
-                        updated_count += updated
+                        with transaction.atomic():
+                            created, updated = self.save_snippet(
+                                osv_id,
+                                cve_ids,
+                                content,
+                            )
+                            new_count += created
+                            updated_count += updated
                     except Exception as exc:
-                        logger.error(
-                            f"Failed to save snippet data for {osv_id} (error: {exc}): {content}"
-                        )
+                        message = f"Failed to save snippet and flaw for {osv_id}. Error: {exc}."
+                        logger.error(message)
+                        raise OSVCollectorException(message) from exc
             except requests.exceptions.RequestException as exc:
                 logger.error(f"Failed to fetch OSV vulns for {ecosystem}: {exc}")
                 continue

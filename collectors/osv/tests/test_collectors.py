@@ -2,8 +2,10 @@ import json
 
 import pytest
 from django.utils.timezone import datetime, make_aware
+from jira.exceptions import JIRAError
 
-from collectors.osv.collectors import OSVCollector
+from apps.taskman.service import JiraTaskmanQuerier
+from collectors.osv.collectors import OSVCollector, OSVCollectorException
 from osidb.models import Flaw, Snippet
 from osidb.tests.factories import FlawFactory
 
@@ -109,3 +111,24 @@ class TestOSVCollector:
         osvc.collect(osv_id="GO-2023-1602")  # published in 2023
         assert Snippet.objects.count() == 0
         assert Flaw.objects.count() == 0
+
+    @pytest.mark.vcr
+    def test_atomicity(self, monkeypatch):
+        """Test that flaw and snippet are not created if any error occurs during the flaw creation."""
+
+        def mock_create_or_update_task(self, flaw):
+            raise JIRAError(status_code=401)
+
+        monkeypatch.setattr(
+            JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
+        )
+
+        osvc = OSVCollector()
+        osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = None
+
+        with pytest.raises(OSVCollectorException):
+            osvc.collect(osv_id="GO-2023-1602")
+
+        assert Snippet.objects.all().count() == 0
+        assert Flaw.objects.all().count() == 0
