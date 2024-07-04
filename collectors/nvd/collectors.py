@@ -3,6 +3,7 @@ from typing import Union
 import nvdlib
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db import transaction
 from django.utils import dateparse, timezone
 from nvdlib.classes import CVE
 
@@ -15,6 +16,10 @@ from osidb.core import set_user_acls
 from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
 
 logger = get_task_logger(__name__)
+
+
+class NVDCollectorException(Exception):
+    """exception for NVD Collector"""
 
 
 class NVDQuerier:
@@ -271,10 +276,16 @@ class NVDCollector(Collector, NVDQuerier):
                         snippet.save()
                         new_snippets.append(cve_id)
 
-                if snippet and snippet.convert_snippet_to_flaw(
-                    jira_token=JIRA_AUTH_TOKEN
-                ):
-                    new_flaws.append(cve_id)
+                try:
+                    with transaction.atomic():
+                        if snippet and snippet.convert_snippet_to_flaw(
+                            jira_token=JIRA_AUTH_TOKEN
+                        ):
+                            new_flaws.append(cve_id)
+                except Exception as exc:
+                    message = f"Failed to save flaw for {cve_id}. Error: {exc}."
+                    logger.error(message)
+                    raise NVDCollectorException(message) from exc
 
         changes = (
             f"Updated CVEs due to changes in CVSS scores assigned by NIST: "
