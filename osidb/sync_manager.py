@@ -531,12 +531,20 @@ class JiraTrackerLinkManager(SyncManager):
                     flaws.add(flaw)
 
         # 2) linking from the tracker side
-        for label in tracker.meta_attr["labels"]:
+        for label in json.loads(tracker.meta_attr["labels"]):
             if CVE_RE_STR.match(label):
                 try:
                     flaws.add(Flaw.objects.get(cve_id=label))
                 except Flaw.DoesNotExist:
                     failed_flaws.append(label)
+                    continue
+
+            if label.startswith("flawuuid:"):
+                flaw_uuid = label.split(":")[1]
+                try:
+                    flaws.add(Flaw.objects.get(uuid=flaw_uuid))
+                except Flaw.DoesNotExist:
+                    failed_flaws.append(flaw_uuid)
                     continue
 
             if match := JIRA_BZ_ID_LABEL_RE.match(label):
