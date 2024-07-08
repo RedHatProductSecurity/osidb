@@ -12,6 +12,10 @@ echo "Waiting for osidb-data:5432 to become available"
 while ! ( poormans_pg_isready ) ; do echo -n "." ; sleep 2 ; done
 echo
 
+echo "Waiting for http://osidb-service:8000/osidb/healthy to become available"
+while ! ( { curl -f http://osidb-service:8000/osidb/healthy >/dev/null 2>&1 || exit 1 ; } ) ; do echo -n "." ; sleep 2 ; done
+echo
+
 # Postgresql makes the port available after the db is available, but wait some more to be sure. This can be removed if the real pg_isready is used.
 sleep 2
 
