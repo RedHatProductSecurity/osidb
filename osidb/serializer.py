@@ -978,7 +978,6 @@ class AffectSerializer(
     TrackingMixinSerializer,
     IncludeExcludeFieldsMixin,
     IncludeMetaAttrMixin,
-    BugzillaAPIKeyMixin,
     JiraAPIKeyMixin,
     HistoryMixinSerializer,
 ):
@@ -1491,7 +1490,6 @@ class FlawSerializer(
     WorkflowModelSerializer,
     IncludeExcludeFieldsMixin,
     IncludeMetaAttrMixin,
-    BugzillaAPIKeyMixin,
     JiraAPIKeyMixin,
     AlertMixinSerializer,
     HistoryMixinSerializer,
