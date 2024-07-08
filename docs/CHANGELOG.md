@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - special_handling_flaw_missing_statement Alert to
   special_consideration_flaw_missing_statement (OSIDB-2955)
 - Allow setting empty impact value on flaw (OSIDB-3128)
+- Temporarily move has trackers workflow requirement (OSIDB-3098)
 
 ### Fixed
 - Fix duplicate comment issue leading in internal server error (OSIDB-3086)
