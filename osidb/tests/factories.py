@@ -327,6 +327,7 @@ class FlawCommentFactory(factory.django.DjangoModelFactory):
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     updated_dt = factory.Faker("date_time", tzinfo=UTC)
     external_system_id = factory.sequence(lambda n: f"fake-external-id{n}")
+    synced_to_bz = False
 
     # let us inherit the parent flaw ACLs if not specified
     acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)

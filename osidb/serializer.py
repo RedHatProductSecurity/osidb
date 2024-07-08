@@ -1785,9 +1785,8 @@ class FlawCommentSerializer(
         """
         Create FlawComment instance by deserializing input.
 
-        Force empty external_system_id to force submitting and redownloading
-        the new comment through bugzilla. Force sequential order so that the
-        redownloaded comment continues to be the same instance (uuid).
+        Force sequential order. This is required by bzimport. Also makes
+        ordering exact.
         """
 
         flaw = validated_data["flaw"]

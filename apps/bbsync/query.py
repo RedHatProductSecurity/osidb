@@ -1,5 +1,8 @@
 import json
+from datetime import timedelta
 from itertools import chain
+
+from django.utils import timezone
 
 from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
 from osidb.helpers import cve_id_comparator
@@ -411,14 +414,31 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         self._query["cf_srtnotes"] = srt_notes_builder.content
 
     def generate_comment(self):
-        pending_comments = FlawComment.objects.pending().filter(flaw=self.flaw)
+        """
+        Performs best-effort sending of new comments to bugzilla.
+        Assumes that when a comment is created via API, the processing is quick enough to
+        reach this point within 20 seconds.
+        If a comment doesn't get sent but is committed to the database, it's not resent later.
+        """
+        # If for some reason a comment doesn't get sent to BZ (e.g. disabling bbsync temporarily),
+        # avoid sending it once the comment is old (that would create confusion in BZ).
+        past_20s = timezone.now() - timedelta(seconds=20)
 
-        if pending_comments.exists():
-            comment = pending_comments.first()
+        pending_comment = (
+            FlawComment.objects.filter(flaw=self.flaw)
+            .filter(external_system_id="")
+            .filter(synced_to_bz=False)
+            .filter(created_dt__gte=past_20s)
+            .last()
+        )
+
+        if pending_comment:
             self._query["comment"] = {
-                "body": comment.text,
-                "is_private": comment.is_private,
+                "body": pending_comment.text,
+                "is_private": pending_comment.is_private,
             }
+            pending_comment.synced_to_bz = True
+            pending_comment.save(auto_timestamps=False)
 
     def generate_fixed_in(self):
         """

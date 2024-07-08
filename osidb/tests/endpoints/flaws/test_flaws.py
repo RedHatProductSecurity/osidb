@@ -1633,9 +1633,9 @@ class TestEndpointsFlaws:
         assert FlawComment.objects.filter(flaw=flaw).exists()
         first_comment = FlawComment.objects.filter(flaw=flaw).first()
         assert first_comment.text == "HELLO WORLD COMMENT"
-        # In a real-world non-test scenario, the new comment would not be pending anymore and the
-        # following assert would fail:
-        assert first_comment == FlawComment.objects.pending().filter(flaw=flaw).first()
+        # In a real-world non-test scenario, the new comment's external_system_id might or might
+        # not get updated by bzimport, but in this test, there's no bzimport.
+        assert first_comment == FlawComment.objects.get(external_system_id="")
 
         # Behaves like an ordinary non-idempotent POST endpoint. You can just simply post comments.
         response = get_response(flaw, "ANOTHER HELLO WORLD COMMENT")
