@@ -2375,6 +2375,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             # fetch from Bugzilla
             btc = BugzillaTrackerCollector()
             btc.sync_tracker(self.external_system_id)
+            BZTrackerLinkManager.link_tracker_with_affects(self.external_system_id)
 
         # check Jira conditions are met
         elif (
@@ -2394,6 +2395,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             # fetch from Jira
             jtc = JiraTrackerCollector()
             jtc.collect(self.external_system_id)
+            JiraTrackerLinkManager.link_tracker_with_affects(self.external_system_id)
 
         # regular save otherwise
         else:

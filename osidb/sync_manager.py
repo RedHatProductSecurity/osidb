@@ -446,6 +446,7 @@ class BZTrackerLinkManager(SyncManager):
         with transaction.atomic():
             tracker.affects.clear()
             tracker.affects.add(*affects)
+            tracker.save(raise_validation_error=False, auto_timestamps=False)
 
         return affects, failed_flaws, failed_affects
 
@@ -582,6 +583,7 @@ class JiraTrackerLinkManager(SyncManager):
         with transaction.atomic():
             tracker.affects.clear()
             tracker.affects.add(*affects)
+            tracker.save(raise_validation_error=False, auto_timestamps=False)
 
         return affects, failed_flaws, failed_affects
 
