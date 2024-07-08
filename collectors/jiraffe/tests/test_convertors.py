@@ -5,6 +5,7 @@ import pytest
 from collectors.jiraffe.convertors import JiraTrackerConvertor
 from collectors.jiraffe.core import JiraQuerier
 from osidb.models import Affect, Tracker
+from osidb.sync_manager import JiraTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -77,6 +78,7 @@ class TestJiraTrackerConvertor:
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker_convertor.tracker.save()
+        JiraTrackerLinkManager.link_tracker_with_affects(self.tracker_id)
 
         tracker = Tracker.objects.get(external_system_id=self.tracker_id)
         assert not flaw.meta_attr.get("jira_trackers")
@@ -111,6 +113,7 @@ class TestJiraTrackerConvertor:
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker_convertor.tracker.save()
+        JiraTrackerLinkManager.link_tracker_with_affects(self.tracker_id)
 
         tracker = Tracker.objects.get(external_system_id=self.tracker_id)
         assert tracker.external_system_id in [
@@ -135,11 +138,15 @@ class TestJiraTrackerConvertor:
             embargoed=False,
             meta_attr={"jira_trackers": json.dumps([{"key": self.tracker_id}])},
         )
-        PsUpdateStreamFactory(name="amq-7.1")
+        ps_module = PsModuleFactory(name="amq-7")
+        PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
 
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker_convertor.tracker.save()
+        _, _, failed_affects = JiraTrackerLinkManager.link_tracker_with_affects(
+            self.tracker_id
+        )
 
         tracker = Tracker.objects.get(external_system_id=self.tracker_id)
         assert tracker.external_system_id in [
@@ -152,8 +159,8 @@ class TestJiraTrackerConvertor:
             "flaw:bz#" in label for label in json.loads(tracker.meta_attr["labels"])
         )
         assert tracker.affects.count() == 0
-        assert tracker.alerts
-        assert "tracker_no_affect" in tracker.alerts.values_list("name", flat=True)
+        assert failed_affects
+        assert (None, ps_module.name, "elasticsearch") in failed_affects
 
     @pytest.mark.vcr
     def test_convert_linked_from_tracker_side_cve(self):
@@ -178,6 +185,7 @@ class TestJiraTrackerConvertor:
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker_convertor.tracker.save()
+        JiraTrackerLinkManager.link_tracker_with_affects(self.tracker_id)
 
         tracker = Tracker.objects.get(external_system_id=self.tracker_id)
         assert not flaw.meta_attr.get("jira_trackers")
@@ -199,10 +207,13 @@ class TestJiraTrackerConvertor:
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker_convertor.tracker.save()
+        _, failed_flaws, _ = JiraTrackerLinkManager.link_tracker_with_affects(
+            self.tracker_id
+        )
 
-        tracker = Tracker.objects.get(external_system_id=self.tracker_id)
-        assert tracker.alerts
-        assert "tracker_no_flaw" in tracker.alerts.values_list("name", flat=True)
+        assert failed_flaws
+        assert "12345" in failed_flaws
+        assert "CVE-2014-3130" in failed_flaws
 
     @pytest.mark.vcr
     def test_convert_linked_from_tracker_side_bz_id(self):
@@ -227,6 +238,7 @@ class TestJiraTrackerConvertor:
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker_convertor.tracker.save()
+        JiraTrackerLinkManager.link_tracker_with_affects(self.tracker_id)
 
         tracker = Tracker.objects.get(external_system_id=self.tracker_id)
         assert not flaw.meta_attr.get("jira_trackers")
@@ -261,6 +273,7 @@ class TestJiraTrackerConvertor:
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker_convertor.tracker.save()
+        JiraTrackerLinkManager.link_tracker_with_affects(self.tracker_id)
         tracker = Tracker.objects.get(external_system_id=self.tracker_id)
 
         assert not flaw.meta_attr.get("jira_trackers")

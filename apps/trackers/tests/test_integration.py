@@ -14,6 +14,7 @@ from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
 from collectors.bzimport.constants import BZ_DT_FMT
 from osidb.models import Affect, Flaw, Impact, Tracker
+from osidb.sync_manager import BZTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -76,9 +77,11 @@ class TestTrackerSaver:
         # 3) load tracker from Bugzilla
         btc = BugzillaTrackerCollector()
         btc.sync_tracker(created_tracker.bz_id)
+        BZTrackerLinkManager.link_tracker_with_affects(created_tracker.bz_id)
 
         # 4) get the newly loaded tracker from the DB
         loaded_tracker = Tracker.objects.get(external_system_id=created_tracker.bz_id)
+        loaded_tracker.save()  # get rid of Tracker alerts related to missing affect
 
         # 5) check the correct result of the creation and loading
         assert loaded_tracker.bz_id == created_tracker.bz_id
@@ -147,6 +150,7 @@ class TestTrackerSaver:
         # 4) load tracker from Bugzilla
         btc = BugzillaTrackerCollector()
         btc.sync_tracker(updated_tracker.bz_id)
+        BZTrackerLinkManager.link_tracker_with_affects(updated_tracker.bz_id)
 
         # 5) get the newly loaded tracker from the DB
         loaded_tracker = Tracker.objects.get(external_system_id=tracker_id)
