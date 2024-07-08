@@ -153,7 +153,8 @@ class JiraTrackerCollector(Collector):
             period_end,
             CollectorMetadata.objects.get(
                 name="collectors.bzimport.tasks.flaw_collector"
-            ).updated_until_dt,
+            ).updated_until_dt
+            or period_end,
         )
         # query for trackers in the period and return them together with the timestamp
         return (

@@ -609,7 +609,8 @@ class BugzillaTrackerCollector(Collector):
             period_end,
             CollectorMetadata.objects.get(
                 name="collectors.bzimport.tasks.flaw_collector"
-            ).updated_until_dt,
+            ).updated_until_dt
+            or period_end,
         )
 
         tracker_ids = self.get_tracker_ids(period_start, period_end)
