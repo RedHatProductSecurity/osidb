@@ -50,6 +50,12 @@ from .mixins import (
     TrackingMixinManager,
     ValidateMixin,
 )
+from .sync_manager import (
+    BZTrackerDownloadManager,
+    BZTrackerLinkManager,
+    FlawDownloadManager,
+    JiraTrackerLinkManager,
+)
 from .validators import no_future_date, validate_cve_id, validate_cwe_id
 
 logger = logging.getLogger(__name__)
@@ -1422,6 +1428,10 @@ class Flaw(
             # we're handling a new OSIDB-authored flaw -- create
             _create_new_flaw()
 
+    download_manager = models.ForeignKey(
+        FlawDownloadManager, null=True, blank=True, on_delete=models.CASCADE
+    )
+
 
 class Snippet(ACLMixin, AlertMixin, TrackingMixin):
     """
@@ -2365,6 +2375,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             # fetch from Bugzilla
             btc = BugzillaTrackerCollector()
             btc.sync_tracker(self.external_system_id)
+            BZTrackerLinkManager.link_tracker_with_affects(self.external_system_id)
 
         # check Jira conditions are met
         elif (
@@ -2384,6 +2395,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             # fetch from Jira
             jtc = JiraTrackerCollector()
             jtc.collect(self.external_system_id)
+            JiraTrackerLinkManager.link_tracker_with_affects(self.external_system_id)
 
         # regular save otherwise
         else:
@@ -2650,6 +2662,16 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         return ContractPriority.objects.filter(
             ps_update_stream=self.ps_update_stream
         ).exists()
+
+    download_manager = models.ForeignKey(
+        BZTrackerDownloadManager, null=True, blank=True, on_delete=models.CASCADE
+    )
+    bz_link_manager = models.ForeignKey(
+        BZTrackerLinkManager, null=True, blank=True, on_delete=models.CASCADE
+    )
+    jira_link_manager = models.ForeignKey(
+        JiraTrackerLinkManager, null=True, blank=True, on_delete=models.CASCADE
+    )
 
 
 class ErratumManager(TrackingMixinManager):

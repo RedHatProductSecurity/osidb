@@ -19,6 +19,7 @@ from collectors.jiraffe.collectors import (
     MetadataCollector,
 )
 from osidb.models import Affect, Flaw, Impact, Tracker
+from osidb.sync_manager import JiraTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -323,6 +324,8 @@ class TestJiraTrackerCollector:
         collector = JiraTrackerCollector()
 
         msg = collector.collect(tracker_id)
+        JiraTrackerLinkManager.link_tracker_with_affects(tracker_id)
+
         assert msg == f"Jira tracker sync of {tracker_id} completed"
         assert Tracker.objects.count() == 1
         tracker = Tracker.objects.first()
@@ -351,6 +354,7 @@ class TestJiraTrackerCollector:
         # before fixing OSIDB-2708
         # we get traceback here
         msg = jtc.collect(tracker_id)
+        JiraTrackerLinkManager.link_tracker_with_affects(tracker_id)
 
         assert msg == f"Jira tracker sync of {tracker_id} completed"
         assert Tracker.objects.count() == 1

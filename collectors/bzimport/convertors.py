@@ -15,7 +15,7 @@ from django.utils import timezone
 from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
 from collectors.jiraffe.convertors import TrackerConvertor
 from osidb.core import generate_acls, set_user_acls
-from osidb.mixins import Alert, AlertMixin, TrackingMixin
+from osidb.mixins import AlertMixin, TrackingMixin
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -158,85 +158,6 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
         means the raw tracker data here
         """
         return self._raw
-
-    @property
-    def affects(self) -> list:
-        """
-        returns the list of related affects
-        """
-        affects = []
-        # Bugzilla flaws
-        for bz_id in self._raw["blocks"]:
-            try:
-                flaw = Flaw.objects.get(meta_attr__bz_id=bz_id)
-            except Flaw.DoesNotExist:
-                # the bug is no flaw
-                continue
-
-            try:
-                affect = flaw.affects.get(
-                    ps_module=self.ps_module,
-                    ps_component=self.ps_component,
-                )
-            except Affect.DoesNotExist:
-                # tracker created against
-                # non-existing affect
-                self.alert(
-                    {
-                        "name": "tracker_no_affect",
-                        "description": (
-                            f"Bugzilla tracker {self.bz_id} is associated with flaw "
-                            f"{flaw.cve_id or flaw.bz_id} but there is no associated affect "
-                            f"({self.ps_module}:{self.ps_component})"
-                        ),
-                        "alert_type": Alert.AlertType.ERROR,
-                    }
-                )
-                continue
-
-            affects.append(affect)
-
-        try:
-            whiteboard = json.loads(self._raw["whiteboard"])
-        except json.JSONDecodeError:
-            return affects
-
-        if not isinstance(whiteboard, dict) or "flaws" not in whiteboard:
-            return affects
-
-        # non-Bugzilla flaws
-        for flaw_uuid in whiteboard["flaws"]:
-            try:
-                flaw = Flaw.objects.get(uuid=flaw_uuid)
-            except Flaw.DoesNotExist:
-                # no such flaw
-                continue
-
-            try:
-                affect = flaw.affects.get(
-                    ps_module=self.ps_module,
-                    ps_component=self.ps_component,
-                )
-            except Affect.DoesNotExist:
-                # tracker created against
-                # non-existing affect
-                self.alert(
-                    {
-                        "name": "tracker_no_affect",
-                        "description": (
-                            f"Bugzilla tracker {self.bz_id} is associated with flaw "
-                            f"{flaw.uuid} but there is no associated affect "
-                            f"({self.ps_module}:{self.ps_component})"
-                        ),
-                        "alert_type": Alert.AlertType.ERROR,
-                    }
-                )
-                continue
-
-            affects.append(affect)
-
-        # prevent eventual duplicates
-        return list(set(affects))
 
     def _normalize(self) -> dict:
         """

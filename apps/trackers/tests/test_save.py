@@ -14,6 +14,7 @@ from apps.trackers.save import TrackerSaver
 from collectors.bzimport.collectors import BugzillaTrackerCollector
 from collectors.jiraffe.collectors import JiraTrackerCollector
 from osidb.models import Affect, Tracker
+from osidb.sync_manager import BZTrackerLinkManager, JiraTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -270,11 +271,15 @@ class TestTrackerModelSave:
             patch.object(
                 BugzillaTrackerCollector, "sync_tracker"
             ) as bugzilla_load_mock,
+            patch.object(
+                BZTrackerLinkManager, "link_tracker_with_affects"
+            ) as bugzilla_tracker_link_mock,
         ):
             tracker.save(bz_api_key="SECRET")
 
             assert bugzilla_save_mock.called
             assert bugzilla_load_mock.called
+            assert bugzilla_tracker_link_mock.called
 
     def test_jira_db_only(self):
         """
@@ -334,8 +339,12 @@ class TestTrackerModelSave:
                 TrackerJiraSaver, "save", return_value=tracker
             ) as jira_save_mock,
             patch.object(JiraTrackerCollector, "collect") as jira_load_mock,
+            patch.object(
+                JiraTrackerLinkManager, "link_tracker_with_affects"
+            ) as jira_tracker_link_mock,
         ):
             tracker.save(jira_token="SECRET")  # nosec
 
             assert jira_save_mock.called
             assert jira_load_mock.called
+            assert jira_tracker_link_mock.called
