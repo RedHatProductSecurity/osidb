@@ -452,7 +452,7 @@ $ curl -H "Authorization: Bearer <access_token>" \
               "cve_id": "CVE-2161-0013",
               "impact": "MODERATE",
               "title": "Retrieve the water chip",
-              "description": "We need the water chip to survive, explore the wasteland and find a replacement",
+              "comment_zero": "We need the water chip to survive, explore the wasteland and find a replacement",
        }'
        ${SERVICE_URL}/osidb/api/v1/flaws
 ```
@@ -470,7 +470,7 @@ data = {
     "cve_id": "CVE-2161-0013",
     "impact": "MODERATE",
     "title": "Retrieve the water chip",
-    "description": "We need the water chip to survive, explore the wasteland and find a replacement",
+    "comment_zero": "We need the water chip to survive, explore the wasteland and find a replacement",
 }
 response = requests.post("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, json=data)
 assert response.ok
@@ -492,7 +492,7 @@ $ curl -H "Authorization: Bearer <access_token>" \
               "cve_id": "CVE-2161-0013",
               "impact": "CRITICAL",     # from MODERATE to CRITICAL
               "title": "Retrieve the water chip",
-              "description": "We need the water chip to survive, explore the wasteland and find a replacement",
+              "comment_zero": "We need the water chip to survive, explore the wasteland and find a replacement",
        }'
        ${SERVICE_URL}/osidb/api/v1/flaws/CVE-2161-0013
 ```
@@ -510,7 +510,7 @@ data = {
     "cve_id": "CVE-2161-0013",
     "impact": "CRITICAL",           # from MODERATE to CRITICAL
     "title": "Retrieve the water chip",
-    "description": "We need the water chip to survive, explore the wasteland and find a replacement",
+    "comment_zero": "We need the water chip to survive, explore the wasteland and find a replacement",
 }
 response = requests.put("${SERVICE_URL}/osidb/api/v1/flaws/CVE-2161-0013", headers=headers, json=data)
 assert response.ok
@@ -581,7 +581,7 @@ flaw_id = "CVE-2005-0001"
 
 #### Fetch using flaw and comment number
 
-Comment 0 is the flaw's description, normal comments start with `order=1`.
+Comment 0 is the flaw's `comment_zero` attribute, normal comments start with `order=1`.
 
 With cURL
 
