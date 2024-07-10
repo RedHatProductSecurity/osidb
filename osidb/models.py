@@ -1095,16 +1095,6 @@ class Flaw(
             else:
                 raise err
 
-    def _validate_nonempty_impact(self):
-        """
-        check that the impact is not empty
-
-        we cannot enforce this by model definition
-        as the old flaws may have no impact
-        """
-        if not self.impact:
-            raise ValidationError("Impact value is required.")
-
     def _validate_nonempty_components(self):
         """
         check that the component list is not empty

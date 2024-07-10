@@ -1708,13 +1708,6 @@ class TestFlawValidators:
         assert flaw3.save() is None
         assert flaw3.alerts.filter(name="_validate_flaw_without_affect").exists()
 
-    def test_no_impact(self):
-        """
-        test that flaw cannot have an empty impact
-        """
-        with pytest.raises(ValidationError, match="Impact value is required"):
-            FlawFactory(impact=None)
-
     def test_no_component(self):
         """
         test that flaw cannot have an empty component
