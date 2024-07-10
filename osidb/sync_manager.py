@@ -180,6 +180,17 @@ class SyncManager(models.Model):
         """
         for sync_manager in cls.objects.all():
 
+            # TODO: Find a cause and remove this workaround OSIDB-3131
+            if (
+                sync_manager.last_scheduled_dt is None
+                and sync_manager.last_started_dt is not None
+            ):
+                logger.info(
+                    f"{sync_manager.__class__.__name__} {sync_manager.sync_id}: "
+                    f"Started but not scheduled, this should NEVER happen"
+                )
+                continue
+
             # SCHEDULED, DID NOT START
             # 1) Scheduled at least once before
             # 2) Scheduled for more than MAX_SCHEDULE_DELAY
