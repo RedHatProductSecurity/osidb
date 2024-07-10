@@ -30,7 +30,6 @@ states:
     jira_resolution: null
     requirements:
       - has affects
-      - has impact
       - has source
       - has title
       - has trackers
