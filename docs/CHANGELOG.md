@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix duplicate comment issue leading in internal server error (OSIDB-3086)
 - Handle flaw comments with&without bzimport or bifurcated history (OSIDB-3030)
+- Alerts constrained unique so that bzimport doesn't block user requests (OSIDB-3048)
 
 ## [4.1.2] - 2024-07-03
 ### Added

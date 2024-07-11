@@ -617,6 +617,14 @@ class Alert(ACLMixin):
         """String representaion of an alert."""
         return self.name
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["name", "object_id", "content_type"],
+                name="unique Alert for name and object",
+            ),
+        ]
+
 
 class AlertMixin(ValidateMixin):
     """
