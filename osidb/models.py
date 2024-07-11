@@ -1329,16 +1329,26 @@ class Flaw(
         # sync to Bugzilla
         bs = FlawBugzillaSaver(self, bz_api_key)
         self = bs.save()
+        # TODO
+        # replace with some switch of sync/async processing
+        # where the if branch is the old synchronous
+        if True:
+            kwargs[
+                "auto_timestamps"
+            ] = False  # the timestamps will be get from Bugzilla
+            kwargs["raise_validation_error"] = False  # the validations were already run
         # save in case a new Bugzilla ID was obtained
-        # so the flaw is later matched in BZ import
-        kwargs["auto_timestamps"] = False  # the timestamps will be get from Bugzilla
-        kwargs["raise_validation_error"] = False  # the validations were already run
         self.save(*args, **kwargs)
-        # fetch from Bugzilla
-        fc = FlawCollector()
-        fc.sync_flaw(self.bz_id)
-        # Make sure the flaw instance has the latest data
-        self.refresh_from_db()
+
+        # TODO
+        # replace with some switch of sync/async processing
+        # where the if branch is the old synchronous
+        if True:
+            # fetch from Bugzilla
+            fc = FlawCollector()
+            fc.sync_flaw(self.bz_id)
+            # Make sure the flaw instance has the latest data
+            self.refresh_from_db()
 
     def tasksync(
         self,

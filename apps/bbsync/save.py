@@ -66,49 +66,61 @@ class BugzillaSaver(BugzillaQuerier):
         """
         update a bug underlying the model instance in Bugilla
         """
-        try:
+        # TODO
+        # replace with some switch of sync/async processing
+        # where the if branch is the old synchronous
+        # but the else branch is initially meant for flaws only
+        if not isinstance(self.instance, Flaw) or True:
+            try:
+                old_instance = self.model.objects.get(uuid=self.instance.uuid)
+                bugzilla_query_builder = self.query_builder(self.instance, old_instance)
+                self.check_collisions()  # check for collisions right before the update
+            except DataInconsistencyException:
+                if not isinstance(self.instance, Flaw):
+                    raise
+
+                # to mitigate user discomfort and also possible service errors
+                # we handle the flaws more gently here attempting to resync
+                flaw_collector = FlawCollector()
+                flaw_collector.sync_flaw(self.instance.bz_id)
+
+                # resync from the DB and repeat the query building
+                old_instance = self.model.objects.get(uuid=self.instance.uuid)
+                self.instance.meta_attr = (
+                    old_instance.meta_attr
+                )  # update metadata after refresh
+                bugzilla_query_builder = self.query_builder(self.instance, old_instance)
+                self.check_collisions()  # if still colliding then something is very wrong
+
+            try:
+                self.bz_conn.update_bugs(
+                    [self.instance.bz_id], bugzilla_query_builder.query
+                )
+            except requests.exceptions.HTTPError as e:
+                # this is a heuristic at best, we know that the data we submit to
+                # bugzilla has already been validated and are pretty sure that the
+                # error is not due to the request being malformed, but it could be.
+                # bugzilla returns a 400 error on concurrent updates even though
+                # this is not the client's fault, and the HTTPError bubbled up
+                # by requests / python-bugzilla doesn't contain the response
+                # embedded into it, so all we can do is a string comparison.
+                if "400" in str(e):
+                    raise DataInconsistencyException(
+                        "Failed to write back to Bugzilla, this is likely due to a "
+                        "concurrent update which Bugzilla does not support, "
+                        "try again later."
+                    ) from e
+
+                # reraise otherwise
+                raise e
+            return self.instance
+        else:
             old_instance = self.model.objects.get(uuid=self.instance.uuid)
             bugzilla_query_builder = self.query_builder(self.instance, old_instance)
-            self.check_collisions()  # check for collisions right before the update
-        except DataInconsistencyException:
-            if not isinstance(self.instance, Flaw):
-                raise
-
-            # to mitigate user discomfort and also possible service errors
-            # we handle the flaws more gently here attempting to resync
-            flaw_collector = FlawCollector()
-            flaw_collector.sync_flaw(self.instance.bz_id)
-
-            # resync from the DB and repeat the query building
-            old_instance = self.model.objects.get(uuid=self.instance.uuid)
-            self.instance.meta_attr = (
-                old_instance.meta_attr
-            )  # update metadata after refresh
-            bugzilla_query_builder = self.query_builder(self.instance, old_instance)
-            self.check_collisions()  # if still colliding then something is very wrong
-
-        try:
             self.bz_conn.update_bugs(
                 [self.instance.bz_id], bugzilla_query_builder.query
             )
-        except requests.exceptions.HTTPError as e:
-            # this is a heuristic at best, we know that the data we submit to
-            # bugzilla has already been validated and are pretty sure that the
-            # error is not due to the request being malformed, but it could be.
-            # bugzilla returns a 400 error on concurrent updates even though
-            # this is not the client's fault, and the HTTPError bubbled up
-            # by requests / python-bugzilla doesn't contain the response
-            # embedded into it, so all we can do is a string comparison.
-            if "400" in str(e):
-                raise DataInconsistencyException(
-                    "Failed to write back to Bugzilla, this is likely due to a "
-                    "concurrent update which Bugzilla does not support, "
-                    "try again later."
-                ) from e
-
-            # reraise otherwise
-            raise e
-        return self.instance
+            return self.instance
 
     def check_collisions(self):
         """
