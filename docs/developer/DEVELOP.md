@@ -66,6 +66,8 @@ RH_CERT_URL="https://foo.bar"
 BBSYNC_SYNC_TO_BZ=1
 # enable Bugzilla backwards sync of the flaws
 BBSYNC_SYNC_FLAWS_TO_BZ=1
+# enable Bugzilla backwards sync of the flaws in asynchonous way
+BBSYNC_SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY=1
 # enable Bugzilla backwards sync of the trackers
 BBSYNC_SYNC_TRACKERS_TO_BZ=1
 

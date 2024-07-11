@@ -28,7 +28,12 @@ from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
 from psqlextra.fields import HStoreField
 
-from apps.bbsync.constants import RHSCL_BTS_KEY, SYNC_FLAWS_TO_BZ, SYNC_TRACKERS_TO_BZ
+from apps.bbsync.constants import (
+    RHSCL_BTS_KEY,
+    SYNC_FLAWS_TO_BZ,
+    SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY,
+    SYNC_TRACKERS_TO_BZ,
+)
 from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
@@ -1322,23 +1327,32 @@ class Flaw(
             super(ValidateMixin, self).save(*args, **kwargs)
             return
 
-        # imports here to prevent cycles
-        from apps.bbsync.save import FlawBugzillaSaver
-        from collectors.bzimport.collectors import FlawCollector
+        # switch of sync/async processing
+        if not SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY:
+            # imports here to prevent cycles
+            from apps.bbsync.save import FlawBugzillaSaver
+            from collectors.bzimport.collectors import FlawCollector
 
-        # sync to Bugzilla
-        bs = FlawBugzillaSaver(self, bz_api_key)
-        self = bs.save()
-        # save in case a new Bugzilla ID was obtained
-        # so the flaw is later matched in BZ import
-        kwargs["auto_timestamps"] = False  # the timestamps will be get from Bugzilla
-        kwargs["raise_validation_error"] = False  # the validations were already run
-        self.save(*args, **kwargs)
-        # fetch from Bugzilla
-        fc = FlawCollector()
-        fc.sync_flaw(self.bz_id)
-        # Make sure the flaw instance has the latest data
-        self.refresh_from_db()
+            # sync to Bugzilla
+            bs = FlawBugzillaSaver(self, bz_api_key)
+            self = bs.save()
+            kwargs[
+                "auto_timestamps"
+            ] = False  # the timestamps will be get from Bugzilla
+            kwargs["raise_validation_error"] = False  # the validations were already run
+            # save in case a new Bugzilla ID was obtained
+            self.save(*args, **kwargs)
+
+            # fetch from Bugzilla
+            fc = FlawCollector()
+            fc.sync_flaw(self.bz_id)
+            # Make sure the flaw instance has the latest data
+            self.refresh_from_db()
+
+        else:
+            # TODO OSIDB-3107
+            # schedule sync here
+            raise NotImplementedError
 
     def tasksync(
         self,
