@@ -8,6 +8,7 @@ from osidb.constants import DATETIME_FMT
 from osidb.exceptions import DataInconsistencyException
 from osidb.models import Flaw
 
+from .constants import SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY
 from .exceptions import UnsaveableFlawError
 from .query import FlawBugzillaQueryBuilder
 
@@ -66,11 +67,8 @@ class BugzillaSaver(BugzillaQuerier):
         """
         update a bug underlying the model instance in Bugilla
         """
-        # TODO
-        # replace with some switch of sync/async processing
-        # where the if branch is the old synchronous
-        # but the else branch is initially meant for flaws only
-        if not isinstance(self.instance, Flaw) or True:
+        # switch of sync/async processing of flaws
+        if not isinstance(self.instance, Flaw) or not SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY:
             try:
                 old_instance = self.model.objects.get(uuid=self.instance.uuid)
                 bugzilla_query_builder = self.query_builder(self.instance, old_instance)

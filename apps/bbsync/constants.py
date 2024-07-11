@@ -17,6 +17,9 @@ SRTNOTES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "./srtnotes-schem
 # switches to enable or disable BBSync
 SYNC_TO_BZ = get_env("BBSYNC_SYNC_TO_BZ", default="False", is_bool=True)
 SYNC_FLAWS_TO_BZ = get_env("BBSYNC_SYNC_FLAWS_TO_BZ", default="False", is_bool=True)
+SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY = get_env(
+    "BBSYNC_SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", default="False", is_bool=True
+)
 SYNC_TRACKERS_TO_BZ = get_env(
     "BBSYNC_SYNC_TRACKERS_TO_BZ", default="False", is_bool=True
 )
