@@ -193,8 +193,7 @@ class JiraTrackerCollector(Collector):
 
         # Schedule linking tracker => affect
         for updated_tracker_id in updated_trackers:
-            link_manager = JiraTrackerLinkManager.get_sync_manager(updated_tracker_id)
-            link_manager.schedule()
+            JiraTrackerLinkManager.schedule(updated_tracker_id)
 
         logger.info(
             f"Jira trackers were updated for the following IDs: {', '.join(updated_trackers)}"

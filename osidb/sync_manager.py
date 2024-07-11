@@ -53,84 +53,92 @@ class SyncManager(models.Model):
         """
         raise NotImplementedError("Update synced links not implemented.")
 
-    def schedule(self):
+    @classmethod
+    def schedule(cls, sync_id):
         """
         Schedule sync_task to Celery queue.
+
+        :param sync_id: Unique ID for synchronized data object.
         """
-        with transaction.atomic():
-            self.refresh_from_db()
-            self.last_scheduled_dt = timezone.now()
-            self.save()
+        cls.objects.get_or_create(sync_id=sync_id)
+        cls.objects.filter(sync_id=sync_id).update(last_scheduled_dt=timezone.now())
         try:
-            self.sync_task.apply_async(args=[self.sync_id])
+            cls.sync_task.apply_async(args=[sync_id])
         except AttributeError:
             raise NotImplementedError(
                 "Sync task not implemented or not implemented as Celery task."
             )
-        logger.info(f"{self.__class__.__name__} {self.sync_id}: Sync scheduled")
+        logger.info(f"{cls.__name__} {sync_id}: Sync scheduled")
 
-    def started(self, celery_task):
+    @classmethod
+    def started(cls, sync_id, celery_task):
         """
         This method has to be called at the beginning of the sync_task.
 
+        :param sync_id: Unique ID for synchronized data object.
         :param celery_task: Associated Celery task.
         """
-        with transaction.atomic():
-            self.refresh_from_db()
+        manager = cls.objects.get(sync_id=sync_id)
 
-            # Check if task should really run, maybe it was scheduled more times
-            # and already executed? In that case revoke it.
-            if (
-                self.last_started_dt is not None
-                and self.last_started_dt >= self.last_scheduled_dt
-            ):
-                self.revoke_sync_task(celery_task)
+        # Check if task should really run, maybe it was scheduled more times
+        # and already executed? In that case revoke it.
+        if (
+            manager.last_started_dt is not None
+            and manager.last_started_dt >= manager.last_scheduled_dt
+        ):
+            manager.revoke_sync_task(celery_task)
 
-            self.last_started_dt = timezone.now()
-            self.save()
-        logger.info(f"{self.__class__.__name__} {self.sync_id}: Sync started")
+        cls.objects.filter(sync_id=sync_id).update(last_started_dt=timezone.now())
+        logger.info(f"{cls.__name__} {sync_id}: Sync started")
 
-    def finished(self):
+    @classmethod
+    def finished(cls, sync_id):
         """
         This method has to be called when sync_task finishes successfully.
-        """
-        self.update_synced_links()
-        with transaction.atomic():
-            self.refresh_from_db()
-            self.last_finished_dt = timezone.now()
-            self.last_consecutive_failures = 0
-            self.last_consecutive_reschedules = 0
-            self.permanently_failed = False
-            self.save()
-        logger.info(
-            f"{self.__class__.__name__} {self.sync_id}: Sync finished successfully"
-        )
 
-    def failed(self, exception, permanent=False):
+        :param sync_id: Unique ID for synchronized data object.
+        """
+        manager = cls.objects.get(sync_id=sync_id)
+        manager.update_synced_links()
+
+        cls.objects.filter(sync_id=sync_id).update(
+            last_finished_dt=timezone.now(),
+            last_consecutive_failures=0,
+            last_consecutive_reschedules=0,
+            permanently_failed=False,
+        )
+        logger.info(f"{cls.__name__} {sync_id}: Sync finished successfully")
+
+    @classmethod
+    def failed(cls, sync_id, exception, permanent=False):
         """
         This method has to be called when sync_task fails.
 
+        :param sync_id: Unique ID for synchronized data object.
         :param exception: Exception which caused the failure.
         :param permanent: Set to True if problem cannot be solved by running sync_task later.
         """
-        self.update_synced_links()
-        with transaction.atomic():
-            self.refresh_from_db()
-            self.last_failed_dt = timezone.now()
-            self.last_failed_reason = str(exception).strip()
-            self.last_consecutive_failures += 1
-            self.last_consecutive_reschedules = 0
-            if (
-                self.last_consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES
-                or permanent
-            ):
-                self.permanently_failed = True
-            self.save()
-        logger.info(f"{self.__class__.__name__} {self.sync_id}: Sync failed")
-        if self.permanently_failed:
-            logger.info(
-                f"{self.__class__.__name__} {self.sync_id}: Sync failed permanently"
-            )
+        manager = cls.objects.get(sync_id=sync_id)
+        manager.update_synced_links()
+
+        updated_last_consecutive_failures = manager.last_consecutive_failures + 1
+        updated_permanently_failed = False
+        if (
+            manager.last_consecutive_failures >= manager.MAX_CONSECUTIVE_FAILURES
+            or permanent
+        ):
+            updated_permanently_failed = True
+
+        cls.objects.filter(sync_id=sync_id).update(
+            last_failed_dt=timezone.now(),
+            last_failed_reason=str(exception).strip(),
+            last_consecutive_failures=updated_last_consecutive_failures,
+            last_consecutive_reschedules=0,
+            permanently_failed=updated_permanently_failed,
+        )
+        logger.info(f"{cls.__name__} {sync_id}: Sync failed")
+        if updated_permanently_failed:
+            logger.info(f"{cls.__name__} {sync_id}: Sync failed permanently")
         raise exception
 
     def revoke_sync_task(self, celery_task):
@@ -145,32 +153,25 @@ class SyncManager(models.Model):
         logger.info(f"{self.__class__.__name__} {self.sync_id}: Revoked")
         raise Ignore
 
-    def reschedule(self, reason):
+    @classmethod
+    def reschedule(cls, sync_id, reason):
         """
         Schedule sync_task to Celery queue again for a reason.
 
+        :param sync_id: Unique ID for synchronized data object.
         :param reason: Description for a reason why the sync_task was re-scheduled.
         """
-        self.schedule()
-        with transaction.atomic():
-            self.refresh_from_db()
-            self.last_rescheduled_dt = timezone.now()
-            self.last_rescheduled_reason = reason
-            self.last_consecutive_reschedules += 1
-            self.save()
-        logger.info(
-            f"{self.__class__.__name__} {self.sync_id}: Sync re-scheduled ({reason})"
+        cls.schedule(sync_id)
+
+        manager = cls.objects.get(sync_id=sync_id)
+        updated_last_consecutive_reschedules = manager.last_consecutive_reschedules + 1
+
+        cls.objects.filter(sync_id=sync_id).update(
+            last_rescheduled_dt=timezone.now(),
+            last_rescheduled_reason=reason,
+            last_consecutive_reschedules=updated_last_consecutive_reschedules,
         )
-
-    @classmethod
-    def get_sync_manager(cls, sync_id):
-        """
-        Returns sync manager object for a specific synchronized object ID.
-
-        :param sync_id: Unique ID for synchronized data object.
-        """
-        result, _ = cls.objects.get_or_create(sync_id=sync_id)
-        return result
+        logger.info(f"{cls.__name__} {sync_id}: Sync re-scheduled ({reason})")
 
     @classmethod
     def check_for_reschedules(cls):
@@ -181,6 +182,7 @@ class SyncManager(models.Model):
         for sync_manager in cls.objects.all():
 
             # TODO: Find a cause and remove this workaround OSIDB-3131
+            # TODO: Should be fixed, check from time to time to see if this problem is logged
             if (
                 sync_manager.last_scheduled_dt is None
                 and sync_manager.last_started_dt is not None
@@ -209,7 +211,9 @@ class SyncManager(models.Model):
                     or sync_manager.last_started_dt < sync_manager.last_scheduled_dt
                 )
             ):
-                sync_manager.reschedule("Sync did not start after MAX_SCHEDULE_DELAY")
+                cls.reschedule(
+                    sync_manager.sync_id, "Sync did not start after MAX_SCHEDULE_DELAY"
+                )
                 continue
 
             # STARTED, DID NOT FINISH
@@ -237,7 +241,9 @@ class SyncManager(models.Model):
                 )
                 and sync_manager.last_scheduled_dt < sync_manager.last_started_dt
             ):
-                sync_manager.reschedule("Sync did not finish after MAX_RUN_LENGTH")
+                cls.reschedule(
+                    sync_manager.sync_id, "Sync did not finish after MAX_RUN_LENGTH"
+                )
                 continue
 
             # STARTED, FAILED, NOT PERMANENTLY
@@ -260,8 +266,9 @@ class SyncManager(models.Model):
                 > cls.FAIL_RESCHEDULE_DELAY
                 and sync_manager.last_scheduled_dt < sync_manager.last_failed_dt
             ):
-                sync_manager.reschedule(
-                    f"Failed {sync_manager.last_consecutive_failures} times"
+                cls.reschedule(
+                    sync_manager.sync_id,
+                    f"Failed {sync_manager.last_consecutive_failures} times",
                 )
                 continue
 
@@ -291,8 +298,7 @@ class FlawDownloadManager(SyncManager):
     def sync_task(self, flaw_id):
         from collectors.bzimport import collectors
 
-        download = FlawDownloadManager.get_sync_manager(flaw_id)
-        download.started(self)
+        FlawDownloadManager.started(flaw_id, self)
 
         set_user_acls(settings.ALL_GROUPS)
 
@@ -301,17 +307,16 @@ class FlawDownloadManager(SyncManager):
         try:
             collector.sync_flaw(flaw_id)
         except Exception as e:
-            download.failed(e)
+            FlawDownloadManager.failed(flaw_id, e)
         else:
-            download.finished()
+            FlawDownloadManager.finished(flaw_id)
         finally:
             collector.free_queriers()
 
     def update_synced_links(self):
         from osidb.models import Flaw
 
-        flaws = Flaw.objects.filter(meta_attr__bz_id=self.sync_id)
-        flaws.update(download_manager=self)
+        Flaw.objects.filter(meta_attr__bz_id=self.sync_id).update(download_manager=self)
 
     def __str__(self):
         from osidb.models import Flaw
@@ -335,8 +340,7 @@ class BZTrackerDownloadManager(SyncManager):
     def sync_task(self, tracker_id):
         from collectors.bzimport import collectors
 
-        download = BZTrackerDownloadManager.get_sync_manager(tracker_id)
-        download.started(self)
+        BZTrackerDownloadManager.started(tracker_id, self)
 
         set_user_acls(settings.ALL_GROUPS)
 
@@ -346,20 +350,20 @@ class BZTrackerDownloadManager(SyncManager):
             collector.sync_tracker(tracker_id)
 
             # Schedule linking tracker => affect
-            link_manager = BZTrackerLinkManager.get_sync_manager(tracker_id)
-            link_manager.schedule()
+            BZTrackerLinkManager.schedule(tracker_id)
         except Exception as e:
-            download.failed(e)
+            BZTrackerDownloadManager.failed(tracker_id, e)
         else:
-            download.finished()
+            BZTrackerDownloadManager.finished(tracker_id)
         finally:
             collector.free_queriers()
 
     def update_synced_links(self):
         from osidb.models import Tracker
 
-        trackers = Tracker.objects.filter(external_system_id=self.sync_id)
-        trackers.update(download_manager=self)
+        Tracker.objects.filter(external_system_id=self.sync_id).update(
+            download_manager=self
+        )
 
     def __str__(self):
         from osidb.models import Tracker
@@ -464,40 +468,44 @@ class BZTrackerLinkManager(SyncManager):
     @staticmethod
     @app.task(name="sync_manager.bz_tracker_link", bind=True)
     def sync_task(self, tracker_id):
-        linker = BZTrackerLinkManager.get_sync_manager(tracker_id)
-        linker.started(self)
+        BZTrackerLinkManager.started(tracker_id, self)
 
         set_user_acls(settings.ALL_GROUPS)
 
         try:
             result = BZTrackerLinkManager.link_tracker_with_affects(tracker_id)
         except Exception as e:
-            linker.failed(e)
+            BZTrackerLinkManager.failed(tracker_id, e)
         else:
             # Handle link failures
             affects, failed_flaws, failed_affects = result
             if failed_flaws:
-                linker.failed(
+                BZTrackerLinkManager.failed(
+                    tracker_id,
                     RuntimeError(
                         f"Flaws do not exist: {failed_flaws}, "
                         f"Affects do not exist: {failed_affects}"
-                    )
+                    ),
                 )
             elif failed_affects:
-                linker.failed(
+                BZTrackerLinkManager.failed(
+                    tracker_id,
                     RuntimeError(f"Affects do not exist: {failed_affects}"),
                     permanent=True,
                 )
             elif not affects:
-                linker.failed(RuntimeError("No Affects found"))
+                BZTrackerLinkManager.failed(
+                    tracker_id, RuntimeError("No Affects found")
+                )
             else:
-                linker.finished()
+                BZTrackerLinkManager.finished(tracker_id)
 
     def update_synced_links(self):
         from osidb.models import Tracker
 
-        trackers = Tracker.objects.filter(external_system_id=self.sync_id)
-        trackers.update(bz_link_manager=self)
+        Tracker.objects.filter(external_system_id=self.sync_id).update(
+            bz_link_manager=self
+        )
 
     def __str__(self):
         from osidb.models import Affect
@@ -601,39 +609,44 @@ class JiraTrackerLinkManager(SyncManager):
     @staticmethod
     @app.task(name="sync_manager.jira_tracker_link", bind=True)
     def sync_task(self, tracker_id):
-        linker = JiraTrackerLinkManager.get_sync_manager(tracker_id)
-        linker.started(self)
+        JiraTrackerLinkManager.started(tracker_id, self)
 
         set_user_acls(settings.ALL_GROUPS)
 
         try:
             result = JiraTrackerLinkManager.link_tracker_with_affects(tracker_id)
         except Exception as e:
-            linker.failed(e)
+            JiraTrackerLinkManager.failed(tracker_id, e)
         else:
             # Handle link failures
             affects, failed_flaws, failed_affects = result
             if failed_flaws:
-                linker.failed(
+                JiraTrackerLinkManager.failed(
+                    tracker_id,
                     RuntimeError(
-                        f"Flaws do not exist: {failed_flaws}, Affects do not exist: {failed_affects}"
-                    )
+                        f"Flaws do not exist: {failed_flaws}, "
+                        f"Affects do not exist: {failed_affects}"
+                    ),
                 )
             elif failed_affects:
-                linker.failed(
+                JiraTrackerLinkManager.failed(
+                    tracker_id,
                     RuntimeError(f"Affects do not exist: {failed_affects}"),
                     permanent=True,
                 )
             elif not affects:
-                linker.failed(RuntimeError("No Affects found"))
+                JiraTrackerLinkManager.failed(
+                    tracker_id, RuntimeError("No Affects found")
+                )
             else:
-                linker.finished()
+                JiraTrackerLinkManager.finished(tracker_id)
 
     def update_synced_links(self):
         from osidb.models import Tracker
 
-        trackers = Tracker.objects.filter(external_system_id=self.sync_id)
-        trackers.update(jira_link_manager=self)
+        Tracker.objects.filter(external_system_id=self.sync_id).update(
+            jira_link_manager=self
+        )
 
     def __str__(self):
         from osidb.models import Affect
