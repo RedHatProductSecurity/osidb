@@ -154,27 +154,21 @@ REST_FRAMEWORK.update(
 # this guard ensures that only OSIDB running in MPP logs to filesystem
 # TODO: Remove after OSIDB is fully migrated to MPP
 if get_env("MPP", is_bool=True, default="False"):
-    LOGGING.update(
-        {
-            "handlers": {
-                "celery": {
-                    "class": "logging.handlers.RotatingFileHandler",
-                    "formatter": "verbose_celery",
-                    "filename": "/var/log/prod-celery.log",
-                    "maxBytes": LOG_FILE_SIZE,
-                    "backupCount": LOG_FILE_COUNT,
-                },
-                "console": {
-                    "level": "INFO",
-                    "class": "logging.handlers.RotatingFileHandler",
-                    "formatter": "verbose",
-                    "filename": "/var/log/prod-django.log",
-                    "maxBytes": LOG_FILE_SIZE,
-                    "backupCount": LOG_FILE_COUNT,
-                },
-            }
-        }
-    )
+    LOGGING["handlers"]["celery"] = {
+        "class": "logging.handlers.RotatingFileHandler",
+        "formatter": "verbose_celery",
+        "filename": "/var/log/prod-celery.log",
+        "maxBytes": LOG_FILE_SIZE,
+        "backupCount": LOG_FILE_COUNT,
+    }
+    LOGGING["handlers"]["console"] = {
+        "level": "INFO",
+        "class": "logging.handlers.RotatingFileHandler",
+        "formatter": "verbose",
+        "filename": "/var/log/prod-django.log",
+        "maxBytes": LOG_FILE_SIZE,
+        "backupCount": LOG_FILE_COUNT,
+    }
 
 # sets the Access-Control-Allow-Origin response header - accepts literal strings
 # example value: ["https://osidb.example.com", "https://workflows.example.com"]

@@ -133,31 +133,23 @@ LOG_FILE_COUNT = 3
 # this guard ensures that only OSIDB running in MPP logs to filesystem
 # TODO: Remove after OSIDB is fully migrated to MPP
 if get_env("MPP", is_bool=True, default="False"):
-    LOGGING.update(
-        {
-            "handlers": {
-                "celery": {
-                    "class": "logging.handlers.RotatingFileHandler",
-                    "formatter": "verbose_celery",
-                    "filename": "/var/log/uat-celery.log",
-                    "maxBytes": LOG_FILE_SIZE,
-                    "backupCount": LOG_FILE_COUNT,
-                },
-                "console": {
-                    "level": "DEBUG",
-                    "class": "logging.handlers.RotatingFileHandler",
-                    "formatter": "verbose",
-                    "filename": "/var/log/uat-django.log",
-                    "maxBytes": LOG_FILE_SIZE,
-                    "backupCount": LOG_FILE_COUNT,
-                },
-            },
-            "loggers": {
-                "bugzilla": {
-                    "handlers": ["console"],
-                    "level": "DEBUG",
-                    "propagate": False,
-                },
-            },
-        }
-    )
+    LOGGING["handlers"]["celery"] = {
+        "class": "logging.handlers.RotatingFileHandler",
+        "formatter": "verbose_celery",
+        "filename": "/var/log/uat-celery.log",
+        "maxBytes": LOG_FILE_SIZE,
+        "backupCount": LOG_FILE_COUNT,
+    }
+    LOGGING["handlers"]["console"] = {
+        "level": "INFO",
+        "class": "logging.handlers.RotatingFileHandler",
+        "formatter": "verbose",
+        "filename": "/var/log/uat-django.log",
+        "maxBytes": LOG_FILE_SIZE,
+        "backupCount": LOG_FILE_COUNT,
+    }
+    LOGGING["loggers"]["bugzilla"] = {
+        "handlers": ["console"],
+        "level": "DEBUG",
+        "propagate": False,
+    }
