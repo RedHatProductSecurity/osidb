@@ -9,7 +9,6 @@ import pytest
 
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.workflow import WorkflowModel
-from osidb.models import Affect
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
@@ -30,11 +29,6 @@ class TestTaskmanService(object):
         """
         # Remove randomness to reuse VCR every possible time
         flaw = FlawFactory(embargoed=False, uuid="9d9b3b14-0c44-4030-883c-8610f7e2879b")
-        AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-        )
         taskman = JiraTaskmanQuerier(token=user_token)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
@@ -57,7 +51,7 @@ class TestTaskmanService(object):
 
         assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
         flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
-        flaw.save()
+        flaw.save(raise_validation_error=False)
         response3 = taskman.create_or_update_task(flaw=flaw)
         assert response3.status_code == 200
         status, _ = flaw.jira_status()

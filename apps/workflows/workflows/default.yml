@@ -32,7 +32,6 @@ states:
       - has affects
       - has source
       - has title
-      - has trackers
 
   - name: SECONDARY_ASSESSMENT
     description: An analyst assigned the task to themselves.
@@ -47,4 +46,5 @@ states:
       published, but it is not a requirement.
     jira_state: Closed
     jira_resolution: Done
-    requirements: []
+    requirements:
+      - has trackers
