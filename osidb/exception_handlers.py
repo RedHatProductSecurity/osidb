@@ -1,4 +1,6 @@
+from bugzilla.exceptions import BugzillaError
 from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework import status
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
 from rest_framework.serializers import as_serializer_error
@@ -14,6 +16,11 @@ def exception_handler(exc, context):
             "detail": str(exc),
         }
         return Response(response_data, status=http_code)
+
+    if isinstance(exc, BugzillaError):
+        data = {"detail": str(exc)}
+        return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
     if isinstance(exc, DjangoValidationError):
         exc = DRFValidationError(as_serializer_error(exc))
     return drf_exception_handler(exc, context)
