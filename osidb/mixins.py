@@ -7,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres import fields
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import IntegrityError, models
+from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 
 from osidb.exceptions import DataInconsistencyException
@@ -685,6 +685,10 @@ class AlertMixin(ValidateMixin):
         # constraint gracefully (if the row doesn't exist yet, there's nothing
         # to lock).
         #
+        # transaction.atomic() is there because after IntegrityError, the
+        # transaction can't continue and OSIDB uses ATOMIC_REQUESTS, see
+        # https://stackoverflow.com/a/48836554 for use of nested tx.
+        #
         # References:
         # - https://www.postgresql.org/docs/16/index-unique-checks.html#:~:text=At%20present%2C%20only-,b%2Dtree,-supports%20it.)%20Columns
         # - https://www.postgresql.org/docs/16/locking-indexes.html#:~:text=B%2Dtree%2C,without%20deadlock%20conditions.
@@ -692,16 +696,17 @@ class AlertMixin(ValidateMixin):
         # - https://en.wikipedia.org/wiki/Optimistic_concurrency_control
 
         try:
-            Alert.objects.create_alert(
-                name=name,
-                object_id=self.uuid,
-                content_type=ContentType.objects.get_for_model(self),
-                description=description,
-                alert_type=alert_type,
-                resolution_steps=resolution_steps,
-                acl_read=acl_read,
-                acl_write=acl_write,
-            ).save()
+            with transaction.atomic():
+                Alert.objects.create_alert(
+                    name=name,
+                    object_id=self.uuid,
+                    content_type=ContentType.objects.get_for_model(self),
+                    description=description,
+                    alert_type=alert_type,
+                    resolution_steps=resolution_steps,
+                    acl_read=acl_read,
+                    acl_write=acl_write,
+                ).save()
         except IntegrityError:
             # alerts of the same name, object_id and age have the same meaning
             pass
