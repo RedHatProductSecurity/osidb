@@ -495,8 +495,7 @@ class FlawCollector(Collector):
         FlawDownloadManager.check_for_reschedules()
 
         for flaw_id, _ in flaw_ids:
-            download_manager = FlawDownloadManager.get_sync_manager(flaw_id)
-            download_manager.schedule()
+            FlawDownloadManager.schedule(flaw_id)
             successes.append(flaw_id)
 
         # with specified batch we stop here
@@ -639,8 +638,7 @@ class BugzillaTrackerCollector(Collector):
 
         tracker_ids = self.get_batch()
         for tracker_id, _ in tracker_ids:
-            download_manager = BZTrackerDownloadManager.get_sync_manager(tracker_id)
-            download_manager.schedule()
+            BZTrackerDownloadManager.schedule(tracker_id)
             successes.append(tracker_id)
 
         complete = bool(self.is_complete or len(tracker_ids) < self.BATCH_SIZE)
