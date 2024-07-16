@@ -25,7 +25,7 @@ class SyncManager(models.Model):
     MAX_RUN_LENGTH = timedelta(hours=1)
     FAIL_RESCHEDULE_DELAY = timedelta(minutes=5)
 
-    sync_id = models.CharField(max_length=100)
+    sync_id = models.CharField(max_length=100, unique=True)
     last_scheduled_dt = models.DateTimeField(blank=True, null=True)
     last_started_dt = models.DateTimeField(blank=True, null=True)
     last_finished_dt = models.DateTimeField(blank=True, null=True)
