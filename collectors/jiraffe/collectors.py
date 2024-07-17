@@ -25,6 +25,7 @@ from .exceptions import MetadataCollectorInsufficientDataJiraffeException
 logger = get_task_logger(__name__)
 
 
+# TODO use select_for_update appropriately. See SelectForUpdateMixin for reasoning.
 class JiraTaskCollector(Collector):
     """
     Jira task collector
@@ -117,6 +118,7 @@ class JiraTaskCollector(Collector):
         return msg
 
 
+# TODO use select_for_update appropriately. See SelectForUpdateMixin for reasoning.
 class JiraTrackerCollector(Collector):
     """
     Jira tracker collector

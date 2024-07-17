@@ -482,6 +482,11 @@ class FlawManager(ACLMixinManager, TrackingMixinManager):
 
         full match means that we match on both Bugzilla and CVE ID
         """
+        # NOTE: This method is susceptible to race conditions when
+        #       creating a new flaw, but it's expected that multiple
+        #       Flaws with the same cve_id would be created at the
+        #       same time, so not handled for now.
+        #       See SelectForUpdateMixin for reasoning.
         try:
             cve_id = extra_fields.get("cve_id")
             if full_match:

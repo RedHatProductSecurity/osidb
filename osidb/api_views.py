@@ -512,6 +512,11 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         else:
             obj = get_object_or_404(queryset, uuid=pk)
         self.check_object_permissions(self.request, obj)
+
+        # Doing the same what SelectForUpdateMixin would do,
+        # see SelectForUpdateMixin for reasoning.
+        Flaw.objects.filter(uuid=obj.uuid).select_for_update()
+
         return obj
 
     def create(self, request, *args, **kwargs):
@@ -521,6 +526,113 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         }
         response["Location"] = f"/api/{OSIDB_API_VERSION}/flaws/{response.data['uuid']}"
         return response
+
+
+class SelectForUpdateMixin:
+    # Performs locking of DB rows for write operations. This is especially
+    # important when operations can take seconds, thus making it likely
+    # multiple operations on the same row or a set of rows, even models,
+    # can be executed simultaneously (depending on the individual piece of
+    # logic how many things it has to read and write consistently for a
+    # correct outcome).
+    #
+    # Uses a consistent order of locking to minimize the probability of
+    # deadlocks:
+    # 1. related Flaw(s)
+    # 2. Affect(s) (if applicable)
+    # 3. the object itself
+    #
+    # In other code (viewsets that can't use this mixin or async tasks),
+    # take care to perform similar locking in the same order.
+    #
+    #  select_for_update() blocks writes (.update(), .delete()) and
+    #  select_for_update() launched in other transactions or threads,
+    #  but not reads. Issuing select_for_update() consistently everywhere
+    #  writes may be issued prevents reads of would-be outdated data. Why
+    #  it is important:
+    #
+    #  Without consistent select_for_update()
+    #  THREAD A                               THREAD B
+    #   # Global state is now something==1 else==1
+    #   - with transaction.atomic():
+    #   -   queryset.select_for_update()
+    #                                          - if queryset.first().something == 1:
+    #                                              queryset.update(else=3)
+    #                                              # This blocks and waits for THREAD A
+    #   -   queryset.update(something=2)
+    #
+    #   - # transaction in A is committed
+    #   # Global state is now something==2 else==1
+    #                                          -   # THREAD B is unblocked
+    #                                          -   # .update() is finally performed
+    #   # Global state is now something==1 else==3
+    #   # Work of THREAD A was overwritten.
+    #   # Work of THREAD B was made on outdated assumptions, started before A,
+    #     but finishing after A.
+    #
+    #  With consistent select_for_update()
+    #  THREAD A                               THREAD B
+    #   # Global state is now something==1 else==1
+    #   - with transaction.atomic():
+    #   -   queryset.select_for_update()       - with transaction.atomic():
+    #                                          -   queryset.select_for_update()
+    #                                              # This blocks and waits for THREAD A
+    #   -   queryset.update(something=2)
+    #   - # transaction in A is committed
+    #   # Global state is now something==2 else==1
+    #                                          -   # THREAD B is unblocked
+    #                                          -   if queryset.first().something == 1:
+    #                                                queryset.update(else=3)
+    #                                                # The condition is False
+    #
+    #   # Global state is now something==2 else==1
+    #   # Work of all threads was performed consistently with the intentions
+    #   # behind their logic.
+    #
+    # In general, a maintainable strategy is treating the points at the edge
+    # of OSIDB, not deep internals: APIs, import tasks.
+    #
+    # select_for_update() must be used in a transaction. It can be used
+    # repeatedly within nested transactions, so we don't care which parts
+    # of such code is executed within a transaction (e.g. ATOMIC_REQUESTS)
+    # and so this mixin doesn't try to detect whether it's running in a
+    # transaction.
+    #
+    # Also note, repeated select_for_update() on the same row within the same
+    # transaction is fine with Postgresql but is generally discouraged.
+    #
+    # (This is not a docstring so as not to pollute the generated schema.)
+    def get_object(self):
+        obj = super().get_object()
+        model = self.serializer_class.Meta.model
+
+        # First select the flaw itself, so that we minimize deadlocks
+        # when two different objects related to the same flaw are updated.
+        try:
+            Flaw.objects.filter(uuid=obj.flaw.uuid).select_for_update()
+        except AttributeError:
+            # Not every model has .flaw
+            pass
+
+        if model is Tracker:
+            flaw_uuids = set(obj.affects.values_list("flaw__uuid", flat=True))
+            affect_uuids = set(obj.affects.values_list("uuid", flat=True))
+            Flaw.objects.filter(uuid__in=flaw_uuids).select_for_update()
+            Affect.objects.filter(uuid__in=affect_uuids).select_for_update()
+
+        # Finally select the object itself
+        model.objects.filter(uuid=obj.uuid).select_for_update()
+
+        return obj
+
+    def create(self, request, *args, **kwargs):
+        if flaw_uuids := request.data.get("flaw"):
+            Flaw.objects.filter(uuid__in=flaw_uuids).select_for_update()
+        elif affect_uuids := request.data.get("affects"):
+            Flaw.objects.filter(affects__uuid__in=affect_uuids).select_for_update()
+            Affect.objects.filter(uuid__in=affect_uuids).select_for_update()
+
+        return super().create(request, *args, **kwargs)
 
 
 class SubFlawViewDestroyMixin:
@@ -600,6 +712,7 @@ class FlawAcknowledgmentView(
     SubFlawViewDestroyMixin,
     SubFlawViewGetMixin,
     ModelViewSet,
+    SelectForUpdateMixin,
 ):
     serializer_class = FlawAcknowledgmentSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
@@ -623,6 +736,7 @@ class FlawReferenceView(
     SubFlawViewDestroyMixin,
     SubFlawViewGetMixin,
     ModelViewSet,
+    SelectForUpdateMixin,
 ):
     serializer_class = FlawReferenceSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
@@ -646,6 +760,7 @@ class FlawCVSSView(
     SubFlawViewGetMixin,
     SubFlawViewDestroyMixin,
     ModelViewSet,
+    SelectForUpdateMixin,
 ):
     serializer_class = FlawCVSSSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
@@ -729,7 +844,10 @@ def whoami(request: Request) -> Response:
     ),
 )
 class FlawCommentView(
-    RudimentaryUserPathLoggingMixin, SubFlawViewGetMixin, ModelViewSet
+    RudimentaryUserPathLoggingMixin,
+    SubFlawViewGetMixin,
+    ModelViewSet,
+    SelectForUpdateMixin,
 ):
     serializer_class = FlawCommentSerializer
     filterset_class = FlawCommentFilter
@@ -754,6 +872,7 @@ class FlawPackageVersionView(
     SubFlawViewGetMixin,
     SubFlawViewDestroyMixin,
     ModelViewSet,
+    SelectForUpdateMixin,
 ):
     serializer_class = FlawPackageVersionSerializer
     filterset_class = FlawPackageVersionFilter
@@ -771,7 +890,10 @@ class FlawPackageVersionView(
     ),
 )
 class AffectView(
-    RudimentaryUserPathLoggingMixin, SubFlawViewDestroyMixin, ModelViewSet
+    RudimentaryUserPathLoggingMixin,
+    SubFlawViewDestroyMixin,
+    ModelViewSet,
+    SelectForUpdateMixin,
 ):
     queryset = Affect.objects.prefetch_related(
         "alerts",
@@ -799,6 +921,8 @@ class AffectView(
         Bulk update endpoint. Expects a list of dict Affect objects.
         """
 
+        model = self.serializer_class.Meta.model
+
         bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
         if not bz_api_key:
             raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
@@ -814,6 +938,7 @@ class AffectView(
 
         # first, perform validations
         flaws = set()
+        flaws_selected = set()
         uuids = set()
         validated_serializers = []
         for datum in request.data:
@@ -835,8 +960,13 @@ class AffectView(
                 raise ValidationError({"flaw": "This field is required."})
 
             flaws.add(flaw_uuid)
+            if flaw_uuid not in flaws_selected:
+                Flaw.objects.filter(uuid=flaw_uuid).select_for_update()
+                flaws_selected.add(flaw_uuid)
 
+            model.objects.filter(uuid=uuid).select_for_update()
             instance = get_object_or_404(queryset, uuid=uuid)
+
             serializer = self.get_serializer(instance, data=datum)
             serializer.is_valid(raise_exception=True)
             validated_serializers.append(serializer)
@@ -878,6 +1008,7 @@ class AffectView(
 
         # first, perform validations
         flaws = set()
+        flaws_selected = set()
         validated_serializers = []
         for datum in request.data:
 
@@ -887,6 +1018,9 @@ class AffectView(
                 raise ValidationError({"flaw": "This field is required."})
 
             flaws.add(flaw_uuid)
+            if flaw_uuid not in flaws_selected:
+                Flaw.objects.filter(uuid=flaw_uuid).select_for_update()
+                flaws_selected.add(flaw_uuid)
 
             serializer = self.get_serializer(data=datum)
             serializer.is_valid(raise_exception=True)
@@ -931,6 +1065,7 @@ class AffectView(
             raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
 
         flaws = set()
+        flaws_selected = set()
         uuids = set()
         for uuid in request.data:
 
@@ -947,13 +1082,17 @@ class AffectView(
                 raise ValidationError({"uuid": "Affect matching query does not exist."})
 
             flaw_obj = affect_obj.flaw
-            flaws.add(flaw_obj.uuid)
+            flaw_uuid = flaw_obj.uuid
+            flaws.add(flaw_uuid)
             if len(flaws) > 1:
                 raise ValidationError(
                     {
                         "uuid": "Affect object UUIDs belonging to multiple Flaws provided."
                     }
                 )
+            if flaw_uuid not in flaws_selected:
+                Flaw.objects.filter(uuid=flaw_uuid).select_for_update()
+                flaws_selected.add(flaw_uuid)
 
             # Relying on the whole transaction being aborted if a validation fails along the way.
             affect_obj.delete()
@@ -974,7 +1113,11 @@ class AffectView(
         parameters=[bz_api_key_param],
     ),
 )
-class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
+class AffectCVSSView(
+    RudimentaryUserPathLoggingMixin,
+    ModelViewSet,
+    SelectForUpdateMixin,
+):
     serializer_class = AffectCVSSSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -1042,7 +1185,11 @@ class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         request=TrackerPostSerializer,
     ),
 )
-class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
+class TrackerView(
+    RudimentaryUserPathLoggingMixin,
+    ModelViewSet,
+    SelectForUpdateMixin,
+):
     queryset = Tracker.objects.prefetch_related("alerts", "errata", "affects").all()
     serializer_class = TrackerSerializer
     filterset_class = TrackerFilter
@@ -1097,7 +1244,11 @@ class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         ],
     ),
 )
-class AlertView(RudimentaryUserPathLoggingMixin, ModelViewSet):
+class AlertView(
+    RudimentaryUserPathLoggingMixin,
+    ModelViewSet,
+    SelectForUpdateMixin,
+):
     queryset = Alert.objects.all()
     serializer_class = AlertSerializer
     filterset_class = AlertFilter

@@ -445,8 +445,13 @@ class FlawCollector(Collector):
 
         return None
 
+    @transaction.atomic
     def sync_flaw(self, flaw_id):
         """fetch-convert-save flaw with give Bugzilla ID"""
+
+        # See SelectForUpdateMixin for reasoning
+        Flaw.objects.filter(meta_attr__bz_id=flaw_id).select_for_update()
+
         # 1) fetch flaw data
         try:
             flaw_data = self.bz_querier.get_bug_data(flaw_id)
@@ -523,6 +528,7 @@ class FlawCollector(Collector):
         msg += " Nothing new to fetch." if not flaw_ids else ""
         return msg
 
+    # TODO: Unused method, except for tests. Delete.
     def collect_flaw(self, flaw_id, total_retries=0):
         """
         collect flaw by the given ID
