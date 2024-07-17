@@ -9,6 +9,12 @@ class JiraffeException(Exception):
     """
 
 
+class JiraTrackerCollectorConcurrentEditAvoided(JiraffeException):
+    """
+    detected a concurrent edit of the tracker model in DB, or of the related flaw
+    """
+
+
 class NonRecoverableJiraffeException(JiraffeException):
     """
     permanent exceptions consistent between runs

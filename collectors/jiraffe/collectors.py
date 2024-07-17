@@ -14,13 +14,16 @@ from jira.exceptions import JIRAError
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
 from collectors.framework.models import Collector, CollectorMetadata
-from osidb.models import PsModule
+from osidb.models import Affect, Flaw, PsModule, Tracker
 from osidb.sync_manager import JiraTrackerLinkManager
 
 from .constants import JIRA_TOKEN
 from .convertors import JiraTaskConvertor, JiraTrackerConvertor
 from .core import JiraQuerier
-from .exceptions import MetadataCollectorInsufficientDataJiraffeException
+from .exceptions import (
+    JiraTrackerCollectorConcurrentEditAvoided,
+    MetadataCollectorInsufficientDataJiraffeException,
+)
 
 logger = get_task_logger(__name__)
 
@@ -118,7 +121,6 @@ class JiraTaskCollector(Collector):
         return msg
 
 
-# TODO use select_for_update appropriately. See SelectForUpdateMixin for reasoning.
 class JiraTrackerCollector(Collector):
     """
     Jira tracker collector
@@ -174,9 +176,39 @@ class JiraTrackerCollector(Collector):
         tracker_id param makes the collector to sync a tracker of the given ID only
         """
 
-        logger.info("Fetching Jira trackers")
+        logger.info("Fetching Jira trackers (start)")
         start_dt = timezone.now()
         updated_trackers = []
+
+        if tracker_id:
+            related_tracker_uuids = set(
+                Tracker.objects.filter(external_system_id=tracker_id).values_list(
+                    "uuid", flat=True
+                )
+            )
+            tracker_orig_model_updated_dts = set(
+                Tracker.objects.filter(uuid__in=related_tracker_uuids).values_list(
+                    "updated_dt", flat=True
+                )
+            )
+            related_affect_uuids = set(
+                Tracker.objects.filter(uuid__in=related_tracker_uuids).values_list(
+                    "affects__uuid", flat=True
+                )
+            )
+            related_flaw_uuids = set(
+                Affect.objects.filter(uuid__in=related_affect_uuids).values_list(
+                    "flaw__uuid", flat=True
+                )
+            )
+            flaw_orig_model_updated_dts = set(
+                Flaw.objects.filter(uuid__in=related_flaw_uuids).values_list(
+                    "updated_dt", flat=True
+                )
+            )
+            logger.info(
+                f"Fetching Jira trackers (id {tracker_id}, original tracker updated_dt {tracker_orig_model_updated_dts}, orig. flaw updated_dt {flaw_orig_model_updated_dts})"
+            )
 
         JiraTrackerLinkManager.check_for_reschedules()
 
@@ -188,10 +220,113 @@ class JiraTrackerCollector(Collector):
             else ([self.jira_querier.get_issue(tracker_id)], None)
         )
 
-        # process data
-        for tracker_data in batch_data:
-            self.save(JiraTrackerConvertor(tracker_data).tracker)
-            updated_trackers.append(tracker_data.key)
+        # ...getting here might take a while, so locking only now,
+        # so as to minimize blocking API for clients editing the
+        # same tracker or the related affects or flaws.
+        # Despite later tracker => affect linking, affects are
+        # also manipulated within JiraTrackerConvertor, hence
+        # locking all Flaw(s), Affect(s) and the Tracker(s),
+        # also because of reasons explained in SelectForUpdateMixin.
+
+        with transaction.atomic():
+            # Prevent locking multiple times, although Postgresql would probably accept it.
+            locked_flaw_uuids = set()
+            locked_affect_uuids = set()
+            locked_tracker_uuids = set()
+
+            # For reasoning about locking and order of locking, see SelectForUpdateMixin.
+
+            if tracker_id:
+                Flaw.objects.filter(uuid__in=related_flaw_uuids).select_for_update()
+                locked_flaw_uuids.update(related_flaw_uuids)
+                Affect.objects.filter(uuid__in=related_affect_uuids).select_for_update()
+                locked_affect_uuids.update(related_affect_uuids)
+                Tracker.objects.filter(
+                    uuid__in=related_tracker_uuids
+                ).select_for_update()
+                locked_tracker_uuids.update(related_tracker_uuids)
+
+            # process data with locking them first
+            for tracker_data in batch_data:
+
+                this_external_system_id = tracker_data.key
+                this_flaw_uuids = set()
+                this_affect_uuids = set()
+                this_tracker_uuid = None
+                for lbl in tracker_data.fields.labels:
+                    if lbl.startswith("flawuuid:"):
+                        this_flaw_uuids.add(lbl.split(":")[1])
+
+                this_tracker_queryset = Tracker.objects.filter(
+                    external_system_id=this_external_system_id,
+                    type=Tracker.TrackerType.JIRA,
+                )
+                if this_tracker_queryset.exists():
+                    this_tracker_uuid = this_tracker_queryset.first().uuid
+                    this_affect_uuids.update(
+                        set(
+                            Tracker.objects.filter(uuid=this_tracker_uuid).values_list(
+                                "affects__uuid", flat=True
+                            )
+                        )
+                    )
+                    this_flaw_uuids.update(
+                        set(
+                            Affect.objects.filter(
+                                uuid__in=this_affect_uuids
+                            ).values_list("flaw__uuid", flat=True)
+                        )
+                    )
+                this_affect_uuids.update(
+                    set(
+                        Flaw.objects.filter(uuid__in=this_flaw_uuids).values_list(
+                            "affects__uuid", flat=True
+                        )
+                    )
+                )
+
+                this_yet_unlocked_flaw_uuids = this_flaw_uuids - locked_flaw_uuids
+                Flaw.objects.filter(
+                    uuid__in=this_yet_unlocked_flaw_uuids
+                ).select_for_update()
+                locked_flaw_uuids.update(this_yet_unlocked_flaw_uuids)
+
+                this_yet_unlocked_affect_uuids = this_affect_uuids - locked_affect_uuids
+                Affect.objects.filter(
+                    uuid__in=this_yet_unlocked_affect_uuids
+                ).select_for_update()
+                locked_affect_uuids.update(this_yet_unlocked_affect_uuids)
+
+                if this_tracker_uuid not in locked_tracker_uuids:
+                    Tracker.objects.filter(uuid=this_tracker_uuid).select_for_update()
+                    locked_tracker_uuids.add(this_tracker_uuid)
+
+                if tracker_id:
+                    tracker_current_model_updated_dts = set(
+                        Tracker.objects.filter(
+                            uuid__in=related_tracker_uuids
+                        ).values_list("updated_dt", flat=True)
+                    )
+                    flaw_current_model_updated_dts = set(
+                        Flaw.objects.filter(uuid__in=related_flaw_uuids).values_list(
+                            "updated_dt", flat=True
+                        )
+                    )
+                    if (
+                        tracker_orig_model_updated_dts
+                        != tracker_current_model_updated_dts
+                    ) or (
+                        flaw_orig_model_updated_dts != flaw_current_model_updated_dts
+                    ):
+                        logger.info(
+                            f"Fetching Jira trackers (detected concurrent edit, id {tracker_id}, current tracker updated_dt {tracker_current_model_updated_dts}, curr. flaw updated_dt {flaw_current_model_updated_dts})"
+                        )
+                        raise JiraTrackerCollectorConcurrentEditAvoided
+
+                # perform the tracker save itself
+                tracker = JiraTrackerConvertor(tracker_data).tracker
+                self.save(tracker)
+                updated_trackers.append(tracker_data.key)
 
         # Schedule linking tracker => affect
         for updated_tracker_id in updated_trackers:
