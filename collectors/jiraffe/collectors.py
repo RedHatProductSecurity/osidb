@@ -21,6 +21,7 @@ from .constants import JIRA_TOKEN
 from .convertors import JiraTaskConvertor, JiraTrackerConvertor
 from .core import JiraQuerier
 from .exceptions import (
+    JiraTaskCollectorConcurrentEditAvoided,
     JiraTrackerCollectorConcurrentEditAvoided,
     MetadataCollectorInsufficientDataJiraffeException,
 )
@@ -28,7 +29,6 @@ from .exceptions import (
 logger = get_task_logger(__name__)
 
 
-# TODO use select_for_update appropriately. See SelectForUpdateMixin for reasoning.
 class JiraTaskCollector(Collector):
     """
     Jira task collector
@@ -76,17 +76,68 @@ class JiraTaskCollector(Collector):
         logger.info("Fetching Jira tasks")
         start_dt = timezone.now()
         updated_tasks = []
+
+        if task_id:
+            related_flaw_uuids = set(
+                Flaw.objects.filter(task_key=task_id).values_list("uuid", flat=True)
+            )
+            flaw_orig_model_updated_dts = set(
+                Flaw.objects.filter(uuid__in=related_flaw_uuids).values_list(
+                    "updated_dt", flat=True
+                )
+            )
+            logger.info(
+                f"Fetching Jira tasks (id {task_id}, original flaw updated_dt {flaw_orig_model_updated_dts})"
+            )
+
         batch_data, period_end = (
             self.get_batch()
             if task_id is None
             else ([self.jira_querier.get_issue(task_id)], None)
         )
 
-        # process data
-        for task_data in batch_data:
-            # perform this as a transaction to avoid
-            # collision between loading and saving the flaw
-            with transaction.atomic():
+        # ...getting here might take a while, so locking only now,
+        # so as to minimize blocking API for clients editing the
+        # same flaw.
+
+        with transaction.atomic():
+            # Prevent locking multiple times, although Postgresql would probably accept it.
+            locked_flaw_uuids = set()
+
+            # For reasoning about locking, see SelectForUpdateMixin.
+
+            if task_id:
+                Flaw.objects.filter(uuid__in=related_flaw_uuids).select_for_update()
+                locked_flaw_uuids.update(related_flaw_uuids)
+
+            # process data with locking them first
+            for task_data in batch_data:
+
+                this_flaw_uuids = set()
+
+                for lbl in task_data.fields.labels:
+                    if lbl.startswith("flawuuid:"):
+                        this_flaw_uuids.add(lbl.split(":")[1])
+
+                this_yet_unlocked_flaw_uuids = this_flaw_uuids - locked_flaw_uuids
+                Flaw.objects.filter(
+                    uuid__in=this_yet_unlocked_flaw_uuids
+                ).select_for_update()
+                locked_flaw_uuids.update(this_yet_unlocked_flaw_uuids)
+
+                if task_id:
+                    flaw_current_model_updated_dts = set(
+                        Flaw.objects.filter(uuid__in=related_flaw_uuids).values_list(
+                            "updated_dt", flat=True
+                        )
+                    )
+                    if flaw_orig_model_updated_dts != flaw_current_model_updated_dts:
+                        logger.info(
+                            f"Fetching Jira tasks (detected concurrent edit, id {task_id}, current flaw updated_dt {flaw_current_model_updated_dts})"
+                        )
+                        raise JiraTaskCollectorConcurrentEditAvoided
+
+                # perform the task save itself
                 flaw = JiraTaskConvertor(task_data).flaw
                 if flaw:
                     self.save(flaw)

@@ -9,6 +9,12 @@ class JiraffeException(Exception):
     """
 
 
+class JiraTaskCollectorConcurrentEditAvoided(JiraffeException):
+    """
+    detected a concurrent edit of the Flaw model in DB when collecting tasks
+    """
+
+
 class JiraTrackerCollectorConcurrentEditAvoided(JiraffeException):
     """
     detected a concurrent edit of the tracker model in DB, or of the related flaw
