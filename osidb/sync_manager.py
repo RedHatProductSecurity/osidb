@@ -390,6 +390,7 @@ class BZTrackerLinkManager(SyncManager):
     Tracker and Affects are updated.
     """
 
+    # TODO use select_for_update appropriately. See SelectForUpdateMixin for reasoning.
     @staticmethod
     def link_tracker_with_affects(tracker_id):
         # Code adapted from collectors.bzimport.convertors.BugzillaTrackerConvertor.affects
