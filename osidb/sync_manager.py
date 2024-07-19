@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from config.celery import app
 from osidb.core import set_user_acls
+from osidb.locks import apply_lock, apply_lock_state_template
 
 logger = get_task_logger(__name__)
 
@@ -529,7 +530,6 @@ class BZTrackerLinkManager(SyncManager):
         return result
 
 
-# TODO use select_for_update appropriately. See SelectForUpdateMixin for reasoning.
 class BZSyncManager(SyncManager):
     """
     Sync manager class for OSIDB => Bugzilla synchronization.
@@ -546,9 +546,12 @@ class BZSyncManager(SyncManager):
         set_user_acls(settings.ALL_GROUPS)
 
         try:
-            flaw = Flaw.objects.get(uuid=sync_id)
-            bz_api_key = kwargs.pop("bz_api_key", None)
-            flaw._perform_bzsync(*args, bz_api_key=bz_api_key, **kwargs)
+            with transaction.atomic():
+                lock_state = apply_lock_state_template()
+                apply_lock(state=lock_state, new_flaw_uuids=[sync_id])
+                flaw = Flaw.objects.get(uuid=sync_id)
+                bz_api_key = kwargs.pop("bz_api_key", None)
+                flaw._perform_bzsync(*args, bz_api_key=bz_api_key, **kwargs)
         except Exception as e:
             BZSyncManager.failed(sync_id, e)
         else:
