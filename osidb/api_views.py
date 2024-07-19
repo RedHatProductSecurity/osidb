@@ -26,6 +26,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ViewSet, ViewSetMixin
 
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
+from osidb.locks import LOCKED_FLAW_UUIDS, apply_lock, apply_lock_state_template
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import (
@@ -513,9 +514,15 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
             obj = get_object_or_404(queryset, uuid=pk)
         self.check_object_permissions(self.request, obj)
 
-        # Doing the same what SelectForUpdateMixin would do,
-        # see SelectForUpdateMixin for reasoning.
-        Flaw.objects.filter(uuid=obj.uuid).select_for_update()
+        # It's theoretically enough to lock only Flaw:
+        # # Flaw.objects.filter(uuid=obj.uuid).select_for_update()
+        # but locking the whole graph of related models to
+        # reduce risk/impact of a bug (see SelectForUpdateMixin's
+        # and apply_lock's comments for explanation) if an
+        # omission of locking is introduced elsewhere mistakenly
+        # in the future.
+        lock_state = apply_lock_state_template()
+        apply_lock(state=lock_state, new_flaw_uuids=[obj.uuid])
 
         return obj
 
@@ -976,6 +983,13 @@ class AffectView(
                 {"flaw": "Provided affects belong to multiple flaws."}
             )
 
+        lock_state = apply_lock_state_template()
+        # Not using apply_lock for each Affect separately, because
+        # it might be hundreds of affects, which would result in many
+        # ultimately unnecessary DB queries in repeated apply_lock.
+        lock_state[LOCKED_FLAW_UUIDS] = flaws_selected
+        apply_lock(state=lock_state, new_affect_uuids=uuids)
+
         # Second, save the updated affects to the database, but not sync with BZ.
         ret = []
         for serializer in validated_serializers:
@@ -1030,6 +1044,12 @@ class AffectView(
             raise ValidationError(
                 {"flaw": "Provided affects belong to multiple flaws."}
             )
+
+        lock_state = apply_lock_state_template()
+        lock_state[LOCKED_FLAW_UUIDS] = flaws_selected
+        # This locks the graph of the currently existing Flaw-related objects.
+        # Reason explained in apply_lock (risk mitigation).
+        apply_lock(state=lock_state)
 
         # Second, save the updated affects to the database, but not sync with BZ.
         ret = []

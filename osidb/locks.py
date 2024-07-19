@@ -20,6 +20,14 @@ def apply_lock(
     """
     Locks Flaw, Affect, Tracker models based on the provided UUIDs.
 
+    For general reasoning about locking in OSIDB, see SelectForUpdateMixin.
+
+    SelectForUpdateMixin is for a more limited usecase, much simpler and
+    easier to understand, hence the split implementation and split explanation.
+
+    For reasoning about using a consistent reusable approach outside of
+    SelectForUpdateMixin and usage of this function, read on:
+
     Flaw, Affect and Tracker relationships are traversed and the whole graph
     is locked always in the order:
     1. all identified Flaws,
@@ -56,8 +64,6 @@ def apply_lock(
     - When a collector collects an object identified by an ID, it
       usually performs only one round of locking, or it does its best
       to make the first round of locking as complete as possible.
-
-    For reasoning about locking, see SelectForUpdateMixin.
 
     Modifies the "state" argument.
 
