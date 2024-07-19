@@ -28,6 +28,113 @@ from .exceptions import (
 
 logger = get_task_logger(__name__)
 
+LOCKED_FLAW_UUIDS = "locked_flaw_uuids"
+LOCKED_AFFECT_UUIDS = "locked_affect_uuids"
+LOCKED_TRACKER_UUIDS = "locked_tracker_uuids"
+
+
+def apply_lock_state_template():
+    """
+    Shared state to be used by apply_lock within a transaction.
+    """
+    return {
+        LOCKED_FLAW_UUIDS: set(),
+        LOCKED_AFFECT_UUIDS: set(),
+        LOCKED_TRACKER_UUIDS: set(),
+    }
+
+
+def apply_lock(
+    state, new_flaw_uuids=None, new_affect_uuids=None, new_tracker_uuids=None
+):
+    """
+    Locks Flaw, Affect, Tracker models based on the provided UUIDs.
+    Flaw, Affect and Tracker relationships are traversed and the whole graph
+    is locked always in the order:
+    1. all identified Flaws,
+    2. all identified Affects
+    3. all identified Trackers
+    A deadlock is possible if two threads use this function to first lock
+    two different sets of models, then each wants to additionally lock
+    some of models already locked by the other thread. Discovering as much
+    of the related models before the first locking in the transaction helps
+    avoid that. If it happens, Postgresql should detect it and abort the
+    transaction.
+    It shouldn't happen though because:
+    - When Jira*Collector collects a time range, it locks incrementally
+      (because it can't know all IDs in advance), but only a single instance
+      of such a process should run at a time.
+    - When Jira*Collector collects an object identified by an ID, it most
+      probably performs only one round of locking.
+    For reasoning about locking, see SelectForUpdateMixin.
+    Modifies the "state" argument.
+    The new*uuids arguments must be iterable.
+    Must be run inside a transaction.
+    """
+
+    new_flaw_uuids = set(new_flaw_uuids) if new_flaw_uuids else set()
+    new_affect_uuids = set(new_affect_uuids) if new_affect_uuids else set()
+    new_tracker_uuids = set(new_tracker_uuids) if new_tracker_uuids else set()
+
+    all_flaw_uuids = state[LOCKED_FLAW_UUIDS] | set(new_flaw_uuids)
+    all_affect_uuids = state[LOCKED_AFFECT_UUIDS] | set(new_affect_uuids)
+    all_tracker_uuids = state[LOCKED_TRACKER_UUIDS] | set(new_tracker_uuids)
+
+    for i in range(2):
+        # Twice to discover the whole graph. Any of the new_*_uuids sets
+        # can be empty/nonempty, requiring different directions in
+        # the graph traversal. A single direction iterated twice is simpler
+        # to understand.
+
+        # discover flaw uuids from affect
+        all_flaw_uuids.update(
+            set(
+                Affect.objects.filter(uuid__in=all_affect_uuids).values_list(
+                    "flaw__uuid", flat=True
+                )
+            )
+        )
+
+        # discover affect uuids from flaw
+        all_affect_uuids.update(
+            set(
+                Flaw.objects.filter(uuid__in=all_flaw_uuids).values_list(
+                    "affects__uuid", flat=True
+                )
+            )
+        )
+
+        # discover affect uuids from tracker
+        all_affect_uuids.update(
+            set(
+                Tracker.objects.filter(uuid__in=all_tracker_uuids).values_list(
+                    "affects__uuid", flat=True
+                )
+            )
+        )
+
+        # discover tracker uuids from affect
+        all_tracker_uuids.update(
+            set(
+                Tracker.objects.filter(affects__uuid__in=all_affect_uuids).values_list(
+                    "uuid", flat=True
+                )
+            )
+        )
+
+    nonlocked_flaw_uuids = all_flaw_uuids - state[LOCKED_FLAW_UUIDS]
+    nonlocked_affect_uuids = all_affect_uuids - state[LOCKED_AFFECT_UUIDS]
+    nonlocked_tracker_uuids = all_tracker_uuids - state[LOCKED_TRACKER_UUIDS]
+
+    Flaw.objects.filter(uuid__in=nonlocked_flaw_uuids).select_for_update()
+    state[LOCKED_FLAW_UUIDS].update(nonlocked_flaw_uuids)
+
+    Affect.objects.filter(uuid__in=nonlocked_affect_uuids).select_for_update()
+    state[LOCKED_AFFECT_UUIDS].update(nonlocked_affect_uuids)
+
+    Tracker.objects.filter(uuid__in=nonlocked_tracker_uuids).select_for_update()
+    state[LOCKED_TRACKER_UUIDS].update(nonlocked_tracker_uuids)
+
 
 class JiraTaskCollector(Collector):
     """
@@ -101,15 +208,15 @@ class JiraTaskCollector(Collector):
         # same flaw.
 
         with transaction.atomic():
-            # Prevent locking multiple times, although Postgresql would probably accept it.
-            locked_flaw_uuids = set()
+            # Prevents locking multiple times, although Postgresql would probably accept it.
+            lock_state = apply_lock_state_template()
 
             # For reasoning about locking, see SelectForUpdateMixin.
 
             if task_id:
-                Flaw.objects.filter(uuid__in=related_flaw_uuids).select_for_update()
-                locked_flaw_uuids.update(related_flaw_uuids)
+                apply_lock(state=lock_state, new_flaw_uuids=related_flaw_uuids)
 
+            first_loop = True
             # process data with locking them first
             for task_data in batch_data:
 
@@ -119,13 +226,9 @@ class JiraTaskCollector(Collector):
                     if lbl.startswith("flawuuid:"):
                         this_flaw_uuids.add(lbl.split(":")[1])
 
-                this_yet_unlocked_flaw_uuids = this_flaw_uuids - locked_flaw_uuids
-                Flaw.objects.filter(
-                    uuid__in=this_yet_unlocked_flaw_uuids
-                ).select_for_update()
-                locked_flaw_uuids.update(this_yet_unlocked_flaw_uuids)
+                apply_lock(state=lock_state, new_flaw_uuids=this_flaw_uuids)
 
-                if task_id:
+                if task_id and first_loop:
                     flaw_current_model_updated_dts = set(
                         Flaw.objects.filter(uuid__in=related_flaw_uuids).values_list(
                             "updated_dt", flat=True
@@ -136,6 +239,7 @@ class JiraTaskCollector(Collector):
                             f"Fetching Jira tasks (detected concurrent edit, id {task_id}, current flaw updated_dt {flaw_current_model_updated_dts})"
                         )
                         raise JiraTaskCollectorConcurrentEditAvoided
+                first_loop = False
 
                 # perform the task save itself
                 flaw = JiraTaskConvertor(task_data).flaw
@@ -281,29 +385,26 @@ class JiraTrackerCollector(Collector):
 
         with transaction.atomic():
             # Prevent locking multiple times, although Postgresql would probably accept it.
-            locked_flaw_uuids = set()
-            locked_affect_uuids = set()
-            locked_tracker_uuids = set()
+            lock_state = apply_lock_state_template()
 
             # For reasoning about locking and order of locking, see SelectForUpdateMixin.
 
             if tracker_id:
-                Flaw.objects.filter(uuid__in=related_flaw_uuids).select_for_update()
-                locked_flaw_uuids.update(related_flaw_uuids)
-                Affect.objects.filter(uuid__in=related_affect_uuids).select_for_update()
-                locked_affect_uuids.update(related_affect_uuids)
-                Tracker.objects.filter(
-                    uuid__in=related_tracker_uuids
-                ).select_for_update()
-                locked_tracker_uuids.update(related_tracker_uuids)
+                apply_lock(
+                    state=lock_state,
+                    new_flaw_uuids=related_flaw_uuids,
+                    new_affect_uuids=related_affect_uuids,
+                    new_tracker_uuids=related_tracker_uuids,
+                )
+
+            first_loop = True
 
             # process data with locking them first
             for tracker_data in batch_data:
 
                 this_external_system_id = tracker_data.key
                 this_flaw_uuids = set()
-                this_affect_uuids = set()
-                this_tracker_uuid = None
+                this_tracker_uuids = []
                 for lbl in tracker_data.fields.labels:
                     if lbl.startswith("flawuuid:"):
                         this_flaw_uuids.add(lbl.split(":")[1])
@@ -313,46 +414,15 @@ class JiraTrackerCollector(Collector):
                     type=Tracker.TrackerType.JIRA,
                 )
                 if this_tracker_queryset.exists():
-                    this_tracker_uuid = this_tracker_queryset.first().uuid
-                    this_affect_uuids.update(
-                        set(
-                            Tracker.objects.filter(uuid=this_tracker_uuid).values_list(
-                                "affects__uuid", flat=True
-                            )
-                        )
-                    )
-                    this_flaw_uuids.update(
-                        set(
-                            Affect.objects.filter(
-                                uuid__in=this_affect_uuids
-                            ).values_list("flaw__uuid", flat=True)
-                        )
-                    )
-                this_affect_uuids.update(
-                    set(
-                        Flaw.objects.filter(uuid__in=this_flaw_uuids).values_list(
-                            "affects__uuid", flat=True
-                        )
-                    )
+                    this_tracker_uuids = [this_tracker_queryset.first().uuid]
+
+                apply_lock(
+                    state=lock_state,
+                    new_flaw_uuids=this_flaw_uuids,
+                    new_tracker_uuids=this_tracker_uuids,
                 )
 
-                this_yet_unlocked_flaw_uuids = this_flaw_uuids - locked_flaw_uuids
-                Flaw.objects.filter(
-                    uuid__in=this_yet_unlocked_flaw_uuids
-                ).select_for_update()
-                locked_flaw_uuids.update(this_yet_unlocked_flaw_uuids)
-
-                this_yet_unlocked_affect_uuids = this_affect_uuids - locked_affect_uuids
-                Affect.objects.filter(
-                    uuid__in=this_yet_unlocked_affect_uuids
-                ).select_for_update()
-                locked_affect_uuids.update(this_yet_unlocked_affect_uuids)
-
-                if this_tracker_uuid not in locked_tracker_uuids:
-                    Tracker.objects.filter(uuid=this_tracker_uuid).select_for_update()
-                    locked_tracker_uuids.add(this_tracker_uuid)
-
-                if tracker_id:
+                if tracker_id and first_loop:
                     tracker_current_model_updated_dts = set(
                         Tracker.objects.filter(
                             uuid__in=related_tracker_uuids
@@ -373,6 +443,7 @@ class JiraTrackerCollector(Collector):
                             f"Fetching Jira trackers (detected concurrent edit, id {tracker_id}, current tracker updated_dt {tracker_current_model_updated_dts}, curr. flaw updated_dt {flaw_current_model_updated_dts})"
                         )
                         raise JiraTrackerCollectorConcurrentEditAvoided
+                first_loop = False
 
                 # perform the tracker save itself
                 tracker = JiraTrackerConvertor(tracker_data).tracker
