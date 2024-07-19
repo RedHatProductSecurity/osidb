@@ -19,11 +19,30 @@ def apply_lock(
 ):
     """
     Locks Flaw, Affect, Tracker models based on the provided UUIDs.
+
     Flaw, Affect and Tracker relationships are traversed and the whole graph
     is locked always in the order:
     1. all identified Flaws,
     2. all identified Affects
     3. all identified Trackers
+
+    Even though locking all related/linked instances of all three models
+    is not necessary in most situations if locking is used in all cases
+    of writing data, it is useful because
+    - locking blocks other threads that use locks too from reading,
+      making concurrent tasks execute serially on related data,
+      maintaining data consistency
+    - locking blocks other threads writing even if they didn't lock
+      (for example by mistake, which is highly probable to occur sometime
+       during development), thus reducing potential impact of future bugs
+    - in some cases, the some of the instances are not connected yet
+      at the start of the processing, making locking only on e.g. Flaw
+      insufficient
+    - having a single piece of logic with consistent locking order
+      is more maintainable and easier to reason about than theoretically
+      more optimized approaches (and concurrency is difficult to reason
+      about in OSIDB)
+
     A deadlock is possible if two threads use this function to first lock
     two different sets of models, then each wants to additionally lock
     some of models already locked by the other thread. Discovering as much
@@ -31,14 +50,19 @@ def apply_lock(
     avoid that. If it happens, Postgresql should detect it and abort the
     transaction.
     It shouldn't happen though because:
-    - When Jira*Collector collects a time range, it locks incrementally
+    - When a collector collects a time range, it locks incrementally
       (because it can't know all IDs in advance), but only a single instance
       of such a process should run at a time.
-    - When Jira*Collector collects an object identified by an ID, it most
-      probably performs only one round of locking.
+    - When a collector collects an object identified by an ID, it
+      usually performs only one round of locking, or it does its best
+      to make the first round of locking as complete as possible.
+
     For reasoning about locking, see SelectForUpdateMixin.
+
     Modifies the "state" argument.
+
     The new*uuids arguments must be iterable.
+
     Must be run inside a transaction.
     """
 

@@ -391,14 +391,22 @@ class BZTrackerLinkManager(SyncManager):
     Tracker and Affects are updated.
     """
 
-    # TODO use select_for_update appropriately. See SelectForUpdateMixin for reasoning.
     @staticmethod
-    def link_tracker_with_affects(tracker_id):
+    def link_tracker_with_affects(tracker_id, dry_run_prepare_uuids=False):
         # Code adapted from collectors.bzimport.convertors.BugzillaTrackerConvertor.affects
+
+        # If dry_run_prepare_uuids == True, the return values are different
+        # and it doesn't modify any data; for use with locking. See
+        # SelectForUpdateMixin for reasoning about locking.
 
         from osidb.models import Affect, Flaw, Tracker
 
         tracker = Tracker.objects.get(external_system_id=tracker_id)
+
+        if dry_run_prepare_uuids:
+            flaw_uuids = set()
+            tracker_uuids = set([tracker.uuid])
+            affect_uuids = set()
 
         affects = []
         failed_flaws = []
@@ -439,6 +447,11 @@ class BZTrackerLinkManager(SyncManager):
         # Non-Bugzilla flaws
         if process_whiteboard:
             for flaw_uuid in whiteboard["flaws"]:
+                if dry_run_prepare_uuids:
+                    # Try to lock all suspect UUIDs regardless if they exist right now or not
+                    # (the situation might change in parallel).
+                    flaw_uuids.add(flaw_uuid)
+
                 try:
                     flaw = Flaw.objects.get(uuid=flaw_uuid)
                 except Flaw.DoesNotExist:
@@ -464,6 +477,11 @@ class BZTrackerLinkManager(SyncManager):
 
                 affects.append(affect)
 
+        if dry_run_prepare_uuids:
+            for aff in affects:
+                affect_uuids.add(aff.uuid)
+            return flaw_uuids, affect_uuids, tracker_uuids
+
         # Prevent eventual duplicates
         affects = list(set(affects))
 
@@ -482,7 +500,34 @@ class BZTrackerLinkManager(SyncManager):
         set_user_acls(settings.ALL_GROUPS)
 
         try:
-            result = BZTrackerLinkManager.link_tracker_with_affects(tracker_id)
+            with transaction.atomic():
+                lock_state = apply_lock_state_template()
+                # The objects can change between enumerating them and locking
+                # them, hence enumerating second time after most (probably all)
+                # are locked (if all other code manipulating Flaw/Affect/Tracker
+                # also uses select_for_update, then the second iteration
+                # executing means we have exclusive access to the objects
+                # locked in the first iteration, which means they shouldn't
+                # change nor a deadlock should occur, because all the objects
+                # should be related and thus also locked together in other
+                # threads. On rare theoretical occasions where a deadlock
+                # does occur, this will just fail with an exception if run with
+                # Postgresql).
+                for i in range(2):
+                    (
+                        new_flaw_uuids,
+                        new_affect_uuids,
+                        new_tracker_uuids,
+                    ) = BZTrackerLinkManager.link_tracker_with_affects(
+                        tracker_id, dry_run_prepare_uuids=True
+                    )
+                    apply_lock(
+                        state=lock_state,
+                        new_flaw_uuids=new_flaw_uuids,
+                        new_affect_uuids=new_affect_uuids,
+                        new_tracker_uuids=new_tracker_uuids,
+                    )
+                result = BZTrackerLinkManager.link_tracker_with_affects(tracker_id)
         except Exception as e:
             BZTrackerLinkManager.failed(tracker_id, e)
         else:
