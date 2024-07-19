@@ -529,6 +529,7 @@ class BZTrackerLinkManager(SyncManager):
         return result
 
 
+# TODO use select_for_update appropriately. See SelectForUpdateMixin for reasoning.
 class BZSyncManager(SyncManager):
     """
     Sync manager class for OSIDB => Bugzilla synchronization.
