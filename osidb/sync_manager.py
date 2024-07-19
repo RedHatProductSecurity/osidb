@@ -54,21 +54,28 @@ class SyncManager(models.Model):
         raise NotImplementedError("Update synced links not implemented.")
 
     @classmethod
-    def schedule(cls, sync_id):
+    def schedule(cls, sync_id, *args, **kwargs):
         """
         Schedule sync_task to Celery queue.
 
         :param sync_id: Unique ID for synchronized data object.
         """
-        cls.objects.get_or_create(sync_id=sync_id)
-        cls.objects.filter(sync_id=sync_id).update(last_scheduled_dt=timezone.now())
-        try:
-            cls.sync_task.apply_async(args=[sync_id])
-        except AttributeError:
-            raise NotImplementedError(
-                "Sync task not implemented or not implemented as Celery task."
-            )
-        logger.info(f"{cls.__name__} {sync_id}: Sync scheduled")
+        manager, _ = cls.objects.get_or_create(sync_id=sync_id)
+        manager.last_scheduled_dt = timezone.now()
+        manager.save()
+
+        def schedule_task():
+            try:
+                cls.sync_task.apply_async(args=[sync_id, *args], kwargs=kwargs)
+            except AttributeError:
+                raise NotImplementedError(
+                    "Sync task not implemented or not implemented as Celery task."
+                )
+            logger.info(f"{cls.__name__} {sync_id}: Sync scheduled")
+
+        # Avoid race condition by ensuring the task is scheduled after the
+        # transaction so that the manager instance actually exists
+        transaction.on_commit(schedule_task)
 
     @classmethod
     def started(cls, sync_id, celery_task):
@@ -517,6 +524,46 @@ class BZTrackerLinkManager(SyncManager):
             f"{a.flaw.bz_id}|{a.ps_module}|{a.ps_component}" for a in affects
         ]
         result += f"Affects: {affect_strings}\n"
+
+        return result
+
+
+class BZSyncManager(SyncManager):
+    """
+    Sync manager class for OSIDB => Bugzilla synchronization.
+    """
+
+    @staticmethod
+    @app.task(name="sync_manager.bzsync", bind=True)
+    def sync_task(self, sync_id, *args, **kwargs):
+        # sync_id is the flaw UUID
+        from osidb.models import Flaw
+
+        BZSyncManager.started(sync_id, self)
+
+        set_user_acls(settings.ALL_GROUPS)
+
+        try:
+            flaw = Flaw.objects.get(uuid=sync_id)
+            bz_api_key = kwargs.pop("bz_api_key", None)
+            flaw._perform_bzsync(*args, bz_api_key=bz_api_key, **kwargs)
+        except Exception as e:
+            BZSyncManager.failed(sync_id, e)
+        else:
+            BZSyncManager.finished(sync_id)
+
+    def update_synced_links(self):
+        from osidb.models import Flaw
+
+        Flaw.objects.filter(uuid=self.sync_id).update(bzsync_manager=self)
+
+    def __str__(self):
+        from osidb.models import Flaw
+
+        result = super().__str__()
+        flaws = Flaw.objects.filter(uuid=self.sync_id)
+        cves = [f.cve_id or f.uuid for f in flaws]
+        result += f"Flaws: {cves}\n"
 
         return result
 

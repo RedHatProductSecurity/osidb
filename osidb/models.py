@@ -56,6 +56,7 @@ from .mixins import (
     ValidateMixin,
 )
 from .sync_manager import (
+    BZSyncManager,
     BZTrackerDownloadManager,
     BZTrackerLinkManager,
     FlawDownloadManager,
@@ -1328,31 +1329,36 @@ class Flaw(
             return
 
         # switch of sync/async processing
-        if not SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY:
-            # imports here to prevent cycles
-            from apps.bbsync.save import FlawBugzillaSaver
-            from collectors.bzimport.collectors import FlawCollector
-
-            # sync to Bugzilla
-            bs = FlawBugzillaSaver(self, bz_api_key)
-            self = bs.save()
-            kwargs[
-                "auto_timestamps"
-            ] = False  # the timestamps will be get from Bugzilla
-            kwargs["raise_validation_error"] = False  # the validations were already run
-            # save in case a new Bugzilla ID was obtained
-            self.save(*args, **kwargs)
-
-            # fetch from Bugzilla
-            fc = FlawCollector()
-            fc.sync_flaw(self.bz_id)
-            # Make sure the flaw instance has the latest data
-            self.refresh_from_db()
-
+        if SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY:
+            # Process the bzsync asynchronously
+            BZSyncManager.check_for_reschedules()
+            kwargs["bz_api_key"] = bz_api_key
+            BZSyncManager.schedule(str(self.uuid), *args, **kwargs)
         else:
-            # TODO OSIDB-3107
-            # schedule sync here
-            raise NotImplementedError
+            self._perform_bzsync(*args, bz_api_key=bz_api_key, **kwargs)
+
+    def _perform_bzsync(self, *args, bz_api_key, **kwargs):
+        """
+        Helper function that contains the actual logic of the Bugzilla sync,
+        without additional checks.
+        """
+        # imports here to prevent cycles
+        from apps.bbsync.save import FlawBugzillaSaver
+        from collectors.bzimport.collectors import FlawCollector
+
+        # sync to Bugzilla
+        bs = FlawBugzillaSaver(self, bz_api_key)
+        self = bs.save()
+        kwargs["auto_timestamps"] = False  # the timestamps will be get from Bugzilla
+        kwargs["raise_validation_error"] = False  # the validations were already run
+        # save in case a new Bugzilla ID was obtained
+        self.save(*args, **kwargs)
+
+        # fetch from Bugzilla
+        fc = FlawCollector()
+        fc.sync_flaw(self.bz_id)
+        # Make sure the flaw instance has the latest data
+        self.refresh_from_db()
 
     def tasksync(
         self,
@@ -1434,6 +1440,9 @@ class Flaw(
 
     download_manager = models.ForeignKey(
         FlawDownloadManager, null=True, blank=True, on_delete=models.CASCADE
+    )
+    bzsync_manager = models.ForeignKey(
+        BZSyncManager, null=True, blank=True, on_delete=models.CASCADE
     )
 
 
