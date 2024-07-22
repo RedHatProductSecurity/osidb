@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import uuid
+from datetime import datetime
 from decimal import Decimal
 from typing import Union
 
@@ -1387,6 +1388,9 @@ class Flaw(
         def _create_new_flaw():
             issue = jtq.create_or_update_task(self)
             self.task_key = issue.data["key"]
+            self.task_updated_dt = datetime.strptime(
+                issue.data["fields"]["updated"], "%Y-%m-%dT%H:%M:%S.%f%z"
+            )
             self.workflow_state = WorkflowModel.WorkflowState.NEW
             self.save(*args, **kwargs)
 
@@ -1433,6 +1437,9 @@ class Flaw(
                 )
                 self.workflow_state = workflow_state
                 self.workflow_name = workflow_name
+                self.task_updated_dt = datetime.strptime(
+                    issue.data["fields"]["updated"], "%Y-%m-%dT%H:%M:%S.%f%z"
+                )
                 self.save(*args, **kwargs)
         except Flaw.DoesNotExist:
             # we're handling a new OSIDB-authored flaw -- create

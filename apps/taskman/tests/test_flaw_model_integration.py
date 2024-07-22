@@ -35,7 +35,11 @@ class TestFlawModelIntegration(object):
             return Response(
                 data={
                     "key": "TASK-123",
-                    "fields": {"status": {"name": "New"}, "resolution": None},
+                    "fields": {
+                        "status": {"name": "New"},
+                        "resolution": None,
+                        "updated": "2024-06-25T21:20:43.988+0000",
+                    },
                 },
                 status=200,
             )
@@ -74,7 +78,11 @@ class TestFlawModelIntegration(object):
             return Response(
                 data={
                     "key": "TASK-123",
-                    "fields": {"status": {"name": "New"}, "resolution": None},
+                    "fields": {
+                        "status": {"name": "New"},
+                        "resolution": None,
+                        "updated": "2024-06-25T21:20:43.988+0000",
+                    },
                 },
                 status=200,
             )
@@ -120,7 +128,11 @@ class TestFlawModelIntegration(object):
             return Response(
                 data={
                     "key": "TASK-123",
-                    "fields": {"status": {"name": "New"}, "resolution": None},
+                    "fields": {
+                        "status": {"name": "New"},
+                        "resolution": None,
+                        "updated": "2024-06-25T21:20:43.988+0000",
+                    },
                 },
                 status=200,
             )
@@ -163,7 +175,11 @@ class TestFlawModelIntegration(object):
             return Response(
                 data={
                     "key": "TASK-123",
-                    "fields": {"status": {"name": "New"}, "resolution": None},
+                    "fields": {
+                        "status": {"name": "New"},
+                        "resolution": None,
+                        "updated": "2024-06-25T21:20:43.988+0000",
+                    },
                 },
                 status=200,
             )
@@ -230,7 +246,11 @@ class TestFlawModelIntegration(object):
             return Response(
                 data={
                     "key": "TASK-123",
-                    "fields": {"status": {"name": "New"}, "resolution": None},
+                    "fields": {
+                        "status": {"name": "New"},
+                        "resolution": None,
+                        "updated": "2024-06-25T21:20:43.988+0000",
+                    },
                 },
                 status=200,
             )
