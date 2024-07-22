@@ -5,6 +5,7 @@ transform Jira issue into OSIDB tracker model
 import json
 import logging
 import uuid
+from datetime import datetime
 from functools import cached_property
 
 from django.conf import settings
@@ -70,6 +71,9 @@ class JiraTaskConvertor:
             "workflow_name": workflow,
             "team_id": self.get_field_attr(self._raw, "customfield_12313240", "id"),
             "group_key": self.get_field_attr(self._raw, "customfield_12311140"),
+            "task_updated_dt": datetime.strptime(
+                self.get_field_attr(self._raw, "updated"), "%Y-%m-%dT%H:%M:%S.%f%z"
+            ),
         }
 
     @property
@@ -110,13 +114,21 @@ class JiraTaskConvertor:
             )
             return None
         # Avoid updating timestamp of flaws without real changes
-        has_changes = flaw and (
-            flaw.team_id != self.task_data["team_id"]
-            or flaw.owner != self.task_data["owner"]
-            or flaw.task_key != self.task_data["external_system_id"]
-            or flaw.group_key != self.task_data["group_key"]
-            or flaw.workflow_name != self.task_data["workflow_name"]
-            or flaw.workflow_state != self.task_data["workflow_state"]
+        has_changes = (
+            flaw
+            and (
+                # ignore issue if query is outdated
+                not flaw.task_updated_dt
+                or flaw.task_updated_dt <= self.task_data["task_updated_dt"]
+            )
+            and (
+                flaw.team_id != self.task_data["team_id"]
+                or flaw.owner != self.task_data["owner"]
+                or flaw.task_key != self.task_data["external_system_id"]
+                or flaw.group_key != self.task_data["group_key"]
+                or flaw.workflow_name != self.task_data["workflow_name"]
+                or flaw.workflow_state != self.task_data["workflow_state"]
+            )
         )
 
         if has_changes:
@@ -126,6 +138,7 @@ class JiraTaskConvertor:
             flaw.group_key = self.task_data["group_key"]
             flaw.workflow_name = self.task_data["workflow_name"]
             flaw.workflow_state = self.task_data["workflow_state"]
+            flaw.task_updated_dt = self.task_data["task_updated_dt"]
             return JiraTaskSaver(flaw)
         return None
 

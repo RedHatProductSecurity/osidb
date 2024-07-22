@@ -233,6 +233,7 @@ class TestEndpoints(object):
                             "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
                         },
                         "resolution": None,
+                        "updated": "2024-06-25T21:20:43.988+0000",
                     },
                 },
                 status=200,

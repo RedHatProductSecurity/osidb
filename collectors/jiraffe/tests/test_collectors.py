@@ -1,5 +1,6 @@
 import json
 import uuid
+from datetime import datetime
 
 import pytest
 from django.utils import timezone
@@ -11,6 +12,7 @@ import osidb.models as models
 from apps.taskman.constants import JIRA_AUTH_TOKEN
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
+from apps.workflows.workflow import WorkflowModel
 from collectors.bzimport.collectors import FlawCollector
 from collectors.framework.models import CollectorMetadata
 from collectors.jiraffe.collectors import (
@@ -18,6 +20,7 @@ from collectors.jiraffe.collectors import (
     JiraTrackerCollector,
     MetadataCollector,
 )
+from collectors.jiraffe.core import JiraQuerier
 from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.sync_manager import JiraTrackerLinkManager
 from osidb.tests.factories import (
@@ -98,6 +101,52 @@ class TestJiraTaskCollector:
         collector = JiraTaskCollector()
         collector.collect("OSIM-156")
         assert Flaw.objects.get(uuid=flaw.uuid).task_key
+
+    @pytest.mark.vcr
+    def test_outdated_query(self, monkeypatch):
+        """
+        test that Jira task collector ignores tasks with outdated timestamp
+        """
+        jira_token = JIRA_AUTH_TOKEN if JIRA_AUTH_TOKEN else "USER_JIRA_TOKEN"
+        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(convertors, "JIRA_AUTH_TOKEN", jira_token)
+        monkeypatch.setattr(collectors, "JIRA_TOKEN", jira_token)
+
+        jtq = JiraTaskmanQuerier(token=jira_token)
+
+        # 1 - create a flaw with task
+        # remove randomness for VCR usage
+        uuid = "e49a732a-06fe-4942-94d8-3a8b0407e827"
+        flaw = FlawFactory(uuid=uuid, embargoed=False, impact=Impact.IMPORTANT)
+        AffectFactory(flaw=flaw)
+        flaw.tasksync(force_creation=True, jira_token=jira_token)
+        assert flaw.task_key
+
+        # 2 - get the current Jira task and make sure db is in-sync
+        issue = jtq.jira_conn.issue(flaw.task_key)
+        last_update = datetime.strptime(issue.fields.updated, "%Y-%m-%dT%H:%M:%S.%f%z")
+        assert last_update == flaw.task_updated_dt
+        assert issue.fields.status.name == "New"
+
+        # 3 - freeze the issue in time to simulate long queries being outdated
+        def mock_get_issue(self, jira_id: str):
+            return issue
+
+        monkeypatch.setattr(JiraQuerier, "get_issue", mock_get_issue)
+
+        # 4 - simulate user promoting a flaw
+        flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
+        flaw.tasksync(jira_token=jira_token)
+        flaw = Flaw.objects.get(uuid=flaw.uuid)
+        assert last_update < flaw.task_updated_dt
+        assert flaw.workflow_state == "TRIAGE"
+
+        # 5 - make sure collector does not change flaw if it is holding outdated issue
+        collector = JiraTaskCollector()
+        collector.collect(flaw.task_key)
+        flaw = Flaw.objects.get(uuid=flaw.uuid)
+        assert flaw.workflow_state == "TRIAGE"
+        assert last_update < flaw.task_updated_dt
 
 
 class TestJiraTrackerCollector:
