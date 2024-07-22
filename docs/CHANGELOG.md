@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Alerts constrained unique so that bzimport doesn't block user requests (OSIDB-3048)
 - Duplicate Alerts created concurrently in multiple threads handled correctly (OSIDB-3048)
 - Make task collector ignore outdated issues (OSIDB-3085)
+- Allow Flaw API to proper unassign owner in Jira (OSIDB-3145)
 
 ## [4.1.2] - 2024-07-03
 ### Added

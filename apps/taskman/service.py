@@ -184,10 +184,10 @@ class JiraTaskmanQuerier(JiraQuerier):
                 "description": flaw.comment_zero,
                 "labels": labels,
                 "priority": {"name": IMPACT_TO_JIRA_PRIORITY[flaw.impact]},
+                "assignee": {"name": flaw.owner},
             }
         }
-        if flaw.owner:
-            data["fields"]["assignee"] = {"name": flaw.owner}
+
         if flaw.group_key:
             data["fields"]["customfield_12311140"] = flaw.group_key
 
