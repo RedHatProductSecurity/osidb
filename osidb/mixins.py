@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres import fields
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
@@ -564,15 +564,24 @@ class AlertManager(ACLMixinManager):
         Returns the alert with the given data, or a new alert if it does not exist
         in the database.
         """
-        try:
-            # Alerts are uniquely defined by their name and their parent object
-            alert = Alert.objects.get(
-                name=name, object_id=object_id, content_type=content_type
-            )
+        # Alerts are uniquely defined by their name and their parent object.
+        # Parallel threads can create duplicates.
+        alerts = Alert.objects.filter(
+            name=name, object_id=object_id, content_type=content_type
+        ).order_by("uuid")
+        alert = alerts.first()
+        if alerts.count() > 1:
+            # Duplicates have the same (or very similar) message and the same
+            # meaning and are made in virtually the same time. Therefore,
+            # there's no loss of information.
+            # Deterministically preserving the lowest UUID so that multiple threads
+            # keep the same instance.
+            alerts.exclude(uuid=alert.uuid).delete()
+        if alert:
             for attr, value in extra_fields.items():
                 setattr(alert, attr, value)
             return alert
-        except ObjectDoesNotExist:
+        else:
             return Alert(
                 name=name,
                 object_id=object_id,
