@@ -7,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres import fields
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import IntegrityError, models, transaction
+from django.db import models
 from django.utils import timezone
 
 from osidb.exceptions import DataInconsistencyException
@@ -617,14 +617,6 @@ class Alert(ACLMixin):
         """String representaion of an alert."""
         return self.name
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["name", "object_id", "content_type"],
-                name="unique Alert for name and object",
-            ),
-        ]
-
 
 class AlertMixin(ValidateMixin):
     """
@@ -657,59 +649,16 @@ class AlertMixin(ValidateMixin):
                 uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_WRITE_GROUP])
             ]
 
-        # When Alert.objects.create_alert().save() raises IntegrityError,
-        # multiple threads tried creating the same DB row *at the same time*
-        # (after each thread checking it doesn't exist from the threads'
-        # perspectives, then DB cancelling 2nd, 3rd, ... concurrent requests
-        # because of the UniquenessConstraint).
-        #
-        # The DB itself ensures (using locks internally) that only one
-        # such row (Alert) can exist even if multiple clients try to create
-        # one concurrently, so we don't have to handle maintaining
-        # data consistency and correctness by locking the table ourselves.
-        #
-        # Semantics of Django and the DB force us to use a method similar
-        # to _optimistic concurrency control_ - the operation is assumed
-        # to succeed and a check with potential fail is performed at the end.
-        #
-        # Since the only time this fails is when multiple *equally old*
-        # Alerts are created, such Alerts inevitably have the same meaning.
-        # Therefore, retry to update(!) the Alert is not necessary: The other
-        # thread created it just fine.
-        # ((!): It started as creation, but when retrying, it would be updating.)
-        #
-        # Also for posterity why select_for_update() is not used:
-        # select_for_update() (which locks the row) is both unnecessary
-        # (would force serialized orderly rewriting of data by the same data)
-        # and wouldn't solve the main problem of handling the uniqueness
-        # constraint gracefully (if the row doesn't exist yet, there's nothing
-        # to lock).
-        #
-        # transaction.atomic() is there because after IntegrityError, the
-        # transaction can't continue and OSIDB uses ATOMIC_REQUESTS, see
-        # https://stackoverflow.com/a/48836554 for use of nested tx.
-        #
-        # References:
-        # - https://www.postgresql.org/docs/16/index-unique-checks.html#:~:text=At%20present%2C%20only-,b%2Dtree,-supports%20it.)%20Columns
-        # - https://www.postgresql.org/docs/16/locking-indexes.html#:~:text=B%2Dtree%2C,without%20deadlock%20conditions.
-        # - https://www.postgresql.org/files/developer/concurrency.pdf
-        # - https://en.wikipedia.org/wiki/Optimistic_concurrency_control
-
-        try:
-            with transaction.atomic():
-                Alert.objects.create_alert(
-                    name=name,
-                    object_id=self.uuid,
-                    content_type=ContentType.objects.get_for_model(self),
-                    description=description,
-                    alert_type=alert_type,
-                    resolution_steps=resolution_steps,
-                    acl_read=acl_read,
-                    acl_write=acl_write,
-                ).save()
-        except IntegrityError:
-            # alerts of the same name, object_id and age have the same meaning
-            pass
+        Alert.objects.create_alert(
+            name=name,
+            object_id=self.uuid,
+            content_type=ContentType.objects.get_for_model(self),
+            description=description,
+            alert_type=alert_type,
+            resolution_steps=resolution_steps,
+            acl_read=acl_read,
+            acl_write=acl_write,
+        ).save()
 
     def validate(self, raise_validation_error=True):
         """
