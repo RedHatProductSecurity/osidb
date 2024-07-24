@@ -1,4 +1,5 @@
 import uuid
+from collections import defaultdict
 from functools import cached_property
 from itertools import chain
 
@@ -7,7 +8,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres import fields
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from osidb.exceptions import DataInconsistencyException
@@ -627,6 +628,10 @@ class Alert(ACLMixin):
         return self.name
 
 
+class NicelyRollBackTheTestingTx(Exception):
+    pass
+
+
 class AlertMixin(ValidateMixin):
     """
     This mixin implements the necessary mechanisms to have validation alerts.
@@ -685,26 +690,203 @@ class AlertMixin(ValidateMixin):
         # exclude meta attributes
         self.full_clean(exclude=["meta_attr"])
 
-        # clean all alerts before a new validation
-        self.alerts.all().delete()
+        # Originally, self.alerts was deleted and alerts recreated.
+        # That however created deadlocks.
+        # So instead, the process is done inside a transaction,
+        # observed, then aborted, and then alerts are only
+        # added/removed/modified as strictly needed.
 
-        # custom validations
-        for validation_name in [
-            item for item in dir(self) if item.startswith("_validate_")
-        ]:
-            try:
-                getattr(self, validation_name)()
-            except ValidationError as e:
-                if raise_validation_error:
-                    raise
+        orig_alerts = defaultdict(list)
+        for a in self.alerts.all().iterator():
+            identifier = (a.name, a.description, a.alert_type)
+            orig_alerts[identifier].append(a)
 
-                # do not raise but
-                # store alert as error
-                self.alert(
-                    name=validation_name,
-                    description=e.message,
-                    alert_type=Alert.AlertType.ERROR,
+        ids_to_delete = set()
+        alerts_to_add = []
+        alerts_to_update = {}
+
+        # Affect can create Alert on its linked Flaw
+        # (see _validate_special_consideration_flaw)
+        this_is_affect = False
+        if self.__class__.__name__ == "Affect":
+            # Prevent circular imports
+            from osidb.models import Affect
+
+            if self.__class__ is Affect:
+                this_is_affect = True
+                orig_flaw_alerts = defaultdict(list)
+                for a in self.flaw.alerts.all().iterator():
+                    identifier = (a.name, a.description, a.alert_type)
+                    orig_flaw_alerts[identifier].append(a)
+                ids_to_delete_flaw = set()
+                alerts_to_add_flaw = []
+                alerts_to_update_flaw = {}
+
+        # this will be observed and rolled back
+        try:
+            with transaction.atomic():
+
+                # clean all alerts before a new validation
+                self.alerts.all().delete()
+
+                # custom validations
+                for validation_name in [
+                    item for item in dir(self) if item.startswith("_validate_")
+                ]:
+                    try:
+                        # This can create alerts
+                        getattr(self, validation_name)()
+                    except ValidationError as e:
+                        if raise_validation_error:
+                            raise
+
+                        # do not raise but
+                        # store alert as error
+                        self.alert(
+                            name=validation_name,
+                            description=e.message,
+                            alert_type=Alert.AlertType.ERROR,
+                        )
+
+                # Read this as if there was no function and the code just continued.
+                # It's just because it is executed twice for Affect models.
+                def process_lists(
+                    orig_alerts,
+                    ids_to_delete,
+                    alerts_to_add,
+                    alerts_to_update,
+                    processing_related_flaw=False,
+                ):
+
+                    new_alerts = {}
+
+                    queryset = self.alerts.all().iterator()
+                    if processing_related_flaw:
+                        queryset = self.flaw.alerts.all().iterator()
+
+                    for a in queryset:
+                        identifier = (a.name, a.description, a.alert_type)
+                        new_alerts[identifier] = a
+
+                    # 4 possibilities
+                    #   1. alert disappeared (id not in new set, id in old set)
+                    #   2. alert appeared (id in new set, id not in old set)
+                    #   3. alert changed (id in both, data different)
+                    #   4. alert stayed the same (id in both, data same)
+
+                    ids_to_delete.update(
+                        set(orig_alerts.keys()) - set(new_alerts.keys())
+                    )
+                    new_ids = set(new_alerts.keys()) - set(orig_alerts.keys())
+                    ids_in_both = set(orig_alerts.keys()) & set(new_alerts.keys())
+
+                    for identifier in new_ids:
+                        a = new_alerts[identifier]
+                        # Hand over just the data, not the django ORM representations of the
+                        # Alert objects to make it easy to reason about. The objects would belong
+                        # to an aborted transaction.
+                        data = (a.name, a.description, a.alert_type, a.resolution_steps)
+                        alerts_to_add.append(data)
+
+                    for identifier in ids_in_both:
+                        a_orig = orig_alerts[identifier][0]
+                        a_new = new_alerts[identifier]
+                        data_orig = (
+                            a_orig.name,
+                            a_orig.description,
+                            a_orig.alert_type,
+                            a_orig.resolution_steps,
+                        )
+                        data_new = (
+                            a_new.name,
+                            a_new.description,
+                            a_new.alert_type,
+                            a_new.resolution_steps,
+                        )
+                        if data_orig != data_new:
+                            # The data are the same as the identifier plus the resolution_steps.
+                            alerts_to_update[identifier] = a_new.resolution_steps
+
+                process_lists(
+                    orig_alerts=orig_alerts,
+                    ids_to_delete=ids_to_delete,
+                    alerts_to_add=alerts_to_add,
+                    alerts_to_update=alerts_to_update,
+                    processing_related_flaw=False,
                 )
+
+                if this_is_affect:
+                    process_lists(
+                        orig_alerts=orig_flaw_alerts,
+                        ids_to_delete=ids_to_delete_flaw,
+                        alerts_to_add=alerts_to_add_flaw,
+                        alerts_to_update=alerts_to_update_flaw,
+                        processing_related_flaw=True,
+                    )
+
+                raise NicelyRollBackTheTestingTx
+        except NicelyRollBackTheTestingTx:
+            pass
+
+        # Fix up Alerts based on the observation, doing the bare minimum amount
+        # of operations to minimize probability of a deadlock.
+
+        # Read this as if there was no function and the code just continued.
+        # It's just because it is executed twice for Affect models.
+        def apply_updates(
+            ids_to_delete,
+            alerts_to_add,
+            alerts_to_update,
+            processing_related_flaw=False,
+        ):
+
+            for identifier in ids_to_delete:
+                name, description, alert_type = identifier
+                queryset = self.alerts.all()
+                if processing_related_flaw:
+                    queryset = self.flaw.alerts.all()
+                queryset.filter(
+                    name=name, description=description, alert_type=alert_type
+                ).delete()
+
+            for data in alerts_to_add:
+                name, description, alert_type, resolution_steps = data
+                obj = self
+                if processing_related_flaw:
+                    obj = self.flaw
+                obj.alert(
+                    name=name,
+                    description=description,
+                    alert_type=alert_type,
+                    resolution_steps=resolution_steps,
+                )
+
+            for identifier, data in alerts_to_update.items():
+                a_orig_list = orig_alerts[identifier]
+                a_orig_uuids = set()
+                for a in a_orig_list:
+                    a_orig_uuids.add(a.uuid)
+                a_orig_queryset = Alert.objects.filter(uuid__in=a_orig_uuids).order_by(
+                    "uuid"
+                )
+                a_orig_first = a_orig_queryset.first()
+                a_orig_queryset.exclude(uuid=a_orig_first.uuid).delete()
+                a_orig_queryset.update(resolution_steps=data)
+
+        apply_updates(
+            ids_to_delete=ids_to_delete,
+            alerts_to_add=alerts_to_add,
+            alerts_to_update=alerts_to_update,
+            processing_related_flaw=False,
+        )
+
+        if this_is_affect:
+            apply_updates(
+                ids_to_delete=ids_to_delete_flaw,
+                alerts_to_add=alerts_to_add_flaw,
+                alerts_to_update=alerts_to_update_flaw,
+                processing_related_flaw=True,
+            )
 
     def save(self, *args, **kwargs):
         """
