@@ -1,5 +1,6 @@
 from bugzilla.exceptions import BugzillaError
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.utils import OperationalError
 from rest_framework import status
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
@@ -23,4 +24,14 @@ def exception_handler(exc, context):
 
     if isinstance(exc, DjangoValidationError):
         exc = DRFValidationError(as_serializer_error(exc))
+
+    if isinstance(exc, OperationalError):
+        details = str(exc)
+        if "deadlock" in details:
+            data = {
+                "detail": "[OperationalError] Concurrent access to the same model by you and someone else. For example, two clients editing the same Flaw. Exception details: "
+                + details
+            }
+            return Response(data, status=status.HTTP_409_CONFLICT)
+
     return drf_exception_handler(exc, context)
