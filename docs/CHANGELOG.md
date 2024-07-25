@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+- Implement message throttling in the API (OSIDB-894)
+
+### Changed
+- special_handling_flaw_missing_cve_description Alert to
+  special_consideration_flaw_missing_cve_description (OSIDB-2955)
+- special_handling_flaw_missing_statement Alert to
+  special_consideration_flaw_missing_statement (OSIDB-2955)
+- Allow setting empty impact value on flaw (OSIDB-3128)
+- Temporarily move has trackers workflow requirement (OSIDB-3098)
+- Handle Bugzilla errors in API request as 422 instead of
+  500 internal server error (OSIDB-3126)
+- Handle DB deadlock errors triggered by concurrent API requests
+  as 409 instead of 500 internal server error (OSIDB-3048)
+- UnackedHandler only recommends active unacked streams (OSIDB-3160)
+
+### Fixed
+- Fix duplicate comment issue leading in internal server error (OSIDB-3086)
+- Handle flaw comments with&without bzimport or bifurcated history (OSIDB-3030)
+- Alerts constrained unique so that bzimport doesn't block user requests (OSIDB-3048)
+- Duplicate Alerts created concurrently in multiple threads handled correctly (OSIDB-3048)
+- Make task collector ignore outdated issues (OSIDB-3085)
+- Allow Flaw API to proper unassign owner in Jira (OSIDB-3145)
+
 ## [4.1.2] - 2024-07-03
 ### Added
 - Extend flaw-task linking to primarily use the CVE ID
