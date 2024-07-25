@@ -19,7 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   500 internal server error (OSIDB-3126)
 - Handle DB deadlock errors triggered by concurrent API requests
   as 409 instead of 500 internal server error (OSIDB-3048)
-- UnackedHandler only recommends active unacked streams (OSIDB-3160)
 
 ### Fixed
 - Fix duplicate comment issue leading in internal server error (OSIDB-3086)
@@ -28,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Duplicate Alerts created concurrently in multiple threads handled correctly (OSIDB-3048)
 - Make task collector ignore outdated issues (OSIDB-3085)
 - Allow Flaw API to proper unassign owner in Jira (OSIDB-3145)
+
+## [4.1.3] - 2024-07-25
+### Changed
+- UnackedHandler only recommends active unacked streams (OSIDB-3160)
 
 ## [4.1.2] - 2024-07-03
 ### Added
