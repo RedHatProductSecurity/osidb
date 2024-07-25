@@ -659,24 +659,6 @@ class Flaw(
     # This field is either synced with BZ or handled by a signal.
     major_incident_start_dt = models.DateTimeField(null=True, blank=True)
 
-    @property
-    def is_draft(self) -> bool:
-        """
-        Returns True if a flaw is a draft, False otherwise.
-
-        A flaw is a draft in the following situations:
-        1. it comes directly from OSIDB and not from BZ, i.e. it does not have "bz_id" in "meta_attr"
-        2. it comes from BZ, and "bz_component" is "vulnerability-draft" and "workflow_state" is "NEW"
-        """
-        new_flaw_draft = not self.meta_attr.get("bz_id")
-        existing_flaw_draft = (
-            self.meta_attr.get("bz_id")
-            and self.meta_attr.get("bz_component") == "vulnerability-draft"
-            and self.workflow_state == WorkflowModel.WorkflowState.NEW
-        )
-
-        return new_flaw_draft or existing_flaw_draft
-
     # non operational meta data
     meta_attr = HStoreField(default=dict)
 
@@ -1413,7 +1395,7 @@ class Flaw(
             old_flaw = Flaw.objects.get(uuid=self.uuid)
 
             # we're handling a new OSIDB-authored flaw from collectors -- create
-            if old_flaw.is_draft and old_flaw.task_key == "":
+            if not old_flaw.meta_attr.get("bz_id") and old_flaw.task_key == "":
                 _create_new_flaw()
                 return
 

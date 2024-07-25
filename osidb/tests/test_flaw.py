@@ -519,54 +519,6 @@ class TestFlaw:
         assert Flaw.objects.first().local_updated_dt > og_local_updated_dt
 
     @pytest.mark.parametrize(
-        "bz_id,bz_component,workflow_state,is_draft",
-        [
-            ("", "", "", True),
-            ("1000", "vulnerability", WorkflowModel.WorkflowState.NEW, False),
-            (
-                "1000",
-                "vulnerability",
-                WorkflowModel.WorkflowState.TRIAGE,
-                False,
-            ),
-            (
-                "1000",
-                "vulnerability-draft",
-                WorkflowModel.WorkflowState.NEW,
-                True,
-            ),
-            (
-                "1000",
-                "vulnerability-draft",
-                WorkflowModel.WorkflowState.TRIAGE,
-                False,
-            ),
-            ("1000", "", WorkflowModel.WorkflowState.NEW, False),
-            ("1000", "", WorkflowModel.WorkflowState.TRIAGE, False),
-        ],
-    )
-    def test_flaw_draft(
-        self,
-        bz_id,
-        bz_component,
-        workflow_state,
-        is_draft,
-    ):
-        """
-        test that flaw draft is set correctly
-        """
-        meta_attr = {}
-        if bz_id:
-            meta_attr["bz_id"] = bz_id
-        if bz_component:
-            meta_attr["bz_component"] = bz_component
-
-        flaw = FlawFactory(
-            cve_id="CVE-2000-1001", workflow_state=workflow_state, meta_attr=meta_attr
-        )
-        assert flaw.is_draft is is_draft
-
-    @pytest.mark.parametrize(
         "ps_module_name,ps_product_name",
         [
             ("rhel-8", "Red Hat Enterprise Linux"),
