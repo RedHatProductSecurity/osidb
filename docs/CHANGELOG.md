@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Temporarily move has trackers workflow requirement (OSIDB-3098)
 - Handle Bugzilla errors in API request as 422 instead of
   500 internal server error (OSIDB-3126)
+- Handle DB deadlock errors triggered by concurrent API requests
+  as 409 instead of 500 internal server error (OSIDB-3048)
 
 ### Fixed
 - Fix duplicate comment issue leading in internal server error (OSIDB-3086)
