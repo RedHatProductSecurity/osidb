@@ -2,11 +2,15 @@ import pytest
 from django.conf import settings
 from rest_framework.response import Response
 
+import apps.taskman.mixins as taskman_mixins
+import collectors.osv.collectors as collectors
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.models import State, Workflow
 from apps.workflows.serializers import WorkflowSerializer
 from apps.workflows.urls import urlpatterns
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
+from collectors.osv.collectors import OSVCollector
+from osidb import models
 from osidb.core import set_user_acls
 from osidb.models import Flaw
 from osidb.tests.factories import AffectFactory, FlawFactory
@@ -427,3 +431,120 @@ class TestEndpoints(object):
         assert response.status_code == 200
         assert body["classification"]["workflow"] == "REJECTED"
         assert body["classification"]["state"] == WorkflowModel.WorkflowState.REJECTED
+
+
+class TestFlawDraft:
+    def mock_create_task(self, flaw):
+        data = {
+            "key": "TASK-123",
+            "fields": {
+                "status": {"name": "New"},
+                "resolution": None,
+                "updated": "2024-06-25T21:20:43.988+0000",
+            },
+        }
+        if flaw.workflow_state:
+            status, resolution = flaw.jira_status()
+            data["fields"]["status"]["name"] = status
+            if resolution:
+                data["fields"]["resolution"] = {"name": resolution}
+
+        return Response(data=data, status=200)
+
+    @pytest.mark.vcr
+    def test_promote(self, monkeypatch, auth_client, test_api_uri_osidb, user_token):
+        """
+        test that ACLs are set to public when promoting a flaw draft
+        """
+        monkeypatch.setattr(models, "BZ_API_KEY", None)
+        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(
+            JiraTaskmanQuerier, "create_or_update_task", self.mock_create_task
+        )
+        monkeypatch.setattr(taskman_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(collectors, "JIRA_AUTH_TOKEN", "SERVICE_TOKEN")
+
+        osv_id = "GHSA-3hwm-922r-47hw"
+        osvc = OSVCollector()
+        osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = None
+        osvc.collect(osv_id=osv_id)
+
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        assert flaw.task_key == "TASK-123"
+        assert flaw.is_internal is True
+
+        # set owner to comply with TRIAGE requirements
+        flaw.owner = "Alice"
+        flaw.save(raise_validation_error=False)
+
+        headers = {"HTTP_JIRA_API_KEY": user_token}
+        response = auth_client().post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["workflow"] == "DEFAULT"
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.TRIAGE
+
+        flaw.refresh_from_db()
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.TRIAGE
+        assert flaw.task_key == "TASK-123"
+        # check that a flaw has no longer internal ACLs
+        assert flaw.is_internal is False
+
+    @pytest.mark.vcr
+    def test_reject(self, monkeypatch, auth_client, test_api_uri_osidb, user_token):
+        """
+        test that ACLs are still set to internal when rejecting a flaw draft
+        """
+        monkeypatch.setattr(models, "BZ_API_KEY", None)
+        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(
+            JiraTaskmanQuerier, "create_or_update_task", self.mock_create_task
+        )
+        monkeypatch.setattr(taskman_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(collectors, "JIRA_AUTH_TOKEN", "SERVICE_TOKEN")
+
+        def mock_create_comment(self, issue_key: str, body: str):
+            return
+
+        monkeypatch.setattr(JiraTaskmanQuerier, "create_comment", mock_create_comment)
+
+        osv_id = "GHSA-3hwm-922r-47hw"
+        osvc = OSVCollector()
+        osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = None
+        osvc.collect(osv_id=osv_id)
+
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.task_key == "TASK-123"
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        assert flaw.is_internal is True
+
+        headers = {"HTTP_JIRA_API_KEY": user_token}
+        response = auth_client().post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reject",
+            data={"reason": "Not shipped."},
+            format="json",
+            **headers,
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["workflow"] == "REJECTED"
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.REJECTED
+
+        flaw.refresh_from_db()
+        assert flaw.classification["workflow"] == "REJECTED"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.REJECTED
+        # check that a flaw still has internal ACLs
+        assert flaw.is_internal is True

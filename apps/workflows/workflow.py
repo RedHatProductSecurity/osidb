@@ -310,3 +310,16 @@ class WorkflowModel(models.Model):
 
     def jira_status(self):
         return WorkflowFramework().jira_status(self)
+
+    def adjust_acls(self, save=True):
+        # Only new and rejected state can have internal ACLs
+        internal_supported = [
+            WorkflowModel.WorkflowState.NEW,
+            WorkflowModel.WorkflowState.REJECTED,
+        ]
+
+        if self.workflow_state not in internal_supported and self.is_internal:
+            self.set_public()
+
+        if save:
+            self.save()
