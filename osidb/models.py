@@ -1548,10 +1548,12 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
                 pass
 
         shared_acl = {"acl_read": self.acl_read, "acl_write": self.acl_write}
+        # ensure that a flaw always contains external id (even if BZ sync is disabled)
+        shared_flaw = shared_acl | {"meta_attr": {"external_ids": self.external_id}}
 
         # Flaw model has to be created first
         model, data = [i for i in main_model.items()][0]
-        flaw = model(**data, **shared_acl)
+        flaw = model(**data, **shared_flaw)
         flaw.save(raise_validation_error=False)
         # reported_dt is set according to created_dt, which is set after flaw.save()
         flaw.reported_dt = flaw.created_dt
