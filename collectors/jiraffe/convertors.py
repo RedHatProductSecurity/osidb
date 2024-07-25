@@ -139,6 +139,7 @@ class JiraTaskConvertor:
             flaw.workflow_name = self.task_data["workflow_name"]
             flaw.workflow_state = self.task_data["workflow_state"]
             flaw.task_updated_dt = self.task_data["task_updated_dt"]
+            flaw.adjust_acls(save=False)
             return JiraTaskSaver(flaw)
         return None
 

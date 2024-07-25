@@ -1440,6 +1440,7 @@ class Flaw(
                 self.task_updated_dt = datetime.strptime(
                     issue.data["fields"]["updated"], "%Y-%m-%dT%H:%M:%S.%f%z"
                 )
+                self.adjust_acls(save=False)
                 self.save(*args, **kwargs)
         except Flaw.DoesNotExist:
             # we're handling a new OSIDB-authored flaw -- create
