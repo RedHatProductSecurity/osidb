@@ -6,6 +6,7 @@ from jira.exceptions import JIRAError
 
 from apps.taskman.service import JiraTaskmanQuerier
 from collectors.osv.collectors import OSVCollector, OSVCollectorException
+from osidb import models
 from osidb.models import Flaw, Snippet
 from osidb.tests.factories import FlawFactory
 
@@ -132,3 +133,32 @@ class TestOSVCollector:
 
         assert Snippet.objects.all().count() == 0
         assert Flaw.objects.all().count() == 0
+
+    @pytest.mark.vcr
+    def test_no_bz(self, monkeypatch):
+        """Test that external id is included even if BZ sync is disabled."""
+        monkeypatch.setattr(models, "BZ_API_KEY", None)
+
+        osv_id = "GHSA-3hwm-922r-47hw"
+
+        osvc = OSVCollector()
+        osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = None
+        osvc.collect(osv_id=osv_id)
+
+        assert Snippet.objects.count() == 1
+        assert Snippet.objects.first().external_id == osv_id
+        assert Flaw.objects.count() == 1
+        assert Flaw.objects.first().meta_attr == {"external_ids": f"{osv_id}"}
+
+        # Snippet disappeared and OSV is trying to create a flaw which already exists
+        Snippet.objects.all().delete()
+        assert Snippet.objects.count() == 0
+        assert Flaw.objects.count() == 1
+
+        osvc.collect(osv_id=osv_id)
+
+        assert Snippet.objects.count() == 1
+        assert Snippet.objects.first().external_id == osv_id
+        assert Flaw.objects.count() == 1
+        assert Flaw.objects.first().meta_attr == {"external_ids": f"{osv_id}"}

@@ -60,7 +60,8 @@ class TestSnippet:
         assert flaw.cvss_scores.count() == 1
         assert flaw.cwe_id == content["cwe_id"]
         assert flaw.comment_zero == content["comment_zero"]
-        assert flaw.meta_attr == {}
+        # flaw is newly created, so meta_attr contains custom data
+        assert flaw.meta_attr == {"external_ids": content["cve_id"]}
         assert flaw.references.count() == 1
         assert flaw.reported_dt
         assert flaw.snippets.count() == 1
@@ -140,9 +141,9 @@ class TestSnippet:
 
         if identifier == "cve_id":
             assert snippet.content["cve_id"] == flaw.cve_id
-        # flaw is newly created, so meta_attr is empty
+        # flaw is newly created, so meta_attr contains custom data
         if identifier == "external_id" and not flaw_present:
-            assert flaw.meta_attr == {}
-        # flaw already got synced to BZ, so meta_attr is present
+            assert flaw.meta_attr == {"external_ids": f"{ext_id}"}
+        # flaw already got synced to BZ, so meta_attr contains data created by BZ sync
         if identifier == "external_id" and flaw_present:
             assert flaw.meta_attr == {"external_ids": f"['{ext_id}']"}
