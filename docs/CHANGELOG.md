@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   500 internal server error (OSIDB-3126)
 - Handle DB deadlock errors triggered by concurrent API requests
   as 409 instead of 500 internal server error (OSIDB-3048)
+- Propagate Jira errors to the user (OSIDB-3184)
 
 ### Fixed
 - Fix duplicate comment issue leading in internal server error (OSIDB-3086)
