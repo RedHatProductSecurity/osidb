@@ -149,7 +149,7 @@ class TestOSVCollector:
         assert Snippet.objects.count() == 1
         assert Snippet.objects.first().external_id == osv_id
         assert Flaw.objects.count() == 1
-        assert Flaw.objects.first().meta_attr == {"external_ids": f"{osv_id}"}
+        assert Flaw.objects.first().meta_attr == {"external_ids": osv_id}
 
         # Snippet disappeared and OSV is trying to create a flaw which already exists
         Snippet.objects.all().delete()
@@ -161,4 +161,4 @@ class TestOSVCollector:
         assert Snippet.objects.count() == 1
         assert Snippet.objects.first().external_id == osv_id
         assert Flaw.objects.count() == 1
-        assert Flaw.objects.first().meta_attr == {"external_ids": f"{osv_id}"}
+        assert Flaw.objects.first().meta_attr == {"external_ids": osv_id}
