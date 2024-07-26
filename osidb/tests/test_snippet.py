@@ -143,7 +143,7 @@ class TestSnippet:
             assert snippet.content["cve_id"] == flaw.cve_id
         # flaw is newly created, so meta_attr contains custom data
         if identifier == "external_id" and not flaw_present:
-            assert flaw.meta_attr == {"external_ids": f"{ext_id}"}
+            assert flaw.meta_attr == {"external_ids": ext_id}
         # flaw already got synced to BZ, so meta_attr contains data created by BZ sync
         if identifier == "external_id" and flaw_present:
             assert flaw.meta_attr == {"external_ids": f"['{ext_id}']"}
