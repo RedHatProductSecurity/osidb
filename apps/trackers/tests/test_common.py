@@ -327,10 +327,9 @@ class TestTrackerQueryBuilderDescription:
         tqb.instance = tracker
 
         assert tqb.description == (
-            """\
-special-module tracking bug for large-component: see the bugs linked in the "Blocks" field of this bug for full details of the security issue(s).
-
-This bug is never intended to be made public, please put any public notes in the blocked bugs."""
+            "special-module tracking bug for large-component: see the bugs linked "
+            'in the "Blocks" field of this bug for full details of the security issue(s).\n\n'
+            "This bug is never intended to be made public, please put any public notes in the blocked bugs."
         )
 
     def test_bugzilla_embargoed(self):
@@ -371,14 +370,11 @@ This bug is never intended to be made public, please put any public notes in the
         tqb.instance = tracker
 
         assert tqb.description == (
-            """\
-special-module tracking bug for large-component: see the bugs linked in the "Blocks" field of this bug for full details of the security issue(s).
-
-This bug is never intended to be made public, please put any public notes in the blocked bugs.
-
-NOTE THIS ISSUE IS CURRENTLY EMBARGOED, DO NOT MAKE PUBLIC COMMITS OR COMMENTS ABOUT THIS ISSUE.
-
-WARNING: NOTICE THAT REMOVING THE "SECURITY" GROUP FROM THIS TRACKER MAY BREAK THE EMBARGO."""
+            "special-module tracking bug for large-component: see the bugs linked "
+            'in the "Blocks" field of this bug for full details of the security issue(s).\n\n'
+            "This bug is never intended to be made public, please put any public notes in the blocked bugs.\n\n"
+            "NOTE THIS ISSUE IS CURRENTLY EMBARGOED, DO NOT MAKE PUBLIC COMMITS OR COMMENTS ABOUT THIS ISSUE.\n\n"
+            'WARNING: NOTICE THAT REMOVING THE "SECURITY" GROUP FROM THIS TRACKER MAY BREAK THE EMBARGO.'
         )
 
     def test_bugzilla_rhel(self):
@@ -405,13 +401,9 @@ WARNING: NOTICE THAT REMOVING THE "SECURITY" GROUP FROM THIS TRACKER MAY BREAK T
         tqb.instance = tracker
 
         assert (
-            (
-                """\
-For the Enterprise Linux security issues handling process overview see:
-https://source.redhat.com/groups/public/product-security/content/product_security_wiki/eus_z_stream_and_security_bugs"""
-            )
-            in tqb.description
-        )
+            "For the Enterprise Linux security issues handling process overview see:\n"
+            "https://source.redhat.com/groups/public/product-security/content/product_security_wiki/eus_z_stream_and_security_bugs"
+        ) in tqb.description
 
     @pytest.mark.parametrize("ps_component", ["xen", "kvm", "kernel-xen"])
     def test_bugzilla_virtualizaiton(self, ps_component):
@@ -439,14 +431,10 @@ https://source.redhat.com/groups/public/product-security/content/product_securit
         tqb.instance = tracker
 
         assert (
-            (
-                """\
-Information with regards to this bug is considered Red Hat Confidential \
-until the embargo has lifted. Please post the patch only to the \
-'rhkernel-team-list' and/or 'virt-devel' mailing lists for review and acks."""
-            )
-            in tqb.description
-        )
+            "Information with regards to this bug is considered Red Hat Confidential "
+            "until the embargo has lifted. Please post the patch only to the "
+            "'rhkernel-team-list' and/or 'virt-devel' mailing lists for review and acks."
+        ) in tqb.description
 
     @pytest.mark.parametrize("flaw_count", [1, 2, 3])
     def test_community(self, flaw_count):
@@ -493,39 +481,32 @@ until the embargo has lifted. Please post the patch only to the \
 
         if flaw_count == 1:
             assert tqb.description == (
-                """\
-More information about this security flaw is available in the following bug:
-
-https://example.com/show_bug.cgi?id=0
-
-Disclaimer: Community trackers are created by Red Hat Product Security team on a \
-best effort basis. Package maintainers are required to ascertain if the flaw indeed \
-affects their package, before starting the update process."""
+                "More information about this security flaw is available in the following bug:\n\n"
+                "https://example.com/show_bug.cgi?id=0\n\n"
+                "Disclaimer: Community trackers are created by Red Hat Product Security team on a "
+                "best effort basis. Package maintainers are required to ascertain if the flaw indeed "
+                "affects their package, before starting the update process."
             )
         elif flaw_count == 2:
             assert tqb.description == (
-                """\
-More information about these security flaws is available in the following bugs:
-
-https://example.com/show_bug.cgi?id=0
-https://example.com/show_bug.cgi?id=1
-
-Disclaimer: Community trackers are created by Red Hat Product Security team on a \
-best effort basis. Package maintainers are required to ascertain if the flaw indeed \
-affects their package, before starting the update process."""
+                "More information about these security flaws is available in the following bugs:\n\n"
+                "https://example.com/show_bug.cgi?id=0\n"
+                "https://example.com/show_bug.cgi?id=1\n\n"
+                "Disclaimer: Community trackers are created by Red Hat Product Security team on a "
+                "best effort basis. Package maintainers are required to ascertain if the flaw indeed "
+                "affects their package, before starting the update process."
             )
         elif flaw_count == 3:
             assert tqb.description == (
-                """\
-More information about these security flaws is available in the following bugs:
-
-https://example.com/show_bug.cgi?id=0
-https://example.com/show_bug.cgi?id=1
-https://example.com/show_bug.cgi?id=2
-
-Disclaimer: Community trackers are created by Red Hat Product Security team on a \
-best effort basis. Package maintainers are required to ascertain if the flaw indeed \
-affects their package, before starting the update process."""
+                (
+                    "More information about these security flaws is available in the following bugs:\n\n"
+                    "https://example.com/show_bug.cgi?id=0\n"
+                    "https://example.com/show_bug.cgi?id=1\n"
+                    "https://example.com/show_bug.cgi?id=2\n\n"
+                    "Disclaimer: Community trackers are created by Red Hat Product Security team on a "
+                    "best effort basis. Package maintainers are required to ascertain if the flaw indeed "
+                    "affects their package, before starting the update process."
+                )
             )
 
     def test_jira_basic(self):
@@ -568,20 +549,14 @@ affects their package, before starting the update process."""
         tqb.instance = tracker
 
         assert tqb.description == (
-            """\
-Security Tracking Issue
-
-Do not make this issue public.
-
-Flaw:
------
-
-serious flaw
-https://example.com/show_bug.cgi?id=12345
-
-this flaw is very hard to fix
-
-~~~"""
+            "Security Tracking Issue\n\n"
+            "Do not make this issue public.\n\n"
+            "Flaw:\n"
+            "-----\n\n"
+            "serious flaw\n"
+            "https://example.com/show_bug.cgi?id=12345\n\n"
+            "this flaw is very hard to fix\n\n"
+            "~~~"
         )
 
     def test_jira_embargoed(self):
@@ -624,24 +599,16 @@ this flaw is very hard to fix
         tqb.instance = tracker
 
         assert tqb.description == (
-            """\
-Security Tracking Issue
-
-Do not make this issue public.
-
-NOTE THIS ISSUE IS CURRENTLY EMBARGOED, DO NOT MAKE PUBLIC COMMITS OR COMMENTS ABOUT THIS ISSUE.
-
-WARNING: NOTICE THAT CHANGING THE SECURITY LEVEL FROM "SECURITY ISSUE" TO "RED HAT INTERNAL" MAY BREAK THE EMBARGO.
-
-Flaw:
------
-
-serious flaw
-https://example.com/show_bug.cgi?id=12345
-
-this flaw is very hard to fix
-
-~~~"""
+            "Security Tracking Issue\n\n"
+            "Do not make this issue public.\n\n"
+            "NOTE THIS ISSUE IS CURRENTLY EMBARGOED, DO NOT MAKE PUBLIC COMMITS OR COMMENTS ABOUT THIS ISSUE.\n\n"
+            'WARNING: NOTICE THAT CHANGING THE SECURITY LEVEL FROM "SECURITY ISSUE" TO "RED HAT INTERNAL" MAY BREAK THE EMBARGO.\n\n'
+            "Flaw:\n"
+            "-----\n\n"
+            "serious flaw\n"
+            "https://example.com/show_bug.cgi?id=12345\n\n"
+            "this flaw is very hard to fix\n\n"
+            "~~~"
         )
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
@@ -675,14 +642,10 @@ this flaw is very hard to fix
 
         if bts_name == "bugzilla" and embargoed:
             assert (
-                (
-                    """\
-Information with regards to this bug is considered Red Hat Confidential \
-until the embargo has lifted. Please post the patch only to the \
-'rhkernel-team-list' mailing list for review and acks."""
-                )
-                in tqb.description
-            )
+                "Information with regards to this bug is considered Red Hat Confidential "
+                "until the embargo has lifted. Please post the patch only to the "
+                "'rhkernel-team-list' mailing list for review and acks."
+            ) in tqb.description
 
         assert tqb.description.endswith(
             "Reproducers, if any, will remain confidential and never be made public, unless done so by the security team."
