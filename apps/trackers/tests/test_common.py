@@ -5,7 +5,7 @@ import pytest
 from django.utils import timezone
 
 from apps.trackers.common import TrackerQueryBuilder
-from osidb.models import Affect, Flaw, Tracker
+from osidb.models import Affect, ContractPriority, Flaw, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -435,6 +435,49 @@ class TestTrackerQueryBuilderDescription:
             "until the embargo has lifted. Please post the patch only to the "
             "'rhkernel-team-list' and/or 'virt-devel' mailing lists for review and acks."
         ) in tqb.description
+
+    @pytest.mark.parametrize("is_contract_priority", [True, False])
+    def test_contract_priority(self, is_contract_priority):
+        """
+        test contract priority description generation
+        """
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        if is_contract_priority:
+            ContractPriority(ps_update_stream=ps_update_stream.name).save()
+        flaw = FlawFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+            ps_component="kvm",
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+
+        description = (
+            "Contract priorities are scoped by at the "
+            "product/version level and include all severities "
+            "and all components within that product/version. "
+            "All severities (including low) must be resolved "
+            "within the allotted SLA time."
+        )
+        faq_url = "https://source.redhat.com/departments/products_and_global_engineering/product_security/ops/product_security_wiki/contract_prioritization_faq"
+
+        if is_contract_priority:
+            assert faq_url in tqb.description
+            assert description in tqb.description
+        else:
+            assert faq_url not in tqb.description
+            assert description not in tqb.description
 
     @pytest.mark.parametrize("flaw_count", [1, 2, 3])
     def test_community(self, flaw_count):
