@@ -1318,30 +1318,41 @@ class Flaw(
             kwargs["bz_api_key"] = bz_api_key
             BZSyncManager.schedule(str(self.uuid), *args, **kwargs)
         else:
-            self._perform_bzsync(*args, bz_api_key=bz_api_key, **kwargs)
+            # imports here to prevent cycles
+            from apps.bbsync.save import FlawBugzillaSaver
+            from collectors.bzimport.collectors import FlawCollector
+
+            # sync to Bugzilla
+            bs = FlawBugzillaSaver(self, bz_api_key)
+            self = bs.save()
+            kwargs[
+                "auto_timestamps"
+            ] = False  # the timestamps will be get from Bugzilla
+            kwargs["raise_validation_error"] = False  # the validations were already run
+            # save in case a new Bugzilla ID was obtained
+            self.save(*args, **kwargs)
+
+            # fetch from Bugzilla
+            fc = FlawCollector()
+            fc.sync_flaw(self.bz_id)
+            # Make sure the flaw instance has the latest data
+            self.refresh_from_db()
 
     def _perform_bzsync(self, *args, bz_api_key, **kwargs):
         """
         Helper function that contains the actual logic of the Bugzilla sync,
-        without additional checks.
+        without additional checks - only the one-way sync to Bugzilla.
         """
         # imports here to prevent cycles
         from apps.bbsync.save import FlawBugzillaSaver
-        from collectors.bzimport.collectors import FlawCollector
 
         # sync to Bugzilla
         bs = FlawBugzillaSaver(self, bz_api_key)
         self = bs.save()
-        kwargs["auto_timestamps"] = False  # the timestamps will be get from Bugzilla
+        kwargs["auto_timestamps"] = False  # no timestamps changes on save to BZ
         kwargs["raise_validation_error"] = False  # the validations were already run
         # save in case a new Bugzilla ID was obtained
         self.save(*args, **kwargs)
-
-        # fetch from Bugzilla
-        fc = FlawCollector()
-        fc.sync_flaw(self.bz_id)
-        # Make sure the flaw instance has the latest data
-        self.refresh_from_db()
 
     def tasksync(
         self,
