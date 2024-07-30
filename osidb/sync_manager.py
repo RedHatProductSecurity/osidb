@@ -18,6 +18,16 @@ class SyncManager(models.Model):
     Abstract model to handle synchronization of some OSIDB data with external system like Bugzilla
     or Jira. Its purpose is to handle scheduling Celery tasks, storing meta-data about when those
     tasks were processed, and re-scheduling tasks when necessary.
+
+    The philosophy:
+    - Provide visibility (when and how many times a task ran or failed, why it failed).
+    - Straightforward (short implementation, easy to understand, errors not obscured
+                       or masked by complicated logic).
+    - Queue in order (SyncManager tries to send tasks to Celery without reordering,
+                      which happens only on retries).
+    - The queued tasks should be idempotent or close to idempotent
+        (it shouldn't matter if a task fails or if it runs multiple times, the end
+         result should be the same in the end).
     """
 
     MAX_CONSECUTIVE_FAILURES = 5
