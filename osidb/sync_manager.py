@@ -70,9 +70,8 @@ class SyncManager(models.Model):
 
         :param sync_id: Unique ID for synchronized data object.
         """
-        manager, _ = cls.objects.get_or_create(sync_id=sync_id)
-        manager.last_scheduled_dt = timezone.now()
-        manager.save()
+        cls.objects.get_or_create(sync_id=sync_id)
+        cls.objects.filter(sync_id=sync_id).update(last_scheduled_dt=timezone.now())
 
         def schedule_task():
             try:
