@@ -790,8 +790,11 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
                     # Both contain the same hole, assume no history bifurcation at this point.
                     pass
 
-                elif db_comment.text == bz_comment.get("text"):
-                    # Identical comments both in OSIDB and BZ, just update OSIDB from BZ.
+                elif db_comment is not None and db_comment.text == bz_comment.get(
+                    "text"
+                ):
+                    # It may happen in some situation that we run out of the DB comments...
+                    # Otherwise identical comments both in OSIDB and BZ, just update OSIDB from BZ.
 
                     db_comment.external_system_id = bz_comment["id"]
                     # Since it is IN BZ, and we're getting it FROM BZ, there's no point to
