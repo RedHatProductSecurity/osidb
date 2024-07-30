@@ -18,6 +18,16 @@ class SyncManager(models.Model):
     Abstract model to handle synchronization of some OSIDB data with external system like Bugzilla
     or Jira. Its purpose is to handle scheduling Celery tasks, storing meta-data about when those
     tasks were processed, and re-scheduling tasks when necessary.
+
+    The philosophy:
+    - Provide visibility (when and how many times a task ran or failed, why it failed).
+    - Straightforward (short implementation, easy to understand, errors not obscured
+                       or masked by complicated logic).
+    - Queue in order (SyncManager tries to send tasks to Celery without reordering,
+                      which happens only on retries).
+    - The queued tasks should be idempotent or close to idempotent
+        (it shouldn't matter if a task fails or if it runs multiple times, the end
+         result should be the same in the end).
     """
 
     MAX_CONSECUTIVE_FAILURES = 5
@@ -60,9 +70,8 @@ class SyncManager(models.Model):
 
         :param sync_id: Unique ID for synchronized data object.
         """
-        manager, _ = cls.objects.get_or_create(sync_id=sync_id)
-        manager.last_scheduled_dt = timezone.now()
-        manager.save()
+        cls.objects.get_or_create(sync_id=sync_id)
+        cls.objects.filter(sync_id=sync_id).update(last_scheduled_dt=timezone.now())
 
         def schedule_task():
             try:
@@ -532,6 +541,78 @@ class BZSyncManager(SyncManager):
     """
     Sync manager class for OSIDB => Bugzilla synchronization.
     """
+
+    @classmethod
+    def schedule(cls, sync_id, *args, **kwargs):
+        """
+        Schedule BZSyncManager's sync_task to Celery queue.
+
+        TODO:
+          - This is a workaround. SyncManager.schedule should not
+            decide to skip or postpone tasks, but we need it to:
+            - Reduce noise in flower logs that would be generated
+              by duplicate tasks failing.
+            - Reduce amount of requests sent needlessly to Bugzilla.
+            - Avoid sending potentially incomplete data immediately.
+          - Move the deduplication logic to Flaw.bzsync:
+            - No BZSyncManager-related action upon client request.
+            - A periodic task to query recently changed tasks once per
+              X minutes and call BZSyncManager.schedule for them.
+            - BZSyncManager.schedule to be left not implemented,
+              inherited SyncManager.schedule used.
+          - OSIDB-3205
+
+        :param sync_id: Unique ID for synchronized data object.
+        """
+
+        # NOT calling super().schedule() on purpose. If the SyncManager
+        # implementation changes, this becomes further technical debt.
+
+        manager, _ = cls.objects.get_or_create(sync_id=sync_id)
+
+        now = timezone.now()
+
+        skip = False
+
+        # Check if task should really run. If it is schedule multiple times
+        # within FAIL_RESCHEDULE_DELAY, assume duplicates are attempted to
+        # be scheduled. (If after more than FAIL_RESCHEDULE_DELAY,
+        # allow reschedules.)
+        # ScheduleManager.started is prone to race condition if started in
+        # multiple celery workers concurrently, hence this check.
+        if (
+            manager.last_started_dt is not None
+            and manager.last_scheduled_dt is not None
+            and manager.last_started_dt < manager.last_scheduled_dt
+            and now - manager.last_scheduled_dt < cls.FAIL_RESCHEDULE_DELAY
+        ) or (
+            manager.last_started_dt is None
+            and manager.last_scheduled_dt is not None
+            and now - manager.last_scheduled_dt < cls.FAIL_RESCHEDULE_DELAY
+        ):
+            skip = True
+
+        if skip:
+            logger.info(f"{cls.__name__} {sync_id}: Duplicate schedule skipped")
+        else:
+            cls.objects.filter(sync_id=sync_id).update(last_scheduled_dt=now)
+
+            def schedule_task():
+                try:
+                    # countdown=20 so that if a client's action consists of a burst of
+                    # multiple requests, the executed task probably doesn't start in the middle.
+                    cls.sync_task.apply_async(
+                        args=[sync_id, *args], kwargs=kwargs, countdown=20
+                    )
+                except AttributeError:
+                    raise NotImplementedError(
+                        "Sync task not implemented or not implemented as Celery task."
+                    )
+                logger.info(f"{cls.__name__} {sync_id}: Sync scheduled")
+
+            # Avoid race condition by ensuring the task is scheduled after the
+            # transaction so that the manager instance actually exists
+            transaction.on_commit(schedule_task)
 
     @staticmethod
     @app.task(name="sync_manager.bzsync", bind=True)
