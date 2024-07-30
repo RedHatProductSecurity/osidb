@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make task collector ignore outdated issues (OSIDB-3085)
 - Allow Flaw API to proper unassign owner in Jira (OSIDB-3145)
 - Remove sync from Bugzilla from the async sync to Bugzilla (OSIDB-3199)
+- Do not save to backend systems in JiraTaskSaver (OSIDB-3087)
 
 ## [4.1.3] - 2024-07-25
 ### Changed

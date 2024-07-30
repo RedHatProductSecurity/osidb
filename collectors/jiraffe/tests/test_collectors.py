@@ -7,7 +7,6 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 import collectors.jiraffe.collectors as collectors
-import collectors.jiraffe.convertors as convertors
 import osidb.models as models
 from apps.taskman.constants import JIRA_AUTH_TOKEN
 from apps.taskman.service import JiraTaskmanQuerier
@@ -42,7 +41,6 @@ class TestJiraTaskCollector:
         """
         jira_token = JIRA_AUTH_TOKEN if JIRA_AUTH_TOKEN else "USER_JIRA_TOKEN"
         monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-        monkeypatch.setattr(convertors, "JIRA_AUTH_TOKEN", jira_token)
         monkeypatch.setattr(collectors, "JIRA_TOKEN", jira_token)
 
         collector = JiraTaskCollector()
@@ -109,7 +107,6 @@ class TestJiraTaskCollector:
         """
         jira_token = JIRA_AUTH_TOKEN if JIRA_AUTH_TOKEN else "USER_JIRA_TOKEN"
         monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-        monkeypatch.setattr(convertors, "JIRA_AUTH_TOKEN", jira_token)
         monkeypatch.setattr(collectors, "JIRA_TOKEN", jira_token)
 
         jtq = JiraTaskmanQuerier(token=jira_token)
