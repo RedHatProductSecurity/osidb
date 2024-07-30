@@ -11,9 +11,7 @@ from functools import cached_property
 from django.conf import settings
 from django.db import transaction
 
-from apps.taskman.constants import JIRA_AUTH_TOKEN
 from apps.workflows.workflow import WorkflowFramework
-from collectors.bzimport.constants import BZ_API_KEY
 from osidb.core import generate_acls, set_user_acls
 from osidb.models import Flaw, Tracker
 from osidb.validators import CVE_RE_STR
@@ -151,8 +149,6 @@ class JiraTaskSaver:
     def save(self):
         self.flaw.save(
             auto_timestamps=False,
-            bz_api_key=BZ_API_KEY,
-            jira_token=JIRA_AUTH_TOKEN,
             raise_validation_error=False,
         )
 
