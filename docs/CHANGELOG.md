@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Implement message throttling in the API (OSIDB-894)
+- Added contract priority description in trackers (OSIDB-3165)
 
 ### Changed
 - special_handling_flaw_missing_cve_description Alert to

@@ -101,7 +101,7 @@ class TrackerQueryBuilder:
             if len(summary) <= MAX_SUMMARY_LENGTH:
                 break
 
-            cves, description = self._summary_shorten(cves, description)
+            cves, description = TrackerQueryBuilder._summary_shorten(cves, description)
 
         return summary
 
@@ -137,7 +137,7 @@ class TrackerQueryBuilder:
         # add a trailing space to separate from the rest
         return " ".join(sorted(prefixes)) + " "
 
-    def _summary_shorten(self, cves, description):
+    def _summary_shorten(cves, description):
         """
         shorten the aligable parts of the tracker summary
         """
@@ -206,21 +206,27 @@ class TrackerQueryBuilder:
             if self.ps_update_stream.rhsa_sla_applicable:
                 pass  # TODO
 
-            # 3e) embargo text
+            # 3e) Contract priority text
+            if self.tracker.is_contract_priority:
+                description_parts.extend(
+                    TrackerQueryBuilder._description_contract_priority()
+                )
+
+            # 3f) embargo text
             if self.tracker.is_embargoed:
                 description_parts.extend(self._description_embargoed())
 
-            # 3f) Jira footer
+            # 3g) Jira footer
             if self.tracker.type == Tracker.TrackerType.JIRA:
                 description_parts.extend(self._description_jira_footer())
 
-            # 3g) Bugzilla footer
+            # 3h) Bugzilla footer
             if self.tracker.type == Tracker.TrackerType.BUGZILLA:
                 description_parts.extend(self._description_bugzilla_footer())
 
         # 4) another extra bit for kernel
         if self.ps_component in KERNEL_PACKAGES:
-            description_parts.extend(self._description_kernel())
+            description_parts.extend(TrackerQueryBuilder._description_kernel())
 
         # 5) join the parts by empty lines
         return "\n\n".join(description_parts)
@@ -277,7 +283,7 @@ class TrackerQueryBuilder:
         return description_parts
 
     # TODO this should be eventually replaced by the OSIM/OSIDB link
-    def _description_bugzilla_link(self, bz_id):
+    def _description_bugzilla_link(bz_id):
         """
         generate link to Bugzilla bug with the given ID
         """
@@ -295,7 +301,10 @@ class TrackerQueryBuilder:
         )
         description_parts.append(
             "\n".join(
-                [self._description_bugzilla_link(flaw.bz_id) for flaw in self.flaws]
+                [
+                    TrackerQueryBuilder._description_bugzilla_link(flaw.bz_id)
+                    for flaw in self.flaws
+                ]
             )
         )
         description_parts.append(
@@ -329,6 +338,19 @@ class TrackerQueryBuilder:
 
         return description_parts
 
+    def _description_contract_priority():
+        """
+        generate description text for contract priority
+        """
+        return [
+            "Contract priorities are scoped by at the "
+            "product/version level and include all severities "
+            "and all components within that product/version. "
+            "All severities (including low) must be resolved "
+            "within the allotted SLA time. \n"
+            "https://source.redhat.com/departments/products_and_global_engineering/product_security/ops/product_security_wiki/contract_prioritization_faq"
+        ]
+
     def _description_jira_footer(self):
         """
         generate Jira tracker description footer
@@ -339,7 +361,7 @@ class TrackerQueryBuilder:
         )
 
         for flaw in self.flaws:
-            reference_url = self._description_bugzilla_link(flaw.bz_id)
+            reference_url = TrackerQueryBuilder._description_bugzilla_link(flaw.bz_id)
 
             description_parts.append(f"{flaw.title}\n{reference_url}")
             description_parts.append(flaw.comment_zero)
@@ -366,7 +388,7 @@ class TrackerQueryBuilder:
 
         return description_parts
 
-    def _description_kernel(self):
+    def _description_kernel():
         """
         generate kernel tracker description text
         """
