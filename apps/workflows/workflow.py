@@ -285,7 +285,10 @@ class WorkflowModel(models.Model):
         if not save:
             return
 
-        self.save(jira_token=jira_token, raise_validation_error=False, **kwargs)
+        # keep the save to Jira and BZ separate because BZ can be done asynchronously
+        # (Jira token is passed directly, but BZ token is in kwargs)
+        self.save(jira_token=jira_token, raise_validation_error=False)
+        self.save(raise_validation_error=False, **kwargs)
 
     def reject(self, save=True, jira_token=None, **kwargs):
         """
@@ -306,7 +309,10 @@ class WorkflowModel(models.Model):
         if not save:
             return
 
-        self.save(jira_token=jira_token, raise_validation_error=False, **kwargs)
+        # keep the save to Jira and BZ separate because BZ can be done asynchronously
+        # (Jira token is passed directly, but BZ token is in kwargs)
+        self.save(jira_token=jira_token, raise_validation_error=False)
+        self.save(raise_validation_error=False, **kwargs)
 
     def jira_status(self):
         return WorkflowFramework().jira_status(self)
