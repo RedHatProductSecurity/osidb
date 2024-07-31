@@ -1346,13 +1346,20 @@ class Flaw(
         # imports here to prevent cycles
         from apps.bbsync.save import FlawBugzillaSaver
 
+        creating = self.bz_id is None
+
         # sync to Bugzilla
-        bs = FlawBugzillaSaver(self, bz_api_key)
-        self = bs.save()
-        kwargs["auto_timestamps"] = False  # no timestamps changes on save to BZ
-        kwargs["raise_validation_error"] = False  # the validations were already run
-        # save in case a new Bugzilla ID was obtained
-        self.save(*args, **kwargs)
+        bs = FlawBugzillaSaver(self, bz_api_key)  # prepare data for save to BZ
+        self = bs.save()  # actually send to BZ (but not save to DB)
+
+        if creating:
+            # Save bz_id to DB
+            kwargs["auto_timestamps"] = False  # no timestamps changes on save to BZ
+            kwargs["raise_validation_error"] = False  # the validations were already run
+            # save in case a new Bugzilla ID was obtained
+            # Instead of self.save(*args, **kwargs), just update the single field to avoid
+            # race conditions.
+            self.save(*args, update_fields=["meta_attr"], **kwargs)
 
     def tasksync(
         self,
