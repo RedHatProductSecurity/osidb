@@ -2,6 +2,7 @@ import uuid
 from unittest.mock import patch
 
 import pytest
+from bugzilla.exceptions import BugzillaError
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
@@ -299,6 +300,40 @@ class TestEndpointsAtomicity:
                 HTTP_JIRA_API_KEY="SECRET",
             )
             assert response.status_code == 400
+
+        set_user_acls(settings.ALL_GROUPS)
+        # check that no affect was deleted
+        assert Affect.objects.count() == 2
+
+    def test_atomic_error_handling(self, auth_client, monkeypatch, test_api_uri):
+        """
+        test that the API requests are atomic even when handling an error
+        """
+        flaw = FlawFactory()
+        # an extra affect needs to be created as otherwise
+        # we would endup with an invalid affect-less flaw
+        AffectFactory(flaw=flaw)
+        affect = AffectFactory(flaw=flaw)
+
+        assert Affect.objects.count() == 2
+
+        with monkeypatch.context() as m:
+
+            def failure_factory(*args, **kwargs):
+                # rest_framework.exceptions.ValidationError
+                # is handle by the APIView and translated to Bad Request
+                # so we do not end up with an uncaught exception
+                raise BugzillaError({})
+
+            # make the Flaw.save to fail randomly
+            m.setattr(Flaw, "save", failure_factory)
+
+            response = auth_client().delete(
+                f"{test_api_uri}/affects/{affect.uuid}",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+            assert response.status_code == 422
 
         set_user_acls(settings.ALL_GROUPS)
         # check that no affect was deleted
