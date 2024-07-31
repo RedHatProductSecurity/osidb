@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [4.1.4] - 2024-07-31
 ### Added
 - Implement message throttling in the API (OSIDB-894)
 - Added contract priority description in trackers (OSIDB-3165)
@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Alerts constrained unique so that bzimport doesn't block user requests (OSIDB-3048)
 - Duplicate Alerts created concurrently in multiple threads handled correctly (OSIDB-3048)
 - Make task collector ignore outdated issues (OSIDB-3085)
-- Allow Flaw API to proper unassign owner in Jira (OSIDB-3145)
+- Allow Flaw API to properly unassign owner in Jira (OSIDB-3145)
 - Remove sync from Bugzilla from the async sync to Bugzilla (OSIDB-3199)
 - Do not save to backend systems in JiraTaskSaver (OSIDB-3087)
 
