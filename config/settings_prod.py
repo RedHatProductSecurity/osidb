@@ -132,24 +132,6 @@ CISA_COLLECTOR_CRONTAB = crontab(minute=0)
 LOG_FILE_SIZE = 1024 * 1024 * 10  # 10mb
 LOG_FILE_COUNT = 3
 
-# Global API throttle rates. Note that these can be customized per view if needed.
-ANON_API_THROTTLE_RATE = get_env("ANON_API_THROTTLE_RATE", default="10/minute")
-USER_API_THROTTLE_RATE = get_env("USER_API_THROTTLE_RATE", default="100/minute")
-
-# Set up message throttling in the API
-REST_FRAMEWORK.update(
-    {
-        "DEFAULT_THROTTLE_CLASSES": [
-            "rest_framework.throttling.AnonRateThrottle",
-            "rest_framework.throttling.UserRateThrottle",
-        ],
-        "DEFAULT_THROTTLE_RATES": {
-            "anon": ANON_API_THROTTLE_RATE,
-            "user": USER_API_THROTTLE_RATE,
-        },
-    }
-)
-
 # To not disrupt the logging of OSIDB instance running in PSI
 # this guard ensures that only OSIDB running in MPP logs to filesystem
 # TODO: Remove after OSIDB is fully migrated to MPP
