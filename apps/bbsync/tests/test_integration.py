@@ -61,10 +61,18 @@ class TestBBSyncIntegration:
         ]
 
     @pytest.mark.vcr
-    def test_flaw_create(self, auth_client, test_api_uri):
+    def test_flaw_create(self, auth_client, test_api_uri, monkeypatch):
         """
         test creating a flaw with Bugzilla two-way sync
         """
+        import osidb.models as models
+        from osidb.sync_manager import BZSyncManager
+
+        monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
+
+        assert Flaw.objects.count() == 0
+        assert BZSyncManager.objects.count() == 0
+
         flaw_data = {
             "cve_id": "CVE-2024-0126",
             "title": "Foo",
@@ -87,6 +95,46 @@ class TestBBSyncIntegration:
         assert response.status_code == 201
         body = response.json()
         created_uuid = body["uuid"]
+
+        assert Flaw.objects.count() == 1
+        assert BZSyncManager.objects.count() == 1
+        assert Flaw.objects.get(cve_id="CVE-2024-0126").bz_id is None
+
+        # Simulating what BZSyncManager would do when executed by Celery
+        # part 1/2
+        flaw = Flaw.objects.get(uuid=created_uuid)
+
+        # Edit a field not important for further testing so that we have a mark
+        # that changes if save(update_fields=["meta_attr"]) doesn't work as
+        # expected and the save actually saves all fields (rewriting them with
+        # stale data from its local in-memory representation).
+        Flaw.objects.filter(uuid=created_uuid).update(comment_zero="foobar")
+        assert (
+            flaw.comment_zero == "test"
+        )  # the in-memory representation has stale data
+        assert (
+            Flaw.objects.get(uuid=created_uuid).comment_zero == "foobar"
+        )  # but changed in DB
+        assert flaw.bz_id is None
+        assert Flaw.objects.get(uuid=created_uuid).bz_id is None
+
+        # Simulating what BZSyncManager would do when executed by Celery
+        # part 2/2
+        flaw._perform_bzsync(bz_api_key="SECRET")
+
+        # The sync should send data to BZ and save the bz_id to the DB
+        assert (
+            flaw.comment_zero == "test"
+        )  # the in-memory representation has still the same data
+        assert (
+            Flaw.objects.get(uuid=created_uuid).comment_zero == "foobar"
+        )  # DB field not overwritten
+        assert (
+            flaw.bz_id == "2293325"
+        )  # the in-memory representation was updated in-place
+        assert (
+            Flaw.objects.get(uuid=created_uuid).bz_id == "2293325"
+        )  # DB was updated as well
 
         response = auth_client().get(f"{test_api_uri}/flaws/{created_uuid}")
         assert response.status_code == 200
