@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.convertors import BugzillaTrackerConvertor, FlawConvertor
-from collectors.framework.models import Collector, CollectorMetadata
+from collectors.framework.models import Collector
 from osidb.models import Flaw, PsModule
 from osidb.sync_manager import (
     BZTrackerDownloadManager,
@@ -602,15 +602,6 @@ class BugzillaTrackerCollector(Collector):
         """
         period_start = self.metadata.updated_until_dt or self.BEGINNING
         period_end = period_start + self.BATCH_PERIOD
-        # the tracker collector should never outrun the flaw one
-        # since it creates the linkage which might then be missed
-        period_end = min(
-            period_end,
-            CollectorMetadata.objects.get(
-                name="collectors.bzimport.tasks.flaw_collector"
-            ).updated_until_dt
-            or period_end,
-        )
 
         tracker_ids = self.get_tracker_ids(period_start, period_end)
         while len(tracker_ids) < self.BATCH_SIZE and period_end < timezone.now():

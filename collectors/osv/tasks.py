@@ -12,7 +12,6 @@ logger = get_task_logger(__name__)
 @collector(
     base=OSVCollector,
     crontab=crontab(minute=0, hour="*/1"),  # Run every hour
-    depends_on=["collectors.bzimport.tasks.flaw_collector"],
     enabled=OSV_COLLECTOR_ENABLED,
 )
 def osv_collector(collector_obj) -> str:
