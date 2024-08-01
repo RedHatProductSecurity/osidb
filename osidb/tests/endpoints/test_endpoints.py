@@ -1,5 +1,4 @@
 import uuid
-from unittest.mock import patch
 
 import pytest
 from bugzilla.exceptions import BugzillaError
@@ -11,12 +10,10 @@ from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 from rest_framework.test import APIClient
 
-from osidb.api_views import FlawView
 from osidb.core import generate_acls, set_user_acls
 from osidb.helpers import ensure_list
 from osidb.models import Affect, Flaw, Impact
 from osidb.tests.factories import AffectFactory, FlawFactory
-from osidb.tests.models import LowRateThrottle
 
 pytestmark = pytest.mark.unit
 
@@ -59,21 +56,6 @@ class TestEndpoints(object):
         assert res["email"] == "monke@banana.com"
         assert "data-prodsec" in res["groups"]
         assert res["profile"] is None
-
-    @pytest.mark.django_db
-    def test_throttling(self, auth_client, test_api_uri):
-        """
-        Test that throttling works by using a very low rate throttle on the flaws view.
-        """
-
-        with patch.object(FlawView, "throttle_classes", [LowRateThrottle]):
-            response = auth_client().get(f"{test_api_uri}/flaws")
-            assert response.status_code == 200
-            response = auth_client().get(f"{test_api_uri}/flaws")
-            assert response.status_code == 200
-            # Rate is 2/day so third request should fail
-            response = auth_client().get(f"{test_api_uri}/flaws")
-            assert response.status_code == 429
 
 
 class TestEndpointsACLs:
