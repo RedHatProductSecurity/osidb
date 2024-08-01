@@ -18,7 +18,6 @@ logger = get_task_logger(__name__)
     # this way the initial sync will take probably between half day
     # and one day as it proceeds by 100 days starting at 1999
     crontab=crontab(minute="*/10"),
-    depends_on=["collectors.bzimport.tasks.flaw_collector"],
     enabled=NVD_COLLECTOR_ENABLED,
 )
 def nvd_collector(collector_obj) -> str:
