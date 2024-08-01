@@ -14,8 +14,4 @@ class Migration(migrations.Migration):
             name='tracker',
             unique_together=set(),
         ),
-        migrations.AddConstraint(
-            model_name='tracker',
-            constraint=models.UniqueConstraint(condition=models.Q(('external_system_id', ''), _negated=True), fields=('type', 'external_system_id'), name='unique_external_system_id'),
-        ),
     ]
