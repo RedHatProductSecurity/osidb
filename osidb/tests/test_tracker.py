@@ -3,6 +3,7 @@ Tracker model related tests
 """
 import pytest
 from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
 
 from osidb.models import Affect, Tracker
 from osidb.tests.factories import (
@@ -99,6 +100,43 @@ class TestTracker:
 
         assert acked_tracker.is_acked and not acked_tracker.is_unacked
         assert not unacked_tracker.is_acked and unacked_tracker.is_unacked
+
+    def test_tracker_external_key_constraint(self):
+        """
+        test that multiple trackers can be created at the same time
+        without external_system_id but two trackers can't have the
+        same external_system_id after creation
+        """
+        ps_module = PsModuleFactory()
+        stream1 = PsUpdateStreamFactory(ps_module=ps_module)
+        stream2 = PsUpdateStreamFactory(ps_module=ps_module)
+
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+
+        tracker1 = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=stream1.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+            external_system_id="",
+        )
+        tracker2 = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=stream2.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+            external_system_id="",
+        )
+
+        with pytest.raises(IntegrityError):
+            tracker1.external_system_id = "TEST-1"
+            tracker1.save()
+            tracker2.external_system_id = "TEST-1"
+            tracker2.save()
 
 
 class TestTrackerValidators:

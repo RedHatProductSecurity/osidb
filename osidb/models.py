@@ -2353,7 +2353,14 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             "created_dt",
             "uuid",
         )
-        unique_together = ["type", "external_system_id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["type", "external_system_id"],
+                condition=~Q(external_system_id=""),  # Only applies to non-empty keys
+                name="unique_external_system_id",
+            )
+        ]
+
         indexes = TrackingMixin.Meta.indexes + [
             models.Index(fields=["external_system_id"]),
             GinIndex(fields=["acl_read"]),

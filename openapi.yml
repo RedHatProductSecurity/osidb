@@ -9457,7 +9457,6 @@ components:
           type: string
           maxLength: 100
       required:
-      - external_system_id
       - type
     TrackerSuggestion:
       type: object
