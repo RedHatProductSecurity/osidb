@@ -1301,6 +1301,7 @@ class Flaw(
         """
         Bugzilla sync of the Flaw instance
         """
+        old_instance = kwargs.pop("old_instance", None)
         if not SYNC_FLAWS_TO_BZ:
             # up until now the parent save methods run in sequence of
             # 1) TrackingMixin with auto-timestamps on
@@ -1316,6 +1317,7 @@ class Flaw(
             # Process the bzsync asynchronously
             BZSyncManager.check_for_reschedules()
             kwargs["bz_api_key"] = bz_api_key
+            kwargs["old_instance"] = old_instance
             BZSyncManager.schedule(str(self.uuid), *args, **kwargs)
         else:
             # imports here to prevent cycles
@@ -1324,19 +1326,19 @@ class Flaw(
 
             # sync to Bugzilla
             bs = FlawBugzillaSaver(self, bz_api_key)
-            self = bs.save()
+            flaw_instance = bs.save(old_instance)
             kwargs[
                 "auto_timestamps"
             ] = False  # the timestamps will be get from Bugzilla
             kwargs["raise_validation_error"] = False  # the validations were already run
             # save in case a new Bugzilla ID was obtained
-            self.save(*args, **kwargs)
+            flaw_instance.save(*args, **kwargs)
 
             # fetch from Bugzilla
             fc = FlawCollector()
-            fc.sync_flaw(self.bz_id)
+            fc.sync_flaw(flaw_instance.bz_id)
             # Make sure the flaw instance has the latest data
-            self.refresh_from_db()
+            flaw_instance.refresh_from_db()
 
     def _perform_bzsync(self, *args, bz_api_key, **kwargs):
         """
@@ -1350,7 +1352,10 @@ class Flaw(
 
         # sync to Bugzilla
         bs = FlawBugzillaSaver(self, bz_api_key)  # prepare data for save to BZ
-        self = bs.save()  # actually send to BZ (but not save to DB)
+        old_instance = kwargs.pop("old_instance", None)
+        flaw_instance = bs.save(
+            old_instance
+        )  # actually send to BZ (but not save to DB)
 
         if creating:
             # Save bz_id to DB
@@ -1359,7 +1364,7 @@ class Flaw(
             # save in case a new Bugzilla ID was obtained
             # Instead of self.save(*args, **kwargs), just update the single field to avoid
             # race conditions.
-            self.save(*args, update_fields=["meta_attr"], **kwargs)
+            flaw_instance.save(*args, update_fields=["meta_attr"], **kwargs)
 
     def tasksync(
         self,
@@ -2396,18 +2401,20 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             and self.type == self.TrackerType.BUGZILLA
         ):
             # sync to Bugzilla
-            self = TrackerSaver(self, bz_api_key=bz_api_key).save()
+            tracker_instance = TrackerSaver(self, bz_api_key=bz_api_key).save()
             # save in case a new Bugzilla ID was obtained
             # so the tracker is later matched in BZ import
             kwargs[
                 "auto_timestamps"
             ] = False  # the timestamps will be get from Bugzilla
             kwargs["raise_validation_error"] = False  # the validations were already run
-            self.save(*args, **kwargs)
+            tracker_instance.save(*args, **kwargs)
             # fetch from Bugzilla
             btc = BugzillaTrackerCollector()
-            btc.sync_tracker(self.external_system_id)
-            BZTrackerLinkManager.link_tracker_with_affects(self.external_system_id)
+            btc.sync_tracker(tracker_instance.external_system_id)
+            BZTrackerLinkManager.link_tracker_with_affects(
+                tracker_instance.external_system_id
+            )
 
         # check Jira conditions are met
         elif (
@@ -2416,18 +2423,20 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             and self.type == self.TrackerType.JIRA
         ):
             # sync to Jira
-            self = TrackerSaver(self, jira_token=jira_token).save()
+            tracker_instance = TrackerSaver(self, jira_token=jira_token).save()
             # save in case a new Jira ID was obtained
             # so the flaw is later matched in Jiraffe sync
             kwargs[
                 "auto_timestamps"
             ] = False  # the timestamps will be get from Bugzilla
             kwargs["raise_validation_error"] = False  # the validations were already run
-            self.save(*args, **kwargs)
+            tracker_instance.save(*args, **kwargs)
             # fetch from Jira
             jtc = JiraTrackerCollector()
-            jtc.collect(self.external_system_id)
-            JiraTrackerLinkManager.link_tracker_with_affects(self.external_system_id)
+            jtc.collect(tracker_instance.external_system_id)
+            JiraTrackerLinkManager.link_tracker_with_affects(
+                tracker_instance.external_system_id
+            )
 
         # regular save otherwise
         else:

@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Fixed
 - Cannot fill trackers concurrently (OSIDB-3230)
+- Cannot modify CVE of existing flaws (OSIDB-3102)
 
 ## [4.1.5] - 2024-08-01
 ### Removed

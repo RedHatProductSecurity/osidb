@@ -342,6 +342,60 @@ class TestBBSyncIntegration:
         assert response.json()["cve_id"] is None
 
     @pytest.mark.vcr
+    def test_flaw_update_modify_cve(self, auth_client, test_api_uri):
+        """
+        Test modifying the CVE of an existing flaw which already had a CVE.
+        """
+        last_change_time = "2024-06-20T23:08:18Z"
+        flaw = FlawFactory(
+            bz_id="2293325",
+            cve_id="CVE-2000-3000",
+            components=["ssh"],
+            title="I cannot ssh into Matrix",
+            meta_attr={"bz_id": "2044578", "last_change_time": last_change_time},
+            comment_zero="test",
+            impact="MODERATE",
+            source="CUSTOMER",
+            reported_dt="2022-04-26T00:00:00Z",
+            unembargo_dt="2022-04-27T00:00:00Z",
+            updated_dt=last_change_time,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            embargoed=False,
+        )
+        PsModuleFactory(name="jbcs-1")
+        PsModuleFactory(name="rhel-8")
+        AffectFactory(
+            flaw=flaw,
+            ps_module="jbcs-1",
+            ps_component="ssh",
+        )
+        AffectFactory(
+            flaw=flaw,
+            ps_module="rhel-8",
+            ps_component="libssh",
+        )
+
+        flaw_data = {
+            "cve_id": "CVE-2024-666666",
+            "title": flaw.title,
+            "comment_zero": flaw.comment_zero,
+            "updated_dt": flaw.updated_dt,
+            "embargoed": False,
+        }
+        response = auth_client().put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        assert response.json()["cve_id"] == "CVE-2024-666666"
+
+    @pytest.mark.vcr
     def test_flaw_update_remove_unembargo_dt(self, auth_client, test_api_uri):
         """
         test removing unembargo_dt from an embargoed flaw

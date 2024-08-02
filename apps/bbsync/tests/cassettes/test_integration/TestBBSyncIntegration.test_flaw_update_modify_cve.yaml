@@ -1,0 +1,957 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/version
+  response:
+    body:
+      string: '{"version": "5.0.4.rh99"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '24'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 01 Aug 2024 10:49:54 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.7df06e68.1722509393.1df8e109
+      x-rh-edge-request-id:
+      - 1df8e109
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/user?ids=1
+  response:
+    body:
+      string: '{"users": [{"real_name": "Need Real Name", "email": "aander07@packetmaster.com",
+        "id": 1, "can_login": true, "name": "aander07@packetmaster.com"}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '137'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 01 Aug 2024 10:49:54 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.7df06e68.1722509394.1df8e1ea
+      x-rh-edge-request-id:
+      - 1df8e1ea
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/bug/2044578?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&include_fields=id&include_fields=last_change_time
+  response:
+    body:
+      string: '{"faults": [], "bugs": [{"data_category": "Security Restricted", "id":
+        2044578, "last_change_time": "2024-06-20T23:08:18Z"}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '117'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 01 Aug 2024 10:49:55 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.7df06e68.1722509394.1df8e3a4
+      x-rh-edge-request-id:
+      - 1df8e3a4
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"product": "Security Response", "op_sys": "Linux", "platform": "All",
+      "version": "unspecified", "component": "vulnerability", "cf_release_notes":
+      "random cve_description", "severity": "medium", "priority": "medium", "summary":
+      "CVE-2024-666666 ssh: I cannot ssh into Matrix", "alias": {"add": ["CVE-2024-666666"],
+      "remove": ["CVE-2000-3000"]}, "keywords": {"add": ["Security"]}, "flags": [{"name":
+      "requires_doc_text", "status": "?"}], "groups": {"add": [], "remove": []}, "cc":
+      {"add": [], "remove": []}, "cf_srtnotes": "{\"affects\": [{\"ps_module\": \"jbcs-1\",
+      \"ps_component\": \"ssh\", \"affectedness\": \"notaffected\", \"resolution\":
+      null, \"impact\": \"moderate\", \"cvss2\": null, \"cvss3\": null, \"cvss4\":
+      null}, {\"ps_module\": \"rhel-8\", \"ps_component\": \"libssh\", \"affectedness\":
+      \"affected\", \"resolution\": \"delegated\", \"impact\": null, \"cvss2\": null,
+      \"cvss3\": null, \"cvss4\": null}], \"public\": \"2022-04-27T00:00:00Z\", \"reported\":
+      \"2022-04-26T00:00:00Z\", \"impact\": \"moderate\", \"source\": \"customer\",
+      \"mitigation\": \"foo\", \"statement\": \"Statement for CVE-2000-3000\"}", "ids":
+      ["2044578"]}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1144'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: PUT
+    uri: https://example.com/rest/bug/2044578
+  response:
+    body:
+      string: '{"bugs": [{"changes": {"cf_srtnotes": {"removed": "{\"affects\": [{\"ps_module\":
+        \"rhel-8\", \"ps_component\": \"kernel\", \"affectedness\": \"new\", \"resolution\":
+        null, \"impact\": \"moderate\", \"cvss2\": null, \"cvss3\": null, \"cvss4\":
+        null}], \"public\": \"2000-01-01T22:03:26Z\", \"reported\": \"2022-11-22T15:55:22Z\",
+        \"impact\": \"moderate\", \"source\": \"customer\", \"mitigation\": \"foo\",
+        \"statement\": \"Statement for CVE-2022-0313\"}", "added": "{\"affects\":
+        [{\"ps_module\": \"jbcs-1\", \"ps_component\": \"ssh\", \"affectedness\":
+        \"notaffected\", \"resolution\": null, \"impact\": \"moderate\", \"cvss2\":
+        null, \"cvss3\": null, \"cvss4\": null}, {\"ps_module\": \"rhel-8\", \"ps_component\":
+        \"libssh\", \"affectedness\": \"affected\", \"resolution\": \"delegated\",
+        \"impact\": null, \"cvss2\": null, \"cvss3\": null, \"cvss4\": null}], \"public\":
+        \"2022-04-27T00:00:00Z\", \"reported\": \"2022-04-26T00:00:00Z\", \"impact\":
+        \"moderate\", \"source\": \"customer\", \"mitigation\": \"foo\", \"statement\":
+        \"Statement for CVE-2000-3000\"}"}, "flagtypes.name": {"added": "requires_doc_text?",
+        "removed": "requires_doc_text+"}, "alias": {"removed": "", "added": "CVE-2024-666666"},
+        "summary": {"added": "CVE-2024-666666 ssh: I cannot ssh into Matrix", "removed":
+        "CVE-2022-0313 CVE-2022-0500 charge: each: mother: Foo"}}, "alias": ["CVE-2022-0313",
+        "CVE-2022-0500", "CVE-2024-666666"], "id": 2044578, "last_change_time": "2024-08-01T10:49:56Z"}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 01 Aug 2024 10:49:59 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '1443'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.7df06e68.1722509395.1df8e511
+      x-rh-edge-request-id:
+      - 1df8e511
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/version
+  response:
+    body:
+      string: '{"version": "5.0.4.rh99"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '24'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 01 Aug 2024 10:50:00 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.64f06e68.1722509400.1c5c3bd9
+      x-rh-edge-request-id:
+      - 1c5c3bd9
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/user?ids=1
+  response:
+    body:
+      string: '{"users": [{"real_name": "Need Real Name", "can_login": true, "email":
+        "aander07@packetmaster.com", "name": "aander07@packetmaster.com", "id": 1}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '137'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 01 Aug 2024 10:50:01 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.64f06e68.1722509400.1c5c3c89
+      x-rh-edge-request-id:
+      - 1c5c3c89
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/bug/2044578?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
+  response:
+    body:
+      string: '{"faults": [], "bugs": [{"cf_clone_of": null, "is_open": true, "depends_on":
+        [2293420], "tags": [], "groups": ["qe_staff", "security"], "cf_major_incident":
+        null, "platform": "All", "cc_detail": [{"insider": true, "name": "acaringi@redhat.com",
+        "id": 408364, "active": true, "email": "acaringi@redhat.com", "real_name":
+        "Augusto Caringi", "partner": false}, {"id": 448206, "name": "adscvr@gmail.com",
+        "insider": false, "real_name": "Facundo", "partner": false, "active": true,
+        "email": "adscvr@gmail.com"}, {"active": true, "email": "airlied@redhat.com",
+        "real_name": "Dave Airlie", "partner": false, "insider": true, "name": "airlied@redhat.com",
+        "id": 215372}, {"active": true, "email": "alciregi@posteo.net", "real_name":
+        "Alessio", "partner": false, "name": "alciregi@posteo.net", "insider": false,
+        "id": 406321}, {"partner": false, "real_name": "Alex", "email": "allarkin@redhat.com",
+        "active": true, "id": 443791, "insider": true, "name": "allarkin@redhat.com"},
+        {"active": true, "email": "bhu@redhat.com", "real_name": "Beth Uptagrafft",
+        "partner": false, "insider": true, "name": "bhu@redhat.com", "id": 61112},
+        {"partner": false, "real_name": "Salvatore Bonaccorso", "email": "carnil@debian.org",
+        "active": true, "id": 326232, "insider": false, "name": "carnil@debian.org"},
+        {"active": true, "email": "chwhite@redhat.com", "real_name": "Chris White",
+        "partner": false, "name": "chwhite@redhat.com", "insider": true, "id": 440358},
+        {"insider": true, "name": "conrado@redhat.com", "id": 482384, "email": "conrado@redhat.com",
+        "active": true, "partner": false, "real_name": "Conrado Costa"}, {"id": 405630,
+        "insider": true, "name": "crwood@redhat.com", "partner": false, "real_name":
+        "Crystal Wood", "email": "crwood@redhat.com", "active": true}, {"insider":
+        true, "name": "dvlasenk@redhat.com", "id": 268111, "email": "dvlasenk@redhat.com",
+        "active": true, "partner": false, "real_name": "Denys Vlasenko"}, {"partner":
+        false, "real_name": "Hans de Goede", "email": "hdegoede@redhat.com", "active":
+        true, "id": 8448, "name": "hdegoede@redhat.com", "insider": true}, {"real_name":
+        "Herton R. Krzesinski", "partner": false, "active": true, "email": "hkrzesin@redhat.com",
+        "id": 358526, "name": "hkrzesin@redhat.com", "insider": true}, {"id": 19949,
+        "insider": true, "name": "jarod@redhat.com", "partner": false, "real_name":
+        "Jarod Wilson", "email": "jarod@redhat.com", "active": true}, {"active": true,
+        "email": "jarodwilson@gmail.com", "real_name": "Jarod Wilson", "partner":
+        false, "insider": false, "name": "jarodwilson@gmail.com", "id": 152578}, {"partner":
+        false, "real_name": "Jason Burrell", "email": "jburrell@redhat.com", "active":
+        true, "id": 435933, "name": "jburrell@redhat.com", "insider": true}, {"insider":
+        false, "name": "jeremy@jcline.org", "id": 389734, "email": "jeremy@jcline.org",
+        "active": true, "partner": false, "real_name": "Jeremy Cline"}, {"id": 464914,
+        "name": "jfaracco@redhat.com", "insider": true, "partner": false, "real_name":
+        "Julio Faracco", "email": "jfaracco@redhat.com", "active": true}, {"active":
+        true, "email": "jforbes@redhat.com", "real_name": "Justin M. Forbes", "partner":
+        false, "name": "jforbes@redhat.com", "insider": true, "id": 275234}, {"active":
+        false, "email": "jglisse@redhat.com", "real_name": "J\u00e9r\u00f4me Glisse",
+        "partner": false, "insider": false, "name": "jglisse@redhat.com", "id": 279844},
+        {"id": 424026, "insider": true, "name": "jlelli@redhat.com", "partner": false,
+        "real_name": "Juri Lelli", "email": "jlelli@redhat.com", "active": true},
+        {"active": true, "email": "joe.lawrence@redhat.com", "real_name": "Joe Lawrence",
+        "partner": false, "name": "joe.lawrence@redhat.com", "insider": true, "id":
+        398300}, {"active": true, "email": "jonathan@jonmasters.org", "real_name":
+        "Jon Masters", "partner": false, "name": "jonathan@jonmasters.org", "insider":
+        false, "id": 211762}, {"id": 208392, "name": "josef@toxicpanda.com", "insider":
+        false, "real_name": "Josef Bacik", "partner": false, "active": true, "email":
+        "josef@toxicpanda.com"}, {"partner": false, "real_name": "John Shortt", "email":
+        "jshortt@redhat.com", "active": true, "id": 337458, "insider": true, "name":
+        "jshortt@redhat.com"}, {"id": 308619, "insider": true, "name": "jstancek@redhat.com",
+        "real_name": "Jan Stancek", "partner": false, "active": true, "email": "jstancek@redhat.com"},
+        {"active": true, "email": "jwboyer@redhat.com", "real_name": "Josh Boyer",
+        "partner": false, "name": "jwboyer@redhat.com", "insider": true, "id": 154364},
+        {"real_name": "John Wyatt", "partner": false, "active": true, "email": "jwyatt@redhat.com",
+        "id": 469410, "name": "jwyatt@redhat.com", "insider": true}, {"insider": true,
+        "name": "kcarcia@redhat.com", "id": 406125, "active": true, "email": "kcarcia@redhat.com",
+        "real_name": "Kaitlyn Carcia Poulin", "partner": false}, {"name": "kernel-maint@redhat.com",
+        "insider": true, "id": 176318, "email": "kernel-maint@redhat.com", "active":
+        false, "partner": false, "real_name": "Kernel Maintainer List"}, {"email":
+        "kernel-mgr@redhat.com", "active": true, "partner": false, "real_name": "Red
+        Hat Kernel Manager", "insider": true, "name": "kernel-mgr@redhat.com", "id":
+        184498}, {"name": "lgoncalv@redhat.com", "insider": true, "id": 214486, "email":
+        "lgoncalv@redhat.com", "active": true, "partner": false, "real_name": "Luis
+        Claudio R. Goncalves"}, {"real_name": "John W. Linville", "partner": false,
+        "active": true, "email": "linville@redhat.com", "id": 162860, "insider": true,
+        "name": "linville@redhat.com"}, {"real_name": "Lucas Zampieri", "partner":
+        false, "active": true, "email": "lzampier@redhat.com", "id": 459654, "name":
+        "lzampier@redhat.com", "insider": true}, {"active": true, "email": "masami256@gmail.com",
+        "real_name": "Masami Ichikawa", "partner": false, "insider": false, "name":
+        "masami256@gmail.com", "id": 299344}, {"name": "mchehab@infradead.org", "insider":
+        false, "id": 268850, "active": true, "email": "mchehab@infradead.org", "real_name":
+        "Mauro Carvalho Chehab", "partner": false}, {"partner": false, "real_name":
+        "Norm Murray", "email": "nmurray@redhat.com", "active": true, "id": 37705,
+        "name": "nmurray@redhat.com", "insider": true}, {"partner": false, "real_name":
+        "Ondrej Soukup", "email": "osoukup@redhat.com", "active": true, "id": 412888,
+        "insider": true, "name": "osoukup@redhat.com"}, {"real_name": "Patrick Talbert",
+        "partner": false, "active": true, "email": "ptalbert@redhat.com", "id": 328638,
+        "name": "ptalbert@redhat.com", "insider": true}, {"insider": true, "name":
+        "qzhao@redhat.com", "id": 335606, "active": true, "email": "qzhao@redhat.com",
+        "real_name": "Qiao Zhao", "partner": false}, {"insider": true, "name": "rvrbovsk@redhat.com",
+        "id": 339032, "active": true, "email": "rvrbovsk@redhat.com", "real_name":
+        "Radomir Vrbovsky", "partner": false}, {"email": "scweaver@redhat.com", "active":
+        true, "partner": false, "real_name": "Scott Weaver", "insider": true, "name":
+        "scweaver@redhat.com", "id": 466258}, {"real_name": "Product Security", "partner":
+        false, "active": true, "email": "security-response-team@bot.bugzilla.redhat.com",
+        "id": 489232, "name": "security-response-team@bot.bugzilla.redhat.com", "insider":
+        true}, {"real_name": "Steve Dickson", "partner": false, "active": true, "email":
+        "steved@redhat.com", "id": 136230, "insider": true, "name": "steved@redhat.com"},
+        {"id": 202542, "name": "vkumar@redhat.com", "insider": true, "partner": false,
+        "real_name": "vikas kumar", "email": "vkumar@redhat.com", "active": true},
+        {"name": "vmalik@redhat.com", "insider": true, "id": 445252, "email": "vmalik@redhat.com",
+        "active": true, "partner": false, "real_name": "Viktor Malik"}, {"partner":
+        false, "real_name": "Colin Walters", "email": "walters@redhat.com", "active":
+        true, "id": 154382, "name": "walters@redhat.com", "insider": true}, {"partner":
+        false, "real_name": "Clark Williams", "email": "williams@redhat.com", "active":
+        true, "id": 24844, "name": "williams@redhat.com", "insider": true}, {"partner":
+        false, "real_name": "Takahiro Itazuri", "email": "zulinx86@gmail.com", "active":
+        true, "id": 471783, "name": "zulinx86@gmail.com", "insider": false}], "remaining_time":
+        0, "cf_cust_facing": "---", "cc": ["acaringi@redhat.com", "adscvr@gmail.com",
+        "airlied@redhat.com", "alciregi@posteo.net", "allarkin@redhat.com", "bhu@redhat.com",
+        "carnil@debian.org", "chwhite@redhat.com", "conrado@redhat.com", "crwood@redhat.com",
+        "dvlasenk@redhat.com", "hdegoede@redhat.com", "hkrzesin@redhat.com", "jarod@redhat.com",
+        "jarodwilson@gmail.com", "jburrell@redhat.com", "jeremy@jcline.org", "jfaracco@redhat.com",
+        "jforbes@redhat.com", "jglisse@redhat.com", "jlelli@redhat.com", "joe.lawrence@redhat.com",
+        "jonathan@jonmasters.org", "josef@toxicpanda.com", "jshortt@redhat.com", "jstancek@redhat.com",
+        "jwboyer@redhat.com", "jwyatt@redhat.com", "kcarcia@redhat.com", "kernel-maint@redhat.com",
+        "kernel-mgr@redhat.com", "lgoncalv@redhat.com", "linville@redhat.com", "lzampier@redhat.com",
+        "masami256@gmail.com", "mchehab@infradead.org", "nmurray@redhat.com", "osoukup@redhat.com",
+        "ptalbert@redhat.com", "qzhao@redhat.com", "rvrbovsk@redhat.com", "scweaver@redhat.com",
+        "security-response-team@bot.bugzilla.redhat.com", "steved@redhat.com", "vkumar@redhat.com",
+        "vmalik@redhat.com", "walters@redhat.com", "williams@redhat.com", "zulinx86@gmail.com"],
+        "whiteboard": "", "comments": [{"text": "Linux ebpf logic vulnerability leads
+        to critical memory read and write,An attacker with cap_bpf can gain root privileges
+        or container escape.\n\nReferences:\n\nhttps://example.com/show_bug.cgi?id=2040599",
+        "creation_time": "2022-01-24T19:05:54Z", "count": 0, "creator": "psampaio@redhat.com",
+        "time": "2022-01-24T19:05:54Z", "attachment_id": null, "private_groups": [],
+        "creator_id": 409354, "id": 15874997, "bug_id": 2044578, "is_private": false,
+        "tags": []}, {"creator_id": 443791, "private_groups": [], "bug_id": 2044578,
+        "id": 15971028, "tags": [], "is_private": false, "text": "Created kernel tracking
+        bugs for this issue:\n\nAffects: fedora-all [bug 2056248]", "creation_time":
+        "2022-02-20T13:50:08Z", "count": 8, "attachment_id": null, "creator": "allarkin@redhat.com",
+        "time": "2022-02-20T13:50:08Z"}, {"private_groups": [], "creator_id": 326232,
+        "bug_id": 2044578, "id": 15972156, "tags": [], "is_private": false, "text":
+        "Hi Pedro\n\nThe information is quite scarce here to determine which kernel
+        versions are affected by the issue. Can you point to the upstream fix in 5.17-rc1
+        which fixes the issue? I''m interested to correctly track this CVE in another
+        downstream distribution.\n\nMany thanks already!\n\nRegards,\nSalvatore",
+        "count": 10, "creation_time": "2022-02-21T07:32:03Z", "attachment_id": null,
+        "time": "2022-02-21T07:32:03Z", "creator": "carnil@debian.org"}, {"text":
+        "In reply to comment #10:\n> Hi Pedro\n> \n> The information is quite scarce
+        here to determine which kernel versions are\n> affected by the issue. Can
+        you point to the upstream fix in 5.17-rc1 which\n> fixes the issue? I''m interested
+        to correctly track this CVE in another\n> downstream distribution.\n> \n>
+        Many thanks already!\n> \n> Regards,\n> Salvatore\n\nYou can find the related
+        commits here:\n\nhttps://example.com/security/cve/CVE-2022-0500", "time":
+        "2022-02-21T13:06:46Z", "creator": "psampaio@redhat.com", "attachment_id":
+        null, "count": 11, "creation_time": "2022-02-21T13:06:46Z", "id": 15973458,
+        "bug_id": 2044578, "creator_id": 409354, "private_groups": [], "tags": [],
+        "is_private": false}, {"tags": [], "is_private": false, "creator_id": 326232,
+        "private_groups": [], "bug_id": 2044578, "id": 15973486, "count": 12, "creation_time":
+        "2022-02-21T13:14:23Z", "attachment_id": null, "time": "2022-02-21T13:14:23Z",
+        "creator": "carnil@debian.org", "text": "Hi Pedro,\n\n(In reply to Pedro Sampaio
+        from comment #11)\n> In reply to comment #10:\n> > Hi Pedro\n> > \n> > The
+        information is quite scarce here to determine which kernel versions are\n>
+        > affected by the issue. Can you point to the upstream fix in 5.17-rc1 which\n>
+        > fixes the issue? I''m interested to correctly track this CVE in another\n>
+        > downstream distribution.\n> > \n> > Many thanks already!\n> > \n> > Regards,\n>
+        > Salvatore\n> \n> You can find the related commits here:\n> \n> https://example.com/security/cve/CVE-2022-0500\n\nThank
+        you!"}, {"is_private": false, "tags": [], "bug_id": 2044578, "id": 15973498,
+        "private_groups": [], "creator_id": 326232, "attachment_id": null, "creator":
+        "carnil@debian.org", "time": "2022-02-21T13:18:35Z", "count": 13, "creation_time":
+        "2022-02-21T13:18:35Z", "text": "Pedro, I wonder this is not duplicating CVE-2022-23222
+        right because treating a different aspect?"}, {"text": "Given https://example.com/stable/20220216225209.2196865-1-haoluo@google.com/
+        this would be separate from CVE-2022-23222 and the fix for this vulnerability
+        is the there mentioned 7th patch (\"bpf: Make per_cpu_ptr return rdonly PTR_TO_MEM\").",
+        "attachment_id": null, "time": "2022-02-24T08:21:50Z", "creator": "carnil@debian.org",
+        "count": 14, "creation_time": "2022-02-24T08:21:50Z", "bug_id": 2044578, "id":
+        15986755, "creator_id": 326232, "private_groups": [], "is_private": false,
+        "tags": []}, {"text": "This issue has been addressed in the following products:\n\n  Red
+        Hat Enterprise Linux 8.6 Extended Update Support\n\nVia RHSA-2024:0724 https://example.com/errata/RHSA-2024:0724",
+        "count": 29, "creation_time": "2024-02-07T16:28:22Z", "time": "2024-02-07T16:28:22Z",
+        "creator": "errata-xmlrpc@redhat.com", "attachment_id": null, "creator_id":
+        241731, "private_groups": [], "id": 17878690, "bug_id": 2044578, "is_private":
+        false, "tags": []}], "cf_last_closed": null, "docs_contact": "", "cf_release_notes":
+        "random cve_description", "url": "", "assigned_to_detail": {"insider": false,
+        "name": "nobody@redhat.com", "id": 29451, "active": true, "email": "nobody@redhat.com",
+        "real_name": "Nobody", "partner": false}, "data_category": "Security Restricted",
+        "resolution": "", "cf_devel_whiteboard": "(DO NOT MODIFY THIS FIELD MANUALLY;
+        YOUR CHANGES WILL BE OVERWRITTEN ON NEXT UPDATE.)\r\n\r\nSTATEMENT\r\n---------\r\n\r\nStatement
+        for CVE-2004-2493\r\n\r\nACKNOWLEDGMENTS\r\n---------------\r\n\r\ndear (sir)",
+        "cf_environment": "", "cf_fixed_in": "Linux kernel 5.17-rc1", "component":
+        ["vulnerability"], "product": "Security Response", "last_change_time": "2024-08-01T10:49:56Z",
+        "severity": "medium", "actual_time": 0, "cf_doc_type": "If docs needed, set
+        a value", "is_confirmed": true, "cf_srtnotes": "{\"affects\": [{\"ps_module\":
+        \"jbcs-1\", \"ps_component\": \"ssh\", \"affectedness\": \"notaffected\",
+        \"resolution\": null, \"impact\": \"moderate\", \"cvss2\": null, \"cvss3\":
+        null, \"cvss4\": null}, {\"ps_module\": \"rhel-8\", \"ps_component\": \"libssh\",
+        \"affectedness\": \"affected\", \"resolution\": \"delegated\", \"impact\":
+        null, \"cvss2\": null, \"cvss3\": null, \"cvss4\": null}], \"public\": \"2022-04-27T00:00:00Z\",
+        \"reported\": \"2022-04-26T00:00:00Z\", \"impact\": \"moderate\", \"source\":
+        \"customer\", \"mitigation\": \"foo\", \"statement\": \"Statement for CVE-2000-3000\"}",
+        "keywords": ["Security"], "external_bugs": [{"id": 2052275, "bug_id": 2044578,
+        "is_migration_link": 0, "ext_bz_id": 60, "ext_status": "Closed", "ext_description":
+        "[Nuclear Regulation Authority] eBPF\u51e6\u7406\u306e\u8106\u5f31\u6027\u306e\u78ba\u8a8d\u306b\u3064\u3044\u3066",
+        "ext_bz_bug_id": "03269484", "type": {"can_get": 1, "url": "https://example.com//access.redhat.com/support/cases/%id%",
+        "must_send": 1, "id": 60}, "ext_priority": "4 (Low)"}, {"type": {"must_send":
+        0, "full_url": "https://example.com/errata/%id%", "id": 139, "send_once":
+        0, "url": "https://example.com/errata/", "description": "Red Hat Product Errata",
+        "can_send": 0, "type": "None", "can_get": 0}, "ext_priority": "None", "ext_description":
+        "None", "ext_bz_bug_id": "RHSA-2024:0724", "is_migration_link": 0, "ext_bz_id":
+        139, "ext_status": "None", "bug_id": 2044578, "id": 2302847}], "target_release":
+        ["---"], "deadline": null, "classification": "Other", "description": "Linux
+        ebpf logic vulnerability leads to critical memory read and write,An attacker
+        with cap_bpf can gain root privileges or container escape.\n\nReferences:\n\nhttps://example.com/show_bug.cgi?id=2040599",
+        "flags": [{"creation_date": "2024-06-17T08:22:16Z", "modification_date": "2024-06-17T08:22:16Z",
+        "setter": "osoukup@redhat.com", "is_active": 1, "status": "?", "name": "hightouch",
+        "id": 6115859, "type_id": 788}, {"type_id": 1209, "id": 6115860, "name": "hightouch-lite",
+        "status": "?", "is_active": 1, "setter": "osoukup@redhat.com", "modification_date":
+        "2024-06-17T08:22:16Z", "creation_date": "2024-06-17T08:22:16Z"}, {"name":
+        "requires_doc_text", "id": 5326309, "type_id": 415, "is_active": 1, "status":
+        "?", "creation_date": "2022-01-24T19:05:54Z", "modification_date": "2024-08-01T10:49:56Z",
+        "setter": "dmonzoni@redhat.com"}], "summary": "CVE-2024-666666 ssh: I cannot
+        ssh into Matrix", "creator_detail": {"name": "psampaio@redhat.com", "insider":
+        true, "id": 409354, "active": true, "email": "psampaio@redhat.com", "real_name":
+        "Pedro Sampaio", "partner": false}, "qa_contact": "", "alias": ["CVE-2022-0313",
+        "CVE-2022-0500", "CVE-2024-666666"], "cf_pgm_internal": "", "cf_build_id":
+        "", "op_sys": "Linux", "id": 2044578, "blocks": [], "creator": "psampaio@redhat.com",
+        "sub_components": {}, "is_creator_accessible": true, "cf_internal_whiteboard":
+        "", "cf_qa_whiteboard": "", "estimated_time": 0, "creation_time": "2022-01-24T19:05:54Z",
+        "cf_pm_score": "0", "version": ["unspecified"], "is_cc_accessible": true,
+        "dupe_of": null, "status": "NEW", "target_milestone": "---", "priority": "medium",
+        "assigned_to": "nobody@redhat.com", "cf_embargoed": null, "cf_qe_conditional_nak":
+        [], "cf_conditional_nak": []}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 01 Aug 2024 10:50:02 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '22672'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.64f06e68.1722509401.1c5c3da9
+      x-rh-edge-request-id:
+      - 1c5c3da9
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/bug/2044578?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
+  response:
+    body:
+      string: '{"faults": [], "bugs": [{"remaining_time": 0, "cc_detail": [{"partner":
+        false, "real_name": "Augusto Caringi", "email": "acaringi@redhat.com", "active":
+        true, "id": 408364, "name": "acaringi@redhat.com", "insider": true}, {"real_name":
+        "Facundo", "partner": false, "active": true, "email": "adscvr@gmail.com",
+        "id": 448206, "insider": false, "name": "adscvr@gmail.com"}, {"email": "airlied@redhat.com",
+        "active": true, "partner": false, "real_name": "Dave Airlie", "insider": true,
+        "name": "airlied@redhat.com", "id": 215372}, {"name": "alciregi@posteo.net",
+        "insider": false, "id": 406321, "email": "alciregi@posteo.net", "active":
+        true, "partner": false, "real_name": "Alessio"}, {"id": 443791, "name": "allarkin@redhat.com",
+        "insider": true, "partner": false, "real_name": "Alex", "email": "allarkin@redhat.com",
+        "active": true}, {"id": 61112, "name": "bhu@redhat.com", "insider": true,
+        "real_name": "Beth Uptagrafft", "partner": false, "active": true, "email":
+        "bhu@redhat.com"}, {"email": "carnil@debian.org", "active": true, "partner":
+        false, "real_name": "Salvatore Bonaccorso", "name": "carnil@debian.org", "insider":
+        false, "id": 326232}, {"id": 440358, "name": "chwhite@redhat.com", "insider":
+        true, "real_name": "Chris White", "partner": false, "active": true, "email":
+        "chwhite@redhat.com"}, {"id": 482384, "name": "conrado@redhat.com", "insider":
+        true, "real_name": "Conrado Costa", "partner": false, "active": true, "email":
+        "conrado@redhat.com"}, {"name": "crwood@redhat.com", "insider": true, "id":
+        405630, "email": "crwood@redhat.com", "active": true, "partner": false, "real_name":
+        "Crystal Wood"}, {"name": "dvlasenk@redhat.com", "insider": true, "id": 268111,
+        "email": "dvlasenk@redhat.com", "active": true, "partner": false, "real_name":
+        "Denys Vlasenko"}, {"name": "hdegoede@redhat.com", "insider": true, "id":
+        8448, "email": "hdegoede@redhat.com", "active": true, "partner": false, "real_name":
+        "Hans de Goede"}, {"real_name": "Herton R. Krzesinski", "partner": false,
+        "active": true, "email": "hkrzesin@redhat.com", "id": 358526, "insider": true,
+        "name": "hkrzesin@redhat.com"}, {"name": "jarod@redhat.com", "insider": true,
+        "id": 19949, "email": "jarod@redhat.com", "active": true, "partner": false,
+        "real_name": "Jarod Wilson"}, {"id": 152578, "name": "jarodwilson@gmail.com",
+        "insider": false, "partner": false, "real_name": "Jarod Wilson", "email":
+        "jarodwilson@gmail.com", "active": true}, {"email": "jburrell@redhat.com",
+        "active": true, "partner": false, "real_name": "Jason Burrell", "insider":
+        true, "name": "jburrell@redhat.com", "id": 435933}, {"email": "jeremy@jcline.org",
+        "active": true, "partner": false, "real_name": "Jeremy Cline", "insider":
+        false, "name": "jeremy@jcline.org", "id": 389734}, {"id": 464914, "insider":
+        true, "name": "jfaracco@redhat.com", "partner": false, "real_name": "Julio
+        Faracco", "email": "jfaracco@redhat.com", "active": true}, {"real_name": "Justin
+        M. Forbes", "partner": false, "active": true, "email": "jforbes@redhat.com",
+        "id": 275234, "insider": true, "name": "jforbes@redhat.com"}, {"real_name":
+        "J\u00e9r\u00f4me Glisse", "partner": false, "active": false, "email": "jglisse@redhat.com",
+        "id": 279844, "name": "jglisse@redhat.com", "insider": false}, {"insider":
+        true, "name": "jlelli@redhat.com", "id": 424026, "email": "jlelli@redhat.com",
+        "active": true, "partner": false, "real_name": "Juri Lelli"}, {"name": "joe.lawrence@redhat.com",
+        "insider": true, "id": 398300, "email": "joe.lawrence@redhat.com", "active":
+        true, "partner": false, "real_name": "Joe Lawrence"}, {"insider": false, "name":
+        "jonathan@jonmasters.org", "id": 211762, "email": "jonathan@jonmasters.org",
+        "active": true, "partner": false, "real_name": "Jon Masters"}, {"insider":
+        false, "name": "josef@toxicpanda.com", "id": 208392, "email": "josef@toxicpanda.com",
+        "active": true, "partner": false, "real_name": "Josef Bacik"}, {"real_name":
+        "John Shortt", "partner": false, "active": true, "email": "jshortt@redhat.com",
+        "id": 337458, "insider": true, "name": "jshortt@redhat.com"}, {"active": true,
+        "email": "jstancek@redhat.com", "real_name": "Jan Stancek", "partner": false,
+        "name": "jstancek@redhat.com", "insider": true, "id": 308619}, {"real_name":
+        "Josh Boyer", "partner": false, "active": true, "email": "jwboyer@redhat.com",
+        "id": 154364, "insider": true, "name": "jwboyer@redhat.com"}, {"id": 469410,
+        "name": "jwyatt@redhat.com", "insider": true, "real_name": "John Wyatt", "partner":
+        false, "active": true, "email": "jwyatt@redhat.com"}, {"partner": false, "real_name":
+        "Kaitlyn Carcia Poulin", "email": "kcarcia@redhat.com", "active": true, "id":
+        406125, "name": "kcarcia@redhat.com", "insider": true}, {"name": "kernel-maint@redhat.com",
+        "insider": true, "id": 176318, "active": false, "email": "kernel-maint@redhat.com",
+        "real_name": "Kernel Maintainer List", "partner": false}, {"id": 184498, "name":
+        "kernel-mgr@redhat.com", "insider": true, "real_name": "Red Hat Kernel Manager",
+        "partner": false, "active": true, "email": "kernel-mgr@redhat.com"}, {"insider":
+        true, "name": "lgoncalv@redhat.com", "id": 214486, "active": true, "email":
+        "lgoncalv@redhat.com", "real_name": "Luis Claudio R. Goncalves", "partner":
+        false}, {"partner": false, "real_name": "John W. Linville", "email": "linville@redhat.com",
+        "active": true, "id": 162860, "name": "linville@redhat.com", "insider": true},
+        {"name": "lzampier@redhat.com", "insider": true, "id": 459654, "active": true,
+        "email": "lzampier@redhat.com", "real_name": "Lucas Zampieri", "partner":
+        false}, {"active": true, "email": "masami256@gmail.com", "real_name": "Masami
+        Ichikawa", "partner": false, "insider": false, "name": "masami256@gmail.com",
+        "id": 299344}, {"insider": false, "name": "mchehab@infradead.org", "id": 268850,
+        "active": true, "email": "mchehab@infradead.org", "real_name": "Mauro Carvalho
+        Chehab", "partner": false}, {"insider": true, "name": "nmurray@redhat.com",
+        "id": 37705, "email": "nmurray@redhat.com", "active": true, "partner": false,
+        "real_name": "Norm Murray"}, {"name": "osoukup@redhat.com", "insider": true,
+        "id": 412888, "email": "osoukup@redhat.com", "active": true, "partner": false,
+        "real_name": "Ondrej Soukup"}, {"id": 328638, "insider": true, "name": "ptalbert@redhat.com",
+        "partner": false, "real_name": "Patrick Talbert", "email": "ptalbert@redhat.com",
+        "active": true}, {"insider": true, "name": "qzhao@redhat.com", "id": 335606,
+        "active": true, "email": "qzhao@redhat.com", "real_name": "Qiao Zhao", "partner":
+        false}, {"active": true, "email": "rvrbovsk@redhat.com", "real_name": "Radomir
+        Vrbovsky", "partner": false, "insider": true, "name": "rvrbovsk@redhat.com",
+        "id": 339032}, {"insider": true, "name": "scweaver@redhat.com", "id": 466258,
+        "email": "scweaver@redhat.com", "active": true, "partner": false, "real_name":
+        "Scott Weaver"}, {"real_name": "Product Security", "partner": false, "active":
+        true, "email": "security-response-team@bot.bugzilla.redhat.com", "id": 489232,
+        "insider": true, "name": "security-response-team@bot.bugzilla.redhat.com"},
+        {"id": 136230, "name": "steved@redhat.com", "insider": true, "real_name":
+        "Steve Dickson", "partner": false, "active": true, "email": "steved@redhat.com"},
+        {"name": "vkumar@redhat.com", "insider": true, "id": 202542, "email": "vkumar@redhat.com",
+        "active": true, "partner": false, "real_name": "vikas kumar"}, {"name": "vmalik@redhat.com",
+        "insider": true, "id": 445252, "active": true, "email": "vmalik@redhat.com",
+        "real_name": "Viktor Malik", "partner": false}, {"partner": false, "real_name":
+        "Colin Walters", "email": "walters@redhat.com", "active": true, "id": 154382,
+        "insider": true, "name": "walters@redhat.com"}, {"real_name": "Clark Williams",
+        "partner": false, "active": true, "email": "williams@redhat.com", "id": 24844,
+        "insider": true, "name": "williams@redhat.com"}, {"active": true, "email":
+        "zulinx86@gmail.com", "real_name": "Takahiro Itazuri", "partner": false, "insider":
+        false, "name": "zulinx86@gmail.com", "id": 471783}], "groups": ["qe_staff",
+        "security"], "platform": "All", "cf_major_incident": null, "tags": [], "depends_on":
+        [2293420], "is_open": true, "cf_clone_of": null, "cf_release_notes": "random
+        cve_description", "docs_contact": "", "cf_last_closed": null, "comments":
+        [{"text": "Linux ebpf logic vulnerability leads to critical memory read and
+        write,An attacker with cap_bpf can gain root privileges or container escape.\n\nReferences:\n\nhttps://example.com/show_bug.cgi?id=2040599",
+        "attachment_id": null, "creator": "psampaio@redhat.com", "time": "2022-01-24T19:05:54Z",
+        "count": 0, "creation_time": "2022-01-24T19:05:54Z", "bug_id": 2044578, "id":
+        15874997, "creator_id": 409354, "private_groups": [], "tags": [], "is_private":
+        false}, {"creator_id": 443791, "private_groups": [], "id": 15971028, "bug_id":
+        2044578, "is_private": false, "tags": [], "text": "Created kernel tracking
+        bugs for this issue:\n\nAffects: fedora-all [bug 2056248]", "count": 8, "creation_time":
+        "2022-02-20T13:50:08Z", "time": "2022-02-20T13:50:08Z", "creator": "allarkin@redhat.com",
+        "attachment_id": null}, {"text": "Hi Pedro\n\nThe information is quite scarce
+        here to determine which kernel versions are affected by the issue. Can you
+        point to the upstream fix in 5.17-rc1 which fixes the issue? I''m interested
+        to correctly track this CVE in another downstream distribution.\n\nMany thanks
+        already!\n\nRegards,\nSalvatore", "creation_time": "2022-02-21T07:32:03Z",
+        "count": 10, "attachment_id": null, "time": "2022-02-21T07:32:03Z", "creator":
+        "carnil@debian.org", "creator_id": 326232, "private_groups": [], "bug_id":
+        2044578, "id": 15972156, "is_private": false, "tags": []}, {"attachment_id":
+        null, "time": "2022-02-21T13:06:46Z", "creator": "psampaio@redhat.com", "creation_time":
+        "2022-02-21T13:06:46Z", "count": 11, "text": "In reply to comment #10:\n>
+        Hi Pedro\n> \n> The information is quite scarce here to determine which kernel
+        versions are\n> affected by the issue. Can you point to the upstream fix in
+        5.17-rc1 which\n> fixes the issue? I''m interested to correctly track this
+        CVE in another\n> downstream distribution.\n> \n> Many thanks already!\n>
+        \n> Regards,\n> Salvatore\n\nYou can find the related commits here:\n\nhttps://example.com/security/cve/CVE-2022-0500",
+        "is_private": false, "tags": [], "bug_id": 2044578, "id": 15973458, "private_groups":
+        [], "creator_id": 409354}, {"id": 15973486, "bug_id": 2044578, "creator_id":
+        326232, "private_groups": [], "is_private": false, "tags": [], "text": "Hi
+        Pedro,\n\n(In reply to Pedro Sampaio from comment #11)\n> In reply to comment
+        #10:\n> > Hi Pedro\n> > \n> > The information is quite scarce here to determine
+        which kernel versions are\n> > affected by the issue. Can you point to the
+        upstream fix in 5.17-rc1 which\n> > fixes the issue? I''m interested to correctly
+        track this CVE in another\n> > downstream distribution.\n> > \n> > Many thanks
+        already!\n> > \n> > Regards,\n> > Salvatore\n> \n> You can find the related
+        commits here:\n> \n> https://example.com/security/cve/CVE-2022-0500\n\nThank
+        you!", "creator": "carnil@debian.org", "time": "2022-02-21T13:14:23Z", "attachment_id":
+        null, "count": 12, "creation_time": "2022-02-21T13:14:23Z"}, {"text": "Pedro,
+        I wonder this is not duplicating CVE-2022-23222 right because treating a different
+        aspect?", "creation_time": "2022-02-21T13:18:35Z", "count": 13, "time": "2022-02-21T13:18:35Z",
+        "creator": "carnil@debian.org", "attachment_id": null, "creator_id": 326232,
+        "private_groups": [], "id": 15973498, "bug_id": 2044578, "is_private": false,
+        "tags": []}, {"creator": "carnil@debian.org", "time": "2022-02-24T08:21:50Z",
+        "attachment_id": null, "creation_time": "2022-02-24T08:21:50Z", "count": 14,
+        "text": "Given https://example.com/stable/20220216225209.2196865-1-haoluo@google.com/
+        this would be separate from CVE-2022-23222 and the fix for this vulnerability
+        is the there mentioned 7th patch (\"bpf: Make per_cpu_ptr return rdonly PTR_TO_MEM\").",
+        "is_private": false, "tags": [], "id": 15986755, "bug_id": 2044578, "private_groups":
+        [], "creator_id": 326232}, {"creator_id": 241731, "private_groups": [], "id":
+        17878690, "bug_id": 2044578, "tags": [], "is_private": false, "text": "This
+        issue has been addressed in the following products:\n\n  Red Hat Enterprise
+        Linux 8.6 Extended Update Support\n\nVia RHSA-2024:0724 https://example.com/errata/RHSA-2024:0724",
+        "count": 29, "creation_time": "2024-02-07T16:28:22Z", "creator": "errata-xmlrpc@redhat.com",
+        "time": "2024-02-07T16:28:22Z", "attachment_id": null}], "whiteboard": "",
+        "cc": ["acaringi@redhat.com", "adscvr@gmail.com", "airlied@redhat.com", "alciregi@posteo.net",
+        "allarkin@redhat.com", "bhu@redhat.com", "carnil@debian.org", "chwhite@redhat.com",
+        "conrado@redhat.com", "crwood@redhat.com", "dvlasenk@redhat.com", "hdegoede@redhat.com",
+        "hkrzesin@redhat.com", "jarod@redhat.com", "jarodwilson@gmail.com", "jburrell@redhat.com",
+        "jeremy@jcline.org", "jfaracco@redhat.com", "jforbes@redhat.com", "jglisse@redhat.com",
+        "jlelli@redhat.com", "joe.lawrence@redhat.com", "jonathan@jonmasters.org",
+        "josef@toxicpanda.com", "jshortt@redhat.com", "jstancek@redhat.com", "jwboyer@redhat.com",
+        "jwyatt@redhat.com", "kcarcia@redhat.com", "kernel-maint@redhat.com", "kernel-mgr@redhat.com",
+        "lgoncalv@redhat.com", "linville@redhat.com", "lzampier@redhat.com", "masami256@gmail.com",
+        "mchehab@infradead.org", "nmurray@redhat.com", "osoukup@redhat.com", "ptalbert@redhat.com",
+        "qzhao@redhat.com", "rvrbovsk@redhat.com", "scweaver@redhat.com", "security-response-team@bot.bugzilla.redhat.com",
+        "steved@redhat.com", "vkumar@redhat.com", "vmalik@redhat.com", "walters@redhat.com",
+        "williams@redhat.com", "zulinx86@gmail.com"], "cf_cust_facing": "---", "cf_fixed_in":
+        "Linux kernel 5.17-rc1", "cf_environment": "", "cf_devel_whiteboard": "(DO
+        NOT MODIFY THIS FIELD MANUALLY; YOUR CHANGES WILL BE OVERWRITTEN ON NEXT UPDATE.)\r\n\r\nSTATEMENT\r\n---------\r\n\r\nStatement
+        for CVE-2004-2493\r\n\r\nACKNOWLEDGMENTS\r\n---------------\r\n\r\ndear (sir)",
+        "data_category": "Security Restricted", "resolution": "", "assigned_to_detail":
+        {"id": 29451, "insider": false, "name": "nobody@redhat.com", "real_name":
+        "Nobody", "partner": false, "active": true, "email": "nobody@redhat.com"},
+        "url": "", "cf_doc_type": "If docs needed, set a value", "actual_time": 0,
+        "severity": "medium", "last_change_time": "2024-08-01T10:49:56Z", "product":
+        "Security Response", "component": ["vulnerability"], "classification": "Other",
+        "deadline": null, "external_bugs": [{"ext_priority": "None", "type": {"id":
+        139, "full_url": "https://example.com/support/cases/%id%", "must_send": 1,
+        "can_get": 0, "type": "None", "can_send": 0, "description": "Red Hat Product
+        Errata", "send_once": 0, "url": "https://example.com/errata/"}, "ext_description":
+        "None", "ext_bz_bug_id": "RHSA-2024:0724", "is_migration_link": 0, "ext_status":
+        "None", "ext_bz_id": 139, "bug_id": 2044578, "id": 2302847}], "target_release":
+        ["---"], "keywords": ["Security"], "cf_srtnotes": "{\"affects\": [{\"ps_module\":
+        \"jbcs-1\", \"ps_component\": \"ssh\", \"affectedness\": \"notaffected\",
+        \"resolution\": null, \"impact\": \"moderate\", \"cvss2\": null, \"cvss3\":
+        null, \"cvss4\": null}, {\"ps_module\": \"rhel-8\", \"ps_component\": \"libssh\",
+        \"affectedness\": \"affected\", \"resolution\": \"delegated\", \"impact\":
+        null, \"cvss2\": null, \"cvss3\": null, \"cvss4\": null}], \"public\": \"2022-04-27T00:00:00Z\",
+        \"reported\": \"2022-04-26T00:00:00Z\", \"impact\": \"moderate\", \"source\":
+        \"customer\", \"mitigation\": \"foo\", \"statement\": \"Statement for CVE-2000-3000\"}",
+        "is_confirmed": true, "id": 2044578, "op_sys": "Linux", "cf_build_id": "",
+        "cf_pgm_internal": "", "alias": ["CVE-2022-0313", "CVE-2022-0500", "CVE-2024-666666"],
+        "qa_contact": "", "creator_detail": {"partner": false, "real_name": "Pedro
+        Sampaio", "email": "psampaio@redhat.com", "active": true, "id": 409354, "insider":
+        true, "name": "psampaio@redhat.com"}, "summary": "CVE-2024-666666 ssh: I cannot
+        ssh into Matrix", "flags": [{"is_active": 1, "status": "?", "creation_date":
+        "2024-06-17T08:22:16Z", "modification_date": "2024-06-17T08:22:16Z", "setter":
+        "osoukup@redhat.com", "name": "hightouch", "id": 6115859, "type_id": 788},
+        {"setter": "osoukup@redhat.com", "modification_date": "2024-06-17T08:22:16Z",
+        "creation_date": "2024-06-17T08:22:16Z", "status": "?", "is_active": 1, "type_id":
+        1209, "id": 6115860, "name": "hightouch-lite"}, {"id": 5326309, "type_id":
+        415, "name": "requires_doc_text", "modification_date": "2024-08-01T10:49:56Z",
+        "setter": "dmonzoni@redhat.com", "creation_date": "2022-01-24T19:05:54Z",
+        "is_active": 1, "status": "?"}], "description": "Linux ebpf logic vulnerability
+        leads to critical memory read and write,An attacker with cap_bpf can gain
+        root privileges or container escape.\n\nReferences:\n\nhttps://example.com/show_bug.cgi?id=2040599",
+        "estimated_time": 0, "cf_internal_whiteboard": "", "is_creator_accessible":
+        true, "cf_qa_whiteboard": "", "sub_components": {}, "creator": "psampaio@redhat.com",
+        "blocks": [], "cf_conditional_nak": [], "cf_qe_conditional_nak": [], "assigned_to":
+        "nobody@redhat.com", "cf_embargoed": null, "priority": "medium", "target_milestone":
+        "---", "status": "NEW", "is_cc_accessible": true, "dupe_of": null, "version":
+        ["unspecified"], "cf_pm_score": "0", "creation_time": "2022-01-24T19:05:54Z"}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 01 Aug 2024 10:50:03 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '22672'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.64f06e68.1722509402.1c5c4022
+      x-rh-edge-request-id:
+      - 1c5c4022
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/bug/2044578/comment
+  response:
+    body:
+      string: '{"bugs": {"2044578": {"comments": [{"tags": [], "is_private": false,
+        "private_groups": [], "creator_id": 409354, "bug_id": 2044578, "id": 15874997,
+        "count": 0, "creation_time": "2022-01-24T19:05:54Z", "attachment_id": null,
+        "time": "2022-01-24T19:05:54Z", "creator": "psampaio@redhat.com", "text":
+        "Linux ebpf logic vulnerability leads to critical memory read and write,An
+        attacker with cap_bpf can gain root privileges or container escape.\n\nReferences:\n\nhttps://example.com/show_bug.cgi?id=2040599"},
+        {"is_private": false, "tags": [], "id": 15971028, "bug_id": 2044578, "creator_id":
+        443791, "private_groups": [], "creator": "allarkin@redhat.com", "time": "2022-02-20T13:50:08Z",
+        "attachment_id": null, "creation_time": "2022-02-20T13:50:08Z", "count": 8,
+        "text": "Created kernel tracking bugs for this issue:\n\nAffects: fedora-all
+        [bug 2056248]"}, {"id": 15972156, "bug_id": 2044578, "private_groups": [],
+        "creator_id": 326232, "is_private": false, "tags": [], "text": "Hi Pedro\n\nThe
+        information is quite scarce here to determine which kernel versions are affected
+        by the issue. Can you point to the upstream fix in 5.17-rc1 which fixes the
+        issue? I''m interested to correctly track this CVE in another downstream distribution.\n\nMany
+        thanks already!\n\nRegards,\nSalvatore", "time": "2022-02-21T07:32:03Z", "creator":
+        "carnil@debian.org", "attachment_id": null, "creation_time": "2022-02-21T07:32:03Z",
+        "count": 10}, {"id": 15973458, "bug_id": 2044578, "private_groups": [], "creator_id":
+        409354, "tags": [], "is_private": false, "text": "In reply to comment #10:\n>
+        Hi Pedro\n> \n> The information is quite scarce here to determine which kernel
+        versions are\n> affected by the issue. Can you point to the upstream fix in
+        5.17-rc1 which\n> fixes the issue? I''m interested to correctly track this
+        CVE in another\n> downstream distribution.\n> \n> Many thanks already!\n>
+        \n> Regards,\n> Salvatore\n\nYou can find the related commits here:\n\nhttps://example.com/security/cve/CVE-2022-0500",
+        "creator": "psampaio@redhat.com", "time": "2022-02-21T13:06:46Z", "attachment_id":
+        null, "creation_time": "2022-02-21T13:06:46Z", "count": 11}, {"id": 15973486,
+        "bug_id": 2044578, "private_groups": [], "creator_id": 326232, "tags": [],
+        "is_private": false, "text": "Hi Pedro,\n\n(In reply to Pedro Sampaio from
+        comment #11)\n> In reply to comment #10:\n> > Hi Pedro\n> > \n> > The information
+        is quite scarce here to determine which kernel versions are\n> > affected
+        by the issue. Can you point to the upstream fix in 5.17-rc1 which\n> > fixes
+        the issue? I''m interested to correctly track this CVE in another\n> > downstream
+        distribution.\n> > \n> > Many thanks already!\n> > \n> > Regards,\n> > Salvatore\n>
+        \n> You can find the related commits here:\n> \n> https://example.com/security/cve/CVE-2022-0500\n\nThank
+        you!", "time": "2022-02-21T13:14:23Z", "creator": "carnil@debian.org", "attachment_id":
+        null, "creation_time": "2022-02-21T13:14:23Z", "count": 12}, {"creator_id":
+        326232, "private_groups": [], "id": 15973498, "bug_id": 2044578, "is_private":
+        false, "tags": [], "text": "Pedro, I wonder this is not duplicating CVE-2022-23222
+        right because treating a different aspect?", "count": 13, "creation_time":
+        "2022-02-21T13:18:35Z", "time": "2022-02-21T13:18:35Z", "creator": "carnil@debian.org",
+        "attachment_id": null}, {"text": "Given https://example.com/stable/20220216225209.2196865-1-haoluo@google.com/
+        this would be separate from CVE-2022-23222 and the fix for this vulnerability
+        is the there mentioned 7th patch (\"bpf: Make per_cpu_ptr return rdonly PTR_TO_MEM\").",
+        "attachment_id": null, "time": "2022-02-24T08:21:50Z", "creator": "carnil@debian.org",
+        "creation_time": "2022-02-24T08:21:50Z", "count": 14, "bug_id": 2044578, "id":
+        15986755, "private_groups": [], "creator_id": 326232, "is_private": false,
+        "tags": []}, {"private_groups": [], "creator_id": 241731, "bug_id": 2044578,
+        "id": 17878690, "tags": [], "is_private": false, "text": "This issue has been
+        addressed in the following products:\n\n  Red Hat Enterprise Linux 8.6 Extended
+        Update Support\n\nVia RHSA-2024:0724 https://example.com/errata/RHSA-2024:0724",
+        "creation_time": "2024-02-07T16:28:22Z", "count": 29, "attachment_id": null,
+        "time": "2024-02-07T16:28:22Z", "creator": "errata-xmlrpc@redhat.com"}]}},
+        "comments": {}}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 01 Aug 2024 10:50:04 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '10118'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.64f06e68.1722509403.1c5c42be
+      x-rh-edge-request-id:
+      - 1c5c42be
+    status:
+      code: 200
+      message: OK
+version: 1
