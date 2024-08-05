@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres import fields
+from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, models, transaction
 from django.utils import timezone
@@ -623,6 +624,9 @@ class Alert(ACLMixin):
                 fields=["name", "object_id", "content_type"],
                 name="unique Alert for name and object",
             ),
+        ]
+        indexes = [
+            GinIndex(fields=["acl_read"]),
         ]
 
 
