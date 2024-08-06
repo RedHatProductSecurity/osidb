@@ -2,7 +2,6 @@
 Bugzilla specific tracker test cases
 """
 import json
-from unittest.mock import mock_open, patch
 
 import pytest
 from django.utils.timezone import datetime, make_aware
@@ -10,6 +9,7 @@ from django.utils.timezone import datetime, make_aware
 from apps.bbsync.constants import RHSCL_BTS_KEY
 from apps.bbsync.exceptions import ProductDataError
 from apps.bbsync.tests.factories import BugzillaComponentFactory, BugzillaProductFactory
+from apps.sla.tests.test_framework import load_sla_policies
 from apps.trackers.bugzilla.query import TrackerBugzillaQueryBuilder
 from osidb.models import Affect, Impact, Tracker
 from osidb.tests.factories import (
@@ -127,8 +127,8 @@ sla:
   type: calendar days
 """
 
-        with patch("builtins.open", mock_open(read_data=sla_file)):
-            query = TrackerBugzillaQueryBuilder(tracker).query
+        load_sla_policies(sla_file)
+        query = TrackerBugzillaQueryBuilder(tracker).query
 
         assert "deadline" in query
         assert query["deadline"] == "2000-01-11"
