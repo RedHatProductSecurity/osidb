@@ -6,6 +6,7 @@ from django.conf import settings
 from django.db import transaction
 from requests_gssapi import HTTPSPNEGOAuth
 
+from apps.sla.models import SLAPolicy
 from osidb.models import (
     CompliancePriority,
     ContractPriority,
@@ -16,8 +17,12 @@ from osidb.models import (
 logger = logging.getLogger(__name__)
 
 
-def fetch_ps_constants(url):
-    """Fetch Product Definitions from given url"""
+def fetch_ps_constants(url, multi=False):
+    """
+    Fetch PS constants from given url.
+
+    :param multi: Whether the YAML data contains multiple files.
+    """
     response = requests.get(
         url=url,
         params={"job": "build"},
@@ -27,7 +32,9 @@ def fetch_ps_constants(url):
     response.raise_for_status()
 
     try:
-        return yaml.safe_load(response.text)
+        if not multi:
+            return yaml.safe_load(response.text)
+        return yaml.safe_load_all(response.text)
     except yaml.YAMLError as e:
         print("Error parsing YAML:", e)
 
@@ -88,3 +95,15 @@ def sync_special_consideration_packages(sc_packages):
     for name in sc_packages:
         package = SpecialConsiderationPackage(name=name)
         package.save()
+
+
+@transaction.atomic
+def sync_sla_policies(sla_policies):
+    """
+    Sync SLA policy data
+    """
+    SLAPolicy.objects.all().delete()
+    for order, policy_desc in enumerate(sla_policies):
+        # In SLA policies order is important so it is passed down to the model
+        policy = SLAPolicy.create_from_description(policy_desc, order)
+        policy.save()
