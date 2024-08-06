@@ -14,7 +14,7 @@ from jira.exceptions import JIRAError
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
 from collectors.framework.models import Collector
-from osidb.models import PsModule
+from osidb.models import PsModule, PsProduct, PsUpdateStream
 from osidb.sync_manager import JiraTrackerLinkManager
 
 from .constants import JIRA_TOKEN
@@ -241,6 +241,44 @@ class MetadataCollector(Collector):
         collector run handler
         """
         start_dt = timezone.now()
+
+        # TODO remove this, it breaks test collectors/jiraffe/tests/test_collectors.py::TestMetadataCollector::test_collect
+        # Fake TPFUN to gather its jira metadata
+        if not PsModule.objects.filter(bts_name="jboss", bts_key="TPFUN").exists():
+            pp = PsProduct(
+                short_name="tpfun",
+                name="tpfun",
+                team="tpfun",
+                business_unit="tpfun",
+            )
+            pp.save()
+            assert pp is not None
+            pm = PsModule(
+                bts_name="jboss",
+                bts_key="TPFUN",
+                name="tpfun-1",
+                bts_groups={"public": [], "embargoed": []},
+                public_description="foobar fpfun",
+                ps_product=pp,
+                supported_until_dt=None,
+            )
+            pm.save()
+            assert pp is not None
+            assert pm is not None
+            assert pm.active_ps_update_streams.all().count() == 0
+            ps = PsUpdateStream(
+                name="tpfun-1",
+                ps_module=pm,
+                active_to_ps_module=pm,
+                default_to_ps_module=pm,
+                unacked_to_ps_module=None,
+            )
+            ps.save()
+            assert pp is not None
+            assert pm is not None
+            assert ps is not None
+            assert pm.active_ps_update_streams.all().count() > 0
+
         projects = (
             PsModule.objects.exclude(
                 Q(bts_name="bugzilla")
@@ -253,6 +291,7 @@ class MetadataCollector(Collector):
 
         project_fields = {}
         for project in projects:
+            logger.error(f"DBG {project}...")
             page_size = 100
             start_at = 0
             is_last = False

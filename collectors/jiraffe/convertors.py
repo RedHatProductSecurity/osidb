@@ -252,7 +252,7 @@ class TrackerConvertor:
         # there maybe already existing tracker from the previous sync
         # if this is the periodic update however also when the flaw bug
         # has multiple CVEs the resulting flaws will share the trackers
-        tracker = Tracker.objects.create_tracker(
+        tracker = Tracker.objects.create_tracker(  # TODO?
             affect=None,
             _type=self.type,
             external_system_id=self.tracker_data["external_system_id"],

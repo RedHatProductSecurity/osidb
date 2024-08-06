@@ -16,7 +16,7 @@ from osidb.helpers import cve_id_comparator
 from osidb.models import Flaw, PsModule, PsUpdateStream, Tracker
 
 
-class TrackerQueryBuilder:
+class TrackerQueryBuilder:  # TODO?
     """
     common base for the shared query building functionality
     """

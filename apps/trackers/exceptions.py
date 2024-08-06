@@ -19,6 +19,10 @@ class NoSecurityLevelAvailableError(BTSException):
     """exception class for missing correct Security Level in the particular project"""
 
 
+class NoSeverityAvailableError(BTSException):
+    """exception class for missing correct severity corresponding to Impact"""
+
+
 class NoTargetReleaseVersionAvailableError(BTSException):
     """
     Exception class for missing target release (or its fallback target version) value in the project.
