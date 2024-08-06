@@ -4,11 +4,11 @@ Bugzilla specific tracker test cases
 
 import json
 from typing import Any, Dict
-from unittest.mock import mock_open, patch
 
 import pytest
 from django.utils.timezone import datetime, make_aware
 
+from apps.sla.tests.test_framework import load_sla_policies
 from apps.trackers.exceptions import (
     ComponentUnavailableError,
     NoSecurityLevelAvailableError,
@@ -574,8 +574,9 @@ sla:
   type: calendar days
 """
 
-        with patch("builtins.open", mock_open(read_data=sla_file)):
-            query = TrackerJiraQueryBuilder(tracker).query
+        load_sla_policies(sla_file)
+
+        query = TrackerJiraQueryBuilder(tracker).query
 
         assert target_start_id in query["fields"]
         assert query["fields"][target_start_id] == "2000-01-01T00:00:00+00:00"

@@ -1,9 +1,8 @@
-from unittest.mock import mock_open, patch
-
 import pytest
+import yaml
 from django.utils.timezone import datetime, make_aware, timedelta
 
-from apps.sla.framework import SLAContext, SLAFramework
+from apps.sla.framework import SLAContext, SLAPolicy, sla_classify
 from osidb.models import (
     Affect,
     CompliancePriority,
@@ -22,9 +21,19 @@ from osidb.tests.factories import (
 pytestmark = pytest.mark.unit
 
 
+def load_sla_policies(sla_file):
+    """
+    Helper function to load SLA policies into the database using a
+    string representing the contents of an SLA file.
+    """
+    for order, policy_desc in enumerate(yaml.safe_load_all(sla_file)):
+        policy = SLAPolicy.create_from_description(policy_desc, order)
+        policy.save()
+
+
 class TestSLAFramework:
     """
-    test SLAFramework functionality
+    test SLA framework functionality
     """
 
     class TestLoad:
@@ -57,17 +66,15 @@ sla:
   type: calendar days
 """
 
-            with patch("builtins.open", mock_open(read_data=sla_file)):
-                sla_framework = SLAFramework()
+            load_sla_policies(sla_file)
 
-                assert sla_framework.policies
-                assert len(sla_framework.policies) == 1
-                policy = sla_framework.policies[0]
-                assert policy.name == "Low"
-                assert policy.description == "SLA policy applied to low impact"
-                assert policy.conditions
-                assert policy.sla
-                # more details are tested as part of SLA model tests
+            assert SLAPolicy.objects.count() == 1
+            policy = SLAPolicy.objects.first()
+            assert policy.name == "Low"
+            assert policy.description == "SLA policy applied to low impact"
+            assert policy.conditions
+            assert policy.sla
+            # more details are tested as part of SLA model tests
 
         def test_multiple(self):
             """
@@ -132,15 +139,13 @@ sla:
   type: calendar days
 """
 
-            with patch("builtins.open", mock_open(read_data=sla_file)):
-                sla_framework = SLAFramework()
-
-                assert sla_framework.policies
-                assert len(sla_framework.policies) == 3
-                # the order matters so check that it is preserved
-                assert sla_framework.policies[0].name == "Moderate Compliance Priority"
-                assert sla_framework.policies[1].name == "Moderate"
-                assert sla_framework.policies[2].name == "Low"
+            load_sla_policies(sla_file)
+            assert SLAPolicy.objects.count() == 3
+            sla_policies = SLAPolicy.objects.all()
+            # the order matters so check that it is preserved
+            assert sla_policies[0].name == "Moderate Compliance Priority"
+            assert sla_policies[1].name == "Moderate"
+            assert sla_policies[2].name == "Low"
 
     class TestClassify:
         """
@@ -179,13 +184,12 @@ sla:
   type: calendar days
 """
 
-            with patch("builtins.open", mock_open(read_data=sla_file)):
-                sla_framework = SLAFramework()
-                sla_context = sla_framework.classify(tracker)
+            load_sla_policies(sla_file)
+            sla_context = sla_classify(tracker)
 
-                assert sla_context.sla
-                assert sla_context.start == flaw.created_dt
-                assert sla_context.end == flaw.created_dt + timedelta(days=5)
+            assert sla_context.sla
+            assert sla_context.start == flaw.created_dt
+            assert sla_context.end == flaw.created_dt + timedelta(days=5)
 
         @pytest.mark.parametrize(
             "reported_dt1,reported_dt2,mi_duration,ne_duration",
@@ -269,41 +273,37 @@ sla:
   type: calendar days
 """
 
-            with patch("builtins.open", mock_open(read_data=sla_file)):
-                sla_framework = SLAFramework()
+            load_sla_policies(sla_file)
 
-                # make sure that both contexts are accepted
-                # each by a different plicy out of the two
-                assert sla_framework.policies[0].accepts(
-                    SLAContext(
-                        affect=affect1,
-                        flaw=flaw1,
-                        tracker=tracker,
-                    )
+            policies = SLAPolicy.objects.all()
+            assert policies[0].accepts(
+                SLAContext(
+                    affect=affect1,
+                    flaw=flaw1,
+                    tracker=tracker,
                 )
-                assert sla_framework.policies[1].accepts(
-                    SLAContext(
-                        affect=affect2,
-                        flaw=flaw2,
-                        tracker=tracker,
-                    )
+            )
+            assert policies[1].accepts(
+                SLAContext(
+                    affect=affect2,
+                    flaw=flaw2,
+                    tracker=tracker,
                 )
+            )
 
-                sla_context = sla_framework.classify(tracker)
+            sla_context = sla_classify(tracker)
 
-                # the first context is the one resulting in the earlist SLA
-                # end so it should be the outcome of the classification
-                assert "flaw" in sla_context
-                assert sla_context["flaw"] == flaw1
-                assert "affect" in sla_context
-                assert sla_context["affect"] == affect1
-                assert "tracker" in sla_context
-                assert sla_context["tracker"] == tracker
-                assert sla_context.sla
-                assert sla_context.start == flaw1.reported_dt
-                assert sla_context.end == flaw1.reported_dt + timedelta(
-                    days=mi_duration
-                )
+            # the first context is the one resulting in the earlist SLA
+            # end so it should be the outcome of the classification
+            assert "flaw" in sla_context
+            assert sla_context["flaw"] == flaw1
+            assert "affect" in sla_context
+            assert sla_context["affect"] == affect1
+            assert "tracker" in sla_context
+            assert sla_context["tracker"] == tracker
+            assert sla_context.sla
+            assert sla_context.start == flaw1.reported_dt
+            assert sla_context.end == flaw1.reported_dt + timedelta(days=mi_duration)
 
         @pytest.mark.parametrize(
             "is_compliance_priority",
@@ -371,13 +371,12 @@ sla:
   type: calendar days
 """
 
-            with patch("builtins.open", mock_open(read_data=sla_file)):
-                sla_framework = SLAFramework()
-                sla_context = sla_framework.classify(tracker)
+            load_sla_policies(sla_file)
+            sla_context = sla_classify(tracker)
 
-                if is_compliance_priority:
-                    assert sla_context.sla
-                    assert sla_context.start == flaw.created_dt
-                    assert sla_context.end == flaw.created_dt + timedelta(days=5)
-                else:
-                    assert not sla_context.sla
+            if is_compliance_priority:
+                assert sla_context.sla
+                assert sla_context.start == flaw.created_dt
+                assert sla_context.end == flaw.created_dt + timedelta(days=5)
+            else:
+                assert not sla_context.sla

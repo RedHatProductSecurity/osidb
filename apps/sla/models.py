@@ -2,6 +2,11 @@
 SLA policy model definitions
 """
 
+from functools import cached_property
+
+from django.contrib.postgres import fields
+from django.db import models
+
 from apps.workflows.models import Check
 from osidb.models import Affect, Flaw, PsUpdateStream, Tracker
 
@@ -9,10 +14,18 @@ from .exceptions import SLAExecutionError
 from .time import add_business_days, add_days
 
 
-class SLA:
+class SLA(models.Model):
     """
-    SLA definition and computation class
+    SLA definition and computation model
     """
+
+    class DurationTypes(models.TextChoices):
+        BUSINESS_DAYS = "Business Days"
+        CALENDAR_DAYS = "Calendar Days"
+
+    class StartCriteria(models.TextChoices):
+        EARLIEST = "Earliest"
+        LATEST = "Latest"
 
     ADD_DAYS = {
         "business days": add_business_days,
@@ -24,31 +37,40 @@ class SLA:
         "latest": max,
     }
 
-    def __init__(self, sla_desc):
-        self.duration = int(sla_desc["duration"])
-        self.add_days = self.ADD_DAYS[sla_desc["type"]]
-        self._init_start(sla_desc["start"])
+    duration = models.IntegerField()
+    duration_type = models.CharField(max_length=20, choices=DurationTypes.choices)
+    start_criteria = models.CharField(max_length=20, choices=StartCriteria.choices)
+    start_dates = fields.ArrayField(models.CharField(max_length=100), default=list)
 
-    def _init_start(self, start_desc):
-        """
-        SLA start obtaining description parsing
-        """
-        # allow the parsering of the shorter
-        # style definitions the same way
-        if isinstance(start_desc, str):
-            start_desc = {"latest": [start_desc]}
-
+    @classmethod
+    def create_from_description(self, sla_desc):
         def parse_date(date_desc):
             """
             translate human-readable date description into the attribute name
             """
             return date_desc.lower().strip().replace(" ", "_").replace("_date", "_dt")
 
+        duration = int(sla_desc["duration"])
+        sla_type = sla_desc["type"]
+
+        start_desc = sla_desc["start"]
+        if isinstance(start_desc, str):
+            start_desc = {"latest": [start_desc]}
+
         # the dictionary should have only a single item but we do not
         # run any validations here so just assume it is all correct
         for get_start_desc, date_desc_list in start_desc.items():
-            self.get_start = self.GET_START[get_start_desc]
-            self.dates = [parse_date(date_desc) for date_desc in date_desc_list]
+            start_criteria = get_start_desc
+            start_dates = [parse_date(date_desc) for date_desc in date_desc_list]
+
+        sla = SLA(
+            duration=duration,
+            duration_type=sla_type,
+            start_criteria=start_criteria,
+            start_dates=start_dates,
+        )
+
+        return sla
 
     def start(self, instance):
         """
@@ -56,7 +78,7 @@ class SLA:
         """
         return self.get_start(
             getattr(instance, date)
-            for date in self.dates
+            for date in self.start_dates
             if getattr(instance, date) is not None
         )
 
@@ -68,6 +90,14 @@ class SLA:
             self.start(instance),
             self.duration,
         )
+
+    @property
+    def get_start(self):
+        return self.GET_START[self.start_criteria]
+
+    @property
+    def add_days(self):
+        return self.ADD_DAYS[self.duration_type]
 
 
 class SLAContext(dict):
@@ -139,9 +169,9 @@ class SLAContext(dict):
         return self.sla.end(self["flaw"]) if self.sla is not None else None
 
 
-class SLAPolicy:
+class SLAPolicy(models.Model):
     """
-    SLA policy
+    SLA policy model
 
     has name and description
     has conditions which is a list of checks
@@ -156,22 +186,47 @@ class SLAPolicy:
         "tracker": Tracker,
     }
 
-    def __init__(self, policy_desc):
-        self.name = policy_desc["name"]
-        self.description = policy_desc["description"]
-        self._init_conditions(policy_desc["conditions"])
-        self.sla = SLA(policy_desc["sla"])
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField()
+    sla = models.ForeignKey(SLA, on_delete=models.CASCADE, related_name="policies")
+    condition_descriptions = models.JSONField(default=dict)
+    order = models.IntegerField(unique=True)
 
-    def _init_conditions(self, conditions_desc):
-        """
-        the conditions need to be split entity-wise
-        """
-        self.conditions = {}
-        for entity, conditions in conditions_desc.items():
-            self.conditions[entity] = [
+    class Meta:
+        # Order of SLA is important, so by default retrieve them using the order field
+        ordering = ["order"]
+
+    @classmethod
+    def create_from_description(self, policy_desc, order=None):
+        """Creates an SLA policy from a YAML description."""
+        name = policy_desc["name"]
+        description = policy_desc["description"]
+        sla = SLA.create_from_description(policy_desc["sla"])
+        sla.save()
+
+        if order is None:
+            # Order is implied by the number of already existing SLA policies
+            order = SLAPolicy.objects.count()
+
+        policy = SLAPolicy(
+            name=name,
+            description=description,
+            condition_descriptions=policy_desc["conditions"],
+            sla=sla,
+            order=order,
+        )
+        return policy
+
+    @cached_property
+    def conditions(self):
+        # The conditions need to be split entity-wise
+        conditions = {}
+        for entity, condition_list in self.condition_descriptions.items():
+            conditions[entity] = [
                 Check(condition_desc, self.ENTITY2CLASS[entity])
-                for condition_desc in conditions
+                for condition_desc in condition_list
             ]
+        return conditions
 
     def accepts(self, sla_context):
         """
@@ -224,3 +279,6 @@ class SLAPolicy:
         # return the context resulting
         # in the earliest deadline
         return min(sla_contexts)
+
+    def __str__(self):
+        return self.name

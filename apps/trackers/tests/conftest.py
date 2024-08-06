@@ -1,7 +1,7 @@
 import pytest
 
 import apps.trackers.common as common
-from apps.sla.framework import SLAFramework
+from apps.sla.framework import SLAPolicy
 from apps.trackers.constants import TRACKERS_API_VERSION
 
 
@@ -73,7 +73,6 @@ def clean_policies():
     if we do it only before or only after the tests might behave differently
     when run in batch than when run alone so better to be safe then sorry
     """
-    sla_framework = SLAFramework()
-    sla_framework._policies = []
+    SLAPolicy.objects.all().delete()
     yield  # run test here
-    sla_framework._policies = []
+    SLAPolicy.objects.all().delete()
