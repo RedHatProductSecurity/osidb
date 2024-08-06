@@ -236,6 +236,10 @@ class MetadataCollector(Collector):
     def free_queriers(self):
         self._jira_querier = None
 
+    # TODO: Vulnerability issue type is not collected using this at the moment.
+    # TODO: Use https://issues.redhat.com/rest/api/2/issuetype to collect available issue types
+    # TODO: Also fetch metadata from https://issues.redhat.com/rest/api/2/issue/createmeta/OCPBUGS/issuetypes/12207
+    #       which is Vulnerability issue type
     def collect(self):
         """
         collector run handler
