@@ -2,22 +2,64 @@ import uuid
 
 import pytest
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
+import apps.bbsync.mixins as bz_mixins
+import apps.taskman.mixins as task_mixins
+import osidb.models as models
+import osidb.serializer as serializer
 from apps.taskman.service import JiraTaskmanQuerier
+from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from apps.workflows.models import Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.convertors import FlawConvertor
 from osidb.core import generate_acls
 from osidb.exceptions import DataInconsistencyException
-from osidb.models import Flaw, FlawSource, Impact
-from osidb.tests.factories import AffectFactory, FlawFactory, PsModuleFactory
+from osidb.mixins import AlertMixin
+from osidb.models import Affect, Flaw, FlawSource, Impact, PsModule, PsUpdateStream
+from osidb.tests.factories import (
+    AffectFactory,
+    FlawFactory,
+    PsModuleFactory,
+    PsProductFactory,
+)
 
 from .test_flaw import tzdatetime
 
 pytestmark = pytest.mark.unit
+
+
+def enable_sync(monkeypatch):
+    """Enables all sync to test integration between mixins"""
+
+    monkeypatch.setattr(task_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+    monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+    monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+    monkeypatch.setattr(bz_mixins, "SYNC_TO_BZ", True)
+    monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ", True)
+    monkeypatch.setattr(models, "SYNC_TRACKERS_TO_BZ", True)
+    monkeypatch.setattr(models, "SYNC_TO_JIRA", True)
+
+
+def get_acl_read():
+    return [
+        uuid.uuid5(
+            uuid.NAMESPACE_URL,
+            "https://osidb.prod.redhat.com/ns/acls#data-prodsec",
+        )
+    ]
+
+
+def get_acl_write():
+    return [
+        uuid.uuid5(
+            uuid.NAMESPACE_URL,
+            "https://osidb.prod.redhat.com/ns/acls#data-prodsec-write",
+        )
+    ]
 
 
 class TestACLMixin:
@@ -239,22 +281,6 @@ class TestACLMixin:
 
 
 class TestTrackingMixin:
-    def get_acl_read(self):
-        return [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                "https://osidb.prod.redhat.com/ns/acls#data-prodsec",
-            )
-        ]
-
-    def get_acl_write(self):
-        return [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                "https://osidb.prod.redhat.com/ns/acls#data-prodsec-write",
-            )
-        ]
-
     def create_flaw(self, **kwargs):
         """shortcut to create minimal flaw"""
         return Flaw(
@@ -264,8 +290,8 @@ class TestTrackingMixin:
             impact=Impact.LOW,
             components=["curl"],
             source=FlawSource.INTERNET,
-            acl_read=self.get_acl_read(),
-            acl_write=self.get_acl_write(),
+            acl_read=get_acl_read(),
+            acl_write=get_acl_write(),
             reported_dt=timezone.now(),
             unembargo_dt=tzdatetime(2000, 1, 1),
             **kwargs,
@@ -454,8 +480,8 @@ class TestTrackingMixin:
             impact=Impact.LOW,
             components=["curl"],
             source=FlawSource.INTERNET,
-            acl_read=self.get_acl_read(),
-            acl_write=self.get_acl_write(),
+            acl_read=get_acl_read(),
+            acl_write=get_acl_write(),
             created_dt=tzdatetime(2000, 1, 1),  # different from now
             updated_dt=tzdatetime(2000, 1, 1),  # different from now
             reported_dt=tzdatetime(2000, 1, 1),
@@ -495,23 +521,6 @@ class TestBugzillaJiraMixinInteration:
                 "https://osidb.prod.redhat.com/ns/acls#data-prodsec-write",
             )
         ]
-
-    def enable_sync(self, monkeypatch):
-        """Enables all sync to test integration between mixins"""
-        import apps.bbsync.mixins as bz_mixins
-        import apps.taskman.mixins as task_mixins
-        import osidb.models as models
-        import osidb.serializer as serializer
-
-        monkeypatch.setattr(task_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-        monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-        monkeypatch.setattr(bz_mixins, "SYNC_TO_BZ", True)
-        monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ", True)
-        monkeypatch.setattr(models, "SYNC_TRACKERS_TO_BZ", True)
-        monkeypatch.setattr(models, "SYNC_TO_JIRA", True)
-
-        monkeypatch.setenv("HTTPS_PROXY", "http://squid.corp.redhat.com:3128")
 
     def setup_workflow(self):
         """Clean default workflows and set a basic workflow for testing"""
@@ -563,7 +572,7 @@ class TestBugzillaJiraMixinInteration:
     @pytest.mark.vcr
     def test_manual_changes(self, monkeypatch):
         """Test that sync occurs using internal OSIDB APIs"""
-        self.enable_sync(monkeypatch)
+        enable_sync(monkeypatch)
         self.setup_workflow()
         flaw = Flaw(
             title="title",
@@ -572,8 +581,8 @@ class TestBugzillaJiraMixinInteration:
             impact=Impact.LOW,
             components=["curl"],
             source=FlawSource.INTERNET,
-            acl_read=self.get_acl_read(),
-            acl_write=self.get_acl_write(),
+            acl_read=get_acl_read(),
+            acl_write=get_acl_write(),
             reported_dt=timezone.now(),
             unembargo_dt=tzdatetime(2000, 1, 1),
         )
@@ -611,7 +620,7 @@ class TestBugzillaJiraMixinInteration:
     @pytest.mark.enable_signals
     def test_api_changes(self, monkeypatch, auth_client, test_api_uri):
         """Test that sync occurs using OSIDB REST API"""
-        self.enable_sync(monkeypatch)
+        enable_sync(monkeypatch)
         self.setup_workflow()
 
         jira_token = "SECRET"
@@ -676,3 +685,392 @@ class TestBugzillaJiraMixinInteration:
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Closed"
         assert issue["fields"]["resolution"]["name"] == "Won't Do"
+
+
+class TestMultiMixinIntegration:
+    @pytest.mark.vcr
+    def test_tracker_validation_bugzilla(self, auth_client, test_api_uri, monkeypatch):
+        """Test that bugzilla Tracker endpoint only recreates alerts when needed"""
+        enable_sync(monkeypatch)
+
+        jira_token = "SECRET"
+        bz_token = "SECRET"
+
+        validation_counter = {}
+        original_validate = AlertMixin.validate
+
+        def counter_validate(self, raise_validation_error=True, dry_run=False):
+            nonlocal validation_counter
+            if not dry_run:
+                model = str(ContentType.objects.get_for_model(self))
+                if model not in validation_counter:
+                    validation_counter[model] = 0
+                validation_counter[model] += 1
+            # preserve original method behavior for proper testing
+            original_validate(self, raise_validation_error=raise_validation_error)
+
+        ps_module = PsModule(
+            name="fedora-all",
+            bts_name="bugzilla",
+            bts_key="Fedora",
+            component_overrides="",
+            default_component="kernel",
+            public_description="Fedora",
+            ps_product=PsProductFactory(),
+            bts_groups={"public": [], "embargoed": []},
+        )
+        ps_module.save()
+        ps_update_stream = PsUpdateStream(
+            name="fedora-all",
+            ps_module=ps_module,
+            default_to_ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            version="40",
+        )
+        ps_update_stream.save()
+
+        flaw_data = {
+            "title": "test validations",
+            "comment_zero": "this is a simple test",
+            "impact": "MODERATE",
+            "components": ["curl"],
+            "source": "REDHAT",
+            "reported_dt": "2024-08-06T00:00:00.000Z",
+            "unembargo_dt": "2024-08-06T00:00:00.000Z",
+            "embargoed": False,
+        }
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 201
+        body = response.json()
+        flaw = Flaw.objects.get(uuid=body["uuid"])
+
+        affects_data = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": "AFFECTED",
+                "resolution": "DELEGATED",
+                "ps_module": ps_module.name,
+                "ps_component": "kernel",
+                "impact": "MODERATE",
+                "embargoed": False,
+            }
+        ]
+        response = auth_client().post(
+            f"{test_api_uri}/affects/bulk",
+            affects_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 200
+        body = response.json()
+        affect = Affect.objects.get(uuid=body["results"][0]["uuid"])
+
+        tracker_data = {
+            "affects": [affect.uuid],
+            "embargoed": False,
+            "ps_update_stream": ps_update_stream.name,
+        }
+        monkeypatch.setattr(AlertMixin, "validate", counter_validate)
+        response = auth_client().post(
+            f"{test_api_uri}/trackers",
+            tracker_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 201
+        assert len(validation_counter) == 1
+        assert validation_counter["osidb | Tracker"] == 1
+
+    @pytest.mark.vcr
+    def test_tracker_validation_jira(self, auth_client, test_api_uri, monkeypatch):
+        """Test that jira Tracker endpoint only recreates alerts when needed"""
+        enable_sync(monkeypatch)
+
+        jira_token = "SECRET"
+        bz_token = "SECRET"
+
+        validation_counter = {}
+        original_validate = AlertMixin.validate
+
+        def counter_validate(self, raise_validation_error=True, dry_run=False):
+            nonlocal validation_counter
+            if not dry_run:
+                model = str(ContentType.objects.get_for_model(self))
+                if model not in validation_counter:
+                    validation_counter[model] = 0
+                validation_counter[model] += 1
+            # preserve original method behavior for proper testing
+            original_validate(self, raise_validation_error=raise_validation_error)
+
+        ps_module = PsModule(
+            name="rhel-8",
+            bts_name="jboss",
+            bts_key="RHEL",
+            component_overrides="",
+            default_component="kernel",
+            public_description="RHEL",
+            ps_product=PsProductFactory(),
+            bts_groups={"public": [], "embargoed": []},
+        )
+        ps_module.save()
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="priority",
+            field_name="Priority",
+            allowed_values=[
+                "Blocker",
+                "Critical",
+                "Major",
+                "Normal",
+                "Minor",
+                "Undefined",
+            ],
+        )
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="security",
+            field_name="Security Level",
+            allowed_values=[
+                "Embargoed Security Issue",
+                "Red Hat Employee",
+                "Red Hat Engineering Authorized",
+                "Red Hat Partner",
+                "Restricted",
+                "Team",
+            ],
+        )
+        ps_update_stream = PsUpdateStream(
+            name="rhel-8",
+            ps_module=ps_module,
+            default_to_ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            version="40",
+        )
+        ps_update_stream.save()
+
+        flaw_data = {
+            "title": "test validations",
+            "comment_zero": "this is a simple test",
+            "impact": "MODERATE",
+            "components": ["curl"],
+            "source": "REDHAT",
+            "reported_dt": "2024-08-06T00:00:00.000Z",
+            "unembargo_dt": "2024-08-06T00:00:00.000Z",
+            "embargoed": False,
+        }
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 201
+        body = response.json()
+        flaw = Flaw.objects.get(uuid=body["uuid"])
+
+        affects_data = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": "AFFECTED",
+                "resolution": "DELEGATED",
+                "ps_module": ps_module.name,
+                "ps_component": "kernel",
+                "impact": "MODERATE",
+                "embargoed": False,
+            }
+        ]
+        response = auth_client().post(
+            f"{test_api_uri}/affects/bulk",
+            affects_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 200
+        body = response.json()
+        affect = Affect.objects.get(uuid=body["results"][0]["uuid"])
+
+        tracker_data = {
+            "affects": [affect.uuid],
+            "embargoed": False,
+            "ps_update_stream": ps_update_stream.name,
+        }
+        monkeypatch.setattr(AlertMixin, "validate", counter_validate)
+        response = auth_client().post(
+            f"{test_api_uri}/trackers",
+            tracker_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 201
+
+        # Jira tracker triggers save in related flaw in
+        # osidb/serializer.py::TrackerSerializer::create
+        assert len(validation_counter) == 2
+        assert validation_counter["osidb | Flaw"] == 1
+        assert validation_counter["osidb | Tracker"] == 1
+
+    @pytest.mark.vcr
+    def test_affect_validation(self, auth_client, test_api_uri, monkeypatch):
+        """Test that Affect endpoint only recreates alerts when needed"""
+        enable_sync(monkeypatch)
+
+        jira_token = "SECRET"
+        bz_token = "SECRET"
+
+        validation_counter = {}
+        original_validate = AlertMixin.validate
+
+        def counter_validate(self, raise_validation_error=True, dry_run=False):
+            nonlocal validation_counter
+            if not dry_run:
+                model = str(ContentType.objects.get_for_model(self))
+                if model not in validation_counter:
+                    validation_counter[model] = 0
+                validation_counter[model] += 1
+            # preserve original method behavior for proper testing
+            original_validate(self, raise_validation_error=raise_validation_error)
+
+        flaw_data = {
+            "title": "test validations",
+            "comment_zero": "this is a simple test",
+            "impact": "MODERATE",
+            "components": ["curl"],
+            "source": "REDHAT",
+            "reported_dt": "2024-08-06T00:00:00.000Z",
+            "unembargo_dt": "2024-08-06T00:00:00.000Z",
+            "embargoed": False,
+        }
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        body = response.json()
+        flaw = Flaw.objects.get(uuid=body["uuid"])
+
+        monkeypatch.setattr(AlertMixin, "validate", counter_validate)
+        ps_module = PsModuleFactory()
+        affects_data = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": "NEW",
+                "resolution": "",
+                "ps_module": ps_module.name,
+                "ps_component": "kernel",
+                "impact": "MODERATE",
+                "embargoed": flaw.embargoed,
+            }
+        ]
+        response = auth_client().post(
+            f"{test_api_uri}/affects/bulk",
+            affects_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        # osidb/api_views.py::AffectView:bulk_post triggers flaw save
+        assert len(validation_counter) == 2
+        assert validation_counter["osidb | Flaw"] == 1
+        assert validation_counter["osidb | Affect"] == 1
+        assert response.status_code == 200
+        affect = flaw.affects.first()
+
+        affects_data[0]["uuid"] = affect.uuid
+        affects_data[0]["affectedness"] = "AFFECTED"
+        affects_data[0]["resolution"] = "DELEGATED"
+        affects_data[0]["updated_dt"] = affect.updated_dt
+
+        validation_counter = {}
+
+        response = auth_client().put(
+            f"{test_api_uri}/affects/bulk",
+            affects_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 200
+        # osidb/api_views.py::AffectView:bulk_put triggers flaw save
+        assert len(validation_counter) == 2
+        assert validation_counter["osidb | Flaw"] == 1
+        assert validation_counter["osidb | Affect"] == 1
+
+    @pytest.mark.vcr
+    def test_flaw_validation(self, auth_client, test_api_uri, monkeypatch):
+        """Test that Flaw endpoint only recreates alerts when needed"""
+        enable_sync(monkeypatch)
+
+        jira_token = "SECRET"
+        bz_token = "SECRET"
+
+        validation_counter = {}
+        original_validate = AlertMixin.validate
+
+        def counter_validate(self, raise_validation_error=True, dry_run=False):
+            nonlocal validation_counter
+            if not dry_run:
+                model = str(ContentType.objects.get_for_model(self))
+                if model not in validation_counter:
+                    validation_counter[model] = 0
+                validation_counter[model] += 1
+            # preserve original method behavior for proper testing
+            original_validate(self, raise_validation_error=raise_validation_error)
+
+        flaw_data = {
+            "title": "test validations",
+            "comment_zero": "this is a simple test",
+            "impact": "MODERATE",
+            "components": ["curl"],
+            "source": "REDHAT",
+            "reported_dt": "2024-08-06T00:00:00.000Z",
+            "unembargo_dt": "2024-08-06T00:00:00.000Z",
+            "embargoed": False,
+        }
+
+        monkeypatch.setattr(AlertMixin, "validate", counter_validate)
+        response = auth_client().post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 201
+        assert len(validation_counter) == 1
+        assert validation_counter["osidb | Flaw"] == 1
+        body = response.json()
+        flaw = Flaw.objects.get(uuid=body["uuid"])
+
+        ps_module = PsModuleFactory()
+        AffectFactory(flaw=flaw, ps_module=ps_module.name)
+        flaw_data["title"] = "new test validations"
+        flaw_data["updated_dt"] = flaw.updated_dt
+
+        validation_counter = {}
+
+        response = auth_client().put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 200
+        assert len(validation_counter) == 1
+        assert validation_counter["osidb | Flaw"] == 1
