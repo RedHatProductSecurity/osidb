@@ -5,6 +5,7 @@ from datetime import datetime
 import pytest
 from django.utils import timezone
 from freezegun import freeze_time
+from jira.exceptions import JIRAError
 
 import collectors.jiraffe.collectors as collectors
 import osidb.models as models
@@ -20,6 +21,9 @@ from collectors.jiraffe.collectors import (
     MetadataCollector,
 )
 from collectors.jiraffe.core import JiraQuerier
+from collectors.jiraffe.exceptions import (
+    MetadataCollectorInsufficientDataJiraffeException,
+)
 from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.sync_manager import JiraTrackerLinkManager
 from osidb.tests.factories import (
@@ -374,8 +378,14 @@ class TestJiraTrackerCollector:
 
 
 class TestMetadataCollector:
+
+    BASE_METADATA_COLLECTOR_VCRS = (
+        "TestMetadataCollector.test_collect[OSIM-20].yaml",
+        "TestMetadataCollector.test_collect[RHEL-120].yaml",
+    )
+
     @freeze_time(timezone.datetime(2015, 12, 12))
-    @pytest.mark.vcr
+    @pytest.mark.vcr(*BASE_METADATA_COLLECTOR_VCRS)
     @pytest.mark.parametrize("project_key,fields_count", [("RHEL", 120), ("OSIM", 20)])
     def test_collect(self, pin_envs, project_key, fields_count):
         """
@@ -396,3 +406,66 @@ class TestMetadataCollector:
 
         project_fields = JiraProjectFields.objects.filter(project_key=project_key)
         assert len(project_fields) == fields_count
+
+    @freeze_time(timezone.datetime(2015, 12, 12))
+    @pytest.mark.vcr(*BASE_METADATA_COLLECTOR_VCRS)
+    @pytest.mark.parametrize("project_key,fields_count", [("RHEL", 120), ("OSIM", 20)])
+    def test_metadata_not_deleted_after_failure(
+        self, monkeypatch, project_key, fields_count
+    ):
+        ps_module = PsModuleFactory(
+            bts_name="jira",
+            bts_key=project_key,
+            supported_until_dt=timezone.make_aware(timezone.datetime(2020, 12, 12)),
+        )
+        PsUpdateStreamFactory(ps_module=ps_module)
+
+        project_fields = JiraProjectFields.objects.filter(project_key=project_key)
+        assert len(project_fields) == 0
+
+        mc = MetadataCollector()
+        mc.collect()
+
+        project_fields = JiraProjectFields.objects.filter(project_key=project_key)
+        assert len(project_fields) == fields_count
+
+        def raiseJiraError(*args, **kwargs):
+            raise JIRAError
+
+        monkeypatch.setattr(mc.jira_querier.jira_conn, "_get_json", raiseJiraError)
+        with pytest.raises(MetadataCollectorInsufficientDataJiraffeException):
+            mc.collect()
+
+        project_fields = JiraProjectFields.objects.filter(project_key=project_key)
+        assert len(project_fields) == fields_count
+
+    @freeze_time(timezone.datetime(2015, 12, 12))
+    @pytest.mark.vcr(*BASE_METADATA_COLLECTOR_VCRS)
+    @pytest.mark.parametrize("project_key,fields_count", [("RHEL", 120), ("OSIM", 20)])
+    def test_metadata_deleted_based_on_product_definitions(
+        self, project_key, fields_count
+    ):
+        ps_module = PsModuleFactory(
+            bts_name="jira",
+            bts_key=project_key,
+            supported_until_dt=timezone.make_aware(timezone.datetime(2020, 12, 12)),
+        )
+        PsUpdateStreamFactory(ps_module=ps_module)
+
+        project_fields = JiraProjectFields.objects.filter(project_key=project_key)
+        assert len(project_fields) == 0
+
+        mc = MetadataCollector()
+        mc.collect()
+
+        project_fields = JiraProjectFields.objects.filter(project_key=project_key)
+        assert len(project_fields) == fields_count
+
+        # Remove active PS Update Streams to rule out PS Module and force project
+        # removal in Jira metadata
+        ps_module.active_ps_update_streams.set([])
+
+        mc.collect()
+
+        project_fields = JiraProjectFields.objects.filter(project_key=project_key)
+        assert len(project_fields) == 0

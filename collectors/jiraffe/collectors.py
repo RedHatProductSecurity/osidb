@@ -2,7 +2,7 @@
 Jira collector
 """
 
-from typing import List, Union
+from typing import List, Optional, Union
 
 from celery.utils.log import get_task_logger
 from django.db import transaction
@@ -268,7 +268,6 @@ class MetadataCollector(Collector):
                     is_last = res["isLast"]
             except JIRAError as e:
                 if e.status_code == 400:
-                    print(e.response)
                     logger.error(
                         f"Project {project} is not available in Jira, make sure product definition is up to date."
                     )
@@ -285,7 +284,12 @@ class MetadataCollector(Collector):
             # to work with Jira-based Trackers. Raising will preserve the (slightly outdated) data.
             raise MetadataCollectorInsufficientDataJiraffeException
 
-        self.update_metadata(project_fields)
+        projects_to_delete = list(
+            JiraProjectFields.objects.values_list("project_key", flat=True)
+            .distinct()
+            .difference(projects)
+        )
+        self.update_metadata(project_fields, projects_to_delete=projects_to_delete)
 
         self.store(updated_until_dt=start_dt)
 
@@ -296,25 +300,31 @@ class MetadataCollector(Collector):
         return f"{self.name} is updated until {start_dt}: {len(project_fields)} Jira projects' metadata fetched"
 
     @transaction.atomic
-    def update_metadata(self, project_fields):
+    def update_metadata(
+        self, project_fields, projects_to_delete: Optional[list] = None
+    ):
         """
         remove old and store new Jira projects' metadata
         inside an atomic transaction
         """
-        JiraProjectFields.objects.all().delete()
+        if projects_to_delete is None:
+            projects_to_delete = []
+
+        JiraProjectFields.objects.filter(project_key__in=projects_to_delete).delete()
 
         for project_key, fields in project_fields.items():
+            fields_to_create = []
             for field in fields:
-                if "allowedValues" in field:
-                    allowed_values = [
-                        av.get("name", av.get("value")) for av in field["allowedValues"]
-                    ]
-                else:
-                    allowed_values = []
+                allowed_values = [
+                    av.get("name", av.get("value"))
+                    for av in field.get("allowedValues", {})
+                ]
                 field = JiraProjectFields(
                     project_key=project_key,
                     field_id=field["fieldId"],
                     field_name=field["name"],
                     allowed_values=allowed_values,
                 )
-                field.save()
+                fields_to_create.append(field)
+            JiraProjectFields.objects.filter(project_key=project_key).delete()
+            JiraProjectFields.objects.bulk_create(fields_to_create)
