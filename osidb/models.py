@@ -1352,10 +1352,11 @@ class Flaw(
             ] = False  # the timestamps will be get from Bugzilla
             kwargs["raise_validation_error"] = False  # the validations were already run
             # save in case a new Bugzilla ID was obtained
-            flaw_instance.save(*args, **kwargs)
+            flaw_instance.save(no_alerts=True, *args, **kwargs)
 
             # fetch from Bugzilla
             fc = FlawCollector()
+            fc.no_alerts = True
             fc.sync_flaw(flaw_instance.bz_id)
             # Make sure the flaw instance has the latest data
             flaw_instance.refresh_from_db()
@@ -1417,7 +1418,7 @@ class Flaw(
                 issue.data["fields"]["updated"], "%Y-%m-%dT%H:%M:%S.%f%z"
             )
             self.workflow_state = WorkflowModel.WorkflowState.NEW
-            self.save(*args, **kwargs)
+            self.save(no_alerts=True, *args, **kwargs)
 
         if not JIRA_TASKMAN_AUTO_SYNC_FLAW or not jira_token:
             return
@@ -1466,7 +1467,7 @@ class Flaw(
                     issue.data["fields"]["updated"], "%Y-%m-%dT%H:%M:%S.%f%z"
                 )
                 self.adjust_acls(save=False)
-                self.save(*args, **kwargs)
+                self.save(no_alerts=True, *args, **kwargs)
         except Flaw.DoesNotExist:
             # we're handling a new OSIDB-authored flaw -- create
             _create_new_flaw()
@@ -2430,10 +2431,13 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             kwargs[
                 "auto_timestamps"
             ] = False  # the timestamps will be get from Bugzilla
-            kwargs["raise_validation_error"] = False  # the validations were already run
+            # the validations were already run
+            kwargs["raise_validation_error"] = False
+            kwargs["no_alerts"] = True
             tracker_instance.save(*args, **kwargs)
             # fetch from Bugzilla
             btc = BugzillaTrackerCollector()
+            btc.no_alerts = True
             btc.sync_tracker(tracker_instance.external_system_id)
             BZTrackerLinkManager.link_tracker_with_affects(
                 tracker_instance.external_system_id
@@ -2452,10 +2456,13 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             kwargs[
                 "auto_timestamps"
             ] = False  # the timestamps will be get from Bugzilla
-            kwargs["raise_validation_error"] = False  # the validations were already run
+            # the validations were already run
+            kwargs["raise_validation_error"] = False
+            kwargs["no_alerts"] = True
             tracker_instance.save(*args, **kwargs)
             # fetch from Jira
             jtc = JiraTrackerCollector()
+            jtc.no_alerts = True
             jtc.collect(tracker_instance.external_system_id)
             JiraTrackerLinkManager.link_tracker_with_affects(
                 tracker_instance.external_system_id

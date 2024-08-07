@@ -250,6 +250,10 @@ class Collector(LockableTask):
     # which either saves or only logs the collected data
     dry_run = None
 
+    # when set it will not modify the current alerts for
+    # the collected entity
+    no_alerts = None
+
     # collectors on which this collector depends on
     depends_on = None
 
@@ -369,7 +373,10 @@ class Collector(LockableTask):
 
         else:
             logger.info(f"Performing the save of the following data: {str(data)}")
-            data.save()
+            if self.no_alerts:
+                data.save(no_alerts=self.no_alerts)
+            else:
+                data.save()
 
     def store(self, complete=True, updated_until_dt=None, meta_attr=None) -> None:
         """

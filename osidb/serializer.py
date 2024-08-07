@@ -687,7 +687,8 @@ class TrackerSerializer(
 
         # create new tracker instance in the local DB first
         # so we can create the links before the backend sync
-        tracker.save()
+        # alerts will be created after links
+        tracker.save(no_alerts=True)
         # create affect-tracker links
         for affect in affects:
             tracker.affects.add(affect)
