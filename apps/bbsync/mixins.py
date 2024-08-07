@@ -1,9 +1,9 @@
-from osidb.mixins import AlertMixin
+from django.db import models
 
 from .constants import SYNC_TO_BZ
 
 
-class BugzillaSyncMixin(AlertMixin):
+class BugzillaSyncMixin(models.Model):
     """
     mixin for syncing the model to the Bugzilla
 
@@ -28,9 +28,6 @@ class BugzillaSyncMixin(AlertMixin):
 
         Bugzilla sync is also conditional based on environment variable
         """
-        # always perform the validations first
-        self.validate(raise_validation_error=kwargs.get("raise_validation_error", True))
-
         # check BBSync conditions are met
         if SYNC_TO_BZ and bz_api_key is not None:
             self.bzsync(*args, bz_api_key=bz_api_key, **kwargs)
