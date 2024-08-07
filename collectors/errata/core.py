@@ -154,14 +154,17 @@ def link_bugs_to_errata(erratum_json_list: list[dict]):
             erratum.save(auto_timestamps=False)
             # remove the existing erratum-tracker links
             # so only the still existing are preserved
-            erratum.trackers.clear()
+            #erratum.trackers.clear() # TODO fix
+            old_trackers = set(erratum.trackers.all())
+            new_trackers = set()
 
             for bz_id in bz_tracker_ids:
                 try:
                     bz_bug = Tracker.objects.get(
                         external_system_id=bz_id, type=Tracker.TrackerType.BUGZILLA
                     )
-                    erratum.trackers.add(bz_bug)
+                    #erratum.trackers.add(bz_bug)
+                    new_trackers.add(bz_bug)
                 except Tracker.DoesNotExist:
                     logger.error(f"BZ#{bz_id} does not exist in DB")
             for jira_id in jira_tracker_ids:
@@ -169,9 +172,18 @@ def link_bugs_to_errata(erratum_json_list: list[dict]):
                     jira_issue = Tracker.objects.get(
                         external_system_id=jira_id, type=Tracker.TrackerType.JIRA
                     )
-                    erratum.trackers.add(jira_issue)
+                    #erratum.trackers.add(jira_issue)
+                    new_trackers.add(jira_issue)
                 except Tracker.DoesNotExist:
                     logger.exception(f"Jira issue {jira_id} does not exist in DB")
+
+            trackers_to_remove = old_trackers - new_trackers
+            #trackers_to_keep = old_trackers & new_trackers
+            trackers_to_add = new_trackers - old_trackers
+            # TODO: Do any double-check that set(erratum.trackers.all()) didn't change in the meantime?
+            erratum.trackers.remove(*trackers_to_remove)
+            erratum.trackers.add(*trackers_to_add)
+
 
 
 @backoff.on_exception(

@@ -179,11 +179,20 @@ class TrackerSaver:
         """
         # wrap this in an atomic transaction so that
         # we don't query this tracker during the process
-        with transaction.atomic():
+        with transaction.atomic():  # TODO try removing the transaction; the reasoning is different from what transaction.atomic() provides (the tracker already exists before the transaction)
             # re-create all affect links
             # in case some were removed
-            self.tracker.affects.clear()
-            self.tracker.affects.add(*self.affects)  # bulk add
+            #self.tracker.affects.clear() # TODO fix
+            old_affects = set(self.tracker.affects.all())
+            new_affects = set(self.affects)
+
+            to_remove = old_affects - new_affects
+            to_add = new_affects - old_affects
+            self.tracker.affects.remove(*to_remove)
+            self.tracker.affects.add(*to_add)
+            # TODO: Do any double-check that set(self.tracker.affects.all()) didn't change in the meantime?
+            #self.tracker.affects.add(*self.affects)  # bulk add
+
             self.tracker.save(
                 # we want to store the original timestamps
                 # so we turn off assigning the automatic ones
@@ -193,9 +202,10 @@ class TrackerSaver:
                 raise_validation_error=False,
             )
 
+            return # TODO the alerts are never used, we can end here
             # store alerts
             for alert in self.alerts:
-                self.tracker.alert(**alert)
+                self.tracker.alert(**alert)  # TODO also remove the whole functionality related to TrackerConvertor.alert()
 
 
 class TrackerConvertor:

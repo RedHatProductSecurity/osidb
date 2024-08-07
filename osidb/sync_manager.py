@@ -474,9 +474,16 @@ class BZTrackerLinkManager(SyncManager):
         # Prevent eventual duplicates
         affects = list(set(affects))
 
-        with transaction.atomic():
-            tracker.affects.clear()
-            tracker.affects.add(*affects)
+        old_affects = set(tracker.affects.all())
+        new_affects = set(affects)
+
+        with transaction.atomic(): # TODO try to remove the transaction, it was probably added for a different purpose than what transaction.atomic provides
+            #tracker.affects.clear() # TODO fix
+            #tracker.affects.add(*affects)
+            to_remove = old_affects - new_affects
+            to_add = new_affects - old_affects
+            tracker.affects.remove(*to_remove)
+            tracker.affects.add(*to_add)
             tracker.save(raise_validation_error=False, auto_timestamps=False)
 
         return affects, failed_flaws, failed_affects
@@ -727,9 +734,16 @@ class JiraTrackerLinkManager(SyncManager):
 
             affects.append(affect)
 
-        with transaction.atomic():
-            tracker.affects.clear()
-            tracker.affects.add(*affects)
+        old_affects = set(tracker.affects.all())
+        new_affects = set(affects)
+
+        with transaction.atomic(): # TODO try to remove the transaction, it was probably added for a different purpose than what transaction.atomic provides
+            #tracker.affects.clear() # TODO fix
+            #tracker.affects.add(*affects)
+            to_remove = old_affects - new_affects
+            to_add = new_affects - old_affects
+            tracker.affects.remove(*to_remove)
+            tracker.affects.add(*to_add)
             tracker.save(raise_validation_error=False, auto_timestamps=False)
 
         return affects, failed_flaws, failed_affects
