@@ -411,7 +411,7 @@ class ACLMixin(models.Model):
         """
         return self.acls_read | self.acls_write
 
-    def _validate_acls_known(self):
+    def _validate_acls_known(self, **kwargs):
         """
         check that all the ACLs are known
         """
@@ -424,7 +424,7 @@ class ACLMixin(models.Model):
                     f"Unknown ACL group given - known are: {groups}"
                 )
 
-    def _validate_acl_read_meaningful(self):
+    def _validate_acl_read_meaningful(self, **kwargs):
         """
         validate that the read ACL is set meaninfully in a way that it contains read groups only
         """
@@ -434,7 +434,7 @@ class ACLMixin(models.Model):
                     f"Read ACL contains non-read ACL group: {self.acl2group(acl)}"
                 )
 
-    def _validate_acl_write_meaningful(self):
+    def _validate_acl_write_meaningful(self, **kwargs):
         """
         validate that the write ACL is set meaninfully in a way that it contains write groups only
         """
@@ -444,7 +444,7 @@ class ACLMixin(models.Model):
                     f"Write ACL contains non-write ACL group: {self.acl2group(acl)}"
                 )
 
-    def _validate_acl_expected(self):
+    def _validate_acl_expected(self, **kwargs):
         """
         validate that the ACLs corresponds to Bugzilla groups as there
         is no other access granularity (CC lists are differnt concept)
@@ -482,7 +482,7 @@ class ACLMixin(models.Model):
     # a conclusion of being non-empty with only known meaningful
     # groups and both ACLs either public or embargoed
 
-    def _validate_acl_duplicite(self):
+    def _validate_acl_duplicite(self, **kwargs):
         """
         validate that the ACLs do not contain duplicite groups
         """
@@ -495,7 +495,7 @@ class ACLMixin(models.Model):
     # stored as part of the flaw metadata so for the time being it does
     # not make any sense to have a different visibility of them
 
-    def _validate_acl_identical_to_parent_flaw(self):
+    def _validate_acl_identical_to_parent_flaw(self, **kwargs):
         """
         validate that the eventual parent flaw has the identical ACLs
         """
@@ -607,7 +607,7 @@ class Alert(ACLMixin):
 
     objects = AlertManager()
 
-    def _validate_acl_identical_to_parent(self):
+    def _validate_acl_identical_to_parent(self, **kwargs):
         if (
             self.acl_read != self.content_object.acl_read
             or self.acl_write != self.content_object.acl_write
@@ -644,11 +644,18 @@ class AlertMixin(ValidateMixin):
     alerts = GenericRelation(Alert)
 
     def alert(
-        self, name, description, alert_type=Alert.AlertType.WARNING, resolution_steps=""
+        self,
+        name,
+        description,
+        alert_type=Alert.AlertType.WARNING,
+        resolution_steps="",
+        dry_run=False,
     ):
         """
         Helper for creating validation alerts on the current object.
         """
+        if dry_run:
+            return
         # Inherit ACLs from parent object, as long as it uses ACLs
         if isinstance(self, ACLMixin):
             acl_read = self.acl_read
@@ -715,7 +722,7 @@ class AlertMixin(ValidateMixin):
             # alerts of the same name, object_id and age have the same meaning
             pass
 
-    def validate(self, raise_validation_error=True):
+    def validate(self, raise_validation_error=True, dry_run=False):
         """
         Run standard Django validations first, potentially raising ValidationError.
         These ensure minimal necessary data quality and thus cannot be suppressed.
@@ -726,37 +733,45 @@ class AlertMixin(ValidateMixin):
         For error level invalidities the default behavior may be changed by setting
         raise_validation_error option to false, resulting in suppressing all the
         exceptions and instead storing them as error level alerts.
+
+        When dry_run is true no changes in alert table will be made, this option
+        does not prevent validations from raising errors.
         """
         # standard validations
         # exclude meta attributes
         self.full_clean(exclude=["meta_attr"])
 
         # clean all alerts before a new validation
-        self.alerts.all().delete()
+        if not dry_run:
+            self.alerts.all().delete()
 
         # custom validations
         for validation_name in [
             item for item in dir(self) if item.startswith("_validate_")
         ]:
             try:
-                getattr(self, validation_name)()
+                getattr(self, validation_name)(dry_run=dry_run)
             except ValidationError as e:
                 if raise_validation_error:
                     raise
 
-                # do not raise but
-                # store alert as error
-                self.alert(
-                    name=validation_name,
-                    description=e.message,
-                    alert_type=Alert.AlertType.ERROR,
-                )
+                if not dry_run:
+                    # do not raise but
+                    # store alert as error
+                    self.alert(
+                        name=validation_name,
+                        description=e.message,
+                        alert_type=Alert.AlertType.ERROR,
+                    )
 
     def save(self, *args, **kwargs):
         """
         Save with validate call parametrized by raise_validation_error
         """
-        self.validate(raise_validation_error=kwargs.pop("raise_validation_error", True))
+        self.validate(
+            raise_validation_error=kwargs.pop("raise_validation_error", True),
+            dry_run=kwargs.pop("no_alerts", False),
+        )
         # here we have to skip ValidateMixin level save as otherwise
         # it would run validate again and without proper arguments
         super(ValidateMixin, self).save(*args, **kwargs)
