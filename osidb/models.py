@@ -696,7 +696,7 @@ class Flaw(
             self.cve_id = None
         super().save(*args, **kwargs)
 
-    def _validate_rh_nist_cvss_score_diff(self):
+    def _validate_rh_nist_cvss_score_diff(self, **kwargs):
         """
         Checks that the difference between the RH and NIST CVSSv3 score is not >= 1.0.
         """
@@ -720,9 +720,10 @@ class Flaw(
                 "rh_nist_cvss_score_diff",
                 f"RH and NIST CVSSv3 score differs by 1.0 or more - "
                 f"RH {rh_score} | NIST {nist_score}.",
+                **kwargs,
             )
 
-    def _validate_rh_nist_cvss_severity_diff(self):
+    def _validate_rh_nist_cvss_severity_diff(self, **kwargs):
         """
         Checks that the NIST and RH CVSSv3 score are not of a different severity.
         """
@@ -757,9 +758,10 @@ class Flaw(
                 "RH and NIST CVSSv3 score difference crosses severity boundary - "
                 f"RH {rh_score}:{rh_severity} | "
                 f"NIST {nist_score}:{nist_severity}.",
+                **kwargs,
             )
 
-    def _validate_rh_products_in_affects(self):
+    def _validate_rh_products_in_affects(self, **kwargs):
         """
         Returns True if a flaw has RH products in its affects list, False otherwise.
         """
@@ -772,7 +774,7 @@ class Flaw(
         # set() is used because querysets are of different types
         return bool(set(rh_pruducts) & set(flaw_products))
 
-    def _validate_nist_rh_cvss_feedback_loop(self):
+    def _validate_nist_rh_cvss_feedback_loop(self, **kwargs):
         """
         Checks whether RH should send a request to NIST on flaw CVSS rescore.
 
@@ -808,9 +810,10 @@ class Flaw(
                 f"from the RH-assigned CVSSv3 score ({rh_cvss.score}). "
                 f"Consider requesting CVSSv3 rescoring from NIST or add "
                 f"an explanation comment for RH CVSSv3 score.",
+                **kwargs,
             )
 
-    def _validate_cvss_scores_and_nist_cvss_validation(self):
+    def _validate_cvss_scores_and_nist_cvss_validation(self, **kwargs):
         """
         Checks that if nist_cvss_validation is set, then both NIST CVSSv3 and RH CVSSv3
         scores need to be present.
@@ -831,7 +834,7 @@ class Flaw(
                 "NIST CVSSv3 and RH CVSSv3 scores assigned.",
             )
 
-    def _validate_impact_and_cve_description(self):
+    def _validate_impact_and_cve_description(self, **kwargs):
         """
         Checks that if impact has MODERATE, IMPORTANT or CRITICAL value set,
         then cve_description must not be missing.
@@ -843,9 +846,10 @@ class Flaw(
             self.alert(
                 "impact_without_cve_description",
                 f"cve_description cannot be missing if impact is {self.impact}.",
+                **kwargs,
             )
 
-    def _validate_cve_description_and_requires_cve_description(self):
+    def _validate_cve_description_and_requires_cve_description(self, **kwargs):
         """
         Checks that if cve_description is missing, then requires_cve_description must not have
         REQUESTED or APPROVED value set.
@@ -859,7 +863,7 @@ class Flaw(
                 f"missing."
             )
 
-    def _validate_nonempty_source(self):
+    def _validate_nonempty_source(self, **kwargs):
         """
         checks that the source is not empty
 
@@ -869,7 +873,7 @@ class Flaw(
         if not self.source:
             raise ValidationError("Source value is required.")
 
-    def _validate_embargoed_source(self):
+    def _validate_embargoed_source(self, **kwargs):
         """
         Checks that the source is private if the Flaw is embargoed.
         """
@@ -886,20 +890,21 @@ class Flaw(
                     "embargoed_source_public",
                     f"Flaw source of type {source} can be public or private, "
                     "ensure that it is private since the Flaw is embargoed.",
+                    **kwargs,
                 )
             else:
                 raise ValidationError(
                     f"Flaw is embargoed but contains public source: {self.source}"
                 )
 
-    def _validate_reported_date(self):
+    def _validate_reported_date(self, **kwargs):
         """
         Checks that the flaw has non-empty reported_dt
         """
         if self.reported_dt is None:
             raise ValidationError("Flaw has an empty reported_dt")
 
-    def _validate_public_unembargo_date(self):
+    def _validate_public_unembargo_date(self, **kwargs):
         """
         Check that an unembargo date (public date) exists and is in the past if the Flaw is public
         """
@@ -909,7 +914,7 @@ class Flaw(
             if self.unembargo_dt > timezone.now():
                 raise ValidationError("Public flaw has a future unembargo_dt")
 
-    def _validate_future_unembargo_date(self):
+    def _validate_future_unembargo_date(self, **kwargs):
         """
         Check that an enbargoed flaw has an unembargo date in the future
         """
@@ -922,7 +927,7 @@ class Flaw(
                 "Flaw still embargoed but unembargo date is in the past."
             )
 
-    def _validate_cvss3(self):
+    def _validate_cvss3(self, **kwargs):
         """
         Check that a CVSSv3 string is present.
         """
@@ -934,9 +939,10 @@ class Flaw(
             self.alert(
                 "cvss3_missing",
                 "CVSSv3 score is missing.",
+                **kwargs,
             )
 
-    def _validate_major_incident_state(self):
+    def _validate_major_incident_state(self, **kwargs):
         """
         Checks that a flaw has a valid Major Incident state.
         """
@@ -949,7 +955,7 @@ class Flaw(
         # users from reviewing in the first place, in which case we don't
         # need to perform this validation
 
-    def _validate_major_incident_fields(self):
+    def _validate_major_incident_fields(self, **kwargs):
         """
         Validate that a Flaw that is Major Incident complies with the following:
         * has a mitigation
@@ -965,24 +971,28 @@ class Flaw(
             self.alert(
                 "mi_mitigation_missing",
                 "Flaw marked as Major Incident does not have a mitigation.",
+                **kwargs,
             )
 
         if not self.statement:
             self.alert(
                 "mi_statement_missing",
                 "Flaw marked as Major Incident does not have a statement.",
+                **kwargs,
             )
 
         if not self.cve_description:
             self.alert(
                 "mi_cve_description_missing",
                 "Flaw marked as Major Incident does not have a cve_description.",
+                **kwargs,
             )
 
         if self.requires_cve_description != self.FlawRequiresCVEDescription.APPROVED:
             self.alert(
                 "mi_cve_description_not_reviewed",
                 "Flaw marked as Major Incident does not have a cve_description reviewed.",
+                **kwargs,
             )
 
         article = self.references.filter(type=FlawReference.FlawReferenceType.ARTICLE)
@@ -990,9 +1000,10 @@ class Flaw(
             self.alert(
                 "mi_article_missing",
                 "Flaw marked as Major Incident must have exactly one article.",
+                **kwargs,
             )
 
-    def _validate_cisa_major_incident_fields(self):
+    def _validate_cisa_major_incident_fields(self, **kwargs):
         """
         Validate that a Flaw that is CISA Major Incident complies with the following:
         * has a statement
@@ -1006,21 +1017,24 @@ class Flaw(
             self.alert(
                 "cisa_mi_statement_missing",
                 "Flaw marked as CISA Major Incident does not have a statement.",
+                **kwargs,
             )
 
         if not self.cve_description:
             self.alert(
                 "cisa_mi_cve_description_missing",
                 "Flaw marked as CISA Major Incident does not have a cve_description.",
+                **kwargs,
             )
 
         if self.requires_cve_description != self.FlawRequiresCVEDescription.APPROVED:
             self.alert(
                 "cisa_mi_cve_description_not_reviewed",
                 "Flaw marked as CISA Major Incident does not have a cve_description reviewed.",
+                **kwargs,
             )
 
-    def _validate_embargoing_public_flaw(self):
+    def _validate_embargoing_public_flaw(self, **kwargs):
         """
         Check whether a currently public flaw is being embargoed.
         """
@@ -1032,7 +1046,7 @@ class Flaw(
         if not old_flaw.embargoed and self.is_embargoed:
             raise ValidationError("Embargoing a public flaw is futile")
 
-    def _validate_cwe_format(self):
+    def _validate_cwe_format(self, **kwargs):
         """
         Check if CWE string is well formated
         """
@@ -1061,7 +1075,7 @@ class Flaw(
             if not re.match(r"^(CWE-[0-9]+|\(CWE-[0-9]+(\|CWE-[0-9]+)*\))$", element):
                 raise ValidationError("CWE IDs is not well formated.")
 
-    def _validate_flaw_without_affect(self):
+    def _validate_flaw_without_affect(self, **kwargs):
         """
         Check if flaw have at least one affect
         """
@@ -1081,11 +1095,12 @@ class Flaw(
                     "_validate_flaw_without_affect",
                     err.message,
                     alert_type=Alert.AlertType.ERROR,
+                    **kwargs,
                 )
             else:
                 raise err
 
-    def _validate_nonempty_components(self):
+    def _validate_nonempty_components(self, **kwargs):
         """
         check that the component list is not empty
 
@@ -1095,7 +1110,7 @@ class Flaw(
         if not self.components:
             raise ValidationError("Components value is required.")
 
-    def _validate_unsupported_impact_change(self):
+    def _validate_unsupported_impact_change(self, **kwargs):
         """
         Check that an update of a flaw with open trackers does not change between
         Critical/Important/Major Incident and Moderate/Low and vice-versa.
@@ -1129,9 +1144,10 @@ class Flaw(
                 "Performed impact/Major Incident update is not supported because the flaw "
                 "has unclosed trackers. Make sure to manually update all related trackers in "
                 "accordance to the flaw bug changes.",
+                **kwargs,
             )
 
-    def _validate_no_placeholder(self):
+    def _validate_no_placeholder(self, **kwargs):
         """
         restrict any write operations on placeholder flaws
 
@@ -1143,7 +1159,7 @@ class Flaw(
                 "OSIDB does not support write operations on placeholder flaws"
             )
 
-    def _validate_special_consideration_flaw(self):
+    def _validate_special_consideration_flaw(self, **kwargs):
         """
         Checks that a flaw affecting special consideration package(s) has both
         cve_description and statement
@@ -1161,15 +1177,17 @@ class Flaw(
                     "special_consideration_flaw_missing_cve_description",
                     "Flaw affecting special consideration package(s) "
                     f"{', '.join(affected_special_consideration_packages)} is missing cve_description.",
+                    **kwargs,
                 )
             if not self.statement:
                 self.alert(
                     "special_consideration_flaw_missing_statement",
                     "Flaw affecting special consideration package(s) "
                     f"{', '.join(affected_special_consideration_packages)} is missing statement.",
+                    **kwargs,
                 )
 
-    def _validate_private_source_no_ack(self):
+    def _validate_private_source_no_ack(self, **kwargs):
         """
         Checks that flaws with private sources have ACK.
         """
@@ -1190,9 +1208,10 @@ class Flaw(
             self.alert(
                 "private_source_no_ack",
                 alert_text,
+                **kwargs,
             )
 
-    def _validate_allowed_source(self):
+    def _validate_allowed_source(self, **kwargs):
         """
         Checks that the flaw source is allowed (not historical).
         """
@@ -1203,7 +1222,7 @@ class Flaw(
         ):
             raise ValidationError("The flaw has a disallowed (historical) source.")
 
-    def _validate_article_links_count_via_flaw(self):
+    def _validate_article_links_count_via_flaw(self, **kwargs):
         """
         Checks that a flaw has maximally one article link.
         """
@@ -1582,7 +1601,7 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
 
         return Flaw.objects.get(uuid=flaw.uuid)
 
-    def _validate_acl_identical_to_parent_flaw(self) -> None:
+    def _validate_acl_identical_to_parent_flaw(self, **kwargs) -> None:
         """
         No ACL validations are run for snippet's flaw as its ACLs can be different.
         However, snippet should always have internal ACLs.
@@ -1728,7 +1747,7 @@ class Affect(
     def __str__(self):
         return str(self.uuid)
 
-    def _validate_ps_module_old_flaw(self):
+    def _validate_ps_module_old_flaw(self, **kwargs):
         """
         Checks that an affect from an older flaw contains a valid ps_module.
 
@@ -1745,9 +1764,10 @@ class Affect(
                     "old_flaw_affect_ps_module",
                     f"{self.ps_module} is not a valid ps_module "
                     f"for flaw with bz_id {bz_id}.",
+                    **kwargs,
                 )
 
-    def _validate_ps_module_new_flaw(self):
+    def _validate_ps_module_new_flaw(self, **kwargs):
         """
         Checks that an affect from a newer flaw contains a valid ps_module.
 
@@ -1764,7 +1784,7 @@ class Affect(
                     f"for flaw with bz_id {bz_id}."
                 )
 
-    def _validate_sofware_collection(self):
+    def _validate_sofware_collection(self, **kwargs):
         """
         Check that all RHSCL components in flaw's affects start with a valid collection.
         """
@@ -1790,6 +1810,7 @@ class Affect(
                 "flaw_affects_rhscl_collection_only",
                 f"PSComponent {self.ps_component} for {self.ps_module} indicates collection "
                 "meta-package rather than a specific component in the collection",
+                **kwargs,
             )
 
         if not is_valid_component:
@@ -1797,9 +1818,10 @@ class Affect(
                 "flaw_affects_rhscl_invalid_collection",
                 f"PSComponent {self.ps_component} for {self.ps_module} "
                 "does not match any valid collection",
+                **kwargs,
             )
 
-    def _validate_historical_affectedness_resolution(self):
+    def _validate_historical_affectedness_resolution(self, **kwargs):
         """
         Alerts that an old flaw has an affectedness/resolution combination that is now invalid,
         but was valid in the past.
@@ -1831,9 +1853,10 @@ class Affect(
                 f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has a "
                 "historical affectedness/resolution combination which is not valid anymore: "
                 f"{self.resolution} is not a valid resolution for {self.affectedness}.",
+                **kwargs,
             )
 
-    def _validate_affect_status_resolution(self):
+    def _validate_affect_status_resolution(self, **kwargs):
         """
         Validates that affected products have a valid combination (currently or historically)
         of affectedness and resolution.
@@ -1849,7 +1872,7 @@ class Affect(
                 f"for {self.affectedness}."
             )
 
-    def _validate_notaffected_open_tracker(self):
+    def _validate_notaffected_open_tracker(self, **kwargs):
         """
         Check whether notaffected products have open trackers.
         """
@@ -1864,7 +1887,7 @@ class Affect(
                 "NOTAFFECTED but has open tracker(s).",
             )
 
-    def _validate_ooss_open_tracker(self):
+    def _validate_ooss_open_tracker(self, **kwargs):
         """
         Check whether out of support scope products have open trackers.
         """
@@ -1879,7 +1902,7 @@ class Affect(
                 "OOSS but has open tracker(s).",
             )
 
-    def _validate_wontfix_open_tracker(self):
+    def _validate_wontfix_open_tracker(self, **kwargs):
         """
         Check whether wontfix affects have open trackers.
         """
@@ -1894,7 +1917,7 @@ class Affect(
                 "WONTFIX but has open tracker(s).",
             )
 
-    def _validate_unknown_component(self):
+    def _validate_unknown_component(self, **kwargs):
         """
         Alerts that a flaw affects a component not tracked in Bugzilla.
         Alternatively, the PSComponent should have an override set in Product Definitions.
@@ -1945,9 +1968,10 @@ class Affect(
             self.alert(
                 "flaw_affects_unknown_component",
                 alert_text,
+                **kwargs,
             )
 
-    def _validate_wontreport_products(self):
+    def _validate_wontreport_products(self, **kwargs):
         """
         Validate that wontreport resolution only can be used for
         products associated with services.
@@ -1963,7 +1987,7 @@ class Affect(
                     f"which can only be used for service products."
                 )
 
-    def _validate_wontreport_severity(self):
+    def _validate_wontreport_severity(self, **kwargs):
         """
         Validate that wontreport only can be used for
         low or moderate severity flaws.
@@ -1977,7 +2001,7 @@ class Affect(
                 f"and is marked as WONTREPORT, which can only be used with low or moderate impact."
             )
 
-    def _validate_special_consideration_flaw(self):
+    def _validate_special_consideration_flaw(self, **kwargs):
         """
         Checks that a flaw affecting special consideration package(s) has both
         cve_description and statement
@@ -2203,7 +2227,7 @@ class CVSS(AlertMixin, ACLMixin, BugzillaSyncMixin, NullStrFieldsMixin, Tracking
         cvss_handle = self.CVSS_HANDLES[self.version]
         return cvss_handle(self.vector)
 
-    def _validate_cvss_string(self):
+    def _validate_cvss_string(self, **kwargs):
         """
         Use the cvss library to validate the CVSS vector string.
         """
@@ -2214,7 +2238,7 @@ class CVSS(AlertMixin, ACLMixin, BugzillaSyncMixin, NullStrFieldsMixin, Tracking
                 f"Invalid CVSS: Malformed {self.full_version} string: {e}"
             )
 
-    def _validate_cvss_comment(self):
+    def _validate_cvss_comment(self, **kwargs):
         """
         For non-Red-Hat-issued CVSSs, the comment attribute should be blank.
         """
@@ -2441,7 +2465,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         else:
             super().save(*args, **kwargs)
 
-    def _validate_tracker_affect(self):
+    def _validate_tracker_affect(self, **kwargs):
         """
         check that the tracker is associated with an affect
         """
@@ -2452,7 +2476,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not self.affects.exists():
             raise ValidationError("Tracker must be associated with an affect")
 
-    def _validate_tracker_ps_module(self):
+    def _validate_tracker_ps_module(self, **kwargs):
         """
         check that the tracker is associated with a valid PS module
         """
@@ -2462,7 +2486,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not PsModule.objects.filter(name=self.affects.first().ps_module):
             raise ValidationError("Tracker must be associated with a valid PS module")
 
-    def _validate_tracker_ps_update_stream(self):
+    def _validate_tracker_ps_update_stream(self, **kwargs):
         """
         check that the tracker is associated with a valid PS update stream
         """
@@ -2471,7 +2495,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 "Tracker must be associated with a valid PS update stream"
             )
 
-    def _validate_tracker_flaw_accesses(self):
+    def _validate_tracker_flaw_accesses(self, **kwargs):
         """
         Check whether an public tracker is associated with an embargoed flaw.
         """
@@ -2483,7 +2507,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 "Tracker is public but is associated with an embargoed flaw."
             )
 
-    def _validate_notaffected_open_tracker(self):
+    def _validate_notaffected_open_tracker(self, **kwargs):
         """
         Check whether notaffected products have open trackers.
         """
@@ -2496,7 +2520,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 f"The tracker is associated with a NOTAFFECTED affect: {affect.uuid}",
             )
 
-    def _validate_ooss_open_tracker(self):
+    def _validate_ooss_open_tracker(self, **kwargs):
         """
         Check whether out of support scope products have open trackers.
         """
@@ -2506,7 +2530,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 f"The tracker is associated with an OOSS affect: {affect.uuid}",
             )
 
-    def _validate_wontfix_open_tracker(self):
+    def _validate_wontfix_open_tracker(self, **kwargs):
         """
         Check whether wontfix affects have open trackers.
         """
@@ -2516,7 +2540,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 f"The tracker is associated with a WONTFIX affect: {affect.uuid}",
             )
 
-    def _validate_multi_flaw_tracker(self):
+    def _validate_multi_flaw_tracker(self, **kwargs):
         """
         validate multi-flaw tracker
         """
@@ -2535,7 +2559,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                     "Tracker must be associated only with affects with the same PS component"
                 )
 
-    def _validate_tracker_bts_match(self):
+    def _validate_tracker_bts_match(self, **kwargs):
         """
         validate that the tracker type corresponds to the BTS
         """
@@ -2552,7 +2576,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 f"Tracker type and BTS mismatch: {self.type} versus {ps_module.bts_name}"
             )
 
-    def _validate_tracker_duplicate(self):
+    def _validate_tracker_duplicate(self, **kwargs):
         """
         validate that there is only one tracker with this update stream associated with each affect
         """
@@ -2896,7 +2920,7 @@ class FlawAcknowledgment(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin)
             GinIndex(fields=["acl_read"]),
         ]
 
-    def _validate_public_source_no_ack(self):
+    def _validate_public_source_no_ack(self, **kwargs):
         """
         Checks that acknowledgments cannot be linked to flaws with public sources.
         """
@@ -2906,6 +2930,7 @@ class FlawAcknowledgment(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin)
                     "public_source_no_ack",
                     f"Flaw source of type {source} can be public or private, "
                     "ensure that it is private since the Flaw has acknowledgments.",
+                    **kwargs,
                 )
             else:
                 raise ValidationError(
@@ -2997,7 +3022,7 @@ class FlawReference(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin):
             GinIndex(fields=["acl_read"]),
         ]
 
-    def _validate_article_link(self):
+    def _validate_article_link(self, **kwargs):
         """
         Checks that an article link begins with https://access.redhat.com/.
         """
@@ -3009,7 +3034,7 @@ class FlawReference(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin):
                 r"https://access.redhat.com/."
             )
 
-    def _validate_article_links_count_via_flawreferences(self):
+    def _validate_article_links_count_via_flawreferences(self, **kwargs):
         """
         Checks that a flaw has maximally one article link.
         """
