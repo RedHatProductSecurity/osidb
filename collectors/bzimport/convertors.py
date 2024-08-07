@@ -311,26 +311,29 @@ class FlawSaver:
         for cvss in to_delete:
             cvss.delete()
 
-    def save(self):
+    def save(self, **kwargs):
         """save flaw with its context to DB"""
         # wrap this in an atomic transaction so that
         # we don't query this flaw during the process
         with transaction.atomic():
+            no_alerts = kwargs.get("no_alerts", False)
             for part in self.all_parts:
-                kwargs = {}
+                part_kwargs = {}
 
                 # we want to store the original timestamps
                 # so we turn off assigning the automatic ones
                 if isinstance(part, TrackingMixin):
-                    kwargs["auto_timestamps"] = False
+                    part_kwargs["auto_timestamps"] = False
 
                 # we want to store all the data fetched by the collector
                 # so we suppress the exception raising in favor of alerts
                 if isinstance(part, AlertMixin):
-                    kwargs["raise_validation_error"] = False
+                    part_kwargs["raise_validation_error"] = False
+                    # collection during saves should validate only once
+                    part_kwargs["no_alerts"] = no_alerts
 
-                # apply proper kwargs
-                part.save(**kwargs)
+                # apply proper part_kwargs
+                part.save(**part_kwargs)
 
             # packageversions need special handling
             self.save_packageversions()
@@ -347,6 +350,7 @@ class FlawSaver:
             # se explanation above for more details
             self.flaw.save(
                 auto_timestamps=False,
+                no_alerts=no_alerts,
                 raise_validation_error=False,
             )
 
