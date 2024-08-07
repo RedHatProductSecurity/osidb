@@ -521,6 +521,7 @@ class FlawManager(ACLMixinManager, TrackingMixinManager):
     model_name="FlawAudit",
 )
 class Flaw(
+    AlertMixin,
     ACLMixin,
     TrackingMixin,
     JiraTaskSyncMixin,
@@ -1634,6 +1635,7 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
     model_name="AffectAudit",
 )
 class Affect(
+    AlertMixin,
     ACLMixin,
     AffectExploitExtensionMixin,
     BugzillaSyncMixin,
@@ -2155,7 +2157,7 @@ class AffectCVSSManager(ACLMixinManager, TrackingMixinManager):
             )
 
 
-class CVSS(ACLMixin, BugzillaSyncMixin, NullStrFieldsMixin, TrackingMixin):
+class CVSS(AlertMixin, ACLMixin, BugzillaSyncMixin, NullStrFieldsMixin, TrackingMixin):
     class CVSSVersion(models.TextChoices):
         VERSION2 = "V2", "version 2"
         VERSION3 = "V3", "version 3"
@@ -2390,9 +2392,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         from apps.trackers.save import TrackerSaver
         from collectors.bzimport.collectors import BugzillaTrackerCollector
         from collectors.jiraffe.collectors import JiraTrackerCollector
-
-        # always perform the validations first
-        self.validate(raise_validation_error=kwargs.get("raise_validation_error", True))
 
         # check Bugzilla conditions are met
         if (
@@ -2765,6 +2764,7 @@ class Erratum(TrackingMixin):
 
 
 class FlawComment(
+    AlertMixin,
     ACLMixin,
     BugzillaSyncMixin,
     TrackingMixin,
@@ -2861,7 +2861,7 @@ class FlawAcknowledgmentManager(ACLMixinManager, TrackingMixinManager):
             )
 
 
-class FlawAcknowledgment(ACLMixin, BugzillaSyncMixin, TrackingMixin):
+class FlawAcknowledgment(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin):
     """
     Model representing flaw acknowledgments.
     Note that flaws with a public source can't have acknowledgments.
@@ -2937,7 +2937,7 @@ class FlawReferenceManager(ACLMixinManager, TrackingMixinManager):
             return FlawReference(flaw=flaw, url=url, **extra_fields)
 
 
-class FlawReference(ACLMixin, BugzillaSyncMixin, TrackingMixin):
+class FlawReference(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin):
     """Model representing flaw references"""
 
     class FlawReferenceType(models.TextChoices):
@@ -3146,7 +3146,7 @@ class PackageManager(ACLMixinManager, TrackingMixinManager):
         return package
 
 
-class Package(ACLMixin, BugzillaSyncMixin, TrackingMixin):
+class Package(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin):
     """
     Model representing a package with connected versions.
 

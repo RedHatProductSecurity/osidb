@@ -20,9 +20,6 @@ class JiraTaskSyncMixin(models.Model):
         Jira sync is conditional based on environment variable so
         development environment not enforces it
         """
-        # always perform the validations first
-        self.validate(raise_validation_error=kwargs.get("raise_validation_error", True))
-
         if JIRA_TASKMAN_AUTO_SYNC_FLAW and jira_token is not None:
             self.tasksync(*args, jira_token=jira_token, **kwargs)
         else:
