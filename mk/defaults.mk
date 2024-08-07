@@ -13,6 +13,8 @@ ps=`which pip-sync`
 openssl=`which openssl`
 ds=`which detect-secrets`
 pre-commit=`which pre-commit`
+gid=`id -g`
+uid=`id -u`
 
 # Make sourcing work as expected. https://stackoverflow.com/a/43566158
 SHELL := /bin/bash

@@ -1,5 +1,8 @@
 FROM registry.redhat.io/ubi8/ubi:8.9
 
+ARG UID
+ARG GID
+
 LABEL summary="OSIDB" \
       maintainer="Product Security DevOps <prodsec-dev@redhat.com>"
 
@@ -43,15 +46,21 @@ RUN dnf --nodocs --setopt install_weak_deps=false -y install \
         redhat-rpm-config \
         which \
     && dnf --nodocs --setopt install_weak_deps=false -y upgrade --security \
-    && dnf clean all
+    && dnf clean all \
+    && groupadd -g $GID osidb \
+    && useradd -u $UID -g osidb -d /opt/app-root/src osidb
 
+    
 # Before copying the entire source, copy just requirements.txt.
 # This makes podman cache this (lengthy) step as long as requirements.txt stays unchanged.
 # Without this, any change in src/ would make pip install run again.
 COPY ./requirements.txt /opt/app-root/src/requirements.txt
 RUN pip3 install -r /opt/app-root/src/requirements.txt && \
-    rm -f /opt/app-root/src/requirements.txt
+rm -f /opt/app-root/src/requirements.txt
 COPY . /opt/app-root/src
 
-RUN chgrp -R 0 /opt/app-root && \
-    chmod -R g=u /opt/app-root
+
+RUN chgrp -R $GID /opt/app-root && \
+chmod -R g=u /opt/app-root
+
+USER osidb
