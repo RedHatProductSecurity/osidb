@@ -500,7 +500,6 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         # TODO fix/implement:
         #  - TODO: severity
         #      - HOW:
-        #          - (no detailed info in spec doc) -> 2024-08-05 updated comments
         #          - manually find the Severity field
         #            - 'id': 4703, 'project_key': 'TPFUN', 'field_id': 'customfield_12316142', 'field_name': 'Severity', 'allowed_values': ['Critical', 'Important', 'Moderate', 'Low', 'Informational', 'None']
         #          - manually find valid values
@@ -517,27 +516,44 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #      - HOW:
         #          - delete generate_priority in this file
         #  - TODO: source
+        #      - TODO: draft implementation
         #      - HOW:
         #          - e.g. "CVE"
         #          - what is the equivalent in OSIDB? in Flaw model?
         #            - FlawSource model
         #            - Flaw.source char field with FlawSource choices
         #          - what Jira field?
-        #            - TODO
-        #            -
-        #          -
+        #            - {'id': 4908, 'project_key': 'TPFUN', 'field_id': 'customfield_12324746', 'field_name': 'Source', 'allowed_values': ['Security Architecture Review (SAR)', 'Threat Model (TM)', 'Penetration Test (PenTest)', 'Static Application Security Testing (SAST)', 'Dynamic Application Security Testing (DAST)', 'Other', 'Adobe', 'Apple', 'Bugtraq', 'CERT', 'Customer', 'CVE', 'Debian', 'Distros', 'Full Disclosure', 'Gentoo', 'Git', 'Google', 'Hardware Vendor', 'Internet', 'LKML', 'Mageia', 'Mozilla', 'NVD', 'OpenSSL', 'Oracle', 'OSS-Security', 'OSV', 'Red Hat', 'Researcher', 'Secunia', 'Sko', 'Sun', 'Suse', 'Twitter', 'Ubuntu', 'Upstream']}
+        #          - note that FlawSource and the "Source" jira field are not 1:1
+        #            - FlawSource is all caps, "Source" has mixed case
+        #            - Some values are available only in one of them
+        #          - Therefore, validation should reject REST schema-valid requests that are
+        #            invalid from jira perspective.
         #          -
         #          -
         #  - TODO: cve id
+        #      - TODO: draft implementation
         #      - HOW:
         #          - what Jira field?
-        #            - TODO
-        #            -
+        #            - {'id': 4909, 'project_key': 'TPFUN', 'field_id': 'customfield_12324749', 'field_name': 'CVE ID', 'allowed_values': []}
+        #          - what is the equivalent in OSIDB? in Flaw model?
+        #            - Flaw.cve_id
         #          -
         #  - TODO: cvss score
         #      - HOW:
         #          - what Jira field?
-        #            - TODO
+        #            - TODO: Is there an issue that makes it unavailable in most projects?
+        #            - stage:
+        #                >>> JiraProjectFields.objects.filter(field_id="customfield_12324748").all().count()
+        #                1
+        #                >>> JiraProjectFields.objects.filter(field_id="customfield_12324748").all().first().__dict__
+        #                {'_state': <django.db.models.base.ModelState object at 0x7f4001984eb0>, 'id': 3542, 'project_key': 'RHEL', 'field_id': 'customfield_12324748', 'field_name': 'CVSS Score', 'allowed_values': []}
+        #              - no such field in TPFUN
+        #            - prod:
+        #                >>> JiraProjectFields.objects.filter(field_id="customfield_12324748").all().count()
+        #                80
+        #              - {'id': 5747, 'project_key': 'TPFUN', 'field_id': 'customfield_12324748', 'field_name': 'CVSS Score', 'allowed_values': []}
+        #            -
         #            -
         #          -
         #  - TODO: cwe id
@@ -591,13 +607,12 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #
         #
         # TODO def generate_severity
+        field = JiraProjectFields.objects.get(
+            project_key=self.ps_module.bts_key, field_name="Severity"
+        )
         # ['Critical', 'Important', 'Moderate', 'Low', 'Informational', 'None']
-        allowed_values = JiraProjectFields.objects.get(
-            project_key=self.ps_module.bts_key, field_name="Severity"
-        ).allowed_values
-        field_id = JiraProjectFields.objects.get(
-            project_key=self.ps_module.bts_key, field_name="Severity"
-        ).field_id
+        allowed_values = field.allowed_values
+        field_id = field.field_id
 
         # TODO move to the appropriate place (next to / instead of JiraPriority)
         class JiraSeverity:
@@ -633,6 +648,8 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
             )
         # TODO REST structure for this field?
         self._query["fields"][field_id] = {"name": severity}
+        # TODO actually test it
+        # TODO write tests
         # END TODO def generate_severity
 
         # TODO: delete this debug output
