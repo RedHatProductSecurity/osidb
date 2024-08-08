@@ -747,9 +747,17 @@ class TrackerSerializer(
         affects = set(tracker.affects.all())
         # update the relations by simply recreating them
         # which will both delete the old and add the new
-        tracker.affects.clear()
+        old_affects = set(tracker.affects.all())
+        new_affects = set()
+        #tracker.affects.clear() # TODO fix
         for affect in validated_data.pop("affects", []):
-            tracker.affects.add(affect)
+            #tracker.affects.add(affect)
+            new_affects.add(affect)
+
+        to_remove = old_affects - new_affects
+        to_add = new_affects - old_affects
+        tracker.affects.remove(*to_remove)
+        tracker.affects.add(*to_add)
 
         #####################
         # 3) update actions #
