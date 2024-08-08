@@ -374,17 +374,32 @@ class TestJiraTrackerCollector:
 
 
 class TestMetadataCollector:
-    @freeze_time(timezone.datetime(2015, 12, 12))
+    # When re-recording VCRs, for vulntype_exists=False, copy the cassettes recorded for
+    # vulntype_exists=True and manually tweak the cassette file to simulate the Vulnerability
+    # type not existing. This visibly highlights the behavior of MetadataCollector and makes
+    # it visible if there's a bug where all fields of type 1 are discarded when type 12207
+    # is collected (an actual bug experienced during development).
+    # If it works correctly, fields_count with vulntype_exists=True must not be lower than with
+    # vulntype_exists=False.
+    @freeze_time(timezone.datetime(2024, 8, 8))
     @pytest.mark.vcr
-    @pytest.mark.parametrize("project_key,fields_count", [("RHEL", 120), ("OSIM", 20)])
-    def test_collect(self, pin_envs, project_key, fields_count):
+    @pytest.mark.parametrize(
+        "project_key,fields_count,vulntype_exists",
+        [
+            ("RHEL", 125, False),
+            ("OSIM", 18, False),
+            ("RHEL", 135, True),
+            ("OSIM", 19, True),
+        ],
+    )
+    def test_collect(self, pin_envs, project_key, fields_count, vulntype_exists):
         """
         Test that collector is able to get metadata from Jira projects
         """
         ps_module = PsModuleFactory(
             bts_name="jira",
             bts_key=project_key,
-            supported_until_dt=timezone.make_aware(timezone.datetime(2020, 12, 12)),
+            supported_until_dt=timezone.make_aware(timezone.datetime(2025, 12, 12)),
         )
         PsUpdateStreamFactory(ps_module=ps_module)
 
