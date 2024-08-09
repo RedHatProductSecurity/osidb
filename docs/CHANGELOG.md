@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cannot modify CVE of existing flaws (OSIDB-3102)
 - Jira metadata collector is not deleting metadata on failure (OSIDB-3219)
 
+### Changed
+- Allow start dates to come from multiple sources in SLA (OSIDB-3221)
+
 ## [4.1.6] - 2024-08-02
 ### Fixed
 - Cannot fill trackers concurrently (OSIDB-3230)

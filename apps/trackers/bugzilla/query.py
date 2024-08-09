@@ -6,7 +6,7 @@ from apps.bbsync.constants import DATE_FMT
 from apps.bbsync.exceptions import ProductDataError
 from apps.bbsync.models import BugzillaComponent
 from apps.bbsync.query import BugzillaQueryBuilder
-from apps.sla.framework import SLAFramework
+from apps.sla.framework import sla_classify
 from apps.trackers.common import TrackerQueryBuilder
 from osidb.cc import BugzillaAffectCCBuilder
 from osidb.models import Flaw
@@ -187,8 +187,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         """
         generate query for Bugzilla deadline
         """
-        sla_framework = SLAFramework()
-        sla_context = sla_framework.classify(self.tracker)
+        sla_context = sla_classify(self.tracker)
         # the tracker may or may not be under SLA
         if sla_context.sla is not None:
             self._query["deadline"] = sla_context.end.strftime(DATE_FMT)
