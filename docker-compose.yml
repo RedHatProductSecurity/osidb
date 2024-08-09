@@ -62,6 +62,8 @@ services:
         args:
           RH_CERT_URL: ${RH_CERT_URL}
           PYPI_MIRROR: ${PIP_INDEX_URL}
+          GID: ${GID}
+          UID: ${UID}
       image: osidb-service
       stdin_open: true
       tty: true

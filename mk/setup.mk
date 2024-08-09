@@ -118,7 +118,7 @@ dev-rpm-install:
 build:
 	@echo ">building docker images and deleting existing containers"
 	$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml down
-	$(podmancompose) -f docker-compose.yml build
+	env UID=$(uid) GID=$(gid) $(podmancompose) -f docker-compose.yml build
 	$(podmancompose) -f docker-compose.yml pull
 	$(podmancompose) -f docker-compose.test.yml build
 	$(podmancompose) -f docker-compose.test.yml pull
