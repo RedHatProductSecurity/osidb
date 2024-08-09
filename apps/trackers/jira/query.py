@@ -503,7 +503,42 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #          - manually find the Severity field
         #            - 'id': 4703, 'project_key': 'TPFUN', 'field_id': 'customfield_12316142', 'field_name': 'Severity', 'allowed_values': ['Critical', 'Important', 'Moderate', 'Low', 'Informational', 'None']
         #          - manually find valid values
-        #            - TPFUN metadata allow values: ['Critical', 'Important', 'Moderate', 'Low', 'Informational', 'None']
+        #            - stage TPFUN metadata allow values: ['Critical', 'Important', 'Moderate', 'Low', 'Informational', 'None']
+        #            - prod
+        #              >>> projects_severity_field = set(JiraProjectFields.objects.filter(field_id="customfield_12316142").values_list("project_key", flat=True))
+        #              >>> projects_vulnerability_issuetype = set(JiraProjectFields.objects.filter(field_id="issuetype").filter(allowed_values=["Vulnerability"]).values_list("project_key", flat=True))
+        #              >>> kinds_of_severity = set()
+        #              >>> for project_key in sorted(projects_severity_field & projects_vulnerability_issuetype):
+        #              ...   kinds_of_severity.add(tuple(JiraProjectFields.objects.filter(project_key=project_key).filter(field_id="customfield_12316142").first().allowed_values))
+        #              ...
+        #              >>> for k in kinds_of_severity:
+        #              ...  print(repr(k))
+        #              ...
+        #              ('  <img alt="" src="/images/icons/priorities/critical.svg" width="16" height="16"> Urgent', '<img alt="" src="/images/icons/priorities/high.svg" width="16" height="16"> High', '  <img alt="" src="/images/icons/priorities/medium.svg" width="16" height="16"> Medium', '<img alt="" src="/images/icons/priorities/low.svg" width="16" height="16"> Low')
+        #              ('Critical', 'Important', 'Moderate', 'Low', 'Informational')
+        #              ('Critical', 'Important', 'Moderate', 'Low', 'Informational', 'None')
+        #              ('Trivial', 'Minor', 'Normal', 'Major', 'Critical', 'Blocker')
+        #              ('Blocker', 'Critical', 'Major', 'Normal', 'Minor', 'Trivial')
+        #              >>>
+        #              >>>
+        #              >>> len(projects_severity_field)
+        #              128
+        #              >>> len(projects_vulnerability_issuetype)
+        #              128
+        #              >>> projects_severity_field == projects_vulnerability_issuetype
+        #              False
+        #              >>> projects_severity_field - projects_vulnerability_issuetype
+        #              {'JAVAMON', 'SRVKP', 'SECENGSP', 'NETOBSERV', 'ENTMQCL', 'TEAMNADO', 'OPENJDK'}
+        #              >>> projects_vulnerability_issuetype - projects_severity_field
+        #              {'JBTM', 'DSAL', 'TFT', 'DEVHAS', 'CRC', 'SVPI', 'INFRAPLTS'}
+        #              >>>
+        #              >>>
+        #              >>> for project_key in sorted(projects_severity_field):
+        #              ...  relevant = project_key in projects_vulnerability_issuetype
+        #              ...  msg = "{:<20}{:<7}{}".format(project_key, repr(relevant), repr(JiraProjectFields.objects.filter(project_key=project_key).filter(field_id="customfield_12316142").first().allowed_values))
+        #              ...  print(msg)
+        #              ...
+        #              ... (run this locally to see the output)
         #          - compare with logic for Priority and Rogue's doc
         #            - set to flaw or optional per-component severity
         #            - so it probably should be set to the aggregate impact
@@ -511,6 +546,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #              - TODO: Ask yet again for clarification after a few days following August 5
         #          - automate accordingly
         #      - TODO what about INFORMATIONAL? -> ask Rogue what INFORMATIONAL should map to
+        #         - TODO also ask about the other values
         #      - TODO is this docstring correct? -> ask Rogue which of the values can happen
         #  - TODO: do not use priority
         #      - HOW:
@@ -524,6 +560,18 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #            - Flaw.source char field with FlawSource choices
         #          - what Jira field?
         #            - {'id': 4908, 'project_key': 'TPFUN', 'field_id': 'customfield_12324746', 'field_name': 'Source', 'allowed_values': ['Security Architecture Review (SAR)', 'Threat Model (TM)', 'Penetration Test (PenTest)', 'Static Application Security Testing (SAST)', 'Dynamic Application Security Testing (DAST)', 'Other', 'Adobe', 'Apple', 'Bugtraq', 'CERT', 'Customer', 'CVE', 'Debian', 'Distros', 'Full Disclosure', 'Gentoo', 'Git', 'Google', 'Hardware Vendor', 'Internet', 'LKML', 'Mageia', 'Mozilla', 'NVD', 'OpenSSL', 'Oracle', 'OSS-Security', 'OSV', 'Red Hat', 'Researcher', 'Secunia', 'Sko', 'Sun', 'Suse', 'Twitter', 'Ubuntu', 'Upstream']}
+        #            - prod:
+        #              >>> JiraProjectFields.objects.filter(field_id="customfield_12324746").all().count()
+        #              77
+        #              >>> len(set(JiraProjectFields.objects.all().values_list("project_key", flat=True)))
+        #              138
+        #              >>> set(JiraProjectFields.objects.filter(field_id="customfield_12324748").values_list("project_key", flat=True)) == set(JiraProjectFields.objects.filter(field_id="customfield_12324746").values_list("project_key", flat=True))
+        #              True
+        #          - This field is not universally-supported.
+        #            - It is within the set of 77 projects that support all the fields, but there are 51 other projects that technically support the Vulnerability issue type, but not its special fields that are not present in the Bug issue type.
+        #            - Use it when available, allow it not be available
+        #            - Log when it's not available (in a way visible in prod splunk)
+        #            - TODO: Ask Rogue whether it being available only in 77/138 projects is expected.
         #          - note that FlawSource and the "Source" jira field are not 1:1
         #            - FlawSource is all caps, "Source" has mixed case
         #            - Some values are available only in one of them
@@ -536,6 +584,18 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #      - HOW:
         #          - what Jira field?
         #            - {'id': 4909, 'project_key': 'TPFUN', 'field_id': 'customfield_12324749', 'field_name': 'CVE ID', 'allowed_values': []}
+        #            - prod:
+        #              >>> JiraProjectFields.objects.filter(field_id="customfield_12324749").all().count()
+        #              77
+        #              >>> len(set(JiraProjectFields.objects.all().values_list("project_key", flat=True)))
+        #              138
+        #              >>> set(JiraProjectFields.objects.filter(field_id="customfield_12324748").values_list("project_key", flat=True)) == set(JiraProjectFields.objects.filter(field_id="customfield_12324749").values_list("project_key", flat=True))
+        #              True
+        #          - This field is not universally-supported.
+        #            - It is within the set of 77 projects that support all the fields, but there are 51 other projects that technically support the Vulnerability issue type, but not its special fields that are not present in the Bug issue type.
+        #            - Use it when available, allow it not be available
+        #            - Log when it's not available (in a way visible in prod splunk)
+        #            - TODO: Ask Rogue whether it being available only in 77/138 projects is expected.
         #          - what is the equivalent in OSIDB? in Flaw model?
         #            - Flaw.cve_id
         #          -
@@ -552,20 +612,38 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #              - no such field in TPFUN
         #            - prod:
         #                >>> JiraProjectFields.objects.filter(field_id="customfield_12324748").all().count()
-        #                80
+        #                77
         #                >>> len(set(JiraProjectFields.objects.all().values_list("project_key", flat=True)))
         #                138
+        #                >>> JiraProjectFields.objects.filter(field_id="issuetype").filter(allowed_values=["Vulnerability"]).count()
+        #                128
         #              - {'id': 5747, 'project_key': 'TPFUN', 'field_id': 'customfield_12324748', 'field_name': 'CVSS Score', 'allowed_values': []}
         #          - This field is not universally-supported.
+        #            - It is within the set of 77 projects that support all the fields, but there are 51 other projects that technically support the Vulnerability issue type, but not its special fields that are not present in the Bug issue type.
         #            - Use it when available, allow it not be available
         #            - Log when it's not available (in a way visible in prod splunk)
-        #            - TODO: Ask Rogue whether it being available only in 80/138 projects is expected.
+        #            - TODO: Ask Rogue whether it being available only in 77/138 projects is expected.
         #            -
         #          -
         #  - TODO: cwe id
+        #      - TODO: draft implementation
         #      - HOW:
         #          - what Jira field?
-        #            - TODO
+        #            - {'id': 5748, 'project_key': 'TPFUN', 'field_id': 'customfield_12324747', 'field_name': 'CWE ID', 'allowed_values': []}
+        #            - prod:
+        #                >>> JiraProjectFields.objects.filter(field_id="customfield_12324747").all().count()
+        #                77
+        #                >>> len(set(JiraProjectFields.objects.all().values_list("project_key", flat=True)))
+        #                138
+        #                >>> JiraProjectFields.objects.filter(field_id="issuetype").filter(allowed_values=["Vulnerability"]).count()
+        #                128
+        #                >>> set(JiraProjectFields.objects.filter(field_id="customfield_12324748").values_list("project_key", flat=True)) == set(JiraProjectFields.objects.filter(field_id="customfield_12324747").values_list("project_key", flat=True))
+        #                True
+        #          - This field is not universally-supported.
+        #            - It is within the set of 77 projects that support all the fields, but there are 51 other projects that technically support the Vulnerability issue type, but not its special fields that are not present in the Bug issue type.
+        #            - Use it when available, allow it not be available
+        #            - Log when it's not available (in a way visible in prod splunk)
+        #            - TODO: Ask Rogue whether it being available only in 77/138 projects is expected.
         #            -
         #          -
         #  - TODO: downstream component name # for now use the component as for the old jira type ??
@@ -621,6 +699,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         field_id = field.field_id
 
         # TODO move to the appropriate place (next to / instead of JiraPriority)
+        # TODO incorporate other values but first ask Rogue if the others are valid
         class JiraSeverity:
             """
             Allowed Jira severity values TODO compliant with what exactly?
