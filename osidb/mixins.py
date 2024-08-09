@@ -210,6 +210,10 @@ class ACLMixin(models.Model):
     def is_internal(self):
         return set(self.acl_read + self.acl_write) == self.acls_internal
 
+    @property
+    def is_public(self):
+        return set(self.acl_read + self.acl_write) == self.acls_public
+
     def acl2group(self, acl):
         """
         transform back to human readable group name or
@@ -554,6 +558,46 @@ class ACLMixin(models.Model):
         ):
             # continue deeper into the related context
             related_instance.unembargo()
+
+    def set_public_nested(self):
+        """
+        Change internal ACLs to public ACLs for all related Flaw objects and save them.
+        The only exception is "snippets", which should always have internal ACLs.
+        The Flaw itself will be saved later to avoid duplicate operations.
+        """
+        from osidb.models import Flaw
+
+        if not isinstance(self, Flaw):
+            if not self.is_internal:
+                return
+            kwargs = {}
+            if issubclass(type(self), AlertMixin):
+                # suppress the validation errors as we expect that during
+                # the update the parent and child ACLs will not equal
+                kwargs["raise_validation_error"] = False
+            if issubclass(type(self), TrackingMixin):
+                # do not auto-update the updated_dt timestamp as the
+                # followup update would fail on a mid-air collision
+                kwargs["auto_timestamps"] = False
+            self.set_public()
+            self.save(**kwargs)
+
+        # chain all the related instances as we
+        # only care for the ACLs which are unified
+        for related_instance in chain.from_iterable(
+            getattr(self, name).all()
+            for name in [
+                related.related_name
+                for related in self._meta.related_objects
+                # only the models with ACLs other than "snippets" are subject of this
+                if (
+                    issubclass(related.related_model, ACLMixin)
+                    and related.related_name != "snippets"
+                )
+            ]
+        ):
+            # continue deeper into the related context
+            related_instance.set_public_nested()
 
 
 class AlertManager(ACLMixinManager):
