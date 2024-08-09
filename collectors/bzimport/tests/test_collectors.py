@@ -228,10 +228,7 @@ class TestBugzillaTrackerCollector:
 
         tracker = Tracker.objects.first()
         # should be updated from the bz values
-        assert tracker.created_dt == datetime(
-            2018, 9, 17, 9, 21, 54, tzinfo=timezone.utc
-        )
-        assert tracker.updated_dt == datetime(
+        assert tracker.bts_updated_dt == datetime(
             2018, 9, 17, 9, 22, 0, tzinfo=timezone.utc
         )
         assert tracker.status == "NEW"

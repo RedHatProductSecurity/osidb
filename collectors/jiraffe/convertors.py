@@ -185,9 +185,6 @@ class TrackerSaver:
             self.tracker.affects.clear()
             self.tracker.affects.add(*self.affects)  # bulk add
             self.tracker.save(
-                # we want to store the original timestamps
-                # so we turn off assigning the automatic ones
-                auto_timestamps=False,
                 # we want to store all the data fetched by the collector
                 # so we suppress the exception raising in favor of alerts
                 raise_validation_error=False,
@@ -263,14 +260,13 @@ class TrackerConvertor:
             meta_attr=self.tracker_data,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
+            bts_updated_dt=self.tracker_data["updated_dt"],
             raise_validation_error=False,  # do not raise exceptions here
         )
         # eventual save inside create_tracker would
         # override the timestamps so we have to set them here
         tracker.created_dt = self.tracker_data["created_dt"]
-        tracker.updated_dt = (
-            self.tracker_data["updated_dt"] or self.tracker_data["created_dt"]
-        )
+
         return tracker
 
     @property

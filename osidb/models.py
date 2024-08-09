@@ -2370,6 +2370,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     status = models.CharField(max_length=100, blank=True)
     resolution = models.CharField(max_length=100, blank=True)
     ps_update_stream = models.CharField(max_length=100, blank=True)
+    bts_updated_dt = models.DateTimeField(null=True, blank=True)
 
     # non operational meta data
     meta_attr = HStoreField(default=dict)
@@ -2428,9 +2429,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             tracker_instance = TrackerSaver(self, bz_api_key=bz_api_key).save()
             # save in case a new Bugzilla ID was obtained
             # so the tracker is later matched in BZ import
-            kwargs[
-                "auto_timestamps"
-            ] = False  # the timestamps will be get from Bugzilla
+
             # the validations were already run
             kwargs["raise_validation_error"] = False
             kwargs["no_alerts"] = True
@@ -2453,9 +2452,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             tracker_instance = TrackerSaver(self, jira_token=jira_token).save()
             # save in case a new Jira ID was obtained
             # so the flaw is later matched in Jiraffe sync
-            kwargs[
-                "auto_timestamps"
-            ] = False  # the timestamps will be get from Bugzilla
+
             # the validations were already run
             kwargs["raise_validation_error"] = False
             kwargs["no_alerts"] = True
