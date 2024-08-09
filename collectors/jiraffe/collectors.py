@@ -179,8 +179,10 @@ class JiraTrackerCollector(Collector):
 
         # process data
         for tracker_data in batch_data:
-            self.save(JiraTrackerConvertor(tracker_data).tracker)
-            updated_trackers.append(tracker_data.key)
+            tracker = JiraTrackerConvertor(tracker_data).tracker
+            if tracker:
+                self.save(tracker)
+                updated_trackers.append(tracker_data.key)
 
         # Schedule linking tracker => affect
         for updated_tracker_id in updated_trackers:
