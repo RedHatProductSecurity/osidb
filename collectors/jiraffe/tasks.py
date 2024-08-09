@@ -43,8 +43,7 @@ def jira_tracker_collector(collector_obj):
 
 @collector(
     base=MetadataCollector,
-    # run once a day at 2:35
-    crontab=crontab(hour=2, minute=35),
+    crontab=crontab(minute="0", hour="*/3"),  # run every three hours
     depends_on=["collectors.product_definitions.tasks.product_definitions_collector"],
     enabled=JIRA_METADATA_COLLECTOR_ENABLED,
 )
