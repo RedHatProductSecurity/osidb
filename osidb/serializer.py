@@ -868,16 +868,9 @@ class BugzillaSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSerializ
         """
         skip_bz_sync = validated_data.pop("skip_bz_sync", False)
 
-        if not skip_bz_sync:
-            # bzsync of flaw depends on comparing it with the old instance, but the instance is updated in
-            # the update call through the JiraTaskSyncMixinSerializer and it is lost.
-            kwargs = {}
-            if isinstance(instance, Flaw):
-                kwargs["old_instance"] = copy.deepcopy(instance)
-
         instance = super().update(instance, validated_data)
         if not skip_bz_sync:
-            instance.bzsync(bz_api_key=self.get_bz_api_key(), **kwargs)
+            instance.bzsync(bz_api_key=self.get_bz_api_key())
         return instance
 
     class Meta:

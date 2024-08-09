@@ -1321,7 +1321,6 @@ class Flaw(
         """
         Bugzilla sync of the Flaw instance
         """
-        old_instance = kwargs.pop("old_instance", None)
         if not SYNC_FLAWS_TO_BZ:
             # up until now the parent save methods run in sequence of
             # 1) TrackingMixin with auto-timestamps on
@@ -1337,7 +1336,6 @@ class Flaw(
             # Process the bzsync asynchronously
             BZSyncManager.check_for_reschedules()
             kwargs["bz_api_key"] = bz_api_key
-            kwargs["old_instance"] = old_instance
             BZSyncManager.schedule(str(self.uuid), *args, **kwargs)
         else:
             # imports here to prevent cycles
@@ -1346,7 +1344,7 @@ class Flaw(
 
             # sync to Bugzilla
             bs = FlawBugzillaSaver(self, bz_api_key)
-            flaw_instance = bs.save(old_instance)
+            flaw_instance = bs.save()
             kwargs[
                 "auto_timestamps"
             ] = False  # the timestamps will be get from Bugzilla
@@ -1373,10 +1371,7 @@ class Flaw(
 
         # sync to Bugzilla
         bs = FlawBugzillaSaver(self, bz_api_key)  # prepare data for save to BZ
-        old_instance = kwargs.pop("old_instance", None)
-        flaw_instance = bs.save(
-            old_instance
-        )  # actually send to BZ (but not save to DB)
+        self = bs.save()  # actually send to BZ (but not save to DB)
 
         if creating:
             # Save bz_id to DB
@@ -1385,7 +1380,7 @@ class Flaw(
             # save in case a new Bugzilla ID was obtained
             # Instead of self.save(*args, **kwargs), just update the single field to avoid
             # race conditions.
-            flaw_instance.save(*args, update_fields=["meta_attr"], **kwargs)
+            self.save(*args, update_fields=["meta_attr"], **kwargs)
 
     def tasksync(
         self,
