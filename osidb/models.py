@@ -2281,7 +2281,7 @@ class TrackerManager(ACLMixinManager, TrackingMixinManager):
     """tracker manager"""
 
     @staticmethod
-    def create_tracker(
+    def create_tracker(  # TODO?
         affect, external_system_id, _type, raise_validation_error=True, **extra_fields
     ):
         """return a new tracker or update an existing tracker"""
