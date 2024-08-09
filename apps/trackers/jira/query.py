@@ -540,6 +540,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #            - Flaw.cve_id
         #          -
         #  - TODO: cvss score
+        #      - TODO: draft implementation
         #      - HOW:
         #          - what Jira field?
         #            - TODO: Is there an issue that makes it unavailable in most projects?
@@ -552,8 +553,13 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #            - prod:
         #                >>> JiraProjectFields.objects.filter(field_id="customfield_12324748").all().count()
         #                80
+        #                >>> len(set(JiraProjectFields.objects.all().values_list("project_key", flat=True)))
+        #                138
         #              - {'id': 5747, 'project_key': 'TPFUN', 'field_id': 'customfield_12324748', 'field_name': 'CVSS Score', 'allowed_values': []}
-        #            -
+        #          - This field is not universally-supported.
+        #            - Use it when available, allow it not be available
+        #            - Log when it's not available (in a way visible in prod splunk)
+        #            - TODO: Ask Rogue whether it being available only in 80/138 projects is expected.
         #            -
         #          -
         #  - TODO: cwe id
