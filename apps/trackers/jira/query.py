@@ -548,6 +548,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #          - automate accordingly
         #      - TODO what about INFORMATIONAL? -> ask Rogue what INFORMATIONAL should map to
         #         - TODO also ask about the other values
+        #         - TODO Rogue said "values are in sync with our official CVE severity rating" in a comment in the gdoc, so what is the official rating?
         #      - TODO is this docstring correct? -> ask Rogue which of the values can happen
         #          -
         #  - TODO: do not use priority
@@ -656,10 +657,8 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #          -
         #  - TODO: downstream component name # for now use the component as for the old jira type ??
         #      - TODO: handle in collector
-        #      - TODO: reread doc & Rogue's answers
         #      - TODO: draft implementation
         #      - HOW:
-        #          - try to use ps_component exactly
         #          - what Jira field?
         #            - {'id': 5749, 'project_key': 'TPFUN', 'field_id': 'customfield_12324752', 'field_name': 'Downstream Component Name', 'allowed_values': []}
         #            - prod:
@@ -675,11 +674,12 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #            - Log when it's not available (in a way visible in prod splunk)
         #            - TODO: Ask Rogue whether it being available only in 77/138 projects is expected.
         #            -
-        #          - TODO: what's the equivalent in Flaw model?
+        #          - DONE: what's the equivalent in Flaw model?
+        #            - the same as the label "pscomponent:", so tracker.affects.first().ps_component
         #          -
         #  - TODO: upstream affected component  # for now use the component as for the old jira type ??
+        #      - TODO: waiting for Rogue's answer
         #      - TODO: handle in collector
-        #      - TODO: reread doc & Rogue's answers
         #      - TODO: draft implementation
         #      - HOW:
         #          - try to use the component as for the old jira type -> look at Rogue's answers
@@ -701,8 +701,9 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #          - TODO: what's the equivalent in Flaw model?
         #          -
         #  - TODO: embargo status
-        #      - TODO: handle in collector
+        #      - TODO: waiting for Rogue's answer in gdoc
         #      - TODO: reread doc & Rogue's answers
+        #      - TODO: handle in collector
         #      - TODO: draft implementation
         #      - HOW:
         #          - ?? is this the same thing as the existing field `embargoed`?
@@ -722,11 +723,14 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #            - Log when it's not available (in a way visible in prod splunk)
         #            - TODO: Ask Rogue whether it being available only in 77/138 projects is expected.
         #            -
-        #          - TODO: what's the equivalent in Flaw model?
+        #          - DONE: what's the equivalent in Flaw model?
+        #            - is_embargoed
+        #            -
         #          -
         #  - TODO: special handling
-        #      - TODO: handle in collector
+        #      - TODO: waiting for Rogue's answer in gdoc
         #      - TODO: reread doc & Rogue's answers
+        #      - TODO: handle in collector
         #      - TODO: draft implementation
         #      - HOW:
         #          - look at the jira field in jira, then figure out next steps
@@ -750,7 +754,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #          -
         #  - TODO: errata id
         #      - TODO: handle in collector
-        #      - TODO: reread doc & Rogue's answers
+        #      - TODO: reread doc
         #      - TODO: draft implementation
         #      - HOW:
         #          - ?? what are the requirements? Just a dumb field with API and sync but no handling logic?
@@ -773,9 +777,10 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #          - TODO: what's the equivalent in Flaw model?
         #          -
         #  - TODO: security level - double-check handling against the spec doc
-        #      - TODO: handle in collector
-        #      - TODO: reread doc & Rogue's answers
-        #      - TODO: draft implementation
+        #      - PROBABLY: TODO: Do not run generate_security for the new issuetype
+        #        - the gdoc says to only set embargo status
+        #      - PROBABLY NOT: TODO: handle in collector
+        #      - PROBABLY NOT: TODO: draft implementation
         #      - HOW:
         #          - what Jira field?
         #            - {'id': 5709, 'project_key': 'TPFUN', 'field_id': 'security', 'field_name': 'Security Level', 'allowed_values': ['Embargoed Security Issue', 'Red Hat Employee', 'Red Hat Engineering Authorized', 'Red Hat Partner', 'Restricted', 'Team']}
@@ -803,8 +808,10 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #              ... (run this locally to see the output)
         #          - TODO: what's the equivalent in Flaw model?
         #          - TODO: Does this field already exist in the old-style tracker issuetype?
+        #            - yes, generate_security
         #          -
         #  -
+        #  - TODO: Before the preliminary implementation, reread the whole doc & comments.
         #  -
         #  - DONE: where are existing fields for the old tracker jira type set?
         #      - examples:
