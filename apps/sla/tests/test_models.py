@@ -79,7 +79,8 @@ class TestSLA:
             sla = SLA.create_from_description(sla_desc)
 
             assert sla.get_start == expected_func
-            assert sla.start_dates == expected_dates
+            # No source is specified so by default it's flaw
+            assert sla.start_dates["flaw"] == expected_dates
 
         @pytest.mark.parametrize(
             "definition,expected",
@@ -130,7 +131,8 @@ class TestSLA:
             flaw = FlawFactory()
             setattr(flaw, attribute, value)
 
-            assert sla.start(flaw) == value
+            sla_context = SLAContext(flaw=flaw)
+            assert sla.start(sla_context) == value
 
         @pytest.mark.parametrize(
             "definition,context,expected",
@@ -199,8 +201,9 @@ class TestSLA:
             flaw = FlawFactory()
             for attribute, value in context:
                 setattr(flaw, attribute, make_aware(value))
+            sla_context = SLAContext(flaw=flaw)
 
-            assert sla.start(flaw) == make_aware(expected)
+            assert sla.start(sla_context) == make_aware(expected)
 
         @pytest.mark.parametrize(
             "definition,context,expected",
@@ -269,8 +272,71 @@ class TestSLA:
             flaw = FlawFactory()
             for attribute, value in context:
                 setattr(flaw, attribute, make_aware(value))
+            sla_context = SLAContext(flaw=flaw)
 
-            assert sla.start(flaw) == make_aware(expected)
+            assert sla.start(sla_context) == make_aware(expected)
+
+        @pytest.mark.parametrize(
+            "definition,context,expected",
+            [
+                (
+                    {"flaw": ["unembargo date"], "tracker": ["created date"]},
+                    {
+                        "flaw": [
+                            ("unembargo_dt", datetime(2022, 11, 21)),
+                        ],
+                        "tracker": [("created_dt", datetime(2023, 12, 20))],
+                    },
+                    datetime(2023, 12, 20),
+                ),
+                (
+                    {"flaw": ["unembargo date"], "tracker": ["created date"]},
+                    {
+                        "flaw": [
+                            ("unembargo_dt", datetime(2024, 11, 21)),
+                        ],
+                        "tracker": [("created_dt", datetime(2023, 12, 20))],
+                    },
+                    datetime(2024, 11, 21),
+                ),
+                (
+                    {"tracker": ["created date"]},
+                    {"tracker": [("created_dt", datetime(2023, 12, 20))]},
+                    datetime(2023, 12, 20),
+                ),
+            ],
+        )
+        def test_date_source(self, definition, context, expected):
+            sla_desc = {
+                "duration": 5,
+                "start": {
+                    "latest": definition,
+                },
+                "type": "calendar days",
+            }
+            sla = SLA.create_from_description(sla_desc)
+
+            flaw = FlawFactory()
+            for attribute, value in context.get("flaw", {}):
+                setattr(flaw, attribute, make_aware(value))
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_module=ps_module.name,
+            )
+            tracker = TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.embargoed,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+            )
+            for attribute, value in context.get("tracker", {}):
+                setattr(tracker, attribute, make_aware(value))
+
+            sla_context = SLAContext(flaw=flaw, affect=affect, tracker=tracker)
+
+            assert sla.start(sla_context) == make_aware(expected)
 
     class TestEnd:
         """
@@ -301,8 +367,9 @@ class TestSLA:
             }
             sla = SLA.create_from_description(sla_desc)
             flaw = FlawFactory(reported_dt=make_aware(datetime(2023, 11, 13, 1, 1, 1)))
+            sla_context = SLAContext(flaw=flaw)
 
-            assert sla.end(flaw) == make_aware(expected)
+            assert sla.end(sla_context) == make_aware(expected)
 
         @pytest.mark.parametrize(
             "definition,expected",
@@ -324,8 +391,9 @@ class TestSLA:
             }
             sla = SLA.create_from_description(sla_desc)
             flaw = FlawFactory(reported_dt=make_aware(datetime(2023, 11, 13, 5, 5, 5)))
+            sla_context = SLAContext(flaw=flaw)
 
-            assert sla.end(flaw) == make_aware(expected)
+            assert sla.end(sla_context) == make_aware(expected)
 
 
 class TestSLAContext:

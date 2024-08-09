@@ -4,7 +4,6 @@ SLA policy model definitions
 
 from functools import cached_property
 
-from django.contrib.postgres import fields
 from django.db import models
 
 from apps.workflows.models import Check
@@ -37,13 +36,15 @@ class SLA(models.Model):
         "latest": max,
     }
 
+    VALID_DATE_SOURCES = ("flaw", "affect", "tracker")
+
     duration = models.IntegerField()
     duration_type = models.CharField(max_length=20, choices=DurationTypes.choices)
     start_criteria = models.CharField(max_length=20, choices=StartCriteria.choices)
-    start_dates = fields.ArrayField(models.CharField(max_length=100), default=list)
+    start_dates = models.JSONField(default=dict)
 
     @classmethod
-    def create_from_description(self, sla_desc):
+    def create_from_description(cls, sla_desc):
         def parse_date(date_desc):
             """
             translate human-readable date description into the attribute name
@@ -59,9 +60,21 @@ class SLA(models.Model):
 
         # the dictionary should have only a single item but we do not
         # run any validations here so just assume it is all correct
-        for get_start_desc, date_desc_list in start_desc.items():
-            start_criteria = get_start_desc
-            start_dates = [parse_date(date_desc) for date_desc in date_desc_list]
+        get_start_desc, date_source_desc = next(iter(start_desc.items()))
+        start_criteria = get_start_desc
+        # No source specified, default to flaw
+        if isinstance(date_source_desc, list):
+            date_source_desc = {"flaw": date_source_desc}
+
+        start_dates = {}
+        for date_source, date_desc_list in date_source_desc.items():
+            if date_source not in cls.VALID_DATE_SOURCES:
+                raise SLAExecutionError(
+                    f"SLA contains an invalid start date source. Valid sources: {', '.join(cls.VALID_DATE_SOURCES)}"
+                )
+            start_dates[date_source] = [
+                parse_date(date_desc) for date_desc in date_desc_list
+            ]
 
         sla = SLA(
             duration=duration,
@@ -72,22 +85,29 @@ class SLA(models.Model):
 
         return sla
 
-    def start(self, instance):
+    def start(self, sla_context):
         """
         compute SLA start moment for the given instance
         """
-        return self.get_start(
-            getattr(instance, date)
-            for date in self.start_dates
-            if getattr(instance, date) is not None
-        )
+        # Populate with the actual dates
+        start_dates = []
+        for model, dates in self.start_dates.items():
+            instance = sla_context.get(model, None)
+            start_dates += [
+                getattr(instance, date) for date in dates if instance is not None
+            ]
 
-    def end(self, instance):
+        if not start_dates:
+            return None
+
+        return self.get_start(start_dates)
+
+    def end(self, sla_context):
         """
         compute SLA end moment for the given instance
         """
         return self.add_days(
-            self.start(instance),
+            self.start(sla_context),
             self.duration,
         )
 
@@ -147,11 +167,10 @@ class SLAContext(dict):
         assigned possibly meaning that this SLA
         context is accepted by no SLA policy
         """
-        # for now we only compute SLA based on Flaw
-        if not self.get("flaw"):
-            raise SLAExecutionError("Missing required SLA context")
+        if self.sla is None:
+            return None
 
-        return self.sla.start(self["flaw"]) if self.sla is not None else None
+        return self.sla.start(self)
 
     @property
     def end(self):
@@ -162,11 +181,10 @@ class SLAContext(dict):
         assigned possibly meaning that this SLA
         context is accepted by no SLA policy
         """
-        # for now we only compute SLA based on Flaw
-        if not self.get("flaw"):
-            raise SLAExecutionError("Missing required SLA context")
+        if self.sla is None:
+            return None
 
-        return self.sla.end(self["flaw"]) if self.sla is not None else None
+        return self.sla.end(self)
 
 
 class SLAPolicy(models.Model):

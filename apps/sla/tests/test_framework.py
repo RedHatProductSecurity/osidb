@@ -147,6 +147,41 @@ sla:
             assert sla_policies[1].name == "Moderate"
             assert sla_policies[2].name == "Low"
 
+        def test_date_sources(self):
+            """
+            test that a policy definition with multiple date sources is loaded correctly
+            """
+            sla_file = """
+# some comment
+---
+name: Low
+description: SLA policy applied to low impact
+conditions:
+  affect:
+    - aggregated impact is low
+  flaw:
+    - is not embargoed
+sla:
+  duration: 180
+  start:
+    latest:
+      flaw:
+        - reported date
+        - unembargo date
+      tracker:
+        - created date
+  type: calendar days
+"""
+
+            load_sla_policies(sla_file)
+
+            assert SLAPolicy.objects.count() == 1
+            policy = SLAPolicy.objects.first()
+            assert policy.name == "Low"
+            assert policy.description == "SLA policy applied to low impact"
+            assert policy.conditions
+            assert policy.sla
+
     class TestClassify:
         """
         test that a model instance is properly
