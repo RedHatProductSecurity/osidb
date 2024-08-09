@@ -499,6 +499,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         self.generate_target_release()
         # TODO fix/implement:
         #  - TODO: severity
+        #      - TODO: handle in collector
         #      - HOW:
         #          - manually find the Severity field
         #            - 'id': 4703, 'project_key': 'TPFUN', 'field_id': 'customfield_12316142', 'field_name': 'Severity', 'allowed_values': ['Critical', 'Important', 'Moderate', 'Low', 'Informational', 'None']
@@ -548,10 +549,14 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #      - TODO what about INFORMATIONAL? -> ask Rogue what INFORMATIONAL should map to
         #         - TODO also ask about the other values
         #      - TODO is this docstring correct? -> ask Rogue which of the values can happen
+        #          -
         #  - TODO: do not use priority
+        #      - TODO: handle in collector
         #      - HOW:
         #          - delete generate_priority in this file
+        #          -
         #  - TODO: source
+        #      - TODO: handle in collector
         #      - TODO: draft implementation
         #      - HOW:
         #          - e.g. "CVE"
@@ -580,6 +585,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #          -
         #          -
         #  - TODO: cve id
+        #      - TODO: handle in collector
         #      - TODO: draft implementation
         #      - HOW:
         #          - what Jira field?
@@ -600,6 +606,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #            - Flaw.cve_id
         #          -
         #  - TODO: cvss score
+        #      - TODO: handle in collector
         #      - TODO: draft implementation
         #      - HOW:
         #          - what Jira field?
@@ -626,6 +633,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #            -
         #          -
         #  - TODO: cwe id
+        #      - TODO: handle in collector
         #      - TODO: draft implementation
         #      - HOW:
         #          - what Jira field?
@@ -647,30 +655,155 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         #            -
         #          -
         #  - TODO: downstream component name # for now use the component as for the old jira type ??
+        #      - TODO: handle in collector
+        #      - TODO: reread doc & Rogue's answers
+        #      - TODO: draft implementation
         #      - HOW:
         #          - try to use ps_component exactly
         #          - what Jira field?
-        #            - TODO
+        #            - {'id': 5749, 'project_key': 'TPFUN', 'field_id': 'customfield_12324752', 'field_name': 'Downstream Component Name', 'allowed_values': []}
+        #            - prod:
+        #              >>> JiraProjectFields.objects.filter(field_id="customfield_12324752").all().count()
+        #              77
+        #              >>> len(set(JiraProjectFields.objects.all().values_list("project_key", flat=True)))
+        #              138
+        #              >>> set(JiraProjectFields.objects.filter(field_id="customfield_12324748").values_list("project_key", flat=True)) == set(JiraProjectFields.objects.filter(field_id="customfield_12324752").values_list("project_key", flat=True))
+        #              True
+        #          - This field is not universally-supported.
+        #            - It is within the set of 77 projects that support all the fields, but there are 51 other projects that technically support the Vulnerability issue type, but not its special fields that are not present in the Bug issue type.
+        #            - Use it when available, allow it not be available
+        #            - Log when it's not available (in a way visible in prod splunk)
+        #            - TODO: Ask Rogue whether it being available only in 77/138 projects is expected.
         #            -
+        #          - TODO: what's the equivalent in Flaw model?
         #          -
         #  - TODO: upstream affected component  # for now use the component as for the old jira type ??
+        #      - TODO: handle in collector
+        #      - TODO: reread doc & Rogue's answers
+        #      - TODO: draft implementation
         #      - HOW:
-        #          - try to use the component as for the old jira type
+        #          - try to use the component as for the old jira type -> look at Rogue's answers
         #          - what Jira field?
-        #            - TODO
+        #            - {'id': 5750, 'project_key': 'TPFUN', 'field_id': 'customfield_12324751', 'field_name': 'Upstream Affected Component', 'allowed_values': []}
+        #            - prod:
+        #              >>> JiraProjectFields.objects.filter(field_id="customfield_12324751").all().count()
+        #              77
+        #              >>> len(set(JiraProjectFields.objects.all().values_list("project_key", flat=True)))
+        #              138
+        #              >>> set(JiraProjectFields.objects.filter(field_id="customfield_12324748").values_list("project_key", flat=True)) == set(JiraProjectFields.objects.filter(field_id="customfield_12324751").values_list("project_key", flat=True))
+        #              True
+        #          - This field is not universally-supported.
+        #            - It is within the set of 77 projects that support all the fields, but there are 51 other projects that technically support the Vulnerability issue type, but not its special fields that are not present in the Bug issue type.
+        #            - Use it when available, allow it not be available
+        #            - Log when it's not available (in a way visible in prod splunk)
+        #            - TODO: Ask Rogue whether it being available only in 77/138 projects is expected.
         #            -
+        #          - TODO: what's the equivalent in Flaw model?
         #          -
         #  - TODO: embargo status
+        #      - TODO: handle in collector
+        #      - TODO: reread doc & Rogue's answers
+        #      - TODO: draft implementation
         #      - HOW:
         #          - ?? is this the same thing as the existing field `embargoed`?
+        #          - what Jira field?
+        #            - {'id': 5753, 'project_key': 'TPFUN', 'field_id': 'customfield_12324750', 'field_name': 'Embargo Status', 'allowed_values': ['True', 'False']}
+        #            - prod:
+        #              >>> JiraProjectFields.objects.filter(field_id="customfield_12324750").all().count()
+        #              77
+        #              >>> len(set(JiraProjectFields.objects.all().values_list("project_key", flat=True)))
+        #              138
+        #              >>> set(JiraProjectFields.objects.filter(field_id="customfield_12324748").values_list("project_key", flat=True)) == set(JiraProjectFields.objects.filter(field_id="customfield_12324750").values_list("project_key", flat=True))
+        #              True
+        #              >>>
+        #          - This field is not universally-supported.
+        #            - It is within the set of 77 projects that support all the fields, but there are 51 other projects that technically support the Vulnerability issue type, but not its special fields that are not present in the Bug issue type.
+        #            - Use it when available, allow it not be available
+        #            - Log when it's not available (in a way visible in prod splunk)
+        #            - TODO: Ask Rogue whether it being available only in 77/138 projects is expected.
+        #            -
+        #          - TODO: what's the equivalent in Flaw model?
+        #          -
         #  - TODO: special handling
+        #      - TODO: handle in collector
+        #      - TODO: reread doc & Rogue's answers
+        #      - TODO: draft implementation
         #      - HOW:
         #          - look at the jira field in jira, then figure out next steps
+        #          - what Jira field?
+        #            - {'id': 5751, 'project_key': 'TPFUN', 'field_id': 'customfield_12324753', 'field_name': 'Special Handling', 'allowed_values': ['Major Incident', 'KEV (active exploit case)', 'Compliance Priority', 'Contract Priority']}
+        #            - prod:
+        #              >>> JiraProjectFields.objects.filter(field_id="customfield_12324753").all().count()
+        #              77
+        #              >>> len(set(JiraProjectFields.objects.all().values_list("project_key", flat=True)))
+        #              138
+        #              >>> set(JiraProjectFields.objects.filter(field_id="customfield_12324748").values_list("project_key", flat=True)) == set(JiraProjectFields.objects.filter(field_id="customfield_12324753").values_list("project_key", flat=True))
+        #              True
+        #              >>>
+        #          - This field is not universally-supported.
+        #            - It is within the set of 77 projects that support all the fields, but there are 51 other projects that technically support the Vulnerability issue type, but not its special fields that are not present in the Bug issue type.
+        #            - Use it when available, allow it not be available
+        #            - Log when it's not available (in a way visible in prod splunk)
+        #            - TODO: Ask Rogue whether it being available only in 77/138 projects is expected.
+        #            -
+        #          - TODO: what's the equivalent in Flaw model?
+        #          -
         #  - TODO: errata id
+        #      - TODO: handle in collector
+        #      - TODO: reread doc & Rogue's answers
+        #      - TODO: draft implementation
         #      - HOW:
         #          - ?? what are the requirements? Just a dumb field with API and sync but no handling logic?
+        #          - what Jira field?
+        #            - {'id': 5752, 'project_key': 'TPFUN', 'field_id': 'customfield_12324754', 'field_name': 'Errata ID', 'allowed_values': []}
+        #            - prod:
+        #              >>> JiraProjectFields.objects.filter(field_id="customfield_12324754").all().count()
+        #              77
+        #              >>> len(set(JiraProjectFields.objects.all().values_list("project_key", flat=True)))
+        #              138
+        #              >>> set(JiraProjectFields.objects.filter(field_id="customfield_12324748").values_list("project_key", flat=True)) == set(JiraProjectFields.objects.filter(field_id="customfield_12324754").values_list("project_key", flat=True))
+        #              True
+        #              >>>
+        #          - This field is not universally-supported.
+        #            - It is within the set of 77 projects that support all the fields, but there are 51 other projects that technically support the Vulnerability issue type, but not its special fields that are not present in the Bug issue type.
+        #            - Use it when available, allow it not be available
+        #            - Log when it's not available (in a way visible in prod splunk)
+        #            - TODO: Ask Rogue whether it being available only in 77/138 projects is expected.
+        #            -
+        #          - TODO: what's the equivalent in Flaw model?
+        #          -
         #  - TODO: security level - double-check handling against the spec doc
+        #      - TODO: handle in collector
+        #      - TODO: reread doc & Rogue's answers
+        #      - TODO: draft implementation
         #      - HOW:
+        #          - what Jira field?
+        #            - {'id': 5709, 'project_key': 'TPFUN', 'field_id': 'security', 'field_name': 'Security Level', 'allowed_values': ['Embargoed Security Issue', 'Red Hat Employee', 'Red Hat Engineering Authorized', 'Red Hat Partner', 'Restricted', 'Team']}
+        #            - prod:
+        #              >>>
+        #              >>> projects_vulnerability_issuetype = set(JiraProjectFields.objects.filter(field_id="issuetype").filter(allowed_values=["Vulnerability"]).values_list("project_key", flat=True))
+        #              >>> projects_security_field = set(JiraProjectFields.objects.filter(field_id="security").values_list("project_key", flat=True))
+        #              >>> kinds_of_security = set()
+        #              >>> for project_key in sorted(projects_vulnerability_issuetype & projects_security_field):
+        #              ...   kinds_of_security.add(tuple(JiraProjectFields.objects.filter(project_key=project_key).filter(field_id="security").first().allowed_values))
+        #              ...
+        #              >>> for k in kinds_of_security:
+        #              ...   print(repr(k))
+        #              ...
+        #              ('Red Hat Internal', 'Security Issue')
+        #              ('Red Hat Customer', 'Red Hat Internal', 'Red Hat Partner', 'Security Issue')
+        #              ('Security Issue', 'redhat', 'see_partner_bugs')
+        #              ('Embargoed Security Issue', 'Red Hat Employee', 'Red Hat Engineering Authorized', 'Red Hat Partner', 'Restricted', 'Team')
+        #              >>>
+        #              >>> for project_key in sorted(projects_security_field):
+        #              ...  relevant = project_key in projects_vulnerability_issuetype
+        #              ...  msg = "{:<20}{:<7}{}".format(project_key, repr(relevant), repr(JiraProjectFields.objects.filter(project_key=project_key).filter(field_id="security").first().allowed_values))
+        #              ...  print(msg)
+        #              ...
+        #              ... (run this locally to see the output)
+        #          - TODO: what's the equivalent in Flaw model?
+        #          - TODO: Does this field already exist in the old-style tracker issuetype?
+        #          -
         #  -
         #  -
         #  - DONE: where are existing fields for the old tracker jira type set?
