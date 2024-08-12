@@ -5,7 +5,7 @@ import json
 import logging
 from functools import cached_property
 
-from apps.sla.framework import SLAFramework
+from apps.sla.framework import sla_classify
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import (
     ComponentUnavailableError,
@@ -261,8 +261,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         generate query for Jira SLA timestamps
         """
-        sla_framework = SLAFramework()
-        sla_context = sla_framework.classify(self.tracker)
+        sla_context = sla_classify(self.tracker)
         # the tracker may or may not be under SLA
         if sla_context.sla is not None:
             self._query["fields"]["duedate"] = sla_context.end.isoformat()

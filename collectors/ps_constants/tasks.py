@@ -1,6 +1,7 @@
 """
 product definitions collector
 """
+
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
 from django.utils import timezone
@@ -18,6 +19,7 @@ from .core import (
     fetch_ps_constants,
     sync_compliance_priority,
     sync_contract_priority,
+    sync_sla_policies,
     sync_special_consideration_packages,
     sync_ubi_packages,
 )
@@ -76,6 +78,10 @@ def ps_constants_collector(collector_obj) -> str:
     logger.info(f"Fetching PS Constants (Special Consideration Packages) from '{url}'")
     sc_packages = fetch_ps_constants(url)
 
+    url = "/".join((PS_CONSTANTS_BASE_URL, "sla_policies.yml"))
+    logger.info(f"Fetching PS Constants (SLA Policies) from '{url}'")
+    sla_policies = fetch_ps_constants(url, multi=True)
+
     logger.info(
         (
             f"Fetched ubi packages for {len(ubi_packages)} RHEL major versions "
@@ -89,6 +95,7 @@ def ps_constants_collector(collector_obj) -> str:
     sync_contract_priority(contract_priority)
     sync_ubi_packages(ubi_packages)
     sync_special_consideration_packages(sc_packages)
+    sync_sla_policies(sla_policies)
 
     collector_obj.store(updated_until_dt=timezone.now())
     logger.info("PS Constants sync was successful.")

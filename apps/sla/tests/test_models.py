@@ -38,7 +38,7 @@ class TestSLA:
                 "start": "unembargo date",
                 "type": "business days",
             }
-            sla = SLA(sla_desc)
+            sla = SLA.create_from_description(sla_desc)
 
             assert sla.duration == expected
 
@@ -76,10 +76,10 @@ class TestSLA:
                 "start": definition,
                 "type": "business days",
             }
-            sla = SLA(sla_desc)
+            sla = SLA.create_from_description(sla_desc)
 
             assert sla.get_start == expected_func
-            assert sla.dates == expected_dates
+            assert sla.start_dates == expected_dates
 
         @pytest.mark.parametrize(
             "definition,expected",
@@ -94,7 +94,7 @@ class TestSLA:
                 "start": "unembargo date",
                 "type": definition,
             }
-            sla = SLA(sla_desc)
+            sla = SLA.create_from_description(sla_desc)
 
             assert sla.add_days == expected
 
@@ -125,7 +125,7 @@ class TestSLA:
                 "start": definition,
                 "type": "business days",
             }
-            sla = SLA(sla_desc)
+            sla = SLA.create_from_description(sla_desc)
 
             flaw = FlawFactory()
             setattr(flaw, attribute, value)
@@ -194,7 +194,7 @@ class TestSLA:
                 },
                 "type": "business days",
             }
-            sla = SLA(sla_desc)
+            sla = SLA.create_from_description(sla_desc)
 
             flaw = FlawFactory()
             for attribute, value in context:
@@ -264,7 +264,7 @@ class TestSLA:
                 },
                 "type": "business days",
             }
-            sla = SLA(sla_desc)
+            sla = SLA.create_from_description(sla_desc)
 
             flaw = FlawFactory()
             for attribute, value in context:
@@ -299,7 +299,7 @@ class TestSLA:
                 "start": "reported date",
                 "type": "business days",
             }
-            sla = SLA(sla_desc)
+            sla = SLA.create_from_description(sla_desc)
             flaw = FlawFactory(reported_dt=make_aware(datetime(2023, 11, 13, 1, 1, 1)))
 
             assert sla.end(flaw) == make_aware(expected)
@@ -322,7 +322,7 @@ class TestSLA:
                 "start": "reported date",
                 "type": "calendar days",
             }
-            sla = SLA(sla_desc)
+            sla = SLA.create_from_description(sla_desc)
             flaw = FlawFactory(reported_dt=make_aware(datetime(2023, 11, 13, 5, 5, 5)))
 
             assert sla.end(flaw) == make_aware(expected)
@@ -420,7 +420,7 @@ class TestSLAContext:
                 "conditions": {},  # this is not valid but OK for this test case
                 "sla": definition1,
             }
-            policy1 = SLAPolicy(policy_desc1)
+            policy1 = SLAPolicy.create_from_description(policy_desc1)
             flaw1 = FlawFactory()
             setattr(flaw1, attribute1, value1)
             sla_context1 = SLAContext(flaw=flaw1)
@@ -432,7 +432,7 @@ class TestSLAContext:
                 "conditions": {},  # this is not valid but OK for this test case
                 "sla": definition2,
             }
-            policy2 = SLAPolicy(policy_desc2)
+            policy2 = SLAPolicy.create_from_description(policy_desc2)
             flaw2 = FlawFactory()
             setattr(flaw2, attribute2, value1)
             sla_context2 = SLAContext(flaw=flaw2)
@@ -454,7 +454,7 @@ class TestSLAContext:
                     "type": "calendar days",
                 },
             }
-            policy = SLAPolicy(policy_desc)
+            policy = SLAPolicy.create_from_description(policy_desc)
             flaw = FlawFactory()
             sla_context1 = SLAContext(flaw=flaw)
             sla_context1.sla = policy.sla
@@ -507,7 +507,7 @@ class TestSLAPolicy:
                     "type": "business days",
                 },
             }
-            policy = SLAPolicy(policy_desc)
+            policy = SLAPolicy.create_from_description(policy_desc)
 
             assert policy.name == "fantastic SLA policy"
             assert policy.description == "there is no better"
@@ -600,7 +600,7 @@ class TestSLAPolicy:
                     "type": "business days",
                 },
             }
-            policy = SLAPolicy(policy_desc)
+            policy = SLAPolicy.create_from_description(policy_desc)
 
             # let us only check the conditions by name here
             # checking the whole functionality will be done in other tests
@@ -644,7 +644,7 @@ class TestSLAPolicy:
                     "type": "business days",
                 },
             }
-            policy = SLAPolicy(policy_desc)
+            policy = SLAPolicy.create_from_description(policy_desc)
 
             flaw = FlawFactory(
                 components=["dnf"],
@@ -704,7 +704,7 @@ class TestSLAPolicy:
                     "type": "business days",
                 },
             }
-            policy = SLAPolicy(policy_desc)
+            policy = SLAPolicy.create_from_description(policy_desc)
 
             flaw1 = FlawFactory(
                 components=["dnf"],
@@ -790,7 +790,7 @@ class TestSLAPolicy:
                     "type": "calendar days",
                 },
             }
-            policy = SLAPolicy(policy_desc)
+            policy = SLAPolicy.create_from_description(policy_desc)
 
             flaw = FlawFactory(
                 components=["dnf"],
@@ -840,7 +840,7 @@ class TestSLAPolicy:
                     "type": "calendar days",
                 },
             }
-            policy = SLAPolicy(policy_desc)
+            policy = SLAPolicy.create_from_description(policy_desc)
 
             flaw1 = FlawFactory(
                 components=["dnf"],
@@ -918,7 +918,7 @@ class TestSLAPolicy:
                     "type": "business days",
                 },
             }
-            policy = SLAPolicy(policy_desc)
+            policy = SLAPolicy.create_from_description(policy_desc)
 
             flaw = FlawFactory(
                 embargoed=False,
