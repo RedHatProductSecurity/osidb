@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Saving models only triggers validations once (OSIDB-3108)
+- Update ACLs of linked objects to match collector flaw (OSIDB-3253)
 
 ### Fixed
 - Cannot modify CVE of existing flaws (OSIDB-3102)

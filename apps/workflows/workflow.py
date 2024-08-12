@@ -326,6 +326,8 @@ class WorkflowModel(models.Model):
 
         if self.workflow_state not in internal_supported and self.is_internal:
             self.set_public()
+            # updates ACLs of all related objects except for snippets
+            self.set_public_nested()
 
         if save:
             self.save()
