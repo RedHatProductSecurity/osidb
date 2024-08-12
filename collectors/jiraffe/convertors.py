@@ -173,7 +173,7 @@ class TrackerSaver:
     def __str__(self):
         return f"TrackerSaver {self.tracker.type}:{self.tracker.external_system_id}"
 
-    def save(self):
+    def save(self, **kwargs):
         """
         save the tracker with its context to DB
         """
@@ -191,6 +191,7 @@ class TrackerSaver:
                 # we want to store all the data fetched by the collector
                 # so we suppress the exception raising in favor of alerts
                 raise_validation_error=False,
+                **kwargs,
             )
 
             # store alerts

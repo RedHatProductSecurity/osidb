@@ -13,11 +13,11 @@ class AlertableModelBasic(AlertMixin):
 class AlertableModel(AlertMixin):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    def _validate_test(self):
+    def _validate_test(self, **kwargs):
         """
         Creates a new alert when validate() method runs.
         """
-        self.alert("new_alert", "This is a new alert.")
+        self.alert("new_alert", "This is a new alert.", **kwargs)
 
 
 class ComparableTextChoices_1(ComparableTextChoices):

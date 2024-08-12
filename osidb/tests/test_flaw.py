@@ -2336,3 +2336,26 @@ class TestFlawValidators:
         assert should_raise == bool(
             affect.alerts.filter(name="flaw_affects_unknown_component").exists()
         )
+
+    def test_dry_run_validations(self, private_source, public_source):
+        """
+        Test that a model using AlertMixin can run validations without writing alerts
+        """
+        # regular save should create alerts
+        flaw1 = FlawFactory.build(source=private_source, embargoed=False)
+        flaw1.save()
+        assert flaw1.alerts.filter(name="private_source_no_ack").exists()
+
+        # updates with no_alerts should not modify alert table
+        flaw1.source = public_source
+        flaw1.save(no_alerts=True)
+        assert flaw1.alerts.filter(name="private_source_no_ack").exists()
+
+        # alert fixed
+        flaw1.save()
+        assert not flaw1.alerts.filter(name="private_source_no_ack").exists()
+
+        # flaw creation without alerts
+        flaw2 = FlawFactory.build(source=private_source, embargoed=False)
+        flaw2.save(no_alerts=True)
+        assert not flaw2.alerts.filter(name="private_source_no_ack").exists()
