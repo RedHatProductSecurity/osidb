@@ -14,6 +14,7 @@ from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
 from apps.workflows.workflow import WorkflowModel
 from collectors.bzimport.collectors import FlawCollector
+from collectors.bzimport.constants import BZ_DT_FMT
 from collectors.framework.models import CollectorMetadata
 from collectors.jiraffe.collectors import (
     JiraTaskCollector,
@@ -288,6 +289,9 @@ class TestJiraTrackerCollector:
             external_system_id=tracker_id,
             status="New",
             resolution=None,
+            # collector only modify trackers
+            # when it is outdated in OSIDB
+            updated_dt=timezone.datetime.strptime("1970-01-01T00:00:00Z", BZ_DT_FMT),
         )
         collector = JiraTrackerCollector()
 

@@ -616,7 +616,9 @@ class BugzillaTrackerCollector(Collector):
         Fetch, convert and save a bugzilla tracker from a given Bugzilla ID.
         """
         tracker_data = self.bz_querier.get_bug_data(tracker_id)
-        self.save(BugzillaTrackerConvertor(tracker_data).tracker)
+        tracker = BugzillaTrackerConvertor(tracker_data).tracker
+        if tracker:
+            self.save(tracker)
 
     def collect(self):
         successes = []

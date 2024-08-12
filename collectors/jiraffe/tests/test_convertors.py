@@ -1,3 +1,4 @@
+import datetime
 import json
 
 import pytest
@@ -37,8 +38,12 @@ class TestJiraTrackerConvertor:
         assert tracker.status == "Closed"
         assert tracker.resolution == "Done"
         assert tracker.ps_update_stream == "amq-7.1"
-        assert tracker.created_dt == "2014-08-04T15:07:19.000+0000"
-        assert tracker.updated_dt == "2014-09-10T01:43:37.000+0000"
+        assert tracker.created_dt == datetime.datetime(
+            2014, 8, 4, 15, 7, 19, tzinfo=datetime.timezone.utc
+        )
+        assert tracker.updated_dt == datetime.datetime(
+            2014, 9, 10, 1, 43, 37, tzinfo=datetime.timezone.utc
+        )
         # make sure the tracker is set public if non-embargoed
         # which is the case here with Red Hat Employee security level
         assert not tracker.is_embargoed

@@ -6,6 +6,7 @@ import logging
 import re
 import uuid
 from collections import defaultdict
+from datetime import datetime
 from functools import cached_property
 
 from django.conf import settings
@@ -171,7 +172,10 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
         self.ps_module = ps_module
         self.ps_component = ps_component
         self.ps_update_stream = ps_update_stream
-
+        created_dt = datetime.strptime(self._raw["creation_time"], "%Y-%m-%dT%H:%M:%Sz")
+        updated_dt = datetime.strptime(
+            self._raw["last_change_time"], "%Y-%m-%dT%H:%M:%Sz"
+        )
         return {
             "external_system_id": self._raw["id"],
             "owner": self._raw["assigned_to"],
@@ -181,8 +185,8 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
             "ps_update_stream": ps_update_stream,
             "status": self._raw["status"],
             "resolution": self._raw["resolution"],
-            "created_dt": self._raw["creation_time"],
-            "updated_dt": self._raw["last_change_time"],
+            "created_dt": created_dt.replace(tzinfo=timezone.get_current_timezone()),
+            "updated_dt": updated_dt.replace(tzinfo=timezone.get_current_timezone()),
             "blocks": json.dumps(self._raw["blocks"]),
             "groups": json.dumps(self._raw["groups"]),
             "whiteboard": self._raw["whiteboard"],

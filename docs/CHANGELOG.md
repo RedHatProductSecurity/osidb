@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update ACLs of linked objects to match collector flaw (OSIDB-3253)
 - Allow start dates to come from multiple sources in SLA (OSIDB-3221)
 - Update public date for collector flaws (OSIDB-3212)
+- Tracker collector ignores up-to-date entries (OSIDB-3244)
 
 ### Fixed
 - Cannot modify CVE of existing flaws (OSIDB-3102)

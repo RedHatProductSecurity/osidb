@@ -253,6 +253,14 @@ class TrackerConvertor:
         # there maybe already existing tracker from the previous sync
         # if this is the periodic update however also when the flaw bug
         # has multiple CVEs the resulting flaws will share the trackers
+        tracker = Tracker.objects.filter(
+            type=self.type,
+            external_system_id=self.tracker_data["external_system_id"],
+        ).first()
+
+        # Tracker already has latest data from BTS
+        if tracker and tracker.updated_dt >= self.tracker_data["updated_dt"]:
+            return None
         tracker = Tracker.objects.create_tracker(
             affect=None,
             _type=self.type,
@@ -279,8 +287,11 @@ class TrackerConvertor:
         the convertor interface to get the
         conversion result as a saveable object
         """
+        tracker = self._gen_tracker_object()
+        if not tracker:
+            return None
         return TrackerSaver(
-            self._gen_tracker_object(),
+            tracker,
             [],  # Affects are linked later using sync managers
             self.alerts,
         )
@@ -326,6 +337,16 @@ class JiraTrackerConvertor(TrackerConvertor):
         self.ps_component = ps_component
         self.ps_update_stream = ps_update_stream
 
+        created_dt = datetime.strptime(
+            self._raw.fields.created, "%Y-%m-%dT%H:%M:%S.%f%z"
+        )
+        updated_dt = (
+            self._raw.fields.updated
+            if self._raw.fields.updated
+            else self._raw.fields.created
+        )
+        updated_dt = datetime.strptime(updated_dt, "%Y-%m-%dT%H:%M:%S.%f%z")
+
         return {
             "external_system_id": self._raw.key,
             "labels": json.dumps(self._raw.fields.labels),
@@ -340,12 +361,8 @@ class JiraTrackerConvertor(TrackerConvertor):
             "ps_update_stream": ps_update_stream,
             "status": self.get_field_attr(self._raw, "status", "name"),
             "resolution": self.get_field_attr(self._raw, "resolution", "name"),
-            "created_dt": self._raw.fields.created,
-            "updated_dt": (
-                self._raw.fields.updated
-                if self._raw.fields.updated
-                else self._raw.fields.created
-            ),
+            "created_dt": created_dt,
+            "updated_dt": updated_dt,
         }
 
     @property
