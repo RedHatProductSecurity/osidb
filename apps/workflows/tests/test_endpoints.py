@@ -12,8 +12,14 @@ from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.osv.collectors import OSVCollector
 from osidb import models
 from osidb.core import set_user_acls
-from osidb.models import Flaw
-from osidb.tests.factories import AffectFactory, FlawFactory
+from osidb.models import Affect, Flaw, Tracker
+from osidb.tests.factories import (
+    AffectFactory,
+    FlawFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
+    TrackerFactory,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -475,11 +481,33 @@ class TestFlawDraft:
         assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
         assert flaw.task_key == "TASK-123"
-        assert flaw.is_internal is True
+        assert flaw.is_internal
 
         # set owner to comply with TRIAGE requirements
         flaw.owner = "Alice"
         flaw.save(raise_validation_error=False)
+
+        # let us expect that somebody created Affect and Tracker for an un-promoted flaw by mistake
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+            ps_component="component",
+        )
+        TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+            acl_read=affect.acl_read,
+            acl_write=affect.acl_write,
+        )
+        # and thus they have incorrect internal ACLs
+        assert flaw.affects.first().is_internal
+        assert flaw.affects.first().trackers.first().is_internal
 
         headers = {"HTTP_JIRA_API_KEY": user_token}
         response = auth_client().post(
@@ -497,8 +525,20 @@ class TestFlawDraft:
         assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.TRIAGE
         assert flaw.task_key == "TASK-123"
-        # check that a flaw has no longer internal ACLs
-        assert flaw.is_internal is False
+
+        # check that a flaw and related objects (except for snippets) have public ACLs
+        assert flaw.is_public
+        assert flaw.affects.count() == 1
+        assert flaw.affects.first().is_public
+        assert flaw.affects.first().trackers.count() == 1
+        assert flaw.affects.first().trackers.first().is_public
+        assert flaw.cvss_scores.count() == 1
+        assert flaw.cvss_scores.first().is_public
+        assert flaw.references.count() == 5
+        for r in flaw.references.all():
+            assert r.is_public
+        assert flaw.snippets.count() == 1
+        assert flaw.snippets.first().is_internal
 
     @pytest.mark.vcr
     def test_reject(self, monkeypatch, auth_client, test_api_uri_osidb, user_token):
