@@ -2,14 +2,13 @@
 
 import json
 
-import django.contrib.postgres.fields.jsonb
 from django.db import migrations, models
 
 
 def convert_array_to_json(apps, schema_editor):
     SLA = apps.get_model("sla", "SLA")
     for instance in SLA.objects.all():
-        instance.temp_json_field = json.dumps(instance.array_field)
+        instance.temp_json_field = json.dumps(instance.start_dates)
         instance.save()
 
 
