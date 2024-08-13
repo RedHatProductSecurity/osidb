@@ -239,7 +239,39 @@ class MetadataCollector(Collector):
     def collect(self):
         """
         collector run handler
+
+        Historically, trackers were of issue type Bug and this issue type had number 1.
+        New trackers are of issue type Vulnerability and this issue type has number 12207.
+        Presuming the Bug type with number 1 is set in stone, but the Vulnerability 12207
+        can move to a new number.
+
+        For fields that are shared by both issue types but have different configuration,
+        the Vulnerability issue type wins and its version of those fields is stored.
+        This is because new trackers will use the new Vulnerability issue type going forward
+        and the Bug/1 issue type is kept only for backwards compatibility with existing
+        trackers.
         """
+        id_of_vulnerability_issue_type = None
+
+        try:
+            res = self.jira_querier.jira_conn._get_json("issuetype")
+            for t in res:
+                if t["name"] == "Vulnerability":
+                    id_of_vulnerability_issue_type = t["id"]
+                    break
+        except JIRAError as e:
+            if e.status_code == 400:
+                logger.error(
+                    "List of issue types (rest/api/2/issuetype) is not available in Jira, make sure API key and jira library version are set up as expected."
+                )
+            else:
+                logger.error(
+                    f"Jira error trying to fetch issue types (rest/api/2/issuetype): {e.response}"
+                )
+        issue_types = ["1"]
+        if id_of_vulnerability_issue_type:
+            issue_types.append(id_of_vulnerability_issue_type)
+
         start_dt = timezone.now()
         projects = (
             PsModule.objects.exclude(
@@ -252,29 +284,32 @@ class MetadataCollector(Collector):
         )
 
         project_fields = {}
-        for project in projects:
-            page_size = 100
-            start_at = 0
-            is_last = False
-            try:
-                project_fields[project] = []
-                while not is_last:
-                    res = self.jira_querier.jira_conn._get_json(
-                        f"issue/createmeta/{project}/issuetypes/1?startAt={start_at}&maxResults={page_size}"
-                    )
-                    project_fields[project].extend(res["values"])
-                    page_size = res["maxResults"]
-                    start_at += page_size
-                    is_last = res["isLast"]
-            except JIRAError as e:
-                if e.status_code == 400:
-                    logger.error(
-                        f"Project {project} is not available in Jira, make sure product definition is up to date."
-                    )
-                else:
-                    logger.error(
-                        f"Jira error trying to fetch project {project}: {e.response}"
-                    )
+        for issuetype in issue_types:
+            for project in projects:
+                page_size = 100
+                start_at = 0
+                is_last = False
+                try:
+                    if project not in project_fields:
+                        project_fields[project] = []
+                    while not is_last:
+                        res = self.jira_querier.jira_conn._get_json(
+                            f"issue/createmeta/{project}/issuetypes/{issuetype}?startAt={start_at}&maxResults={page_size}"
+                        )
+                        project_fields[project].extend(res["values"])
+                        page_size = res["maxResults"]
+                        start_at += page_size
+                        is_last = res["isLast"]
+                except JIRAError as e:
+                    if e.status_code == 400:
+                        logger.error(
+                            f"Project {project} is not available in Jira, make sure product definition is up to date."
+                        )
+                    else:
+                        logger.error(
+                            f"Jira error trying to fetch project {project}: {e.response}"
+                        )
+
         nonempty_project_fields = {k: v for k, v in project_fields.items() if v}
         if len(nonempty_project_fields) < projects.count() * 0.8:
             logger.error(
@@ -284,12 +319,24 @@ class MetadataCollector(Collector):
             # to work with Jira-based Trackers. Raising will preserve the (slightly outdated) data.
             raise MetadataCollectorInsufficientDataJiraffeException
 
+        # Keep the latest version of each field.
+        # In practice, there has been only one unimportant difference observed ("required" value on
+        # field name "Affects Version/s").
+        project_fields_with_shadowing = {}
+        for proj, list_of_fields in nonempty_project_fields.items():
+            fields = {}
+            for f in list_of_fields:
+                fields[f["name"]] = f
+            project_fields_with_shadowing[proj] = fields.values()
+
         projects_to_delete = list(
             JiraProjectFields.objects.values_list("project_key", flat=True)
             .distinct()
             .difference(projects)
         )
-        self.update_metadata(project_fields, projects_to_delete=projects_to_delete)
+        self.update_metadata(
+            project_fields_with_shadowing, projects_to_delete=projects_to_delete
+        )
 
         self.store(updated_until_dt=start_dt)
 
