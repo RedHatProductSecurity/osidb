@@ -522,7 +522,7 @@ class SnippetFactory(factory.django.DjangoModelFactory):
             ],
             "source": self.source,
             "title": f"From {self.source} collector",
-            f"published_in_{self.source.lower()}": "2024-01-21T16:29:00.393Z",
+            "unembargo_dt": "2024-01-21T16:29:00.393Z",
         }
 
         return data

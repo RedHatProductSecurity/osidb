@@ -270,14 +270,14 @@ class TestNVDCollector:
             ],
             "source": Snippet.Source.NVD,
             "title": "From NVD collector",
-            "published_in_nvd": "2024-01-21T16:29:00.393Z",
+            "unembargo_dt": "2024-01-21T16:29:00.393Z",
         }
         cve_id = snippet_content["cve_id"]
 
         # Default data
         if has_flaw:
             data = dict(snippet_content)
-            for i in ["cvss_scores", "references", "published_in_nvd"]:
+            for i in ["cvss_scores", "references"]:
                 data.pop(i)
 
             f = FlawFactory(

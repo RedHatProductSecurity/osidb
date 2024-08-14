@@ -180,7 +180,7 @@ class OSVCollector(Collector):
 
         if self.snippet_creation_start_date and (
             self.snippet_creation_start_date
-            >= dateparse.parse_datetime(content["published_in_osv"])
+            >= dateparse.parse_datetime(content["unembargo_dt"])
         ):
             return 0, 0
 
@@ -297,12 +297,11 @@ class OSVCollector(Collector):
             "cwe_id": get_cwes(osv_vuln),
             "references": get_refs(osv_vuln),
             "source": Snippet.Source.OSV,
+            "unembargo_dt": osv_vuln.get("published"),
             # Unused fields that we may extract additional data from later.
             "osv_id": osv_id,
             "osv_affected": osv_vuln.get("affected"),
             "osv_acknowledgments": osv_vuln.get("credits"),
-            # Required for ignoring historical data
-            "published_in_osv": osv_vuln.get("published"),
         }
 
         return osv_id, cve_ids, content

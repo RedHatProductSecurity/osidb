@@ -312,7 +312,7 @@ interactions:
       string: '{"resultsPerPage": 1, "startIndex": 0, "totalResults": 1, "format":
         "NVD_CVE", "version": "2.0", "timestamp": "2024-06-17T11:30:09.960", "vulnerabilities":
         [{"cve": {"id": "CVE-2017-7542", "sourceIdentifier": "secalert@redhat.com",
-        "published": "2024-01-21T16:29:00.393", "lastModified": "2023-02-12T23:30:40.070",
+        "published": "2024-01-21T16:29:00.393", "lastModified": "2024-01-21T16:29:00.393",
         "vulnStatus": "Modified", "descriptions": [{"lang": "en", "value": "The ip6_find_1stfragopt
         function allows local users to cause a denial of service."}, {"lang": "es", "value":
         "La funci\u00f3n ip6_find_1stfragopt en el archivo net/ipv6/output_core.c
@@ -1014,7 +1014,7 @@ interactions:
       From NVD collector", "description": "The ip6_find_1stfragopt function allows local users to cause
       a denial of service.", "comment_is_private": false, "alias": ["CVE-2017-7542"], "keywords":
       ["Security"], "flags": [], "groups": ["redhat"], "cc": [], "cf_srtnotes": "{\"reported\":
-      \"2024-06-17T11:30:16Z\", \"external_ids\": [\"CVE-2017-7542\"],
+      \"2024-06-17T11:30:16Z\", \"public\": \"2024-01-21T16:29:00Z\", \"external_ids\": [\"CVE-2017-7542\"],
       \"references\": [{\"type\": \"source\", \"url\": \"https://nvd.nist.gov/vuln/detail/CVE-2017-7542\",
       \"description\": null}, {\"type\": \"external\", \"url\": \"http://www.debian.org/security/2017/dsa-3927\",
       \"description\": null}], \"source\": \"nvd\", \"cwe\": \"(CWE-190|CWE-835)\"}"}'
@@ -1180,7 +1180,7 @@ interactions:
     uri: https://example.com/rest/bug/2293428?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
   response:
     body:
-      string: '{"bugs": [{"cf_srtnotes": "{\"reported\": \"2024-06-17T11:30:16Z\",
+      string: '{"bugs": [{"cf_srtnotes": "{\"reported\": \"2024-06-17T11:30:16Z\", \"public\": \"2024-01-21T16:29:00Z\",
         \"external_ids\": [\"CVE-2017-7542\"], \"references\": [{\"type\":
         \"source\", \"url\": \"https://example.com/vuln/detail/CVE-2017-7542\", \"description\":
         null}, {\"type\": \"external\", \"url\": \"https://example.com/security/2017/dsa-3927\",
@@ -1269,7 +1269,7 @@ interactions:
         ["---"], "platform": "All", "assigned_to": "prodsec-dev@redhat.com", "cf_clone_of":
         null, "cf_major_incident": null, "cf_pgm_internal": "", "is_cc_accessible":
         true, "cf_devel_whiteboard": "", "is_creator_accessible": true, "qa_contact":
-        "", "cf_srtnotes": "{\"reported\": \"2024-06-17T11:30:16Z\", \"external_ids\":
+        "", "cf_srtnotes": "{\"reported\": \"2024-06-17T11:30:16Z\", \"public\": \"2024-01-21T16:29:00Z\", \"external_ids\":
         [\"CVE-2017-7542\"], \"references\": [{\"type\": \"source\", \"url\": \"https://example.com/vuln/detail/CVE-2017-7542\",
         \"description\": null}, {\"type\": \"external\", \"url\": \"http://www.example.com/security/2017/dsa-3927\",
         \"description\": null}], \"source\": \"nvd\", \"cwe\": \"(CWE-190|CWE-835)\"}",
