@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db import transaction
 from requests_gssapi import HTTPSPNEGOAuth
 
-from apps.sla.models import SLAPolicy
+from apps.sla.models import SLA, SLAPolicy
 from osidb.models import (
     CompliancePriority,
     ContractPriority,
@@ -102,6 +102,7 @@ def sync_sla_policies(sla_policies):
     """
     Sync SLA policy data
     """
+    SLA.objects.all().delete()
     SLAPolicy.objects.all().delete()
     for order, policy_desc in enumerate(sla_policies):
         # In SLA policies order is important so it is passed down to the model
