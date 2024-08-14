@@ -162,8 +162,7 @@ class NVDQuerier:
                     "references": get_references(vulnerability),
                     "source": Snippet.Source.NVD,
                     "title": "From NVD collector",
-                    # required for ignoring historical data
-                    "published_in_nvd": f"{vulnerability.published}Z",
+                    "unembargo_dt": f"{vulnerability.published}Z",
                 }
             )
 
@@ -260,7 +259,7 @@ class NVDCollector(Collector, NVDQuerier):
             if self.snippet_creation_enabled:
                 if self.snippet_creation_start_date and (
                     self.snippet_creation_start_date
-                    >= dateparse.parse_datetime(item["published_in_nvd"])
+                    >= dateparse.parse_datetime(item["unembargo_dt"])
                 ):
                     continue
 

@@ -37,10 +37,11 @@ class TestOSVCollector:
 
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.all().first()
-        assert flaw.task_key == "OSIM-16311"
+        assert flaw.task_key == "OSIM-7503"
         assert json.loads(flaw.meta_attr["alias"]) == [cve_id]
         assert json.loads(flaw.meta_attr["external_ids"]) == [f"{osv_id}/{cve_id}"]
         assert flaw.reported_dt
+        assert flaw.unembargo_dt
 
     @pytest.mark.vcr
     @pytest.mark.default_cassette("TestOSVCollector.test_collect_osv_record.yaml")
@@ -78,7 +79,7 @@ class TestOSVCollector:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.cve_id is None
-        assert flaw.task_key == "OSIM-497"
+        assert flaw.task_key == "OSIM-7509"
         assert json.loads(flaw.meta_attr["alias"]) == [osv_id]
         assert json.loads(flaw.meta_attr["external_ids"]) == [osv_id]
 

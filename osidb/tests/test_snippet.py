@@ -64,9 +64,11 @@ class TestSnippet:
         assert flaw.meta_attr == {"external_ids": content["cve_id"]}
         assert flaw.references.count() == 1
         assert flaw.reported_dt
+        assert flaw.reported_dt == flaw.created_dt
         assert flaw.snippets.count() == 1
         assert flaw.source == snippet.source
         assert flaw.title == content["title"]
+        assert flaw.unembargo_dt
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NOVALUE
 
         flaw_cvss = flaw.cvss_scores.all().first()
