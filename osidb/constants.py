@@ -61,11 +61,13 @@ SERVICES_PRODUCTS = [
 AFFECTEDNESS_VALID_RESOLUTIONS = {
     Affect.AffectAffectedness.NEW: [
         Affect.AffectResolution.NOVALUE,
+        Affect.AffectResolution.DEFER,
         Affect.AffectResolution.WONTFIX,
         Affect.AffectResolution.OOSS,
     ],
     Affect.AffectAffectedness.AFFECTED: [
         Affect.AffectResolution.DELEGATED,
+        Affect.AffectResolution.DEFER,
         Affect.AffectResolution.WONTFIX,
         Affect.AffectResolution.OOSS,
     ],
@@ -77,12 +79,9 @@ AFFECTEDNESS_VALID_RESOLUTIONS = {
 
 # Historical affectedness/resolution combinations that were valid in the past
 AFFECTEDNESS_HISTORICAL_VALID_RESOLUTIONS = {
-    Affect.AffectAffectedness.NEW: [
-        Affect.AffectResolution.DEFER,
-    ],
+    Affect.AffectAffectedness.NEW: [],
     Affect.AffectAffectedness.AFFECTED: [
         Affect.AffectResolution.FIX,
-        Affect.AffectResolution.DEFER,
         Affect.AffectResolution.WONTREPORT,
     ],
     Affect.AffectAffectedness.NOTAFFECTED: [],

@@ -1893,6 +1893,19 @@ class Affect(
                 "WONTFIX but has open tracker(s).",
             )
 
+    def _validate_defer_open_trackers(self, **kwargs):
+        """
+        Prevent an affect with open trackers from having a resolution of DEFER
+        """
+        if (
+            self.resolution == Affect.AffectResolution.DEFER
+            and self.trackers.exclude(status__iexact="CLOSED").exists()
+        ):
+            raise ValidationError(
+                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} cannot have "
+                "resolution DEFER with open tracker(s).",
+            )
+
     def _validate_unknown_component(self, **kwargs):
         """
         Alerts that a flaw affects a component not tracked in Bugzilla.
@@ -2528,6 +2541,16 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not self.is_closed and affect:
             raise ValidationError(
                 f"The tracker is associated with a WONTFIX affect: {affect.uuid}",
+            )
+
+    def _validate_defer_open_tracker(self, **kwargs):
+        """
+        Check whether DEFER affects have open trackers.
+        """
+        affect = self.affects.filter(resolution=Affect.AffectResolution.DEFER).first()
+        if not self.is_closed and affect:
+            raise ValidationError(
+                f"The tracker is associated with a DEFER affect: {affect.uuid}",
             )
 
     def _validate_multi_flaw_tracker(self, **kwargs):

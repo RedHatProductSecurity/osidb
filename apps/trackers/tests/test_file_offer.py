@@ -40,7 +40,21 @@ class TestTrackerSuggestions:
                 Affect.AffectResolution.WONTFIX,
                 False,
             ),
-            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.WONTFIX, False),
+            (
+                Affect.AffectAffectedness.NEW,
+                Affect.AffectResolution.WONTFIX,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.DEFER,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.NEW,
+                Affect.AffectResolution.DEFER,
+                False,
+            ),
         ],
     )
     def test_trackers_file_offer_invalid(
