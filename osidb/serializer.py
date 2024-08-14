@@ -721,7 +721,9 @@ class TrackerSerializer(
                     # do not raise validation errors here as the flaw is not what the user touches
                     # which would make the errors hard to understand and cause the tracker to orphan
                     affect.flaw.save(
-                        bz_api_key=self.get_bz_api_key(), raise_validation_error=False
+                        bz_api_key=self.get_bz_api_key(),
+                        no_alerts=True,
+                        raise_validation_error=False,
                     )
         else:
             # Special path for bulk tracker create. Works for Jira trackers only.
@@ -785,7 +787,9 @@ class TrackerSerializer(
                 # do not raise validation errors here as the flaw is not what the user touches
                 # which would make the errors hard to understand and cause the tracker to orphan
                 affect.flaw.save(
-                    bz_api_key=self.get_bz_api_key(), raise_validation_error=False
+                    bz_api_key=self.get_bz_api_key(),
+                    no_alerts=True,
+                    raise_validation_error=False,
                 )
 
         #####################

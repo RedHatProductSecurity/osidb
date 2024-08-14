@@ -110,4 +110,8 @@ def update_local_updated_dt_tracker(sender, instance, **kwargs):
         for affect in instance.affects.all():
             flaws.add(affect.flaw)
     for flaw in list(flaws):
-        flaw.save(auto_timestamps=False, raise_validation_error=False)
+        flaw.save(
+            auto_timestamps=False,
+            no_alerts=True,  # recreating alerts from nested entities can cause deadlocks
+            raise_validation_error=False,
+        )
