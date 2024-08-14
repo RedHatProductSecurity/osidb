@@ -612,7 +612,6 @@ class Flaw(
         blank=True,
     )
 
-    # flaw severity, from srtnotes "impact"
     impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
 
     components = fields.ArrayField(
@@ -631,25 +630,25 @@ class Flaw(
         choices=FlawRequiresCVEDescription.choices, max_length=20, blank=True
     )
 
-    # if redhat cve-id then this is required, from srtnotes "statement"
+    # if redhat cve-id then this is required
     # eventually should compose up from affects
     statement = models.TextField(blank=True)
 
-    # contains a single cwe-id or cwe relationships, from srtnotes "cwe"
+    # contains a single cwe-id or cwe relationships
     cwe_id = models.CharField(blank=True, max_length=255, validators=[validate_cwe_id])
 
-    # date when embargo is to be lifted, from srtnotes "public"
+    # date when embargo is to be lifted
     unembargo_dt = models.DateTimeField(null=True, blank=True)
 
-    # reported source of flaw, from srtnotes "source"
+    # reported source of flaw
     source = models.CharField(choices=FlawSource.choices, max_length=500, blank=True)
 
-    # reported date, from srtnotes "reported"
+    # reported date
     reported_dt = models.DateTimeField(
         null=True, blank=True, validators=[no_future_date]
     )
 
-    # mitigation to apply if the final fix is not available, from srtnotes "mitigation"
+    # mitigation to apply if the final fix is not available
     mitigation = models.TextField(blank=True)
 
     major_incident_state = models.CharField(
@@ -1707,16 +1706,13 @@ class Affect(
         blank=True,
     )
 
-    # from srtnotes affects/ps_module
     ps_module = models.CharField(max_length=100)
 
-    # from srtnotes affects/ps_components
     # the length 255 does not have any special meaning in Postgres
     # but it is the maximum SFM2 value so let us just keep parity for now
     # to fix https://issues.redhat.com/browse/OSIDB-635
     ps_component = models.CharField(max_length=255)
 
-    # from srtnotes affects/impact
     impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
 
     # non operational meta data

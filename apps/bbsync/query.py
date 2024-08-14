@@ -10,7 +10,6 @@ from osidb.models import Flaw, FlawComment, Impact, PsModule
 
 from .cc import CCBuilder
 from .constants import DATE_FMT
-from .srtnotes import SRTNotesBuilder
 
 
 class BugzillaQueryBuilder:
@@ -107,7 +106,6 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         self.generate_groups()
         self.generate_deadline()
         self.generate_cc()
-        self.generate_srt_notes()
         self.generate_comment()
         # TODO tracker links
         self.generate_fixed_in()
@@ -405,13 +403,6 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
                 "add": add_cc,
                 "remove": remove_cc,
             }
-
-    def generate_srt_notes(self):
-        """
-        generate query for SRT notes
-        """
-        srt_notes_builder = SRTNotesBuilder(self.flaw, self.old_flaw)
-        self._query["cf_srtnotes"] = srt_notes_builder.content
 
     def generate_comment(self):
         """

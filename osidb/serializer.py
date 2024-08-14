@@ -728,8 +728,6 @@ class TrackerSerializer(
         else:
             # Special path for bulk tracker create. Works for Jira trackers only.
             # Do not sync with BZ, as that can take a long time for large flaws.
-            # The disadvantage is srtnotes being out of date in BZ until OSIDB updates
-            # that BZ with any BZ-syncing action without "sync_to_bz: false".
             pass
 
         #####################
