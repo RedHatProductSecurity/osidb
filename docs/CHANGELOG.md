@@ -13,10 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update ACLs of linked objects to match collector flaw (OSIDB-3253)
 - Allow start dates to come from multiple sources in SLA (OSIDB-3221)
 - Update public date for collector flaws (OSIDB-3212)
+- Tracker collector ignores up-to-date entries (OSIDB-3244)
 
 ### Fixed
 - Cannot modify CVE of existing flaws (OSIDB-3102)
 - Jira metadata collector is not deleting metadata on failure (OSIDB-3219)
+- Avoid deadlocks by not triggering nested validations in m2m relationships (OSIDB-3244)
+- Manually run validation avoiding duplicated trackers (OSIDB-3234)
 
 ## [4.1.6] - 2024-08-02
 ### Fixed

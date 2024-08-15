@@ -788,6 +788,7 @@ class TestMultiMixinIntegration:
         )
         assert response.status_code == 201
         assert len(validation_counter) == 1
+        assert "osidb | Flaw" not in validation_counter
         assert validation_counter["osidb | Tracker"] == 1
 
     @pytest.mark.vcr
@@ -916,10 +917,8 @@ class TestMultiMixinIntegration:
         )
         assert response.status_code == 201
 
-        # Jira tracker triggers save in related flaw in
-        # osidb/serializer.py::TrackerSerializer::create
-        assert len(validation_counter) == 2
-        assert validation_counter["osidb | Flaw"] == 1
+        assert len(validation_counter) == 1
+        assert "osidb | Flaw" not in validation_counter
         assert validation_counter["osidb | Tracker"] == 1
 
     @pytest.mark.vcr

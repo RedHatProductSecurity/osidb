@@ -64,6 +64,14 @@ class TestTrackerSaver:
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
+            status="NEW",
+            resolution="",
+            meta_attr={
+                "blocks": f"[{flaw.bz_id}]",
+                "whiteboard": {"flaws": [flaw.uuid]},
+                "ps_module": affect.ps_module,
+                "ps_component": affect.ps_component,
+            },
         )
         assert tracker.bz_id is None
 
@@ -128,24 +136,31 @@ class TestTrackerSaver:
         # 2) define a tracker model instance
         #    according an exising Bugzilla tracker
         tracker_id = "2291491"
-        updated_dt = "2024-06-13T14:25:38Z"
+        updated_dt = "2024-08-12T20:26:54Z"
         tracker = TrackerFactory(
             affects=[affect],
             bz_id=tracker_id,
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
-            meta_attr={"blocks": ["2217733"], "updated_dt": updated_dt},
+            status="NEW",
+            resolution="",
+            meta_attr={
+                "blocks": f"[{flaw.bz_id}]",
+                "whiteboard": {"flaws": [flaw.uuid]},
+                "updated_dt": updated_dt,
+                "ps_module": affect.ps_module,
+                "ps_component": affect.ps_component,
+            },
             updated_dt=timezone.datetime.strptime(updated_dt, BZ_DT_FMT),
         )
         assert tracker.bz_id == tracker_id
-
         # 3) update tracker in OSIDB and Bugzilla
         ts = TrackerSaver(tracker, bz_api_key="SECRET")
         updated_tracker = ts.save()
         assert updated_tracker.bz_id == tracker_id
         assert updated_tracker.uuid == tracker.uuid
-        updated_tracker.save()
+        updated_tracker.save(auto_timestamps=False)
 
         # 4) load tracker from Bugzilla
         btc = BugzillaTrackerCollector()

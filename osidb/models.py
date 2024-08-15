@@ -2424,6 +2424,10 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             and bz_api_key is not None
             and self.type == self.TrackerType.BUGZILLA
         ):
+            # avoid creating tracker in duplicity
+            # from places where skips validations
+            if not self.external_system_id:
+                self._validate_tracker_duplicate()
             # sync to Bugzilla
             tracker_instance = TrackerSaver(self, bz_api_key=bz_api_key).save()
             # save in case a new Bugzilla ID was obtained
@@ -2449,6 +2453,10 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             and jira_token is not None
             and self.type == self.TrackerType.JIRA
         ):
+            # avoid creating tracker in duplicity
+            # from places where skips validations
+            if not self.external_system_id:
+                self._validate_tracker_duplicate()
             # sync to Jira
             tracker_instance = TrackerSaver(self, jira_token=jira_token).save()
             # save in case a new Jira ID was obtained
