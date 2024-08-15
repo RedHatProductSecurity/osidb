@@ -3,7 +3,6 @@ transform Bugzilla flaw bug into OSIDB flaw model
 """
 import json
 import logging
-import re
 import uuid
 from collections import defaultdict
 from datetime import datetime
@@ -16,6 +15,7 @@ from django.utils import timezone
 from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
 from collectors.jiraffe.convertors import TrackerConvertor
 from osidb.core import generate_acls, set_user_acls
+from osidb.helpers import filter_cves
 from osidb.mixins import AlertMixin, TrackingMixin
 from osidb.models import (
     Affect,
@@ -29,7 +29,6 @@ from osidb.models import (
     PackageVer,
     Tracker,
 )
-from osidb.validators import CVE_RE_STR, restrict_regex
 
 from ..utils import (
     tracker_parse_update_stream_component,
@@ -623,11 +622,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
     # CVE SPECIFIC PROPERTIES #
     ###########################
 
-    @staticmethod
-    def filter_cves(strings):
-        """CVE strings filter helper"""
-        return [s for s in strings if re.match(restrict_regex(CVE_RE_STR), s)]
-
     @cached_property
     def cve_ids(self):
         """
@@ -635,7 +629,7 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         these are stored as Bugzilla aliases
         uniqueness is guaranteed
         """
-        return self.filter_cves(self.alias)
+        return filter_cves(self.alias)
 
     def get_meta_attr(self, cve_id):
         """get meta attributes"""

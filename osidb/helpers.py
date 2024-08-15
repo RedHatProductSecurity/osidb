@@ -16,6 +16,8 @@ from django.db import models
 from django.utils.timezone import datetime, make_aware
 from django_deprecate_fields import DeprecatedField, logger
 
+from osidb.validators import CVE_RE_STR, restrict_regex
+
 from .exceptions import OSIDBException
 
 
@@ -49,6 +51,17 @@ def ensure_list(item):
     helper to ensure that the item is list
     """
     return item if isinstance(item, list) else [item]
+
+
+def filter_cves(strings, inverse=False):
+    """
+    CVE strings filter helper
+    """
+    return (
+        [s for s in strings if not re.match(restrict_regex(CVE_RE_STR), s)]
+        if inverse
+        else [s for s in strings if re.match(restrict_regex(CVE_RE_STR), s)]
+    )
 
 
 def get_env(
