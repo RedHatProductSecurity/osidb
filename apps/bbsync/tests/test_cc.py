@@ -122,7 +122,7 @@ class TestCCBuilder:
         """
         flaw = FlawFactory()
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
         assert not remove_cc
@@ -138,7 +138,7 @@ class TestCCBuilder:
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
         assert not remove_cc
@@ -160,7 +160,7 @@ class TestCCBuilder:
             ps_product=ps_product,
         )
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
         assert not remove_cc
@@ -195,7 +195,7 @@ class TestCCBuilder:
             default_cc=["you@redhat.com"],
         )
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == cc
         assert not remove_cc
@@ -208,6 +208,10 @@ class TestCCBuilder:
         """
         test that no change means no change
         """
+        old_cc = [
+            "rhel-6.kernel@redhat.com",
+            "rhel-7.openssl@redhat.com",
+        ]
         flaw = self.prepare_flaw(
             affects=[
                 ("rhel-6", "kernel"),
@@ -217,64 +221,10 @@ class TestCCBuilder:
                 ("rhel-6", "kernel"),
                 ("rhel-7", "openssl"),
             ],
-            old_cc=[
-                "rhel-6.kernel@redhat.com",
-                "rhel-7.openssl@redhat.com",
-            ],
+            old_cc=old_cc,
         )
 
-        cc_builder = CCBuilder(flaw, old_flaw=flaw)
-        add_cc, remove_cc = cc_builder.content
-        assert not add_cc
-        assert not remove_cc
-
-    def test_no_change_removed(self):
-        """
-        test that no change means no change
-        even when someone has been manually removed
-        """
-        flaw = self.prepare_flaw(
-            affects=[
-                ("rhel-6", "kernel"),
-                ("rhel-7", "openssl"),
-            ],
-            old_affects=[
-                ("rhel-6", "kernel"),
-                ("rhel-7", "openssl"),
-            ],
-            old_cc=[
-                "rhel-6.kernel@redhat.com",
-                # rhel-7 CC is missing here
-            ],
-        )
-
-        cc_builder = CCBuilder(flaw, old_flaw=flaw)
-        add_cc, remove_cc = cc_builder.content
-        assert not add_cc
-        assert not remove_cc
-
-    def test_no_change_extra(self):
-        """
-        test that no change means no change
-        even when someone has been manually added
-        """
-        flaw = self.prepare_flaw(
-            affects=[
-                ("rhel-6", "kernel"),
-                ("rhel-7", "openssl"),
-            ],
-            old_affects=[
-                ("rhel-6", "kernel"),
-                ("rhel-7", "openssl"),
-            ],
-            old_cc=[
-                "rhel-6.kernel@redhat.com",
-                "rhel-7.openssl@redhat.com",
-                "random.user@email.com",
-            ],
-        )
-
-        cc_builder = CCBuilder(flaw, old_flaw=flaw)
+        cc_builder = CCBuilder(flaw, old_cc)
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
         assert not remove_cc
@@ -283,81 +233,36 @@ class TestCCBuilder:
         """
         test that adding an affect results in adding the corresponding CCs
         """
+        old_cc = ["rhel-6.kernel@redhat.com"]
         new_flaw = self.prepare_flaw(
             affects=[
                 ("rhel-6", "kernel"),
                 ("rhel-7", "openssl"),
             ],
         )
-        old_flaw = self.prepare_flaw(
-            old_affects=[
-                ("rhel-6", "kernel"),
-            ],
-            old_cc=[
-                "rhel-6.kernel@redhat.com",
-            ],
-        )
 
-        cc_builder = CCBuilder(new_flaw, old_flaw=old_flaw)
+        cc_builder = CCBuilder(new_flaw, old_cc)
         add_cc, remove_cc = cc_builder.content
         assert add_cc == ["rhel-7.openssl@redhat.com"]
         assert not remove_cc
 
     def test_remove_affect(self):
         """
-        test that removing an affect results in removing the corresponding CCs
+        test that removing an affect results in no change
         """
+        old_cc = [
+            "rhel-6.kernel@redhat.com",
+            "rhel-7.openssl@redhat.com",
+        ]
         new_flaw = self.prepare_flaw(
             affects=[
                 ("rhel-6", "kernel"),
             ],
         )
-        old_flaw = self.prepare_flaw(
-            affects=[
-                ("rhel-6", "kernel"),
-                ("rhel-7", "openssl"),
-            ],
-            old_affects=[
-                ("rhel-6", "kernel"),
-                ("rhel-7", "openssl"),
-            ],
-            old_cc=[
-                "rhel-6.kernel@redhat.com",
-                "rhel-7.openssl@redhat.com",
-            ],
-        )
 
-        cc_builder = CCBuilder(new_flaw, old_flaw=old_flaw)
+        cc_builder = CCBuilder(new_flaw, old_cc)
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
-        assert remove_cc == ["rhel-7.openssl@redhat.com"]
-
-    def test_unembargo(self):
-        """
-        test that unembargo results in adding all possible CCs
-        even when some of them were manually removed before
-        """
-        new_flaw = self.prepare_flaw(
-            affects=[
-                ("rhel-6", "kernel"),
-                ("rhel-7", "openssl"),
-            ],
-            embargoed=False,
-        )
-        old_flaw = self.prepare_flaw(
-            embargoed=True,
-            old_affects=[
-                ("rhel-6", "kernel"),
-                ("rhel-7", "openssl"),
-            ],
-            old_cc=[
-                "rhel-6.kernel@redhat.com",
-            ],
-        )
-
-        cc_builder = CCBuilder(new_flaw, old_flaw=old_flaw)
-        add_cc, remove_cc = cc_builder.content
-        assert add_cc == ["rhel-7.openssl@redhat.com"]
         assert not remove_cc
 
 
@@ -386,7 +291,7 @@ class TestAffectCCBuilder:
             private_trackers_allowed=private_trackers_allowed,
         )
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == cc
         assert not remove_cc
@@ -407,7 +312,7 @@ class TestAffectCCBuilder:
             private_trackers_allowed=True,
         )
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == ["you@redhat.com"]
         assert not remove_cc
@@ -428,7 +333,7 @@ class TestAffectCCBuilder:
             private_trackers_allowed=True,
         )
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == ["you@redhat.com"]
         assert not remove_cc
@@ -558,7 +463,7 @@ class TestAffectCCBuilder:
             jboss_username="hotdog@email.org",
         )
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert set(add_cc) == {
             "catfish@email.org",
@@ -595,7 +500,7 @@ class TestAffectCCBuilder:
             private_trackers_allowed=True,
         )
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == expected_cc
         assert not remove_cc
@@ -692,7 +597,7 @@ class TestAffectCCBuilder:
             default_cc=[],
         )
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == (
             ["me@redhat.com"] if component_overrides and component_cc else []
@@ -757,7 +662,7 @@ class TestAffectCCBuilder:
             default_cc=[],
         )
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == expected_cc
         assert not remove_cc
@@ -794,7 +699,7 @@ class TestAffectCCBuilder:
             default_cc=[],
         )
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == expected_cc
         assert not remove_cc
@@ -856,7 +761,7 @@ class TestRHSCLAffectCCBuilder:
             ps_module=ps_module2,
         )
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == ["dog@redhat.com", "me@redhat.com", "you@redhat.com"]
         assert not remove_cc
@@ -890,7 +795,7 @@ class TestRHSCLAffectCCBuilder:
             ps_module=ps_module,
         )
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert RHSCLAffectCCBuilder(affect, flaw.embargoed).collection is None
         assert add_cc == ["her@redhat.com", "you@redhat.com"]
@@ -926,7 +831,7 @@ class TestRHSCLAffectCCBuilder:
             ps_module=ps_module,
         )
 
-        cc_builder = CCBuilder(flaw)
+        cc_builder = CCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert RHSCLAffectCCBuilder(affect, flaw.embargoed).collection is None
         assert add_cc == ["you@redhat.com"]
