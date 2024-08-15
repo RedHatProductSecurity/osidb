@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Command for manual syncing Jira metadata (OSIDB-3219)
 
 ### Changed
-- Saving models only triggers validations once (OSIDB-3108)
 - Update ACLs of linked objects to match collector flaw (OSIDB-3253)
 - Allow start dates to come from multiple sources in SLA (OSIDB-3221)
 - Update public date for collector flaws (OSIDB-3212)
@@ -20,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Cannot modify CVE of existing flaws (OSIDB-3102)
 - Jira metadata collector is not deleting metadata on failure (OSIDB-3219)
+
+## [4.1.7] - 2024-08-15
+### Changed
+- Saving models only triggers validations once (OSIDB-3108)
+- Tracker collector ignores up-to-date entries (OSIDB-3244)
+
+### Fixed
 - Avoid deadlocks by not triggering nested validations in m2m relationships (OSIDB-3244)
 - Manually run validation avoiding duplicated trackers (OSIDB-3234)
 - Add delay between Jira metadata fetch calls to prevent rate limiting (OSIDB-3298)
