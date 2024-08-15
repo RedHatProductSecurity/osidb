@@ -1320,7 +1320,6 @@ class Flaw(
         """
         Bugzilla sync of the Flaw instance
         """
-        old_instance = kwargs.pop("old_instance", None)
         if not SYNC_FLAWS_TO_BZ:
             # up until now the parent save methods run in sequence of
             # 1) TrackingMixin with auto-timestamps on
@@ -1343,7 +1342,7 @@ class Flaw(
 
             # sync to Bugzilla
             bs = FlawBugzillaSaver(self, bz_api_key)
-            flaw_instance = bs.save(old_instance)
+            flaw_instance = bs.save()
             kwargs[
                 "auto_timestamps"
             ] = False  # the timestamps will be get from Bugzilla

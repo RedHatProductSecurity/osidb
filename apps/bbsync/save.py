@@ -46,15 +46,13 @@ class BugzillaSaver(BugzillaQuerier):
         # to the acutal user requesting the operation
         self._bz_api_key = bz_api_key
 
-    def save(self, old_instance=None):
+    def save(self):
         """
         generic save serving as class entry point
         which calls create or update handler to continue
         returns an updated instance (without saving)
         """
-        return (
-            self.create() if self.instance.bz_id is None else self.update(old_instance)
-        )
+        return self.create() if self.instance.bz_id is None else self.update()
 
     def create(self):
         """
@@ -65,14 +63,14 @@ class BugzillaSaver(BugzillaQuerier):
         self.instance.bz_id = str(response.id)
         return self.instance
 
-    def update(self, old_instance=None):
+    def update(self):
         """
         update a bug underlying the model instance in Bugilla
         """
         # switch of sync/async processing of flaws
         if not isinstance(self.instance, Flaw) or not SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY:
             try:
-                bugzilla_query_builder = self.query_builder(self.instance, old_instance)
+                bugzilla_query_builder = self.query_builder(self.instance)
                 self.check_collisions()  # check for collisions right before the update
             except DataInconsistencyException:
                 if not isinstance(self.instance, Flaw):
@@ -84,10 +82,10 @@ class BugzillaSaver(BugzillaQuerier):
                 flaw_collector.sync_flaw(self.instance.bz_id)
 
                 # resync from the DB and repeat the query building
-                self.instance.meta_attr = (
-                    old_instance.meta_attr
-                )  # update metadata after refresh
-                bugzilla_query_builder = self.query_builder(self.instance, old_instance)
+                self.instance.meta_attr = Flaw.objects.get(
+                    pk=self.instance.pk
+                ).meta_attr  # update metadata after refresh
+                bugzilla_query_builder = self.query_builder(self.instance)
                 self.check_collisions()  # if still colliding then something is very wrong
 
             try:
@@ -113,7 +111,7 @@ class BugzillaSaver(BugzillaQuerier):
                 raise e
             return self.instance
         else:
-            bugzilla_query_builder = self.query_builder(self.instance, old_instance)
+            bugzilla_query_builder = self.query_builder(self.instance)
             self.bz_conn.update_bugs(
                 [self.instance.bz_id], bugzilla_query_builder.query
             )
@@ -185,7 +183,7 @@ class FlawBugzillaSaver(BugzillaSaver):
         """
         return FlawBugzillaQueryBuilder
 
-    def update(self, old_instance):
+    def update(self):
         """
         update flaw in Bugzilla
         """
@@ -202,4 +200,4 @@ class FlawBugzillaSaver(BugzillaSaver):
                 "due to an ambigous N to 1 OSIDB to Buzilla flaw mapping"
             )
 
-        return super().update(old_instance)
+        return super().update()
