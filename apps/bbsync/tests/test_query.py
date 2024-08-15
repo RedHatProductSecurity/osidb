@@ -147,15 +147,15 @@ class TestGenerateBasics:
         """
         flaw = FlawFactory(
             components=["hammer"],
-            cve_id="",
+            cve_id="CVE-2000-1000",
             embargoed=False,
             title="is too heavy",
+            meta_attr={"alias": "[]", "bz_id": "123"},
         )
-        old_flaw = Flaw.objects.first()
-        flaw.cve_id = "CVE-2000-1000"
 
-        bbq = FlawBugzillaQueryBuilder(flaw, old_flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["summary"] == "CVE-2000-1000 hammer: is too heavy"
+        assert bbq.meta_attr["alias"] == '["CVE-2000-1000"]'
 
     def test_generate_summary_removed_cve(self):
         """
@@ -164,15 +164,15 @@ class TestGenerateBasics:
         """
         flaw = FlawFactory(
             components=["hammer"],
-            cve_id="CVE-2000-1000",
+            cve_id="",
             embargoed=False,
             title="is too heavy",
+            meta_attr={"alias": '["CVE-2000-1000"]', "bz_id": "123"},
         )
-        old_flaw = Flaw.objects.first()
-        flaw.cve_id = ""
 
-        bbq = FlawBugzillaQueryBuilder(flaw, old_flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["summary"] == "hammer: is too heavy"
+        assert bbq.meta_attr["alias"] == "[]"
 
     @pytest.mark.parametrize(
         "workflow_state,result",
@@ -242,10 +242,11 @@ class TestGenerateBasics:
         """
         test generating of CVE ID alias on creation
         """
-        flaw = FlawFactory(cve_id="CVE-2000-1001")
+        flaw = FlawFactory(cve_id="CVE-2000-1001", meta_attr={})
 
         bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["alias"] == ["CVE-2000-1001"]
+        assert bbq.meta_attr["alias"] == '["CVE-2000-1001"]'
 
     def test_generate_alias_external_id(self):
         """
@@ -260,6 +261,7 @@ class TestGenerateBasics:
 
         bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["alias"] == ["GHSA-0001"]
+        assert bbq.meta_attr["alias"] == '["GHSA-0001"]'
 
 
 class TestGenerateGroups:
@@ -268,7 +270,7 @@ class TestGenerateGroups:
         test that when creating a public flaw
         there are no or empty groups in BZ query
         """
-        flaw = FlawFactory(embargoed=False)
+        flaw = FlawFactory(embargoed=False, meta_attr={})
         FlawCommentFactory(flaw=flaw)
         affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         ps_module = PsModuleFactory(
@@ -289,13 +291,14 @@ class TestGenerateGroups:
         query = bbq.query
 
         assert not query.get("groups", [])
+        assert bbq.meta_attr["groups"] == "[]"
 
     def test_create_embargoed(self):
         """
         test that when creating an embargoed flaw
         there are expected groups in BZ query
         """
-        flaw = FlawFactory(embargoed=True)
+        flaw = FlawFactory(embargoed=True, meta_attr={})
         FlawCommentFactory(flaw=flaw)
         affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         ps_module = PsModuleFactory(
@@ -320,6 +323,7 @@ class TestGenerateGroups:
         assert "private" in groups
         assert "qe_staff" in groups
         assert "security" in groups
+        assert bbq.meta_attr["groups"] == '["private", "qe_staff", "security"]'
 
     def test_create_embargoed_no_redhat(self):
         """
@@ -355,7 +359,7 @@ class TestGenerateGroups:
         removes groups in BZ query
         """
         flaw = FlawFactory(
-            embargoed=True,
+            embargoed=False,
             meta_attr={"groups": '["private", "qe_staff", "security"]', "bz_id": "1"},
         )
         FlawCommentFactory(flaw=flaw)
@@ -374,12 +378,7 @@ class TestGenerateGroups:
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
-        new_flaw = Flaw.objects.first()
-        new_flaw.acl_read = [
-            uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_READ_GROUPS])
-        ]  # make it unembargoed
-
-        bbq = FlawBugzillaQueryBuilder(new_flaw, flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         query = bbq.query
 
         groups = query.get("groups", [])
@@ -389,6 +388,7 @@ class TestGenerateGroups:
         assert "private" in remove
         assert "qe_staff" in remove
         assert "security" in remove
+        assert bbq.meta_attr["groups"] == "[]"
 
     def test_affect_change(self):
         """
@@ -400,30 +400,9 @@ class TestGenerateGroups:
             meta_attr={"groups": '["private", "qe_staff", "security"]', "bz_id": "1"},
         )
         FlawCommentFactory(flaw=flaw)
-        affect1 = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
-        ps_module1 = PsModuleFactory(
-            name=affect1.ps_module,
-            bts_groups={
-                "embargoed": [
-                    "private",
-                ]
-            },
-        )
-        TrackerFactory(
-            affects=[affect1],
-            embargoed=flaw.is_embargoed,
-            type=Tracker.BTS2TYPE[ps_module1.bts_name],
-        )
-
-        new_flaw = Flaw.objects.first()
-        # remove existing affect
-        new_flaw.affects.first().delete()
-        # and add a newly created affect
-        affect2 = AffectFactory(
-            flaw=new_flaw, affectedness=Affect.AffectAffectedness.NEW
-        )
-        ps_module2 = PsModuleFactory(
-            name=affect2.ps_module,
+        affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
+        ps_module = PsModuleFactory(
+            name=affect.ps_module,
             bts_groups={
                 "embargoed": [
                     "secalert",
@@ -431,17 +410,18 @@ class TestGenerateGroups:
             },
         )
         TrackerFactory(
-            affects=[affect2],
-            embargoed=new_flaw.is_embargoed,
-            type=Tracker.BTS2TYPE[ps_module2.bts_name],
+            affects=[affect],
+            embargoed=flaw.is_embargoed,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
-        bbq = FlawBugzillaQueryBuilder(new_flaw, flaw)
+        bbq = FlawBugzillaQueryBuilder(flaw)
         query = bbq.query
 
         groups = query.get("groups", [])
         assert ["secalert"] == groups.get("add", [])
         assert ["private"] == groups.get("remove", [])
+        assert bbq.meta_attr["groups"] == '["qe_staff", "secalert", "security"]'
 
     def test_create_internal(self):
         """
@@ -456,10 +436,12 @@ class TestGenerateGroups:
                 uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
             ],
             embargoed=False,
+            meta_attr={},
         )
 
         bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["groups"] == ["redhat"]
+        assert bbq.meta_attr["groups"] == '["redhat"]'
 
 
 class TestGenerateComment:

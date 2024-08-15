@@ -1369,10 +1369,7 @@ class Flaw(
 
         # sync to Bugzilla
         bs = FlawBugzillaSaver(self, bz_api_key)  # prepare data for save to BZ
-        old_instance = kwargs.pop("old_instance", None)
-        flaw_instance = bs.save(
-            old_instance
-        )  # actually send to BZ (but not save to DB)
+        flaw_instance = bs.save()  # actually send to BZ (but not save to DB)
 
         if creating:
             # Save bz_id to DB
