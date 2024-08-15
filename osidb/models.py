@@ -1335,8 +1335,6 @@ class Flaw(
         if SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY:
             # Process the bzsync asynchronously
             BZSyncManager.check_for_reschedules()
-            kwargs["bz_api_key"] = bz_api_key
-            kwargs["old_instance"] = old_instance
             BZSyncManager.schedule(str(self.uuid), *args, **kwargs)
         else:
             # imports here to prevent cycles
