@@ -107,12 +107,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         self.generate_deadline()
         self.generate_cc()
         self.generate_comment()
-        # TODO tracker links
         self.generate_fixed_in()
-        # TODO dupe_of
-        # TODO cf_devel_whiteboard
-        # TODO ARRAY_FIELDS_ON_CREATE = ("depends_on", "blocks")
-        # TODO auto-requires doc text on create
 
     def generate_base(self):
         """
