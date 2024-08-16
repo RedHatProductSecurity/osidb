@@ -49,6 +49,8 @@ class TrackingMixin(models.Model):
 
             # updated_dt should never change from the DB version
             # otherwise assume that there was a conflicting parallel change
+            print(db_self.updated_dt)
+            print(self.updated_dt)
             if db_self is not None and db_self.updated_dt != self.updated_dt:
                 raise DataInconsistencyException(
                     "Save operation based on an outdated model instance: "

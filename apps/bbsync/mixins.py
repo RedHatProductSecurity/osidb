@@ -19,7 +19,7 @@ class BugzillaSyncMixin(models.Model):
     class Meta:
         abstract = True
 
-    def save(self, *args, bz_api_key=None, **kwargs):
+    def save(self, *args, bz_api_key=None, force_synchronous_sync=False, **kwargs):
         """
         save the model by storing to Bugzilla and fetching back
 
@@ -30,7 +30,12 @@ class BugzillaSyncMixin(models.Model):
         """
         # check BBSync conditions are met
         if SYNC_TO_BZ and bz_api_key is not None:
-            self.bzsync(*args, bz_api_key=bz_api_key, **kwargs)
+            self.bzsync(
+                *args,
+                bz_api_key=bz_api_key,
+                force_synchronous_sync=force_synchronous_sync,
+                **kwargs
+            )
         else:
             super().save(*args, **kwargs)
 

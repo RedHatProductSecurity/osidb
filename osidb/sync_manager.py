@@ -626,8 +626,7 @@ class BZSyncManager(SyncManager):
 
         try:
             flaw = Flaw.objects.get(uuid=sync_id)
-            bz_api_key = kwargs.pop("bz_api_key", None)
-            flaw._perform_bzsync(*args, bz_api_key=bz_api_key, **kwargs)
+            flaw._perform_bzsync(*args, **kwargs)
         except Exception as e:
             BZSyncManager.failed(sync_id, e)
         else:

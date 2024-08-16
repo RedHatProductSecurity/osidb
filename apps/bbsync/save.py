@@ -35,7 +35,7 @@ class BugzillaSaver(BugzillaQuerier):
         """
         raise NotImplementedError
 
-    def __init__(self, instance, bz_api_key):
+    def __init__(self, instance, bz_api_key=None):
         """
         init stuff
         """
@@ -44,7 +44,8 @@ class BugzillaSaver(BugzillaQuerier):
         # substitute the default service Bugzilla API key
         # so the resulting Bugzilla audit log corresponds
         # to the acutal user requesting the operation
-        self._bz_api_key = bz_api_key
+        if bz_api_key is not None:
+            self._bz_api_key = bz_api_key
 
     def save(self, old_instance=None):
         """
