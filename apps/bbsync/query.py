@@ -44,6 +44,25 @@ class BugzillaQueryBuilder:
         """
         return self.instance.bz_id is None
 
+    _meta_attr = None
+
+    @property
+    def meta_attr(self):
+        """
+        concrete name shortcut
+        """
+        if not self._meta_attr:
+            self._meta_attr = self.instance.meta_attr
+        return self._meta_attr
+
+    @property
+    def groups(self):
+        return json.loads(self.meta_attr.get("groups", "[]"))
+
+    @groups.setter
+    def groups(self, groups):
+        self.meta_attr["groups"] = json.dumps(sorted(groups))
+
     def generate(self):
         """
         generate query
@@ -81,17 +100,6 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         """
         return self.instance
 
-    _meta_attr = None
-
-    @property
-    def meta_attr(self):
-        """
-        concrete name shortcut
-        """
-        if not self._meta_attr:
-            self._meta_attr = self.flaw.meta_attr
-        return self._meta_attr
-
     @property
     def cc(self):
         return json.loads(self.meta_attr.get("cc", "[]"))
@@ -121,14 +129,6 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         old_aliases = json.loads(self.meta_attr.get("alias", "[]"))
         new_aliases = sorted(list(set(aliases) | set(old_aliases)))
         self.meta_attr["alias"] = json.dumps(new_aliases)
-
-    @property
-    def groups(self):
-        return json.loads(self.meta_attr.get("groups", "[]"))
-
-    @groups.setter
-    def groups(self, groups):
-        self.meta_attr["groups"] = json.dumps(sorted(groups))
 
     @property
     def embargoed(self):

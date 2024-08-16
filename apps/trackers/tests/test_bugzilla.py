@@ -48,6 +48,7 @@ class TestTrackerBugzillaQueryBuilder:
 
         tracker = TrackerFactory(
             affects=affects,
+            external_system_id=None,
             embargoed=False,
             ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
@@ -70,7 +71,7 @@ class TestTrackerBugzillaQueryBuilder:
         affects, flaw_uuids = [], []
         for idx in range(flaw_count):
             affect = AffectFactory(
-                flaw__bz_id=None,
+                flaw__bz_id=f"{idx}",
                 flaw__embargoed=False,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 ps_module=ps_module.name,
@@ -394,6 +395,7 @@ sla:
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
+            external_system_id=None,
             ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
@@ -436,6 +438,7 @@ sla:
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
+            external_system_id=None,
             ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
@@ -496,6 +499,7 @@ sla:
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
+            external_system_id=None,
             ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
@@ -508,7 +512,9 @@ sla:
         assert "SecurityTracking" in query["keywords"]
 
         # update query
-        query = TrackerBugzillaQueryBuilder(tracker, tracker).query
+        tracker.external_system_id = "123"
+        tracker.save()
+        query = TrackerBugzillaQueryBuilder(tracker).query
 
         assert "keywords" in query
         assert "add" in query["keywords"]

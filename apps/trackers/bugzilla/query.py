@@ -20,12 +20,18 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
     to generate general tracker save query
     """
 
+    # Bugzilla trackers are two-way synced so the meta_attr is stored on load
+    # however I am already making it being updated here like it is for flaws
+    # so potentially later we can use it as the previous state reference
+
     @property
-    def old_tracker(self):
-        """
-        concrete name shortcut
-        """
-        return self.old_instance
+    def blocks(self):
+        return json.loads(self.meta_attr.get("blocks", "[]"))
+
+    def update_blocks(self, add, remove):
+        add_blocks = set(self.blocks) | set(add)
+        remove_blocks = sorted(block for block in add_blocks if block not in remove)
+        self.meta_attr["blocks"] = json.dumps(remove_blocks)
 
     def generate(self):
         """
@@ -75,17 +81,19 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
             )
         )
 
-        if self.old_tracker is None:
+        if self.creation:
             self._query["blocks"] = flaw_ids
 
+            # update blocks in meta_attr
+            self.update_blocks(flaw_ids, [])
+
         else:
-            old_blocks = self.old_tracker.meta_attr.get("blocks", [])
             # filter out any potential other-than-flaw bugs which might
             # have been randomly linked to the tracker by engineering
             # for whatever reason not to remove their relation
             old_flaw_ids = [
                 bz_id
-                for bz_id in old_blocks
+                for bz_id in self.blocks
                 if Flaw.objects.filter(meta_attr__bz_id=bz_id).exists()
             ]
 
@@ -94,6 +102,9 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
                 "add": add_flaw_ids,
                 "remove": remove_flaw_ids,
             }
+
+            # update blocks in meta_attr
+            self.update_blocks(add_flaw_ids, remove_flaw_ids)
 
     def generate_cc(self):
         """
@@ -243,13 +254,14 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
 
         # otherwise we provide the differences
         else:
-            add_flaw_groups, remove_flaw_groups = self._lists2diffs(
-                groups, json.loads(self.old_tracker.meta_attr.get("groups", "[]"))
-            )
+            add_flaw_groups, remove_flaw_groups = self._lists2diffs(groups, self.groups)
             self._query["groups"] = {
                 "add": add_flaw_groups,
                 "remove": remove_flaw_groups,
             }
+
+        # update groups in meta_attr
+        self.groups = groups
 
     def generate_keywords(self):
         """
@@ -257,7 +269,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         """
         self._query["keywords"] = (
             ["Security", "SecurityTracking"]
-            if self.old_tracker is None
+            if self.creation
             else {"add": ["Security", "SecurityTracking"]}
         )
 
