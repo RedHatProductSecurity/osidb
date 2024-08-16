@@ -13,6 +13,198 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
+      - python-requests/2.32.0
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://squid.corp.redhat.com:3128/rest/api/2/issuetype
+  response:
+    body:
+      string: '[{"self":"https://example.com/rest/api/2/issuetype/3","id":"3","description":"Represents
+        a small unit of work that is not end-user facing.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Task","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/5","id":"5","description":"The
+        sub-task of the issue","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13276&avatarType=issuetype","name":"Sub-task","subtask":true,"avatarId":13276},{"self":"https://example.com/rest/api/2/issuetype/17","id":"17","description":"Created
+        by Jira Software - do not edit or delete. Issue type for a user story.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Story","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/1","id":"1","description":"A
+        problem that impairs or prevents the functions of the product.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Bug","subtask":false,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/16","id":"16","description":"Created
+        by Jira Software - do not edit or delete. Issue type for a big user story
+        that needs to be broken down.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13267&avatarType=issuetype","name":"Epic","subtask":false,"avatarId":13267},{"self":"https://example.com/rest/api/2/issuetype/11406","id":"11406","description":"Expresses
+        areas of concern for a project or program''s success.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype","name":"Risk","subtask":false,"avatarId":13268},{"self":"https://example.com/rest/api/2/issuetype/10100","id":"10100","description":"A
+        large product/portfolio goal or focus area that has clear start and completion
+        criteria","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10800","id":"10800","description":"Represents
+        a research-related task.''","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/12102","id":"12102","description":"Organizational
+        objective focused on a measurable outcome. May be in support of larger strategic
+        goals.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Outcome","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/2","id":"2","description":"Feature
+        requests from customers and/or users","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature
+        Request","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/13","id":"13","description":"An
+        enhancement to or refactoring of existing functionality that is not configurable
+        by an end user (typically a change made by an internal team that affects users)","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13269&avatarType=issuetype","name":"Enhancement","subtask":false,"avatarId":13269},{"self":"https://example.com/rest/api/2/issuetype/18","id":"18","description":"A
+        technical task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Technical
+        task","subtask":true,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/11403","id":"11403","description":"Used
+        to track RCA work with specific custom fields defined by the QE Closed Loop
+        Process.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13269&avatarType=issuetype","name":"Closed
+        Loop","subtask":false,"avatarId":13269},{"self":"https://example.com/rest/api/2/issuetype/8","id":"8","description":"A
+        one-off patch related to a customer support case, provided by Support and
+        not Engineering","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Support
+        Patch","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/4","id":"4","description":"An
+        improvement or enhancement to an existing feature or task. Includes patches
+        submitted by community commiters.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Patch","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/7","id":"7","description":"Indicates
+        a possible testsuite challenge","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17262&avatarType=issuetype","name":"CTS
+        Challenge","subtask":false,"avatarId":17262},{"self":"https://example.com/rest/api/2/issuetype/9","id":"9","description":"A
+        container task to coordinate the tasks for a given release.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Release","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10","id":"10","description":"A
+        potential bug.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype","name":"Quality
+        Risk","subtask":false,"avatarId":13268},{"self":"https://example.com/rest/api/2/issuetype/11","id":"11","description":"A
+        subtask tracking an update to a bundled component","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Component
+        Upgrade Subtask","subtask":true,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/12","id":"12","description":"A
+        task tracking an update to a bundled component or revision of component upstream
+        of the project.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Component
+        Upgrade","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11401","id":"11401","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"RFE","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
+        or a well-defined set of functionality that delivers business value. Features
+        can include additions or changes to existing functionality. Features can easily
+        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
+        of a library dependency","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Library
+        Upgrade","subtask":false,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/15","id":"15","description":"A
+        clarification needed to a specification based on community feedback","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Clarification","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/19","id":"19","description":"Issue
+        tracking a bug fix or improvement in another component","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Tracker","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/20","id":"20","description":"Used
+        for conducting internal reviews of our products and process with 3rd party
+        auditors","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Requirement","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/21","id":"21","description":"Same
+        as Requirement type but for subtasks","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13276&avatarType=issuetype","name":"Sub-requirement
+        ","subtask":true,"avatarId":13276},{"self":"https://example.com/rest/api/2/issuetype/22","id":"22","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Documentation","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/24","id":"24","description":"Support
+        Request","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13264&avatarType=issuetype","name":"Support
+        Request","subtask":false,"avatarId":13264},{"self":"https://example.com/rest/api/2/issuetype/10000","id":"10000","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Content
+        Change","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10001","id":"10001","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Technical
+        Requirement","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/10002","id":"10002","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13274&avatarType=issuetype","name":"Business
+        Requirement","subtask":false,"avatarId":13274},{"self":"https://example.com/rest/api/2/issuetype/10300","id":"10300","description":"Development
+        task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Dev
+        Task","subtask":false,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/10301","id":"10301","description":"QE
+        Task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"QE
+        Task","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/10302","id":"10302","description":"Docs
+        Task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Docs
+        Task","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10400","id":"10400","description":"Objectives
+        and Key Results","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13274&avatarType=issuetype","name":"OKR","subtask":false,"avatarId":13274},{"self":"https://example.com/rest/api/2/issuetype/10500","id":"10500","description":"Policies
+        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
+        issue requiring coordinated response","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10304&avatarType=issuetype","name":"Flare","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10900","id":"10900","description":"This
+        issue type is created for Service Desk functions in Jira Software","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Service
+        Request","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/10901","id":"10901","description":"Used
+        to represent an interrupt request identifying a problem that must be addressed,
+        usually from customer support","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13264&avatarType=issuetype","name":"Incident","subtask":false,"avatarId":13264},{"self":"https://example.com/rest/api/2/issuetype/10902","id":"10902","description":"Custom
+        Task issuetype for OCSPLAT","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Platform","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/11000","id":"11000","description":"A
+        request for change, often with an approval step at the beginning to confirm
+        the change.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Change
+        Request","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11100","id":"11100","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Support
+        Exception","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11101","id":"11101","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13276&avatarType=issuetype","name":"Review","subtask":true,"avatarId":13276},{"self":"https://example.com/rest/api/2/issuetype/11200","id":"11200","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Simple
+        Task","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11201","id":"11201","description":"The
+        sub-task of the issue used to track related QE work","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13273&avatarType=issuetype","name":"QE
+        Sub-task","subtask":true,"avatarId":13273},{"self":"https://example.com/rest/api/2/issuetype/11202","id":"11202","description":"The
+        sub-task of the issue used to track related development work","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Dev
+        Sub-task","subtask":true,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/11203","id":"11203","description":"The
+        sub-task of the issue used to track related documentation work","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Docs
+        Sub-task","subtask":true,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/11204","id":"11204","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Simple
+        Sub-task","subtask":true,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/11300","id":"11300","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Next
+        Action","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11400","id":"11400","description":"This
+        is a Business Unit Initiative a.k.a. \"BUI\"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"BU
+        Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11402","id":"11402","description":"General
+        issue to be triaged","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Issue","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11404","id":"11404","description":"HSS
+        PA tracking issue for Milestones","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Milestone","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11405","id":"11405","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Build
+        Task","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11407","id":"11407","description":"RT355021","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Report","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11408","id":"11408","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Schedule","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11409","id":"11409","description":"For
+        Documentation Issues","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Doc","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11410","id":"11410","description":"Mixed
+        type for Feature as Story","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Technical
+        Feature","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/11411","id":"11411","description":"Used
+        for grouping release operations, typically to identify milestones associated
+        with shipping a major release","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13273&avatarType=issuetype","name":"Release
+        Milestone","subtask":false,"avatarId":13273},{"self":"https://example.com/rest/api/2/issuetype/11412","id":"11412","description":"tracks
+        major releases","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Release
+        tracker","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/11413","id":"11413","description":"Generic
+        Service issue or operations request from an end user.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Ticket","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11414","id":"11414","description":"Higher
+        level than an epic","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Project","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/11415","id":"11415","description":"Root
+        Cause Analysis","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13269&avatarType=issuetype","name":"Root
+        Cause Analysis","subtask":false,"avatarId":13269},{"self":"https://example.com/rest/api/2/issuetype/11416","id":"11416","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13264&avatarType=issuetype","name":"Weather-item","subtask":false,"avatarId":13264},{"self":"https://example.com/rest/api/2/issuetype/11417","id":"11417","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Ad-Hoc
+        Task","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/11419","id":"11419","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Stakeholder
+        Request","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11600","id":"11600","description":"A
+        defect that needs to be fixed before Story can be \"Done\"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Story
+        Bug","subtask":true,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/11700","id":"11700","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=39777&avatarType=issuetype","name":"Info","subtask":false,"avatarId":39777},{"self":"https://example.com/rest/api/2/issuetype/11701","id":"11701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Team
+        Improvement","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11702","id":"11702","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Wireframe","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11800","id":"11800","description":"Product
+        Security Supply Chain Security Exception","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=39905&avatarType=issuetype","name":"Supply
+        Chain Exception","subtask":false,"avatarId":39905},{"self":"https://example.com/rest/api/2/issuetype/11900","id":"11900","description":"ProdSec
+        Software Security Exception","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=40577&avatarType=issuetype","name":"Software
+        Security Exception","subtask":false,"avatarId":40577},{"self":"https://example.com/rest/api/2/issuetype/12100","id":"12100","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Objective","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/12101","id":"12101","description":"Large,
+        strategic focus area typically defined by leadership teams to achieve organizational
+        long-term vision.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=50977&avatarType=issuetype","name":"Strategic
+        Goal","subtask":false,"avatarId":50977},{"self":"https://example.com/rest/api/2/issuetype/12206","id":"12206","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=55783&avatarType=issuetype","name":"Weakness","subtask":false,"avatarId":55783},{"self":"https://example.com/rest/api/2/issuetype/12207","id":"12207","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=55784&avatarType=issuetype","name":"DisabledVulnerability","subtask":false,"avatarId":55784},{"self":"https://example.com/rest/api/2/issuetype/12300","id":"12300","description":"CASE-461","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Epic
+        Story","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/12301","id":"12301","description":"CASE-461","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Epic
+        Bug","subtask":false,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
+        new feature of the product, which has yet to be developed.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"New
+        Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10200","id":"10200","description":"An
+        improvement or enhancement to an existing feature or task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Improvement","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/12402","id":"12402","description":"Track
+        underlying causes of incidents. Created by Jira Service Management.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=56262&avatarType=issuetype","name":"Problem","subtask":false,"avatarId":56262},{"self":"https://example.com/rest/api/2/issuetype/12401","id":"12401","description":"Created
+        by Jira Service Management.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=56261&avatarType=issuetype","name":"Change","subtask":false,"avatarId":56261}]'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Thu, 08 Aug 2024 10:53:02 GMT
+      Expires:
+      - Thu, 08 Aug 2024 10:53:02 GMT
+      Pragma:
+      - no-cache
+      Retry-After:
+      - '0'
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-RateLimit-Limit:
+      - '5'
+      X-RateLimit-Remaining:
+      - '4'
+      content-length:
+      - '25736'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-dc-stg-mpp-0
+      x-arequestid:
+      - 653x6588x1
+      x-asessionid:
+      - 4b9vcq
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-ratelimit-fillrate:
+      - '5'
+      x-ratelimit-interval-seconds:
+      - '1'
+      x-rh-edge-cache-status:
+      - NotCacheable from child
+      x-rh-edge-reference-id:
+      - 0.64f06e68.1723114381.563fe28
+      x-rh-edge-request-id:
+      - 563fe28
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*.*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
       - python-requests/2.31.0
       X-Atlassian-Token:
       - no-check
