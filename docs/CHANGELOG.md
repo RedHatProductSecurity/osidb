@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tracker collector ignores up-to-date entries (OSIDB-3244)
 - Adjust BBSync to work in one-way mode (OSIDB-3251)
 - Show only official collectors at the collector status endpoint
+- Use OSIDB Bugzilla service account API key for majority of bzsync
+  instead of user ones (OSIDB-3261)
 
 ### Fixed
 - Cannot modify CVE of existing flaws (OSIDB-3102)
