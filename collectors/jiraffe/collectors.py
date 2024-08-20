@@ -2,6 +2,7 @@
 Jira collector
 """
 
+from time import sleep
 from typing import List, Optional, Union
 
 from celery.utils.log import get_task_logger
@@ -292,6 +293,10 @@ class MetadataCollector(Collector):
                 start_at = 0
                 is_last = False
                 try:
+                    # here we repeatedly hit the rate limiting probably by firing the requrests too
+                    # fast after each other so let us introduce a short delay - there is no danger
+                    # of race condition as this collector is the only code writing this metadata
+                    sleep(1)
                     if project not in project_fields:
                         project_fields[project] = []
                     while not is_last:
