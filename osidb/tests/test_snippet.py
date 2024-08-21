@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from apps.workflows.models import Workflow
@@ -61,7 +63,7 @@ class TestSnippet:
         assert flaw.cwe_id == content["cwe_id"]
         assert flaw.comment_zero == content["comment_zero"]
         # flaw is newly created, so meta_attr contains custom data
-        assert flaw.meta_attr == {"external_ids": content["cve_id"]}
+        assert flaw.meta_attr == {"external_ids": json.dumps([content["cve_id"]])}
         assert flaw.references.count() == 1
         assert flaw.reported_dt
         assert flaw.reported_dt == flaw.created_dt
@@ -120,9 +122,11 @@ class TestSnippet:
         if flaw_present:
             if identifier == "cve_id":
                 FlawFactory(cve_id=cve_id, meta_attr={})
-            if identifier == "external_id":
+            elif identifier == "external_id":
                 # here we expect that a flaw already got synced to BZ, so meta_attr is present
-                FlawFactory(cve_id=cve_id, meta_attr={"external_ids": [ext_id]})
+                FlawFactory(
+                    cve_id=cve_id, meta_attr={"external_ids": json.dumps([ext_id])}
+                )
             assert Flaw.objects.count() == 1
 
         created = snippet.convert_snippet_to_flaw()
@@ -143,9 +147,5 @@ class TestSnippet:
 
         if identifier == "cve_id":
             assert snippet.content["cve_id"] == flaw.cve_id
-        # flaw is newly created, so meta_attr contains custom data
-        if identifier == "external_id" and not flaw_present:
-            assert flaw.meta_attr == {"external_ids": ext_id}
-        # flaw already got synced to BZ, so meta_attr contains data created by BZ sync
-        if identifier == "external_id" and flaw_present:
-            assert flaw.meta_attr == {"external_ids": f"['{ext_id}']"}
+        elif identifier == "external_id":
+            assert flaw.meta_attr == {"external_ids": json.dumps([ext_id])}

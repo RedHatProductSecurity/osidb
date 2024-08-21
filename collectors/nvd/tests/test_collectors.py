@@ -283,7 +283,7 @@ class TestNVDCollector:
             f = FlawFactory(
                 **data,
                 embargoed=False,
-                meta_attr={"external_ids": f'["{cve_id}"]', "alias": f'["{cve_id}"]'},
+                meta_attr={"external_ids": json.dumps([cve_id])},
                 task_key="OSIM-16309",
                 acl_write=internal_write_groups,
                 acl_read=internal_read_groups,
@@ -312,11 +312,7 @@ class TestNVDCollector:
         snippet = snippets.first()
 
         assert len(flaws) == len(snippets) == 1
-        if has_flaw:
-            assert flaw.cvss_scores.count() == len(snippet_content["cvss_scores"]) == 1
-        else:
-            # if a flaw was newly created, BZ two-way sync removed NIST CVSS, and NVD will sync it back later
-            assert flaw.cvss_scores.count() == 0
+        assert flaw.cvss_scores.count() == len(snippet_content["cvss_scores"]) == 1
         assert flaw.references.count() == len(snippet_content["references"]) == 2
         assert flaw.snippets.count() == 1
         assert flaw.snippets.first() == snippet
@@ -334,7 +330,6 @@ class TestNVDCollector:
         assert flaw.title == snippet_content["title"]
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
         assert json.loads(flaw.meta_attr["external_ids"]) == [cve_id]
-        assert json.loads(flaw.meta_attr["alias"]) == [cve_id]
 
         # Check FlawCVSS
         if has_flaw:

@@ -1336,28 +1336,9 @@ class Flaw(
             BZSyncManager.check_for_reschedules()
             BZSyncManager.schedule(str(self.uuid))
         else:
-            # imports here to prevent cycles
-            from apps.bbsync.save import FlawBugzillaSaver
-            from collectors.bzimport.collectors import FlawCollector
+            self._perform_bzsync(bz_api_key=kwargs.get("bz_api_key"), no_alerts=True)
 
-            # sync to Bugzilla
-            bs = FlawBugzillaSaver(self, kwargs.get("bz_api_key"))
-            flaw_instance = bs.save()
-            kwargs[
-                "auto_timestamps"
-            ] = False  # the timestamps will be get from Bugzilla
-            kwargs["raise_validation_error"] = False  # the validations were already run
-            # save in case a new Bugzilla ID was obtained
-            flaw_instance.save(no_alerts=True, *args, **kwargs)
-
-            # fetch from Bugzilla
-            fc = FlawCollector()
-            fc.no_alerts = True
-            fc.sync_flaw(flaw_instance.bz_id)
-            # Make sure the flaw instance has the latest data
-            flaw_instance.refresh_from_db()
-
-    def _perform_bzsync(self, *args, bz_api_key, **kwargs):
+    def _perform_bzsync(self, *args, bz_api_key=None, no_alerts=False, **kwargs):
         """
         Helper function that contains the actual logic of the Bugzilla sync,
         without additional checks - only the one-way sync to Bugzilla.
@@ -1378,7 +1359,9 @@ class Flaw(
             # save in case a new Bugzilla ID was obtained
             # Instead of self.save(*args, **kwargs), just update the single field to avoid
             # race conditions.
-            flaw_instance.save(*args, update_fields=["meta_attr"], **kwargs)
+            flaw_instance.save(
+                *args, update_fields=["meta_attr"], no_alerts=no_alerts, **kwargs
+            )
 
     def tasksync(
         self,
@@ -1569,7 +1552,9 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
 
         shared_acl = {"acl_read": self.acl_read, "acl_write": self.acl_write}
         # ensure that a flaw always contains external id (even if BZ sync is disabled)
-        shared_flaw = shared_acl | {"meta_attr": {"external_ids": self.external_id}}
+        shared_flaw = shared_acl | {
+            "meta_attr": {"external_ids": json.dumps([self.external_id])}
+        }
 
         # Flaw model has to be created first
         model, data = [i for i in main_model.items()][0]

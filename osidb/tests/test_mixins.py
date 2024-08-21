@@ -8,6 +8,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 import apps.bbsync.mixins as bz_mixins
+import apps.bbsync.save as bz_save
 import apps.taskman.mixins as task_mixins
 import osidb.models as models
 import osidb.serializer as serializer
@@ -39,6 +40,7 @@ def enable_sync(monkeypatch):
     monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
     monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
     monkeypatch.setattr(bz_mixins, "SYNC_TO_BZ", True)
+    monkeypatch.setattr(bz_save, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
     monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ", True)
     monkeypatch.setattr(models, "SYNC_TRACKERS_TO_BZ", True)
     monkeypatch.setattr(models, "SYNC_TO_JIRA", True)
@@ -505,7 +507,7 @@ class TestTrackingMixin:
         assert flaw.updated_dt == timezone.now()
 
 
-class TestBugzillaJiraMixinInteration:
+class TestBugzillaJiraMixinIntegration:
     def get_acl_read(self):
         return [
             uuid.uuid5(
@@ -596,14 +598,12 @@ class TestBugzillaJiraMixinInteration:
         assert flaw.bz_id
         assert flaw.task_key
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
-        assert flaw.meta_attr["bz_component"] == "vulnerability-draft"
 
         AffectFactory(flaw=flaw, ps_module="ps-module-0")
         flaw = Flaw.objects.get(pk=flaw.uuid)
 
         flaw.promote(jira_token=jira_token, bz_api_key=bz_token)
         assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
-        assert flaw.meta_attr["bz_component"] == "vulnerability"
 
         jtq = JiraTaskmanQuerier(jira_token)
 
@@ -654,7 +654,6 @@ class TestBugzillaJiraMixinInteration:
         assert flaw.bz_id
         assert flaw.task_key
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
-        assert flaw.meta_attr["bz_component"] == "vulnerability-draft"
 
         AffectFactory(flaw=flaw, ps_module="ps-module-0")
 
@@ -667,7 +666,6 @@ class TestBugzillaJiraMixinInteration:
 
         flaw = Flaw.objects.get(pk=created_uuid)
         assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
-        assert flaw.meta_attr["bz_component"] == "vulnerability"
 
         jtq = JiraTaskmanQuerier(jira_token)
 

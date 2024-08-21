@@ -38,7 +38,6 @@ class TestOSVCollector:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.all().first()
         assert flaw.task_key == "OSIM-7503"
-        assert json.loads(flaw.meta_attr["alias"]) == [cve_id]
         assert json.loads(flaw.meta_attr["external_ids"]) == [f"{osv_id}/{cve_id}"]
         assert flaw.reported_dt
         assert flaw.unembargo_dt
@@ -80,7 +79,6 @@ class TestOSVCollector:
         flaw = Flaw.objects.first()
         assert flaw.cve_id is None
         assert flaw.task_key == "OSIM-7509"
-        assert json.loads(flaw.meta_attr["alias"]) == [osv_id]
         assert json.loads(flaw.meta_attr["external_ids"]) == [osv_id]
 
     @pytest.mark.vcr
@@ -150,7 +148,7 @@ class TestOSVCollector:
         assert Snippet.objects.count() == 1
         assert Snippet.objects.first().external_id == osv_id
         assert Flaw.objects.count() == 1
-        assert Flaw.objects.first().meta_attr == {"external_ids": osv_id}
+        assert Flaw.objects.first().meta_attr == {"external_ids": json.dumps([osv_id])}
 
         # Snippet disappeared and OSV is trying to create a flaw which already exists
         Snippet.objects.all().delete()
@@ -162,4 +160,4 @@ class TestOSVCollector:
         assert Snippet.objects.count() == 1
         assert Snippet.objects.first().external_id == osv_id
         assert Flaw.objects.count() == 1
-        assert Flaw.objects.first().meta_attr == {"external_ids": osv_id}
+        assert Flaw.objects.first().meta_attr == {"external_ids": json.dumps([osv_id])}

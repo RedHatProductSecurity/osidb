@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show only official collectors at the collector status endpoint
 - Use OSIDB Bugzilla service account API key for majority of bzsync
   instead of user ones (OSIDB-3261)
+- Adjust synchronous bzsync to only work one-way
 
 ### Fixed
 - Cannot modify CVE of existing flaws (OSIDB-3102)
