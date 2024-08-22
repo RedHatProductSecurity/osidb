@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update public date for collector flaws (OSIDB-3212)
 - Tracker collector ignores up-to-date entries (OSIDB-3244)
 - Adjust BBSync to work in one-way mode (OSIDB-3251)
+- Show only official collectors at the collector status endpoint
 
 ### Fixed
 - Cannot modify CVE of existing flaws (OSIDB-3102)
