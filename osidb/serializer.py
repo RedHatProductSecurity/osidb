@@ -2,7 +2,6 @@
     serialize flaw model
 """
 
-import copy
 import logging
 import uuid
 from collections import defaultdict
@@ -728,8 +727,6 @@ class TrackerSerializer(
         else:
             # Special path for bulk tracker create. Works for Jira trackers only.
             # Do not sync with BZ, as that can take a long time for large flaws.
-            # The disadvantage is srtnotes being out of date in BZ until OSIDB updates
-            # that BZ with any BZ-syncing action without "sync_to_bz: false".
             pass
 
         #####################
@@ -803,7 +800,8 @@ class TrackerSerializer(
 class TrackerPostSerializer(TrackerSerializer):
     # extra serializer for POST request to exclude
     # not yet existing but otherwise mandatory fields
-    pass
+    # and make the PS update stream a mandatory field
+    ps_update_stream = serializers.CharField(max_length=100, required=True)
 
 
 class CommentSerializer(AlertMixinSerializer, TrackingMixinSerializer):
@@ -881,17 +879,9 @@ class BugzillaSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSerializ
         with providing BZ API key while saving
         """
         skip_bz_sync = validated_data.pop("skip_bz_sync", False)
-
-        if not skip_bz_sync:
-            # bzsync of flaw depends on comparing it with the old instance, but the instance is updated in
-            # the update call through the JiraTaskSyncMixinSerializer and it is lost.
-            kwargs = {}
-            if isinstance(instance, Flaw):
-                kwargs["old_instance"] = copy.deepcopy(instance)
-
         instance = super().update(instance, validated_data)
         if not skip_bz_sync:
-            instance.bzsync(bz_api_key=self.get_bz_api_key(), **kwargs)
+            instance.bzsync(bz_api_key=self.get_bz_api_key())
         return instance
 
     class Meta:

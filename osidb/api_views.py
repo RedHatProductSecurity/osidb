@@ -1047,6 +1047,11 @@ class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
     http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    def get_serializer_class(self):
+        if self.action == "create":
+            return TrackerPostSerializer
+        return self.serializer_class
+
 
 @include_exclude_fields_extend_schema_view
 @extend_schema_view(

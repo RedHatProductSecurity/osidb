@@ -5,12 +5,11 @@ from itertools import chain
 from django.utils import timezone
 
 from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
-from osidb.helpers import cve_id_comparator
+from osidb.helpers import cve_id_comparator, filter_cves
 from osidb.models import Flaw, FlawComment, Impact, PsModule
 
 from .cc import CCBuilder
 from .constants import DATE_FMT
-from .srtnotes import SRTNotesBuilder
 
 
 class BugzillaQueryBuilder:
@@ -21,14 +20,11 @@ class BugzillaQueryBuilder:
     https://bugzilla.redhat.com/docs/en/html/api/index.html
     """
 
-    def __init__(self, instance, old_instance=None):
+    def __init__(self, instance):
         """
         init stuff
-        parametr old_instance is optional as there is no old instance on creation
-        and if not set we consider the query to be a create query
         """
         self.instance = instance
-        self.old_instance = old_instance
         self._query = None
 
     @property
@@ -46,7 +42,26 @@ class BugzillaQueryBuilder:
         """
         boolean property True on creation and False on update
         """
-        return self.old_instance is None
+        return self.instance.bz_id is None
+
+    _meta_attr = None
+
+    @property
+    def meta_attr(self):
+        """
+        concrete name shortcut
+        """
+        if not self._meta_attr:
+            self._meta_attr = self.instance.meta_attr
+        return self._meta_attr
+
+    @property
+    def groups(self):
+        return json.loads(self.meta_attr.get("groups", "[]"))
+
+    @groups.setter
+    def groups(self, groups):
+        self.meta_attr["groups"] = json.dumps(sorted(groups))
 
     def generate(self):
         """
@@ -86,11 +101,38 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         return self.instance
 
     @property
-    def old_flaw(self):
-        """
-        concrete name shortcut
-        """
-        return self.old_instance
+    def cc(self):
+        return json.loads(self.meta_attr.get("cc", "[]"))
+
+    @cc.setter
+    def cc(self, cc):
+        self.meta_attr["cc"] = json.dumps(cc)
+
+    @property
+    def cve_id(self):
+        cves = filter_cves(json.loads(self.meta_attr.get("alias", "[]")))
+        # BBSync does not accept multi-CVE flaws
+        # therefore we may safely pick the first
+        return cves[0] if cves else None
+
+    @cve_id.setter
+    def cve_id(self, cve_id):
+        aliases = filter_cves(
+            json.loads(self.meta_attr.get("alias", "[]")), inverse=True
+        )
+        # preserve non-CVE aliases
+        if cve_id is not None:
+            aliases.append(cve_id)
+        self.meta_attr["alias"] = json.dumps(aliases)
+
+    def add_aliases(self, aliases):
+        old_aliases = json.loads(self.meta_attr.get("alias", "[]"))
+        new_aliases = sorted(list(set(aliases) | set(old_aliases)))
+        self.meta_attr["alias"] = json.dumps(new_aliases)
+
+    @property
+    def embargoed(self):
+        return "security" in self.groups
 
     def generate(self):
         """
@@ -107,14 +149,8 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         self.generate_groups()
         self.generate_deadline()
         self.generate_cc()
-        self.generate_srt_notes()
         self.generate_comment()
-        # TODO tracker links
         self.generate_fixed_in()
-        # TODO dupe_of
-        # TODO cf_devel_whiteboard
-        # TODO ARRAY_FIELDS_ON_CREATE = ("depends_on", "blocks")
-        # TODO auto-requires doc text on create
 
     def generate_base(self):
         """
@@ -216,23 +252,29 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
                 self._query["alias"] = [self.flaw.cve_id]
 
             elif snippets := self.flaw.snippets.all():
-                self._query["alias"] = [s.external_id for s in snippets]
+                aliases = [s.external_id for s in snippets]
+                self._query["alias"] = aliases
+                # update alias in meta_attr
+                self.add_aliases(aliases)
 
-        elif self.flaw.cve_id != self.old_flaw.cve_id:
+        elif self.flaw.cve_id != self.cve_id:
             self._query["alias"] = {}
 
             if self.flaw.cve_id is not None:
                 self._query["alias"]["add"] = [self.flaw.cve_id]
 
-            if self.old_flaw.cve_id is not None:
-                self._query["alias"]["remove"] = [self.old_flaw.cve_id]
+            if self.cve_id is not None:
+                self._query["alias"]["remove"] = [self.cve_id]
+
+        # update alias in meta_attr
+        self.cve_id = self.flaw.cve_id
 
     def generate_keywords(self):
         """
         generate keywords query based on creation|update
         """
         self._query["keywords"] = (
-            ["Security"] if self.old_flaw is None else {"add": ["Security"]}
+            ["Security"] if self.creation else {"add": ["Security"]}
         )
 
     def generate_flags(self):
@@ -371,12 +413,14 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
 
         # otherwise we provide the differences
         else:
-            old_groups = json.loads(self.old_flaw.meta_attr.get("groups", "[]"))
-            add_groups, remove_groups = self._lists2diffs(groups, old_groups)
+            add_groups, remove_groups = self._lists2diffs(groups, self.groups)
             self._query["groups"] = {
                 "add": add_groups,
                 "remove": remove_groups,
             }
+
+        # update groups in meta_attr
+        self.groups = groups
 
     def generate_deadline(self):
         """
@@ -387,31 +431,25 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
                 self._query["deadline"] = self.flaw.unembargo_dt.strftime(DATE_FMT)
 
         # unembargo
-        elif not self.creation and self.old_flaw.embargoed:
+        elif not self.creation and self.embargoed:
             self._query["deadline"] = ""
 
     def generate_cc(self):
         """
         generate query for CC list
         """
-        cc_builder = CCBuilder(self.flaw, self.old_flaw)
-        add_cc, remove_cc = cc_builder.content
+        cc_builder = CCBuilder(self.flaw, self.cc)
+        # let us ignore CCs to be removed
+        add_cc, _ = cc_builder.content
 
         if self.creation:
             self._query["cc"] = add_cc
 
         else:
-            self._query["cc"] = {
-                "add": add_cc,
-                "remove": remove_cc,
-            }
+            self._query["cc"] = {"add": add_cc}
 
-    def generate_srt_notes(self):
-        """
-        generate query for SRT notes
-        """
-        srt_notes_builder = SRTNotesBuilder(self.flaw, self.old_flaw)
-        self._query["cf_srtnotes"] = srt_notes_builder.content
+        # update CC in meta_attr by just accumulating
+        self.cc = list(set(self.cc) | set(add_cc))
 
     def generate_comment(self):
         """

@@ -5,7 +5,6 @@ CC list builders for
 - Jira-based Tracker (described using a Flaw's Affect)
 """
 
-import json
 import logging
 import re
 from functools import cached_property
@@ -357,64 +356,12 @@ class BugzillaFlawCCBuilder:
     Bugzilla flaw CC list array builder
     """
 
-    def __init__(self, flaw: Flaw, old_flaw: Optional[Flaw] = None) -> None:
+    def __init__(self, flaw: Flaw, old_cc: list) -> None:
         """
         init stuff
-        parametr old_flaw is optional as there is no old flaw on creation
-        and if not set we consider the query to be a create query
         """
         self.flaw = flaw
-        self.old_flaw = old_flaw
-
-        # unless the flaw is being created
-        # we extract the previous data
-        if not old_flaw:
-            return
-
-        self.old_cc = json.loads(self.old_flaw.meta_attr.get("cc", "[]"))
-
-        # IMPORTANT
-        # next we consider only two possible mutually exclusive cases
-        #
-        # 1) flaw is modified through /flaws API endpoint
-        # 2) affect is modified through /affects API endpoint
-        #
-        # if in the future we would enable some bulk change of flaw and its affect(s)
-        # together in one API call we would probably have to refactor the following code
-        #
-        # now the consequences are that in 1) there are no affect changes and in 2) there
-        # are no flaw changes but as in Bugzilla affects are just a part of flaw we do
-        # the save always through the flaw and therefore the affect need to be already
-        # stored in DB before we hit flaw.save() which means there are no old_affects in
-        # the DB as they were already rewritten by the new and we need to use SRT notes
-
-        srtnotes = json.loads(self.old_flaw.meta_attr.get("original_srtnotes", "{}"))
-        old_affects = {
-            (affect["ps_module"], affect["ps_component"]): (
-                affect["affectedness"],
-                affect["resolution"],
-            )
-            for affect in srtnotes.get("affects", [])
-        }
-        self.added_affects = [
-            affect
-            for affect in self.flaw.affects.all()
-            if (affect.ps_module, affect.ps_component) not in old_affects
-        ]
-        self.removed_affects = [
-            # there is probably no old affect model instance
-            # any more so we create dummy temporary one
-            Affect(
-                ps_module=module_component[0],
-                ps_component=module_component[1],
-                affectedness=affectedness_resolution[0],
-                resolution=affectedness_resolution[1],
-            )
-            for module_component, affectedness_resolution in old_affects.items()
-            if not self.flaw.affects.filter(
-                ps_module=module_component[0], ps_component=module_component[1]
-            ).exists()
-        ]
+        self.old_cc = old_cc
 
     @property
     def content(self) -> Tuple[List[str], List[str]]:
@@ -430,30 +377,11 @@ class BugzillaFlawCCBuilder:
         generate content
         """
         all_cc = self.affect_list2cc(self.flaw.affects.all())
-
-        if not self.old_flaw:
-            # on create we add all
-            # and remove nothing
-            add_cc = all_cc
-            remove_cc = []
-
-        elif self.old_flaw.embargoed and not self.flaw.is_embargoed:
-            # on unembargo we add and remove all but do not add
-            # already existing CCs because they are already there
-            add_cc = [cc for cc in all_cc if cc not in self.old_cc]
-            remove_cc = self.affect_list2cc(self.removed_affects)
-
-        else:
-            # on update we only add the CCs from new affects
-            # so we do not re-add people who removed themselves
-            # and remove whatever is not needed any more
-            add_cc = self.affect_list2cc(self.added_affects)
-            remove_cc = self.affect_list2cc(self.removed_affects)
-
-        # do not remove CCs which are being added from another source
-        remove_cc = [cc for cc in remove_cc if cc not in add_cc]
-
-        return add_cc, remove_cc
+        add_cc = [cc for cc in all_cc if cc not in self.old_cc]
+        # simplify the functionality by only adding people
+        # who where never added before (accumulating)
+        # and never removing anyone - they can do it
+        return add_cc, []
 
     def affect_list2cc(self, affects: List[Affect]) -> List[str]:
         """

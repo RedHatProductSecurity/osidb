@@ -1,8 +1,6 @@
 """
 BBSync constants
 """
-import os
-
 from osidb.helpers import get_env
 
 DATE_FMT = "%Y-%m-%d"
@@ -10,9 +8,6 @@ DATETIME_FMT = "%Y-%m-%dT%H:%M:%SZ"
 
 # RHSCL Bugzilla project key
 RHSCL_BTS_KEY = "Red Hat Software Collections"
-
-# JSON schema for SRT notes flaw metadata
-SRTNOTES_SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "./srtnotes-schema.json")
 
 # switches to enable or disable BBSync
 SYNC_TO_BZ = get_env("BBSYNC_SYNC_TO_BZ", default="False", is_bool=True)

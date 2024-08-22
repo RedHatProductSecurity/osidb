@@ -67,7 +67,7 @@ class TestTrackerSaver:
             status="NEW",
             resolution="",
             meta_attr={
-                "blocks": f"[{flaw.bz_id}]",
+                "blocks": f'["{flaw.bz_id}"]',
                 "whiteboard": {"flaws": [flaw.uuid]},
                 "ps_module": affect.ps_module,
                 "ps_component": affect.ps_component,
@@ -303,7 +303,7 @@ class TestTrackerAPI:
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream1.name,
             type=Tracker.TrackerType.BUGZILLA,
-            meta_attr={"blocks": ["2217733"], "updated_dt": updated_dt},
+            meta_attr={"blocks": '["2217733"]', "updated_dt": updated_dt},
             updated_dt=timezone.datetime.strptime(updated_dt, BZ_DT_FMT),
         )
 

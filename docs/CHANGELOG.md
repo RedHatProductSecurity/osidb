@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow start dates to come from multiple sources in SLA (OSIDB-3221)
 - Update public date for collector flaws (OSIDB-3212)
 - Tracker collector ignores up-to-date entries (OSIDB-3244)
+- Adjust BBSync to work in one-way mode (OSIDB-3251)
 
 ### Fixed
 - Cannot modify CVE of existing flaws (OSIDB-3102)
@@ -21,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Avoid deadlocks by not triggering nested validations in m2m relationships (OSIDB-3244)
 - Manually run validation avoiding duplicated trackers (OSIDB-3234)
 - Add delay between Jira metadata fetch calls to prevent rate limiting (OSIDB-3298)
+
+### Removed
+- Stop syncing Bugzilla SRT notes to Bugzilla flaw bugs
 
 ## [4.1.6] - 2024-08-02
 ### Fixed
