@@ -616,22 +616,21 @@ class BZSyncManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.bzsync", bind=True)
-    def sync_task(self, sync_id, *args, **kwargs):
-        # sync_id is the flaw UUID
+    def sync_task(self, flaw_id):
+        # flaw_id is the flaw UUID
         from osidb.models import Flaw
 
-        BZSyncManager.started(sync_id, self)
+        BZSyncManager.started(flaw_id, self)
 
         set_user_acls(settings.ALL_GROUPS)
 
         try:
-            flaw = Flaw.objects.get(uuid=sync_id)
-            bz_api_key = kwargs.pop("bz_api_key", None)
-            flaw._perform_bzsync(*args, bz_api_key=bz_api_key, **kwargs)
+            flaw = Flaw.objects.get(uuid=flaw_id)
+            flaw._perform_bzsync()
         except Exception as e:
-            BZSyncManager.failed(sync_id, e)
+            BZSyncManager.failed(flaw_id, e)
         else:
-            BZSyncManager.finished(sync_id)
+            BZSyncManager.finished(flaw_id)
 
     def update_synced_links(self):
         from osidb.models import Flaw

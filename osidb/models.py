@@ -1316,7 +1316,7 @@ class Flaw(
         # TODO we have no tracker resolution for now
         return False
 
-    def bzsync(self, *args, bz_api_key, **kwargs):
+    def bzsync(self, *args, force_synchronous_sync=False, **kwargs):
         """
         Bugzilla sync of the Flaw instance
         """
@@ -1331,33 +1331,14 @@ class Flaw(
             return
 
         # switch of sync/async processing
-        if SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY:
+        if SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY and not force_synchronous_sync:
             # Process the bzsync asynchronously
             BZSyncManager.check_for_reschedules()
-            BZSyncManager.schedule(str(self.uuid), *args, **kwargs)
+            BZSyncManager.schedule(str(self.uuid))
         else:
-            # imports here to prevent cycles
-            from apps.bbsync.save import FlawBugzillaSaver
-            from collectors.bzimport.collectors import FlawCollector
+            self._perform_bzsync(bz_api_key=kwargs.get("bz_api_key"), no_alerts=True)
 
-            # sync to Bugzilla
-            bs = FlawBugzillaSaver(self, bz_api_key)
-            flaw_instance = bs.save()
-            kwargs[
-                "auto_timestamps"
-            ] = False  # the timestamps will be get from Bugzilla
-            kwargs["raise_validation_error"] = False  # the validations were already run
-            # save in case a new Bugzilla ID was obtained
-            flaw_instance.save(no_alerts=True, *args, **kwargs)
-
-            # fetch from Bugzilla
-            fc = FlawCollector()
-            fc.no_alerts = True
-            fc.sync_flaw(flaw_instance.bz_id)
-            # Make sure the flaw instance has the latest data
-            flaw_instance.refresh_from_db()
-
-    def _perform_bzsync(self, *args, bz_api_key, **kwargs):
+    def _perform_bzsync(self, *args, bz_api_key=None, no_alerts=False, **kwargs):
         """
         Helper function that contains the actual logic of the Bugzilla sync,
         without additional checks - only the one-way sync to Bugzilla.
@@ -1378,7 +1359,9 @@ class Flaw(
             # save in case a new Bugzilla ID was obtained
             # Instead of self.save(*args, **kwargs), just update the single field to avoid
             # race conditions.
-            flaw_instance.save(*args, update_fields=["meta_attr"], **kwargs)
+            flaw_instance.save(
+                *args, update_fields=["meta_attr"], no_alerts=no_alerts, **kwargs
+            )
 
     def tasksync(
         self,
@@ -1569,7 +1552,9 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
 
         shared_acl = {"acl_read": self.acl_read, "acl_write": self.acl_write}
         # ensure that a flaw always contains external id (even if BZ sync is disabled)
-        shared_flaw = shared_acl | {"meta_attr": {"external_ids": self.external_id}}
+        shared_flaw = shared_acl | {
+            "meta_attr": {"external_ids": json.dumps([self.external_id])}
+        }
 
         # Flaw model has to be created first
         model, data = [i for i in main_model.items()][0]
@@ -2130,13 +2115,13 @@ class Affect(
             return None
         return ps_module.ps_product.name
 
-    def bzsync(self, *args, bz_api_key, **kwargs):
+    def bzsync(self, *args, **kwargs):
         """
         Bugzilla sync of the Affect instance
         """
         self.save()
         # Affect needs to be synced through flaw
-        self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
+        self.flaw.save(*args, **kwargs)
 
 
 class FlawCVSSManager(ACLMixinManager, TrackingMixinManager):
@@ -2259,13 +2244,13 @@ class FlawCVSS(CVSS):
             GinIndex(fields=["acl_read"]),
         ]
 
-    def bzsync(self, *args, bz_api_key, **kwargs):
+    def bzsync(self, *args, **kwargs):
         """
         Bugzilla sync of the FlawCVSS instance
         """
         self.save()
         # FlawCVSS needs to be synced through flaw
-        self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
+        self.flaw.save(*args, **kwargs)
 
 
 class AffectCVSS(CVSS):
@@ -2285,13 +2270,13 @@ class AffectCVSS(CVSS):
             GinIndex(fields=["acl_read"]),
         ]
 
-    def bzsync(self, *args, bz_api_key, **kwargs):
+    def bzsync(self, *args, **kwargs):
         """
         Bugzilla sync of the AffectCVSS instance
         """
         self.save()
         # AffectCVSS needs to be synced through affect
-        self.affect.save(*args, bz_api_key=bz_api_key, **kwargs)
+        self.affect.save(*args, **kwargs)
 
 
 class TrackerManager(ACLMixinManager, TrackingMixinManager):
@@ -2862,7 +2847,11 @@ class FlawComment(
         # If external_system_id is blank, BugzillaSaver posts the new comment
         # and FlawCollector loads the new comment and updates this FlawComment
         # instance to match bugzilla.
-        self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
+        # NOTE: Keep using user BZ API key for Flaw comments as we need to
+        #       preserve the information about author
+        self.flaw.save(
+            *args, bz_api_key=bz_api_key, force_synchronous_sync=True, **kwargs
+        )
 
 
 class FlawAcknowledgmentManager(ACLMixinManager, TrackingMixinManager):
@@ -2948,7 +2937,7 @@ class FlawAcknowledgment(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin)
         """
         self.save()
         # FlawAcknowledgment needs to be synced through flaw
-        self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
+        self.flaw.save(*args, **kwargs)
 
 
 class FlawReferenceManager(ACLMixinManager, TrackingMixinManager):
@@ -3068,7 +3057,7 @@ class FlawReference(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin):
         """
         self.save()
         # FlawReference needs to be synced through flaw
-        self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
+        self.flaw.save(*args, **kwargs)
 
 
 class VersionStatus(models.TextChoices):
@@ -3206,7 +3195,7 @@ class Package(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin):
         """
         self.save()
         # needs to be synced through flaw
-        self.flaw.save(*args, bz_api_key=bz_api_key, **kwargs)
+        self.flaw.save(*args, **kwargs)
 
     class Meta:
         """define meta"""

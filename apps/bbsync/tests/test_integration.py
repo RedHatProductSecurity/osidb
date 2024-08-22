@@ -848,71 +848,6 @@ class TestBBSyncIntegration:
         assert response.status_code == 400
         assert "Components value is required" in str(response.content)
 
-    @pytest.mark.vcr
-    def test_flaw_update_multi_cve(self, auth_client, test_api_uri):
-        """
-        test that flaw with multiple CVE IDs can be updated
-
-        note that this single flaw in Bugzilla actually
-        corresponds to multiple flaws in OSIDB
-        """
-        updated_dt = "2024-06-17T10:53:49Z"
-        flaw1 = FlawFactory(
-            bz_id="2044578",
-            cve_id="CVE-2022-0313",
-            title="Foo",
-            comment_zero="test",
-            reported_dt="2022-11-22T15:55:22.830Z",
-            unembargo_dt="2000-1-1T22:03:26.065Z",
-            updated_dt=updated_dt,
-            acl_read=self.acl_read,
-            acl_write=self.acl_write,
-        )
-        flaw2 = FlawFactory(
-            bz_id="2044578",
-            cve_id="CVE-2022-0500",
-            title="Foo",
-            comment_zero="test",
-            reported_dt="2022-11-22T15:55:22.830Z",
-            unembargo_dt="2000-1-1T22:03:26.065Z",
-            updated_dt=updated_dt,
-            acl_read=self.acl_read,
-            acl_write=self.acl_write,
-        )
-        PsModuleFactory(name="rhel-8")
-        AffectFactory(
-            flaw=flaw1,
-            ps_module="rhel-8",
-            ps_component="kernel",
-        )
-        AffectFactory(
-            flaw=flaw2,
-            ps_module="rhel-8",
-            ps_component="kernel",
-        )
-
-        # note that both flaws share BZ ID
-        # but here we modify flaw1 only
-        flaw_data = {
-            "cve_id": "CVE-2022-0313",
-            "title": "Bar",  # new title
-            "comment_zero": "test",
-            "reported_dt": flaw1.reported_dt,
-            "unembargo_dt": flaw1.unembargo_dt,
-            "updated_dt": flaw1.updated_dt,
-            "embargoed": False,
-        }
-        response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw1.uuid}",
-            flaw_data,
-            format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-        )
-        assert response.status_code == 200
-        # both OSIDB flaws should be impacted by the modification
-        assert Flaw.objects.get(cve_id="CVE-2022-0313").title == "Bar"
-        assert Flaw.objects.get(cve_id="CVE-2022-0500").title == "Bar"
-
     def test_flaw_update_multi_cve_restricted(self, auth_client, test_api_uri):
         """
         test that CVE ID cannot be removed from a multi-CVE flaw
@@ -1053,10 +988,7 @@ class TestFlawDraftBBSyncIntegration:
         assert flaw.workflow_state == "NEW"
 
         # only some items in meta_attr are checked
-        assert flaw.meta_attr["bz_component"] == "vulnerability-draft"
         if cve_id:
-            assert json.loads(flaw.meta_attr["alias"]) == [cve_id]
-            assert flaw.meta_attr["bz_summary"] == f"{cve_id} From {source} collector"
             if source == "NVD":
                 assert json.loads(flaw.meta_attr["external_ids"]) == [cve_id]
             else:
@@ -1064,8 +996,6 @@ class TestFlawDraftBBSyncIntegration:
                     f"{ext_id}/{cve_id}"
                 ]
         else:
-            assert json.loads(flaw.meta_attr["alias"]) == [ext_id]
-            assert flaw.meta_attr["bz_summary"] == f"From {source} collector"
             assert json.loads(flaw.meta_attr["external_ids"]) == [ext_id]
 
         # check that all ACLs are internal after Bugzilla two-way sync
