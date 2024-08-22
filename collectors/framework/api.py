@@ -116,7 +116,9 @@ class status(RudimentaryUserPathLoggingMixin, APIView):
                         "state": collector.collector_state,
                         "updated_until": collector.updated_until_dt,
                     }
+                    # the official collectors are always in the tasks directory
                     for name, collector in CollectorFramework.collectors().items()
+                    if "tasks" in name
                 },
             }
         )
