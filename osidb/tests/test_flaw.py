@@ -141,14 +141,14 @@ class TestFlaw:
         assert affect1 in all_affects
         assert affect2 in all_affects
 
-        comment1 = FlawCommentFactory(flaw=vuln_1)
+        comment1 = FlawCommentFactory(flaw=vuln_1, order=0)
         comment2 = FlawComment(
             flaw=vuln_1,
             external_system_id="9999991",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             text="some comment text",
-            order=0,
+            order=1,
         )
         comment2.save()
         all_comments = vuln_1.comments.all()
@@ -367,6 +367,12 @@ class TestFlaw:
 
         new_affect = AffectFactory(affectedness=Affect.AffectAffectedness.NEW)
         assert new_affect.delegated_resolution is None
+        undelegated_affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DEFER,
+        )
+        assert undelegated_affect.delegated_resolution is None
+
         undelegated_affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.WONTFIX,
@@ -1841,6 +1847,14 @@ class TestFlawValidators:
                 Affect.AffectAffectedness.AFFECTED,
                 Affect.AffectAffectedness.AFFECTED,
                 Affect.AffectResolution.DELEGATED,
+                Affect.AffectResolution.DEFER,
+                False,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.DELEGATED,
                 Affect.AffectResolution.FIX,
                 True,
                 False,
@@ -1890,7 +1904,7 @@ class TestFlawValidators:
 
         affect.affectedness = affectedness_new
         affect.resolution = resolution_new
-        affect.impact = Impact.CRITICAL
+
         if should_raise:
             with pytest.raises(
                 ValidationError,
@@ -1911,11 +1925,10 @@ class TestFlawValidators:
         "affectedness,resolution,should_raise",
         [
             (Affect.AffectAffectedness.NEW, Affect.AffectResolution.NOVALUE, False),
-            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.DEFER, True),
+            (Affect.AffectAffectedness.NEW, Affect.AffectResolution.DEFER, False),
             (Affect.AffectAffectedness.NEW, Affect.AffectResolution.WONTFIX, False),
             (Affect.AffectAffectedness.NEW, Affect.AffectResolution.OOSS, False),
             (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.FIX, True),
-            (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.DEFER, True),
             (
                 Affect.AffectAffectedness.AFFECTED,
                 Affect.AffectResolution.DELEGATED,
@@ -1929,6 +1942,11 @@ class TestFlawValidators:
             (
                 Affect.AffectAffectedness.AFFECTED,
                 Affect.AffectResolution.WONTFIX,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.DEFER,
                 False,
             ),
             (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.OOSS, False),
@@ -2045,6 +2063,11 @@ class TestFlawValidators:
                 True,
             ),
             (
+                Affect.AffectResolution.DEFER,
+                False,
+                False,
+            ),
+            (
                 Affect.AffectResolution.WONTFIX,
                 False,
                 False,
@@ -2066,6 +2089,7 @@ class TestFlawValidators:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=resolution,
         )
+
         tracker = TrackerFactory.build(
             embargoed=False,
             status=status,
@@ -2078,6 +2102,60 @@ class TestFlawValidators:
             f"The tracker is associated with an OOSS affect: {affect.uuid}"
             if entity == "tracker"
             else f"{affect.uuid}.*is marked as.*but has open tracker"
+        )
+        entity = tracker if entity == "tracker" else affect
+        if should_raise:
+            with pytest.raises(
+                ValidationError,
+                match=match,
+            ):
+                entity.save()
+        else:
+            assert entity.save() is None
+
+    @pytest.mark.parametrize("entity", ["affect", "tracker"])
+    @pytest.mark.parametrize(
+        "resolution,is_tracker_open,should_raise",
+        [
+            (
+                Affect.AffectResolution.DEFER,
+                True,
+                True,
+            ),
+            (
+                Affect.AffectResolution.DEFER,
+                False,
+                False,
+            ),
+        ],
+    )
+    def test_validate_defer_open_tracker(
+        self, entity, resolution, is_tracker_open, should_raise
+    ):
+        """
+        Test that defer affects with open trackers raises error.
+        """
+        status = "OPEN" if is_tracker_open else "CLOSED"
+        flaw = FlawFactory(embargoed=False)
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=resolution,
+        )
+        tracker = TrackerFactory.build(
+            embargoed=False,
+            status=status,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        tracker.save(raise_validation_error=False)
+        tracker.affects.add(affect)
+
+        match = (
+            f"The tracker is associated with a {Affect.AffectResolution.DEFER} affect: {affect.uuid}"
+            if entity == "tracker"
+            else f"{affect.uuid}.*cannot have resolution {Affect.AffectResolution.DEFER} with open tracker"
         )
         entity = tracker if entity == "tracker" else affect
         if should_raise:
@@ -2129,9 +2207,9 @@ class TestFlawValidators:
         tracker.affects.add(affect)
 
         match = (
-            f"The tracker is associated with a WONTFIX affect: {affect.uuid}"
+            f"The tracker is associated with a {Affect.AffectResolution.WONTFIX} affect: {affect.uuid}"
             if entity == "tracker"
-            else f"{affect.uuid}.*is marked as.*but has open tracker"
+            else f"{affect.uuid}.*is marked as WONTFIX but has open tracker"
         )
         entity = tracker if entity == "tracker" else affect
         if should_raise:

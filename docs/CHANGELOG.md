@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use OSIDB Bugzilla service account API key for majority of bzsync
   instead of user ones (OSIDB-3261)
 - Adjust synchronous bzsync to only work one-way
+- Move DEFER from historical to current possible affect resolution (OSIDB-3281)
 
 ### Fixed
 - Cannot modify CVE of existing flaws (OSIDB-3102)

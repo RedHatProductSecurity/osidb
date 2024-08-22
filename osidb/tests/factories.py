@@ -294,7 +294,12 @@ class AffectFactory(BaseFactory):
     )
     ps_module = factory.sequence(lambda n: f"ps-module-{n}")
     ps_component = factory.sequence(lambda n: f"ps-component-{n}")
-    impact = factory.Faker("random_element", elements=list(Impact))
+    impact = factory.Faker(
+        "random_element",
+        elements=filter(lambda i: i != "LOW", list(Impact))
+        if resolution == "DEFER"
+        else list(Impact),
+    )
 
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     updated_dt = factory.Faker("date_time", tzinfo=UTC)

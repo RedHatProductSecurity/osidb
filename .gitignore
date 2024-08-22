@@ -31,3 +31,4 @@ tests/htmlcov
 .vscode/
 *.db.gz
 osidb_data_backup_dump*
+.DS_Store

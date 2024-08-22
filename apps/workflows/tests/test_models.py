@@ -253,6 +253,11 @@ class TestCheck:
             ),
             (
                 Affect.AffectAffectedness.NEW,
+                Affect.AffectResolution.DEFER,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.NEW,
                 Affect.AffectResolution.OOSS,
                 False,
             ),
@@ -264,6 +269,11 @@ class TestCheck:
             (
                 Affect.AffectAffectedness.AFFECTED,
                 Affect.AffectResolution.WONTFIX,
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.AFFECTED,
+                Affect.AffectResolution.DEFER,
                 False,
             ),
             (
@@ -298,6 +308,7 @@ class TestCheck:
 
         affect = AffectFactory(
             flaw=flaw,
+            impact=Impact.LOW,
             affectedness=affectedness,
             resolution=resolution,
         )
