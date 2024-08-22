@@ -800,7 +800,8 @@ class TrackerSerializer(
 class TrackerPostSerializer(TrackerSerializer):
     # extra serializer for POST request to exclude
     # not yet existing but otherwise mandatory fields
-    pass
+    # and make the PS update stream a mandatory field
+    ps_update_stream = serializers.CharField(max_length=100, required=True)
 
 
 class CommentSerializer(AlertMixinSerializer, TrackingMixinSerializer):

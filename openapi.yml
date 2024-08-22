@@ -6558,7 +6558,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/Tracker'
+                - $ref: '#/components/schemas/TrackerPost'
                 - type: object
                   properties:
                     dt:
@@ -9437,6 +9437,7 @@ components:
       - embargoed
       - errata
       - meta_attr
+      - ps_update_stream
       - resolution
       - status
       - type
