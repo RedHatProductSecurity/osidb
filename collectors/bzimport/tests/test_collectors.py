@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.collectors import BugzillaQuerier, MetadataCollector
+from collectors.bzimport.constants import BZ_DT_FMT
 from osidb.models import Affect, Flaw, FlawComment, Package, Tracker
 from osidb.sync_manager import BZTrackerLinkManager
 from osidb.tests.factories import (
@@ -305,6 +306,7 @@ class TestBugzillaTrackerCollector:
             external_system_id="1765663",
             type=Tracker.TrackerType.BUGZILLA,
             embargoed=False,
+            updated_dt=timezone.datetime.strptime("1970-01-01T00:00:00Z", BZ_DT_FMT),
         )
         # make sure the links are there
         tracker = Tracker.objects.first()
