@@ -15,6 +15,8 @@ from celery._state import get_current_task
 from django.db import models
 from django.utils.timezone import datetime, make_aware
 from django_deprecate_fields import DeprecatedField, logger
+from requests.exceptions import JSONDecodeError
+from requests.models import Response
 
 from osidb.validators import CVE_RE_STR, restrict_regex
 
@@ -225,3 +227,14 @@ def deprecate_field(field_instance, return_instead=None):
 
     field_instance.null = True
     return field_instance
+
+
+def safe_get_response_content(response: Response):
+    """
+    Returns either JSON or plaintext response content based
+    on the response content type
+    """
+    try:
+        return response.json()
+    except JSONDecodeError:
+        return response.text
