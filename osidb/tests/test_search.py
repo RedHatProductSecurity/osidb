@@ -309,3 +309,70 @@ class TestSearch:
         body = response.json()
         assert body["count"] == 1
         assert body["results"][0]["cve_id"] == "CVE-2001-0414"
+
+    def test_search_flaws_by_query(self, auth_client, test_api_uri):
+        """Test searching flaws by djangoql query."""
+        response = auth_client().get(f"{test_api_uri}/flaws")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
+
+        FlawFactory(
+            title="title",
+            comment_zero="comment_zero",
+            cve_description="cve_description",
+            embargoed=False,
+            statement="statement",
+            cve_id="CVE-2001-0414",
+        )
+        FlawFactory(
+            title="other flaw",
+            comment_zero="comment_zero",
+            cve_description="cve_description",
+            embargoed=False,
+            statement="statement",
+            cve_id="CVE-2001-0489",
+        )
+        FlawFactory(
+            title="other flaw",
+            comment_zero="comment_zero",
+            cve_description="cve_description",
+            embargoed=True,
+            statement="statement",
+            cve_id="CVE-2001-0494",
+        )
+        FlawFactory(
+            title="flaw with different CVE",
+            comment_zero="comment_zero",
+            cve_description="cve_description",
+            embargoed=False,
+            statement="statement",
+            cve_id="CVE-2008-0514",
+        )
+
+        # Search with djangoql query
+        response = auth_client().get(
+            f'{test_api_uri}/flaws?query=title startswith "flaw"'
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"][0]["cve_id"] == "CVE-2008-0514"
+
+        response = auth_client().get(
+            f'{test_api_uri}/flaws?query=cve_id startswith "CVE-2001" and title = "title"'
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"][0]["cve_id"] == "CVE-2001-0414"
+
+        # Combine djangoql query with search
+        response = auth_client().get(
+            f'{test_api_uri}/flaws?embargoed=False&order=cve_id&query=cve_id startswith "CVE-2001"'
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 2
+        assert body["results"][0]["cve_id"] == "CVE-2001-0414"
+        assert body["results"][1]["cve_id"] == "CVE-2001-0489"

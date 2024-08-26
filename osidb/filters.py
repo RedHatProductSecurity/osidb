@@ -15,6 +15,8 @@ from django_filters.rest_framework import (
     NumberFilter,
     OrderingFilter,
 )
+from djangoql.queryset import apply_search
+from djangoql.schema import DjangoQLSchema
 
 from apps.workflows.workflow import WorkflowModel
 
@@ -248,6 +250,25 @@ class ExcludeFieldsFilterSet(SparseFieldsFilterSet):
         return queryset.defer(*list(valid_fields))
 
 
+class FlawQLSchema(DjangoQLSchema):
+    """
+    Limit the fields that can be queried in the DjangoQL query.
+
+    This is a subclass of DjangoQLSchema that limits the fields that can be
+    queried in the DjangoQL query to the fields that are allowed in the
+    FlawFilter. This is necessary because the DjangoQLSchema allows querying
+    any field in the model, which is not desirable in this case.
+    """
+
+    def get_fields(self, model):
+        fields = super(FlawQLSchema, self).get_fields(model)
+        exclude = ["acl_read", "acl_write"]
+        if model == Flaw:
+            exclude += ["snippets", "local_updated_dt"]
+
+        return set(fields) - set(exclude)
+
+
 class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
     """
     Class that filters queries to FlawList view / API endpoint based on Flaw fields (currently only supports updated_dt)
@@ -264,6 +285,8 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     changed_before = DateTimeFilter(
         field_name="updated_dt", method="changed_before_filter"
     )
+
+    query = CharFilter(method="query_filter")
 
     bz_id = NumberFilter(field_name="meta_attr__bz_id", lookup_expr="exact")
     tracker_ids = CharInFilter(
@@ -317,6 +340,9 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     cvss4_nist__isempty = EmptyCvssFilter(
         issuer=FlawCVSS.CVSSIssuer.NIST, version=FlawCVSS.CVSSVersion.VERSION4
     )
+
+    def query_filter(self, queryset, name, value):
+        return apply_search(queryset, value, schema=FlawQLSchema)
 
     def changed_after_filter(self, queryset, name, value):
         """
