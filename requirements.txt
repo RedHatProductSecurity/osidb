@@ -251,6 +251,9 @@ django-postgres-extra==2.0.3 \
     --hash=sha256:447b24b91146f9ad19f960922c19e5885663cf282100529baeae5152775aa4c0 \
     --hash=sha256:c5e65ec3750b01352112526de1572f3dc0ed4d2022ba324c0521907925d29ac6
     # via -r requirements.in
+djangoql==0.18.1 \
+    --hash=sha256:51b3085a805627ebb43cfd0aa861137cdf8f69cc3c9244699718fe04a6c8e26d
+    # via -r requirements.in
 djangorestframework==3.12.4 \
     --hash=sha256:6d1d59f623a5ad0509fe0d6bfe93cbdfe17b8116ebc8eda86d45f6e16e819aaf \
     --hash=sha256:f747949a8ddac876e879190df194b925c177cdeb725a099db1460872f7c0a7f2
@@ -486,6 +489,10 @@ packageurl-python==0.9.6 \
     --hash=sha256:676dcb8278721df952e2444bfcd8d7bf3518894498050f0c6a5faddbe0860cd0 \
     --hash=sha256:c01fbaf62ad2eb791e97158d1f30349e830bee2dd3e9503a87f6c3ffae8d1cf0
     # via -r requirements.in
+ply==3.11 \
+    --hash=sha256:00c7c1aaa88358b9c765b6d3000c6eec0ba42abca5351b095321aef446081da3 \
+    --hash=sha256:096f9b8350b65ebd2fd1346b12452efe5b9607f7482813ffca50c22722a807ce
+    # via djangoql
 prometheus-client==0.13.1 \
     --hash=sha256:357a447fd2359b0a1d2e9b311a0c5778c330cfbe186d880ad5a6b39884652316 \
     --hash=sha256:ada41b891b79fca5638bd5cfe149efa86512eaa55987893becd2c6d8d0a5dfc5
