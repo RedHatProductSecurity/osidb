@@ -351,6 +351,17 @@ jira_api_key_param = OpenApiParameter(
     description="User generated api key for Jira authentication.",
 )
 
+query_api_param = OpenApiParameter(
+    name="query",
+    required=False,
+    type=str,
+    location=OpenApiParameter.QUERY,
+    description=(
+        "Advanced filter with special syntax. "
+        "See https://github.com/ivelum/djangoql for more information."
+    ),
+)
+
 
 def jira_api_key_extend_schema_view(
     cls: Type[ViewSetMixin],
@@ -412,6 +423,22 @@ def include_exclude_fields_extend_schema_view(
     )(cls)
 
 
+def query_extend_schema_view(
+    cls: Type[ViewSetMixin],
+) -> Type[ViewSetMixin]:
+    """
+    Decorator which adds `query` query parameter description into the schema
+    for `list` and `retrieve` methods
+    """
+    return (
+        extend_schema_view(
+            list=extend_schema(parameters=[query_api_param]),
+            retrieve=extend_schema(parameters=[query_api_param]),
+        )
+    )(cls)
+
+
+@query_extend_schema_view
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
 @bz_api_key_extend_schema_view
