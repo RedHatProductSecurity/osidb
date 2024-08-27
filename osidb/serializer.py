@@ -1640,6 +1640,24 @@ class FlawSerializer(
             for group in self.embargoed2acls(validated_data)["acl_read"]
         )
 
+    def create(self, validated_data):
+        """
+        perform the flaw instance creation
+        with any necessary extra actions
+        """
+
+        # Update cve_description if required
+        if validated_data.get("cve_description") and (
+            "requires_cve_description" not in validated_data
+            or validated_data["requires_cve_description"]
+            == Flaw.FlawRequiresCVEDescription.NOVALUE
+        ):
+            validated_data[
+                "requires_cve_description"
+            ] = Flaw.FlawRequiresCVEDescription.REQUESTED
+
+        return super().create(validated_data)
+
     def update(self, new_flaw, validated_data):
         """
         perform the flaw instance update
@@ -1665,6 +1683,16 @@ class FlawSerializer(
         # based on the raw ACLs as it was not yet updated
         if old_flaw.is_embargoed and self._is_public(new_flaw, validated_data):
             new_flaw.unembargo()
+
+        # Update cve_description if required
+        if (
+            new_flaw.cve_description
+            and new_flaw.requires_cve_description
+            == Flaw.FlawRequiresCVEDescription.NOVALUE
+        ):
+            validated_data[
+                "requires_cve_description"
+            ] = Flaw.FlawRequiresCVEDescription.REQUESTED
 
         # perform regular flaw update
         new_flaw = super().update(new_flaw, validated_data)

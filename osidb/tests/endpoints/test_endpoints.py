@@ -242,6 +242,74 @@ class TestEndpointsACLs:
             in str(response.content)
         )
 
+    def test_flaw_create_cve_description(self, auth_client, test_api_uri):
+        """
+        test that creating a Flaw with cve_description and without requires_cve_description,
+        sets the requires_cve_description field to REQUESTED
+        """
+        flaw_data = {
+            "title": "Foo",
+            "comment_zero": "test",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "impact": "LOW",
+            "components": ["curl"],
+            "source": "DEBIAN",
+            "embargoed": False,
+            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "cve_description": "some description",
+        }
+        response = auth_client().post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 201
+        body = response.json()
+        created_uuid = body["uuid"]
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{created_uuid}")
+        assert response.status_code == 200
+        assert response.json()["requires_cve_description"] == "REQUESTED"
+
+    def test_flaw_update_cve_description(self, auth_client, test_api_uri):
+        """
+        test that updating a Flaw with cve_description and without requires_cve_description,
+        updates the requires_cve_description field to REQUESTED
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            cve_description="some description",
+            requires_cve_description="",
+        )
+        AffectFactory(flaw=flaw)
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        original_body = response.json()
+        assert original_body["requires_cve_description"] == ""
+
+        response = auth_client().put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            {
+                "title": f"{flaw.title} appended test title",
+                "comment_zero": flaw.comment_zero,
+                "embargoed": False,
+                "updated_dt": flaw.updated_dt,
+                "bz_api_key": "SECRET",
+                "cve_description": "some other description",
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert original_body["cve_description"] != body["cve_description"]
+        assert body["requires_cve_description"] == "REQUESTED"
+
 
 class TestEndpointsAtomicity:
     """
