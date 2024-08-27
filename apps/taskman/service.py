@@ -13,6 +13,7 @@ from rest_framework.response import Response
 
 from apps.trackers.jira.query import JiraPriority
 from collectors.jiraffe.core import JiraQuerier
+from osidb.helpers import safe_get_response_content
 from osidb.models import Flaw, Impact, PsProduct
 
 from .constants import JIRA_TASKMAN_PROJECT_KEY, JIRA_TASKMAN_URL
@@ -148,7 +149,12 @@ class JiraTaskmanQuerier(JiraQuerier):
         except JIRAError as e:
             creating = not flaw.task_key
             creating_updating_word = "creating" if creating else "updating"
-            message = f"Jira error when {creating_updating_word} Task for Flaw UUID {flaw.uuid} cve_id {flaw.cve_id}. Jira HTTP status code {str(e.status_code)}, Jira response {str(e.response.json())}"
+            message = (
+                f"Jira error when {creating_updating_word} "
+                f"Task for Flaw UUID {flaw.uuid} cve_id {flaw.cve_id}. "
+                f"Jira HTTP status code {e.status_code}, "
+                f"Jira response {safe_get_response_content(e.response)}"
+            )
 
             # Raising so that the error from Jira is communicated to the client.
             # All uses of create_or_update_task require success as of 2024-05.
@@ -200,12 +206,14 @@ class JiraTaskmanQuerier(JiraQuerier):
             return Response(data=comment.raw, status=201)
         except JIRAError as e:
 
+            response_content = safe_get_response_content(e.response)
             logger.error(
-                "Jira error when creating Task comment. Status code %s, Jira response %s",
-                str(e.status_code),
-                str(e.response.json()),
+                (
+                    f"Jira error when creating Task comment. Status code {e.status_code}, "
+                    f"Jira response {response_content}",
+                )
             )
-            return Response(data=e.response.json(), status=e.status_code)
+            return Response(data=response_content, status=e.status_code)
 
     def update_comment(self, issue_key, comment_id, body: str):
         """Edit a comment in a task"""
@@ -215,12 +223,14 @@ class JiraTaskmanQuerier(JiraQuerier):
             return Response(data=comment.raw, status=200)
         except JIRAError as e:
 
+            response_content = safe_get_response_content(e.response)
             logger.error(
-                "Jira error when updating Task comment. Status code %s, Jira response %s",
-                str(e.status_code),
-                str(e.response.json()),
+                (
+                    f"Jira error when updating Task comment. Status code {e.status_code}, "
+                    f"Jira response {response_content}",
+                )
             )
-            return Response(data=e.response.json(), status=e.status_code)
+            return Response(data=response_content, status=e.status_code)
 
     def query_tasks(
         self, query_list: List[Tuple[str, str, str]]
