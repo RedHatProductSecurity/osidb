@@ -1,9 +1,11 @@
 import pytest
 
+from apps.trackers.models import JiraBugIssuetype
 from collectors.ps_constants.core import (
     fetch_ps_constants,
     sync_compliance_priority,
     sync_contract_priority,
+    sync_jira_bug_issuetype,
     sync_special_consideration_packages,
     sync_ubi_packages,
 )
@@ -43,6 +45,15 @@ SAMPLE_COMPLIANCE_PRIORITY = {
     "foobar-123": {"streams": ["foo-1", "foo-2"]},
 }
 
+SAMPLE_JIRA_BUG_ISSUETYPE = {
+    "bug_issuetype": [
+        "PROJ1",
+        "PROJ2",
+        "PROJ3",
+        "PROJ3",  # Simulate a bug in source data with duplicated project
+    ]
+}
+
 
 class TestPsConstantsCollection:
     @pytest.mark.vcr
@@ -73,6 +84,8 @@ class TestPsConstantsCollection:
         url = "/".join((ps_constant_base_url, "special_consideration_packages.yml"))
         sc_packages = fetch_ps_constants(url)
         assert "dnf" in sc_packages
+
+        # TODO: Record cassette for jira_bug_issuetype, tracked in OSIDB-2980
 
     def test_sync_compliance_priority(self):
         """
@@ -154,3 +167,15 @@ class TestPsConstantsCollection:
             SpecialConsiderationPackage.objects.filter(name="another-package").count()
             == 1
         )
+
+    def test_sync_jira_bug_issuetype(self):
+        assert JiraBugIssuetype.objects.count() == 0
+
+        sync_jira_bug_issuetype(SAMPLE_JIRA_BUG_ISSUETYPE)
+
+        assert JiraBugIssuetype.objects.count() == 3
+        assert sorted(JiraBugIssuetype.objects.values_list("project", flat=True)) == [
+            "PROJ1",
+            "PROJ2",
+            "PROJ3",
+        ]

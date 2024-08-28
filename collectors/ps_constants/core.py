@@ -7,6 +7,7 @@ from django.db import transaction
 from requests_gssapi import HTTPSPNEGOAuth
 
 from apps.sla.models import SLA, SLAPolicy
+from apps.trackers.models import JiraBugIssuetype
 from osidb.models import (
     CompliancePriority,
     ContractPriority,
@@ -108,3 +109,14 @@ def sync_sla_policies(sla_policies):
         # In SLA policies order is important so it is passed down to the model
         policy = SLAPolicy.create_from_description(policy_desc, order)
         policy.save()
+
+
+@transaction.atomic
+def sync_jira_bug_issuetype(source_dict):
+    """
+    sync Jira Bug issuetype data (controls which projects should have Trackers
+    created with Bug issuetype instead of Vulnerability issuetype)
+    """
+    JiraBugIssuetype.objects.all().delete()
+    for project in list(source_dict.values())[0]:
+        JiraBugIssuetype.objects.get_or_create(project=project)
