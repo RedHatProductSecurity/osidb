@@ -11,8 +11,8 @@ from django.utils.timezone import datetime, make_aware
 from apps.sla.tests.test_framework import load_sla_policies
 from apps.trackers.exceptions import (
     ComponentUnavailableError,
-    NoSecurityLevelAvailableError,
-    NoTargetReleaseVersionAvailableError,
+    MissingSecurityLevelError,
+    MissingTargetReleaseVersionError,
 )
 from apps.trackers.jira.constants import PS_ADDITIONAL_FIELD_TO_JIRA
 from apps.trackers.jira.query import JiraPriority, OldTrackerJiraQueryBuilder
@@ -641,7 +641,7 @@ sla:
             else:
                 assert security is None
         else:
-            with pytest.raises(NoSecurityLevelAvailableError):
+            with pytest.raises(MissingSecurityLevelError):
                 query_builder = OldTrackerJiraQueryBuilder(tracker)
                 query_builder._query = {"fields": {}}
                 query_builder.generate_security()
@@ -876,7 +876,7 @@ sla:
             elif target_version is not None:
                 assert query_value == [{"name": target_version}]
         else:
-            with pytest.raises(NoTargetReleaseVersionAvailableError):
+            with pytest.raises(MissingTargetReleaseVersionError):
                 query_builder.generate_target_release()
 
     def test_generate_target_release_empty_string(self):

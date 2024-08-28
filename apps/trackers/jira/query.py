@@ -9,9 +9,9 @@ from apps.sla.framework import sla_classify
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import (
     ComponentUnavailableError,
-    NoPriorityAvailableError,
-    NoSecurityLevelAvailableError,
-    NoTargetReleaseVersionAvailableError,
+    MissingPriorityError,
+    MissingSecurityLevelError,
+    MissingTargetReleaseVersionError,
     TrackerCreationError,
 )
 from apps.trackers.models import JiraProjectFields
@@ -185,7 +185,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
                 self._query["fields"]["priority"] = {"name": priority}
                 return
 
-        raise NoPriorityAvailableError(
+        raise MissingPriorityError(
             f"Jira project {self.ps_module.bts_key} does not have a corresponding priority for impact "
             f"{self.impact}; allowed Jira priority values are: {', '.join(allowed_values)}"
         )
@@ -312,7 +312,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
                     "name": JIRA_EMBARGO_SECURITY_LEVEL_NAME
                 }
                 return
-            raise NoSecurityLevelAvailableError(
+            raise MissingSecurityLevelError(
                 f"Jira project {self.ps_module.bts_key} does not have available Security Level "
                 f"{JIRA_EMBARGO_SECURITY_LEVEL_NAME}; allowed Jira priority values are: {', '.join(allowed_values)}"
             )
@@ -322,7 +322,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
                     "name": JIRA_INTERNAL_SECURITY_LEVEL_NAME
                 }
                 return
-            raise NoSecurityLevelAvailableError(
+            raise MissingSecurityLevelError(
                 f"Jira project {self.ps_module.bts_key} does not have available Security Level "
                 f"{JIRA_INTERNAL_SECURITY_LEVEL_NAME}; allowed Jira priority values are: {', '.join(allowed_values)}"
             )
@@ -436,7 +436,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
             )
             self._query["fields"][field_id] = query_value
         else:
-            raise NoTargetReleaseVersionAvailableError(
+            raise MissingTargetReleaseVersionError(
                 f"Jira project {self.ps_module.bts_key} does not have {field_name} with value "
                 f"{value} available; allowed values values are: {', '.join(allowed_values)}"
             )
