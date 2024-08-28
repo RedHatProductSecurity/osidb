@@ -8,7 +8,7 @@ from apps.taskman.service import JiraTaskmanQuerier
 from collectors.jiraffe.core import JiraQuerier
 
 from .constants import JIRA_SERVER
-from .query import TrackerJiraQueryBuilder
+from .query import OldTrackerJiraQueryBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class TrackerJiraSaver(JiraQuerier):
         """
         create a representation of tracker model in Jira
         """
-        querybuilder = TrackerJiraQueryBuilder(tracker)
+        querybuilder = OldTrackerJiraQueryBuilder(tracker)
         query = querybuilder.query
         comment = querybuilder.query_comment
         issue = self.jira_conn.create_issue(fields=query["fields"], prefetch=True)
@@ -62,7 +62,7 @@ class TrackerJiraSaver(JiraQuerier):
         """
         update an existing representation of tracker model in Jira
         """
-        query = TrackerJiraQueryBuilder(tracker).query
+        query = OldTrackerJiraQueryBuilder(tracker).query
         url = f"{self.jira_conn._get_url('issue')}/{query['key']}"
         self.jira_conn._session.put(url, json.dumps(query))
         return tracker

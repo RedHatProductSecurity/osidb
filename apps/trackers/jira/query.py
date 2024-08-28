@@ -56,7 +56,7 @@ IMPACT_TO_JIRA_PRIORITY = {
 }
 
 
-class TrackerJiraQueryBuilder(TrackerQueryBuilder):
+class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
     """
     Jira tracker bug query builder
     to generate general tracker save query
@@ -359,7 +359,7 @@ class TrackerJiraQueryBuilder(TrackerQueryBuilder):
         generate query for CC list
         """
 
-        # Each instance of TrackerJiraQueryBuilder is used only once, but if ever used twice,
+        # Each instance of OldTrackerJiraQueryBuilder is used only once, but if ever used twice,
         # always produce consistent query and comment.
         self._comment = None
 

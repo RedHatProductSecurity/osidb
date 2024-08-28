@@ -15,7 +15,7 @@ from apps.trackers.exceptions import (
     NoTargetReleaseVersionAvailableError,
 )
 from apps.trackers.jira.constants import PS_ADDITIONAL_FIELD_TO_JIRA
-from apps.trackers.jira.query import JiraPriority, TrackerJiraQueryBuilder
+from apps.trackers.jira.query import JiraPriority, OldTrackerJiraQueryBuilder
 from apps.trackers.models import JiraProjectFields
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from osidb.models import (
@@ -38,7 +38,7 @@ from osidb.tests.factories import (
 pytestmark = pytest.mark.unit
 
 
-class TestTrackerJiraQueryBuilder:
+class TestOldTrackerJiraQueryBuilder:
     """
     test Jira tracker query building
     """
@@ -138,7 +138,7 @@ class TestTrackerJiraQueryBuilder:
             ],
         )
 
-        quer_builder = TrackerJiraQueryBuilder(tracker)
+        quer_builder = OldTrackerJiraQueryBuilder(tracker)
         quer_builder.generate()
         validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
 
@@ -287,7 +287,7 @@ class TestTrackerJiraQueryBuilder:
             meta_attr=meta,
         )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         query_builder.generate_labels()
 
@@ -327,7 +327,7 @@ class TestTrackerJiraQueryBuilder:
         )
         ContractPriority(ps_update_stream=ps_update_stream.name).save()
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         query_builder.generate_labels()
 
@@ -379,7 +379,7 @@ class TestTrackerJiraQueryBuilder:
             streams=["dummy_value", ps_update_stream.name],
         ).save()
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         query_builder.generate_labels()
 
@@ -481,7 +481,7 @@ class TestTrackerJiraQueryBuilder:
             ],
         )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         query_builder.generate_labels()
 
@@ -576,7 +576,7 @@ sla:
 
         load_sla_policies(sla_file)
 
-        query = TrackerJiraQueryBuilder(tracker).query
+        query = OldTrackerJiraQueryBuilder(tracker).query
 
         assert target_start_id in query["fields"]
         assert query["fields"][target_start_id] == "2000-01-01T00:00:00+00:00"
@@ -629,7 +629,7 @@ sla:
             )
 
         if valid_jira_field or (not private and not embargoed):
-            query_builder = TrackerJiraQueryBuilder(tracker)
+            query_builder = OldTrackerJiraQueryBuilder(tracker)
             query_builder._query = {"fields": {}}
             query_builder.generate_security()
             security = query_builder.query["fields"]["security"]
@@ -642,7 +642,7 @@ sla:
                 assert security is None
         else:
             with pytest.raises(NoSecurityLevelAvailableError):
-                query_builder = TrackerJiraQueryBuilder(tracker)
+                query_builder = OldTrackerJiraQueryBuilder(tracker)
                 query_builder._query = {"fields": {}}
                 query_builder.generate_security()
 
@@ -688,7 +688,7 @@ sla:
             ps_update_stream=ps_update_stream.name,
         )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         query_builder.generate_additional_fields()
 
@@ -770,7 +770,7 @@ sla:
             allowed_values=[],
         )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         query_builder.generate_cc()
         if exists:
@@ -861,7 +861,7 @@ sla:
                 ],
             )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         if not available_field:
             # If the field is not available in the project, nothing is generated
@@ -911,7 +911,7 @@ sla:
             allowed_values=["random"],
         )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
 
         # should not raise here
@@ -986,7 +986,7 @@ sla:
                 ],
             )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         if result_exception:
             with pytest.raises(ComponentUnavailableError):
@@ -1050,7 +1050,7 @@ sla:
             embargoed=flaw.is_embargoed,
         )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         query_builder.generate_versions()
         if generated_response:
