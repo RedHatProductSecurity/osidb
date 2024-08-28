@@ -11,6 +11,15 @@ from rest_framework.serializers import as_serializer_error
 from rest_framework.views import exception_handler as drf_exception_handler
 from rest_framework.views import set_rollback
 
+from apps.trackers.exceptions import (
+    MissingSeverityError,
+    MissingSourceError,
+    MissingSpecialHandlingError,
+    MissingTargetReleaseVersionError,
+    MissingVulnerabilityIssueFieldError,
+    TrackerCreationError,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -48,6 +57,22 @@ def exception_handler(exc, context):
                 + details
             }
             return Response(data, status=status.HTTP_409_CONFLICT)
+
+    if isinstance(
+        exc,
+        (
+            MissingSeverityError,
+            MissingSourceError,
+            MissingSpecialHandlingError,
+            MissingTargetReleaseVersionError,
+            MissingVulnerabilityIssueFieldError,
+            TrackerCreationError,
+        ),
+    ):
+        set_rollback()
+        logger.exception(exc)
+        data = {"detail": str(exc)}
+        return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     if isinstance(exc, DjangoValidationError):
         exc = DRFValidationError(as_serializer_error(exc))
