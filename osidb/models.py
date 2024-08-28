@@ -2426,6 +2426,15 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         from collectors.bzimport.collectors import BugzillaTrackerCollector
         from collectors.jiraffe.collectors import JiraTrackerCollector
 
+        # when validation is required, run before BTS sync
+        raise_validation_error = kwargs.get("raise_validation_error", True)
+        if raise_validation_error:
+            self.validate(dry_run=kwargs.get("no_alerts", False))
+
+        # the validations were already run
+        kwargs["raise_validation_error"] = False
+        kwargs["no_alerts"] = True
+
         # check Bugzilla conditions are met
         if (
             SYNC_TRACKERS_TO_BZ
@@ -2443,9 +2452,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             kwargs[
                 "auto_timestamps"
             ] = False  # the timestamps will be get from Bugzilla
-            # the validations were already run
-            kwargs["raise_validation_error"] = False
-            kwargs["no_alerts"] = True
             tracker_instance.save(*args, **kwargs)
             # fetch from Bugzilla
             btc = BugzillaTrackerCollector()
@@ -2485,9 +2491,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             kwargs[
                 "auto_timestamps"
             ] = False  # the timestamps will be get from Bugzilla
-            # the validations were already run
-            kwargs["raise_validation_error"] = False
-            kwargs["no_alerts"] = True
             tracker_instance.save(*args, **kwargs)
             # fetch from Jira
             jtc = JiraTrackerCollector()
