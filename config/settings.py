@@ -35,8 +35,6 @@ READONLY_MODE: bool = get_env("OSIDB_READONLY_MODE", default="False", is_bool=Tr
 
 # Application definition
 INSTALLED_APPS = [
-    "pgtrigger",
-    "pghistory",
     "apps.bbsync",
     "apps.exploits",
     "apps.sla",
@@ -55,20 +53,23 @@ INSTALLED_APPS = [
     "collectors.product_definitions",
     "collectors.ps_constants",
     "corsheaders",
+    "django_extensions",
+    "django_filters",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.messages",
     "django.contrib.postgres",
     "django.contrib.sessions",
     "django.contrib.staticfiles",
-    "django_extensions",
-    "django_filters",
+    "djangoql",
     "drf_spectacular",
     "osidb",
+    "pghistory",
+    "pgtrigger",
     "polymorphic",
     "psqlextra",
-    "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [

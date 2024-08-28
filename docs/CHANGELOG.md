@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Taskman throwing away logs upon JSON decode error (OSIDB-3296)
 
+### Added
+  - Implement DjangoQL for Flaw filtering (OSIDB-3337)
+
 ## [4.1.7] - 2024-08-22
 ### Added
 - Command for manual syncing Jira metadata (OSIDB-3219)

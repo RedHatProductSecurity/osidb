@@ -3344,6 +3344,12 @@ paths:
         schema:
           type: boolean
       - in: query
+        name: query
+        schema:
+          type: string
+        description: Advanced filter with special syntax. See https://github.com/ivelum/djangoql
+          for more information.
+      - in: query
         name: references__created_dt
         schema:
           type: string
@@ -5580,6 +5586,12 @@ paths:
           wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
           keys from meta_attr. Omit this parameter to not include meta_attr fields
           at all. '
+      - in: query
+        name: query
+        schema:
+          type: string
+        description: Advanced filter with special syntax. See https://github.com/ivelum/djangoql
+          for more information.
       - in: query
         name: tracker_ids
         schema:

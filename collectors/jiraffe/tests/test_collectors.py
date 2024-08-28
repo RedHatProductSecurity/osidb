@@ -337,6 +337,7 @@ class TestJiraTrackerCollector:
             type=Tracker.TrackerType.JIRA,
             external_system_id=tracker_id,
             affects=[affect1, affect2],
+            updated_dt=timezone.datetime.strptime("1970-01-01T00:00:00Z", BZ_DT_FMT),
         )
         collector = JiraTrackerCollector()
 
