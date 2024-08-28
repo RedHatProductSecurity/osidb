@@ -2189,7 +2189,7 @@ class CVSS(AlertMixin, ACLMixin, BugzillaSyncMixin, NullStrFieldsMixin, Tracking
 
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    vector = models.CharField(max_length=100, blank=False)
+    vector = models.CharField(max_length=200, blank=False)
 
     version = models.CharField(choices=CVSSVersion.choices, max_length=10)
 
