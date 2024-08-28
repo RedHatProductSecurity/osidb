@@ -9,6 +9,7 @@ from django.utils import timezone
 from rest_framework import status
 
 from apps.trackers.jira.query import JiraPriority
+from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.save import TrackerSaver
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
@@ -399,6 +400,7 @@ class TestTrackerAPI:
                 "Team",
             ],
         )
+        JiraBugIssuetype(project=ps_module.bts_key).save()
 
         # 2) create tracker in OSIDB and Jira
         tracker_data = {
@@ -486,6 +488,7 @@ class TestTrackerAPI:
                 "Team",
             ],
         )
+        JiraBugIssuetype(project=ps_module.bts_key).save()
         # flaw to keep linked
         flaw1 = FlawFactory(
             bz_id="1663908",

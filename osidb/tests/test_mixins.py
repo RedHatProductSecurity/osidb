@@ -13,6 +13,7 @@ import apps.taskman.mixins as task_mixins
 import osidb.models as models
 import osidb.serializer as serializer
 from apps.taskman.service import JiraTaskmanQuerier
+from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from apps.workflows.models import Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
@@ -847,6 +848,7 @@ class TestMultiMixinIntegration:
                 "Team",
             ],
         )
+        JiraBugIssuetype(project=ps_module.bts_key).save()
         ps_update_stream = PsUpdateStream(
             name="rhel-8",
             ps_module=ps_module,
@@ -963,6 +965,7 @@ class TestMultiMixinIntegration:
 
         monkeypatch.setattr(AlertMixin, "validate", counter_validate)
         ps_module = PsModuleFactory()
+        JiraBugIssuetype(project=ps_module.bts_key).save()
         affects_data = [
             {
                 "flaw": str(flaw.uuid),
