@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
   - Implement DjangoQL for Flaw filtering (OSIDB-3337)
 
+### Changed
+- Extend CVSS vector length (OSIDB-3362)
+
 ### Fixed
 - Taskman throwing away logs upon JSON decode error (OSIDB-3296)
 
