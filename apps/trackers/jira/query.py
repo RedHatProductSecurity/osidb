@@ -3,7 +3,10 @@ Jira tracker query generation module
 """
 import json
 import logging
+from datetime import datetime
 from functools import cached_property
+
+from django.utils.timezone import make_aware
 
 from apps.sla.framework import sla_classify
 from apps.trackers.common import TrackerQueryBuilder
@@ -347,6 +350,15 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         generate query for Jira SLA timestamps
         """
+        if not self.tracker.external_system_id:
+            # Workaround for when a new tracker is filed. At this point in the code it
+            # has not been fully saved so created_dt is not a valid date, but the SLAs
+            # use the tracker's created date. Since we only care about the date and not the
+            # time for the SLA computation, we temporarily set a created_dt of now, which
+            # will be replaced later by the TrackingMixin, and this way we do not have to change
+            # the entire logic of the code for this to work.
+            self.tracker.created_dt = make_aware(datetime.now())
+
         sla_context = sla_classify(self.tracker)
         # the tracker may or may not be under SLA
         if sla_context.sla is not None:
