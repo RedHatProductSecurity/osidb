@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Implement DjangoQL for Flaw filtering (OSIDB-3337)
 - Support Vulnerability issuetype for Trackers (OSIDB-2980)
+- Set requires_cve_description to REQUESTED when unset and the flaw
+  has cve_description (OSIDB-3349)
 
 ### Changed
 - Extend CVSS vector length (OSIDB-3362)

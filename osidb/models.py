@@ -863,6 +863,25 @@ class Flaw(
                 f"missing."
             )
 
+    def _validate_requires_cve_description(self, **kwargs):
+        """
+        Checks that if requires_cve_description was already set to
+        something other than NOVALUE, it cannot be set to NOVALUE.
+        """
+        if self._state.adding:
+            # we're creating a new flaw so we don't need to check whether we're
+            # changing from one state to another
+            return
+
+        old_flaw = Flaw.objects.get(pk=self.pk)
+        if (
+            old_flaw.requires_cve_description != self.FlawRequiresCVEDescription.NOVALUE
+            and self.requires_cve_description == self.FlawRequiresCVEDescription.NOVALUE
+        ):
+            raise ValidationError(
+                "requires_cve_description cannot be unset if it was previously set to something other than NOVALUE"
+            )
+
     def _validate_nonempty_source(self, **kwargs):
         """
         checks that the source is not empty

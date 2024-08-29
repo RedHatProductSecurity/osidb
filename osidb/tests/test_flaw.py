@@ -1084,6 +1084,62 @@ class TestFlawValidators:
         else:
             assert flaw.save() is None
 
+    @pytest.mark.parametrize(
+        "old_requires_cve_description,requires_cve_description,should_raise",
+        [
+            (
+                Flaw.FlawRequiresCVEDescription.REQUESTED,
+                Flaw.FlawRequiresCVEDescription.APPROVED,
+                False,
+            ),
+            (
+                Flaw.FlawRequiresCVEDescription.APPROVED,
+                Flaw.FlawRequiresCVEDescription.REQUESTED,
+                False,
+            ),
+            (
+                Flaw.FlawRequiresCVEDescription.NOVALUE,
+                Flaw.FlawRequiresCVEDescription.REQUESTED,
+                False,
+            ),
+            (
+                Flaw.FlawRequiresCVEDescription.REQUESTED,
+                Flaw.FlawRequiresCVEDescription.NOVALUE,
+                True,
+            ),
+            (
+                Flaw.FlawRequiresCVEDescription.APPROVED,
+                Flaw.FlawRequiresCVEDescription.NOVALUE,
+                True,
+            ),
+        ],
+    )
+    def test_validate_requires_cve_description(
+        self, old_requires_cve_description, requires_cve_description, should_raise
+    ):
+        """
+        Tests that if requires_cve_description was already set to something other than NOVALUE
+        it cannot be set to NOVALUE.
+        """
+        flaw = FlawFactory.build(
+            requires_cve_description=old_requires_cve_description,
+            # fields below are set to avoid any alerts
+            cve_description="cve_description",
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            impact=Impact.LOW,
+        )
+        flaw.save(raise_validation_error=False)
+
+        flaw.requires_cve_description = requires_cve_description
+
+        if should_raise:
+            error_msg = "requires_cve_description cannot be unset if it was previously set to something other than NOVALUE"
+            with pytest.raises(ValidationError, match=error_msg):
+                flaw.save()
+        else:
+            assert flaw.save() is None
+
     def test_no_source(self):
         """
         test that flaw cannot have an empty source
