@@ -572,6 +572,10 @@ class TestBugzillaJiraMixinIntegration:
         workflow_framework.register_workflow(workflow_main)
         workflow_framework.register_workflow(workflow_reject)
 
+    # Freezing time because the test sometimes takes long enough to span
+    # the change between seconds, failing at flaw.reject with 1 second
+    # updated_dt offset.
+    @freeze_time(tzdatetime(2024, 8, 1))
     @pytest.mark.vcr
     def test_manual_changes(self, monkeypatch):
         """Test that sync occurs using internal OSIDB APIs"""
