@@ -40,28 +40,7 @@ PS_CONSTANTS_BASE_URL = "/".join(
 )
 
 
-@collector(
-    # Execute this every 6 hours
-    # TODO: crontab seems to be not sufficient as a scheduler here
-    # since it is only capable of running the job at every fixed third hour
-    # eg. 3:00,8:00,etc. and thus there exist a scenario in which
-    # the OSIDB is run lets say 3:01 and this job will be scheduled on 8:49
-    # which is really not what we want, since there may be other collectors
-    # depending on this one, odd minute number was chosen in order to not have multiple
-    # tasks running at the same time
-    # TODO: Use django_celery_beat which has PeriodicTask with IntervalSchedule
-    #  What we use here is equivalent to PeriodicTask with CrontabSchedule
-    crontab=crontab(minute="49", hour="*/5"),
-    data_models=[
-        CompliancePriority,
-        ContractPriority,
-        SpecialConsiderationPackage,
-        UbiPackage,
-    ],
-)
-def ps_constants_collector(collector_obj) -> str:
-    """ps constants collector"""
-
+def collect_step_1_fetch():
     # Fetch raw yml data from GitLab
     url = "/".join((PS_CONSTANTS_BASE_URL, "compliance_priority.yml"))
     logger.info(f"Fetching PS Constants (compliance priority) from '{url}'")
@@ -87,6 +66,63 @@ def ps_constants_collector(collector_obj) -> str:
     logger.info(f"Fetching PS Constants (Jira Bug issuetype) from '{url}'")
     jira_bug_issuetype = fetch_ps_constants(url)
 
+    return (
+        compliance_priority,
+        contract_priority,
+        ubi_packages,
+        sc_packages,
+        sla_policies,
+        jira_bug_issuetype,
+    )
+
+
+def collect_step_2_sync(
+    compliance_priority,
+    contract_priority,
+    ubi_packages,
+    sc_packages,
+    sla_policies,
+    jira_bug_issuetype,
+):
+    sync_compliance_priority(compliance_priority)
+    sync_contract_priority(contract_priority)
+    sync_ubi_packages(ubi_packages)
+    sync_special_consideration_packages(sc_packages)
+    sync_sla_policies(sla_policies)
+    sync_jira_bug_issuetype(jira_bug_issuetype)
+
+
+@collector(
+    # Execute this every 6 hours
+    # TODO: crontab seems to be not sufficient as a scheduler here
+    # since it is only capable of running the job at every fixed third hour
+    # eg. 3:00,8:00,etc. and thus there exist a scenario in which
+    # the OSIDB is run lets say 3:01 and this job will be scheduled on 8:49
+    # which is really not what we want, since there may be other collectors
+    # depending on this one, odd minute number was chosen in order to not have multiple
+    # tasks running at the same time
+    # TODO: Use django_celery_beat which has PeriodicTask with IntervalSchedule
+    #  What we use here is equivalent to PeriodicTask with CrontabSchedule
+    crontab=crontab(minute="49", hour="*/5"),
+    data_models=[
+        CompliancePriority,
+        ContractPriority,
+        SpecialConsiderationPackage,
+        UbiPackage,
+    ],
+)
+def ps_constants_collector(collector_obj) -> str:
+    """ps constants collector"""
+
+    (
+        compliance_priority,
+        contract_priority,
+        ubi_packages,
+        sc_packages,
+        sla_policies,
+        jira_bug_issuetype,
+    ) = collect_step_1_fetch()
+
     logger.info(
         (
             f"Fetched ubi packages for {len(ubi_packages)} RHEL major versions "
@@ -96,12 +132,14 @@ def ps_constants_collector(collector_obj) -> str:
         )
     )
 
-    sync_compliance_priority(compliance_priority)
-    sync_contract_priority(contract_priority)
-    sync_ubi_packages(ubi_packages)
-    sync_special_consideration_packages(sc_packages)
-    sync_sla_policies(sla_policies)
-    sync_jira_bug_issuetype(jira_bug_issuetype)
+    collect_step_2_sync(
+        compliance_priority,
+        contract_priority,
+        ubi_packages,
+        sc_packages,
+        sla_policies,
+        jira_bug_issuetype,
+    )
 
     collector_obj.store(updated_until_dt=timezone.now())
     logger.info("PS Constants sync was successful.")
