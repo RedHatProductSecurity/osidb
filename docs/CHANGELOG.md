@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Taskman throwing away logs upon JSON decode error (OSIDB-3296)
+- Wrong due date when filing new Jira tracker (OSIDB-3376)
 
 ## [4.1.7] - 2024-08-22
 ### Added
