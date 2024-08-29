@@ -42,6 +42,7 @@ from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FIELDS
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.trackers.constants import SYNC_TO_JIRA
+from apps.trackers.models import JiraBugIssuetype
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.constants import BZ_API_KEY, FLAW_PLACEHOLDER_KEYWORD
 
@@ -2446,7 +2447,20 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             if not self.external_system_id:
                 self._validate_tracker_duplicate()
             # sync to Jira
-            tracker_instance = TrackerSaver(self, jira_token=jira_token).save()
+            actual_jira_issuetype = "Vulnerability"
+            if JiraBugIssuetype.objects.filter(
+                project=PsModule.objects.get(
+                    name=self.affects.first().ps_module
+                ).bts_key
+            ).exists():
+                actual_jira_issuetype = "Bug"
+
+            if "jira_issuetype" in self.meta_attr:
+                actual_jira_issuetype = self.meta_attr["jira_issuetype"]
+
+            tracker_instance = TrackerSaver(
+                self, jira_token=jira_token, jira_issuetype=actual_jira_issuetype
+            ).save()
             # save in case a new Jira ID was obtained
             # so the flaw is later matched in Jiraffe sync
             kwargs[

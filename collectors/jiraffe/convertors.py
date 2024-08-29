@@ -348,6 +348,7 @@ class JiraTrackerConvertor(TrackerConvertor):
         updated_dt = datetime.strptime(updated_dt, "%Y-%m-%dT%H:%M:%S.%f%z")
 
         return {
+            "jira_issuetype": self.get_field_attr(self._raw, "issuetype", "name"),
             "external_system_id": self._raw.key,
             "labels": json.dumps(self._raw.fields.labels),
             "owner": self.get_field_attr(self._raw, "assignee", "displayName"),

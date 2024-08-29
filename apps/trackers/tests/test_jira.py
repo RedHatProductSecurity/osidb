@@ -11,11 +11,16 @@ from django.utils.timezone import datetime, make_aware
 from apps.sla.tests.test_framework import load_sla_policies
 from apps.trackers.exceptions import (
     ComponentUnavailableError,
-    NoSecurityLevelAvailableError,
-    NoTargetReleaseVersionAvailableError,
+    MissingSecurityLevelError,
+    MissingTargetReleaseVersionError,
 )
 from apps.trackers.jira.constants import PS_ADDITIONAL_FIELD_TO_JIRA
-from apps.trackers.jira.query import JiraPriority, TrackerJiraQueryBuilder
+from apps.trackers.jira.query import (
+    JiraPriority,
+    JiraSeverity,
+    OldTrackerJiraQueryBuilder,
+    TrackerJiraQueryBuilder,
+)
 from apps.trackers.models import JiraProjectFields
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from osidb.models import (
@@ -38,9 +43,9 @@ from osidb.tests.factories import (
 pytestmark = pytest.mark.unit
 
 
-class TestTrackerJiraQueryBuilder:
+class TestOldTrackerJiraQueryBuilder:
     """
-    test Jira tracker query building
+    test Jira tracker query building for Bug issuetype
     """
 
     @pytest.mark.parametrize(
@@ -138,7 +143,7 @@ class TestTrackerJiraQueryBuilder:
             ],
         )
 
-        quer_builder = TrackerJiraQueryBuilder(tracker)
+        quer_builder = OldTrackerJiraQueryBuilder(tracker)
         quer_builder.generate()
         validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
 
@@ -287,7 +292,7 @@ class TestTrackerJiraQueryBuilder:
             meta_attr=meta,
         )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         query_builder.generate_labels()
 
@@ -327,7 +332,7 @@ class TestTrackerJiraQueryBuilder:
         )
         ContractPriority(ps_update_stream=ps_update_stream.name).save()
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         query_builder.generate_labels()
 
@@ -379,7 +384,7 @@ class TestTrackerJiraQueryBuilder:
             streams=["dummy_value", ps_update_stream.name],
         ).save()
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         query_builder.generate_labels()
 
@@ -481,7 +486,7 @@ class TestTrackerJiraQueryBuilder:
             ],
         )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         query_builder.generate_labels()
 
@@ -576,7 +581,7 @@ sla:
 
         load_sla_policies(sla_file)
 
-        query = TrackerJiraQueryBuilder(tracker).query
+        query = OldTrackerJiraQueryBuilder(tracker).query
 
         assert target_start_id in query["fields"]
         assert query["fields"][target_start_id] == "2000-01-01T00:00:00+00:00"
@@ -629,7 +634,7 @@ sla:
             )
 
         if valid_jira_field or (not private and not embargoed):
-            query_builder = TrackerJiraQueryBuilder(tracker)
+            query_builder = OldTrackerJiraQueryBuilder(tracker)
             query_builder._query = {"fields": {}}
             query_builder.generate_security()
             security = query_builder.query["fields"]["security"]
@@ -641,8 +646,8 @@ sla:
             else:
                 assert security is None
         else:
-            with pytest.raises(NoSecurityLevelAvailableError):
-                query_builder = TrackerJiraQueryBuilder(tracker)
+            with pytest.raises(MissingSecurityLevelError):
+                query_builder = OldTrackerJiraQueryBuilder(tracker)
                 query_builder._query = {"fields": {}}
                 query_builder.generate_security()
 
@@ -688,7 +693,7 @@ sla:
             ps_update_stream=ps_update_stream.name,
         )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         query_builder.generate_additional_fields()
 
@@ -770,7 +775,7 @@ sla:
             allowed_values=[],
         )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         query_builder.generate_cc()
         if exists:
@@ -861,7 +866,7 @@ sla:
                 ],
             )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         if not available_field:
             # If the field is not available in the project, nothing is generated
@@ -876,7 +881,7 @@ sla:
             elif target_version is not None:
                 assert query_value == [{"name": target_version}]
         else:
-            with pytest.raises(NoTargetReleaseVersionAvailableError):
+            with pytest.raises(MissingTargetReleaseVersionError):
                 query_builder.generate_target_release()
 
     def test_generate_target_release_empty_string(self):
@@ -911,7 +916,7 @@ sla:
             allowed_values=["random"],
         )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
 
         # should not raise here
@@ -986,7 +991,7 @@ sla:
                 ],
             )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         if result_exception:
             with pytest.raises(ComponentUnavailableError):
@@ -1050,7 +1055,7 @@ sla:
             embargoed=flaw.is_embargoed,
         )
 
-        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder._query = {"fields": {}}
         query_builder.generate_versions()
         if generated_response:
@@ -1073,3 +1078,201 @@ def validate_minimum_key_value(minimum: Dict[str, Any], evaluated: Dict[str, Any
                 assert v in evaluated[key]
         else:
             assert minimum[key] == evaluated[key]
+
+
+class TestTrackerJiraQueryBuilder:
+    """
+    test Jira tracker query building for Vulnerability issuetype
+    """
+
+    @pytest.mark.parametrize(
+        "flaw_impact,affect_impact,expected_severity",
+        [
+            (Impact.LOW, Impact.LOW, JiraSeverity.LOW),
+            (Impact.MODERATE, Impact.NOVALUE, JiraSeverity.MODERATE),
+            (Impact.MODERATE, Impact.LOW, JiraSeverity.LOW),
+            (Impact.CRITICAL, Impact.NOVALUE, JiraSeverity.CRITICAL),
+            (Impact.CRITICAL, Impact.LOW, JiraSeverity.LOW),
+            (Impact.LOW, Impact.LOW, JiraSeverity.LOW),
+            (Impact.LOW, Impact.MODERATE, JiraSeverity.MODERATE),
+            (Impact.LOW, Impact.CRITICAL, JiraSeverity.CRITICAL),
+        ],
+    )
+    def test_generate_query(self, flaw_impact, affect_impact, expected_severity):
+        """
+        test that query has all fields correctly generated
+        """
+        JiraProjectFields(
+            project_key="FOOPROJECT",
+            field_id="customfield_12316142",
+            field_name="Severity",
+            allowed_values=[
+                "Critical",
+                "Important",
+                "Moderate",
+                "Low",
+                "An Irrelevant Value To Be Ignored",
+                "None",
+            ],
+        ).save()
+        JiraProjectFields(
+            project_key="FOOPROJECT",
+            field_id="customfield_12324746",
+            field_name="Source",
+            # Severely pruned for the test
+            allowed_values=["Red Hat", "Upstream"],
+        ).save()
+
+        JiraProjectFields(
+            project_key="FOOPROJECT",
+            field_id="customfield_12324749",
+            field_name="CVE ID",
+            allowed_values=[],
+        ).save()
+
+        JiraProjectFields(
+            project_key="FOOPROJECT",
+            field_id="customfield_12324748",
+            field_name="CVSS Score",
+            allowed_values=[],
+        ).save()
+
+        JiraProjectFields(
+            project_key="FOOPROJECT",
+            field_id="customfield_12324747",
+            field_name="CWE ID",
+            allowed_values=[],
+        ).save()
+
+        JiraProjectFields(
+            project_key="FOOPROJECT",
+            field_id="customfield_12324752",
+            field_name="Downstream Component Name",
+            allowed_values=[],
+        ).save()
+
+        JiraProjectFields(
+            project_key="FOOPROJECT",
+            field_id="customfield_12324751",
+            field_name="Upstream Affected Component",
+            allowed_values=[],
+        ).save()
+
+        JiraProjectFields(
+            project_key="FOOPROJECT",
+            field_id="customfield_12324750",
+            field_name="Embargo Status",
+            allowed_values=["True", "False"],
+        ).save()
+
+        JiraProjectFields(
+            project_key="FOOPROJECT",
+            field_id="customfield_12324753",
+            field_name="Special Handling",
+            allowed_values=[
+                "Major Incident",
+                "KEV (active exploit case)",
+                "Compliance Priority",
+                "Contract Priority",
+            ],
+        ).save()
+
+        JiraProjectFields(
+            project_key="FOOPROJECT",
+            field_id="versions",
+            field_name="Affects Version/s",
+            allowed_values=["1.2.3"],
+        ).save()
+
+        flaw = FlawFactory(
+            embargoed=False,
+            bz_id="123",
+            cve_id="CVE-2999-1000",
+            impact=flaw_impact,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="some description",
+            source="REDHAT",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module="foo-module",
+            ps_component="foo-component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=affect_impact,
+        )
+        ps_module = PsModuleFactory(
+            name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
+        )
+        stream = PsUpdateStreamFactory(
+            ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=stream.name,
+            embargoed=flaw.is_embargoed,
+        )
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="security",
+            field_name="Security Level",
+            allowed_values=[
+                "Embargoed Security Issue",
+                "Red Hat Employee",
+                "Red Hat Engineering Authorized",
+                "Red Hat Partner",
+                "Restricted",
+                "Team",
+            ],
+        )
+        expected1 = {
+            "fields": {
+                "project": {"key": "FOOPROJECT"},
+                "issuetype": {"name": "Vulnerability"},
+                "summary": "CVE-2999-1000 foo-component: some description [bar-1.2.3]",
+                "labels": [
+                    "CVE-2999-1000",
+                    "pscomponent:foo-component",
+                    "SecurityTracking",
+                    "Security",
+                ],
+                "versions": [
+                    {"name": "1.2.3"},
+                ],
+                #
+                # Severity
+                "customfield_12316142": {"value": expected_severity},
+                #
+                # Source
+                "customfield_12324746": {"value": "Red Hat"},
+                #
+                # CVE ID
+                "customfield_12324749": "CVE-2999-1000",
+                #
+                # CVSS Score
+                # "customfield_12324748"
+                # not generated
+                #
+                # CWE ID
+                "customfield_12324747": "CWE-1",
+                #
+                # Downstream Component Name
+                "customfield_12324752": "foo-component",
+                #
+                # Upstream Affected Component
+                "customfield_12324751": "; ".join(sorted(flaw.components)),
+                #
+                # Embargo Status
+                "customfield_12324750": {"value": str(flaw.is_embargoed)},
+                #
+                # Special Handling
+                "customfield_12324753": [],
+            }
+        }
+
+        if not flaw.cwe_id:
+            del expected1["fields"]["customfield_12324747"]
+
+        quer_builder = TrackerJiraQueryBuilder(tracker)
+        quer_builder.generate()
+        validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)

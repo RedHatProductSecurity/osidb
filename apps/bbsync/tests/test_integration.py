@@ -6,6 +6,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from apps.bbsync.exceptions import UnsaveableFlawError
+from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
 from collectors.jiraffe.collectors import JiraTrackerCollector
@@ -600,6 +601,7 @@ class TestBBSyncIntegration:
             default_cc=[],
             component_cc={},
         )
+        JiraBugIssuetype(project=ps_module2.bts_key).save()
         affect2 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,

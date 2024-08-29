@@ -19,6 +19,7 @@ from .core import (
     fetch_ps_constants,
     sync_compliance_priority,
     sync_contract_priority,
+    sync_jira_bug_issuetype,
     sync_sla_policies,
     sync_special_consideration_packages,
     sync_ubi_packages,
@@ -82,6 +83,10 @@ def ps_constants_collector(collector_obj) -> str:
     logger.info(f"Fetching PS Constants (SLA Policies) from '{url}'")
     sla_policies = fetch_ps_constants(url, multi=True)
 
+    url = "/".join((PS_CONSTANTS_BASE_URL, "jira_bug_issuetype.yml"))
+    logger.info(f"Fetching PS Constants (Jira Bug issuetype) from '{url}'")
+    jira_bug_issuetype = fetch_ps_constants(url)
+
     logger.info(
         (
             f"Fetched ubi packages for {len(ubi_packages)} RHEL major versions "
@@ -96,6 +101,7 @@ def ps_constants_collector(collector_obj) -> str:
     sync_ubi_packages(ubi_packages)
     sync_special_consideration_packages(sc_packages)
     sync_sla_policies(sla_policies)
+    sync_jira_bug_issuetype(jira_bug_issuetype)
 
     collector_obj.store(updated_until_dt=timezone.now())
     logger.info("PS Constants sync was successful.")

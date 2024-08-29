@@ -13,6 +13,7 @@ import apps.taskman.mixins as task_mixins
 import osidb.models as models
 import osidb.serializer as serializer
 from apps.taskman.service import JiraTaskmanQuerier
+from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from apps.workflows.models import Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
@@ -571,6 +572,10 @@ class TestBugzillaJiraMixinIntegration:
         workflow_framework.register_workflow(workflow_main)
         workflow_framework.register_workflow(workflow_reject)
 
+    # Freezing time because the test sometimes takes long enough to span
+    # the change between seconds, failing at flaw.reject with 1 second
+    # updated_dt offset.
+    @freeze_time(tzdatetime(2024, 8, 1))
     @pytest.mark.vcr
     def test_manual_changes(self, monkeypatch):
         """Test that sync occurs using internal OSIDB APIs"""
@@ -847,6 +852,7 @@ class TestMultiMixinIntegration:
                 "Team",
             ],
         )
+        JiraBugIssuetype(project=ps_module.bts_key).save()
         ps_update_stream = PsUpdateStream(
             name="rhel-8",
             ps_module=ps_module,
@@ -963,6 +969,7 @@ class TestMultiMixinIntegration:
 
         monkeypatch.setattr(AlertMixin, "validate", counter_validate)
         ps_module = PsModuleFactory()
+        JiraBugIssuetype(project=ps_module.bts_key).save()
         affects_data = [
             {
                 "flaw": str(flaw.uuid),
