@@ -166,7 +166,8 @@ class BugzillaSaver(BugzillaQuerier):
             if "last_change_time" in self.instance.meta_attr
             else self.instance.meta_attr["updated_dt"]
         )
-        return make_aware(datetime.strptime(last_change_time, DATETIME_FMT))
+        # let us support multiple date formats
+        return datetime.fromisoformat(last_change_time.replace("Z", "+00:00"))
 
 
 class FlawBugzillaSaver(BugzillaSaver):
