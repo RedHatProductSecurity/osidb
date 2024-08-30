@@ -21,7 +21,15 @@ from collectors.bzimport.convertors import FlawConvertor
 from osidb.core import generate_acls
 from osidb.exceptions import DataInconsistencyException
 from osidb.mixins import AlertMixin
-from osidb.models import Affect, Flaw, FlawSource, Impact, PsModule, PsUpdateStream
+from osidb.models import (
+    Affect,
+    Flaw,
+    FlawSource,
+    Impact,
+    PsModule,
+    PsUpdateStream,
+    Tracker,
+)
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -691,6 +699,91 @@ class TestBugzillaJiraMixinIntegration:
 
 
 class TestMultiMixinIntegration:
+    @pytest.mark.vcr
+    def test_tracker_validation(self, auth_client, test_api_uri, monkeypatch):
+        """Tests that validations will block for Trackers with all sync enabled"""
+        enable_sync(monkeypatch)
+
+        flaw = FlawFactory(embargoed=False)
+        ps_module = PsModule(
+            name="rhel-8",
+            bts_name="jboss",
+            bts_key="RHEL",
+            component_overrides="",
+            default_component="kernel",
+            public_description="RHEL",
+            ps_product=PsProductFactory(),
+            bts_groups={"public": [], "embargoed": []},
+        )
+        ps_module.save()
+
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="priority",
+            field_name="Priority",
+            allowed_values=[
+                "Blocker",
+                "Critical",
+                "Major",
+                "Normal",
+                "Minor",
+                "Undefined",
+            ],
+        )
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="security",
+            field_name="Security Level",
+            allowed_values=[
+                "Embargoed Security Issue",
+                "Red Hat Employee",
+                "Red Hat Engineering Authorized",
+                "Red Hat Partner",
+                "Restricted",
+                "Team",
+            ],
+        )
+
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            ps_component="kernel",
+            affectedness="NEW",
+            resolution=Affect.AffectResolution.DEFER,
+        )
+
+        stream = PsUpdateStream(
+            name="rhel-8",
+            ps_module=ps_module,
+            default_to_ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            version="40",
+        )
+        stream.save()
+
+        tracker_data = {
+            "affects": [affect.uuid],
+            "embargoed": False,
+            "ps_update_stream": stream.name,
+            "type": "JIRA",
+        }
+        assert Tracker.objects.all().count() == 0
+
+        response = auth_client().post(
+            f"{test_api_uri}/trackers",
+            tracker_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert any(
+            "The tracker is associated with a DEFER affect" in error
+            for error in response.json()["non_field_errors"]
+        )
+        assert response.status_code == 400
+        assert affect.trackers.count() == 0
+        assert Tracker.objects.all().count() == 0
+
     @pytest.mark.vcr
     def test_tracker_validation_bugzilla(self, auth_client, test_api_uri, monkeypatch):
         """Test that bugzilla Tracker endpoint only recreates alerts when needed"""
