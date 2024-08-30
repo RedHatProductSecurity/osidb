@@ -518,7 +518,7 @@ class TestEndpointsAffectsUpdateTrackers:
     @pytest.mark.parametrize(
         "to_create,to_update,triggered",
         [
-            ({"impact": "IMPORTANT"}, {"impact": "LOW"}, False),
+            ({"impact": "IMPORTANT"}, {"impact": "LOW"}, True),
             ({"impact": "MODERATE"}, {"impact": "IMPORTANT"}, True),
             ({"ps_component": "ssh"}, {"ps_component": "bash"}, True),
         ],
