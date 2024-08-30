@@ -37,3 +37,14 @@ class TestBugzillaSaver:
                 DataInconsistencyException, match="Failed to write back to Bugzilla"
             ):
                 bs.save()
+
+    @pytest.mark.parametrize(
+        "last_change_time",
+        ["2024-06-20T23:08:18Z", "2024-08-29 13:27:08+00:00"],
+    )
+    def test_stored_last_change(self, last_change_time):
+        """
+        https://issues.redhat.com/browse/OSIDB-3364 reproducer
+        """
+        bs = BugzillaSaver(Flaw(meta_attr={"last_change_time": last_change_time}))
+        bs.stored_last_change  # no exception here
