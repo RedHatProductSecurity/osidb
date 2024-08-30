@@ -13,6 +13,7 @@ from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import (
     ComponentUnavailableError,
     MissingEmbargoStatusError,
+    MissingJiraProjectMetadata,
     MissingPriorityError,
     MissingSecurityLevelError,
     MissingSeverityError,
@@ -302,9 +303,15 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         Convert OSIDB impact to Jira Priority
         """
-        allowed_values = JiraProjectFields.objects.get(
-            project_key=self.ps_module.bts_key, field_id="priority"
-        ).allowed_values
+        try:
+            allowed_values = JiraProjectFields.objects.get(
+                project_key=self.ps_module.bts_key, field_id="priority"
+            ).allowed_values
+        except JiraProjectFields.DoesNotExist:
+            raise MissingJiraProjectMetadata(
+                f"Metadata for Jira project {self.ps_module.bts_key} are missing."
+            )
+
         for priority in IMPACT_TO_JIRA_PRIORITY[self.impact]:
             if priority in allowed_values:
                 self._query["fields"]["priority"] = {"name": priority}
