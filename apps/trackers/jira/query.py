@@ -83,6 +83,7 @@ FLAW_SOURCE_TO_JIRA_SOURCE = {
     FlawSource.CERT: "CERT",
     FlawSource.CUSTOMER: "Customer",
     FlawSource.CVE: "CVE",
+    FlawSource.CVEORG: "CVEORG",
     FlawSource.DEBIAN: "Debian",
     FlawSource.DISTROS: "Distros",
     FlawSource.FULL_DISCLOSURE: "Full Disclosure",

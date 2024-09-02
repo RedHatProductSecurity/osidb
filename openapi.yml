@@ -792,6 +792,7 @@ paths:
         schema:
           type: string
           enum:
+          - CVEORG
           - NIST
           - OSV
           - RH
@@ -991,6 +992,7 @@ paths:
           - CORELABS
           - CUSTOMER
           - CVE
+          - CVEORG
           - DAILYDAVE
           - DEBIAN
           - DISTROS
@@ -1576,6 +1578,7 @@ paths:
         schema:
           type: string
           enum:
+          - CVEORG
           - NIST
           - OSV
           - RH
@@ -3018,6 +3021,7 @@ paths:
         schema:
           type: string
           enum:
+          - CVEORG
           - NIST
           - OSV
           - RH
@@ -3521,6 +3525,7 @@ paths:
           - CORELABS
           - CUSTOMER
           - CVE
+          - CVEORG
           - DAILYDAVE
           - DEBIAN
           - DISTROS
@@ -4413,6 +4418,7 @@ paths:
         schema:
           type: string
           enum:
+          - CVEORG
           - NIST
           - OSV
           - RH
@@ -6086,6 +6092,7 @@ paths:
           - CORELABS
           - CUSTOMER
           - CVE
+          - CVEORG
           - DAILYDAVE
           - DEBIAN
           - DISTROS
@@ -7707,7 +7714,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/Source642Enum'
+          - $ref: '#/components/schemas/Source521Enum'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
@@ -8388,7 +8395,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/Source642Enum'
+          - $ref: '#/components/schemas/Source521Enum'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
@@ -8711,6 +8718,7 @@ components:
       type: string
     IssuerEnum:
       enum:
+      - CVEORG
       - RH
       - NIST
       - OSV
@@ -9137,7 +9145,7 @@ components:
       - DELEGATED
       - WONTREPORT
       type: string
-    Source642Enum:
+    Source521Enum:
       enum:
       - ADOBE
       - APPLE
@@ -9151,6 +9159,7 @@ components:
       - CORELABS
       - CUSTOMER
       - CVE
+      - CVEORG
       - DAILYDAVE
       - DEBIAN
       - DISTROS
