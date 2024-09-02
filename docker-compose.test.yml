@@ -36,28 +36,10 @@ services:
       # depends_on:
       #   osidb-data:
       #     condition: service_healthy
-# #####################
-# NOTE: we make no external calls with tests - below env vars in test environment are
-#       used in capturing new vcr data cassettes
-# #####################
-      environment:
-        BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
-        BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
-        ET_URL: ${ET_URL}
-        HTTPS_PROXY: ${HTTPS_PROXY}
-        HTTPS_TASKMAN_PROXY: ${HTTPS_TASKMAN_PROXY}
-        JIRA_AUTH_TOKEN: ${JIRA_AUTH_TOKEN:?Variable JIRA_AUTH_TOKEN must be set.}
-        JIRA_TASKMAN_AUTO_SYNC_FLAW: ${JIRA_TASKMAN_AUTO_SYNC_FLAW}
-        JIRA_TASKMAN_PROJECT_KEY: ${JIRA_TASKMAN_PROJECT_KEY}
-        JIRA_TASKMAN_URL: ${JIRA_TASKMAN_URL}
-        JIRA_URL: ${JIRA_URL}
-        OSIDB_CORS_ALLOWED_ORIGINS: ${OSIDB_CORS_ALLOWED_ORIGINS}
-        OSIDB_CORS_ALLOW_HEADERS: ${OSIDB_CORS_ALLOW_HEADERS}
-        PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
-        PRODUCT_DEF_BRANCH: ${PRODUCT_DEF_BRANCH}
-        PS_CONSTANTS_URL: ${PS_CONSTANTS_URL}
-        SNIPPET_CREATION: ${SNIPPET_CREATION}
-        SNIPPET_CREATION_START: ${SNIPPET_CREATION_START}
+      #
+      # Empty environment ensures that all the
+      # tests are independent of the local one
+      environment: []
       volumes:
         - ${PWD}:/opt/app-root/src:z
 
