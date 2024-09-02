@@ -21,6 +21,10 @@ class MissingPriorityError(BTSException):
     """exception class for missing correct priority corresponding to Impact"""
 
 
+class MissingJiraProjectMetadata(BTSException):
+    """exception class for missing Jira Project Metadata"""
+
+
 class MissingSecurityLevelError(BTSException):
     """exception class for missing correct Security Level in the particular project"""
 

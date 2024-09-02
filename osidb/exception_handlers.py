@@ -1,6 +1,6 @@
 import logging
 
-from bugzilla.exceptions import BugzillaError
+from bugzilla.exceptions import BugzillaError, BugzillaHTTPError
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.utils import OperationalError
 from jira.exceptions import JIRAError
@@ -11,7 +11,10 @@ from rest_framework.serializers import as_serializer_error
 from rest_framework.views import exception_handler as drf_exception_handler
 from rest_framework.views import set_rollback
 
+from apps.taskman.exceptions import JiraTaskErrorException
 from apps.trackers.exceptions import (
+    ComponentUnavailableError,
+    MissingJiraProjectMetadata,
     MissingSeverityError,
     MissingSourceError,
     MissingSpecialHandlingError,
@@ -19,6 +22,7 @@ from apps.trackers.exceptions import (
     MissingVulnerabilityIssueFieldError,
     TrackerCreationError,
 )
+from collectors.bzimport.exceptions import RecoverableBZImportException
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +39,7 @@ def exception_handler(exc, context):
         }
         return Response(response_data, status=http_code)
 
-    if isinstance(exc, BugzillaError):
+    if isinstance(exc, (BugzillaError, BugzillaHTTPError)):
         set_rollback()
         logger.exception(exc)
         data = {"detail": str(exc)}
@@ -58,17 +62,23 @@ def exception_handler(exc, context):
             }
             return Response(data, status=status.HTTP_409_CONFLICT)
 
-    if isinstance(
-        exc,
-        (
-            MissingSeverityError,
-            MissingSourceError,
-            MissingSpecialHandlingError,
-            MissingTargetReleaseVersionError,
-            MissingVulnerabilityIssueFieldError,
-            TrackerCreationError,
-        ),
-    ):
+    KNOWN_EXCEPTIONS = (
+        # Taskman
+        JiraTaskErrorException,
+        # Trackers
+        ComponentUnavailableError,
+        MissingJiraProjectMetadata,
+        MissingSeverityError,
+        MissingSourceError,
+        MissingSpecialHandlingError,
+        MissingTargetReleaseVersionError,
+        MissingVulnerabilityIssueFieldError,
+        TrackerCreationError,
+        # BZImport
+        RecoverableBZImportException,
+    )
+
+    if isinstance(exc, KNOWN_EXCEPTIONS):
         set_rollback()
         logger.exception(exc)
         data = {"detail": str(exc)}
