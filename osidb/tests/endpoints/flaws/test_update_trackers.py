@@ -94,7 +94,7 @@ class TestEndpointsFlawsUpdateTrackers:
             ({"comment_zero": "old"}, {"comment_zero": "new"}, False),
             ({"cve_id": "CVE-2000-1111"}, {"cve_id": "CVE-2000-1111"}, False),
             ({"cve_id": "CVE-2000-1111"}, {"cve_id": "CVE-2000-2222"}, True),
-            ({"impact": "IMPORTANT"}, {"impact": "LOW"}, False),
+            ({"impact": "IMPORTANT"}, {"impact": "LOW"}, True),
             ({"impact": "MODERATE"}, {"impact": "IMPORTANT"}, True),
             ({"source": "DEBIAN"}, {"source": "GENTOO"}, False),
             (

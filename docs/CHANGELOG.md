@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Handle frequent Taskman, Trackers and Collectors exceptions
   instead of internal server error 500 (OSIDB-3280)
+- Sync trackers on impact decrease (OSIDB-3350)
 
 ### Fixed
 - Tracker validations skipping (OSIDB-3336)

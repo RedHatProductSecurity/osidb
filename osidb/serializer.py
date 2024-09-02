@@ -1109,18 +1109,17 @@ class AffectSerializer(
 
         promote = False
         # we only need to sync the trackers when crucial attributes change
-        # plus in the case of the impact we only care for the increase
         #
         # in the case of PS module we cannot auto-adjust the trackers
         # since we simply cannot guess which PS update stream is correct
         #
-        # in the case of impact we should ideally check whether the increase actually
-        # increases the tracker aggregated impact (in cases of multi-flaw trackers)
+        # in the case of impact we should ideally check whether the change actually
+        # changes the tracker aggregated impact (in cases of multi-flaw trackers)
         # but that drastically increases the code complexity and brings only a little
         # value - would prevent a rare extra update attempt without any real effect
         if not differ(old_affect, new_affect, ["flaw", "ps_component"]) and Impact(
             old_affect.impact
-        ) >= Impact(new_affect.impact):
+        ) == Impact(new_affect.impact):
             # regenerate trackers on affect promotion from NEW to
             # other value to remove the validation-requested label
             if not (
@@ -1741,19 +1740,18 @@ class FlawSerializer(
             )
 
         # we only need to sync the trackers when crucial attributes change
-        # plus in the case of the impact we only care for the increase
         # plus in the case of the MI we care for specific changes only
         #
         # the crucial attributes are those influencing the SLA deadline plus the CVE ID
         #
-        # in the case of impact we should ideally check whether the increase actually
-        # increases the tracker aggregated impact (in cases of multi-flaw trackers)
+        # in the case of impact we should ideally check whether the change actually
+        # changes the tracker aggregated impact (in cases of multi-flaw trackers)
         # but that drastically increases the code complexity and brings only a little
         # value - would prevent a rare extra update attempt without any real effect
         if (
             not differ(old_flaw, new_flaw, ["cve_id", "is_embargoed", "unembargo_dt"])
             and not mi_differ(old_flaw, new_flaw)
-            and Impact(old_flaw.impact) >= Impact(new_flaw.impact)
+            and Impact(old_flaw.impact) == Impact(new_flaw.impact)
         ):
             return
 
