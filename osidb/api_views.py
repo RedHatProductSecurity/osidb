@@ -14,6 +14,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from djangoql.serializers import SuggestionsAPISerializer
+from djangoql.views import SuggestionsAPIView
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from packageurl import PackageURL
@@ -37,6 +39,7 @@ from .filters import (
     FlawCVSSFilter,
     FlawFilter,
     FlawPackageVersionFilter,
+    FlawQLSchema,
     FlawReferenceFilter,
     TrackerFilter,
 )
@@ -436,6 +439,30 @@ def query_extend_schema_view(
             retrieve=extend_schema(parameters=[query_api_param]),
         )
     )(cls)
+
+
+@extend_schema(exclude=True)
+@permission_classes((IsAuthenticatedOrReadOnly,))
+class FlawSuggestionsView(RudimentaryUserPathLoggingMixin, APIView):
+    def get(self, request):
+        view = SuggestionsAPIView.as_view(
+            schema=FlawQLSchema(Flaw),
+        )
+        return view(request)
+
+
+@extend_schema(exclude=True)
+@permission_classes((IsAuthenticatedOrReadOnly,))
+class FlawIntrospectionView(RudimentaryUserPathLoggingMixin, APIView):
+    def get(self, request):
+
+        return Response(
+            SuggestionsAPISerializer(
+                request.build_absolute_uri("suggestions")
+            ).serialize(
+                FlawQLSchema(Flaw),
+            )
+        )
 
 
 @query_extend_schema_view

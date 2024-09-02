@@ -16,8 +16,10 @@ from .api_views import (
     FlawAcknowledgmentView,
     FlawCommentView,
     FlawCVSSView,
+    FlawIntrospectionView,
     FlawPackageVersionView,
     FlawReferenceView,
+    FlawSuggestionsView,
     FlawView,
     JiraStageForwarderView,
     ManifestView,
@@ -81,6 +83,20 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="schema"),
     ),
 ]
+
+urlpatterns.append(
+    path(
+        f"api/{OSIDB_API_VERSION}/suggestions",
+        FlawSuggestionsView.as_view(),
+    )
+)
+
+urlpatterns.append(
+    path(
+        f"api/{OSIDB_API_VERSION}/introspection",
+        FlawIntrospectionView.as_view(),
+    )
+)
 
 # TODO: undocumented endpoint only is enabled on non production environments and will be removed in the future.
 if get_env() != "prod":
