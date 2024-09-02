@@ -28,7 +28,6 @@ def pin_envs(monkeypatch) -> None:
     """
     the tests should be immune to what .env you build the testrunner with
     """
-    monkeypatch.setenv("HTTPS_PROXY", "http://squid.corp.redhat.com:3128")
     monkeypatch.setattr(common, "BZ_URL", "https://example.com")
 
 

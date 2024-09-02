@@ -27,15 +27,6 @@ def enable_db_access_for_all_tests(db):
     pass
 
 
-@pytest.fixture(autouse=True)
-def pin_envs(monkeypatch) -> None:
-    """
-    the tests should be immune to what .env you build the testrunner with
-    """
-    monkeypatch.setenv("BBSYNC_SYNC_TO_BZ", "0")
-    monkeypatch.setenv("JIRA_TASKMAN_AUTO_SYNC_FLAW", "0")
-
-
 @pytest.fixture
 def root_url():
     return "http://osidb-service:8000"
@@ -128,18 +119,3 @@ def private_source():
 @pytest.fixture
 def both_source():
     return FlawSource.GENTOO
-
-
-@pytest.fixture(autouse=True)
-def disable_sync(monkeypatch) -> None:
-    """
-    disable the sync to Bugzilla and Jira
-    """
-    import apps.bbsync.mixins as mixins
-    import osidb.models as models
-
-    monkeypatch.setattr(mixins, "SYNC_TO_BZ", False)
-    monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", False)
-    monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ", False)
-    monkeypatch.setattr(models, "SYNC_TRACKERS_TO_BZ", False)
-    monkeypatch.setattr(models, "SYNC_TO_JIRA", False)
