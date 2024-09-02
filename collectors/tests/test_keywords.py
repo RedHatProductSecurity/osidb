@@ -1,6 +1,6 @@
 import pytest
 
-from collectors.nvd.keywords import check_keywords, should_create_snippet
+from collectors.keywords import check_keywords, should_create_snippet
 
 
 @pytest.mark.parametrize(
