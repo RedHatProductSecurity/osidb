@@ -218,6 +218,7 @@ class FlawSource(models.TextChoices):
     CORELABS = "CORELABS"
     CUSTOMER = "CUSTOMER"
     CVE = "CVE"
+    CVEORG = "CVEORG"
     DAILYDAVE = "DAILYDAVE"
     DEBIAN = "DEBIAN"
     DISTROS = "DISTROS"
@@ -438,6 +439,7 @@ class FlawSource(models.TextChoices):
     @property
     def from_snippet(self):
         return {
+            self.CVEORG,
             self.NVD,
             self.OSV,
         }
@@ -1488,6 +1490,7 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         This class should be extended everytime a new collector is introduced.
         """
 
+        CVEORG = "CVEORG"
         NVD = "NVD"
         OSV = "OSV"
 
@@ -2197,6 +2200,7 @@ class CVSS(AlertMixin, ACLMixin, BugzillaSyncMixin, NullStrFieldsMixin, Tracking
         VERSION4 = "V4", "version 4"
 
     class CVSSIssuer(models.TextChoices):
+        CVEORG = "CVEORG", "CVEORG"
         REDHAT = "RH", "Red Hat"
         NIST = "NIST", "NIST"
         OSV = "OSV", "OSV"

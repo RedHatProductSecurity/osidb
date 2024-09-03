@@ -10,7 +10,7 @@ from nvdlib.classes import CVE
 from apps.taskman.constants import JIRA_AUTH_TOKEN
 from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_START_DATE
 from collectors.framework.models import Collector
-from collectors.nvd.keywords import should_create_snippet
+from collectors.keywords import should_create_snippet
 from collectors.utils import handle_urls
 from osidb.core import set_user_acls
 from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet

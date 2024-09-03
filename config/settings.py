@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "apps.trackers",
     "apps.workflows",
     "collectors.bzimport",
+    "collectors.cveorg",
     "collectors.epss",
     "collectors.errata",
     "collectors.exploits_cisa",
@@ -232,6 +233,7 @@ LOGGING = {
             }
             for collector_name in [
                 "collectors.bzimport",
+                "collectors.cveorg",
                 "collectors.epss",
                 "collectors.errata",
                 "collectors.exploits_cisa",
