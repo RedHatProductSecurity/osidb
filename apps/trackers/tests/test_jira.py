@@ -589,6 +589,12 @@ sla:
         assert "duedate" in query["fields"]
         assert query["fields"]["duedate"] == "2000-01-11T00:00:00+00:00"
 
+        # SLA was manually marked to not be calculated
+        tracker.meta_attr["labels"] = json.dumps(["nonstandard-sla"])
+        query = OldTrackerJiraQueryBuilder(tracker).query
+        assert target_start_id not in query["fields"]
+        assert "duedate" not in query["fields"]
+
     @pytest.mark.parametrize(
         "embargoed, private, valid_jira_field",
         [

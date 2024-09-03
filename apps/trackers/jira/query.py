@@ -394,6 +394,10 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         generate query for Jira SLA timestamps
         """
+        # Tracker has a manually defined due date
+        if "nonstandard-sla" in self._query["fields"]["labels"]:
+            return
+
         if not self.tracker.external_system_id:
             # Workaround for when a new tracker is filed. At this point in the code it
             # has not been fully saved so created_dt is not a valid date, but the SLAs

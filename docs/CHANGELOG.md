@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Add CVEorg collector (OSIDB-2234)
+- Allow trackers to have manually set SLAs (OSIDB-3374)
 
 ### Changed
 - Handle frequent Taskman, Trackers and Collectors exceptions
