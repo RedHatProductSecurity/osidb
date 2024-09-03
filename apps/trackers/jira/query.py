@@ -116,9 +116,9 @@ FLAW_SOURCE_TO_JIRA_SOURCE = {
 }
 
 
-class JiraSeverity:
+class JiraCVESeverity:
     """
-    Allowed Jira severity values compatible with
+    Allowed Jira "CVE Severity" field values compatible with
     https://access.redhat.com/security/updates/classification
     """
 
@@ -129,14 +129,12 @@ class JiraSeverity:
     NONE = "None"
 
 
-IMPACT_TO_JIRA_SEVERITY = {
-    Impact.CRITICAL: JiraSeverity.CRITICAL,
-    Impact.IMPORTANT: JiraSeverity.IMPORTANT,
-    Impact.MODERATE: JiraSeverity.MODERATE,
-    Impact.LOW: JiraSeverity.LOW,
-    # mapping below is just safeguard
-    # but we should never file such trackers
-    Impact.NOVALUE: JiraSeverity.NONE,
+IMPACT_TO_JIRA_CVE_SEVERITY = {
+    Impact.CRITICAL: JiraCVESeverity.CRITICAL,
+    Impact.IMPORTANT: JiraCVESeverity.IMPORTANT,
+    Impact.MODERATE: JiraCVESeverity.MODERATE,
+    Impact.LOW: JiraCVESeverity.LOW,
+    # NONE exists in Jira, but not allowable for OSIDB to set.
 }
 
 # NOTE that these four values can change, as they are for sanity-checking
@@ -582,7 +580,7 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         self.generate_cc()
         self.generate_target_release()
 
-        self.generate_severity()
+        self.generate_cve_severity()
         self.generate_source()
         self.generate_cve_id()
         self.generate_cvss_score()
@@ -606,12 +604,17 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         return allowed_values, field_id
 
     # TODO write tests - tracked in OSIDB-2980
-    def generate_severity(self):
-        field_name = "Severity"
+    def generate_cve_severity(self):
+        field_name = "CVE Severity"
         # Allowed should be ['Critical', 'Important', 'Moderate', 'Low', 'None']
         allowed_values, field_id = self.field_check_and_get_values_and_id(field_name)
 
-        severity = IMPACT_TO_JIRA_SEVERITY[self.impact]
+        if self.impact is Impact.NOVALUE:
+            raise TrackerCreationError(
+                "Tracker has disallowed Impact value Impact.NOVALUE (empty string)."
+            )
+
+        severity = IMPACT_TO_JIRA_CVE_SEVERITY[self.impact]
         if severity not in allowed_values:
             raise MissingSeverityError(
                 f"Jira project {self.ps_module.bts_key} does not have the {field_name} field value "
