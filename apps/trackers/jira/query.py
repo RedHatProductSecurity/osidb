@@ -129,51 +129,15 @@ class JiraSeverity:
     NONE = "None"
 
 
-class JiraSeverityAlternative:
-    """
-    Allowed Jira severity values NOT compatible with
-    https://access.redhat.com/security/updates/classification
-    but used in some Jira projects.
-    """
-
-    # "Schema 2"
-    BLOCKER = "Blocker"
-    CRITICAL = "Critical"
-    MAJOR = "Major"
-    NORMAL = "Normal"
-    MINOR = "Minor"
-    TRIVIAL = "Trivial"
-
-    # "Schema 3"
-    URGENT = "Urgent"
-    HIGH = "High"
-    MEDIUM = "Medium"
-    LOW = "Low"
-
-
 IMPACT_TO_JIRA_SEVERITY = {
-    Impact.CRITICAL: [
-        JiraSeverity.CRITICAL,
-        JiraSeverityAlternative.CRITICAL,
-        JiraSeverityAlternative.URGENT,
-    ],
-    Impact.IMPORTANT: [
-        JiraSeverity.IMPORTANT,
-        JiraSeverityAlternative.MAJOR,
-        JiraSeverityAlternative.HIGH,
-    ],
-    Impact.MODERATE: [
-        JiraSeverity.MODERATE,
-        JiraSeverityAlternative.NORMAL,
-        JiraSeverityAlternative.MEDIUM,
-    ],
-    Impact.LOW: [
-        JiraSeverity.LOW,
-        JiraSeverityAlternative.MINOR,
-        JiraSeverityAlternative.LOW,
-    ],
+    Impact.CRITICAL: JiraSeverity.CRITICAL,
+    Impact.IMPORTANT: JiraSeverity.IMPORTANT,
+    Impact.MODERATE: JiraSeverity.MODERATE,
+    Impact.LOW: JiraSeverity.LOW,
+    # mapping below is just safeguard
+    # but we should never file such trackers
+    Impact.NOVALUE: JiraSeverity.NONE,
 }
-
 
 # NOTE that these four values can change, as they are for sanity-checking
 # allowed values for Jira field Special Handling.
@@ -644,23 +608,16 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
     # TODO write tests - tracked in OSIDB-2980
     def generate_severity(self):
         field_name = "Severity"
+        # Allowed should be ['Critical', 'Important', 'Moderate', 'Low', 'None']
         allowed_values, field_id = self.field_check_and_get_values_and_id(field_name)
 
-        if self.impact is Impact.NOVALUE:
-            raise TrackerCreationError(
-                "Tracker has disallowed Impact value Impact.NOVALUE (empty string)."
+        severity = IMPACT_TO_JIRA_SEVERITY[self.impact]
+        if severity not in allowed_values:
+            raise MissingSeverityError(
+                f"Jira project {self.ps_module.bts_key} does not have the {field_name} field value "
+                f"{severity}; allowed values are: {', '.join(allowed_values)}"
             )
-
-        for severity in IMPACT_TO_JIRA_SEVERITY[self.impact]:
-            if severity in allowed_values:
-                self._query["fields"][field_id] = {"value": severity}
-                return
-
-        raise MissingSeverityError(
-            f"Jira project {self.ps_module.bts_key} does not have the {field_name} field value appropriate for "
-            f"severity {severity}, which is one of {', '.join(IMPACT_TO_JIRA_SEVERITY[self.impact])}; "
-            f"allowed values are: {', '.join(allowed_values)}"
-        )
+        self._query["fields"][field_id] = {"value": severity}
 
     # TODO write tests - tracked in OSIDB-2980
     def generate_source(self):
