@@ -278,10 +278,14 @@ class SLAPolicy(models.Model):
 
         # computing the SLA is not simple as we have to consider multi-flaw trackers where
         # the SLA start must be computed for the flaw which results in the earlist SLA end
-        sla_contexts = [
-            SLAContext(affect=affect, flaw=affect.flaw, tracker=instance)
-            for affect in instance.affects.all()
-        ]
+        sla_contexts = []
+        for affect in instance.affects.all():
+            # Make sure we are getting the latest data from the database and not the possibly
+            # incomplete data from the tracker which may be being saved
+            affect = Affect.objects.get(uuid=affect.uuid)
+            sla_contexts.append(
+                SLAContext(affect=affect, flaw=affect.flaw, tracker=instance)
+            )
 
         # filter out the SLA contexts not accepted by this SLA policy
         sla_contexts = [context for context in sla_contexts if self.accepts(context)]
