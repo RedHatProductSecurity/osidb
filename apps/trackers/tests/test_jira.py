@@ -12,13 +12,15 @@ from apps.sla.tests.test_framework import load_sla_policies
 from apps.trackers.exceptions import (
     ComponentUnavailableError,
     MissingSecurityLevelError,
+    MissingSeverityError,
     MissingTargetReleaseVersionError,
+    MissingVulnerabilityIssueFieldError,
+    TrackerCreationError,
 )
 from apps.trackers.jira.constants import PS_ADDITIONAL_FIELD_TO_JIRA
 from apps.trackers.jira.query import (
+    JiraCVESeverity,
     JiraPriority,
-    JiraSeverity,
-    JiraSeverityAlternative,
     OldTrackerJiraQueryBuilder,
     TrackerJiraQueryBuilder,
 )
@@ -1081,6 +1083,78 @@ def validate_minimum_key_value(minimum: Dict[str, Any], evaluated: Dict[str, Any
             assert minimum[key] == evaluated[key]
 
 
+def jira_vulnissuetype_fields_setup_without_severity():
+    # CVE Severity field not set up here so that tests can customize it
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324746",
+        field_name="Source",
+        # Severely pruned for the test
+        allowed_values=["Red Hat", "Upstream"],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324749",
+        field_name="CVE ID",
+        allowed_values=[],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324748",
+        field_name="CVSS Score",
+        allowed_values=[],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324747",
+        field_name="CWE ID",
+        allowed_values=[],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324752",
+        field_name="Downstream Component Name",
+        allowed_values=[],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324751",
+        field_name="Upstream Affected Component",
+        allowed_values=[],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324750",
+        field_name="Embargo Status",
+        allowed_values=["True", "False"],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324753",
+        field_name="Special Handling",
+        allowed_values=[
+            "Major Incident",
+            "KEV (active exploit case)",
+            "Compliance Priority",
+            "Contract Priority",
+        ],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="versions",
+        field_name="Affects Version/s",
+        allowed_values=["1.2.3"],
+    ).save()
+
+
 class TestTrackerJiraQueryBuilder:
     """
     test Jira tracker query building for Vulnerability issuetype
@@ -1089,14 +1163,14 @@ class TestTrackerJiraQueryBuilder:
     @pytest.mark.parametrize(
         "flaw_impact,affect_impact,expected_severity",
         [
-            (Impact.LOW, Impact.LOW, JiraSeverity.LOW),
-            (Impact.MODERATE, Impact.NOVALUE, JiraSeverity.MODERATE),
-            (Impact.MODERATE, Impact.LOW, JiraSeverity.LOW),
-            (Impact.CRITICAL, Impact.NOVALUE, JiraSeverity.CRITICAL),
-            (Impact.CRITICAL, Impact.LOW, JiraSeverity.LOW),
-            (Impact.LOW, Impact.LOW, JiraSeverity.LOW),
-            (Impact.LOW, Impact.MODERATE, JiraSeverity.MODERATE),
-            (Impact.LOW, Impact.CRITICAL, JiraSeverity.CRITICAL),
+            (Impact.LOW, Impact.LOW, JiraCVESeverity.LOW),
+            (Impact.MODERATE, Impact.NOVALUE, JiraCVESeverity.MODERATE),
+            (Impact.MODERATE, Impact.LOW, JiraCVESeverity.LOW),
+            (Impact.CRITICAL, Impact.NOVALUE, JiraCVESeverity.CRITICAL),
+            (Impact.CRITICAL, Impact.LOW, JiraCVESeverity.LOW),
+            (Impact.LOW, Impact.LOW, JiraCVESeverity.LOW),
+            (Impact.LOW, Impact.MODERATE, JiraCVESeverity.MODERATE),
+            (Impact.LOW, Impact.CRITICAL, JiraCVESeverity.CRITICAL),
         ],
     )
     def test_generate_query(self, flaw_impact, affect_impact, expected_severity):
@@ -1105,8 +1179,8 @@ class TestTrackerJiraQueryBuilder:
         """
         JiraProjectFields(
             project_key="FOOPROJECT",
-            field_id="customfield_12316142",
-            field_name="Severity",
+            field_id="customfield_an_identifier_for_cve_severity_field",
+            field_name="CVE Severity",
             allowed_values=[
                 "Critical",
                 "Important",
@@ -1116,74 +1190,8 @@ class TestTrackerJiraQueryBuilder:
                 "None",
             ],
         ).save()
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324746",
-            field_name="Source",
-            # Severely pruned for the test
-            allowed_values=["Red Hat", "Upstream"],
-        ).save()
 
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324749",
-            field_name="CVE ID",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324748",
-            field_name="CVSS Score",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324747",
-            field_name="CWE ID",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324752",
-            field_name="Downstream Component Name",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324751",
-            field_name="Upstream Affected Component",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324750",
-            field_name="Embargo Status",
-            allowed_values=["True", "False"],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324753",
-            field_name="Special Handling",
-            allowed_values=[
-                "Major Incident",
-                "KEV (active exploit case)",
-                "Compliance Priority",
-                "Contract Priority",
-            ],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="versions",
-            field_name="Affects Version/s",
-            allowed_values=["1.2.3"],
-        ).save()
+        jira_vulnissuetype_fields_setup_without_severity()
 
         flaw = FlawFactory(
             embargoed=False,
@@ -1241,8 +1249,10 @@ class TestTrackerJiraQueryBuilder:
                     {"name": "1.2.3"},
                 ],
                 #
-                # Severity
-                "customfield_12316142": {"value": expected_severity},
+                # CVE Severity
+                "customfield_an_identifier_for_cve_severity_field": {
+                    "value": expected_severity
+                },
                 #
                 # Source
                 "customfield_12324746": {"value": "Red Hat"},
@@ -1279,133 +1289,58 @@ class TestTrackerJiraQueryBuilder:
         validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
 
     @pytest.mark.parametrize(
-        "schema",
+        "missing,wrong,flaw_impact,affect_impact,expected_severity",
         [
-            (1,),
-            (2,),
-            (3,),
+            (False, False, Impact.LOW, Impact.LOW, JiraCVESeverity.LOW),
+            (False, False, Impact.LOW, Impact.MODERATE, JiraCVESeverity.MODERATE),
+            (False, False, Impact.LOW, Impact.IMPORTANT, JiraCVESeverity.IMPORTANT),
+            (False, False, Impact.LOW, Impact.CRITICAL, JiraCVESeverity.CRITICAL),
+            (False, False, Impact.NOVALUE, Impact.NOVALUE, None),
+            (True, False, Impact.LOW, Impact.CRITICAL, None),
+            (False, True, Impact.LOW, Impact.CRITICAL, None),
         ],
     )
-    @pytest.mark.parametrize(
-        "flaw_impact,affect_impact,expected_severity",
-        [
-            (Impact.LOW, Impact.LOW, JiraSeverity.LOW),
-            (Impact.LOW, Impact.MODERATE, JiraSeverity.MODERATE),
-            (Impact.LOW, Impact.IMPORTANT, JiraSeverity.IMPORTANT),
-            (Impact.LOW, Impact.CRITICAL, JiraSeverity.CRITICAL),
-        ],
-    )
-    def test_severity_field(
-        self, schema, flaw_impact, affect_impact, expected_severity
+    def test_cve_severity_field(
+        self, missing, wrong, flaw_impact, affect_impact, expected_severity
     ):
         """
-        Test that the severity field is populated correctly.
-        To make the test parameters less prone to mistake, the expected results
-        are translated from JiraSeverity ("Schema 1") to JiraSeverityAlternative
-        ("Schema 2" and "Schema 3"), not encoded directly in the test parameters.
+        Test that the CVE Severity field is populated correctly.
+        Test that an exception is thrown when the CVE Severity field is missing or
+        doesn't have the required allowed value or when the aggregated impact
+        is the disallowed empty value.
         """
-        # if schema == 1:
-        #   just run the test to double-check the sanity of the input test parameters
 
-        if schema == 2:
-            MAPPING = {
-                JiraSeverity.CRITICAL: JiraSeverityAlternative.CRITICAL,
-                JiraSeverity.IMPORTANT: JiraSeverityAlternative.MAJOR,
-                JiraSeverity.MODERATE: JiraSeverityAlternative.NORMAL,
-                JiraSeverity.LOW: JiraSeverityAlternative.MINOR,
-            }
-            expected_severity = MAPPING[expected_severity]
+        if not missing:
+            if not wrong:
+                JiraProjectFields(
+                    project_key="FOOPROJECT",
+                    field_id="customfield_an_identifier_for_cve_severity_field",
+                    field_name="CVE Severity",
+                    allowed_values=[
+                        "Critical",
+                        "Important",
+                        "Moderate",
+                        "Low",
+                        "An Irrelevant Value To Be Ignored",
+                        "None",
+                    ],
+                ).save()
+            else:
+                JiraProjectFields(
+                    project_key="FOOPROJECT",
+                    field_id="customfield_an_identifier_for_cve_severity_field",
+                    field_name="CVE Severity",
+                    allowed_values=[
+                        "Foobar",
+                        "Asphalt",
+                        "Drink",
+                        "Room",
+                        "Airplane",
+                        "Yes",
+                    ],
+                ).save()
 
-        if schema == 3:
-            MAPPING = {
-                JiraSeverity.CRITICAL: JiraSeverityAlternative.URGENT,
-                JiraSeverity.IMPORTANT: JiraSeverityAlternative.HIGH,
-                JiraSeverity.MODERATE: JiraSeverityAlternative.MEDIUM,
-                JiraSeverity.LOW: JiraSeverityAlternative.LOW,
-            }
-            expected_severity = MAPPING[expected_severity]
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12316142",
-            field_name="Severity",
-            allowed_values=[
-                "Critical",
-                "Important",
-                "Moderate",
-                "Low",
-                "An Irrelevant Value To Be Ignored",
-                "None",
-            ],
-        ).save()
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324746",
-            field_name="Source",
-            # Severely pruned for the test
-            allowed_values=["Red Hat", "Upstream"],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324749",
-            field_name="CVE ID",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324748",
-            field_name="CVSS Score",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324747",
-            field_name="CWE ID",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324752",
-            field_name="Downstream Component Name",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324751",
-            field_name="Upstream Affected Component",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324750",
-            field_name="Embargo Status",
-            allowed_values=["True", "False"],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_12324753",
-            field_name="Special Handling",
-            allowed_values=[
-                "Major Incident",
-                "KEV (active exploit case)",
-                "Compliance Priority",
-                "Contract Priority",
-            ],
-        ).save()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="versions",
-            field_name="Affects Version/s",
-            allowed_values=["1.2.3"],
-        ).save()
+        jira_vulnissuetype_fields_setup_without_severity()
 
         flaw = FlawFactory(
             embargoed=False,
@@ -1435,39 +1370,39 @@ class TestTrackerJiraQueryBuilder:
             ps_update_stream=stream.name,
             embargoed=flaw.is_embargoed,
         )
-        JiraProjectFieldsFactory(
-            project_key=ps_module.bts_key,
-            field_id="security",
-            field_name="Security Level",
-            allowed_values=[
-                "Embargoed Security Issue",
-                "Red Hat Employee",
-                "Red Hat Engineering Authorized",
-                "Red Hat Partner",
-                "Restricted",
-                "Team",
-            ],
-        )
-        expected1 = {
-            "fields": {
-                "project": {"key": "FOOPROJECT"},
-                "issuetype": {"name": "Vulnerability"},
-                "summary": "CVE-2999-1000 foo-component: some description [bar-1.2.3]",
-                "labels": [
-                    "CVE-2999-1000",
-                    "pscomponent:foo-component",
-                    "SecurityTracking",
-                    "Security",
-                ],
-                "versions": [
-                    {"name": "1.2.3"},
-                ],
-                #
-                # Severity
-                "customfield_12316142": {"value": expected_severity},
+        if not missing and not wrong and flaw_impact != Impact.NOVALUE:
+            expected = {
+                "fields": {
+                    "project": {"key": "FOOPROJECT"},
+                    "issuetype": {"name": "Vulnerability"},
+                    "summary": "CVE-2999-1000 foo-component: some description [bar-1.2.3]",
+                    "labels": [
+                        "CVE-2999-1000",
+                        "pscomponent:foo-component",
+                        "SecurityTracking",
+                        "Security",
+                    ],
+                    "versions": [
+                        {"name": "1.2.3"},
+                    ],
+                    #
+                    # CVE Severity
+                    "customfield_an_identifier_for_cve_severity_field": {
+                        "value": expected_severity
+                    },
+                }
             }
-        }
 
-        quer_builder = TrackerJiraQueryBuilder(tracker)
-        quer_builder.generate()
-        validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
+            quer_builder = TrackerJiraQueryBuilder(tracker)
+            quer_builder.generate()
+            validate_minimum_key_value(minimum=expected, evaluated=quer_builder._query)
+        else:
+            if missing:
+                with pytest.raises(MissingVulnerabilityIssueFieldError):
+                    TrackerJiraQueryBuilder(tracker).generate()
+            if wrong:
+                with pytest.raises(MissingSeverityError):
+                    TrackerJiraQueryBuilder(tracker).generate()
+            if flaw_impact == Impact.NOVALUE:
+                with pytest.raises(TrackerCreationError):
+                    TrackerJiraQueryBuilder(tracker).generate()
