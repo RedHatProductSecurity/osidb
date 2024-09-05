@@ -62,6 +62,7 @@ from .sync_manager import (
     BZTrackerDownloadManager,
     BZTrackerLinkManager,
     FlawDownloadManager,
+    JiraTrackerDownloadManager,
     JiraTrackerLinkManager,
 )
 from .validators import no_future_date, validate_cve_id, validate_cwe_id
@@ -2780,11 +2781,14 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             ps_update_stream=self.ps_update_stream
         ).exists()
 
-    download_manager = models.ForeignKey(
+    bz_download_manager = models.ForeignKey(
         BZTrackerDownloadManager, null=True, blank=True, on_delete=models.CASCADE
     )
     bz_link_manager = models.ForeignKey(
         BZTrackerLinkManager, null=True, blank=True, on_delete=models.CASCADE
+    )
+    jira_download_manager = models.ForeignKey(
+        JiraTrackerDownloadManager, null=True, blank=True, on_delete=models.CASCADE
     )
     jira_link_manager = models.ForeignKey(
         JiraTrackerLinkManager, null=True, blank=True, on_delete=models.CASCADE
