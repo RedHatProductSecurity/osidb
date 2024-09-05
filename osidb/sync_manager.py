@@ -648,6 +648,48 @@ class BZSyncManager(SyncManager):
         return result
 
 
+class JiraTaskDownloadManager(SyncManager):
+    """
+    Sync manager class for Jira => OSIDB Task synchronization.
+    """
+
+    @staticmethod
+    @app.task(name="sync_manager.jira_task_download", bind=True)
+    def sync_task(self, task_id):
+        from collectors.jiraffe.convertors import JiraTaskConvertor
+        from collectors.jiraffe.core import JiraQuerier
+
+        JiraTaskDownloadManager.started(task_id, self)
+
+        set_user_acls(settings.ALL_GROUPS)
+
+        try:
+            task_data = JiraQuerier().get_issue(task_id)
+            flaw = JiraTaskConvertor(task_data).flaw
+            if flaw:
+                flaw.save()
+        except Exception as e:
+            JiraTaskDownloadManager.failed(task_id, e)
+        else:
+            JiraTaskDownloadManager.finished(task_id)
+
+    def update_synced_links(self):
+        from osidb.models import Flaw
+
+        Flaw.objects.filter(task_key=self.sync_id).update(task_download_manager=self)
+
+    def __str__(self):
+        from osidb.models import Flaw
+
+        result = super().__str__()
+
+        flaws = Flaw.objects.filter(task_key=self.sync_id)
+        flaw_ids = [f.cve_id if f.cve_id else f.uuid for f in flaws]
+        result += f"Jira tasks for flaws: {flaw_ids}\n"
+
+        return result
+
+
 class JiraTrackerDownloadManager(SyncManager):
     """
     Sync manager class for Jira => OSIDB Tracker synchronization.

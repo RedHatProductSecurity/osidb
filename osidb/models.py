@@ -62,6 +62,7 @@ from .sync_manager import (
     BZTrackerDownloadManager,
     BZTrackerLinkManager,
     FlawDownloadManager,
+    JiraTaskDownloadManager,
     JiraTrackerDownloadManager,
     JiraTrackerLinkManager,
 )
@@ -1473,6 +1474,9 @@ class Flaw(
 
     download_manager = models.ForeignKey(
         FlawDownloadManager, null=True, blank=True, on_delete=models.CASCADE
+    )
+    task_download_manager = models.ForeignKey(
+        JiraTaskDownloadManager, null=True, blank=True, on_delete=models.CASCADE
     )
     bzsync_manager = models.ForeignKey(
         BZSyncManager, null=True, blank=True, on_delete=models.CASCADE
