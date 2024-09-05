@@ -74,20 +74,19 @@ class JiraTaskCollector(Collector):
         start_dt = timezone.now()
         updated_tasks = []
         batch_data, period_end = (
-            self.get_batch()
-            if task_id is None
-            else ([self.jira_querier.get_issue(task_id)], None)
+            self.get_batch() if task_id is None else ([task_id], None)
         )
+        # pre-process batch
+        if task_id is None:
+            batch_data = [task.id for task in batch_data]
 
         # process data
-        for task_data in batch_data:
-            # perform this as a transaction to avoid
-            # collision between loading and saving the flaw
-            with transaction.atomic():
-                flaw = JiraTaskConvertor(task_data).flaw
-                if flaw:
-                    self.save(flaw)
-                    updated_tasks.append(task_data.key)
+        for task_data_id in batch_data:
+            task_data = self.jira_querier.get_issue(task_data_id)
+            flaw = JiraTaskConvertor(task_data).flaw
+            if flaw:
+                self.save(flaw)
+                updated_tasks.append(task_data.key)
 
         logger.info(
             f"Flaws were updated for the following task IDs: {', '.join(updated_tasks)}"
@@ -173,13 +172,15 @@ class JiraTrackerCollector(Collector):
         # fetch the next batch of Jira trackers by default
         # but can be overridden by a given tracker ID
         batch_data, period_end = (
-            self.get_batch()
-            if tracker_id is None
-            else ([self.jira_querier.get_issue(tracker_id)], None)
+            self.get_batch() if tracker_id is None else ([tracker_id], None)
         )
+        # pre-process batch
+        if tracker_id is None:
+            batch_data = [tracker.id for tracker in batch_data]
 
         # process data
-        for tracker_data in batch_data:
+        for tracker_data_id in batch_data:
+            tracker_data = self.jira_querier.get_issue(tracker_data_id)
             tracker = JiraTrackerConvertor(tracker_data).tracker
             if tracker:
                 self.save(tracker)
