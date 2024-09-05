@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Create new API endpoints for DjangoQL (OSIDB-3338)
+- Implement Jira collector sync managers (OSIDB-3177)
 
 ### Fixed
 - Unable to unembargo flaws with trackers (OSIDB-3398)

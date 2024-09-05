@@ -16,7 +16,11 @@ from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
 from collectors.framework.models import Collector
 from osidb.models import PsModule
-from osidb.sync_manager import JiraTrackerLinkManager
+from osidb.sync_manager import (
+    JiraTaskDownloadManager,
+    JiraTrackerDownloadManager,
+    JiraTrackerLinkManager,
+)
 
 from .constants import JIRA_TOKEN
 from .convertors import JiraTaskConvertor, JiraTrackerConvertor
@@ -83,18 +87,18 @@ class JiraTaskCollector(Collector):
         # multi-task sync
         start_dt = timezone.now()
         updated_tasks = []
+
+        JiraTaskDownloadManager.check_for_reschedules()
+
         batch_data, period_end = self.get_batch()
 
-        # process data
-        for task_id in batch_data:
-            task_data = self.jira_querier.get_issue(task_id)
-            flaw = JiraTaskConvertor(task_data).flaw
-            if flaw:
-                self.save(flaw)
-                updated_tasks.append(task_data.key)
+        # schedule data sync
+        for task in batch_data:
+            JiraTaskDownloadManager.schedule(task.key)
+            updated_tasks.append(task.key)
 
         logger.info(
-            f"Flaws were updated for the following task IDs: {', '.join(updated_tasks)}"
+            f"Flaw update was scheduled for the following task IDs: {', '.join(updated_tasks)}"
             if updated_tasks
             else "No Flaw were updated."
         )
@@ -110,12 +114,12 @@ class JiraTaskCollector(Collector):
 
         msg = f"{self.name} is updated until {updated_until_dt}."
         msg += (
-            f"Flaws updated for Jira tasks: {', '.join(updated_tasks)}"
+            f"Flaw update scheduled for Jira tasks: {', '.join(updated_tasks)}"
             if updated_tasks
             else ""
         )
 
-        logger.info("Jira tasks sync was successful.")
+        logger.info("Jira tasks sync scheduled successfully.")
         return msg
 
 
@@ -178,24 +182,18 @@ class JiraTrackerCollector(Collector):
         start_dt = timezone.now()
         updated_trackers = []
 
+        JiraTrackerDownloadManager.check_for_reschedules()
         JiraTrackerLinkManager.check_for_reschedules()
 
         batch_data, period_end = self.get_batch()
 
-        # process data
-        for tracker_id in batch_data:
-            tracker_data = self.jira_querier.get_issue(tracker_id)
-            tracker = JiraTrackerConvertor(tracker_data).tracker
-            if tracker:
-                self.save(tracker)
-                updated_trackers.append(tracker_data.key)
-
-        # Schedule linking tracker => affect
-        for updated_tracker_id in updated_trackers:
-            JiraTrackerLinkManager.schedule(updated_tracker_id)
+        # schedule data sync
+        for tracker in batch_data:
+            JiraTrackerDownloadManager.schedule(tracker.key)
+            updated_trackers.append(tracker.key)
 
         logger.info(
-            f"Jira trackers were updated for the following IDs: {', '.join(updated_trackers)}"
+            f"Jira tracker sync was scheduled for the following IDs: {', '.join(updated_trackers)}"
             if updated_trackers
             else "No Jira trackers were updated."
         )
@@ -211,12 +209,12 @@ class JiraTrackerCollector(Collector):
 
         msg = f"{self.name} is updated until {updated_until_dt}."
         msg += (
-            f" Jira trackers updated: {', '.join(updated_trackers)}"
+            f" Jira tracker sync scheduled: {', '.join(updated_trackers)}"
             if updated_trackers
             else ""
         )
 
-        logger.info("Jira tracker sync was successful.")
+        logger.info("Jira tracker sync scheduled successfully.")
         return msg
 
 
