@@ -90,3 +90,7 @@ AFFECTEDNESS_HISTORICAL_VALID_RESOLUTIONS = {
         Affect.AffectResolution.WONTFIX,
     ],
 }
+
+SKIPPED_JIRA_SLA_LABELS = [
+    "nonstandard-sla",
+]

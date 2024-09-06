@@ -26,6 +26,7 @@ from apps.trackers.exceptions import (
 from apps.trackers.models import JiraProjectFields
 from collectors.jiraffe.constants import JIRA_BZ_ID_LABEL_RE
 from osidb.cc import JiraAffectCCBuilder
+from osidb.constants import SKIPPED_JIRA_SLA_LABELS
 from osidb.helpers import cve_id_comparator
 from osidb.models import Affect, AffectCVSS, Flaw, FlawSource, Impact
 from osidb.validators import CVE_RE_STR
@@ -357,7 +358,11 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         generate query for Jira SLA timestamps
         """
         # Tracker has a manually defined due date
-        if "nonstandard-sla" in self._query["fields"]["labels"]:
+        if any(
+            label
+            for label in self._query["fields"]["labels"]
+            if label in SKIPPED_JIRA_SLA_LABELS
+        ):
             return
 
         if not self.tracker.external_system_id:
