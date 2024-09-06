@@ -260,6 +260,33 @@ class FlawQLSchema(DjangoQLSchema):
     any field in the model, which is not desirable in this case.
     """
 
+    include = (
+        Affect,
+        Flaw,
+        FlawAcknowledgment,
+        FlawCVSS,
+        FlawReference,
+        Package,
+        Tracker,
+    )
+
+    suggest_options = {
+        Affect: ["affectedness", "impact", "ps_component", "ps_module", "resolution"],
+        Flaw: [
+            "components",
+            "impact",
+            "major_incident_state",
+            "nist_cvss_validation",
+            "owner",
+            "requires_cve_description",
+            "source",
+            "workflow_state",
+        ],
+        FlawCVSS: ["issuer", "version"],
+        FlawReference: ["type"],
+        Tracker: ["resolution", "status", "type"],
+    }
+
     def get_fields(self, model):
         fields = super(FlawQLSchema, self).get_fields(model)
         exclude = ["acl_read", "acl_write"]
