@@ -13,7 +13,7 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.31.0
+      - python-requests/2.32.0
       X-Atlassian-Token:
       - no-check
     method: GET
@@ -23,13 +23,13 @@ interactions:
       string: "[{\"id\":\"customfield_12322243\",\"name\":\"Release Date\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322243]\",\"Release
         Date\"],\"schema\":{\"type\":\"date\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:datepicker\",\"customId\":12322243}},{\"id\":\"customfield_12322244\",\"name\":\"PX
         Impact Score\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322244]\",\"PX
-        Impact Score\"],\"schema\":{\"type\":\"number\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlynumber\",\"customId\":12322244}},{\"id\":\"customfield_12322240\",\"name\":\"Staffing\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322240]\",\"Staffing\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:float\",\"customId\":12322240}},{\"id\":\"customfield_12322241\",\"name\":\"Gating
+        Impact Score\"],\"schema\":{\"type\":\"number\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlynumber\",\"customId\":12322244}},{\"id\":\"customfield_12324540\",\"name\":\"SFDC
+        Cases Open\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324540]\",\"SFDC
+        Cases Open\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.redhat.engineering.step.step-sfdc-plugin:sfdc_cases_open\",\"customId\":12324540}},{\"id\":\"customfield_12322240\",\"name\":\"Staffing\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322240]\",\"Staffing\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:float\",\"customId\":12322240}},{\"id\":\"customfield_12322241\",\"name\":\"Gating
         Tests\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322241]\",\"Gating
         Tests\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12322241}},{\"id\":\"resolution\",\"name\":\"Resolution\",\"custom\":false,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"resolution\"],\"schema\":{\"type\":\"resolution\",\"system\":\"resolution\"}},{\"id\":\"customfield_12310022\",\"name\":\"SVN
         / CVS Isolated Branch\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310022]\",\"SVN
-        / CVS Isolated Branch\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12310022}},{\"id\":\"customfield_12314742\",\"name\":\"Percent
-        confident\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12314742]\",\"Percent
-        confident\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:float\",\"customId\":12314742}},{\"id\":\"customfield_12310021\",\"name\":\"Support
+        / CVS Isolated Branch\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12310022}},{\"id\":\"customfield_12310021\",\"name\":\"Support
         Case Reference\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310021]\",\"Support
         Case Reference\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:url\",\"customId\":12310021}},{\"id\":\"customfield_12312441\",\"name\":\"Affects
         Build\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Affects
@@ -42,9 +42,7 @@ interactions:
         Notes\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12312440}},{\"id\":\"customfield_12315950\",\"name\":\"Contributors\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12315950]\",\"Contributors\"],\"schema\":{\"type\":\"array\",\"items\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiuserpicker\",\"customId\":12315950}},{\"id\":\"lastViewed\",\"name\":\"Last
         Viewed\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":false,\"clauseNames\":[\"lastViewed\"],\"schema\":{\"type\":\"datetime\",\"system\":\"lastViewed\"}},{\"id\":\"customfield_12321040\",\"name\":\"Internal
         Target Milestone\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12321040]\",\"Internal
-        Target Milestone\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12321040}},{\"id\":\"customfield_12323341\",\"name\":\"Keywords\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323341]\",\"Keywords\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12323341}},{\"id\":\"customfield_12323340\",\"name\":\"Commit
-        Hashes - old\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323340]\",\"Commit
-        Hashes - old\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12323340}},{\"id\":\"customfield_12311244\",\"name\":\"CDW
+        Target Milestone\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12321040}},{\"id\":\"customfield_12323341\",\"name\":\"Keywords\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323341]\",\"Keywords\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12323341}},{\"id\":\"customfield_12311244\",\"name\":\"CDW
         qa_ack\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"CDW
         qa_ack\",\"cf[12311244]\"],\"schema\":{\"type\":\"string\",\"custom\":\"org.jboss.labs.jira.plugin.cdw-plugin:cdwflagqa\",\"customId\":12311244}},{\"id\":\"customfield_12311245\",\"name\":\"CDW
         blocker\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"CDW
@@ -65,20 +63,22 @@ interactions:
         Issues\",\"custom\":false,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[],\"schema\":{\"type\":\"array\",\"items\":\"issuelinks\",\"system\":\"issuelinks\"}},{\"id\":\"assignee\",\"name\":\"Assignee\",\"custom\":false,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"assignee\"],\"schema\":{\"type\":\"user\",\"system\":\"assignee\"}},{\"id\":\"customfield_12311246\",\"name\":\"CDW
         exception\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"CDW
         exception\",\"cf[12311246]\"],\"schema\":{\"type\":\"string\",\"custom\":\"org.jboss.labs.jira.plugin.cdw-plugin:cdwflagprogman\",\"customId\":12311246}},{\"id\":\"customfield_12320041\",\"name\":\"Escape
-        Reason\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320041]\",\"Escape
-        Reason\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320041}},{\"id\":\"customfield_12319294\",\"name\":\"QE
+        Reason - OLD\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320041]\",\"Escape
+        Reason - OLD\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320041}},{\"id\":\"customfield_12319294\",\"name\":\"QE
         Priority\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319294]\",\"QE
         Priority\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12319294}},{\"id\":\"customfield_12319293\",\"name\":\"Affected
         Groups\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Affected
-        Groups\",\"cf[12319293]\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12319293}},{\"id\":\"customfield_12320040\",\"name\":\"Work
+        Groups\",\"cf[12319293]\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12319293}},{\"id\":\"customfield_12324640\",\"name\":\"CMDB
+        ID\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324640]\",\"CMDB
+        ID\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12324640}},{\"id\":\"customfield_12320040\",\"name\":\"Work
         Type\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320040]\",\"Work
         Type\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320040}},{\"id\":\"customfield_12322343\",\"name\":\"ProdDocsReview-CCS\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322343]\",\"ProdDocsReview-CCS\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12322343}},{\"id\":\"customfield_12322344\",\"name\":\"ProdDocsReview-QE\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322344]\",\"ProdDocsReview-QE\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12322344}},{\"id\":\"customfield_12319295\",\"name\":\"Strategic
         Relationship\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319295]\",\"Strategic
         Relationship\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12319295}},{\"id\":\"customfield_12320043\",\"name\":\"Corrective
         Measures-OLD\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320043]\",\"Corrective
         Measures-OLD\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320043}},{\"id\":\"customfield_12320042\",\"name\":\"Escape
-        Impact\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320042]\",\"Escape
-        Impact\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320042}},{\"id\":\"customfield_12322340\",\"name\":\"ProdDocsReview-Dev\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322340]\",\"ProdDocsReview-Dev\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12322340}},{\"id\":\"customfield_12319299\",\"name\":\"SME\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319299]\",\"SME\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12319299}},{\"id\":\"customfield_12319290\",\"name\":\"Training
+        Impact - OLD\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320042]\",\"Escape
+        Impact - OLD\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320042}},{\"id\":\"customfield_12322340\",\"name\":\"ProdDocsReview-Dev\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322340]\",\"ProdDocsReview-Dev\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12322340}},{\"id\":\"customfield_12319299\",\"name\":\"SME\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319299]\",\"SME\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12319299}},{\"id\":\"customfield_12319290\",\"name\":\"Training
         Opportunity\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319290]\",\"Training
         Opportunity\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12319290}},{\"id\":\"customfield_12319292\",\"name\":\"Testing
         Instructions\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319292]\",\"Testing
@@ -101,14 +101,22 @@ interactions:
         Contact\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12315948}},{\"id\":\"customfield_12315949\",\"name\":\"Product\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12315949]\",\"Product\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12315949}},{\"id\":\"votes\",\"name\":\"Votes\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":false,\"clauseNames\":[\"votes\"],\"schema\":{\"type\":\"votes\",\"system\":\"votes\"}},{\"id\":\"worklog\",\"name\":\"Log
         Work\",\"custom\":false,\"orderable\":true,\"navigable\":false,\"searchable\":true,\"clauseNames\":[],\"schema\":{\"type\":\"array\",\"items\":\"worklog\",\"system\":\"worklog\"}},{\"id\":\"customfield_12315940\",\"name\":\"Acceptance
         Criteria\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Acceptance
-        Criteria\",\"cf[12315940]\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12315940}},{\"id\":\"customfield_12315941\",\"name\":\"Backlogs\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Backlogs\",\"cf[12315941]\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12315941}},{\"id\":\"issuetype\",\"name\":\"Issue
-        Type\",\"custom\":false,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"issuetype\",\"type\"],\"schema\":{\"type\":\"issuetype\",\"system\":\"issuetype\"}},{\"id\":\"customfield_12322040\",\"name\":\"Internal
+        Criteria\",\"cf[12315940]\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12315940}},{\"id\":\"customfield_12315941\",\"name\":\"Backlogs\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Backlogs\",\"cf[12315941]\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12315941}},{\"id\":\"customfield_12324344\",\"name\":\"Escape
+        Impact\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324344]\",\"Escape
+        Impact\"],\"schema\":{\"type\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlyselect\",\"customId\":12324344}},{\"id\":\"issuetype\",\"name\":\"Issue
+        Type\",\"custom\":false,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"issuetype\",\"type\"],\"schema\":{\"type\":\"issuetype\",\"system\":\"issuetype\"}},{\"id\":\"customfield_12324343\",\"name\":\"SDLC
+        stage when should've been found\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324343]\",\"SDLC
+        stage when should've been found\"],\"schema\":{\"type\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlyselect\",\"customId\":12324343}},{\"id\":\"customfield_12324345\",\"name\":\"Corrective
+        Measures\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324345]\",\"Corrective
+        Measures\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlymultiselect\",\"customId\":12324345}},{\"id\":\"customfield_12324340\",\"name\":\"Escape
+        Reason\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324340]\",\"Escape
+        Reason\"],\"schema\":{\"type\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlyselect\",\"customId\":12324340}},{\"id\":\"customfield_12322040\",\"name\":\"Internal
         Whiteboard\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322040]\",\"Internal
-        Whiteboard\"],\"schema\":{\"type\":\"string\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlytext\",\"customId\":12322040}},{\"id\":\"customfield_12324340\",\"name\":\"Motivation\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324340]\",\"Motivation\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12324340}},{\"id\":\"customfield_12324342\",\"name\":\"Work
-        Category\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324342]\",\"Work
-        Category\"],\"schema\":{\"type\":\"option-with-child\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect\",\"customId\":12324342}},{\"id\":\"customfield_12324341\",\"name\":\"Operating
-        system\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324341]\",\"Operating
-        system\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12324341}},{\"id\":\"customfield_12310181\",\"name\":\"Engineering
+        Whiteboard\"],\"schema\":{\"type\":\"string\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlytext\",\"customId\":12322040}},{\"id\":\"customfield_12324342\",\"name\":\"SDLC
+        stage when introduced\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324342]\",\"SDLC
+        stage when introduced\"],\"schema\":{\"type\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlyselect\",\"customId\":12324342}},{\"id\":\"customfield_12324341\",\"name\":\"SDLC
+        stage when found\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324341]\",\"SDLC
+        stage when found\"],\"schema\":{\"type\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlyselect\",\"customId\":12324341}},{\"id\":\"customfield_12310181\",\"name\":\"Engineering
         Response\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310181]\",\"Engineering
         Response\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12310181}},{\"id\":\"customfield_12310060\",\"name\":\"Patch
         Visibility\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310060]\",\"Patch
@@ -136,7 +144,7 @@ interactions:
         Failure Flag\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316841]\",\"Sync
         Failure Flag\"],\"schema\":{\"type\":\"array\",\"items\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:labels\",\"customId\":12316841}},{\"id\":\"customfield_12316842\",\"name\":\"Sync
         Failure Message\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316842]\",\"Sync
-        Failure Message\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12316842}},{\"id\":\"customfield_12316843\",\"name\":\"Whiteboard\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316843]\",\"Whiteboard\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12316843}},{\"id\":\"customfield_12316844\",\"name\":\"Subcomponent\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316844]\",\"Subcomponent\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12316844}},{\"id\":\"customfield_12323140\",\"name\":\"Target
+        Failure Message\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12316842}},{\"id\":\"customfield_12316843\",\"name\":\"Whiteboard\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316843]\",\"Whiteboard\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12316843}},{\"id\":\"customfield_12323140\",\"name\":\"Target
         Version - old\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323140]\",\"Target
         Version - old\"],\"schema\":{\"type\":\"array\",\"items\":\"version\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:redhatversionpicker\",\"customId\":12323140}},{\"id\":\"customfield_12310071\",\"name\":\"Patch
         Repository Link\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310071]\",\"Patch
@@ -152,9 +160,13 @@ interactions:
         State\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317940]\",\"Funding
         State\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317940}},{\"id\":\"customfield_12317941\",\"name\":\"Funding
         Strategy\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317941]\",\"Funding
-        Strategy\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317941}},{\"id\":\"customfield_12322143\",\"name\":\"PX
+        Strategy\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317941}},{\"id\":\"customfield_12324443\",\"name\":\"Jira
+        Link\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324443]\",\"Jira
+        Link\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12324443}},{\"id\":\"customfield_12322143\",\"name\":\"PX
         Impact Range\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322143]\",\"PX
-        Impact Range\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlymultiselect\",\"customId\":12322143}},{\"id\":\"customfield_12322144\",\"name\":\"Risk
+        Impact Range\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlymultiselect\",\"customId\":12322143}},{\"id\":\"customfield_12324442\",\"name\":\"Other
+        Savings\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324442]\",\"Other
+        Savings\"],\"schema\":{\"type\":\"string\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlytext\",\"customId\":12324442}},{\"id\":\"customfield_12322144\",\"name\":\"Risk
         Identified Date\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322144]\",\"Risk
         Identified Date\"],\"schema\":{\"type\":\"date\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:datepicker\",\"customId\":12322144}},{\"id\":\"customfield_12322145\",\"name\":\"Additional
         Approvers\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Additional
@@ -162,11 +174,13 @@ interactions:
         Approvals\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322146]\",\"Security
         Approvals\"],\"schema\":{\"type\":\"array\",\"items\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiuserpicker\",\"customId\":12322146}},{\"id\":\"customfield_12322140\",\"name\":\"PX
         Review Complete\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322140]\",\"PX
-        Review Complete\"],\"schema\":{\"type\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlyselect\",\"customId\":12322140}},{\"id\":\"customfield_12324441\",\"name\":\"Commit
-        Hashes\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324441]\",\"Commit
-        Hashes\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12324441}},{\"id\":\"customfield_12322141\",\"name\":\"PX
+        Review Complete\"],\"schema\":{\"type\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlyselect\",\"customId\":12322140}},{\"id\":\"customfield_12324441\",\"name\":\"Annual
+        Cost Savings/Avoidance\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Annual
+        Cost Savings/Avoidance\",\"cf[12324441]\"],\"schema\":{\"type\":\"number\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlynumber\",\"customId\":12324441}},{\"id\":\"customfield_12322141\",\"name\":\"PX
         Technical Impact\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322141]\",\"PX
-        Technical Impact\"],\"schema\":{\"type\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlyselect\",\"customId\":12322141}},{\"id\":\"customfield_12324440\",\"name\":\"Language\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324440]\",\"Language\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12324440}},{\"id\":\"customfield_12322142\",\"name\":\"PX
+        Technical Impact\"],\"schema\":{\"type\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlyselect\",\"customId\":12322141}},{\"id\":\"customfield_12324440\",\"name\":\"Annual
+        Time Savings\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Annual
+        Time Savings\",\"cf[12324440]\"],\"schema\":{\"type\":\"number\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlynumber\",\"customId\":12324440}},{\"id\":\"customfield_12322142\",\"name\":\"PX
         Priority Data\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322142]\",\"PX
         Priority Data\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlymultiselect\",\"customId\":12322142}},{\"id\":\"customfield_12322148\",\"name\":\"Dev
         Target end\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322148]\",\"Dev
@@ -195,9 +209,7 @@ interactions:
         by Bugzilla Bug\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Blocked
         by Bugzilla Bug\",\"cf[12322152]\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:url\",\"customId\":12322152}},{\"id\":\"customfield_12323242\",\"name\":\"Request
         Clones\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323242]\",\"Request
-        Clones\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12323242}},{\"id\":\"customfield_12323241\",\"name\":\"Anomaly
-        Criticality\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Anomaly
-        Criticality\",\"cf[12323241]\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12323241}},{\"id\":\"customfield_12310170\",\"name\":\"Affects
+        Clones\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12323242}},{\"id\":\"customfield_12310170\",\"name\":\"Affects
         Testing\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Affects
         Testing\",\"cf[12310170]\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12310170}},{\"id\":\"environment\",\"name\":\"Environment\",\"custom\":false,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"environment\"],\"schema\":{\"type\":\"string\",\"system\":\"environment\"}},{\"id\":\"customfield_12313443\",\"name\":\"Affected
         Jars\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Affected
@@ -218,9 +230,9 @@ interactions:
         Fix Version(s)\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310173]\",\"Component
         Fix Version(s)\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12310173}},{\"id\":\"customfield_12311140\",\"name\":\"Epic
         Link\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12311140]\",\"Epic
-        Link\"],\"schema\":{\"type\":\"any\",\"custom\":\"com.pyxis.greenhopper.jira:gh-epic-link\",\"customId\":12311140}},{\"id\":\"customfield_12314340\",\"name\":\"cee_cir\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cee_cir\",\"cf[12314340]\"],\"schema\":{\"type\":\"string\",\"custom\":\"org.jboss.labs.jira.plugin.cdw-plugin:cirflag\",\"customId\":12314340}},{\"id\":\"customfield_12324140\",\"name\":\"Target
-        Backport Versions\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324140]\",\"Target
-        Backport Versions\"],\"schema\":{\"type\":\"array\",\"items\":\"version\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiversion\",\"customId\":12324140}},{\"id\":\"customfield_12313140\",\"name\":\"Parent
+        Link\"],\"schema\":{\"type\":\"any\",\"custom\":\"com.pyxis.greenhopper.jira:gh-epic-link\",\"customId\":12311140}},{\"id\":\"customfield_12314340\",\"name\":\"cee_cir\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cee_cir\",\"cf[12314340]\"],\"schema\":{\"type\":\"string\",\"custom\":\"org.jboss.labs.jira.plugin.cdw-plugin:cirflag\",\"customId\":12314340}},{\"id\":\"customfield_12324140\",\"name\":\"Work
+        Category\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324140]\",\"Work
+        Category\"],\"schema\":{\"type\":\"option-with-child\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect\",\"customId\":12324140}},{\"id\":\"customfield_12313140\",\"name\":\"Parent
         Link\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12313140]\",\"Parent
         Link\"],\"schema\":{\"type\":\"any\",\"custom\":\"com.atlassian.jpo:jpo-custom-field-parent\",\"customId\":12313140}},{\"id\":\"customfield_12313145\",\"name\":\"QE
         Estimate\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12313145]\",\"QE
@@ -231,9 +243,9 @@ interactions:
         PT Test Dev (TD)\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12313144]\",\"EAP
         PT Test Dev (TD)\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12313144}},{\"id\":\"customfield_12317740\",\"name\":\"Planning
         Status\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317740]\",\"Planning
-        Status\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317740}},{\"id\":\"status\",\"name\":\"Status\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"status\"],\"schema\":{\"type\":\"status\",\"system\":\"status\"}},{\"id\":\"customfield_12324240\",\"name\":\"Product
-        Documentation Required\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324240]\",\"Product
-        Documentation Required\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12324240}},{\"id\":\"customfield_12310080\",\"name\":\"Tester\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310080]\",\"Tester\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12310080}},{\"id\":\"archiveddate\",\"name\":\"Archived\",\"custom\":false,\"orderable\":true,\"navigable\":false,\"searchable\":true,\"clauseNames\":[],\"schema\":{\"type\":\"datetime\",\"system\":\"archiveddate\"}},{\"id\":\"customfield_12316747\",\"name\":\"Account
+        Status\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317740}},{\"id\":\"status\",\"name\":\"Status\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"status\"],\"schema\":{\"type\":\"status\",\"system\":\"status\"}},{\"id\":\"customfield_12324240\",\"name\":\"SRE
+        Contact\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324240]\",\"SRE
+        Contact\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12324240}},{\"id\":\"customfield_12310080\",\"name\":\"Tester\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310080]\",\"Tester\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12310080}},{\"id\":\"archiveddate\",\"name\":\"Archived\",\"custom\":false,\"orderable\":true,\"navigable\":false,\"searchable\":true,\"clauseNames\":[],\"schema\":{\"type\":\"datetime\",\"system\":\"archiveddate\"}},{\"id\":\"customfield_12316747\",\"name\":\"Account
         Number\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Account
         Number\",\"cf[12316747]\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12316747}},{\"id\":\"customfield_12316749\",\"name\":\"Architect\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Architect\",\"cf[12316749]\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12316749}},{\"id\":\"aggregatetimeestimate\",\"name\":\"\u03A3
         Remaining Estimate\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":false,\"clauseNames\":[],\"schema\":{\"type\":\"number\",\"system\":\"aggregatetimeestimate\"}},{\"id\":\"customfield_12312142\",\"name\":\"Class
@@ -307,7 +319,9 @@ interactions:
         impact description\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317305]\",\"Risk
         impact description\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12317305}},{\"id\":\"customfield_12317306\",\"name\":\"Risk
         mitigation/contingency\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317306]\",\"Risk
-        mitigation/contingency\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12317306}},{\"id\":\"customfield_12316548\",\"name\":\"Actual
+        mitigation/contingency\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12317306}},{\"id\":\"customfield_12324043\",\"name\":\"Operating
+        System_Lab\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324043]\",\"Operating
+        System_Lab\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12324043}},{\"id\":\"customfield_12316548\",\"name\":\"Actual
         Effort\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Actual
         Effort\",\"cf[12316548]\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:float\",\"customId\":12316548}},{\"id\":\"customfield_12316549\",\"name\":\"Chapter\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316549]\",\"Chapter\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:float\",\"customId\":12316549}},{\"id\":\"customfield_12314245\",\"name\":\"EAP
         PT Pre-Checked (PC)\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12314245]\",\"EAP
@@ -323,11 +337,13 @@ interactions:
         Info\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318840]\",\"Marketing
         Info\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12318840}},{\"id\":\"customfield_12316540\",\"name\":\"Reviewer\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316540]\",\"Reviewer\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12316540}},{\"id\":\"customfield_12316541\",\"name\":\"T-Shirt
         Size\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316541]\",\"T-Shirt
-        Size\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316541}},{\"id\":\"customfield_12316542\",\"name\":\"Ready\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316542]\",\"Ready\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316542}},{\"id\":\"customfield_12316543\",\"name\":\"Blocked\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Blocked\",\"cf[12316543]\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316543}},{\"id\":\"customfield_12318841\",\"name\":\"Marketing
+        Size\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316541}},{\"id\":\"customfield_12324041\",\"name\":\"Commit
+        Hashes\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324041]\",\"Commit
+        Hashes\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12324041}},{\"id\":\"customfield_12316542\",\"name\":\"Ready\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316542]\",\"Ready\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316542}},{\"id\":\"customfield_12316543\",\"name\":\"Blocked\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Blocked\",\"cf[12316543]\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316543}},{\"id\":\"customfield_12318841\",\"name\":\"Marketing
         Info Ready\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318841]\",\"Marketing
-        Info Ready\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12318841}},{\"id\":\"customfield_12324040\",\"name\":\"Watchers
-        Groups\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324040]\",\"Watchers
-        Groups\"],\"schema\":{\"type\":\"array\",\"items\":\"group\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multigrouppicker\",\"customId\":12324040}},{\"id\":\"customfield_12316544\",\"name\":\"Blocked
+        Info Ready\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12318841}},{\"id\":\"customfield_12324040\",\"name\":\"Product
+        Documentation Required\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324040]\",\"Product
+        Documentation Required\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12324040}},{\"id\":\"customfield_12316544\",\"name\":\"Blocked
         Reason\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Blocked
         Reason\",\"cf[12316544]\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12316544}},{\"id\":\"customfield_12316545\",\"name\":\"Owner\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316545]\",\"Owner\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12316545}},{\"id\":\"customfield_12316546\",\"name\":\"Evidence
         Score\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316546]\",\"Evidence
@@ -415,7 +431,9 @@ interactions:
         Status\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320845]\",\"Color
         Status\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320845}},{\"id\":\"customfield_12320844\",\"name\":\"Customer
         Impact\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320844]\",\"Customer
-        Impact\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12320844}},{\"id\":\"customfield_12320843\",\"name\":\"UX\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320843]\",\"UX\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12320843}},{\"id\":\"customfield_12320842\",\"name\":\"Documentation
+        Impact\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12320844}},{\"id\":\"customfield_12320843\",\"name\":\"UX
+        or UI Contact\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320843]\",\"UX
+        or UI Contact\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12320843}},{\"id\":\"customfield_12320842\",\"name\":\"Documentation
         Type\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320842]\",\"Documentation
         Type\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12320842}},{\"id\":\"customfield_12317318\",\"name\":\"BZ
         Keywords\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"BZ
@@ -457,7 +475,7 @@ interactions:
         Score\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317329]\",\"PM
         Score\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:float\",\"customId\":12317329}},{\"id\":\"customfield_12320849\",\"name\":\"RICE
         Score\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320849]\",\"RICE
-        Score\"],\"schema\":{\"type\":\"any\",\"custom\":\"com.onresolve.jira.groovy.groovyrunner:scripted-field\",\"customId\":12320849}},{\"id\":\"customfield_12319749\",\"name\":\"Cost
+        Score\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.onresolve.jira.groovy.groovyrunner:scripted-field\",\"customId\":12320849}},{\"id\":\"customfield_12319749\",\"name\":\"Cost
         of Delay\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319749]\",\"Cost
         of Delay\"],\"schema\":{\"type\":\"any\",\"custom\":\"com.onresolve.jira.groovy.groovyrunner:scripted-field\",\"customId\":12319749}},{\"id\":\"customfield_12320848\",\"name\":\"Effort\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320848]\",\"Effort\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:float\",\"customId\":12320848}},{\"id\":\"customfield_12320847\",\"name\":\"Confidence\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320847]\",\"Confidence\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320847}},{\"id\":\"customfield_12320846\",\"name\":\"Reach\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320846]\",\"Reach\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:float\",\"customId\":12320846}},{\"id\":\"customfield_12317321\",\"name\":\"BZ
         Assignee\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"BZ
@@ -511,17 +529,11 @@ interactions:
         Doc Created\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320541]\",\"Design
         Doc Created\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320541}},{\"id\":\"customfield_12320548\",\"name\":\"Committed
         Version\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320548]\",\"Committed
-        Version\"],\"schema\":{\"type\":\"version\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:version\",\"customId\":12320548}},{\"id\":\"customfield_12322840\",\"name\":\"SDLC
-        stage when introduced\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322840]\",\"SDLC
-        stage when introduced\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12322840}},{\"id\":\"customfield_12320547\",\"name\":\"Product
+        Version\"],\"schema\":{\"type\":\"version\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:version\",\"customId\":12320548}},{\"id\":\"customfield_12320547\",\"name\":\"Product
         Lead\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320547]\",\"Product
-        Lead\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12320547}},{\"id\":\"customfield_12322841\",\"name\":\"SDLC
-        stage when found\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322841]\",\"SDLC
-        stage when found\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12322841}},{\"id\":\"customfield_12320546\",\"name\":\"Level
+        Lead\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12320547}},{\"id\":\"customfield_12320546\",\"name\":\"Level
         of Effort\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320546]\",\"Level
-        of Effort\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320546}},{\"id\":\"customfield_12322842\",\"name\":\"SDLC
-        stage when should've been found\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322842]\",\"SDLC
-        stage when should've been found\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12322842}},{\"id\":\"resolutiondate\",\"name\":\"Resolved\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"resolutiondate\",\"resolved\"],\"schema\":{\"type\":\"datetime\",\"system\":\"resolutiondate\"}},{\"id\":\"customfield_12317376\",\"name\":\"Interop
+        of Effort\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320546}},{\"id\":\"resolutiondate\",\"name\":\"Resolved\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"resolutiondate\",\"resolved\"],\"schema\":{\"type\":\"datetime\",\"system\":\"resolutiondate\"}},{\"id\":\"customfield_12317376\",\"name\":\"Interop
         Bug ID\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317376]\",\"Interop
         Bug ID\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12317376}},{\"id\":\"customfield_12317255\",\"name\":\"Watchlist
         Impact\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317255]\",\"Watchlist
@@ -543,11 +555,11 @@ interactions:
         Approval\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317261]\",\"Docs
         Approval\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317261}},{\"id\":\"customfield_12317140\",\"name\":\"Hierarchy
         Progress\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317140]\",\"Hierarchy
-        Progress\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.onresolve.jira.groovy.groovyrunner:scripted-field\",\"customId\":12317140}},{\"id\":\"customfield_12317262\",\"name\":\"CEE
-        Approval\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"CEE
-        Approval\",\"cf[12317262]\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317262}},{\"id\":\"customfield_12317141\",\"name\":\"Hierarchy
+        Progress\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.onresolve.jira.groovy.groovyrunner:scripted-field\",\"customId\":12317140}},{\"id\":\"customfield_12317141\",\"name\":\"Hierarchy
         Progress Bar\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317141]\",\"Hierarchy
-        Progress Bar\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.onresolve.jira.groovy.groovyrunner:scripted-field\",\"customId\":12317141}},{\"id\":\"customfield_12320551\",\"name\":\"Test
+        Progress Bar\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.onresolve.jira.groovy.groovyrunner:scripted-field\",\"customId\":12317141}},{\"id\":\"customfield_12317262\",\"name\":\"PX
+        Approval\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317262]\",\"PX
+        Approval\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317262}},{\"id\":\"customfield_12320551\",\"name\":\"Test
         Failure Category\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320551]\",\"Test
         Failure Category\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320551}},{\"id\":\"customfield_12317263\",\"name\":\"PM
         Approval\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317263]\",\"PM
@@ -567,11 +579,11 @@ interactions:
         Version\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320554]\",\"Orchestrator
         Version\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12320554}},{\"id\":\"customfield_12320553\",\"name\":\"Orchestrator\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320553]\",\"Orchestrator\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320553}},{\"id\":\"customfield_12320552\",\"name\":\"Cluster
         Flavor\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320552]\",\"Cluster
-        Flavor\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12320552}},{\"id\":\"customfield_12321641\",\"name\":\"Closed\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12321641]\",\"Closed\"],\"schema\":{\"type\":\"datetime\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:datetime\",\"customId\":12321641}},{\"id\":\"customfield_12323940\",\"name\":\"Organization
-        ID\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323940]\",\"Organization
-        ID\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12323940}},{\"id\":\"customfield_12320558\",\"name\":\"Release
+        Flavor\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12320552}},{\"id\":\"customfield_12321641\",\"name\":\"Closed\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12321641]\",\"Closed\"],\"schema\":{\"type\":\"datetime\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:datetime\",\"customId\":12321641}},{\"id\":\"customfield_12320558\",\"name\":\"Release
         Delivery\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320558]\",\"Release
-        Delivery\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320558}},{\"id\":\"customfield_12320557\",\"name\":\"Docker
+        Delivery\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320558}},{\"id\":\"customfield_12323940\",\"name\":\"Target
+        Backport Versions\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323940]\",\"Target
+        Backport Versions\"],\"schema\":{\"type\":\"array\",\"items\":\"version\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiversion\",\"customId\":12323940}},{\"id\":\"customfield_12320557\",\"name\":\"Docker
         Version\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320557]\",\"Docker
         Version\"],\"schema\":{\"type\":\"array\",\"items\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:labels\",\"customId\":12320557}},{\"id\":\"customfield_12320549\",\"name\":\"Delivery
         Forecast Version\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320549]\",\"Delivery
@@ -585,16 +597,16 @@ interactions:
         Info From\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12311840]\",\"Need
         Info From\"],\"schema\":{\"type\":\"array\",\"items\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiuserpicker\",\"customId\":12311840}},{\"id\":\"customfield_12316140\",\"name\":\"Organization
         Sponsor\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316140]\",\"Organization
-        Sponsor\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316140}},{\"id\":\"customfield_12317350\",\"name\":\"Sponsor\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317350]\",\"Sponsor\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12317350}},{\"id\":\"customfield_12317351\",\"name\":\"Next
-        Review\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317351]\",\"Next
-        Review\"],\"schema\":{\"type\":\"date\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:datepicker\",\"customId\":12317351}},{\"id\":\"customfield_12316141\",\"name\":\"Product
+        Sponsor\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316140}},{\"id\":\"customfield_12317350\",\"name\":\"Sponsor\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317350]\",\"Sponsor\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12317350}},{\"id\":\"customfield_12316141\",\"name\":\"Product
         Sponsor\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316141]\",\"Product
-        Sponsor\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316141}},{\"id\":\"customfield_12316142\",\"name\":\"Severity\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316142]\",\"Severity\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316142}},{\"id\":\"customfield_12317352\",\"name\":\"Strategy
+        Sponsor\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316141}},{\"id\":\"customfield_12317351\",\"name\":\"Review
+        Deadline\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317351]\",\"Review
+        Deadline\"],\"schema\":{\"type\":\"date\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:datepicker\",\"customId\":12317351}},{\"id\":\"customfield_12316142\",\"name\":\"Severity\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316142]\",\"Severity\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316142}},{\"id\":\"customfield_12317352\",\"name\":\"Strategy
         Approved\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317352]\",\"Strategy
         Approved\"],\"schema\":{\"type\":\"date\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:datepicker\",\"customId\":12317352}},{\"id\":\"timeoriginalestimate\",\"name\":\"Original
         Estimate\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":false,\"clauseNames\":[\"originalEstimate\",\"timeoriginalestimate\"],\"schema\":{\"type\":\"number\",\"system\":\"timeoriginalestimate\"}},{\"id\":\"description\",\"name\":\"Description\",\"custom\":false,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"description\"],\"schema\":{\"type\":\"string\",\"system\":\"description\"}},{\"id\":\"customfield_12322940\",\"name\":\"Corrective
-        Measures\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322940]\",\"Corrective
-        Measures\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12322940}},{\"id\":\"customfield_12318444\",\"name\":\"DEV
+        Measures - OLD\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322940]\",\"Corrective
+        Measures - OLD\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12322940}},{\"id\":\"customfield_12318444\",\"name\":\"DEV
         Story Points\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318444]\",\"DEV
         Story Points\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:float\",\"customId\":12318444}},{\"id\":\"customfield_12318443\",\"name\":\"QE
         Story Points\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318443]\",\"QE
@@ -654,22 +666,22 @@ interactions:
         Description\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317369]\",\"RCA
         Description\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12317369}},{\"id\":\"customfield_12317249\",\"name\":\"Contributing
         Teams\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317249]\",\"Contributing
-        Teams\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12317249}},{\"id\":\"customfield_12311940\",\"name\":\"Rank\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12311940]\",\"Rank\"],\"schema\":{\"type\":\"any\",\"custom\":\"com.pyxis.greenhopper.jira:gh-lexo-rank\",\"customId\":12311940}},{\"id\":\"customfield_12317291\",\"name\":\"Action\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Action\",\"cf[12317291]\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317291}},{\"id\":\"customfield_12318141\",\"name\":\"Dev
+        Teams\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12317249}},{\"id\":\"customfield_12311940\",\"name\":\"Rank\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12311940]\",\"Rank\"],\"schema\":{\"type\":\"any\",\"custom\":\"com.pyxis.greenhopper.jira:gh-lexo-rank\",\"customId\":12311940}},{\"id\":\"customfield_12317291\",\"name\":\"Action\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Action\",\"cf[12317291]\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317291}},{\"id\":\"customfield_12324940\",\"name\":\"CVE
+        Severity\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324940]\",\"CVE
+        Severity\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12324940}},{\"id\":\"customfield_12318141\",\"name\":\"Dev
         Target Milestone\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318141]\",\"Dev
         Target Milestone\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12318141}},{\"id\":\"customfield_12322640\",\"name\":\"Reset
         contact to default\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322640]\",\"Reset
-        contact to default\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12322640}},{\"id\":\"customfield_12318140\",\"name\":\"prev_assignee\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318140]\",\"prev_assignee\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12318140}},{\"id\":\"customfield_12318143\",\"name\":\"PLM
-        Business Lead\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318143]\",\"PLM
-        Business Lead\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12318143}},{\"id\":\"customfield_12318142\",\"name\":\"PLM
+        contact to default\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12322640}},{\"id\":\"customfield_12318140\",\"name\":\"prev_assignee\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318140]\",\"prev_assignee\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12318140}},{\"id\":\"customfield_12318143\",\"name\":\"Biz
+        Program Manager\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Biz
+        Program Manager\",\"cf[12318143]\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12318143}},{\"id\":\"customfield_12318142\",\"name\":\"PLM
         \ Technical Lead\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318142]\",\"PLM
-        \ Technical Lead\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12318142}},{\"id\":\"customfield_12320341\",\"name\":\"PX
-        Scheduling Request - obsolete\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320341]\",\"PX
-        Scheduling Request - obsolete\"],\"schema\":{\"type\":\"array\",\"items\":\"version\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiversion\",\"customId\":12320341}},{\"id\":\"customfield_12317296\",\"name\":\"Planned
+        \ Technical Lead\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12318142}},{\"id\":\"customfield_12317296\",\"name\":\"Planned
         Start\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317296]\",\"Planned
         Start\"],\"schema\":{\"type\":\"date\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:datepicker\",\"customId\":12317296}},{\"id\":\"customfield_12318145\",\"name\":\"Product
         Page link\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318145]\",\"Product
-        Page link\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:url\",\"customId\":12318145}},{\"id\":\"customfield_12318144\",\"name\":\"PLM
-        Program Manager\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318144]\",\"PLM
+        Page link\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:url\",\"customId\":12318145}},{\"id\":\"customfield_12318144\",\"name\":\"Eng
+        Program Manager\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318144]\",\"Eng
         Program Manager\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12318144}},{\"id\":\"customfield_12317298\",\"name\":\"Solution\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317298]\",\"Solution\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317298}},{\"id\":\"fixVersions\",\"name\":\"Fix
         Version/s\",\"custom\":false,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"fixVersion\"],\"schema\":{\"type\":\"array\",\"items\":\"version\",\"system\":\"fixVersions\"}},{\"id\":\"customfield_12317290\",\"name\":\"Reminder
         Date\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317290]\",\"Reminder
@@ -693,7 +705,9 @@ interactions:
         PT Cross Product Agreement (CPA)\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12321441]\",\"EAP
         PT Cross Product Agreement (CPA)\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12321441}},{\"id\":\"customfield_12318152\",\"name\":\"MVP
         Status\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318152]\",\"MVP
-        Status\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12318152}},{\"id\":\"customfield_12323740\",\"name\":\"Software\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323740]\",\"Software\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12323740}},{\"id\":\"customfield_12319242\",\"name\":\"Design
+        Status\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12318152}},{\"id\":\"customfield_12323741\",\"name\":\"Organization
+        ID\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323741]\",\"Organization
+        ID\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12323741}},{\"id\":\"customfield_12323740\",\"name\":\"Software\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323740]\",\"Software\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12323740}},{\"id\":\"customfield_12319242\",\"name\":\"Design
         Review Sign-off\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319242]\",\"Design
         Review Sign-off\"],\"schema\":{\"type\":\"array\",\"items\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiuserpicker\",\"customId\":12319242}},{\"id\":\"customfield_12318156\",\"name\":\"Risk
         Impact\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318156]\",\"Risk
@@ -736,7 +750,9 @@ interactions:
         Testing\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12321540]\",\"Preliminary
         Testing\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12321540}},{\"id\":\"customfield_12319340\",\"name\":\"UXD
         Design[Test]\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319340]\",\"UXD
-        Design[Test]\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12319340}},{\"id\":\"customfield_12317283\",\"name\":\"Baseline
+        Design[Test]\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12319340}},{\"id\":\"customfield_12323840\",\"name\":\"Watchers
+        Groups\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323840]\",\"Watchers
+        Groups\"],\"schema\":{\"type\":\"array\",\"items\":\"group\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multigrouppicker\",\"customId\":12323840}},{\"id\":\"customfield_12317283\",\"name\":\"Baseline
         End\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Baseline
         End\",\"cf[12317283]\"],\"schema\":{\"type\":\"datetime\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:datetime\",\"customId\":12317283}},{\"id\":\"customfield_12317041\",\"name\":\"EAP
         PT Feature Implementation (FI)\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317041]\",\"EAP
@@ -763,17 +779,27 @@ interactions:
         Fixed Version\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322440]\",\"Partner
         Fixed Version\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12322440}},{\"id\":\"customfield_12319272\",\"name\":\"Scoping
         Status\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319272]\",\"Scoping
-        Status\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12319272}},{\"id\":\"customfield_12322441\",\"name\":\"Partner
-        Affects Version\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322441]\",\"Partner
-        Affects Version\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12322441}},{\"id\":\"customfield_12319271\",\"name\":\"QE_AUTO_Coverage\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319271]\",\"QE_AUTO_Coverage\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12319271}},{\"id\":\"customfield_12322442\",\"name\":\"Customer
-        Affects Version\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322442]\",\"Customer
-        Affects Version\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12322442}},{\"id\":\"customfield_12319274\",\"name\":\"Function\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319274]\",\"Function\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12319274}},{\"id\":\"customfield_12319273\",\"name\":\"Stakeholders\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319273]\",\"Stakeholders\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12319273}},{\"id\":\"customfield_12319275\",\"name\":\"Workstream\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319275]\",\"Workstream\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12319275}},{\"id\":\"customfield_12319278\",\"name\":\"Version\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319278]\",\"Version\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12319278}},{\"id\":\"customfield_12319270\",\"name\":\"Security
+        Status\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12319272}},{\"id\":\"customfield_12319271\",\"name\":\"QE_AUTO_Coverage\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319271]\",\"QE_AUTO_Coverage\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12319271}},{\"id\":\"customfield_12319274\",\"name\":\"Function\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319274]\",\"Function\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12319274}},{\"id\":\"customfield_12319273\",\"name\":\"Stakeholders\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319273]\",\"Stakeholders\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12319273}},{\"id\":\"customfield_12319275\",\"name\":\"Workstream\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319275]\",\"Workstream\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12319275}},{\"id\":\"customfield_12319278\",\"name\":\"Version\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319278]\",\"Version\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12319278}},{\"id\":\"customfield_12324748\",\"name\":\"CVSS
+        Score\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324748]\",\"CVSS
+        Score\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12324748}},{\"id\":\"customfield_12324747\",\"name\":\"CWE
+        ID\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324747]\",\"CWE
+        ID\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12324747}},{\"id\":\"customfield_12324749\",\"name\":\"CVE
+        ID\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324749]\",\"CVE
+        ID\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12324749}},{\"id\":\"customfield_12319270\",\"name\":\"Security
         Documentation Type\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319270]\",\"Security
-        Documentation Type\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12319270}},{\"id\":\"customfield_12310220\",\"name\":\"Git
+        Documentation Type\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12319270}},{\"id\":\"customfield_12324746\",\"name\":\"Source\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324746]\",\"Source\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12324746}},{\"id\":\"customfield_12310220\",\"name\":\"Git
         Pull Request\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310220]\",\"Git
-        Pull Request\"],\"schema\":{\"type\":\"any\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:multiurl\",\"customId\":12310220}},{\"id\":\"customfield_12319279\",\"name\":\"ID\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319279]\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12319279}},{\"id\":\"customfield_12319040\",\"name\":\"Products\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319040]\",\"Products\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12319040}},{\"id\":\"thumbnail\",\"name\":\"Images\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":false,\"clauseNames\":[]},{\"id\":\"customfield_12319285\",\"name\":\"PX
+        Pull Request\"],\"schema\":{\"type\":\"any\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:multiurl\",\"customId\":12310220}},{\"id\":\"customfield_12319279\",\"name\":\"ID\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319279]\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12319279}},{\"id\":\"customfield_12324751\",\"name\":\"Upstream
+        Affected Component\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324751]\",\"Upstream
+        Affected Component\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12324751}},{\"id\":\"customfield_12324750\",\"name\":\"Embargo
+        Status\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324750]\",\"Embargo
+        Status\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12324750}},{\"id\":\"customfield_12319040\",\"name\":\"Products\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319040]\",\"Products\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12319040}},{\"id\":\"thumbnail\",\"name\":\"Images\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":false,\"clauseNames\":[]},{\"id\":\"customfield_12319285\",\"name\":\"PX
         Technical Impact Notes\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319285]\",\"PX
-        Technical Impact Notes\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12319285}},{\"id\":\"customfield_12319287\",\"name\":\"Docs
+        Technical Impact Notes\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12319285}},{\"id\":\"customfield_12324753\",\"name\":\"Special
+        Handling\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324753]\",\"Special
+        Handling\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12324753}},{\"id\":\"customfield_12324752\",\"name\":\"Downstream
+        Component Name\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324752]\",\"Downstream
+        Component Name\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12324752}},{\"id\":\"customfield_12319287\",\"name\":\"Docs
         Impact Notes\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319287]\",\"Docs
         Impact Notes\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12319287}},{\"id\":\"customfield_12319045\",\"name\":\"User
         Domain\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319045]\",\"User
@@ -783,7 +809,11 @@ interactions:
         Impact Notes\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319289]\",\"Marketing
         Impact Notes\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12319289}},{\"id\":\"customfield_12321240\",\"name\":\"GtmhubTaskParentType\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12321240]\",\"GtmhubTaskParentType\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12321240}},{\"id\":\"customfield_12319288\",\"name\":\"Marketing
         Impact\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319288]\",\"Marketing
-        Impact\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12319288}},{\"id\":\"customfield_12310110\",\"name\":\"Approvals\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Approvals\",\"cf[12310110]\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12310110}},{\"id\":\"customfield_12310230\",\"name\":\"Docs
+        Impact\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12319288}},{\"id\":\"customfield_12324755\",\"name\":\"Impact
+        Rating\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324755]\",\"Impact
+        Rating\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12324755}},{\"id\":\"customfield_12324754\",\"name\":\"Errata
+        ID\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324754]\",\"Errata
+        ID\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12324754}},{\"id\":\"customfield_12310110\",\"name\":\"Approvals\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Approvals\",\"cf[12310110]\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12310110}},{\"id\":\"customfield_12310230\",\"name\":\"Docs
         QE Status\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310230]\",\"Docs
         QE Status\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12310230}},{\"id\":\"customfield_12313740\",\"name\":\"Migration
         Text\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12313740]\",\"Migration
@@ -795,7 +825,9 @@ interactions:
         Milestone\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319252]\",\"Release
         Milestone\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12319252}},{\"id\":\"customfield_12319251\",\"name\":\"QE
         Properly Involved\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319251]\",\"QE
-        Properly Involved\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12319251}},{\"id\":\"customfield_12318041\",\"name\":\"affectsRHOAMVersion\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"affectsRHOAMVersion\",\"cf[12318041]\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12318041}},{\"id\":\"customfield_12310440\",\"name\":\"Bugzilla
+        Properly Involved\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12319251}},{\"id\":\"customfield_12324840\",\"name\":\"Strategic
+        Alignment\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324840]\",\"Strategic
+        Alignment\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12324840}},{\"id\":\"customfield_12318041\",\"name\":\"affectsRHOAMVersion\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"affectsRHOAMVersion\",\"cf[12318041]\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12318041}},{\"id\":\"customfield_12310440\",\"name\":\"Bugzilla
         References\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Bugzilla
         References\",\"cf[12310440]\"],\"schema\":{\"type\":\"any\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:multiurl\",\"customId\":12310440}},{\"id\":\"security\",\"name\":\"Security
         Level\",\"custom\":false,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"level\"],\"schema\":{\"type\":\"securitylevel\",\"system\":\"security\"}},{\"id\":\"attachment\",\"name\":\"Attachment\",\"custom\":false,\"orderable\":true,\"navigable\":false,\"searchable\":true,\"clauseNames\":[\"attachments\"],\"schema\":{\"type\":\"array\",\"items\":\"attachment\",\"system\":\"attachment\"}},{\"id\":\"customfield_12323640\",\"name\":\"Delivery
@@ -818,9 +850,7 @@ interactions:
         Title\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323643]\",\"Section
         Title\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12323643}},{\"id\":\"customfield_12323646\",\"name\":\"URL\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323646]\",\"URL\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:url\",\"customId\":12323646}},{\"id\":\"customfield_12323645\",\"name\":\"Reporter
         RHN ID\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12323645]\",\"Reporter
-        RHN ID\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12323645}},{\"id\":\"customfield_12313841\",\"name\":\"Notes\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12313841]\",\"Notes\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:url\",\"customId\":12313841}},{\"id\":\"customfield_12313840\",\"name\":\"UXD
-        Engagement Level\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12313840]\",\"UXD
-        Engagement Level\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12313840}},{\"id\":\"customfield_12319269\",\"name\":\"sprint_count\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319269]\",\"sprint_count\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.onresolve.jira.groovy.groovyrunner:scripted-field\",\"customId\":12319269}},{\"id\":\"customfield_12319268\",\"name\":\"QE
+        RHN ID\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12323645}},{\"id\":\"customfield_12313841\",\"name\":\"Notes\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12313841]\",\"Notes\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:url\",\"customId\":12313841}},{\"id\":\"customfield_12319269\",\"name\":\"sprint_count\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319269]\",\"sprint_count\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.onresolve.jira.groovy.groovyrunner:scripted-field\",\"customId\":12319269}},{\"id\":\"customfield_12319268\",\"name\":\"QE
         portion\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319268]\",\"QE
         portion\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:float\",\"customId\":12319268}},{\"id\":\"customfield_12310213\",\"name\":\"Release
         Note Status\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310213]\",\"Release
@@ -833,9 +863,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Tue, 09 Jan 2024 12:18:15 GMT
+      - Mon, 09 Sep 2024 11:01:52 GMT
       Expires:
-      - Tue, 09 Jan 2024 12:18:15 GMT
+      - Mon, 09 Sep 2024 11:01:52 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -844,35 +874,35 @@ interactions:
       - User-Agent
       - Accept-Encoding
       X-RateLimit-Limit:
-      - '-1'
+      - '5'
       X-RateLimit-Remaining:
-      - '9223372036854775807'
+      - '4'
       content-length:
-      - '153750'
+      - '157339'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-prod-2
       x-arequestid:
-      - 738x178171x1
+      - 661x15423842x19
       x-asessionid:
-      - 1c21h23
+      - 12dzito
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
       x-ratelimit-fillrate:
-      - '-1'
+      - '5'
       x-ratelimit-interval-seconds:
       - '1'
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704802695.2f18cf24
+      - 0.1d92645f.1725879711.51cb2b4
       x-rh-edge-request-id:
-      - 2f18cf24
+      - 51cb2b4
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -894,505 +924,25 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.31.0
+      - python-requests/2.32.0
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/search?jql=labels%3D%22SecurityTracking%22+AND+type%3D%22Bug%22+AND+updated%3E%3D%222014-06-16+00%3A00%22+AND+updated%3C%3D%222014-09-19+00%3A01%22&startAt=0&validateQuery=True
+    uri: https://example.com/rest/api/2/search?fields=issuekey&jql=labels%3D%22SecurityTracking%22+AND+type%3D%22Bug%22+AND+updated%3E%3D%222014-06-16+00%3A00%22+AND+updated%3C%3D%222014-09-19+00%3A01%22&startAt=0&validateQuery=True
   response:
     body:
       string: '{"expand": "schema,names", "startAt": 0, "maxResults": 50, "total":
         5, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
         "id": "12548499", "self": "https://example.com/rest/api/2/issue/12548499",
-        "key": "ENTMQ-755", "fields": {"customfield_12322244": null, "fixVersions":
-        [{"self": "https://example.com/rest/api/2/version/12323365", "id": "12323365",
-        "description": "7.1 release", "name": "7.1.0.fuse-046", "archived": false,
-        "released": true, "releaseDate": "2012-12-21"}], "resolution": {"self": "https://example.com/rest/api/2/resolution/1",
-        "id": "1", "description": "This issue is closed, and complete.", "name": "Done"},
-        "customfield_12312840": null, "customfield_12312442": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@2953e5eb[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3f9af5c4[overall=PullRequestOverallBean{stateCount=0,
-        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1bacdfcf[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@73702dab[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@197b40a6[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@459cf8f[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@79f63a6c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@b194d8c[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@48244239[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@2cbd905[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4aa6b66a[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@b12f79f[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
-        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
-        "customfield_12312848": null, "customfield_12315950": null, "customfield_12310940":
-        null, "lastViewed": "2024-01-09T12:06:34.923+0000", "customfield_12313140":
-        null, "priority": {"self": "https://example.com/rest/api/2/priority/3", "iconUrl":
-        "https://example.com/images/icons/priorities/major.svg", "name": "Major",
-        "id": "3"}, "labels": ["CVE-2014-3120", "Security", "SecurityTracking", "component:elasticsearch"],
-        "customfield_12311640": null, "customfield_12311244": null, "customfield_12311245":
-        null, "customfield_12311641": null, "customfield_12311242": null, "aggregatetimeoriginalestimate":
-        null, "timeestimate": null, "versions": [{"self": "https://example.com/rest/api/2/version/12323365",
-        "id": "12323365", "description": "7.1 release", "name": "7.1.0.fuse-046",
-        "archived": false, "released": true, "releaseDate": "2012-12-21"}], "customfield_12311241":
-        null, "customfield_12310031": null, "issuelinks": [], "assignee": {"self":
-        "https://example.com/rest/api/2/user?username=acunning%40redhat.com", "name":
-        "acunning@redhat.com", "key": "aileenc", "emailAddress": "acunning@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=48",
-        "24x24": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=24",
-        "16x16": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=16",
-        "32x32": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=32"},
-        "displayName": "Aileen Cunningham", "active": true, "timeZone": "GMT"}, "customfield_12313942":
-        null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/6",
-        "description": "The issue is closed. See the resolution for context regarding
-        why (for example Done, Abandoned, Duplicate, etc)", "iconUrl": "https://example.com/images/icons/statuses/closed.png",
-        "name": "Closed", "id": "6", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/3",
-        "id": 3, "key": "done", "colorName": "success", "name": "Done"}}, "components":
-        [], "customfield_12310080": null, "customfield_12314040": null, "customfield_12320844":
-        null, "customfield_12320842": null, "customfield_12310120": null, "customfield_12310243":
-        null, "aggregatetimeestimate": null, "customfield_12317313": null, "creator":
-        {"self": "https://example.com/rest/api/2/user?username=chess.hazlett", "name":
-        "chess.hazlett", "key": "chazlett", "emailAddress": "chazlett@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=48",
-        "24x24": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=24",
-        "16x16": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=16",
-        "32x32": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=32"},
-        "displayName": "Chess Hazlett", "active": false, "timeZone": "GMT"}, "subtasks":
-        [], "customfield_12321140": null, "customfield_12310091": null, "customfield_12310090":
-        null, "reporter": {"self": "https://example.com/rest/api/2/user?username=chess.hazlett",
-        "name": "chess.hazlett", "key": "chazlett", "emailAddress": "chazlett@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=48",
-        "24x24": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=24",
-        "16x16": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=16",
-        "32x32": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=32"},
-        "displayName": "Chess Hazlett", "active": false, "timeZone": "GMT"}, "customfield_12320850":
-        null, "customfield_12310092": null, "aggregateprogress": {"progress": 0, "total":
-        0}, "customfield_12310010": null, "customfield_12315542": null, "customfield_12313240":
-        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
-        "votes": {"self": "https://example.com/rest/api/2/issue/ENTMQ-755/votes",
-        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "issuetype":
-        {"self": "https://example.com/rest/api/2/issuetype/1", "id": "1", "description":
-        "A problem which impairs or prevents the functions of the product.", "iconUrl":
-        "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
-        "name": "Bug", "subtask": false, "avatarId": 13263}, "customfield_12318341":
-        null, "timespent": null, "customfield_12320940": null, "project": {"self":
-        "https://example.com/rest/api/2/project/12314575", "id": "12314575", "key":
-        "ENTMQ", "name": "JBoss A-MQ", "projectTypeKey": "software", "avatarUrls":
-        {"48x48": "https://example.com/secure/projectavatar?pid=12314575&avatarId=10011",
-        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12314575&avatarId=10011",
-        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12314575&avatarId=10011",
-        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12314575&avatarId=10011"},
-        "projectCategory": {"self": "https://example.com/rest/api/2/projectCategory/10130",
-        "id": "10130", "description": "Active projects migrated from Fusesource issue
-        tracker", "name": "Fuse"}}, "customfield_12320944": null, "aggregatetimespent":
-        null, "customfield_12310220": null, "customfield_12310183": null, "resolutiondate":
-        "2014-09-10T01:43:37.000+0000", "workratio": -1, "customfield_12317379": null,
-        "customfield_12316840": null, "customfield_12316841": null, "customfield_12319040":
-        null, "watches": {"self": "https://example.com/rest/api/2/issue/ENTMQ-755/watchers",
-        "watchCount": 3, "isWatching": false}, "created": "2014-08-04T15:07:19.000+0000",
-        "customfield_12321240": null, "customfield_12320947": null, "customfield_12320946":
-        null, "updated": "2014-09-10T01:43:37.000+0000", "customfield_12311840": null,
-        "customfield_12316142": null, "timeoriginalestimate": null, "description":
-        "https://example.com/show_bug.cgi?id=1124252", "customfield_12310440": null,
-        "security": {"self": "https://example.com/rest/api/2/securitylevel/11697",
-        "id": "11697", "description": "Restricts access to Red Hat employees. This
-        information should not be shared with customers or external entities.", "name":
-        "Red Hat Employee"}, "customfield_12312340": null, "customfield_12316542":
-        null, "customfield_12316543": null, "customfield_12316544": null, "customfield_12310840":
-        "9223372036854775807", "summary": "CVE-2014-3120 elasticsearch: remote code
-        execution flaw via dynamic scripting [amq-7.1]", "customfield_12323640": null,
-        "customfield_12323642": null, "customfield_12323641": null, "customfield_12323647":
-        null, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
-        null, "customfield_12323645": null, "customfield_12313441": "", "customfield_12315740":
-        null, "customfield_12313440": "0.0", "duedate": null, "customfield_12311140":
-        null, "customfield_12310213": null, "customfield_12311940": "1|hz4zfj:"}},
-        {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "key": "ENTMQ-755"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
         "id": "12548498", "self": "https://example.com/rest/api/2/issue/12548498",
-        "key": "ENTMQ-754", "fields": {"customfield_12322244": null, "fixVersions":
-        [{"self": "https://example.com/rest/api/2/version/12323367", "id": "12323367",
-        "description": "maintenance release (sp1)", "name": "JBoss A-MQ 6.1", "archived":
-        false, "released": false}], "resolution": {"self": "https://example.com/rest/api/2/resolution/1",
-        "id": "1", "description": "This issue is closed, and complete.", "name": "Done"},
-        "customfield_12312840": null, "customfield_12312442": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@1da4871f[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@22644dab[overall=PullRequestOverallBean{stateCount=0,
-        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@32a63eee[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@322f3404[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@276994b4[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@3218c88b[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@31cac168[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@7a0e5c41[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1129ab80[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@650175be[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2a729f7[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@a4381b6[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
-        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
-        "customfield_12312848": null, "customfield_12315950": null, "customfield_12310940":
-        null, "lastViewed": null, "customfield_12313140": null, "priority": {"self":
-        "https://example.com/rest/api/2/priority/3", "iconUrl": "https://example.com/images/icons/priorities/major.svg",
-        "name": "Major", "id": "3"}, "labels": ["CVE-2014-3120", "Security", "SecurityTracking",
-        "component:elasticsearch"], "customfield_12311640": null, "customfield_12311244":
-        null, "customfield_12311245": null, "customfield_12311641": null, "customfield_12311242":
-        null, "aggregatetimeoriginalestimate": null, "timeestimate": null, "versions":
-        [{"self": "https://example.com/rest/api/2/version/12323367", "id": "12323367",
-        "description": "maintenance release (sp1)", "name": "JBoss A-MQ 6.1", "archived":
-        false, "released": false}], "customfield_12311241": null, "customfield_12310031":
-        null, "issuelinks": [], "assignee": {"self": "https://example.com/rest/api/2/user?username=acunning%40redhat.com",
-        "name": "acunning@redhat.com", "key": "aileenc", "emailAddress": "acunning@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=48",
-        "24x24": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=24",
-        "16x16": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=16",
-        "32x32": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=32"},
-        "displayName": "Aileen Cunningham", "active": true, "timeZone": "GMT"}, "customfield_12313942":
-        null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/6",
-        "description": "The issue is closed. See the resolution for context regarding
-        why (for example Done, Abandoned, Duplicate, etc)", "iconUrl": "https://example.com/images/icons/statuses/closed.png",
-        "name": "Closed", "id": "6", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/3",
-        "id": 3, "key": "done", "colorName": "success", "name": "Done"}}, "components":
-        [], "customfield_12310080": null, "customfield_12314040": null, "customfield_12320844":
-        null, "customfield_12320842": null, "customfield_12310120": null, "customfield_12310243":
-        null, "aggregatetimeestimate": null, "customfield_12317313": null, "creator":
-        {"self": "https://example.com/rest/api/2/user?username=chess.hazlett", "name":
-        "chess.hazlett", "key": "chazlett", "emailAddress": "chazlett@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=48",
-        "24x24": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=24",
-        "16x16": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=16",
-        "32x32": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=32"},
-        "displayName": "Chess Hazlett", "active": false, "timeZone": "GMT"}, "subtasks":
-        [], "customfield_12321140": null, "customfield_12310091": null, "customfield_12310090":
-        null, "reporter": {"self": "https://example.com/rest/api/2/user?username=chess.hazlett",
-        "name": "chess.hazlett", "key": "chazlett", "emailAddress": "chazlett@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=48",
-        "24x24": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=24",
-        "16x16": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=16",
-        "32x32": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=32"},
-        "displayName": "Chess Hazlett", "active": false, "timeZone": "GMT"}, "customfield_12320850":
-        null, "customfield_12310092": null, "aggregateprogress": {"progress": 0, "total":
-        0}, "customfield_12310010": null, "customfield_12315542": null, "customfield_12313240":
-        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
-        "votes": {"self": "https://example.com/rest/api/2/issue/ENTMQ-754/votes",
-        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "issuetype":
-        {"self": "https://example.com/rest/api/2/issuetype/1", "id": "1", "description":
-        "A problem which impairs or prevents the functions of the product.", "iconUrl":
-        "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
-        "name": "Bug", "subtask": false, "avatarId": 13263}, "customfield_12318341":
-        null, "timespent": null, "customfield_12320940": null, "project": {"self":
-        "https://example.com/rest/api/2/project/12314575", "id": "12314575", "key":
-        "ENTMQ", "name": "JBoss A-MQ", "projectTypeKey": "software", "avatarUrls":
-        {"48x48": "https://example.com/secure/projectavatar?pid=12314575&avatarId=10011",
-        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12314575&avatarId=10011",
-        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12314575&avatarId=10011",
-        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12314575&avatarId=10011"},
-        "projectCategory": {"self": "https://example.com/rest/api/2/projectCategory/10130",
-        "id": "10130", "description": "Active projects migrated from Fusesource issue
-        tracker", "name": "Fuse"}}, "customfield_12320944": null, "aggregatetimespent":
-        null, "customfield_12310220": null, "customfield_12310183": null, "resolutiondate":
-        "2014-09-10T01:33:29.000+0000", "workratio": -1, "customfield_12317379": null,
-        "customfield_12316840": null, "customfield_12316841": null, "customfield_12319040":
-        null, "watches": {"self": "https://example.com/rest/api/2/issue/ENTMQ-754/watchers",
-        "watchCount": 3, "isWatching": false}, "created": "2014-08-04T15:03:51.000+0000",
-        "customfield_12321240": null, "customfield_12320947": null, "customfield_12320946":
-        null, "updated": "2014-09-10T01:33:29.000+0000", "customfield_12311840": null,
-        "customfield_12316142": null, "timeoriginalestimate": null, "description":
-        "https://example.com/show_bug.cgi?id=1124252\n", "customfield_12310440": null,
-        "security": {"self": "https://example.com/rest/api/2/securitylevel/11697",
-        "id": "11697", "description": "Restricts access to Red Hat employees. This
-        information should not be shared with customers or external entities.", "name":
-        "Red Hat Employee"}, "customfield_12312340": null, "customfield_12316542":
-        null, "customfield_12316543": null, "customfield_12316544": null, "customfield_12310840":
-        "9223372036854775807", "summary": "CVE-2014-3120 elasticsearch: remote code
-        execution flaw via dynamic scripting [amq-6.1]", "customfield_12323640": null,
-        "customfield_12323642": null, "customfield_12323641": null, "customfield_12323647":
-        null, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
-        null, "customfield_12323645": null, "customfield_12313441": "", "customfield_12315740":
-        null, "customfield_12313440": "0.0", "duedate": null, "customfield_12311140":
-        null, "customfield_12310213": null, "customfield_12311940": "1|hz4zfb:"}},
-        {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "key": "ENTMQ-754"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
         "id": "12545178", "self": "https://example.com/rest/api/2/issue/12545178",
-        "key": "ENTMQ-701", "fields": {"customfield_12322244": null, "fixVersions":
-        [{"self": "https://example.com/rest/api/2/version/12323365", "id": "12323365",
-        "description": "7.1 release", "name": "7.1.0.fuse-046", "archived": false,
-        "released": true, "releaseDate": "2012-12-21"}], "resolution": {"self": "https://example.com/rest/api/2/resolution/10700",
-        "id": "10700", "description": "This issue was closed because it duplicates
-        another issue in the backlog.", "name": "Duplicate"}, "customfield_12312840":
-        null, "customfield_12312442": null, "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@18dc2f5[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@33615937[overall=PullRequestOverallBean{stateCount=0,
-        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@58168d67[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@6107cfb3[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2b1e8d28[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@7896894[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6b18a0b7[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@34bd9030[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6b952c42[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@2714246c[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@9272521[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@51c30825[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
-        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
-        "customfield_12312848": null, "customfield_12315950": null, "customfield_12310940":
-        null, "lastViewed": null, "customfield_12313140": null, "priority": {"self":
-        "https://example.com/rest/api/2/priority/3", "iconUrl": "https://example.com/images/icons/priorities/major.svg",
-        "name": "Major", "id": "3"}, "labels": ["CVE-2014-0193", "Security", "SecurityTracking",
-        "component:netty"], "customfield_12311640": null, "customfield_12311244":
-        null, "customfield_12311245": null, "customfield_12311641": null, "customfield_12311242":
-        null, "aggregatetimeoriginalestimate": null, "timeestimate": null, "versions":
-        [{"self": "https://example.com/rest/api/2/version/12323365", "id": "12323365",
-        "description": "7.1 release", "name": "7.1.0.fuse-046", "archived": false,
-        "released": true, "releaseDate": "2012-12-21"}], "customfield_12311241": null,
-        "customfield_12310031": null, "issuelinks": [], "assignee": {"self": "https://example.com/rest/api/2/user?username=acunning%40redhat.com",
-        "name": "acunning@redhat.com", "key": "aileenc", "emailAddress": "acunning@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=48",
-        "24x24": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=24",
-        "16x16": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=16",
-        "32x32": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=32"},
-        "displayName": "Aileen Cunningham", "active": true, "timeZone": "GMT"}, "customfield_12313942":
-        null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/6",
-        "description": "The issue is closed. See the resolution for context regarding
-        why (for example Done, Abandoned, Duplicate, etc)", "iconUrl": "https://example.com/images/icons/statuses/closed.png",
-        "name": "Closed", "id": "6", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/3",
-        "id": 3, "key": "done", "colorName": "success", "name": "Done"}}, "components":
-        [], "customfield_12310080": null, "customfield_12314040": null, "customfield_12320844":
-        null, "customfield_12320842": null, "customfield_12310120": null, "customfield_12310243":
-        null, "aggregatetimeestimate": null, "customfield_12317313": null, "creator":
-        {"self": "https://example.com/rest/api/2/user?username=chess.hazlett", "name":
-        "chess.hazlett", "key": "chazlett", "emailAddress": "chazlett@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=48",
-        "24x24": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=24",
-        "16x16": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=16",
-        "32x32": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=32"},
-        "displayName": "Chess Hazlett", "active": false, "timeZone": "GMT"}, "subtasks":
-        [], "customfield_12321140": null, "customfield_12310091": null, "customfield_12310090":
-        null, "reporter": {"self": "https://example.com/rest/api/2/user?username=chess.hazlett",
-        "name": "chess.hazlett", "key": "chazlett", "emailAddress": "chazlett@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=48",
-        "24x24": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=24",
-        "16x16": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=16",
-        "32x32": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=32"},
-        "displayName": "Chess Hazlett", "active": false, "timeZone": "GMT"}, "customfield_12320850":
-        null, "customfield_12310092": null, "aggregateprogress": {"progress": 0, "total":
-        0}, "customfield_12310010": null, "customfield_12315542": null, "customfield_12313240":
-        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
-        "votes": {"self": "https://example.com/rest/api/2/issue/ENTMQ-701/votes",
-        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "issuetype":
-        {"self": "https://example.com/rest/api/2/issuetype/1", "id": "1", "description":
-        "A problem which impairs or prevents the functions of the product.", "iconUrl":
-        "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
-        "name": "Bug", "subtask": false, "avatarId": 13263}, "customfield_12318341":
-        null, "timespent": null, "customfield_12320940": null, "project": {"self":
-        "https://example.com/rest/api/2/project/12314575", "id": "12314575", "key":
-        "ENTMQ", "name": "JBoss A-MQ", "projectTypeKey": "software", "avatarUrls":
-        {"48x48": "https://example.com/secure/projectavatar?pid=12314575&avatarId=10011",
-        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12314575&avatarId=10011",
-        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12314575&avatarId=10011",
-        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12314575&avatarId=10011"},
-        "projectCategory": {"self": "https://example.com/rest/api/2/projectCategory/10130",
-        "id": "10130", "description": "Active projects migrated from Fusesource issue
-        tracker", "name": "Fuse"}}, "customfield_12320944": null, "aggregatetimespent":
-        null, "customfield_12310220": null, "customfield_12310183": null, "resolutiondate":
-        "2014-06-30T22:34:15.000+0000", "workratio": -1, "customfield_12317379": null,
-        "customfield_12316840": null, "customfield_12316841": null, "customfield_12319040":
-        null, "watches": {"self": "https://example.com/rest/api/2/issue/ENTMQ-701/watchers",
-        "watchCount": 1, "isWatching": false}, "created": "2014-06-30T22:29:04.000+0000",
-        "customfield_12321240": null, "customfield_12320947": null, "customfield_12320946":
-        null, "updated": "2014-06-30T22:34:15.000+0000", "customfield_12311840": null,
-        "customfield_12316142": null, "timeoriginalestimate": null, "description":
-        "https://example.com/show_bug.cgi?id=1092783\n\nfix versions:\n4.0.19.Final\n3.9.1.Final\n3.8.2.Fianl\n3.7.1.Final\n3.6.9.Final",
-        "customfield_12310440": null, "security": {"self": "https://example.com/rest/api/2/securitylevel/11697",
-        "id": "11697", "description": "Restricts access to Red Hat employees. This
-        information should not be shared with customers or external entities.", "name":
-        "Red Hat Employee"}, "customfield_12312340": null, "customfield_12316542":
-        null, "customfield_12316543": null, "customfield_12316544": null, "customfield_12310840":
-        "9223372036854775807", "summary": "CVE-2014-0193 netty: DoS via memory exhaustion
-        during data aggregation [fuse-7]", "customfield_12323640": null, "customfield_12323642":
-        null, "customfield_12323641": null, "customfield_12323647": null, "customfield_12323644":
-        null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
-        null, "customfield_12313441": "", "customfield_12315740": null, "customfield_12313440":
-        "0.0", "duedate": null, "customfield_12311140": null, "customfield_12310213":
-        null, "customfield_12311940": "1|hz4g3b:"}}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "key": "ENTMQ-701"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
         "id": "12548497", "self": "https://example.com/rest/api/2/issue/12548497",
-        "key": "ENTESB-1767", "fields": {"customfield_12322244": null, "fixVersions":
-        [{"self": "https://example.com/rest/api/2/version/12323239", "id": "12323239",
-        "description": "", "name": "jboss-fuse-6.1", "archived": false, "released":
-        true, "releaseDate": "2014-04-14"}], "resolution": {"self": "https://example.com/rest/api/2/resolution/1",
-        "id": "1", "description": "This issue is closed, and complete.", "name": "Done"},
-        "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@3d6445b6[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3eb02239[overall=PullRequestOverallBean{stateCount=0,
-        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6cacb51d[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@5332f35b[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2df3e0d0[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@e933940[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@79e61d2[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@43f2e251[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@71356f9f[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@66fb11c0[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@129f7c3c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@462be454[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
-        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
-        "customfield_12312442": null, "customfield_12312848": null, "customfield_12315950":
-        null, "customfield_12317338": null, "customfield_12310940": null, "lastViewed":
-        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/3",
-        "iconUrl": "https://example.com/images/icons/priorities/major.svg", "name":
-        "Major", "id": "3"}, "labels": ["CVE-2014-3120", "Security", "SecurityTracking",
-        "component:elasticsearch"], "customfield_12311244": null, "customfield_12311640":
-        null, "customfield_12311641": null, "customfield_12313145": null, "customfield_12311242":
-        null, "customfield_12311243": null, "customfield_12311240": null, "aggregatetimeoriginalestimate":
-        null, "timeestimate": null, "versions": [{"self": "https://example.com/rest/api/2/version/12323234",
-        "id": "12323234", "description": "", "name": "fuse-esb-7.1.0", "archived":
-        true, "released": true, "releaseDate": "2012-12-21"}], "customfield_12311241":
-        null, "customfield_12310031": null, "issuelinks": [], "assignee": {"self":
-        "https://example.com/rest/api/2/user?username=acunning%40redhat.com", "name":
-        "acunning@redhat.com", "key": "aileenc", "emailAddress": "acunning@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=48",
-        "24x24": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=24",
-        "16x16": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=16",
-        "32x32": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=32"},
-        "displayName": "Aileen Cunningham", "active": true, "timeZone": "GMT"}, "customfield_12313942":
-        null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/6",
-        "description": "The issue is closed. See the resolution for context regarding
-        why (for example Done, Abandoned, Duplicate, etc)", "iconUrl": "https://example.com/images/icons/statuses/closed.png",
-        "name": "Closed", "id": "6", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/3",
-        "id": 3, "key": "done", "colorName": "success", "name": "Done"}}, "components":
-        [], "customfield_12316340": null, "customfield_12316341": null, "customfield_12310080":
-        null, "customfield_12314040": null, "customfield_12320844": null, "customfield_12320842":
-        null, "customfield_12310120": null, "customfield_12310243": null, "aggregatetimeestimate":
-        null, "customfield_12316342": null, "customfield_12316740": null, "customfield_12317313":
-        null, "customfield_12317317": null, "creator": {"self": "https://example.com/rest/api/2/user?username=chess.hazlett",
-        "name": "chess.hazlett", "key": "chazlett", "emailAddress": "chazlett@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=48",
-        "24x24": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=24",
-        "16x16": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=16",
-        "32x32": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=32"},
-        "displayName": "Chess Hazlett", "active": false, "timeZone": "GMT"}, "subtasks":
-        [], "customfield_12321140": null, "customfield_12310091": null, "customfield_12310090":
-        null, "reporter": {"self": "https://example.com/rest/api/2/user?username=chess.hazlett",
-        "name": "chess.hazlett", "key": "chazlett", "emailAddress": "chazlett@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=48",
-        "24x24": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=24",
-        "16x16": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=16",
-        "32x32": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=32"},
-        "displayName": "Chess Hazlett", "active": false, "timeZone": "GMT"}, "customfield_12320850":
-        null, "customfield_12310092": null, "aggregateprogress": {"progress": 0, "total":
-        0}, "customfield_12310010": null, "customfield_12315542": null, "customfield_12315948":
-        null, "customfield_12315541": null, "customfield_12313240": null, "customfield_12319742":
-        null, "progress": {"progress": 0, "total": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/ENTESB-1767/votes",
-        "votes": 0, "hasVoted": false}, "customfield_12317841": "<div> <progress  style=\"vertical-align:middle;
-        max-width: 60%;\" value=\"\" min=\"0\" max=\"100\">%</progress> % </div>",
-        "customfield_12319743": null, "customfield_12317842": null, "issuetype": {"self":
-        "https://example.com/rest/api/2/issuetype/1", "id": "1", "description": "A
-        problem which impairs or prevents the functions of the product.", "iconUrl":
-        "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
-        "name": "Bug", "subtask": false, "avatarId": 13263}, "customfield_12318341":
-        null, "timespent": null, "customfield_12320940": null, "project": {"self":
-        "https://example.com/rest/api/2/project/12314570", "id": "12314570", "key":
-        "ENTESB", "name": "Red Hat Fuse", "projectTypeKey": "software", "avatarUrls":
-        {"48x48": "https://example.com/secure/projectavatar?pid=12314570&avatarId=24473",
-        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12314570&avatarId=24473",
-        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12314570&avatarId=24473",
-        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12314570&avatarId=24473"},
-        "projectCategory": {"self": "https://example.com/rest/api/2/projectCategory/10130",
-        "id": "10130", "description": "Active projects migrated from Fusesource issue
-        tracker", "name": "Fuse"}}, "customfield_12320944": null, "aggregatetimespent":
-        null, "customfield_12310220": null, "customfield_12310183": null, "resolutiondate":
-        "2014-09-10T01:43:39.000+0000", "workratio": -1, "customfield_12316840": null,
-        "customfield_12317379": null, "customfield_12316841": null, "customfield_12319040":
-        null, "watches": {"self": "https://example.com/rest/api/2/issue/ENTESB-1767/watchers",
-        "watchCount": 4, "isWatching": false}, "created": "2014-08-04T15:00:19.000+0000",
-        "customfield_12321240": null, "customfield_12310110": null, "customfield_12320947":
-        null, "customfield_12320946": null, "customfield_12315640": null, "customfield_12317302":
-        null, "customfield_12317304": null, "updated": "2014-09-10T01:43:39.000+0000",
-        "customfield_12311840": null, "customfield_12316142": null, "timeoriginalestimate":
-        null, "description": "https://example.com/show_bug.cgi?id=1124252", "customfield_12310440":
-        null, "security": {"self": "https://example.com/rest/api/2/securitylevel/11697",
-        "id": "11697", "description": "Restricts access to Red Hat employees. This
-        information should not be shared with customers or external entities.", "name":
-        "Red Hat Employee"}, "customfield_12312340": null, "customfield_12316542":
-        null, "customfield_12316543": null, "customfield_12316544": null, "customfield_12310840":
-        "9223372036854775807", "summary": "CVE-2014-3120 elasticsearch: remote code
-        execution flaw via dynamic scripting [fuse-7.1]", "customfield_12323640":
-        null, "customfield_12323642": null, "customfield_12323641": null, "customfield_12323647":
-        null, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
-        null, "customfield_12323645": null, "customfield_12315740": null, "customfield_12313441":
-        "", "customfield_12313440": "0.0", "duedate": null, "customfield_12311140":
-        null, "customfield_12310213": null, "customfield_12311941": null, "customfield_12311940":
-        "1|hz4zf3:"}}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "key": "ENTESB-1767"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
         "id": "12548496", "self": "https://example.com/rest/api/2/issue/12548496",
-        "key": "ENTESB-1766", "fields": {"customfield_12322244": null, "fixVersions":
-        [{"self": "https://example.com/rest/api/2/version/12323239", "id": "12323239",
-        "description": "", "name": "jboss-fuse-6.1", "archived": false, "released":
-        true, "releaseDate": "2014-04-14"}], "resolution": {"self": "https://example.com/rest/api/2/resolution/1",
-        "id": "1", "description": "This issue is closed, and complete.", "name": "Done"},
-        "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@b66eac1[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5e5cb834[overall=PullRequestOverallBean{stateCount=0,
-        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@d3a4c6[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@3b7531f0[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5781714[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@42eb5254[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5f033b5b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@4deb7bfa[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@8ee05e4[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@108f9f5f[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5610b7f6[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@40323265[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
-        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
-        "customfield_12312442": null, "customfield_12312848": null, "customfield_12315950":
-        null, "customfield_12317338": null, "customfield_12310940": null, "lastViewed":
-        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/3",
-        "iconUrl": "https://example.com/images/icons/priorities/major.svg", "name":
-        "Major", "id": "3"}, "labels": ["CVE-2014-3120", "Security", "SecurityTracking",
-        "component:elasticsearch"], "customfield_12311244": null, "customfield_12311640":
-        null, "customfield_12311641": null, "customfield_12313145": null, "customfield_12311242":
-        null, "customfield_12311243": null, "customfield_12311240": null, "aggregatetimeoriginalestimate":
-        null, "timeestimate": null, "versions": [{"self": "https://example.com/rest/api/2/version/12323239",
-        "id": "12323239", "description": "", "name": "jboss-fuse-6.1", "archived":
-        false, "released": true, "releaseDate": "2014-04-14"}], "customfield_12311241":
-        null, "customfield_12310031": null, "issuelinks": [], "assignee": {"self":
-        "https://example.com/rest/api/2/user?username=acunning%40redhat.com", "name":
-        "acunning@redhat.com", "key": "aileenc", "emailAddress": "acunning@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=48",
-        "24x24": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=24",
-        "16x16": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=16",
-        "32x32": "https://example.com/avatar/c1d56f16088f3b6e97589cd0cff6de3a?d=mm&s=32"},
-        "displayName": "Aileen Cunningham", "active": true, "timeZone": "GMT"}, "customfield_12313942":
-        null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/6",
-        "description": "The issue is closed. See the resolution for context regarding
-        why (for example Done, Abandoned, Duplicate, etc)", "iconUrl": "https://example.com/images/icons/statuses/closed.png",
-        "name": "Closed", "id": "6", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/3",
-        "id": 3, "key": "done", "colorName": "success", "name": "Done"}}, "components":
-        [], "customfield_12316340": null, "customfield_12316341": null, "customfield_12310080":
-        null, "customfield_12314040": null, "customfield_12320844": null, "customfield_12320842":
-        null, "customfield_12310120": null, "customfield_12310243": null, "aggregatetimeestimate":
-        null, "customfield_12316342": null, "customfield_12316740": null, "customfield_12317313":
-        null, "customfield_12317317": null, "creator": {"self": "https://example.com/rest/api/2/user?username=chess.hazlett",
-        "name": "chess.hazlett", "key": "chazlett", "emailAddress": "chazlett@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=48",
-        "24x24": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=24",
-        "16x16": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=16",
-        "32x32": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=32"},
-        "displayName": "Chess Hazlett", "active": false, "timeZone": "GMT"}, "subtasks":
-        [], "customfield_12321140": null, "customfield_12310091": null, "customfield_12310090":
-        null, "reporter": {"self": "https://example.com/rest/api/2/user?username=chess.hazlett",
-        "name": "chess.hazlett", "key": "chazlett", "emailAddress": "chazlett@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=48",
-        "24x24": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=24",
-        "16x16": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=16",
-        "32x32": "https://example.com/avatar/850d3ad61d93c0925018db52d1c9f6ba?d=mm&s=32"},
-        "displayName": "Chess Hazlett", "active": false, "timeZone": "GMT"}, "customfield_12320850":
-        null, "customfield_12310092": null, "aggregateprogress": {"progress": 0, "total":
-        0}, "customfield_12310010": null, "customfield_12315542": null, "customfield_12315948":
-        null, "customfield_12315541": null, "customfield_12313240": null, "customfield_12319742":
-        null, "progress": {"progress": 0, "total": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/ENTESB-1766/votes",
-        "votes": 0, "hasVoted": false}, "customfield_12317841": "<div> <progress  style=\"vertical-align:middle;
-        max-width: 60%;\" value=\"\" min=\"0\" max=\"100\">%</progress> % </div>",
-        "customfield_12319743": null, "customfield_12317842": null, "issuetype": {"self":
-        "https://example.com/rest/api/2/issuetype/1", "id": "1", "description": "A
-        problem which impairs or prevents the functions of the product.", "iconUrl":
-        "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
-        "name": "Bug", "subtask": false, "avatarId": 13263}, "customfield_12318341":
-        null, "timespent": null, "customfield_12320940": null, "project": {"self":
-        "https://example.com/rest/api/2/project/12314570", "id": "12314570", "key":
-        "ENTESB", "name": "Red Hat Fuse", "projectTypeKey": "software", "avatarUrls":
-        {"48x48": "https://example.com/secure/projectavatar?pid=12314570&avatarId=24473",
-        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12314570&avatarId=24473",
-        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12314570&avatarId=24473",
-        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12314570&avatarId=24473"},
-        "projectCategory": {"self": "https://example.com/rest/api/2/projectCategory/10130",
-        "id": "10130", "description": "Active projects migrated from Fusesource issue
-        tracker", "name": "Fuse"}}, "customfield_12320944": null, "aggregatetimespent":
-        null, "customfield_12310220": null, "customfield_12310183": null, "resolutiondate":
-        "2014-09-10T01:33:27.000+0000", "workratio": -1, "customfield_12316840": null,
-        "customfield_12317379": null, "customfield_12316841": null, "customfield_12319040":
-        null, "watches": {"self": "https://example.com/rest/api/2/issue/ENTESB-1766/watchers",
-        "watchCount": 5, "isWatching": false}, "created": "2014-08-04T14:57:21.000+0000",
-        "customfield_12321240": null, "customfield_12310110": null, "customfield_12320947":
-        null, "customfield_12320946": null, "customfield_12315640": null, "customfield_12317302":
-        null, "customfield_12317304": null, "updated": "2014-09-10T01:33:27.000+0000",
-        "customfield_12311840": null, "customfield_12316142": null, "timeoriginalestimate":
-        null, "description": "https://example.com/show_bug.cgi?id=1124252", "customfield_12310440":
-        null, "security": {"self": "https://example.com/rest/api/2/securitylevel/11697",
-        "id": "11697", "description": "Restricts access to Red Hat employees. This
-        information should not be shared with customers or external entities.", "name":
-        "Red Hat Employee"}, "customfield_12312340": null, "customfield_12316542":
-        null, "customfield_12316543": null, "customfield_12316544": null, "customfield_12310840":
-        "9223372036854775807", "summary": "CVE-2014-3120 elasticsearch: remote code
-        execution flaw via dynamic scripting [fuse-6.1]", "customfield_12323640":
-        null, "customfield_12323642": null, "customfield_12323641": null, "customfield_12323647":
-        null, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
-        null, "customfield_12323645": null, "customfield_12315740": null, "customfield_12313441":
-        "", "customfield_12313440": "0.0", "duedate": null, "customfield_12311140":
-        null, "customfield_12310213": null, "customfield_12311941": null, "customfield_12311940":
-        "1|hz4zev:"}}]}'
+        "key": "ENTESB-1766"}]}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -1401,9 +951,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Tue, 09 Jan 2024 12:18:16 GMT
+      - Mon, 09 Sep 2024 11:01:52 GMT
       Expires:
-      - Tue, 09 Jan 2024 12:18:16 GMT
+      - Mon, 09 Sep 2024 11:01:52 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1412,35 +962,35 @@ interactions:
       - User-Agent
       - Accept-Encoding
       X-RateLimit-Limit:
-      - '-1'
+      - '5'
       X-RateLimit-Remaining:
-      - '9223372036854775807'
+      - '4'
       content-length:
-      - '51707'
+      - '968'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-prod-2
       x-arequestid:
-      - 738x178173x1
+      - 661x15423847x19
       x-asessionid:
-      - 18mhyst
+      - 1k55uxg
       x-content-type-options:
       - nosniff
       x-frame-options:
       - SAMEORIGIN
       x-ratelimit-fillrate:
-      - '-1'
+      - '5'
       x-ratelimit-interval-seconds:
       - '1'
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.b685d817.1704802696.2f18cf61
+      - 0.1d92645f.1725879712.51cb66a
       x-rh-edge-request-id:
-      - 2f18cf61
+      - 51cb66a
       x-seraph-loginreason:
       - OK
       x-xss-protection:
