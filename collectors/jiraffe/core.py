@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from celery.utils.log import get_task_logger
 from django.utils import timezone
@@ -112,12 +112,17 @@ class JiraQuerier(JiraConnector):
             query_items.append(f'{name}{operator}"{value}"')
         return " AND ".join(query_items)
 
-    def run_query(self, query_list: List[Tuple[str, str, str]]) -> List[Issue]:
+    def run_query(
+        self, query_list: List[Tuple[str, str, str]], fields: Optional[str] = "issuekey"
+    ) -> List[Issue]:
         """
         get Jira issues performing the given query
+
+        by default only the issue keys are returned which can be modified providing fields param
+        either specifying the list of comma-separated field names or None to fetch all fields
         """
         return self.jira_conn.search_issues(
-            self.create_query(query_list), maxResults=False
+            self.create_query(query_list), fields=fields, maxResults=False
         )
 
     ###################

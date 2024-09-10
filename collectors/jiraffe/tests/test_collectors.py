@@ -15,7 +15,6 @@ from apps.trackers.models import JiraProjectFields
 from apps.workflows.workflow import WorkflowModel
 from collectors.bzimport.collectors import FlawCollector
 from collectors.bzimport.constants import BZ_DT_FMT
-from collectors.framework.models import CollectorMetadata
 from collectors.jiraffe.collectors import (
     JiraTaskCollector,
     JiraTrackerCollector,
@@ -166,11 +165,6 @@ class TestJiraTrackerCollector:
         assert collector.BEGINNING == timezone.datetime(2014, 1, 1, tzinfo=timezone.utc)
         assert collector.metadata.updated_until_dt is None
 
-        CollectorMetadata(
-            name="collectors.bzimport.tasks.flaw_collector",
-            updated_until_dt=timezone.now(),
-        ).save()
-
         trackers, period_end = collector.get_batch()
         assert len(trackers) == 15  # all the trackers from 2014
         assert period_end == timezone.datetime(2015, 1, 1, tzinfo=timezone.utc)
@@ -179,7 +173,7 @@ class TestJiraTrackerCollector:
         collector.metadata.updated_until_dt = period_end
 
         trackers, period_end = collector.get_batch()
-        assert len(trackers) == 30  # all the trackers from 2015
+        assert len(trackers) == 31  # all the trackers from 2015
         assert period_end == timezone.datetime(2016, 1, 1, tzinfo=timezone.utc)
 
     @pytest.mark.vcr
@@ -192,42 +186,39 @@ class TestJiraTrackerCollector:
         assert collector.BEGINNING == timezone.datetime(2014, 1, 1, tzinfo=timezone.utc)
         assert collector.metadata.updated_until_dt is None
 
-        CollectorMetadata(
-            name="collectors.bzimport.tasks.flaw_collector",
-            updated_until_dt=timezone.now(),
-        ).save()
-
         msg = collector.collect()
-        assert Tracker.objects.count() == 15  # all the trackers from 2014
+        # the tracker collection is now only scheduled and not really performed
+        # assert Tracker.objects.count() == 15  # all the trackers from 2014
         assert collector.metadata.updated_until_dt == timezone.datetime(
             2015, 1, 1, tzinfo=timezone.utc
         )
         assert msg == (
             "collectors.jiraffe.collectors.jira_tracker_collector is "
-            "updated until 2015-01-01 00:00:00+00:00. Jira trackers updated: "
+            "updated until 2015-01-01 00:00:00+00:00. Jira tracker sync scheduled: "
             "ENTMQ-755, ENTMQ-754, ENTMQ-701, ENTMQ-643, ENTESB-1767, "
             "ENTESB-1766, ENTESB-1660, ENTESB-1639, ENTESB-1525, ENTESB-1524, "
             "ENTESB-1523, ENTESB-1521, ENTESB-1431, ENTESB-1383, ENTESB-1382"
         )
 
         msg = collector.collect()
-        assert Tracker.objects.count() == 45  # all the trackers from 2014 and 2015
+        # the tracker collection is now only scheduled and not really performed
+        # assert Tracker.objects.count() == 45  # all the trackers from 2014 and 2015
         assert collector.metadata.updated_until_dt == timezone.datetime(
             2016, 1, 1, tzinfo=timezone.utc
         )
         assert msg == (
             "collectors.jiraffe.collectors.jira_tracker_collector is "
-            "updated until 2016-01-01 00:00:00+00:00. Jira trackers updated: "
+            "updated until 2016-01-01 00:00:00+00:00. Jira tracker sync scheduled: "
             "WFCORE-120, PLINK-708, ENTMQ-1346, ENTMQ-931, ENTMQ-863, "
             "ENTMQ-663, ENTMQ-662, ENTMQ-661, ENTMQ-660, ENTESB-3080, "
             "ENTESB-3079, ENTESB-2837, ENTESB-2732, ENTESB-2731, ENTESB-2730, "
             "ENTESB-2662, ENTESB-2661, ENTESB-2660, ENTESB-2659, ENTESB-2658, "
             "ENTESB-2656, ENTESB-2535, ENTESB-2523, ENTESB-2214, ENTESB-2145, "
-            "ENTESB-2144, ENTESB-2066, ENTESB-2065, ENTESB-1835, ENTESB-1661"
+            "ENTESB-2144, ENTESB-2066, ENTESB-2065, ENTESB-1835, ENTESB-1696, ENTESB-1661"
         )
 
     @pytest.mark.vcr
-    @freeze_time(timezone.datetime(2015, 12, 12))
+    @freeze_time(timezone.datetime(2024, 9, 9, 9, 9, 9))
     def test_collect_complete(self):
         """
         test that Jira collector data status is changed to complete when the data are current
@@ -235,10 +226,6 @@ class TestJiraTrackerCollector:
         collector = JiraTrackerCollector()
         collector.BATCH_PERIOD_DAYS = 365
         collector.metadata.updated_until_dt = timezone.now()
-        CollectorMetadata(
-            name="collectors.bzimport.tasks.flaw_collector",
-            updated_until_dt=timezone.datetime(2020, 12, 12, tzinfo=timezone.utc),
-        ).save()
         assert not collector.is_complete
 
         collector.collect()

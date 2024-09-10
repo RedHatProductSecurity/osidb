@@ -378,7 +378,7 @@ class BZTrackerDownloadManager(SyncManager):
         from osidb.models import Tracker
 
         Tracker.objects.filter(external_system_id=self.sync_id).update(
-            download_manager=self
+            bz_download_manager=self
         )
 
     def __str__(self):
@@ -644,6 +644,94 @@ class BZSyncManager(SyncManager):
         flaws = Flaw.objects.filter(uuid=self.sync_id)
         cves = [f.cve_id or f.uuid for f in flaws]
         result += f"Flaws: {cves}\n"
+
+        return result
+
+
+class JiraTaskDownloadManager(SyncManager):
+    """
+    Sync manager class for Jira => OSIDB Task synchronization.
+    """
+
+    @staticmethod
+    @app.task(name="sync_manager.jira_task_download", bind=True)
+    def sync_task(self, task_id):
+        from collectors.jiraffe.convertors import JiraTaskConvertor
+        from collectors.jiraffe.core import JiraQuerier
+
+        JiraTaskDownloadManager.started(task_id, self)
+
+        set_user_acls(settings.ALL_GROUPS)
+
+        try:
+            task_data = JiraQuerier().get_issue(task_id)
+            flaw = JiraTaskConvertor(task_data).flaw
+            if flaw:
+                flaw.save()
+        except Exception as e:
+            JiraTaskDownloadManager.failed(task_id, e)
+        else:
+            JiraTaskDownloadManager.finished(task_id)
+
+    def update_synced_links(self):
+        from osidb.models import Flaw
+
+        Flaw.objects.filter(task_key=self.sync_id).update(task_download_manager=self)
+
+    def __str__(self):
+        from osidb.models import Flaw
+
+        result = super().__str__()
+
+        flaws = Flaw.objects.filter(task_key=self.sync_id)
+        flaw_ids = [f.cve_id if f.cve_id else f.uuid for f in flaws]
+        result += f"Jira tasks for flaws: {flaw_ids}\n"
+
+        return result
+
+
+class JiraTrackerDownloadManager(SyncManager):
+    """
+    Sync manager class for Jira => OSIDB Tracker synchronization.
+    """
+
+    @staticmethod
+    @app.task(name="sync_manager.jira_tracker_download", bind=True)
+    def sync_task(self, tracker_id):
+        from collectors.jiraffe.convertors import JiraTrackerConvertor
+        from collectors.jiraffe.core import JiraQuerier
+
+        JiraTrackerDownloadManager.started(tracker_id, self)
+
+        set_user_acls(settings.ALL_GROUPS)
+
+        try:
+            tracker_data = JiraQuerier().get_issue(tracker_id)
+            tracker = JiraTrackerConvertor(tracker_data).tracker
+            if tracker:
+                tracker.save()
+                # Schedule linking tracker => affect
+                JiraTrackerLinkManager.schedule(tracker_id)
+        except Exception as e:
+            JiraTrackerDownloadManager.failed(tracker_id, e)
+        else:
+            JiraTrackerDownloadManager.finished(tracker_id)
+
+    def update_synced_links(self):
+        from osidb.models import Tracker
+
+        Tracker.objects.filter(external_system_id=self.sync_id).update(
+            jira_download_manager=self
+        )
+
+    def __str__(self):
+        from osidb.models import Tracker
+
+        result = super().__str__()
+
+        trackers = Tracker.objects.filter(external_system_id=self.sync_id)
+        tracker_ids = [t.external_system_id for t in trackers]
+        result += f"Jira trackers: {tracker_ids}\n"
 
         return result
 
