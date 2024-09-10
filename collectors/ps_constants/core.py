@@ -8,12 +8,7 @@ from requests_gssapi import HTTPSPNEGOAuth
 
 from apps.sla.models import SLA, SLAPolicy
 from apps.trackers.models import JiraBugIssuetype
-from osidb.models import (
-    CompliancePriority,
-    ContractPriority,
-    SpecialConsiderationPackage,
-    UbiPackage,
-)
+from osidb.models import CompliancePriority, SpecialConsiderationPackage, UbiPackage
 
 logger = logging.getLogger(__name__)
 
@@ -58,20 +53,6 @@ def sync_compliance_priority(source_dict):
         CompliancePriority(
             ps_module=ps_module, components=components, streams=streams
         ).save()
-
-
-@transaction.atomic
-def sync_contract_priority(source_dict):
-    """
-    sync contract priority data
-    """
-    ContractPriority.objects.all().delete()
-    # ps_update_stream is unique across all ps_modules in the hierarchy of product
-    # definitions so there's no need to store ps_module, although it is in the
-    # source yaml for human readability.
-    for ps_update_streams in source_dict.values():
-        for ps_update_stream in ps_update_streams:
-            ContractPriority(ps_update_stream=ps_update_stream).save()
 
 
 @transaction.atomic

@@ -13,7 +13,6 @@ class Command(BaseCommand):
 
         (
             compliance_priority,
-            contract_priority,
             ubi_packages,
             sc_packages,
             sla_policies,
@@ -22,7 +21,6 @@ class Command(BaseCommand):
 
         collect_step_2_sync(
             compliance_priority,
-            contract_priority,
             ubi_packages,
             sc_packages,
             sla_policies,

@@ -2775,16 +2775,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             return True
         return affect.ps_component in compliance_components
 
-    @property
-    def is_contract_priority(self) -> bool:
-        """
-        check and return whether this affect module and update stream combination is contract
-        priority which is defined in PS constants repo in contract_priority.yml
-        """
-        return ContractPriority.objects.filter(
-            ps_update_stream=self.ps_update_stream
-        ).exists()
-
     bz_download_manager = models.ForeignKey(
         BZTrackerDownloadManager, null=True, blank=True, on_delete=models.CASCADE
     )
@@ -3515,18 +3505,6 @@ class CompliancePriority(models.Model):
     ps_module = models.CharField(max_length=100)
     streams = models.JSONField(default=list)
     components = models.JSONField(default=list)
-
-
-class ContractPriority(models.Model):
-    """
-    an instance of this model represents one
-    entry in PS constant contract priority list
-    """
-
-    # internal primary key
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    ps_update_stream = models.CharField(max_length=100)
 
 
 class UbiPackage(models.Model):

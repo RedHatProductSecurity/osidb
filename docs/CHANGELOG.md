@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Unable to unembargo flaws with trackers (OSIDB-3398)
 
+### Removed
+- Remove obsoleted contract priority support (OSIDB-3399)
+
 ## [4.3.0] - 2024-09-04
 ### Added
 - Add CVEorg collector (OSIDB-2234)

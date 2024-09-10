@@ -7,18 +7,12 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 from collectors.framework.models import collector
-from osidb.models import (
-    CompliancePriority,
-    ContractPriority,
-    SpecialConsiderationPackage,
-    UbiPackage,
-)
+from osidb.models import CompliancePriority, SpecialConsiderationPackage, UbiPackage
 
 from .constants import PS_CONSTANTS_REPO_BRANCH, PS_CONSTANTS_REPO_URL
 from .core import (
     fetch_ps_constants,
     sync_compliance_priority,
-    sync_contract_priority,
     sync_jira_bug_issuetype,
     sync_sla_policies,
     sync_special_consideration_packages,
@@ -46,10 +40,6 @@ def collect_step_1_fetch():
     logger.info(f"Fetching PS Constants (compliance priority) from '{url}'")
     compliance_priority = fetch_ps_constants(url)
 
-    url = "/".join((PS_CONSTANTS_BASE_URL, "contract_priority.yml"))
-    logger.info(f"Fetching PS Constants (contract priority) from '{url}'")
-    contract_priority = fetch_ps_constants(url)
-
     url = "/".join((PS_CONSTANTS_BASE_URL, "ubi_packages.yml"))
     logger.info(f"Fetching PS Constants (Ubi Packages) from '{url}'")
     ubi_packages = fetch_ps_constants(url)
@@ -68,7 +58,6 @@ def collect_step_1_fetch():
 
     return (
         compliance_priority,
-        contract_priority,
         ubi_packages,
         sc_packages,
         sla_policies,
@@ -78,14 +67,12 @@ def collect_step_1_fetch():
 
 def collect_step_2_sync(
     compliance_priority,
-    contract_priority,
     ubi_packages,
     sc_packages,
     sla_policies,
     jira_bug_issuetype,
 ):
     sync_compliance_priority(compliance_priority)
-    sync_contract_priority(contract_priority)
     sync_ubi_packages(ubi_packages)
     sync_special_consideration_packages(sc_packages)
     sync_sla_policies(sla_policies)
@@ -106,7 +93,6 @@ def collect_step_2_sync(
     crontab=crontab(minute="49", hour="*/5"),
     data_models=[
         CompliancePriority,
-        ContractPriority,
         SpecialConsiderationPackage,
         UbiPackage,
     ],
@@ -116,7 +102,6 @@ def ps_constants_collector(collector_obj) -> str:
 
     (
         compliance_priority,
-        contract_priority,
         ubi_packages,
         sc_packages,
         sla_policies,
@@ -134,7 +119,6 @@ def ps_constants_collector(collector_obj) -> str:
 
     collect_step_2_sync(
         compliance_priority,
-        contract_priority,
         ubi_packages,
         sc_packages,
         sla_policies,
