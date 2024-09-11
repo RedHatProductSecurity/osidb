@@ -12,7 +12,6 @@ class Command(BaseCommand):
         now = timezone.now()
 
         (
-            compliance_priority,
             ubi_packages,
             sc_packages,
             sla_policies,
@@ -20,7 +19,6 @@ class Command(BaseCommand):
         ) = collect_step_1_fetch()
 
         collect_step_2_sync(
-            compliance_priority,
             ubi_packages,
             sc_packages,
             sla_policies,

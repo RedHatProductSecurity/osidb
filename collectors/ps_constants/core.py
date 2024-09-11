@@ -8,7 +8,7 @@ from requests_gssapi import HTTPSPNEGOAuth
 
 from apps.sla.models import SLA, SLAPolicy
 from apps.trackers.models import JiraBugIssuetype
-from osidb.models import CompliancePriority, SpecialConsiderationPackage, UbiPackage
+from osidb.models import SpecialConsiderationPackage, UbiPackage
 
 logger = logging.getLogger(__name__)
 
@@ -33,26 +33,6 @@ def fetch_ps_constants(url, multi=False):
         return yaml.safe_load_all(response.text)
     except yaml.YAMLError as e:
         print("Error parsing YAML:", e)
-
-
-@transaction.atomic
-def sync_compliance_priority(source_dict):
-    """
-    sync compliance priority data
-    """
-    CompliancePriority.objects.all().delete()
-    for ps_module, json_field in source_dict.items():
-        components = json_field.get("components", [])
-
-        streams = json_field.get("streams")
-        if streams is None:
-            msg = f"Invalid contents (missing streams) in compliance_priority.yml for module {ps_module}."
-            logger.error(msg)
-            raise RuntimeError(msg)
-
-        CompliancePriority(
-            ps_module=ps_module, components=components, streams=streams
-        ).save()
 
 
 @transaction.atomic

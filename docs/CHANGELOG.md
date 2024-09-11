@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Remove obsoleted contract priority support (OSIDB-3399)
+- Remove obsoleted comliance priority support (OSIDB-3335)
 
 ## [4.3.0] - 2024-09-04
 ### Added

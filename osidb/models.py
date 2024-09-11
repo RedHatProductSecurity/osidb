@@ -2099,31 +2099,6 @@ class Affect(
         ).exists()
 
     @property
-    def is_compliance_priority(self) -> bool:
-        """
-        Check and return whether this affect module and component combination is compliance
-        priority which is defined in PS constants repo in compliance_priority.yml.
-
-        Compliance priority is always False for LOW impact.
-
-        Note that stream is not evaluated by this property. Therefore, this property
-        is not useful for evaluating SLA, but useful for computing which streams to
-        file trackers for. Use Tracker.is_compliance_priority for SLA calculations.
-        """
-        if self.aggregated_impact == Impact.LOW:
-            return False
-        compliance_priority = CompliancePriority.objects.filter(
-            ps_module=self.ps_module
-        )
-        if not compliance_priority.exists():
-            return False
-        compliance_components = compliance_priority.first().components
-        if not compliance_components:
-            # Empty list of components in compliance_components.yml means all components are priority.
-            return True
-        return self.ps_component in compliance_components
-
-    @property
     def is_notaffected(self) -> bool:
         """
         check and return whether the given affect is set as not affected or not to be fixed
@@ -2746,34 +2721,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             ).first()
             is not None
         )
-
-    @property
-    def is_compliance_priority(self) -> bool:
-        """
-        Check and return whether this affect module, component and update stream combination is
-        compliance priority which is defined in PS constants repo in compliance_priority.yml.
-
-        Compliance priority is always False for LOW impact.
-        """
-        affect = self.affects.first()
-        if not affect:
-            return False
-
-        if self.aggregated_impact == Impact.LOW:
-            return False
-
-        compliance_priority = CompliancePriority.objects.filter(
-            ps_module=affect.ps_module
-        ).first()
-        if not compliance_priority:
-            return False
-        if self.ps_update_stream not in compliance_priority.streams:
-            return False
-        compliance_components = compliance_priority.components
-        if not compliance_components:
-            # Empty list of components in compliance_components.yml means all components are priority.
-            return True
-        return affect.ps_component in compliance_components
 
     bz_download_manager = models.ForeignKey(
         BZTrackerDownloadManager, null=True, blank=True, on_delete=models.CASCADE
@@ -3491,20 +3438,6 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.username
-
-
-class CompliancePriority(models.Model):
-    """
-    One instance of this model represents one
-    model in PS constant compliance priority list.
-    """
-
-    # internal primary key
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    ps_module = models.CharField(max_length=100)
-    streams = models.JSONField(default=list)
-    components = models.JSONField(default=list)
 
 
 class UbiPackage(models.Model):

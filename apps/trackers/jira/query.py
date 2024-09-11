@@ -141,7 +141,6 @@ IMPACT_TO_JIRA_CVE_SEVERITY = {
 # allowed values for Jira field Special Handling.
 MAJOR_INCIDENT = "Major Incident"
 KEV = "KEV (active exploit case)"
-COMPLIANCE_PRIORITY = "Compliance Priority"
 
 
 class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
@@ -343,9 +342,6 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
             Affect.AffectAffectedness.NEW
         }:
             self._query["fields"]["labels"].append("validation-requested")
-
-        if self.tracker.is_compliance_priority:
-            self._query["fields"]["labels"].append("compliance-priority")
 
     def generate_sla(self):
         """
@@ -772,7 +768,6 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         expected_allowed_values = [
             MAJOR_INCIDENT,
             KEV,
-            COMPLIANCE_PRIORITY,
         ]
         missing_allowed_values = sorted(
             set(expected_allowed_values) - set(allowed_values)
@@ -787,7 +782,6 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
 
         choice_major_incident = False
         choice_kev = False
-        choice_compliance_priority = False
 
         flaw_uuids = self.tracker.affects.values_list("flaw__uuid", flat=True)
 
@@ -799,15 +793,12 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             choice_kev |= (
                 flaw.major_incident_state == Flaw.FlawMajorIncident.CISA_APPROVED
             )
-            choice_compliance_priority |= self.tracker.is_compliance_priority
 
         multichoice_jira_field_value = []
         if choice_major_incident:
             multichoice_jira_field_value.append({"value": MAJOR_INCIDENT})
         if choice_kev:
             multichoice_jira_field_value.append({"value": KEV})
-        if choice_compliance_priority:
-            multichoice_jira_field_value.append({"value": COMPLIANCE_PRIORITY})
 
         self._query["fields"][field_id] = multichoice_jira_field_value
 
