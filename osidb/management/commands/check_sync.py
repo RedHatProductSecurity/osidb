@@ -3,12 +3,7 @@ from django.core.management.base import BaseCommand
 
 from osidb.core import set_user_acls
 from osidb.models import Flaw, Tracker
-from osidb.sync_manager import (
-    BZTrackerDownloadManager,
-    BZTrackerLinkManager,
-    FlawDownloadManager,
-    JiraTrackerLinkManager,
-)
+from osidb.sync_manager import SyncManager
 
 
 class Command(BaseCommand):
@@ -23,12 +18,7 @@ class Command(BaseCommand):
             "Type                 Scheduled   Started  Finished    "
             "Failed   ...cons   ...perm  Resched.   ...cons"
         )
-        for object_class in [
-            FlawDownloadManager,
-            BZTrackerDownloadManager,
-            BZTrackerLinkManager,
-            JiraTrackerLinkManager,
-        ]:
+        for object_class in SyncManager.__subclasses__():
             print(
                 f"{object_class.__name__[:-7]:20}"
                 f"{object_class.objects.filter(last_scheduled_dt__isnull=False).count():10}"
