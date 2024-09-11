@@ -83,7 +83,43 @@ scripts/update_release.sh X.Y.Z
 
 ## Custom management commands
 
+### check_sync
+
+Quickly check the status of the sync managers.
+
+```bash
+$ python3 manage.py check_sync
+```
+
+### sync_jira_metadata
+
+Synchronize the Jira projects' metadata on demand.
+
+```bash
+$ python3 manage.py sync_jira_metadata
+```
+
+### sync_product_definitions
+
+Synchronize the product definitions on demand.
+
+```bash
+$ python3 manage.py sync_product_definitions
+```
+
+### sync_ps_constants
+
+Synchronize the PS constants on demand.
+
+```bash
+$ python3 manage.py sync_ps_constants
+```
+
 ### syncflaws
+
+> [!CAUTION]
+> Bugzilla is already a secondary source of flaw data and can be incomplete.
+> The sync from there may potentially lead to a data loss.
 
 `syncflaws` is a custom Django management command that allows developers to
 manually force the sync of one or more flaws by providing their Bugzilla ID.
