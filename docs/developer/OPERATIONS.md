@@ -69,6 +69,15 @@ Finally, once everything has been correctly deployed, make sure to create a PR a
 main development branch in which the source is the `release-X.Y.Z` branch, to guarantee that
 the next versions include any bugfixes that were in the frozen branch.
 
+## Makefile
+
+Number of useful operational commands is provided by the `make` utility.
+Run the following command in the repository root directory to get further documentaion.
+
+```bash
+$ make help
+```
+
 ## Scripts
 
 Descriptions of the scripts located in the `scripts` directory
