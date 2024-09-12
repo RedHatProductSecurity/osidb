@@ -154,5 +154,7 @@ management command option:
 
 OSIDB uses [Semantic Versioning](https://semver.org/). We start versioning with 0.0.1.
 Additionally, we consider OSIDB 1.0.0 as the first General Availability version.
+The list of released versions can be found
+[here](https://github.com/RedHatProductSecurity/osidb/tags) - except those preceding the repository migration.
 
 To update OSIDB to a new version use [scripts/update_release.sh](../../scripts/update_release.sh).
