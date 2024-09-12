@@ -1,40 +1,53 @@
 # OSIDB -- operations
 
-## Code freeze
+## Release
 
-At least one week before the intended release date, the main development branch should be frozen into
-a release-X.Y.Z branch, where X.Y.Z is the next intended release version.
+The release process consists of multiple phases and usually takes at least a week.
+Therefore, it needs to be properly planned and communicated. Currently, there is no
+regular release schedule. The release is planned when the team decides so.
 
-You can do it like so:
+Exceptionally, it may happen that a critical issue which blocks the users to perform
+their duties is found. In such case the phases of the release may be shortened as
+needed but due to the reduced space for the testing and communication it requires
+an extreme caution.
+
+> [!CAUTION]
+> A major release should never be done in haste.
+
+### Branching
+
+At least one week before the intended release date, `master` branch should
+be branched into a release branch. Start with
 
 ```bash
 git checkout master
 git pull
-git checkout -b release-X.Y.Z
-git push origin release-X.Y.Z
 ```
 
-Only bug fixes should be merged into this new branch, and they should be done so via PRs that target
-the release branch so that the code can be reviewed.
-
-Make sure that the stage environment is set to pull from this branch at least until it is merged
-back into the main development branch.
-
-## Release
-
-Follow this procedure when performing OSIDB version X.Y.Z release, this step assumes that
-the previous step on code freezing has already been done.
-
-First we need to determine the version number based on the previous version
-and the changes to be released - see [Versioning](#Versioning).
+Then, determine the next release version number based on the previous version
+and the changes to be released - see [Versioning](#Versioning). Run
 
 ```bash
 git diff $(git describe --tags --abbrev=0) openapi.yml
 ```
 
-When considering the release to be non-major, always ask another experienced developer
-to double check this. Special attention has to be payed to the core OSIDB service data
-entity API endpoints. Any removed lines are most probably breaking changes.
+The general decission procedure is as follows.
+
+- If there are no changes shown, increase the patch version number.
+- If there are only additions, increase the minor version number.
+- If there are any removals, increase the major version number.
+
+> [!TIP]
+> There may be exceptions like experimental API endpoints or data changes which do not
+> fully reflect in the API documentation. It is therefore advised to always ask another
+> experienced developer to double check the correct versioning.
+
+With the resulting version number `X.Y.Z` perform
+
+```bash
+git checkout -b release-X.Y.Z
+git push origin release-X.Y.Z
+```
 
 Make sure you perform the following commands from the project root directory.
 
@@ -44,30 +57,56 @@ git checkout -b release-X.Y.Z-prep
 scripts/update_release.sh X.Y.Z
 ```
 
-This script will also change some things in the operations repository, those should
-also be submitted via a PR to the appropriate repository and merged after tag creation.
-
-Check and eventually update [CHANGELOG](../CHANGELOG.md).
+Check and eventually update [CHANGELOG](../CHANGELOG.md). If everything looks OK
 
 ```bash
 git commit -am 'Update version to X.Y.Z'
 git push -u origin release-X.Y.Z-prep
 ```
 
-And then submit `release-X.Y.Z-prep` as a PR against the `release-X.Y.Z` branch.
+and submit `release-X.Y.Z-prep` as a PR against the `release-X.Y.Z` branch.
+After the review is successfully finished and the PR is merged, the release branch is ready.
+You can continue with [UAT](#UAT) phase.
 
-Next, create a tag based off of the `release-X.Y.Z` branch, you can do this via git
-but it's preferable to do it via the [releases](https://github.com/RedHatProductSecurity/osidb/releases) page on GitHub,
-this page lets you create a new tag to go with the release, the Changelog should be copied
-into the release's description, this release link can then be used for new release announcements.
+### UAT
 
-Now you need to either wait for the tag to sync back into GitLab (~30min) or force a manual sync
-from the GitLab settings (Settings > Repository > Mirrors), at this point the changes in the
-operations repo can be merged and the changes can be deployed.
+Deploy the `release-X.Y.Z` branch to the **UAT** environment - the details on
+the deployment procedure can be found in the OPS repository documentation.
+Announce the upcoming release to the users and ask them to test their
+workflows or integrations using the **UAT** environment.
 
-Finally, once everything has been correctly deployed, make sure to create a PR against the
-main development branch in which the source is the `release-X.Y.Z` branch, to guarantee that
-the next versions include any bugfixes that were in the frozen branch.
+> [!IMPORTANT]
+> In the case of major release it is necessary to namely announce all the breaking
+> changes and expressly ask the owners of all the known integrations to account for
+> them to prevent any posible breakage. It may happen that some of them will
+> require an extended adoption period especially if the changes are significant.
+
+Gather the feedback over time and fix the reported bugs with priority.
+This pre-release testing period should last at least one week or as long as needed
+to fix all the newly reported bugs not to introduce any regression.
+
+> [!NOTE]
+> At this point only bug fixes should be added into the release branch.
+> Use `git cherry-pick` to keep it in sync with `master`.
+
+### Production
+
+After the successful [UAT](#UAT) phase, it is time for the production release.
+Put together the release announcement in advance so it can be sent right after the
+release. Announce to the users that there may be a short period of production
+unavailability due to the pod deployment.
+
+Create an `X.Y.Z` tag based off of the `release-X.Y.Z` branch via the
+[releases](https://github.com/RedHatProductSecurity/osidb/releases) page on GitHub.
+The Changelog should be copied into the release's description so its release link
+can then be used for the new release announcements. The production deployment
+should then happen automatically which can be observed by the changed version
+shown at the WebUI - consult the OPS repository documentation otherwise.
+
+Once everything has been correctly deployed, send the release announcement.
+Finally, make sure to create a PR against `master` branch in which the source
+is the `release-X.Y.Z` branch, to guarantee that the next versions include
+ the correct [CHANGELOG](../CHANGELOG.md).
 
 ## Makefile
 
