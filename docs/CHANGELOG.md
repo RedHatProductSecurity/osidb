@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduce moderate tracker streams pre-selection (OSIDB-3346)
 - Introduce minor and 0-day incident types (OSIDB-3390)
 
+### Changed
+- Tracker validations show affect's module/component (OSIDB-3439)
+
 ### Fixed
 - Rework and complete the tracker stream pre-selection module to fix it
 - Exclude unsupported PS modules from tracker file offer (OSIDB-3498)
