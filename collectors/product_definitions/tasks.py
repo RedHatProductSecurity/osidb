@@ -6,8 +6,8 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 from collectors.framework.models import collector
-from osidb.dmodels import PsModule, PsProduct
-from osidb.models import PsContact, PsUpdateStream
+from osidb.dmodels import PsContact, PsModule, PsProduct
+from osidb.models import PsUpdateStream
 
 from .core import (
     PRODUCT_DEFINITIONS_URL,

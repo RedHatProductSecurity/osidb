@@ -3230,19 +3230,6 @@ class PackageVer(models.Model):
     version = models.CharField(max_length=1024)
 
 
-class PsContact(NullStrFieldsMixin, ValidateMixin):
-
-    # internal primary key
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    # base RedHat username, also known as id in SFM2
-    username = models.CharField(max_length=100, unique=True)
-
-    # BTS usernames
-    bz_username = models.CharField(max_length=100, blank=True)
-    jboss_username = models.CharField(max_length=100, blank=True)
-
-
 class Profile(models.Model):
     user = models.OneToOneField(
         User,
