@@ -3,9 +3,9 @@ from typing import Type
 import pytest
 from django.db import models
 
-from osidb.dmodels import PsProduct
+from osidb.dmodels import PsModule, PsProduct
 from osidb.helpers import get_model_fields
-from osidb.models import PsContact, PsModule, PsUpdateStream
+from osidb.models import PsContact, PsUpdateStream
 
 from ..constants import PROPERTIES_MAP
 from ..core import (

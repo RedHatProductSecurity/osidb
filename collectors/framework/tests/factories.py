@@ -3,8 +3,8 @@ from celery.schedules import crontab
 from pytz import UTC
 
 from collectors.framework.models import CollectorMetadata
-from osidb.dmodels import PsProduct
-from osidb.models import Affect, Flaw, PsModule, PsUpdateStream, Tracker
+from osidb.dmodels import PsModule, PsProduct
+from osidb.models import Affect, Flaw, PsUpdateStream, Tracker
 
 
 class CollectorMetadataFactory(factory.django.DjangoModelFactory):
