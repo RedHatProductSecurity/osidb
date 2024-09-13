@@ -26,15 +26,7 @@ from apps.trackers.jira.query import (
 )
 from apps.trackers.models import JiraProjectFields
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
-from osidb.models import (
-    Affect,
-    CompliancePriority,
-    ContractPriority,
-    Flaw,
-    Impact,
-    PsUpdateStream,
-    Tracker,
-)
+from osidb.models import Affect, Flaw, Impact, PsUpdateStream, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -312,99 +304,6 @@ class TestOldTrackerJiraQueryBuilder:
         assert "flaw:bz#" not in labels
         assert len(labels) == len(expected_labels)
         assert sorted(labels) == sorted(expected_labels)
-
-    def test_generate_label_contract_priority(self):
-        """
-        test that the query for the Jira label contract-priority is generated correctly
-        """
-        flaw1 = FlawFactory(bz_id="42", cve_id="CVE-2000-2000")
-        ps_module = PsModuleFactory(bts_name="jboss")
-        affect1 = AffectFactory(
-            flaw=flaw1,
-            ps_module=ps_module.name,
-            ps_component="component",
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-        )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
-        tracker = TrackerFactory(
-            affects=[affect1],
-            type=Tracker.TrackerType.JIRA,
-            ps_update_stream=ps_update_stream.name,
-            embargoed=flaw1.is_embargoed,
-        )
-        ContractPriority(ps_update_stream=ps_update_stream.name).save()
-
-        query_builder = OldTrackerJiraQueryBuilder(tracker)
-        query_builder._query = {"fields": {}}
-        query_builder.generate_labels()
-
-        labels = query_builder.query["fields"]["labels"]
-        assert "contract-priority" in labels
-        assert "SecurityTracking" in labels
-        assert "Security" in labels
-        assert "pscomponent:component" in labels
-        assert "CVE-2000-2000" in labels
-        assert "flaw:bz#42" in labels
-        assert f"flawuuid:{flaw1}" in labels
-        assert len(labels) == 7
-
-    @pytest.mark.parametrize(
-        "impact,yml_components",
-        [
-            (Impact.LOW, []),
-            (Impact.MODERATE, []),
-            (Impact.IMPORTANT, ["dummy_value", "component"]),
-            (Impact.IMPORTANT, ["dummy_value", "foobar"]),
-            (Impact.CRITICAL, []),
-        ],
-    )
-    def test_generate_label_compliance_priority(self, impact, yml_components):
-        """
-        test that the query for the Jira label compliance-priority is generated correctly
-        """
-        flaw1 = FlawFactory(bz_id="42", cve_id="CVE-2000-2000", impact=impact)
-        ps_module = PsModuleFactory(bts_name="jboss")
-        affect1 = AffectFactory(
-            flaw=flaw1,
-            ps_module=ps_module.name,
-            ps_component="component",
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            impact=impact,
-        )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
-        tracker = TrackerFactory(
-            affects=[affect1],
-            type=Tracker.TrackerType.JIRA,
-            ps_update_stream=ps_update_stream.name,
-            embargoed=flaw1.is_embargoed,
-        )
-        ContractPriority(ps_update_stream=ps_update_stream.name).save()
-        CompliancePriority(
-            ps_module=ps_module.name,
-            components=yml_components,
-            streams=["dummy_value", ps_update_stream.name],
-        ).save()
-
-        query_builder = OldTrackerJiraQueryBuilder(tracker)
-        query_builder._query = {"fields": {}}
-        query_builder.generate_labels()
-
-        labels = query_builder.query["fields"]["labels"]
-        assert "contract-priority" in labels
-        assert "SecurityTracking" in labels
-        assert "Security" in labels
-        assert "pscomponent:component" in labels
-        assert "CVE-2000-2000" in labels
-        assert "flaw:bz#42" in labels
-        assert f"flawuuid:{flaw1}" in labels
-        if impact == "LOW" or "foobar" in yml_components:
-            assert "compliance-priority" not in labels
-            assert len(labels) == 7
-        else:
-            assert "compliance-priority" in labels
-            assert len(labels) == 8
 
     @pytest.mark.parametrize(
         "external_system_id, affectedness, preexisting_val_req_lbl, result_val_req_lbl",
@@ -1148,8 +1047,6 @@ def jira_vulnissuetype_fields_setup_without_severity():
         allowed_values=[
             "Major Incident",
             "KEV (active exploit case)",
-            "Compliance Priority",
-            "Contract Priority",
         ],
     ).save()
 

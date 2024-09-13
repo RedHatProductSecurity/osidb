@@ -3,7 +3,6 @@ from osidb.models import Affect, Impact, PsModule
 
 class ProductDefinitionRules:
     def __init__(self) -> None:
-        from .fedramp_handler import FedrampHandler
         from .ubi_handler import UBIHandler
         from .unacked_handler import UnackedHandler
 
@@ -11,7 +10,6 @@ class ProductDefinitionRules:
         self.handlers = [
             UnackedHandler(),
             UBIHandler(),
-            FedrampHandler(),
         ]
 
     def file_tracker_offers(

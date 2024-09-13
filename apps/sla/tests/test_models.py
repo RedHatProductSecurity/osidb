@@ -3,11 +3,12 @@ from django.utils.timezone import datetime, make_aware, timedelta
 
 from apps.sla.models import SLA, SLAContext, SLAPolicy
 from apps.sla.time import add_business_days, add_days
-from osidb.models import Affect, CompliancePriority, Flaw, Impact, Tracker
+from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
     PsModuleFactory,
+    PsProductFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
 )
@@ -606,19 +607,19 @@ class TestSLAPolicy:
                 ),
                 (
                     {
-                        "affect": ["is compliance priority"],
+                        "affect": ["is community"],
                         "flaw": [
                             "major incident state is approved",
                             "is not embargoed",
                         ],
                     },
-                    ["is compliance priority"],
+                    ["is community"],
                     ["major incident state is approved", "is not embargoed"],
                     [],
                 ),
                 (
                     {
-                        "affect": ["is compliance priority"],
+                        "affect": ["is community"],
                         "flaw": [
                             "major incident state is approved",
                             "is not embargoed",
@@ -626,7 +627,7 @@ class TestSLAPolicy:
                         ],
                         "tracker": ["aggregated impact is critical"],
                     },
-                    ["is compliance priority"],
+                    ["is community"],
                     [
                         "major incident state is approved",
                         "is not embargoed",
@@ -636,9 +637,9 @@ class TestSLAPolicy:
                 ),
                 (
                     {
-                        "affect": ["is compliance priority"],
+                        "affect": ["is community"],
                     },
-                    ["is compliance priority"],
+                    ["is community"],
                     [],
                     [],
                 ),
@@ -696,7 +697,7 @@ class TestSLAPolicy:
                 "description": "there is no better",
                 "conditions": {
                     "affect": [
-                        "is compliance priority",
+                        "is community",
                     ],
                     "flaw": [
                         "major incident state is approved",
@@ -720,7 +721,8 @@ class TestSLAPolicy:
                 major_incident_state=Flaw.FlawMajorIncident.APPROVED,
                 impact=Impact.LOW,
             )
-            ps_module = PsModuleFactory()
+            ps_product = PsProductFactory(business_unit="Community")
+            ps_module = PsModuleFactory(ps_product=ps_product)
             affect = AffectFactory(
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
@@ -728,11 +730,6 @@ class TestSLAPolicy:
                 ps_module=ps_module.name,
                 impact=Impact.MODERATE,
             )
-            CompliancePriority(
-                ps_module=ps_module.name,
-                components=[affect.ps_component],
-                streams=["dummy_value"],
-            ).save()
             tracker = TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.embargoed,
@@ -758,7 +755,7 @@ class TestSLAPolicy:
                 "conditions": {
                     "affect": [
                         "aggregated impact is moderate",
-                        "is compliance priority",
+                        "is community",
                         "ps_component is dnf",
                     ],
                     "flaw": [
@@ -788,7 +785,8 @@ class TestSLAPolicy:
                 impact=Impact.IMPORTANT,
                 title="test",
             )
-            ps_module = PsModuleFactory()
+            ps_product = PsProductFactory(business_unit="Community")
+            ps_module = PsModuleFactory(ps_product=ps_product)
             affect1 = AffectFactory(
                 flaw=flaw1,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
@@ -797,11 +795,6 @@ class TestSLAPolicy:
                 ps_component="dnf",
                 impact=Impact.MODERATE,
             )
-            CompliancePriority(
-                ps_module=ps_module.name,
-                components=[affect1.ps_component],
-                streams=["dummy_value"],
-            ).save()
             affect2 = AffectFactory(
                 flaw=flaw2,
                 affectedness=Affect.AffectAffectedness.AFFECTED,

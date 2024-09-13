@@ -4,14 +4,7 @@ Test cases for tracker suggestion generation
 
 import pytest
 
-from osidb.models import (
-    Affect,
-    CompliancePriority,
-    Flaw,
-    Impact,
-    PsUpdateStream,
-    UbiPackage,
-)
+from osidb.models import Affect, Flaw, Impact, PsUpdateStream, UbiPackage
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -363,161 +356,13 @@ class TestTrackerSuggestions:
             and streams_dict["regular-stream-1.0"]["selected"]
         )
 
-    def test_trackers_file_offer_fedramp(
-        self, user_token, auth_client, test_app_api_uri
-    ):
-        """
-        Test auto tracker auto filing defined in product
-        definition rules related to fedramp special rules
-
-        POST -> /file
-        """
-
-        # First show mostly baseline behavior (only unacked_handler active) to establish
-        # how /file works in a way understandable for a rookie OSIDB developer.
-        # The structure of the PsUpdateStreams is similar to RHEL.
-
-        flaw = FlawFactory(
-            embargoed=False,
-            impact=Impact.MODERATE,
-            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
-        )
-        ps_module_regular = PsModuleFactory(name="regular-module")
-        AffectFactory(
-            impact=Impact.MODERATE,
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_component="component-1",
-            ps_module="regular-module",
-        )
-        PsUpdateStream(
-            name="regular-stream-1",
-            ps_module=ps_module_regular,
-            active_to_ps_module=ps_module_regular,
-            unacked_to_ps_module=ps_module_regular,
-        ).save()
-        PsUpdateStream(
-            name="regular-stream-1.0",
-            ps_module=ps_module_regular,
-        ).save()
-        PsUpdateStream(
-            name="regular-stream-1.0.z",
-            ps_module=ps_module_regular,
-            active_to_ps_module=ps_module_regular,
-            aus_to_ps_module=ps_module_regular,
-        ).save()
-        PsUpdateStream(
-            name="regular-stream-1.1",
-            ps_module=ps_module_regular,
-        ).save()
-        PsUpdateStream(
-            name="regular-stream-1.1.z",
-            ps_module=ps_module_regular,
-            active_to_ps_module=ps_module_regular,
-            default_to_ps_module=ps_module_regular,
-        ).save()
-        PsUpdateStream(
-            name="regular-stream-1.2",
-            ps_module=ps_module_regular,
-        ).save()
-        PsUpdateStream(
-            name="regular-stream-1.2.z",
-            ps_module=ps_module_regular,
-            active_to_ps_module=ps_module_regular,
-            default_to_ps_module=ps_module_regular,
-        ).save()
-        PsUpdateStream(
-            name="regular-stream-1.3",
-            ps_module=ps_module_regular,
-        ).save()
-        PsUpdateStream(
-            name="regular-stream-1.3.z",
-            ps_module=ps_module_regular,
-            active_to_ps_module=ps_module_regular,
-            default_to_ps_module=ps_module_regular,
-        ).save()
-
-        headers = {"HTTP_JiraAuthentication": user_token}
-        response = auth_client().post(
-            f"{test_app_api_uri}/file",
-            data={"flaw_uuids": [flaw.uuid]},
-            format="json",
-            **headers,
-        )
-        res = response.json()
-
-        assert len(res["not_applicable"]) == 0
-        assert len(res["modules_components"]) == 1
-
-        streams = res["modules_components"][0]["streams"]
-        assert sorted([stream["ps_update_stream"] for stream in streams]) == sorted(
-            [
-                "regular-stream-1",
-                "regular-stream-1.0.z",
-                "regular-stream-1.1.z",
-                "regular-stream-1.2.z",
-                "regular-stream-1.3.z",
-            ]
-        )
-
-        streams_dict = {stream["ps_update_stream"]: stream for stream in streams}
-
-        assert not streams_dict["regular-stream-1.0.z"]["selected"]
-        assert not streams_dict["regular-stream-1.1.z"]["selected"]
-        assert not streams_dict["regular-stream-1.2.z"]["selected"]
-        assert not streams_dict["regular-stream-1.3.z"]["selected"]
-        # Unacked stream
-        assert streams_dict["regular-stream-1"]["selected"]
-
-        # Second, add a compliance-priority.yml entry.
-        # The fedramp_handler should take over and unacked_handler shouldn't be active anymore.
-
-        CompliancePriority(
-            ps_module=ps_module_regular.name,
-            components=["component-0", "component-1", "component-2"],
-            streams=["regular-stream-1.1.z", "regular-stream-1.3.z"],
-        ).save()
-
-        response = auth_client().post(
-            f"{test_app_api_uri}/file",
-            data={"flaw_uuids": [flaw.uuid]},
-            format="json",
-            **headers,
-        )
-        res = response.json()
-
-        assert len(res["not_applicable"]) == 0
-        assert len(res["modules_components"]) == 1
-
-        streams = res["modules_components"][0]["streams"]
-        assert sorted([stream["ps_update_stream"] for stream in streams]) == sorted(
-            [
-                "regular-stream-1",
-                "regular-stream-1.0.z",
-                "regular-stream-1.1.z",
-                "regular-stream-1.2.z",
-                "regular-stream-1.3.z",
-            ]
-        )
-
-        streams_dict = {stream["ps_update_stream"]: stream for stream in streams}
-
-        assert not streams_dict["regular-stream-1.0.z"]["selected"]
-        assert streams_dict["regular-stream-1.1.z"]["selected"]
-        assert streams_dict["regular-stream-1.2.z"]["selected"]
-        assert streams_dict["regular-stream-1.3.z"]["selected"]
-
-        # The unacked stream should NOT be selected when fedramp_handler handles the situation
-        assert not streams_dict["regular-stream-1"]["selected"]
-
     @pytest.mark.parametrize(
-        "handled_by_unacked,handled_by_ubi,handled_by_fedramp,major_incident",
+        "handled_by_unacked,handled_by_ubi,major_incident",
         [
-            (True, False, False, False),
-            (True, False, False, True),
-            (False, True, False, False),
-            (False, False, True, False),
+            (True, False, False),
+            (True, False, True),
+            (False, True, False),
+            (False, False, False),
         ],
     )
     def test_trackers_file_offer_handler_shadowing(
@@ -527,7 +372,6 @@ class TestTrackerSuggestions:
         test_app_api_uri,
         handled_by_unacked,
         handled_by_ubi,
-        handled_by_fedramp,
         major_incident,
     ):
         """
@@ -560,23 +404,13 @@ class TestTrackerSuggestions:
 
         # When testing the unacked_handler alone, don't test anything UBI-related.
         # When testing ubi_handler, test that this is treated as a UBI package.
-        # When testing fedramp_handler, test that ubi_handler skips.
-        if handled_by_unacked:
-            ps_module = PsModuleFactory(name="module")
-        if handled_by_ubi or handled_by_fedramp:
+        if handled_by_ubi:
             UbiPackage(name="component-1").save()
             ps_module = PsModuleFactory(
                 name="module", special_handling_features=["ubi_packages"]
             )
-
-        if handled_by_fedramp:
-            # The fedramp_handler should take over and unacked_handler shouldn't be active anymore.
-            # Add a compliance-priority.yml entry.
-            CompliancePriority(
-                ps_module=ps_module.name,
-                components=["component-1"],
-                streams=["stream-2.0"],
-            ).save()
+        else:
+            ps_module = PsModuleFactory(name="module")
 
         PsUpdateStream(
             name="stream-2",
@@ -632,13 +466,6 @@ class TestTrackerSuggestions:
             assert streams_dict["stream-2.0.z"]["selected"]
             assert not streams_dict["stream-2.0"]["selected"]
             # The unacked stream must be deselected when ubi streams are selected.
-            # Ref. sfm2/api/blueprints/tracker_bp.py::trackers_file_offer
-            assert not streams_dict["stream-2"]["selected"]
-
-        if handled_by_fedramp:
-            assert not streams_dict["stream-2.0.z"]["selected"]
-            assert streams_dict["stream-2.0"]["selected"]
-            # The unacked stream must be deselected when fedramp streams are selected.
             # Ref. sfm2/api/blueprints/tracker_bp.py::trackers_file_offer
             assert not streams_dict["stream-2"]["selected"]
 

@@ -3,14 +3,7 @@ import yaml
 from django.utils.timezone import datetime, make_aware, timedelta
 
 from apps.sla.framework import SLAContext, SLAPolicy, sla_classify
-from osidb.models import (
-    Affect,
-    CompliancePriority,
-    Flaw,
-    Impact,
-    PsUpdateStream,
-    Tracker,
-)
+from osidb.models import Affect, Flaw, Impact, PsUpdateStream, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -82,14 +75,12 @@ sla:
             """
             sla_file = """
 ---
-name: Moderate Compliance Priority
+name: Critical
 description: >
-  SLA policy applied to moderate impact on
-  compliance priority module and component
+  SLA policy applied to critical impact
 conditions:
   affect:
-    - aggregated impact is moderate
-    - is compliance priority
+    - aggregated impact is critical
     - is not community
   flaw:
     - is not embargoed
@@ -143,7 +134,7 @@ sla:
             assert SLAPolicy.objects.count() == 3
             sla_policies = SLAPolicy.objects.all()
             # the order matters so check that it is preserved
-            assert sla_policies[0].name == "Moderate Compliance Priority"
+            assert sla_policies[0].name == "Critical"
             assert sla_policies[1].name == "Moderate"
             assert sla_policies[2].name == "Low"
 
@@ -341,13 +332,13 @@ sla:
             assert sla_context.end == flaw1.reported_dt + timedelta(days=mi_duration)
 
         @pytest.mark.parametrize(
-            "is_compliance_priority",
+            "is_closed",
             [
                 (True),
                 (False),
             ],
         )
-        def test_tracker_sla(self, is_compliance_priority):
+        def test_tracker_sla(self, is_closed):
             """
             test that classification work also with an SLA property belonging to the tracker
             """
@@ -371,30 +362,23 @@ sla:
                 active_to_ps_module=ps_module,
                 unacked_to_ps_module=ps_module,
             ).save()
-            if is_compliance_priority:
-                CompliancePriority(
-                    ps_module=ps_module.name,
-                    components=["component-0", "component-1", "component-2"],
-                    streams=["upd-stream-1", "stream-1.3.z"],
-                ).save()
+            status = "CLOSED" if is_closed else "NEW"
             tracker = TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.embargoed,
                 type=Tracker.BTS2TYPE[ps_module.bts_name],
                 ps_update_stream="upd-stream-1",
+                status=status,
             )
-            assert tracker.is_compliance_priority is is_compliance_priority
+            assert tracker.is_closed is is_closed
 
             sla_file = """
-name: policy used for compliance-priority
+name: policy used for closed trackers
 description: >
-  See real Compliance Priority policies in sla.yml.
-  This test tests that the tracker's .is_compliance_priority
-  is evaluated. It doesn't test the advance "sla:" options
-  used in the real sla.yml file.
+  this is actually an unrealistic scenario
 conditions:
   tracker:
-    - is compliance priority
+    - is closed
   affect:
     - aggregated impact is moderate
     - is not community
@@ -409,7 +393,7 @@ sla:
             load_sla_policies(sla_file)
             sla_context = sla_classify(tracker)
 
-            if is_compliance_priority:
+            if is_closed:
                 assert sla_context.sla
                 assert sla_context.start == flaw.created_dt
                 assert sla_context.end == flaw.created_dt + timedelta(days=5)
