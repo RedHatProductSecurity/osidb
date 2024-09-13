@@ -11,7 +11,7 @@ from pytz import UTC
 
 from osidb.constants import AFFECTEDNESS_VALID_RESOLUTIONS, DATETIME_FMT
 from osidb.core import generate_acls
-from osidb.dmodels import PsModule, PsProduct
+from osidb.dmodels import PsModule, PsProduct, PsUpdateStream
 from osidb.models import (
     CVSS,
     Affect,
@@ -27,7 +27,6 @@ from osidb.models import (
     Package,
     PackageVer,
     PsContact,
-    PsUpdateStream,
     Snippet,
     SpecialConsiderationPackage,
     Tracker,

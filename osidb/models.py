@@ -46,7 +46,7 @@ from apps.trackers.models import JiraBugIssuetype
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.constants import BZ_API_KEY, FLAW_PLACEHOLDER_KEYWORD
 
-from .dmodels import PsModule
+from .dmodels import PsModule, PsUpdateStream
 from .mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -3228,69 +3228,6 @@ class PackageVer(models.Model):
         verbose_name = "Version"
 
     version = models.CharField(max_length=1024)
-
-
-class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
-
-    # internal primary key
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    name = models.CharField(max_length=100, unique=True)
-    version = models.CharField(max_length=50, blank=True)
-    target_release = models.CharField(max_length=50, blank=True)
-    rhsa_sla_applicable = models.BooleanField(default=True)
-
-    additional_fields = models.JSONField(default=dict, blank=True)
-    collections = fields.ArrayField(models.TextField(), default=list, blank=True)
-    flags = fields.ArrayField(models.TextField(), default=list, blank=True)
-
-    # related PS Module
-    ps_module = models.ForeignKey(
-        PsModule,
-        on_delete=models.SET_NULL,
-        related_name="ps_update_streams",
-        null=True,
-        blank=True,
-    )
-
-    # special PS Module relations
-    active_to_ps_module = models.ForeignKey(
-        PsModule,
-        on_delete=models.SET_NULL,
-        related_name="active_ps_update_streams",
-        null=True,
-        blank=True,
-    )
-    default_to_ps_module = models.ForeignKey(
-        PsModule,
-        on_delete=models.SET_NULL,
-        related_name="default_ps_update_streams",
-        null=True,
-        blank=True,
-    )
-    aus_to_ps_module = models.ForeignKey(
-        PsModule,
-        on_delete=models.SET_NULL,
-        related_name="aus_ps_update_streams",
-        null=True,
-        blank=True,
-    )
-    eus_to_ps_module = models.ForeignKey(
-        PsModule,
-        on_delete=models.SET_NULL,
-        related_name="eus_ps_update_streams",
-        null=True,
-        blank=True,
-    )
-    # there is only one unacked PS update stream
-    # but let us link it the same way so it is unified
-    unacked_to_ps_module = models.ForeignKey(
-        PsModule,
-        on_delete=models.SET_NULL,
-        related_name="unacked_ps_update_stream",
-        null=True,
-        blank=True,
-    )
 
 
 class PsContact(NullStrFieldsMixin, ValidateMixin):
