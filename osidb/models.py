@@ -46,6 +46,7 @@ from apps.trackers.models import JiraBugIssuetype
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.constants import BZ_API_KEY, FLAW_PLACEHOLDER_KEYWORD
 
+from .dmodels import PsProduct
 from .helpers import ps_update_stream_natural_keys
 from .mixins import (
     ACLMixin,
@@ -3228,31 +3229,6 @@ class PackageVer(models.Model):
         verbose_name = "Version"
 
     version = models.CharField(max_length=1024)
-
-
-class PsProduct(models.Model):
-
-    # internal primary key
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    # short name of the product, also known as product id from SFM2
-    short_name = models.CharField(max_length=50, unique=True)
-
-    # name of the product
-    name = models.CharField(max_length=100)
-
-    # team responsible for the product
-    team = models.CharField(max_length=50)
-
-    # the business unit to which the product belongs
-    business_unit = models.CharField(max_length=50)
-
-    @property
-    def is_community(self):
-        """
-        is community boolean property
-        """
-        return self.business_unit == "Community"
 
 
 class PsModule(NullStrFieldsMixin, ValidateMixin):

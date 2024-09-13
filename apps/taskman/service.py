@@ -13,8 +13,9 @@ from rest_framework.response import Response
 
 from apps.trackers.jira.query import JiraPriority
 from collectors.jiraffe.core import JiraQuerier
+from osidb.dmodels import PsProduct
 from osidb.helpers import safe_get_response_content
-from osidb.models import Flaw, Impact, PsProduct
+from osidb.models import Flaw, Impact
 
 from .constants import JIRA_TASKMAN_PROJECT_KEY, JIRA_TASKMAN_URL
 from .exceptions import (
