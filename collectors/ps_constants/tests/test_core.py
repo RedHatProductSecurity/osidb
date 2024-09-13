@@ -7,7 +7,7 @@ from collectors.ps_constants.core import (
     sync_special_consideration_packages,
     sync_ubi_packages,
 )
-from osidb.models import SpecialConsiderationPackage, UbiPackage
+from osidb.dmodels import SpecialConsiderationPackage, UbiPackage
 
 pytestmark = pytest.mark.unit
 

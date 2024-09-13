@@ -45,7 +45,7 @@ from apps.trackers.models import JiraBugIssuetype
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.constants import BZ_API_KEY, FLAW_PLACEHOLDER_KEYWORD
 
-from .dmodels import PsModule, PsUpdateStream
+from .dmodels import PsModule, PsUpdateStream, SpecialConsiderationPackage
 from .mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -3227,36 +3227,6 @@ class PackageVer(models.Model):
         verbose_name = "Version"
 
     version = models.CharField(max_length=1024)
-
-
-class UbiPackage(models.Model):
-    """
-    An instance of this model represents one
-    entry in ubi packages list from PS_Constant project
-    """
-
-    # internal primary key
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    # PsComponent name
-    name = models.CharField(max_length=255)
-
-    # major stream name (e.g. 'rhel-9') - Relates to PsUpdateStream any starting with this string (e.g. ['rhel-9', 'rhel-9.0', 'rhel-9.0.0.z])
-    major_stream_version = models.CharField(max_length=100)
-
-
-class SpecialConsiderationPackage(models.Model):
-    """
-    An instance of this model represents one
-    entry in special consideration packages list
-    from PS_Constant project
-    """
-
-    # internal primary key
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    # PsComponent name
-    name = models.CharField(max_length=255, unique=True)
 
 
 from apps.bbsync.cc import AffectCCBuilder, RHSCLAffectCCBuilder  # noqa: E402
