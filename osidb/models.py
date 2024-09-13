@@ -8,7 +8,6 @@ from typing import Union
 
 import pghistory
 from cvss import CVSS2, CVSS3, CVSS4, CVSSError
-from django.contrib.auth.models import User
 from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import (
@@ -3228,24 +3227,6 @@ class PackageVer(models.Model):
         verbose_name = "Version"
 
     version = models.CharField(max_length=1024)
-
-
-class Profile(models.Model):
-    user = models.OneToOneField(
-        User,
-        primary_key=True,
-        on_delete=models.CASCADE,
-        related_name="profile",
-    )
-    bz_user_id = models.CharField(max_length=100, blank=True)
-    jira_user_id = models.CharField(max_length=100, blank=True)
-
-    @property
-    def username(self):
-        return self.user.username
-
-    def __str__(self):
-        return self.username
 
 
 class UbiPackage(models.Model):

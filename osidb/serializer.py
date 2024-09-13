@@ -22,6 +22,7 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FIELDS
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.serializers import WorkflowModelSerializer
+from osidb.dmodels import Profile
 
 from .core import generate_acls
 from .exceptions import DataInconsistencyException
@@ -40,7 +41,6 @@ from .models import (
     Impact,
     Package,
     PackageVer,
-    Profile,
     PsUpdateStream,
     Tracker,
 )
