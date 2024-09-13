@@ -6,6 +6,8 @@ from .ps_product import PsProduct
 from .ps_update_stream import PsUpdateStream
 
 __all__ = (
+    # package versions cannot be added here
+    # as it would make a cycle with Flaw import
     "Profile",
     "PsContact",
     "PsModule",

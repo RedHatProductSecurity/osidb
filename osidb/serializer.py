@@ -23,6 +23,7 @@ from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FI
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.serializers import WorkflowModelSerializer
 from osidb.dmodels import Profile
+from osidb.dmodels.package_versions import Package, PackageVer
 
 from .core import generate_acls
 from .exceptions import DataInconsistencyException
@@ -39,8 +40,6 @@ from .models import (
     FlawCVSS,
     FlawReference,
     Impact,
-    Package,
-    PackageVer,
     PsUpdateStream,
     Tracker,
 )

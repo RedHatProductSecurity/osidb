@@ -19,6 +19,7 @@ from djangoql.queryset import apply_search
 from djangoql.schema import DjangoQLSchema
 
 from apps.workflows.workflow import WorkflowModel
+from osidb.dmodels.package_versions import Package
 
 from .mixins import Alert
 from .models import (
@@ -29,7 +30,6 @@ from .models import (
     FlawComment,
     FlawCVSS,
     FlawReference,
-    Package,
     Tracker,
     search_helper,
 )

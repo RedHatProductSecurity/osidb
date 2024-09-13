@@ -18,6 +18,7 @@ from osidb.dmodels import (
     PsUpdateStream,
     SpecialConsiderationPackage,
 )
+from osidb.dmodels.package_versions import Package, PackageVer
 from osidb.models import (
     CVSS,
     Affect,
@@ -30,8 +31,6 @@ from osidb.models import (
     FlawReference,
     FlawSource,
     Impact,
-    Package,
-    PackageVer,
     Snippet,
     Tracker,
 )
