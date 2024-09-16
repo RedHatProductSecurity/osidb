@@ -4,7 +4,8 @@ Test cases for tracker suggestion generation
 
 import pytest
 
-from osidb.models import Affect, Flaw, Impact, PsUpdateStream, UbiPackage
+from osidb.dmodels import PsUpdateStream, UbiPackage
+from osidb.models import Affect, Flaw, Impact
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,

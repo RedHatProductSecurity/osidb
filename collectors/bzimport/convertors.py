@@ -15,6 +15,7 @@ from django.utils import timezone
 from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
 from collectors.jiraffe.convertors import TrackerConvertor
 from osidb.core import generate_acls, set_user_acls
+from osidb.dmodels.package_versions import Package, PackageVer
 from osidb.helpers import filter_cves
 from osidb.mixins import AlertMixin, TrackingMixin
 from osidb.models import (
@@ -25,8 +26,6 @@ from osidb.models import (
     FlawComment,
     FlawCVSS,
     FlawReference,
-    Package,
-    PackageVer,
     Tracker,
 )
 

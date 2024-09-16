@@ -12,8 +12,9 @@ from apps.trackers.constants import (
 )
 from apps.trackers.exceptions import TrackerCreationError
 from collectors.bzimport.constants import BZ_URL
+from osidb.dmodels import PsModule, PsUpdateStream
 from osidb.helpers import cve_id_comparator
-from osidb.models import Flaw, PsModule, PsUpdateStream, Tracker
+from osidb.models import Flaw, Tracker
 
 
 class TrackerQueryBuilder:

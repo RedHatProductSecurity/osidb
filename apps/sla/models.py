@@ -7,7 +7,8 @@ from functools import cached_property
 from django.db import models
 
 from apps.workflows.models import Check
-from osidb.models import Affect, Flaw, PsUpdateStream, Tracker
+from osidb.dmodels import PsUpdateStream
+from osidb.models import Affect, Flaw, Tracker
 
 from .exceptions import SLAExecutionError
 from .time import add_business_days, add_days

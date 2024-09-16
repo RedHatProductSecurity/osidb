@@ -8,7 +8,7 @@ from requests_gssapi import HTTPSPNEGOAuth
 
 from apps.sla.models import SLA, SLAPolicy
 from apps.trackers.models import JiraBugIssuetype
-from osidb.models import SpecialConsiderationPackage, UbiPackage
+from osidb.dmodels import SpecialConsiderationPackage, UbiPackage
 
 logger = logging.getLogger(__name__)
 

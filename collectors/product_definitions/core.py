@@ -6,8 +6,9 @@ from django.db import transaction
 from django.utils.timezone import datetime, make_aware
 from requests_gssapi import HTTPSPNEGOAuth
 
+from osidb.dmodels import PsContact, PsModule, PsProduct
 from osidb.helpers import ensure_list, get_model_fields
-from osidb.models import PsContact, PsModule, PsProduct, PsUpdateStream
+from osidb.models import PsUpdateStream
 
 from .constants import (
     PRODUCT_DEFINITIONS_REPO_BRANCH,
