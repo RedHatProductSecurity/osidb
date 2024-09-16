@@ -375,14 +375,14 @@ class BZTrackerDownloadManager(SyncManager):
             collector.free_queriers()
 
     def update_synced_links(self):
-        from osidb.models import Tracker
+        from osidb.dmodels.tracker import Tracker
 
         Tracker.objects.filter(external_system_id=self.sync_id).update(
             bz_download_manager=self
         )
 
     def __str__(self):
-        from osidb.models import Tracker
+        from osidb.dmodels.tracker import Tracker
 
         result = super().__str__()
 
@@ -403,7 +403,8 @@ class BZTrackerLinkManager(SyncManager):
     def link_tracker_with_affects(tracker_id):
         # Code adapted from collectors.bzimport.convertors.BugzillaTrackerConvertor.affects
 
-        from osidb.models import Affect, Flaw, Tracker
+        from osidb.dmodels.tracker import Tracker
+        from osidb.models import Affect, Flaw
 
         tracker = Tracker.objects.get(external_system_id=tracker_id)
 
@@ -517,7 +518,7 @@ class BZTrackerLinkManager(SyncManager):
                 BZTrackerLinkManager.finished(tracker_id)
 
     def update_synced_links(self):
-        from osidb.models import Tracker
+        from osidb.dmodels.tracker import Tracker
 
         Tracker.objects.filter(external_system_id=self.sync_id).update(
             bz_link_manager=self
@@ -718,14 +719,14 @@ class JiraTrackerDownloadManager(SyncManager):
             JiraTrackerDownloadManager.finished(tracker_id)
 
     def update_synced_links(self):
-        from osidb.models import Tracker
+        from osidb.dmodels.tracker import Tracker
 
         Tracker.objects.filter(external_system_id=self.sync_id).update(
             jira_download_manager=self
         )
 
     def __str__(self):
-        from osidb.models import Tracker
+        from osidb.dmodels.tracker import Tracker
 
         result = super().__str__()
 
@@ -747,7 +748,8 @@ class JiraTrackerLinkManager(SyncManager):
         # Code adapted from collectors.jiraffe.convertors.JiraTrackerConvertor.affects
 
         from collectors.jiraffe.constants import JIRA_BZ_ID_LABEL_RE
-        from osidb.models import Affect, Flaw, Tracker
+        from osidb.dmodels.tracker import Tracker
+        from osidb.models import Affect, Flaw
         from osidb.validators import CVE_RE_STR
 
         tracker = Tracker.objects.get(external_system_id=tracker_id)
@@ -857,7 +859,7 @@ class JiraTrackerLinkManager(SyncManager):
                 JiraTrackerLinkManager.finished(tracker_id)
 
     def update_synced_links(self):
-        from osidb.models import Tracker
+        from osidb.dmodels.tracker import Tracker
 
         Tracker.objects.filter(external_system_id=self.sync_id).update(
             jira_link_manager=self

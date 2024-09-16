@@ -8,7 +8,8 @@ from django.db import models
 
 from apps.workflows.models import Check
 from osidb.dmodels import PsUpdateStream
-from osidb.models import Affect, Flaw, Tracker
+from osidb.dmodels.tracker import Tracker
+from osidb.models import Affect, Flaw
 
 from .exceptions import SLAExecutionError
 from .time import add_business_days, add_days

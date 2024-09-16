@@ -24,7 +24,8 @@ from collectors.jiraffe.core import JiraQuerier
 from collectors.jiraffe.exceptions import (
     MetadataCollectorInsufficientDataJiraffeException,
 )
-from osidb.models import Affect, Flaw, Impact, Tracker
+from osidb.dmodels.tracker import Tracker
+from osidb.models import Affect, Flaw, Impact
 from osidb.sync_manager import JiraTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,

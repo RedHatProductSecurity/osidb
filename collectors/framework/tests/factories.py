@@ -4,7 +4,8 @@ from pytz import UTC
 
 from collectors.framework.models import CollectorMetadata
 from osidb.dmodels import PsModule, PsProduct, PsUpdateStream
-from osidb.models import Affect, Flaw, Tracker
+from osidb.dmodels.tracker import Tracker
+from osidb.models import Affect, Flaw
 
 
 class CollectorMetadataFactory(factory.django.DjangoModelFactory):

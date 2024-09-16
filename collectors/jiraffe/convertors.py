@@ -13,7 +13,8 @@ from django.db import transaction
 
 from apps.workflows.workflow import WorkflowFramework
 from osidb.core import generate_acls, set_user_acls
-from osidb.models import Flaw, Tracker
+from osidb.dmodels.tracker import Tracker
+from osidb.models import Flaw
 from osidb.validators import CVE_RE_STR
 
 from ..utils import (

@@ -8,7 +8,8 @@ from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.collectors import BugzillaQuerier, MetadataCollector
 from collectors.bzimport.constants import BZ_DT_FMT
 from osidb.dmodels.package_versions import Package
-from osidb.models import Affect, Flaw, FlawComment, Tracker
+from osidb.dmodels.tracker import Tracker
+from osidb.models import Affect, Flaw, FlawComment
 from osidb.sync_manager import BZTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,

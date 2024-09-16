@@ -2,7 +2,7 @@
 Bugzilla tracker funtionality module
 """
 from apps.bbsync.save import BugzillaSaver
-from osidb.models import Tracker
+from osidb.dmodels.tracker import Tracker
 
 from .query import TrackerBugzillaQueryBuilder
 

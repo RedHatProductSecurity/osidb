@@ -17,5 +17,7 @@ __all__ = (
     "PsProduct",
     "PsUpdateStream",
     "SpecialConsiderationPackage",
+    # Tracker cannot be added here
+    # as it would make a cycle with Affect and Flaw import
     "UbiPackage",
 )

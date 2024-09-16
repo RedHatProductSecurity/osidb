@@ -5,7 +5,8 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
-from osidb.models import Affect, Tracker
+from osidb.dmodels.tracker import Tracker
+from osidb.models import Affect
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
