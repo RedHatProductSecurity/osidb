@@ -5,7 +5,7 @@ from celery.schedules import crontab
 from celery.utils.log import get_task_logger
 
 from collectors.framework.models import collector
-from osidb.models import Erratum
+from osidb.dmodels.erratum import Erratum
 
 from .constants import ERRATA_COLLECTOR_ENABLED, ERRATA_TOOL_SERVER
 from .core import (

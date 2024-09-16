@@ -18,12 +18,12 @@ from osidb.dmodels import (
     PsUpdateStream,
     SpecialConsiderationPackage,
 )
+from osidb.dmodels.erratum import Erratum
 from osidb.dmodels.package_versions import Package, PackageVer
 from osidb.models import (
     CVSS,
     Affect,
     AffectCVSS,
-    Erratum,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
