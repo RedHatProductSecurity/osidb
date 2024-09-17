@@ -8,7 +8,8 @@ from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.workflow import WorkflowModel
 from collectors.framework.models import CollectorMetadata
 from collectors.nvd.collectors import NVDCollector, NVDCollectorException
-from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource, Snippet
+from osidb.dmodels.snippet import Snippet
+from osidb.models import Flaw, FlawCVSS, FlawReference, FlawSource
 from osidb.tests.factories import FlawCVSSFactory, FlawFactory, FlawReferenceFactory
 
 pytestmark = pytest.mark.integration

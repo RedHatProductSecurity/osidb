@@ -463,7 +463,6 @@ class TestFlawDraft:
         """
         test that ACLs are set to public when promoting a flaw draft
         """
-        monkeypatch.setattr(models, "BZ_API_KEY", None)
         monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", self.mock_create_task
@@ -546,7 +545,6 @@ class TestFlawDraft:
         """
         test that ACLs are still set to internal when rejecting a flaw draft
         """
-        monkeypatch.setattr(models, "BZ_API_KEY", None)
         monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", self.mock_create_task

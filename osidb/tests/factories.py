@@ -20,6 +20,7 @@ from osidb.dmodels import (
 )
 from osidb.dmodels.erratum import Erratum
 from osidb.dmodels.package_versions import Package, PackageVer
+from osidb.dmodels.snippet import Snippet
 from osidb.dmodels.tracker import Tracker
 from osidb.models import (
     CVSS,
@@ -32,7 +33,6 @@ from osidb.models import (
     FlawReference,
     FlawSource,
     Impact,
-    Snippet,
 )
 
 DATA_PRODSEC_ACL_READ = uuid.uuid5(
