@@ -10,6 +10,7 @@ from freezegun import freeze_time
 import apps.bbsync.mixins as bz_mixins
 import apps.bbsync.save as bz_save
 import apps.taskman.mixins as task_mixins
+import osidb.dmodels.tracker as tracker
 import osidb.models as models
 import osidb.serializer as serializer
 from apps.taskman.service import JiraTaskmanQuerier
@@ -51,8 +52,8 @@ def enable_sync(monkeypatch):
     monkeypatch.setattr(bz_mixins, "SYNC_TO_BZ", True)
     monkeypatch.setattr(bz_save, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
     monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ", True)
-    monkeypatch.setattr(models, "SYNC_TRACKERS_TO_BZ", True)
-    monkeypatch.setattr(models, "SYNC_TO_JIRA", True)
+    monkeypatch.setattr(tracker, "SYNC_TRACKERS_TO_BZ", True)
+    monkeypatch.setattr(tracker, "SYNC_TO_JIRA", True)
 
 
 def get_acl_read():

@@ -18,12 +18,14 @@ from osidb.dmodels import (
     PsUpdateStream,
     SpecialConsiderationPackage,
 )
+from osidb.dmodels.erratum import Erratum
 from osidb.dmodels.package_versions import Package, PackageVer
+from osidb.dmodels.snippet import Snippet
+from osidb.dmodels.tracker import Tracker
 from osidb.models import (
     CVSS,
     Affect,
     AffectCVSS,
-    Erratum,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
@@ -31,8 +33,6 @@ from osidb.models import (
     FlawReference,
     FlawSource,
     Impact,
-    Snippet,
-    Tracker,
 )
 
 DATA_PRODSEC_ACL_READ = uuid.uuid5(

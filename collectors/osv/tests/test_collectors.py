@@ -6,8 +6,8 @@ from jira.exceptions import JIRAError
 
 from apps.taskman.service import JiraTaskmanQuerier
 from collectors.osv.collectors import OSVCollector, OSVCollectorException
-from osidb import models
-from osidb.models import Flaw, Snippet
+from osidb.dmodels.snippet import Snippet
+from osidb.models import Flaw
 from osidb.tests.factories import FlawFactory
 
 pytestmark = pytest.mark.integration
@@ -136,8 +136,6 @@ class TestOSVCollector:
     @pytest.mark.vcr
     def test_no_bz(self, monkeypatch):
         """Test that external id is included even if BZ sync is disabled."""
-        monkeypatch.setattr(models, "BZ_API_KEY", None)
-
         osv_id = "GHSA-3hwm-922r-47hw"
 
         osvc = OSVCollector()

@@ -10,13 +10,13 @@ from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
 from collectors.jiraffe.collectors import JiraTrackerCollector
+from osidb.dmodels.snippet import Snippet
 from osidb.models import (
     Affect,
     Flaw,
     FlawAcknowledgment,
     FlawCVSS,
     FlawReference,
-    Snippet,
     Tracker,
 )
 from osidb.tests.factories import (
@@ -35,11 +35,12 @@ pytestmark = pytest.mark.integration
 @pytest.fixture(autouse=True)
 def enable_bbsync_env_var(monkeypatch) -> None:
     import apps.bbsync.mixins as mixins
+    import osidb.dmodels.tracker as tracker
     import osidb.models as models
 
     monkeypatch.setattr(mixins, "SYNC_TO_BZ", True)
     monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ", True)
-    monkeypatch.setattr(models, "SYNC_TRACKERS_TO_BZ", True)
+    monkeypatch.setattr(tracker, "SYNC_TRACKERS_TO_BZ", True)
 
 
 class TestBBSyncIntegration:

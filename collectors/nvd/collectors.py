@@ -13,7 +13,8 @@ from collectors.framework.models import Collector
 from collectors.keywords import should_create_snippet
 from collectors.utils import handle_urls
 from osidb.core import set_user_acls
-from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
+from osidb.dmodels.snippet import Snippet
+from osidb.models import Flaw, FlawCVSS, FlawReference
 
 logger = get_task_logger(__name__)
 

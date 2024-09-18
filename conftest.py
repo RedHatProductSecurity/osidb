@@ -226,11 +226,12 @@ def enable_bugzilla_sync(monkeypatch) -> None:
     enable the sync to Bugzilla
     """
     import apps.bbsync.mixins as mixins
+    import osidb.dmodels.tracker as tracker
     import osidb.models as models
 
     monkeypatch.setattr(mixins, "SYNC_TO_BZ", True)
     monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ", True)
-    monkeypatch.setattr(models, "SYNC_TRACKERS_TO_BZ", True)
+    monkeypatch.setattr(tracker, "SYNC_TRACKERS_TO_BZ", True)
 
 
 @pytest.fixture
@@ -238,6 +239,6 @@ def enable_jira_sync(monkeypatch) -> None:
     """
     enable the sync to Jira
     """
-    import osidb.models as models
+    import osidb.dmodels.tracker as tracker
 
-    monkeypatch.setattr(models, "SYNC_TO_JIRA", True)
+    monkeypatch.setattr(tracker, "SYNC_TO_JIRA", True)

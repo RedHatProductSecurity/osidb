@@ -8,7 +8,7 @@ these may eventually be refactored into config/settings
 from osidb.helpers import get_env
 
 # API KEY used when making Bugzilla REST calls
-BZ_API_KEY: str = get_env("BZIMPORT_BZ_API_KEY", default="")
+BZ_API_KEY: str = get_env("BZIMPORT_BZ_API_KEY")
 BZ_URL: str = get_env("BZIMPORT_BZ_URL", default="https://bugzilla.redhat.com")
 
 # enable importing of embargoed data - used by CI, local dev and test envs which have no need to retrieve embargoed flaws

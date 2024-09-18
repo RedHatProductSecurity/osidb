@@ -14,7 +14,8 @@ from apps.trackers.jira.save import TrackerJiraSaver
 from apps.trackers.save import TrackerSaver
 from collectors.bzimport.collectors import BugzillaTrackerCollector
 from collectors.jiraffe.collectors import JiraTrackerCollector
-from osidb.models import Affect, Tracker
+from osidb.dmodels.tracker import Tracker
+from osidb.models import Affect
 from osidb.sync_manager import BZTrackerLinkManager, JiraTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,
