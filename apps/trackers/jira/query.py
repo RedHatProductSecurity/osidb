@@ -598,7 +598,6 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         field_id = field.field_id
         return allowed_values, field_id
 
-    # TODO write tests - tracked in OSIDB-2980
     def generate_cve_severity(self):
         field_name = "CVE Severity"
         # Allowed should be ['Critical', 'Important', 'Moderate', 'Low', 'None']
@@ -617,7 +616,6 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             )
         self._query["fields"][field_id] = {"value": severity}
 
-    # TODO write tests - tracked in OSIDB-2980
     def generate_source(self):
         field_name = "Source"
         allowed_values, field_id = self.field_check_and_get_values_and_id(field_name)
@@ -645,7 +643,6 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             )
         self._query["fields"][field_id] = {"value": choice_found}
 
-    # TODO write tests - tracked in OSIDB-2980
     def generate_cve_id(self):
         field_name = "CVE ID"
         _, field_id = self.field_check_and_get_values_and_id(field_name)
@@ -659,7 +656,6 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             return
         self._query["fields"][field_id] = ", ".join(cves)
 
-    # TODO write tests - tracked in OSIDB-2980
     def generate_cvss_score(self):
         field_name = "CVSS Score"
         _, field_id = self.field_check_and_get_values_and_id(field_name)
@@ -695,7 +691,6 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
 
         self._query["fields"][field_id] = result
 
-    # TODO write tests - tracked in OSIDB-2980
     def generate_cwe_id(self):
         field_name = "CWE ID"
         _, field_id = self.field_check_and_get_values_and_id(field_name)
@@ -709,13 +704,11 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             return
         self._query["fields"][field_id] = cwe_id
 
-    # TODO write tests - tracked in OSIDB-2980
     def generate_downstream_component(self):
         field_name = "Downstream Component Name"
         _, field_id = self.field_check_and_get_values_and_id(field_name)
         self._query["fields"][field_id] = self.tracker.affects.first().ps_component
 
-    # TODO write tests - tracked in OSIDB-2980
     def generate_upstream_component(self):
         # TODO: Every time the components change in the flaw, the trackers must be updated as well.
         #       - tracked in OSIDB-3323
@@ -736,7 +729,6 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
 
         self._query["fields"][field_id] = upstream_component
 
-    # TODO write tests, pay extra attention to testing this; tracked in OSIDB-2980
     def generate_embargo_status(self):
         field_name = "Embargo Status"
         allowed_values, field_id = self.field_check_and_get_values_and_id(field_name)
@@ -760,7 +752,6 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
 
         self._query["fields"][field_id] = {"value": choice_str}
 
-    # TODO write tests - tracked in OSIDB-2980
     def generate_special_handling(self):
         field_name = "Special Handling"
         allowed_values, field_id = self.field_check_and_get_values_and_id(field_name)

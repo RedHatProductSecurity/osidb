@@ -8,7 +8,8 @@ import pytest
 
 from apps.bbsync.save import BugzillaSaver
 from apps.trackers.bugzilla.save import TrackerBugzillaSaver
-from apps.trackers.exceptions import UnsupportedTrackerError
+from apps.trackers.exceptions import BTSException, UnsupportedTrackerError
+from apps.trackers.jira.query import OldTrackerJiraQueryBuilder, TrackerJiraQueryBuilder
 from apps.trackers.jira.save import TrackerJiraSaver
 from apps.trackers.save import TrackerSaver
 from collectors.bzimport.collectors import BugzillaTrackerCollector
@@ -348,3 +349,50 @@ class TestTrackerModelSave:
             assert jira_save_mock.called
             assert jira_load_mock.called
             assert jira_tracker_link_mock.called
+
+
+class TestTrackerJiraSaverIssuetype:
+    """
+    Test handling of jira issuetype in TrackerJiraSaver
+    """
+
+    @pytest.mark.parametrize(
+        "issuetype_param,expected_builder",
+        [
+            (None, OldTrackerJiraQueryBuilder),
+            ("Bug", OldTrackerJiraQueryBuilder),
+            ("Vulnerability", TrackerJiraQueryBuilder),
+            ("Invalid", None),
+        ],
+    )
+    def test_jira_issuetype(self, issuetype_param, expected_builder):
+        """
+        test that the general TrackerSaver turns into TrackerJiraSaver for Jira trackers
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+            ps_component="component",
+        )
+
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        i = TrackerSaver(
+            tracker, jira_token="SECRET", jira_issuetype=issuetype_param
+        )  # nosec
+        assert isinstance(i, TrackerJiraSaver)
+        assert i._jira_issuetype == issuetype_param
+        if expected_builder is not None:
+            assert i.get_builder() is expected_builder
+        else:
+            with pytest.raises(BTSException):
+                i.get_builder()
