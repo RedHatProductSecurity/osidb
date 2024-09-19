@@ -5,8 +5,8 @@ from django.utils import timezone
 from django.utils.timezone import datetime
 from rest_framework import status
 
+from osidb.dmodels.affect import Affect
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Affect
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,

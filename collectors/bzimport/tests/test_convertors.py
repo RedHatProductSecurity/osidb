@@ -5,11 +5,10 @@ from django.utils import timezone
 
 from collectors.bzimport.constants import BZ_DT_FMT
 from collectors.bzimport.convertors import FlawConvertor, FlawSaver
+from osidb.dmodels.affect import Affect, AffectCVSS
 from osidb.dmodels.package_versions import Package, PackageVer
 from osidb.dmodels.tracker import Tracker
 from osidb.models import (
-    Affect,
-    AffectCVSS,
     Flaw,
     FlawAcknowledgment,
     FlawComment,

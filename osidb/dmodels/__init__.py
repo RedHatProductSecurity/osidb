@@ -6,6 +6,9 @@ from .ps_product import PsProduct
 from .ps_update_stream import PsUpdateStream
 
 __all__ = (
+    # Affect cannot be added here
+    # as it would make a cycle with CVSS and Flaw and Impact import
+    #
     # Erratum cannot be added here
     # as it would make a cycle with Tracker import
     #
