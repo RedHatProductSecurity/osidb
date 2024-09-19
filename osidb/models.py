@@ -2458,8 +2458,6 @@ from apps.bbsync.cc import AffectCCBuilder, RHSCLAffectCCBuilder  # noqa: E402
 
 # the following imports are for some reason needed to make
 # Django properly account for the defined many-to-many relation
-from osidb.dmodels.erratum import Erratum  # noqa: E402 F401
-from osidb.dmodels.snippet import Snippet  # noqa: E402 F401
 from osidb.dmodels.tracker import Tracker  # noqa: E402 F401
 
 from .constants import (  # noqa: E402

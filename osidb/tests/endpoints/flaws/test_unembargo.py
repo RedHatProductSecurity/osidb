@@ -6,6 +6,7 @@ from freezegun import freeze_time
 from rest_framework import status
 
 from osidb.dmodels.package_versions import Package
+from osidb.dmodels.tracker import Tracker
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -14,7 +15,6 @@ from osidb.models import (
     FlawComment,
     FlawCVSS,
     FlawReference,
-    Tracker,
 )
 from osidb.tests.factories import (
     AffectCVSSFactory,

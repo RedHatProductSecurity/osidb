@@ -26,6 +26,8 @@ from apps.workflows.serializers import WorkflowModelSerializer
 from osidb.dmodels import Profile
 from osidb.dmodels.erratum import Erratum
 from osidb.dmodels.package_versions import Package, PackageVer
+from osidb.dmodels.ps_update_stream import PsUpdateStream
+from osidb.dmodels.tracker import Tracker
 
 from .core import generate_acls
 from .exceptions import DataInconsistencyException
@@ -41,8 +43,6 @@ from .models import (
     FlawCVSS,
     FlawReference,
     Impact,
-    PsUpdateStream,
-    Tracker,
 )
 
 logger = logging.getLogger(__name__)

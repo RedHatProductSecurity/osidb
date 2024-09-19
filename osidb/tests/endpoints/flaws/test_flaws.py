@@ -10,6 +10,7 @@ from freezegun import freeze_time
 from rest_framework import status
 
 from osidb.core import set_user_acls
+from osidb.dmodels.tracker import Tracker
 from osidb.filters import FlawFilter
 from osidb.models import (
     Affect,
@@ -18,7 +19,6 @@ from osidb.models import (
     FlawCVSS,
     FlawReference,
     FlawSource,
-    Tracker,
 )
 from osidb.tests.factories import (
     AffectFactory,
