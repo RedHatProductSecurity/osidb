@@ -3,8 +3,9 @@ from celery.schedules import crontab
 from django.utils import timezone
 
 from collectors.framework.models import CollectorMetadata, collector
+from osidb.dmodels.affect import Affect
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Affect, Flaw
+from osidb.models import Flaw
 
 pytestmark = pytest.mark.unit
 

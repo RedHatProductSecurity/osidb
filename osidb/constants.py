@@ -9,8 +9,6 @@ import re
 from datetime import timedelta, timezone
 from decimal import Decimal
 
-from .models import Affect
-
 OSIDB_API_VERSION: str = "v1"
 
 # include meta_attr column on all queries (useful for debugging)
@@ -57,36 +55,3 @@ SERVICES_PRODUCTS = [
     "openshift-hosted",
     "hostedservices",
 ]
-
-AFFECTEDNESS_VALID_RESOLUTIONS = {
-    Affect.AffectAffectedness.NEW: [
-        Affect.AffectResolution.NOVALUE,
-        Affect.AffectResolution.DEFER,
-        Affect.AffectResolution.WONTFIX,
-        Affect.AffectResolution.OOSS,
-    ],
-    Affect.AffectAffectedness.AFFECTED: [
-        Affect.AffectResolution.DELEGATED,
-        Affect.AffectResolution.DEFER,
-        Affect.AffectResolution.WONTFIX,
-        Affect.AffectResolution.OOSS,
-    ],
-    Affect.AffectAffectedness.NOTAFFECTED: [
-        Affect.AffectResolution.NOVALUE,
-    ],
-    Affect.AffectAffectedness.NOVALUE: [],
-}
-
-# Historical affectedness/resolution combinations that were valid in the past
-AFFECTEDNESS_HISTORICAL_VALID_RESOLUTIONS = {
-    Affect.AffectAffectedness.NEW: [],
-    Affect.AffectAffectedness.AFFECTED: [
-        Affect.AffectResolution.FIX,
-        Affect.AffectResolution.WONTREPORT,
-    ],
-    Affect.AffectAffectedness.NOTAFFECTED: [],
-    Affect.AffectAffectedness.NOVALUE: [
-        Affect.AffectResolution.DEFER,
-        Affect.AffectResolution.WONTFIX,
-    ],
-}
