@@ -2,7 +2,8 @@ import pytest
 from rest_framework import status
 
 from apps.bbsync.mixins import BugzillaSyncMixin
-from osidb.models import Affect, Flaw, Tracker
+from osidb.dmodels.tracker import Tracker
+from osidb.models import Affect, Flaw
 from osidb.tests.factories import (
     AffectFactory,
     PsModuleFactory,
