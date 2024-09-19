@@ -6,7 +6,8 @@ from typing import Any, List, Tuple
 
 from django.utils.timezone import make_aware
 
-from osidb.models import Affect, Flaw, FlawSource, Impact
+from osidb.dmodels.affect import Affect
+from osidb.models import Flaw, FlawSource, Impact
 
 
 class AffectFixer:

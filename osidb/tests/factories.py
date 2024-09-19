@@ -9,7 +9,7 @@ from cvss.constants4 import METRICS_VALUE_NAMES as CVSS4_METRICS_VALUE_NAMES
 from django.conf import settings
 from pytz import UTC
 
-from osidb.constants import AFFECTEDNESS_VALID_RESOLUTIONS, DATETIME_FMT
+from osidb.constants import DATETIME_FMT
 from osidb.core import generate_acls
 from osidb.dmodels import (
     PsContact,
@@ -18,14 +18,13 @@ from osidb.dmodels import (
     PsUpdateStream,
     SpecialConsiderationPackage,
 )
+from osidb.dmodels.affect import AFFECTEDNESS_VALID_RESOLUTIONS, Affect, AffectCVSS
 from osidb.dmodels.erratum import Erratum
 from osidb.dmodels.package_versions import Package, PackageVer
 from osidb.dmodels.snippet import Snippet
 from osidb.dmodels.tracker import Tracker
 from osidb.models import (
     CVSS,
-    Affect,
-    AffectCVSS,
     Flaw,
     FlawAcknowledgment,
     FlawComment,

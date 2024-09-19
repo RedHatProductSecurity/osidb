@@ -24,6 +24,7 @@ from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FI
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.serializers import WorkflowModelSerializer
 from osidb.dmodels import Profile
+from osidb.dmodels.affect import Affect, AffectCVSS
 from osidb.dmodels.erratum import Erratum
 from osidb.dmodels.package_versions import Package, PackageVer
 from osidb.dmodels.ps_update_stream import PsUpdateStream
@@ -35,8 +36,6 @@ from .helpers import differ, ensure_list
 from .mixins import ACLMixin, Alert, AlertMixin, TrackingMixin
 from .models import (
     CVSS,
-    Affect,
-    AffectCVSS,
     Flaw,
     FlawAcknowledgment,
     FlawComment,

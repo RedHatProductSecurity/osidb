@@ -11,8 +11,9 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.test import APIClient
 
 from osidb.core import generate_acls, set_user_acls
+from osidb.dmodels.affect import Affect
 from osidb.helpers import ensure_list
-from osidb.models import Affect, Flaw, Impact
+from osidb.models import Flaw, Impact
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit

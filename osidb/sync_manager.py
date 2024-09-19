@@ -403,8 +403,9 @@ class BZTrackerLinkManager(SyncManager):
     def link_tracker_with_affects(tracker_id):
         # Code adapted from collectors.bzimport.convertors.BugzillaTrackerConvertor.affects
 
+        from osidb.dmodels.affect import Affect
         from osidb.dmodels.tracker import Tracker
-        from osidb.models import Affect, Flaw
+        from osidb.models import Flaw
 
         tracker = Tracker.objects.get(external_system_id=tracker_id)
 
@@ -525,7 +526,7 @@ class BZTrackerLinkManager(SyncManager):
         )
 
     def __str__(self):
-        from osidb.models import Affect
+        from osidb.dmodels.affect import Affect
 
         result = super().__str__()
 
@@ -748,8 +749,9 @@ class JiraTrackerLinkManager(SyncManager):
         # Code adapted from collectors.jiraffe.convertors.JiraTrackerConvertor.affects
 
         from collectors.jiraffe.constants import JIRA_BZ_ID_LABEL_RE
+        from osidb.dmodels.affect import Affect
         from osidb.dmodels.tracker import Tracker
-        from osidb.models import Affect, Flaw
+        from osidb.models import Flaw
         from osidb.validators import CVE_RE_STR
 
         tracker = Tracker.objects.get(external_system_id=tracker_id)
@@ -866,7 +868,7 @@ class JiraTrackerLinkManager(SyncManager):
         )
 
     def __str__(self):
-        from osidb.models import Affect
+        from osidb.dmodels.affect import Affect
 
         result = super().__str__()
 

@@ -5,17 +5,10 @@ from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
 
+from osidb.dmodels.affect import Affect, AffectCVSS
 from osidb.dmodels.package_versions import Package
 from osidb.dmodels.tracker import Tracker
-from osidb.models import (
-    Affect,
-    AffectCVSS,
-    Flaw,
-    FlawAcknowledgment,
-    FlawComment,
-    FlawCVSS,
-    FlawReference,
-)
+from osidb.models import Flaw, FlawAcknowledgment, FlawComment, FlawCVSS, FlawReference
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,

@@ -15,7 +15,8 @@ from apps.bbsync.constants import USER_BLACKLIST
 from apps.bbsync.exceptions import ProductDataError
 from apps.bbsync.models import BugzillaComponent
 from osidb.dmodels import PsContact, PsModule, PsUpdateStream
-from osidb.models import Affect, Flaw
+from osidb.dmodels.affect import Affect
+from osidb.models import Flaw
 
 logger = logging.getLogger(__name__)
 
