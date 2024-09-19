@@ -20,6 +20,7 @@ from djangoql.schema import DjangoQLSchema, StrField
 
 from apps.workflows.workflow import WorkflowModel
 from osidb.dmodels.package_versions import Package
+from osidb.dmodels.tracker import Tracker
 
 from .mixins import Alert
 from .models import (
@@ -30,7 +31,6 @@ from .models import (
     FlawComment,
     FlawCVSS,
     FlawReference,
-    Tracker,
     search_helper,
 )
 

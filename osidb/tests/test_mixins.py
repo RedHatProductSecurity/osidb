@@ -20,6 +20,8 @@ from apps.workflows.models import Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.convertors import FlawConvertor
 from osidb.core import generate_acls
+from osidb.dmodels import PsModule, PsUpdateStream
+from osidb.dmodels.tracker import Tracker
 from osidb.exceptions import DataInconsistencyException
 from osidb.mixins import AlertMixin
 from osidb.models import (
@@ -27,9 +29,6 @@ from osidb.models import (
     Flaw,
     FlawSource,
     Impact,
-    PsModule,
-    PsUpdateStream,
-    Tracker,
 )
 from osidb.tests.factories import (
     AffectFactory,
