@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from django.contrib.postgres.indexes import GinIndex
@@ -27,6 +28,8 @@ from osidb.sync_manager import (
 
 from .ps_module import PsModule
 from .ps_update_stream import PsUpdateStream
+
+logger = logging.getLogger(__name__)
 
 
 class TrackerManager(ACLMixinManager, TrackingMixinManager):
@@ -219,7 +222,31 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
         # regular save otherwise
         else:
-            super().save(*args, **kwargs)
+            # TODO: Following try/except block is a temporary measurement to get
+            # better insight on frequently occuring IntegrityError caused by
+            # unique constraint violation (see OSIDB-3433)
+            from django.db import transaction
+            from django.db.utils import IntegrityError
+
+            try:
+                # transaction atomic needs to be present in order to keep unit
+                # tests which are throwing IntegrityError on purpose working
+                # see: https://stackoverflow.com/questions/21458387/transactionmanagementerror-you-cant-execute-queries-until-the-end-of-the-atom
+                with transaction.atomic():
+                    super().save(*args, **kwargs)
+            except IntegrityError as e:
+                other_trackers_with_same_id = Tracker.objects.filter(
+                    external_system_id=self.external_system_id
+                ).values_list("external_system_id", "uuid")
+                error_msg = (
+                    f"{e} occured for tracker with external system id '{self.external_system_id}' and uuid '{self.uuid}',\n"
+                    f"PS Update stream: '{self.ps_update_stream}',\n"
+                    f"Affect: '{self.affects.first()}',\n"
+                    f"Labels: '{self.meta_attr.get('labels')}',\n"
+                    f"Other trackers with same external system id: '{other_trackers_with_same_id}'\n"
+                )
+                logger.error(error_msg)
+                raise e
 
     def _validate_tracker_affect(self, **kwargs):
         """
