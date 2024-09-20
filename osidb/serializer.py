@@ -1748,7 +1748,11 @@ class FlawSerializer(
         # but that drastically increases the code complexity and brings only a little
         # value - would prevent a rare extra update attempt without any real effect
         if (
-            not differ(old_flaw, new_flaw, ["cve_id", "is_embargoed", "unembargo_dt"])
+            not differ(
+                old_flaw,
+                new_flaw,
+                ["components", "cve_id", "is_embargoed", "unembargo_dt"],
+            )
             and not mi_differ(old_flaw, new_flaw)
             and Impact(old_flaw.impact) == Impact(new_flaw.impact)
         ):
@@ -1765,6 +1769,21 @@ class FlawSerializer(
                 # because we consider these already done
                 if tracker.is_closed:
                     continue
+
+                if (
+                    tracker.meta_attr.get("jira_issuetype") != "Vulnerability"
+                    or tracker.type != Tracker.TrackerType.JIRA
+                ) and (
+                    not differ(
+                        old_flaw, new_flaw, ["cve_id", "is_embargoed", "unembargo_dt"]
+                    )
+                    and not mi_differ(old_flaw, new_flaw)
+                    and Impact(old_flaw.impact) == Impact(new_flaw.impact)
+                ):
+                    # If the non-components attributes are unchanged, a tracker update is
+                    # necessary only for Vulnerability issuetype Jira trackers because only
+                    # those contain components. And this tracker is not Vuln. issuetype.
+                    return
 
                 # perform the tracker update
                 # could be done async eventually
