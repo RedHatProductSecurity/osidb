@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Alert users when Bugzilla sync failed (OSIDB-3252)
 
+### Fixed
+- Remove infinite recursion when SYNC_FLAWS_TO_BZ is disabled (OSIDB-3430)
+
 ## [4.3.2] - 2024-09-19
 ### Changed
 - Update the release documentation (OSIDB-3384)
