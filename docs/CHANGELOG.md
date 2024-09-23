@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Update Vulnerability trackers on components change (OSIDB-3323)
 
+### Changed
+- Alert users when Bugzilla sync failed (OSIDB-3252)
+
 ## [4.3.2] - 2024-09-19
 ### Changed
 - Update the release documentation (OSIDB-3384)

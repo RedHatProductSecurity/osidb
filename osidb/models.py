@@ -1355,20 +1355,37 @@ class Flaw(
 
         creating = self.bz_id is None
 
-        # sync to Bugzilla
-        bs = FlawBugzillaSaver(self, bz_api_key)  # prepare data for save to BZ
-        flaw_instance = bs.save()  # actually send to BZ (but not save to DB)
+        try:
+            # sync to Bugzilla
+            bs = FlawBugzillaSaver(self, bz_api_key)  # prepare data for save to BZ
+            flaw_instance = bs.save()  # actually send to BZ (but not save to DB)
 
-        if creating:
-            # Save bz_id to DB
-            kwargs["auto_timestamps"] = False  # no timestamps changes on save to BZ
-            kwargs["raise_validation_error"] = False  # the validations were already run
-            # save in case a new Bugzilla ID was obtained
-            # Instead of self.save(*args, **kwargs), just update the single field to avoid
-            # race conditions.
-            flaw_instance.save(
-                *args, update_fields=["meta_attr"], no_alerts=no_alerts, **kwargs
+            if creating:
+                # Save bz_id to DB
+                kwargs["auto_timestamps"] = False  # no timestamps changes on save to BZ
+                kwargs[
+                    "raise_validation_error"
+                ] = False  # the validations were already run
+                # save in case a new Bugzilla ID was obtained
+                # Instead of self.save(*args, **kwargs), just update the single field to avoid
+                # race conditions.
+                flaw_instance.save(
+                    *args, update_fields=["meta_attr"], no_alerts=no_alerts, **kwargs
+                )
+        except Exception as e:
+            # Sync failed but if it was done async the original flaw may be saved, resulting in
+            # incosnsitent data between OSIDB and BZ.
+            logger.error(f"Error when syncing flaw {self.uuid} to Bugzilla: {e}.")
+            self.alert(
+                "bzsync_failed",
+                "The Bugzilla sync for this flaw failed in the last save, so there may be data discrepancies. "
+                "The Vulnerability Tooling team has been notified about this and is looking into it.",
+                Alert.AlertType.ERROR,
             )
+            raise e
+
+        # If the bzsync was performed correctly, remove any possible alert on previously failed bzsync
+        self.alerts.filter(name="bzsync_failed").delete()
 
     def tasksync(
         self,
