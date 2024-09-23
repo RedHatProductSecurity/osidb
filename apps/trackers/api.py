@@ -96,8 +96,12 @@ class TrackerFileSuggestionView(RudimentaryUserPathLoggingMixin, APIView):
                     "ps_update_stream": stream.name,
                     "selected": False,
                     "acked": False,
-                    "aus": False,
-                    "eus": False,
+                    "eus": bool(
+                        ps_module.eus_ps_update_streams.filter(name=stream.name)
+                    ),
+                    "aus": bool(
+                        ps_module.aus_ps_update_streams.filter(name=stream.name)
+                    ),
                 }
             offers = ProductDefinitionRules().file_tracker_offers(
                 affect, impact, ps_module, offers
