@@ -1,26 +1,33 @@
 from osidb.models import Affect, Flaw, Impact, PsModule
 
 from .base import ProductDefinitionHandler
-from .ubi_handler import UBIHandler
 
 
 class UnackedHandler(ProductDefinitionHandler):
     """
-    Unacked stream handler
-
-    This handler should run before UBIHandler
+    unacked pre-selection handler
     """
 
+    UNACKED_IMPACT_APPLICABLE = [Impact.MODERATE, Impact.LOW]
+
+    @staticmethod
+    def is_applicable(affect: Affect, impact: Impact, ps_module: PsModule) -> bool:
+        """
+        check whether the hanler is applicable to the given affect
+        the caller is responsible for checking the applicability before getting the offer
+        """
+        return bool(impact in UnackedHandler.UNACKED_IMPACT_APPLICABLE)
+
     def get_offer(self, affect: Affect, impact: Impact, ps_module: PsModule, offers):
+        """
+        pre-select the streams
+        """
         unacked_stream = ps_module.unacked_ps_update_stream.first()
         if not unacked_stream:
             # Nothing to handle
             return offers
         if not ps_module.active_ps_update_streams.filter(name=unacked_stream.name):
             # Ignore unacked stream that is not active for this module
-            return offers
-        if UBIHandler.will_modify_offers(affect, impact, ps_module):
-            # If UBI streams are selected, the unacked stream must not be selected.
             return offers
 
         unacked_preselected = affect.flaw.major_incident_state not in [
