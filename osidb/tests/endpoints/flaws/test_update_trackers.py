@@ -88,6 +88,44 @@ class TestEndpointsFlawsUpdateTrackers:
                 args[0][0].uuid for args in mock_save.call_args_list
             ]
 
+    # Nested pytest necessary despite the performance drawback because the relevant logic
+    # has nested complex conditions.
+    @pytest.mark.parametrize(
+        "btsname, tracker_meta_attr,flaw_to_create_2, flaw_to_update_2, triggered_2",
+        [
+            ("bugzilla", {"test": "1"}, {}, {}, False),
+            ("jboss", {"test": "1"}, {}, {}, False),
+            (
+                "jboss",
+                {"jira_issuetype": "Vulnerability"},
+                {"components": ["foo", "bar"]},
+                {"components": ["foo", "baRRR"]},
+                True,
+            ),
+            (
+                "jboss",
+                {"jira_issuetype": "Bug"},
+                {"components": ["foo", "bar"]},
+                {"components": ["foo", "baRRR"]},
+                False,
+            ),
+            (
+                "jboss",
+                {"jira_issuetype": "Vulnerability"},
+                {"components": ["foo", "bar"]},
+                {},
+                False,
+            ),
+            # Shouldn't happen but better be safe than sorry:
+            (
+                "bugzilla",
+                {"jira_issuetype": "Vulnerability"},
+                {"components": ["foo", "bar"]},
+                {"components": ["foo", "baRRR"]},
+                False,
+            ),
+        ],
+    )
     @pytest.mark.parametrize(
         "to_create,to_update,triggered",
         [
@@ -125,12 +163,27 @@ class TestEndpointsFlawsUpdateTrackers:
             ),
         ],
     )
-    def test_trigger(self, auth_client, test_api_uri, to_create, to_update, triggered):
+    def test_trigger(
+        self,
+        auth_client,
+        test_api_uri,
+        to_create,
+        to_update,
+        triggered,
+        btsname,
+        tracker_meta_attr,
+        flaw_to_create_2,
+        flaw_to_update_2,
+        triggered_2,
+    ):
         """
         test that the tracker update is triggered when expected only
         """
-        flaw = FlawFactory(**to_create)
-        ps_module = PsModuleFactory()
+        flaw_create_dict = {}
+        flaw_create_dict.update(to_create)
+        flaw_create_dict.update(flaw_to_create_2)
+        flaw = FlawFactory(**flaw_create_dict)
+        ps_module = PsModuleFactory(bts_name=btsname)
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
@@ -141,6 +194,7 @@ class TestEndpointsFlawsUpdateTrackers:
             affects=[affect],
             embargoed=flaw.embargoed,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
+            meta_attr=tracker_meta_attr,
         )
 
         flaw_data = {
@@ -149,7 +203,10 @@ class TestEndpointsFlawsUpdateTrackers:
             "title": flaw.title,
             "updated_dt": flaw.updated_dt,
         }
-        for attribute, value in to_update.items():
+        flaw_update_dict = {}
+        flaw_update_dict.update(to_update)
+        flaw_update_dict.update(flaw_to_update_2)
+        for attribute, value in flaw_update_dict.items():
             flaw_data[attribute] = value
 
         with patch.object(Tracker, "save") as mock_save:
@@ -161,4 +218,4 @@ class TestEndpointsFlawsUpdateTrackers:
                 HTTP_JIRA_API_KEY="SECRET",
             )
             assert response.status_code == status.HTTP_200_OK
-            assert mock_save.called == triggered
+            assert mock_save.called == (triggered or triggered_2)
