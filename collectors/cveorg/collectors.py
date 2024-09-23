@@ -322,6 +322,7 @@ class CVEorgCollector(Collector):
             if published := data["cveMetadata"].get("datePublished"):
                 return published if published.endswith("Z") else f"{published}Z"
             # If datePublished is missing, check dateUpdated as it has a similar meaning
+            # This is tracked in https://github.com/CVEProject/cvelistV5/issues/66
             if updated := data["containers"]["cna"]["providerMetadata"].get(
                 "dateUpdated"
             ):
