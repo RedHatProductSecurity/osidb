@@ -46,7 +46,6 @@ from .mixins import (
     NullStrFieldsMixin,
     TrackingMixin,
     TrackingMixinManager,
-    ValidateMixin,
 )
 from .sync_manager import BZSyncManager, FlawDownloadManager, JiraTaskDownloadManager
 from .validators import no_future_date, validate_cve_id, validate_cwe_id
@@ -1328,13 +1327,6 @@ class Flaw(
         Bugzilla sync of the Flaw instance
         """
         if not SYNC_FLAWS_TO_BZ:
-            # up until now the parent save methods run in sequence of
-            # 1) TrackingMixin with auto-timestamps on
-            # 2) JiraTaskSyncMixin syncing the task if enabled
-            # 3) BugzillaSyncMixin running the validations
-            # so we do not need to run any other mixins
-            kwargs.pop("raise_validation_error", None)
-            super(ValidateMixin, self).save(*args, **kwargs)
             return
 
         # switch of sync/async processing
