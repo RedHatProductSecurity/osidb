@@ -249,41 +249,51 @@ class CVEorgCollector(Collector):
                 "cvssV4_0": FlawCVSS.CVSSVersion.VERSION4,
             }
 
-            if metrics := data["containers"]["cna"].get("metrics"):
-                # Keep only data we are interested in
-                cvss_pairs = {
-                    version: cvss_data["vectorString"]
-                    for cvss in metrics
-                    for version, cvss_data in cvss.items()
-                    if version in list(mapping.keys())
-                }
-                # Only one CVSS v3 can be stored
-                if bool(cvss_pairs.get("cvssV3_0") and cvss_pairs.get("cvssV3_1")):
-                    cvss_pairs.pop("cvssV3_0")
+            # Collect all metrics from CNA and ADP containers
+            all_metrics = data["containers"]["cna"].get("metrics", [])
+            for a in data["containers"].get("adp", []):
+                all_metrics.extend(a.get("metrics", []))
 
-                for version, vector in cvss_pairs.items():
-                    scores.append(
-                        {
-                            "issuer": FlawCVSS.CVSSIssuer.CVEORG,
-                            "version": mapping[version],
-                            "vector": vector,
-                            # Actual score is generated automatically when FlawCVSS is saved
-                        }
-                    )
+            # Keep only data we are interested in (version and vector)
+            cvss_pairs = dict()
+            for cvss in all_metrics:
+                for version, data in cvss.items():
+                    if version in mapping and version not in cvss_pairs:
+                        cvss_pairs[version] = data["vectorString"]
+
+            # Only one CVSS v3 can be stored
+            if bool(cvss_pairs.get("cvssV3_0") and cvss_pairs.get("cvssV3_1")):
+                cvss_pairs.pop("cvssV3_0")
+
+            for version, vector in cvss_pairs.items():
+                scores.append(
+                    {
+                        "issuer": FlawCVSS.CVSSIssuer.CVEORG,
+                        "version": mapping[version],
+                        "vector": vector,
+                        # Actual score is generated automatically when FlawCVSS is saved
+                    }
+                )
             return scores
 
         def get_cwes(data: dict) -> str:
-            if problem_types := data["containers"]["cna"].get("problemTypes"):
-                ids = [
-                    d.get("cweId")
-                    for problem in problem_types
-                    for d in problem["descriptions"]
-                    if d.get("type") == "CWE" and d.get("cweId")
-                ]
-                if len(ids) == 1:
-                    return ids[0]
-                elif len(ids) > 1:
-                    return f"({'|'.join(sorted(ids))})"
+            # Collect all problem types from CNA and ADP containers
+            all_problem_types = data["containers"]["cna"].get("problemTypes", [])
+            for a in data["containers"].get("adp", []):
+                all_problem_types.extend(a.get("problemTypes", []))
+
+            # Keep only data we are interested in (CWE id)
+            ids = set()
+            for problem in all_problem_types:
+                for d in problem["descriptions"]:
+                    if d.get("type") == "CWE" and d.get("cweId"):
+                        ids.add(d.get("cweId"))
+
+            ids = sorted(ids)
+            if len(ids) == 1:
+                return ids[0]
+            elif len(ids) > 1:
+                return f"({'|'.join(ids)})"
             return ""
 
         def get_refs(data: dict) -> list:
@@ -293,9 +303,15 @@ class CVEorgCollector(Collector):
                     "url": f"https://www.cve.org/CVERecord?id={data['cveMetadata']['cveId']}",
                 }
             ]
-            external = list(
-                set([r["url"] for r in data["containers"]["cna"]["references"]])
-            )
+
+            # Collect all references from CNA and ADP containers
+            all_references = data["containers"]["cna"]["references"]
+            for a in data["containers"].get("adp", []):
+                all_references.extend(a.get("references", []))
+
+            # Keep only data we are interested in (url)
+            external = list(set([r["url"] for r in all_references]))
+
             references.extend(handle_urls(external, references[0]["url"]))
             return references
 
