@@ -219,3 +219,9 @@ class TestProductDefinitionsCollection:
         # check that unacked PS update stream is not omitted
         assert module1.unacked_ps_update_stream
         assert module1.unacked_ps_update_stream.first().name == "fuse-7"
+        assert sorted(
+            module1.moderate_ps_update_streams.values_list("name", flat=True)
+        ) == [
+            "fuse-7",
+            "fuse-7.0.0",
+        ]

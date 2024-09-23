@@ -69,3 +69,12 @@ class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
         null=True,
         blank=True,
     )
+    # moderate streams are going to replace unacked eventually
+    # but for now we keep both for the backwards compatibility
+    moderate_to_ps_module = models.ForeignKey(
+        PsModule,
+        on_delete=models.SET_NULL,
+        related_name="moderate_ps_update_streams",
+        null=True,
+        blank=True,
+    )
