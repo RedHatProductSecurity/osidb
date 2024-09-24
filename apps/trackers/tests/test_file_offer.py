@@ -5,6 +5,9 @@ Test cases for tracker suggestion generation
 import pytest
 
 from apps.trackers.product_definition_handlers.default_handler import DefaultHandler
+from apps.trackers.product_definition_handlers.major_incident_handler import (
+    MajorIncidentHandler,
+)
 from apps.trackers.product_definition_handlers.ubi_handler import UBIHandler
 from apps.trackers.product_definition_handlers.unacked_handler import UnackedHandler
 from osidb.dmodels import PsUpdateStream, UbiPackage
@@ -618,6 +621,30 @@ class TestTrackerSuggestions:
             assert offer[stream2.name]["ps_update_stream"] == stream2.name
             assert offer[stream2.name]["selected"] is True
 
+    class TestMajorIncidentHandler:
+        @pytest.mark.parametrize(
+            "major_incident_state,is_applicable",
+            [
+                (Flaw.FlawMajorIncident.APPROVED, True),
+                (Flaw.FlawMajorIncident.CISA_APPROVED, True),
+                (Flaw.FlawMajorIncident.REQUESTED, False),
+                (Flaw.FlawMajorIncident.REJECTED, False),
+                (Flaw.FlawMajorIncident.NOVALUE, False),
+            ],
+        )
+        def test_is_applicable(self, major_incident_state, is_applicable):
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(
+                flaw__major_incident_state=major_incident_state,
+                ps_module=ps_module.name,
+            )
+            assert is_applicable == MajorIncidentHandler.is_applicable(
+                affect, affect.impact, ps_module
+            )
+
+        # the offer creation works completely the save way as for the DefaultHandler
+        # so we do not need to test it here again as it is already tested there
+
     class TestUBIHandler:
         @pytest.mark.parametrize(
             "impact,is_applicable",
@@ -731,36 +758,11 @@ class TestTrackerSuggestions:
                 (Impact.LOW, True),
             ],
         )
-        def test_is_applicable_impact(self, impact, is_applicable):
+        def test_is_applicable(self, impact, is_applicable):
             ps_module = PsModuleFactory()
-            affect = AffectFactory(
-                flaw__major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
-                ps_module=ps_module.name,
-            )
+            affect = AffectFactory(ps_module=ps_module.name)
             assert is_applicable == UnackedHandler.is_applicable(
                 affect, impact, ps_module
-            )
-
-        @pytest.mark.parametrize(
-            "major_incident_state,is_applicable",
-            [
-                (Flaw.FlawMajorIncident.APPROVED, False),
-                (Flaw.FlawMajorIncident.CISA_APPROVED, False),
-                (Flaw.FlawMajorIncident.REQUESTED, True),
-                (Flaw.FlawMajorIncident.REJECTED, True),
-                (Flaw.FlawMajorIncident.NOVALUE, True),
-            ],
-        )
-        def test_is_applicable_major_incident(
-            self, major_incident_state, is_applicable
-        ):
-            ps_module = PsModuleFactory()
-            affect = AffectFactory(
-                flaw__major_incident_state=major_incident_state,
-                ps_module=ps_module.name,
-            )
-            assert is_applicable == UnackedHandler.is_applicable(
-                affect, Impact.MODERATE, ps_module
             )
 
         def test_get_offer_present(self):

@@ -1,4 +1,4 @@
-from osidb.models import Affect, Flaw, Impact, PsModule
+from osidb.models import Affect, Impact, PsModule
 
 from .base import ProductDefinitionHandler
 
@@ -17,14 +17,7 @@ class UnackedHandler(ProductDefinitionHandler):
         check whether the hanler is applicable to the given affect
         the caller is responsible for checking the applicability before getting the offer
         """
-        return (
-            impact in UnackedHandler.UNACKED_IMPACT_APPLICABLE
-            and affect.flaw.major_incident_state
-            not in [
-                Flaw.FlawMajorIncident.APPROVED,
-                Flaw.FlawMajorIncident.CISA_APPROVED,
-            ]
-        )
+        return impact in UnackedHandler.UNACKED_IMPACT_APPLICABLE
 
     @staticmethod
     def get_offer(affect: Affect, impact: Impact, ps_module: PsModule, offers):
