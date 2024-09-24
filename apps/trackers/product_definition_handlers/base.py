@@ -3,6 +3,7 @@ from osidb.models import Affect, Impact, PsModule
 
 class ProductDefinitionRules:
     def __init__(self) -> None:
+        from .default_handler import DefaultHandler
         from .ubi_handler import UBIHandler
         from .unacked_handler import UnackedHandler
 
@@ -10,6 +11,7 @@ class ProductDefinitionRules:
         # the first applicable handler
         # makes the pre-selection
         self.handlers = [
+            DefaultHandler(),
             UBIHandler(),
             UnackedHandler(),
         ]

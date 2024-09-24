@@ -4,6 +4,7 @@ Test cases for tracker suggestion generation
 
 import pytest
 
+from apps.trackers.product_definition_handlers.default_handler import DefaultHandler
 from apps.trackers.product_definition_handlers.ubi_handler import UBIHandler
 from apps.trackers.product_definition_handlers.unacked_handler import UnackedHandler
 from osidb.dmodels import PsUpdateStream, UbiPackage
@@ -559,6 +560,63 @@ class TestTrackerSuggestions:
         else:
             assert len(res["modules_components"]) == 0
             assert res["not_applicable"][0]["uuid"] == str(affect.uuid)
+
+    class TestDefaultHandler:
+        @pytest.mark.parametrize(
+            "impact,is_applicable",
+            [
+                (Impact.CRITICAL, True),
+                (Impact.IMPORTANT, True),
+                (Impact.MODERATE, False),
+                (Impact.LOW, False),
+            ],
+        )
+        def test_is_applicable_impact(self, impact, is_applicable):
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(ps_module=ps_module.name)
+            assert is_applicable == DefaultHandler.is_applicable(
+                affect, impact, ps_module
+            )
+
+        def test_get_offer_no_active_default(self):
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(ps_module=ps_module.name)
+            PsUpdateStreamFactory(
+                ps_module=ps_module,
+                active_to_ps_module=None,  # inactive
+                default_to_ps_module=ps_module,
+            )
+            PsUpdateStreamFactory(
+                ps_module=ps_module,
+                active_to_ps_module=ps_module,
+                default_to_ps_module=None,  # non-default
+            )
+            # no existing active default to be offered
+            assert DefaultHandler.get_offer(affect, affect.impact, ps_module, {}) == {}
+
+        def test_get_offer(self):
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(ps_module=ps_module.name)
+            stream1 = PsUpdateStreamFactory(
+                ps_module=ps_module,
+                active_to_ps_module=ps_module,
+                default_to_ps_module=ps_module,
+            )
+            stream2 = PsUpdateStreamFactory(
+                ps_module=ps_module,
+                active_to_ps_module=ps_module,
+                default_to_ps_module=ps_module,
+            )
+            # both default streams should be included in the offer
+            offer = DefaultHandler.get_offer(affect, affect.impact, ps_module, {})
+            assert offer
+            assert len(offer) == 2
+            assert stream1.name in offer
+            assert stream2.name in offer
+            assert offer[stream1.name]["ps_update_stream"] == stream1.name
+            assert offer[stream1.name]["selected"] is True
+            assert offer[stream2.name]["ps_update_stream"] == stream2.name
+            assert offer[stream2.name]["selected"] is True
 
     class TestUBIHandler:
         @pytest.mark.parametrize(
