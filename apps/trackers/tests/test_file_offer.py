@@ -4,6 +4,7 @@ Test cases for tracker suggestion generation
 
 import pytest
 
+from apps.trackers.product_definition_handlers.ubi_handler import UBIHandler
 from apps.trackers.product_definition_handlers.unacked_handler import UnackedHandler
 from osidb.dmodels import PsUpdateStream, UbiPackage
 from osidb.models import Affect, Flaw, Impact
@@ -558,6 +559,109 @@ class TestTrackerSuggestions:
         else:
             assert len(res["modules_components"]) == 0
             assert res["not_applicable"][0]["uuid"] == str(affect.uuid)
+
+    class TestUBIHandler:
+        @pytest.mark.parametrize(
+            "impact,is_applicable",
+            [
+                (Impact.CRITICAL, False),
+                (Impact.IMPORTANT, False),
+                (Impact.MODERATE, True),
+                (Impact.LOW, False),
+            ],
+        )
+        def test_is_applicable_impact(self, impact, is_applicable):
+            UbiPackage(name="component").save()
+            ps_module = PsModuleFactory(special_handling_features=["ubi_packages"])
+            affect = AffectFactory(ps_module=ps_module.name, ps_component="component")
+            assert is_applicable == UBIHandler.is_applicable(affect, impact, ps_module)
+
+        @pytest.mark.parametrize(
+            "component,is_applicable",
+            [
+                ("component", False),
+                ("ubi-component", True),
+            ],
+        )
+        def test_is_applicable_ubi(self, component, is_applicable):
+            UbiPackage(name="ubi-component").save()
+            ps_module = PsModuleFactory(special_handling_features=["ubi_packages"])
+            affect = AffectFactory(ps_module=ps_module.name, ps_component=component)
+            assert is_applicable == UBIHandler.is_applicable(
+                affect, Impact.MODERATE, ps_module
+            )
+
+        def test_get_offer_no_z(self):
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(ps_module=ps_module.name)
+            PsUpdateStreamFactory(
+                active_to_ps_module=ps_module,
+                name="no-z-ending",
+            )
+            # no existing Z-stream to be offered
+            assert UBIHandler.get_offer(affect, affect.impact, ps_module, {}) == {}
+
+        def test_get_offer_inactive_z(self):
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(ps_module=ps_module.name)
+            PsUpdateStreamFactory(
+                ps_module=ps_module,
+                active_to_ps_module=None,
+                name="stream-z",
+            )
+            # no existing Z-stream to be offered
+            assert UBIHandler.get_offer(affect, affect.impact, ps_module, {}) == {}
+
+        def test_get_offer_z(self):
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(ps_module=ps_module.name)
+            ps_update_stream = PsUpdateStreamFactory(
+                active_to_ps_module=ps_module,
+                name="stream-z",
+            )
+            # Z-stream should be included in the offer
+            offer = UBIHandler.get_offer(affect, affect.impact, ps_module, {})
+            assert offer
+            assert ps_update_stream.name in offer
+            assert (
+                offer[ps_update_stream.name]["ps_update_stream"]
+                == ps_update_stream.name
+            )
+            assert offer[ps_update_stream.name]["selected"] is True
+            assert offer[ps_update_stream.name]["aus"] is False
+            assert offer[ps_update_stream.name]["eus"] is False
+            assert offer[ps_update_stream.name]["acked"] is True
+
+        def test_get_offer_y(self):
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(ps_module=ps_module.name)
+            z_stream = PsUpdateStreamFactory(
+                active_to_ps_module=ps_module,
+                name="stream-1.2.3.z",
+            )
+            PsUpdateStreamFactory(
+                active_to_ps_module=ps_module,
+                name="stream-1.2.1",  # earlier Y-stream
+            )
+            y_stream_post = PsUpdateStreamFactory(
+                active_to_ps_module=ps_module,
+                name="stream-1.3.1",  # latter Y-stream
+            )
+            PsUpdateStreamFactory(
+                ps_module=ps_module,
+                active_to_ps_module=None,  # inactive
+                name="stream-1.4.1",  # latter Y-stream
+            )
+            # Z-stream should be included in the offer
+            offer = UBIHandler.get_offer(affect, affect.impact, ps_module, {})
+            assert len(offer) == 2
+            assert z_stream.name in offer
+            assert y_stream_post.name in offer
+            assert offer[y_stream_post.name]["ps_update_stream"] == y_stream_post.name
+            assert offer[y_stream_post.name]["selected"] is True
+            assert offer[y_stream_post.name]["aus"] is False
+            assert offer[y_stream_post.name]["eus"] is False
+            assert offer[y_stream_post.name]["acked"] is True
 
     class TestUnackedHandler:
         @pytest.mark.parametrize(
