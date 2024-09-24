@@ -9,6 +9,7 @@ class UnackedHandler(ProductDefinitionHandler):
     """
 
     UNACKED_IMPACT_APPLICABLE = [Impact.MODERATE, Impact.LOW]
+    UNACKED_IMPACT_PRESELECTED = [Impact.MODERATE]
 
     @staticmethod
     def is_applicable(affect: Affect, impact: Impact, ps_module: PsModule) -> bool:
@@ -16,9 +17,17 @@ class UnackedHandler(ProductDefinitionHandler):
         check whether the hanler is applicable to the given affect
         the caller is responsible for checking the applicability before getting the offer
         """
-        return bool(impact in UnackedHandler.UNACKED_IMPACT_APPLICABLE)
+        return (
+            impact in UnackedHandler.UNACKED_IMPACT_APPLICABLE
+            and affect.flaw.major_incident_state
+            not in [
+                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.CISA_APPROVED,
+            ]
+        )
 
-    def get_offer(self, affect: Affect, impact: Impact, ps_module: PsModule, offers):
+    @staticmethod
+    def get_offer(affect: Affect, impact: Impact, ps_module: PsModule, offers):
         """
         pre-select the streams
         """
@@ -30,13 +39,9 @@ class UnackedHandler(ProductDefinitionHandler):
             # Ignore unacked stream that is not active for this module
             return offers
 
-        unacked_preselected = affect.flaw.major_incident_state not in [
-            Flaw.FlawMajorIncident.APPROVED,
-            Flaw.FlawMajorIncident.CISA_APPROVED,
-        ] and impact in [Impact.MODERATE, Impact.LOW]
         offers[unacked_stream.name] = {
             "ps_update_stream": unacked_stream.name,
-            "selected": unacked_preselected,
+            "selected": impact in UnackedHandler.UNACKED_IMPACT_PRESELECTED,
             "aus": False,
             "eus": False,
             "acked": False,

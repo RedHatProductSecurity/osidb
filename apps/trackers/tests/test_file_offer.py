@@ -4,6 +4,7 @@ Test cases for tracker suggestion generation
 
 import pytest
 
+from apps.trackers.product_definition_handlers.unacked_handler import UnackedHandler
 from osidb.dmodels import PsUpdateStream, UbiPackage
 from osidb.models import Affect, Flaw, Impact
 from osidb.tests.factories import (
@@ -557,3 +558,93 @@ class TestTrackerSuggestions:
         else:
             assert len(res["modules_components"]) == 0
             assert res["not_applicable"][0]["uuid"] == str(affect.uuid)
+
+    class TestUnackedHandler:
+        @pytest.mark.parametrize(
+            "impact,is_applicable",
+            [
+                (Impact.CRITICAL, False),
+                (Impact.IMPORTANT, False),
+                (Impact.MODERATE, True),
+                (Impact.LOW, True),
+            ],
+        )
+        def test_is_applicable_impact(self, impact, is_applicable):
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(
+                flaw__major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+                ps_module=ps_module.name,
+            )
+            assert is_applicable == UnackedHandler.is_applicable(
+                affect, impact, ps_module
+            )
+
+        @pytest.mark.parametrize(
+            "major_incident_state,is_applicable",
+            [
+                (Flaw.FlawMajorIncident.APPROVED, False),
+                (Flaw.FlawMajorIncident.CISA_APPROVED, False),
+                (Flaw.FlawMajorIncident.REQUESTED, True),
+                (Flaw.FlawMajorIncident.REJECTED, True),
+                (Flaw.FlawMajorIncident.NOVALUE, True),
+            ],
+        )
+        def test_is_applicable_major_incident(
+            self, major_incident_state, is_applicable
+        ):
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(
+                flaw__major_incident_state=major_incident_state,
+                ps_module=ps_module.name,
+            )
+            assert is_applicable == UnackedHandler.is_applicable(
+                affect, Impact.MODERATE, ps_module
+            )
+
+        def test_get_offer_present(self):
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(ps_module=ps_module.name)
+
+            # no existing unacked stream to be offered
+            assert UnackedHandler.get_offer(affect, affect.impact, ps_module, {}) == {}
+
+            ps_update_stream = PsUpdateStreamFactory(
+                active_to_ps_module=None,
+                unacked_to_ps_module=ps_module,
+            )
+            # no active unacked stream to be offered
+            assert UnackedHandler.get_offer(affect, affect.impact, ps_module, {}) == {}
+
+            ps_update_stream.active_to_ps_module = ps_module
+            ps_update_stream.save()
+            # unacked stream should be included in the offer
+            offer = UnackedHandler.get_offer(affect, affect.impact, ps_module, {})
+            assert offer
+            assert ps_update_stream.name in offer
+            assert (
+                offer[ps_update_stream.name]["ps_update_stream"]
+                == ps_update_stream.name
+            )
+            assert offer[ps_update_stream.name]["aus"] is False
+            assert offer[ps_update_stream.name]["eus"] is False
+            assert offer[ps_update_stream.name]["acked"] is False  # unacked
+
+        @pytest.mark.parametrize(
+            "impact,preselected",
+            [
+                (Impact.MODERATE, True),
+                (Impact.LOW, False),
+            ],
+        )
+        def test_get_offer_preselected(self, impact, preselected):
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(ps_module=ps_module.name)
+            ps_update_stream = PsUpdateStreamFactory(
+                active_to_ps_module=ps_module,
+                unacked_to_ps_module=ps_module,
+            )
+
+            offer = UnackedHandler.get_offer(affect, impact, ps_module, {})
+            assert offer
+            assert ps_update_stream.name in offer
+            assert offer[ps_update_stream.name]["selected"] == preselected
