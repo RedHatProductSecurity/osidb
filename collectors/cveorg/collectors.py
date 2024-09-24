@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from time import sleep
 from typing import Union
 
 from celery.utils.log import get_task_logger
@@ -184,6 +185,8 @@ class CVEorgCollector(Collector):
                                 new_snippets.append(content["cve_id"])
                             if new_flaw:
                                 new_flaws.append(content["cve_id"])
+                        # introduce a small delay after each transaction to not hit the Jira rate limit
+                        sleep(1)
                     except Exception as exc:
                         message = f"Failed to save snippet and flaw for {content['cve_id']}. Error: {exc}."
                         logger.error(message)
