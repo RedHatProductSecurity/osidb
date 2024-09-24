@@ -90,21 +90,8 @@ class TrackerFileSuggestionView(RudimentaryUserPathLoggingMixin, APIView):
                 # component is already suggested for a higher impact flaw/affect -- no-op
                 continue
 
-            offers = {}
-            for stream in ps_module.active_ps_update_streams.all():
-                offers[stream.name] = {
-                    "ps_update_stream": stream.name,
-                    "selected": False,
-                    "acked": False,
-                    "eus": bool(
-                        ps_module.eus_ps_update_streams.filter(name=stream.name)
-                    ),
-                    "aus": bool(
-                        ps_module.aus_ps_update_streams.filter(name=stream.name)
-                    ),
-                }
             offers = ProductDefinitionRules().file_tracker_offers(
-                affect, impact, ps_module, offers
+                affect, impact, ps_module
             )
             targets[key] = {
                 "affect": affect,
