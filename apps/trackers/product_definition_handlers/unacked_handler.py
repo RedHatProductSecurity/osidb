@@ -25,11 +25,8 @@ class UnackedHandler(ProductDefinitionHandler):
         pre-select the streams
         """
         unacked_stream = ps_module.unacked_ps_update_stream.first()
-        if not unacked_stream:
-            # Nothing to handle
-            return offers
-        if not ps_module.active_ps_update_streams.filter(name=unacked_stream.name):
-            # Ignore unacked stream that is not active for this module
+        if not unacked_stream or unacked_stream.name not in offers:
+            # nothing to handle
             return offers
 
         offers[unacked_stream.name] = {

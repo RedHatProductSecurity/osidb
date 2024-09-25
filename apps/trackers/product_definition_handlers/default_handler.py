@@ -24,15 +24,10 @@ class DefaultHandler(ProductDefinitionHandler):
         """
         pre-select the streams
         """
-        # the default streams should be active but let us double-check it
-        default_stream_names = ps_module.default_ps_update_streams.values_list(
-            "name", flat=True
-        )
-        default_streams = ps_module.active_ps_update_streams.filter(
-            name__in=default_stream_names
-        )
+        for stream in ps_module.default_ps_update_streams.all():
+            if stream.name not in offers:
+                continue
 
-        for stream in default_streams:
             offers[stream.name] = {
                 "ps_update_stream": stream.name,
                 "selected": True,

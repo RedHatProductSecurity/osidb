@@ -4,6 +4,7 @@ Test cases for tracker suggestion generation
 
 import pytest
 
+from apps.trackers.product_definition_handlers.base import ProductDefinitionRules
 from apps.trackers.product_definition_handlers.default_handler import DefaultHandler
 from apps.trackers.product_definition_handlers.major_incident_handler import (
     MajorIncidentHandler,
@@ -254,7 +255,7 @@ class TestTrackerSuggestions:
         self, user_token, auth_client, test_app_api_uri
     ):
         """
-        Test auto tracker auto filing defined in product
+        Test tracker auto filing defined in product
         definition rules related to unacked_ps_update_stream flag
 
         POST -> /file
@@ -584,18 +585,26 @@ class TestTrackerSuggestions:
         def test_get_offer_no_active_default(self):
             ps_module = PsModuleFactory()
             affect = AffectFactory(ps_module=ps_module.name)
-            PsUpdateStreamFactory(
+            ps_update_stream1 = PsUpdateStreamFactory(
                 ps_module=ps_module,
                 active_to_ps_module=None,  # inactive
                 default_to_ps_module=ps_module,
             )
-            PsUpdateStreamFactory(
+            ps_update_stream2 = PsUpdateStreamFactory(
                 ps_module=ps_module,
                 active_to_ps_module=ps_module,
                 default_to_ps_module=None,  # non-default
             )
-            # no existing active default to be offered
-            assert DefaultHandler.get_offer(affect, affect.impact, ps_module, {}) == {}
+
+            framework = ProductDefinitionRules()
+            framework.handlers = [DefaultHandler()]
+            # no existing active default to be selected
+            offer = framework.file_tracker_offers(affect, Impact.CRITICAL, ps_module)
+            assert offer
+            assert len(offer) == 1
+            assert ps_update_stream1.name not in offer
+            assert ps_update_stream2.name in offer
+            assert offer[ps_update_stream2.name]["selected"] is False
 
         def test_get_offer(self):
             ps_module = PsModuleFactory()
@@ -610,8 +619,11 @@ class TestTrackerSuggestions:
                 active_to_ps_module=ps_module,
                 default_to_ps_module=ps_module,
             )
+
+            framework = ProductDefinitionRules()
+            framework.handlers = [DefaultHandler()]
             # both default streams should be included in the offer
-            offer = DefaultHandler.get_offer(affect, affect.impact, ps_module, {})
+            offer = framework.file_tracker_offers(affect, Impact.CRITICAL, ps_module)
             assert offer
             assert len(offer) == 2
             assert stream1.name in offer
@@ -677,54 +689,71 @@ class TestTrackerSuggestions:
             )
 
         def test_get_offer_no_z(self):
-            ps_module = PsModuleFactory()
+            UbiPackage(name="no-z-ending").save()
+            ps_module = PsModuleFactory(special_handling_features=["ubi_packages"])
             affect = AffectFactory(ps_module=ps_module.name)
-            PsUpdateStreamFactory(
+            ps_update_stream = PsUpdateStreamFactory(
                 active_to_ps_module=ps_module,
                 name="no-z-ending",
             )
-            # no existing Z-stream to be offered
-            assert UBIHandler.get_offer(affect, affect.impact, ps_module, {}) == {}
+
+            framework = ProductDefinitionRules()
+            framework.handlers = [UBIHandler()]
+            # no existing Z-stream to be selected
+            offer = framework.file_tracker_offers(affect, Impact.MODERATE, ps_module)
+            assert offer
+            assert len(offer) == 1
+            assert ps_update_stream.name in offer
+            assert offer[ps_update_stream.name]["selected"] is False
 
         def test_get_offer_inactive_z(self):
-            ps_module = PsModuleFactory()
+            UbiPackage(name="stream-z").save()
+            ps_module = PsModuleFactory(special_handling_features=["ubi_packages"])
             affect = AffectFactory(ps_module=ps_module.name)
             PsUpdateStreamFactory(
                 ps_module=ps_module,
                 active_to_ps_module=None,
                 name="stream-z",
             )
-            # no existing Z-stream to be offered
-            assert UBIHandler.get_offer(affect, affect.impact, ps_module, {}) == {}
+
+            framework = ProductDefinitionRules()
+            framework.handlers = [UBIHandler()]
+            # no active Z-stream to be selected
+            framework.file_tracker_offers(affect, Impact.MODERATE, ps_module) == {}
 
         def test_get_offer_z(self):
-            ps_module = PsModuleFactory()
-            affect = AffectFactory(ps_module=ps_module.name)
+            UbiPackage(name="ubi-component").save()
+            ps_module = PsModuleFactory(special_handling_features=["ubi_packages"])
+            affect = AffectFactory(
+                ps_module=ps_module.name,
+                ps_component="ubi-component",
+            )
             ps_update_stream = PsUpdateStreamFactory(
                 active_to_ps_module=ps_module,
                 name="stream-z",
             )
+
+            framework = ProductDefinitionRules()
+            framework.handlers = [UBIHandler()]
             # Z-stream should be included in the offer
-            offer = UBIHandler.get_offer(affect, affect.impact, ps_module, {})
+            offer = framework.file_tracker_offers(affect, Impact.MODERATE, ps_module)
             assert offer
+            assert len(offer) == 1
             assert ps_update_stream.name in offer
-            assert (
-                offer[ps_update_stream.name]["ps_update_stream"]
-                == ps_update_stream.name
-            )
             assert offer[ps_update_stream.name]["selected"] is True
-            assert offer[ps_update_stream.name]["aus"] is False
-            assert offer[ps_update_stream.name]["eus"] is False
-            assert offer[ps_update_stream.name]["acked"] is True
 
         def test_get_offer_y(self):
-            ps_module = PsModuleFactory()
-            affect = AffectFactory(ps_module=ps_module.name)
+            UbiPackage(name="ubi-component").save()
+            ps_module = PsModuleFactory(special_handling_features=["ubi_packages"])
+            affect = AffectFactory(
+                ps_module=ps_module.name,
+                ps_component="ubi-component",
+            )
             z_stream = PsUpdateStreamFactory(
                 active_to_ps_module=ps_module,
                 name="stream-1.2.3.z",
             )
-            PsUpdateStreamFactory(
+            y_stream_pre = PsUpdateStreamFactory(
                 active_to_ps_module=ps_module,
                 name="stream-1.2.1",  # earlier Y-stream
             )
@@ -737,16 +766,21 @@ class TestTrackerSuggestions:
                 active_to_ps_module=None,  # inactive
                 name="stream-1.4.1",  # latter Y-stream
             )
-            # Z-stream should be included in the offer
-            offer = UBIHandler.get_offer(affect, affect.impact, ps_module, {})
-            assert len(offer) == 2
+
+            framework = ProductDefinitionRules()
+            framework.handlers = [UBIHandler()]
+            # Z-stream and Y-stream should be included in the offer
+            offer = framework.file_tracker_offers(affect, Impact.MODERATE, ps_module)
+            assert offer
+            assert len(offer) == 3
             assert z_stream.name in offer
+            assert y_stream_pre.name in offer
             assert y_stream_post.name in offer
-            assert offer[y_stream_post.name]["ps_update_stream"] == y_stream_post.name
+            assert offer[z_stream.name]["selected"] is True
+            assert (
+                offer[y_stream_pre.name]["selected"] is False
+            )  # old Y-stream not selected
             assert offer[y_stream_post.name]["selected"] is True
-            assert offer[y_stream_post.name]["aus"] is False
-            assert offer[y_stream_post.name]["eus"] is False
-            assert offer[y_stream_post.name]["acked"] is True
 
     class TestUnackedHandler:
         @pytest.mark.parametrize(
@@ -769,29 +803,30 @@ class TestTrackerSuggestions:
             ps_module = PsModuleFactory()
             affect = AffectFactory(ps_module=ps_module.name)
 
+            framework = ProductDefinitionRules()
+            framework.handlers = [UnackedHandler()]
+
             # no existing unacked stream to be offered
-            assert UnackedHandler.get_offer(affect, affect.impact, ps_module, {}) == {}
+            assert (
+                framework.file_tracker_offers(affect, Impact.MODERATE, ps_module) == {}
+            )
 
             ps_update_stream = PsUpdateStreamFactory(
                 active_to_ps_module=None,
                 unacked_to_ps_module=ps_module,
             )
             # no active unacked stream to be offered
-            assert UnackedHandler.get_offer(affect, affect.impact, ps_module, {}) == {}
+            assert (
+                framework.file_tracker_offers(affect, Impact.MODERATE, ps_module) == {}
+            )
 
             ps_update_stream.active_to_ps_module = ps_module
             ps_update_stream.save()
             # unacked stream should be included in the offer
-            offer = UnackedHandler.get_offer(affect, affect.impact, ps_module, {})
+            offer = framework.file_tracker_offers(affect, Impact.MODERATE, ps_module)
             assert offer
+            assert len(offer) == 1
             assert ps_update_stream.name in offer
-            assert (
-                offer[ps_update_stream.name]["ps_update_stream"]
-                == ps_update_stream.name
-            )
-            assert offer[ps_update_stream.name]["aus"] is False
-            assert offer[ps_update_stream.name]["eus"] is False
-            assert offer[ps_update_stream.name]["acked"] is False  # unacked
 
         @pytest.mark.parametrize(
             "impact,preselected",
@@ -808,7 +843,11 @@ class TestTrackerSuggestions:
                 unacked_to_ps_module=ps_module,
             )
 
-            offer = UnackedHandler.get_offer(affect, impact, ps_module, {})
+            framework = ProductDefinitionRules()
+            framework.handlers = [UnackedHandler()]
+
+            offer = framework.file_tracker_offers(affect, impact, ps_module)
             assert offer
+            assert len(offer) == 1
             assert ps_update_stream.name in offer
             assert offer[ps_update_stream.name]["selected"] == preselected

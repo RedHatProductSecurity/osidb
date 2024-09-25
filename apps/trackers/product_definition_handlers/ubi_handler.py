@@ -35,12 +35,8 @@ class UBIHandler(ProductDefinitionHandler):
         pre-select the streams
         """
         z_stream = ps_module.z_stream
-        if not z_stream:
-            # no Z-stream exists
-            return offers
-
-        if not ps_module.active_ps_update_streams.filter(name=z_stream.name):
-            # Z-stream is not active any more
+        if not z_stream or z_stream.name not in offers:
+            # no applicable Z-stream exists
             return offers
 
         # This can pre-select streams that are not marked as default,
@@ -63,8 +59,7 @@ class UBIHandler(ProductDefinitionHandler):
         }
 
         for stream in ps_module.y_streams:
-            if not ps_module.active_ps_update_streams.filter(name=stream.name):
-                # skip inactive streams
+            if stream.name not in offers:
                 continue
 
             if not ps_update_stream_natural_keys(
