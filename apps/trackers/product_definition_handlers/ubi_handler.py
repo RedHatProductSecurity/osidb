@@ -50,30 +50,16 @@ class UBIHandler(ProductDefinitionHandler):
         # ps_module's active streams - it may not be included in the
         # default streams list
 
-        offers[z_stream.name] = {
-            "ps_update_stream": z_stream.name,
-            "selected": True,
-            "aus": bool(ps_module.aus_ps_update_streams.filter(name=z_stream.name)),
-            "eus": bool(ps_module.eus_ps_update_streams.filter(name=z_stream.name)),
-            "acked": True,
-        }
+        offers[z_stream.name]["selected"] = True
 
         for stream in ps_module.y_streams:
             if stream.name not in offers:
                 continue
 
-            if not ps_update_stream_natural_keys(
-                stream
-            ) > ps_update_stream_natural_keys(z_stream):
-                # skip Y-streams earlier than the Z-stream
-                continue
-
-            offers[stream.name] = {
-                "ps_update_stream": stream.name,
-                "selected": True,
-                "aus": bool(ps_module.aus_ps_update_streams.filter(name=stream.name)),
-                "eus": bool(ps_module.eus_ps_update_streams.filter(name=stream.name)),
-                "acked": True,
-            }
+            # skip Y-streams earlier than the Z-stream
+            if ps_update_stream_natural_keys(stream) > ps_update_stream_natural_keys(
+                z_stream
+            ):
+                offers[stream.name]["selected"] = True
 
         return offers

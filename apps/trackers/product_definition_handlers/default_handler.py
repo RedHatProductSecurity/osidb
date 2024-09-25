@@ -25,16 +25,6 @@ class DefaultHandler(ProductDefinitionHandler):
         pre-select the streams
         """
         for stream in ps_module.default_ps_update_streams.all():
-            if stream.name not in offers:
-                continue
-
-            offers[stream.name] = {
-                "ps_update_stream": stream.name,
-                "selected": True,
-                "acked": not bool(
-                    ps_module.unacked_ps_update_stream.filter(name=stream.name)
-                ),
-                "eus": bool(ps_module.eus_ps_update_streams.filter(name=stream.name)),
-                "aus": bool(ps_module.aus_ps_update_streams.filter(name=stream.name)),
-            }
+            if stream.name in offers:
+                offers[stream.name]["selected"] = True
         return offers
