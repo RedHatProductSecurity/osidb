@@ -9,6 +9,7 @@ from apps.trackers.product_definition_handlers.default_handler import DefaultHan
 from apps.trackers.product_definition_handlers.major_incident_handler import (
     MajorIncidentHandler,
 )
+from apps.trackers.product_definition_handlers.moderate_handler import ModerateHandler
 from apps.trackers.product_definition_handlers.ubi_handler import UBIHandler
 from apps.trackers.product_definition_handlers.unacked_handler import UnackedHandler
 from osidb.dmodels import PsUpdateStream, UbiPackage
@@ -656,6 +657,75 @@ class TestTrackerSuggestions:
 
         # the offer creation works completely the save way as for the DefaultHandler
         # so we do not need to test it here again as it is already tested there
+
+    class TestModerateHandler:
+        @pytest.mark.parametrize(
+            "impact,is_applicable",
+            [
+                (Impact.CRITICAL, False),
+                (Impact.IMPORTANT, False),
+                (Impact.MODERATE, True),
+                (Impact.LOW, False),
+            ],
+        )
+        def test_is_applicable_impact(self, impact, is_applicable):
+            ps_module = PsModuleFactory()
+            PsUpdateStreamFactory(
+                active_to_ps_module=ps_module,
+                moderate_to_ps_module=ps_module,
+            )
+            affect = AffectFactory(ps_module=ps_module.name)
+            assert is_applicable == ModerateHandler.is_applicable(
+                affect, impact, ps_module
+            )
+
+        @pytest.mark.parametrize(
+            "moderate_stream,is_applicable",
+            [
+                (False, False),
+                (True, True),
+            ],
+        )
+        def test_is_applicable_moderate_stream(self, moderate_stream, is_applicable):
+            ps_module = PsModuleFactory()
+            PsUpdateStreamFactory(
+                active_to_ps_module=ps_module,
+                moderate_to_ps_module=ps_module if moderate_stream else None,
+            )
+            affect = AffectFactory(ps_module=ps_module.name)
+            assert is_applicable == ModerateHandler.is_applicable(
+                affect, Impact.MODERATE, ps_module
+            )
+
+        def test_get_offer(self):
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(ps_module=ps_module.name)
+
+            framework = ProductDefinitionRules()
+            framework.handlers = [ModerateHandler()]
+
+            PsUpdateStreamFactory(
+                active_to_ps_module=None,
+                moderate_to_ps_module=None,
+            )
+            ps_update_stream2 = PsUpdateStreamFactory(
+                active_to_ps_module=ps_module,
+                moderate_to_ps_module=None,
+            )
+            ps_update_stream3 = PsUpdateStreamFactory(
+                active_to_ps_module=ps_module,
+                moderate_to_ps_module=ps_module,
+            )
+
+            # active streams should be included in the offer
+            # and the moderate one should be pre-selected
+            offer = framework.file_tracker_offers(affect, Impact.MODERATE, ps_module)
+            assert offer
+            assert len(offer) == 2
+            assert ps_update_stream2.name in offer
+            assert ps_update_stream3.name in offer
+            assert offer[ps_update_stream2.name]["selected"] is False
+            assert offer[ps_update_stream3.name]["selected"] is True
 
     class TestUBIHandler:
         @pytest.mark.parametrize(
