@@ -237,5 +237,25 @@ services:
       ports:
         - "6379"
 
+    log-listener:
+      container_name: log-listener
+      hostname: log-listener
+      build:
+        context: etc/log_listener
+        dockerfile: Dockerfile
+      image: log-listener
+      volumes:
+      - ${PWD}/etc/log_listener:/app:z
+
+    logstash:
+      container_name: logstash
+      hostname: logstash
+      image: registry.connect.redhat.com/elastic/logstash:7.17.24
+      environment:
+        LOGFILE_ENV_PREFIX: "local"
+      volumes:
+        - ${PWD}/etc/logstash:/usr/share/logstash/pipeline:z
+        # - ${PWD}/etc/logstash/log:/var/log:z
+
 volumes:
   pg-data:

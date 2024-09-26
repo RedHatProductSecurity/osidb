@@ -190,7 +190,11 @@ LOGGING = {
         },
     },
     "handlers": {
-        "console": {"class": "logging.StreamHandler", "formatter": "verbose"},
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+            "level": "INFO",
+        },
         "celery": {
             "class": "logging.StreamHandler",
             "formatter": "verbose_celery",

@@ -557,6 +557,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_object(self):
+        raise Exception
         # from https://www.django-rest-framework.org/api-guide/generic-views/#methods
         """get flaw object instance"""
         queryset = self.get_queryset()
