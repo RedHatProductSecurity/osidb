@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Create custom DjangoQL lookup field for Flaw.components (OSIDB-3479)
 
+### Fixed
+- Remove duplicate results from advanced search (OSIDB-3482)
+
 ## [4.3.3] - 2024-09-30
 ### Added
 - Update Vulnerability trackers on components change (OSIDB-3323)
