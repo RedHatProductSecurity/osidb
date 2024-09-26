@@ -3,7 +3,6 @@ Tracker model related tests
 """
 import pytest
 from django.core.exceptions import ValidationError
-from django.db.utils import IntegrityError
 
 from osidb.dmodels.tracker import Tracker
 from osidb.models import Affect
@@ -133,7 +132,7 @@ class TestTracker:
             external_system_id="",
         )
 
-        with pytest.raises(IntegrityError):
+        with pytest.raises(ValidationError):
             tracker1.external_system_id = "TEST-1"
             tracker1.save()
             tracker2.external_system_id = "TEST-1"

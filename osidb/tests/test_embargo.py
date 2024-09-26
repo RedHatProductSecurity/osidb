@@ -82,4 +82,4 @@ class TestEmbargo(object):
                 reported_dt=timezone.now(),
             )
             flaw.save()
-        assert "Flaw() got an unexpected keyword argument 'embargoed'" in str(ex)
+        assert "Flaw() got unexpected keyword arguments: 'embargoed'" in str(ex)

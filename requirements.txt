@@ -16,9 +16,9 @@ appdirs==1.4.4 \
     --hash=sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41 \
     --hash=sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128
     # via requests-cache
-asgiref==3.4.1 \
-    --hash=sha256:4ef1ab46b484e3c706329cedeff284a5d40824200638503f5768edb6de7d58e9 \
-    --hash=sha256:ffc141aa908e6f175673e7b1b3b7af4fdb0ecb738fc5c8b88f69f055c2415214
+asgiref==3.8.1 \
+    --hash=sha256:3e1e3ecc849832fe52ccf2cb6686b7a55f82bb1d6aee72a58826471390335e47 \
+    --hash=sha256:c343bd80a0bec947a9860adb4c432ffa7db769836c64238fc34bdc3fec84d590
     # via django
 async-timeout==4.0.2 \
     --hash=sha256:2163e1640ddb52b7a8c80d0a67a08587e5d245cc9c553a74a847056bc2976b15 \
@@ -186,9 +186,9 @@ defusedxml==0.7.1 \
     # via
     #   djangorestframework-xml
     #   jira
-django==3.2.25 \
-    --hash=sha256:7ca38a78654aee72378594d63e51636c04b8e28574f5505dff630895b5472777 \
-    --hash=sha256:a52ea7fcf280b16f7b739cec38fa6d3f8953a5456986944c3ca97e79882b4e38
+django==4.2.16 \
+    --hash=sha256:1ddc333a16fc139fd253035a1606bb24261951bbc3a6ca256717fa06cc41a898 \
+    --hash=sha256:6f1616c2786c408ce86ab7e10f792b8f15742f7b7b7460243929cb371e7f1dad
     # via
     #   -r requirements.in
     #   django-auth-ldap
@@ -231,9 +231,9 @@ django-filter==21.1 \
     --hash=sha256:632a251fa8f1aadb4b8cceff932bb52fe2f826dd7dfe7f3eac40e5c463d6836e \
     --hash=sha256:f4a6737a30104c98d2e2a5fb93043f36dd7978e0c7ddc92f5998e85433ea5063
     # via -r requirements.in
-django-model-utils==4.2.0 \
-    --hash=sha256:a768a25c80514e0ad4e4a6f9c02c44498985f36c5dfdea47b5b1e8cf994beba6 \
-    --hash=sha256:e7a95e102f9c9653427eadab980d5d59e1dea972913b9c9e01ac37f86bba0ddf
+django-model-utils==5.0.0 \
+    --hash=sha256:041cdd6230d2fbf6cd943e1969318bce762272077f4ecd333ab2263924b4e5eb \
+    --hash=sha256:fec78e6c323d565a221f7c4edc703f4567d7bb1caeafe1acd16a80c5ff82056b
     # via -r requirements.in
 django-pghistory==3.2.0 \
     --hash=sha256:74ff23bafd972b0456ce22af03ecf8234d2f7e1bf38da6389eaa227966162014 \
@@ -243,9 +243,9 @@ django-pgtrigger==4.11.1 \
     --hash=sha256:39862f229405c6fe49b33451e13910a70578ba569f7e8bea6ea82049058b371f \
     --hash=sha256:9ef664932b3b7fb06e6dc091e4e292d029c221804469ff42968dad272076915f
     # via django-pghistory
-django-polymorphic==3.0.0 \
-    --hash=sha256:73b75eb44ea302bd32820f8661e469509d245ce7f7ff09cd2ad149e5c42034ff \
-    --hash=sha256:9d886f19f031d26bb1391c055ed9be06fb226a04a4cec1842b372c58873b3caa
+django-polymorphic==3.1.0 \
+    --hash=sha256:08bc4f4f4a773a19b2deced5a56deddd1ef56ebd15207bf4052e2901c25ef57e \
+    --hash=sha256:d6955b5308bf6e41dcb22ba7c96f00b51dfa497a8a5ab1e9c06c7951bf417bf8
     # via -r requirements.in
 django-postgres-extra==2.0.3 \
     --hash=sha256:447b24b91146f9ad19f960922c19e5885663cf282100529baeae5152775aa4c0 \
@@ -254,28 +254,29 @@ django-postgres-extra==2.0.3 \
 djangoql==0.18.1 \
     --hash=sha256:51b3085a805627ebb43cfd0aa861137cdf8f69cc3c9244699718fe04a6c8e26d
     # via -r requirements.in
-djangorestframework==3.12.4 \
-    --hash=sha256:6d1d59f623a5ad0509fe0d6bfe93cbdfe17b8116ebc8eda86d45f6e16e819aaf \
-    --hash=sha256:f747949a8ddac876e879190df194b925c177cdeb725a099db1460872f7c0a7f2
+djangorestframework==3.15.2 \
+    --hash=sha256:2b8871b062ba1aefc2de01f773875441a961fefbf79f5eed1e32b2f096944b20 \
+    --hash=sha256:36fe88cd2d6c6bec23dca9804bab2ba5517a8bb9d8f47ebc68981b56840107ad
     # via
     #   -r requirements.in
     #   djangorestframework-csv
     #   djangorestframework-simplejwt
     #   drf-spectacular
-djangorestframework-csv==2.1.1 \
-    --hash=sha256:aa0ee4c894fe319c68e042b05c61dace43a9fb6e6872e1abe1724ca7ea4d15f7
+djangorestframework-csv==3.0.2 \
+    --hash=sha256:b269b692feda1971e1342f395a21d339c6a16d2961ff64357a9a6188f27af10f \
+    --hash=sha256:d1bcfbaaeaa5145af6bb0985a36a5bbf2f853d9961c722f69c7b0c9c3bcc269a
     # via -r requirements.in
-djangorestframework-simplejwt==5.0.0 \
-    --hash=sha256:30b10e7732395c44d21980f773214d2b9bdeadf2a6c6809cd1a7c9abe272873c \
-    --hash=sha256:ddcbeef51155d1e71410dde44b581c7e04cfb74776f5337661ac3ef4c0c367e6
+djangorestframework-simplejwt==5.3.1 \
+    --hash=sha256:381bc966aa46913905629d472cd72ad45faa265509764e20ffd440164c88d220 \
+    --hash=sha256:6c4bd37537440bc439564ebf7d6085e74c5411485197073f508ebdfa34bc9fae
     # via -r requirements.in
 djangorestframework-xml==2.0.0 \
     --hash=sha256:35f6c811d0ab8c8466b26db234e16a2ed32d76381715257aebf4c7be2c202ca1 \
     --hash=sha256:975955fbb0d49ac44a90bdeb33b7923d95b79884d283f983e116c80a936ef4d0
     # via -r requirements.in
-drf-spectacular==0.21.0 \
-    --hash=sha256:08357eefd71359ac522f3006c979f845ba09ec53638b84b8f9e920fa208dca92 \
-    --hash=sha256:72bf0c122a51f1431d44570b8a68e5da1bc0e961d8a895ab3a83861fef65565d
+drf-spectacular==0.27.2 \
+    --hash=sha256:a199492f2163c4101055075ebdbb037d59c6e0030692fc83a1a8c0fc65929981 \
+    --hash=sha256:b1c04bf8b2fbbeaf6f59414b4ea448c8787aba4d32f76055c3b13335cf7ec37b
     # via -r requirements.in
 enforce==0.3.4 \
     --hash=sha256:cdb7720e25d0bd7ad2aaf2311197d5a28d4d2afe73ecc2f74b5d28faee3f68f2
@@ -583,7 +584,6 @@ pytz==2021.3 \
     --hash=sha256:acad2d8b20a1af07d4e4c9d2e9285c5ed9104354062f275f3fcd88dcef4f1326
     # via
     #   celery
-    #   django
     #   flower
 pyyaml==6.0 \
     --hash=sha256:0283c35a6a9fbf047493e3a0ce8d79ef5030852c51e9d911a27badfde0605293 \
@@ -742,7 +742,6 @@ six==1.16.0 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
     # via
     #   click-repl
-    #   djangorestframework-csv
     #   python-dateutil
     #   url-normalize
 sqlparse==0.4.4 \
@@ -770,9 +769,12 @@ tornado==6.4.1 \
     --hash=sha256:d9a566c40b89757c9aa8e6f032bcdb8ca8795d7c1a9762910c722b1635c9de4d \
     --hash=sha256:e2e20b9113cd7293f164dc46fffb13535266e713cdb87bd2d15ddb336e96cfc4
     # via flower
-unicodecsv==0.14.1 \
-    --hash=sha256:018c08037d48649a0412063ff4eda26eaa81eff1546dbffa51fa5293276ff7fc
-    # via djangorestframework-csv
+typing-extensions==4.12.2 \
+    --hash=sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d \
+    --hash=sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8
+    # via
+    #   asgiref
+    #   drf-spectacular
 uritemplate==4.1.1 \
     --hash=sha256:4346edfc5c3b79f694bccd6d6099a322bbeb628dbf2cd86eea55a456ce5124f0 \
     --hash=sha256:830c08b8d99bdd312ea4ead05994a38e8936266f84b9a7878232db50b044e02e
