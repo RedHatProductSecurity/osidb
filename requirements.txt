@@ -281,9 +281,9 @@ drf-spectacular==0.27.2 \
 enforce==0.3.4 \
     --hash=sha256:cdb7720e25d0bd7ad2aaf2311197d5a28d4d2afe73ecc2f74b5d28faee3f68f2
     # via django-postgres-extra
-flower==1.1.0 \
-    --hash=sha256:77be4bece7330893703e8cca3f3baddba356a0019186594a961e3968289da7ec \
-    --hash=sha256:f920ca2902d7539fc180ab15e51f1d918355e5cc23da854ff9d59c6e5a1725b6
+flower==2.0.1 \
+    --hash=sha256:5ab717b979530770c16afb48b50d2a98d23c3e9fe39851dcf6bc4d01845a02a0 \
+    --hash=sha256:9db2c621eeefbc844c8dd88be64aef61e84e2deb29b271e02ab2b5b9f01068e2
     # via -r requirements.in
 gevent==23.9.1 \
     --hash=sha256:272cffdf535978d59c38ed837916dfd2b5d193be1e9e5dcc60a5f4d5025dd98a \
