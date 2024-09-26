@@ -404,7 +404,7 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     )
 
     def query_filter(self, queryset, name, value):
-        return apply_search(queryset, value, schema=FlawQLSchema)
+        return apply_search(queryset, value, schema=FlawQLSchema).distinct()
 
     def changed_after_filter(self, queryset, name, value):
         """
