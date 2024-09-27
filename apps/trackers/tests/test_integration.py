@@ -9,14 +9,15 @@ from django.utils import timezone
 from rest_framework import status
 
 from apps.trackers.jira.query import JiraPriority
-from apps.trackers.models import JiraBugIssuetype
+from apps.trackers.models import JiraBugIssuetype, JiraProjectFields
 from apps.trackers.save import TrackerSaver
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
 from collectors.bzimport.constants import BZ_DT_FMT
+from collectors.jiraffe.collectors import JiraTrackerCollector
 from osidb.dmodels.tracker import Tracker
 from osidb.models import Affect, Flaw, Impact
-from osidb.sync_manager import BZTrackerLinkManager
+from osidb.sync_manager import BZTrackerLinkManager, JiraTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -614,3 +615,359 @@ class TestTrackerAPI:
         assert flaw3.affects.count() == 1
         assert flaw3.affects.first().trackers.count() == 1
         assert flaw3.affects.first().trackers.first().uuid == tracker.uuid
+
+    @pytest.mark.vcr
+    def test_tracker_create_update_jira_vulnerability_issuetype(
+        self,
+        auth_client,
+        enable_bugzilla_sync,
+        enable_jira_sync,
+        test_api_uri,
+        monkeypatch,
+    ):
+        """
+        Test the whole stack Jira tracker creation starting on the API and ending in Jira,
+        then also test tracker update.
+        Tested in just one test so that complex set up is not necessary for the follow-up
+        test of tracker update.
+        """
+
+        # 0) Mock settings that use the code path actually used in production at the
+        #    time of writing the test (2024-09).
+        import apps.bbsync.constants as bbsync_constants
+        import osidb.models as models
+        import osidb.serializer as serializer
+
+        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(bbsync_constants, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
+        monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
+
+        # 1) define all the context
+        ps_module = PsModuleFactory(
+            bts_name="jboss",
+            bts_key="OCPBUGS",
+            bts_groups={"public": []},
+            default_component="Security",
+            name="openshift-4",
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            name="openshift-4.8.z",
+            ps_module=ps_module,
+            version="4.8",
+        )
+
+        JiraProjectFieldsFactory(
+            project_key="OCPBUGS",
+            field_id="priority",
+            allowed_values=[JiraPriority.MINOR],
+        )
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="security",
+            field_name="Security Level",
+            allowed_values=[
+                "Embargoed Security Issue",
+                "Red Hat Employee",
+                "Red Hat Engineering Authorized",
+                "Red Hat Partner",
+                "Restricted",
+                "Team",
+            ],
+        )
+
+        JiraProjectFields(
+            project_key=ps_module.bts_key,
+            field_id="customfield_12324746",
+            field_name="Source",
+            # Severely pruned for the test
+            allowed_values=["Red Hat", "Upstream"],
+        ).save()
+
+        JiraProjectFields(
+            project_key=ps_module.bts_key,
+            field_id="customfield_12324749",
+            field_name="CVE ID",
+            allowed_values=[],
+        ).save()
+
+        JiraProjectFields(
+            project_key=ps_module.bts_key,
+            field_id="customfield_12324748",
+            field_name="CVSS Score",
+            allowed_values=[],
+        ).save()
+
+        JiraProjectFields(
+            project_key=ps_module.bts_key,
+            field_id="customfield_12324747",
+            field_name="CWE ID",
+            allowed_values=[],
+        ).save()
+
+        JiraProjectFields(
+            project_key=ps_module.bts_key,
+            field_id="customfield_12324752",
+            field_name="Downstream Component Name",
+            allowed_values=[],
+        ).save()
+
+        JiraProjectFields(
+            project_key=ps_module.bts_key,
+            field_id="customfield_12324751",
+            field_name="Upstream Affected Component",
+            allowed_values=[],
+        ).save()
+
+        JiraProjectFields(
+            project_key=ps_module.bts_key,
+            field_id="customfield_12324750",
+            field_name="Embargo Status",
+            allowed_values=["True", "False"],
+        ).save()
+
+        JiraProjectFields(
+            project_key=ps_module.bts_key,
+            field_id="customfield_12324753",
+            field_name="Special Handling",
+            allowed_values=[
+                "Major Incident",
+                "KEV (active exploit case)",
+            ],
+        ).save()
+
+        JiraProjectFields(
+            project_key=ps_module.bts_key,
+            field_id="customfield_12324940",
+            field_name="CVE Severity",
+            allowed_values=[
+                "Critical",
+                "Important",
+                "Moderate",
+                "Low",
+                "An Irrelevant Value To Be Ignored",
+                "None",
+            ],
+        ).save()
+
+        # Create the flaw for the purpose of the test
+        # (this is not part of the test per se, but necessary setup).
+
+        sync_count = 0
+
+        from rest_framework.response import Response
+
+        def mock_create_or_update_task(self, flaw):
+            nonlocal sync_count
+            sync_count += 1
+            return Response(
+                data={
+                    "key": "TASK-123",
+                    "fields": {
+                        "status": {"name": "New"},
+                        "resolution": None,
+                        "updated": "2024-06-25T21:20:43.988+0000",
+                    },
+                },
+                status=200,
+            )
+
+        from apps.taskman.service import JiraTaskmanQuerier
+
+        monkeypatch.setattr(
+            JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
+        )
+
+        flaw_data = {
+            "cwe_id": "CWE-1",
+            "title": "Foo",
+            "impact": "CRITICAL",
+            "components": ["curl"],
+            "source": "REDHAT",
+            "comment_zero": "test",
+            "reported_dt": "2023-11-22T15:55:22.830Z",
+            "unembargo_dt": "2023-11-23T15:55:22.830Z",
+            "embargoed": False,
+        }
+        response = auth_client().post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            # TODO sanitize keys both here and in VCRs
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 201
+
+        # This part is properly tested elsewhere, here just as a sanity check
+        # that the prerequisite is being set up in an expected way.
+        assert sync_count == 1
+
+        assert Flaw.objects.count() == 1
+
+        # NOTE: When recording cassette, delete this line. After recording,
+        #       grep for "flawuuid" and update the UUID accordingly.
+        Flaw.objects.all().update(uuid="9143582e-8711-4e69-ba6a-b3ead61fbb42")
+
+        flaw = Flaw.objects.first()
+
+        affect = AffectFactory(
+            uuid="7cb199fd-86eb-45eb-aa3a-8fd7ecd32c1d",
+            flaw=flaw,
+            ps_module=ps_module.name,
+            ps_component="Security",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            impact=flaw.impact,
+        )
+
+        # Basic sanity check
+        assert Flaw.objects.count() == 1
+        assert Affect.objects.count() == 1
+        assert Flaw.objects.first().affects.count() == 1
+        assert flaw.affects.count() == 1
+        assert Tracker.objects.count() == 0
+        assert Affect.objects.first() == affect
+        assert affect.flaw == flaw
+
+        # 2) create tracker in OSIDB and Jira
+        tracker_data = {
+            "affects": [affect.uuid],
+            "embargoed": flaw.embargoed,
+            "ps_update_stream": ps_update_stream.name,
+        }
+        response = auth_client().post(
+            f"{test_api_uri}/trackers",
+            tracker_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        # 3) get the newly loaded tracker from the DB
+        assert Tracker.objects.count() == 1
+        tracker = Tracker.objects.first()
+
+        # 4) check the correct result of the creation and loading
+        assert tracker.external_system_id
+        assert "OCPBUGS" in tracker.external_system_id
+        assert not tracker.embargoed
+        assert tracker.type == Tracker.TrackerType.JIRA
+        assert tracker.ps_update_stream == "openshift-4.8.z"
+        assert tracker.status == "New"
+        assert not tracker.resolution
+        labels = json.loads(tracker.meta_attr["labels"])
+        assert f"flawuuid:{flaw.uuid}" in labels, labels
+        assert tracker.affects.count() == 1
+        assert tracker.affects.first() == affect
+        assert not tracker.alerts.exists()
+        assert tracker.meta_attr["jira_issuetype"] == "Vulnerability"
+
+        # NOTE: Reloading flaw is tested in test_tracker_create_jira.
+        #       That test requires the flaw to be set up correctly in the BTS
+        #       and collection enabled. We're not using flaw collector
+        #       as of 2024-09 anymore.
+        #       The flaw sync works the same for both Bug and Vulnerability
+        #       issuetype trackers. No need to test it here.
+
+        # 5) check that the data are the same also when collecting the Tracker
+
+        tracker_id = tracker.external_system_id
+
+        Tracker.objects.all().delete()
+
+        assert Flaw.objects.count() == 1
+        assert Affect.objects.count() == 1
+        assert Flaw.objects.first().affects.count() == 1
+        assert flaw.affects.count() == 1
+        assert Tracker.objects.count() == 0
+        assert Affect.objects.first() == affect
+        assert affect.flaw == flaw
+
+        jc = JiraTrackerCollector()
+        jc.collect(tracker_id)
+        assert Tracker.objects.count() == 1
+        tracker_new = Tracker.objects.first()
+
+        assert tracker_new.external_system_id == tracker_id
+        assert not tracker_new.embargoed
+        assert tracker_new.type == Tracker.TrackerType.JIRA
+        assert tracker_new.ps_update_stream == "openshift-4.8.z"
+        assert tracker_new.status == "New"
+        assert not tracker_new.resolution
+        labels_new = json.loads(tracker_new.meta_attr["labels"])
+        assert sorted(labels) == sorted(labels_new)
+        assert tracker_new.meta_attr["jira_issuetype"] == "Vulnerability"
+
+        # Not linked yet
+        assert tracker_new.affects.count() == 0
+
+        JiraTrackerLinkManager.link_tracker_with_affects(tracker_id)
+
+        # Linked
+        assert tracker_new.affects.count() == 1
+        assert tracker_new.affects.first() == affect
+        assert not tracker_new.alerts.exists()
+
+        # 6) test tracker update
+        affect2 = AffectFactory(
+            uuid="8db199fd-86eb-45eb-aa3a-8fd7ecd32c2e",
+            flaw=flaw,
+            ps_module=ps_module.name,
+            ps_component="openshift-apiserver",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            impact=flaw.impact,
+        )
+        ps_update_stream2 = PsUpdateStreamFactory(
+            name="openshift-4.10.z",
+            ps_module=ps_module,
+            version="4.10",
+        )
+
+        tracker_data = {
+            "affects": [  # changed
+                affect2.uuid,
+            ],
+            "embargoed": flaw.embargoed,
+            "ps_update_stream": ps_update_stream2.name,  # new value
+            "updated_dt": tracker_new.updated_dt,
+        }
+        response = auth_client().put(
+            f"{test_api_uri}/trackers/{tracker_new.uuid}",
+            tracker_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+
+        # Basic sanity check again
+        assert Flaw.objects.count() == 1
+        assert Affect.objects.count() == 2
+        assert Flaw.objects.first().affects.count() == 2
+        assert flaw.affects.count() == 2
+        assert Tracker.objects.count() == 1
+        assert affect.flaw == flaw
+        assert affect2.flaw == flaw
+
+        # 7) get the newly loaded tracker from the DB
+        tracker2 = Tracker.objects.get(external_system_id=tracker_id)
+
+        # 8) check the correct result of the update and loading
+        assert tracker2.external_system_id == tracker_id
+        assert tracker2.external_system_id == tracker_new.external_system_id
+        assert not tracker2.embargoed
+        assert tracker2.type == Tracker.TrackerType.JIRA
+        assert tracker2.ps_update_stream == ps_update_stream2.name
+        labels2 = json.loads(tracker2.meta_attr["labels"])
+        assert f"flawuuid:{flaw.uuid}" in labels2, labels2
+        assert tracker2.affects.count() == 1
+        assert affect not in tracker2.affects.all()
+        assert affect2 in tracker2.affects.all()
+        assert not tracker2.alerts.exists()
+
+        # 9) check that the update actually happened
+        assert tracker2.updated_dt != tracker_new.updated_dt
