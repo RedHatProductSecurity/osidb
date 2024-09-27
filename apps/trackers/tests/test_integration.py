@@ -632,17 +632,6 @@ class TestTrackerAPI:
         test of tracker update.
         """
 
-        # 0) Mock settings that use the code path actually used in production at the
-        #    time of writing the test (2024-09).
-        import apps.bbsync.constants as bbsync_constants
-        import osidb.models as models
-        import osidb.serializer as serializer
-
-        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-        monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-        monkeypatch.setattr(bbsync_constants, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
-        monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
-
         # 1) define all the context
         ps_module = PsModuleFactory(
             bts_name="jboss",
