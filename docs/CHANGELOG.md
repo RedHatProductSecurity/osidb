@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Update Vulnerability trackers on components change (OSIDB-3323)
+- Enable CVEorg collector in production
 
 ### Changed
 - Alert users when Bugzilla sync failed (OSIDB-3252)

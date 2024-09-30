@@ -12,7 +12,7 @@ from django.utils.dateparse import parse_datetime
 
 from apps.taskman.constants import JIRA_AUTH_TOKEN
 from collectors.cmd import Cmd
-from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_START_DATE
+from collectors.constants import SNIPPET_CREATION_ENABLED
 from collectors.cveorg.constants import CELERY_PVC_PATH
 from collectors.framework.models import Collector
 from collectors.keywords import should_create_snippet
@@ -34,9 +34,13 @@ class CVEorgCollector(Collector):
 
     # When the start date is set to None, all snippets are collected
     # When set to a datetime object, only snippets created after that date are collected
-    snippet_creation_start_date = SNIPPET_CREATION_START_DATE
+    # TODO: The change to a specific date is temporary because NVD and CVEorg need to use a different start date
+    #       This will be unified again once the flaw creation in NVD gets disabled
+    snippet_creation_start_date = timezone.datetime(
+        2024, 10, 1, tzinfo=timezone.get_current_timezone()
+    )
 
-    BEGINNING = timezone.datetime(2024, 7, 1, tzinfo=timezone.get_current_timezone())
+    BEGINNING = timezone.datetime(2024, 10, 1, tzinfo=timezone.get_current_timezone())
 
     REPO_URL = "https://github.com/CVEProject/cvelistV5.git"
 
@@ -210,12 +214,14 @@ class CVEorgCollector(Collector):
         snippet_created = False
         flaw_created = False
 
-        # If unembargo_dt is missing, a flaw is always created to avoid missing anything important
-        if self.snippet_creation_start_date and content["unembargo_dt"]:
-            if self.snippet_creation_start_date >= parse_datetime(
-                content["unembargo_dt"]
-            ):
-                return False, False
+        # If unembargo_dt is missing, a flaw is always historical
+        if not content["unembargo_dt"]:
+            return False, False
+
+        if self.snippet_creation_start_date and (
+            self.snippet_creation_start_date > parse_datetime(content["unembargo_dt"])
+        ):
+            return False, False
 
         if should_create_snippet(content["comment_zero"]):
             snippet, snippet_created = Snippet.objects.get_or_create(
@@ -324,12 +330,6 @@ class CVEorgCollector(Collector):
         def get_unembargo_dt(data: dict) -> Union[str, None]:
             if published := data["cveMetadata"].get("datePublished"):
                 return published if published.endswith("Z") else f"{published}Z"
-            # If datePublished is missing, check dateUpdated as it has a similar meaning
-            # This is tracked in https://github.com/CVEProject/cvelistV5/issues/66
-            if updated := data["containers"]["cna"]["providerMetadata"].get(
-                "dateUpdated"
-            ):
-                return updated if updated.endswith("Z") else f"{updated}Z"
             return None
 
         return {
