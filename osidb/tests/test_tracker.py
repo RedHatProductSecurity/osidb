@@ -1,8 +1,11 @@
 """
 Tracker model related tests
 """
+
 import pytest
 from django.core.exceptions import ValidationError
+from django.utils import timezone
+from freezegun import freeze_time
 
 from osidb.dmodels.tracker import Tracker
 from osidb.models import Affect
@@ -64,6 +67,86 @@ class TestTracker:
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
         assert tracker.aggregated_impact == expected_impact
+
+    @pytest.mark.enable_signals
+    def test_last_impact_increase(self):
+        """
+        Test that the last impact increase date is correctly recorded in the tracker.
+        """
+        flaw1 = FlawFactory(embargoed=False)
+        flaw2 = FlawFactory(embargoed=flaw1.embargoed)
+        affect1 = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            flaw=flaw1,
+            impact="LOW",
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        affect2 = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            flaw=flaw2,
+            impact="LOW",
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=affect1.ps_module,
+            ps_component=affect1.ps_component,
+        )
+        ps_module = PsModuleFactory(name=affect1.ps_module)
+
+        tracker = TrackerFactory(
+            affects=[affect1, affect2],
+            embargoed=flaw1.embargoed,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        # If it has never increased it should not contain a value
+        assert tracker.last_impact_increase_dt is None
+
+        modify_dt = timezone.datetime(2050, 10, 19)
+
+        with freeze_time(modify_dt):
+            affect1.impact = "MODERATE"
+            affect1.save()
+
+        # Get updated tracker instance
+        tracker = Tracker.objects.get(uuid=tracker.uuid)
+        assert tracker.last_impact_increase_dt == modify_dt.astimezone(
+            timezone.get_current_timezone()
+        )
+
+        # If the aggregated impact doesn't increase, even if one of the
+        # related affects increases its impact, do not modify the datetime
+        old_modify_dt = modify_dt
+        modify_dt = timezone.datetime(2050, 10, 23)
+        with freeze_time(modify_dt):
+            affect2.impact = "MODERATE"
+            affect2.save()
+        tracker = Tracker.objects.get(uuid=tracker.uuid)
+        assert tracker.last_impact_increase_dt == old_modify_dt.astimezone(
+            timezone.get_current_timezone()
+        )
+
+        # If the affects have no impact, it will use the flaw's impact
+        flaw = FlawFactory(embargoed=False, impact="LOW")
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            flaw=flaw,
+            impact="",
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        ps_module = PsModuleFactory(name=affect.ps_module)
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.embargoed,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+        assert tracker.last_impact_increase_dt is None
+        modify_dt = timezone.datetime(2050, 10, 23)
+        with freeze_time(modify_dt):
+            flaw.impact = "MODERATE"
+            flaw.save()
+        tracker = Tracker.objects.get(uuid=tracker.uuid)
+        assert tracker.last_impact_increase_dt == modify_dt.astimezone(
+            timezone.get_current_timezone()
+        )
 
     def test_is_unacked(self):
         """
