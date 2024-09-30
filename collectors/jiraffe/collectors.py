@@ -271,7 +271,7 @@ class MetadataCollector(Collector):
                 )
         issue_types = ["1"]
         if id_of_vulnerability_issue_type:
-            issue_types.append(id_of_vulnerability_issue_type)
+            issue_types.insert(0, id_of_vulnerability_issue_type)  # prepend to list
 
         start_dt = timezone.now()
         projects = (
@@ -285,8 +285,11 @@ class MetadataCollector(Collector):
         )
 
         project_fields = {}
+        projects_already_collected = set()
         for issuetype in issue_types:
             for project in projects:
+                if project in projects_already_collected:
+                    continue
                 page_size = 100
                 start_at = 0
                 is_last = False
@@ -305,14 +308,15 @@ class MetadataCollector(Collector):
                         page_size = res["maxResults"]
                         start_at += page_size
                         is_last = res["isLast"]
+                    projects_already_collected.add(project)
                 except JIRAError as e:
                     if e.status_code == 400:
                         logger.error(
-                            f"Project {project} is not available in Jira, make sure product definition is up to date."
+                            f"Project {project} is not available in Jira for issuetype {issuetype}, make sure product definition is up to date."
                         )
                     else:
                         logger.error(
-                            f"Jira error trying to fetch project {project}: {e.response}"
+                            f"Jira error trying to fetch project {project} for issuetype {issuetype}: {e.response}"
                         )
 
         nonempty_project_fields = {k: v for k, v in project_fields.items() if v}
@@ -324,23 +328,13 @@ class MetadataCollector(Collector):
             # to work with Jira-based Trackers. Raising will preserve the (slightly outdated) data.
             raise MetadataCollectorInsufficientDataJiraffeException
 
-        # Keep the latest version of each field.
-        # In practice, there has been only one unimportant difference observed ("required" value on
-        # field name "Affects Version/s").
-        project_fields_with_shadowing = {}
-        for proj, list_of_fields in nonempty_project_fields.items():
-            fields = {}
-            for f in list_of_fields:
-                fields[f["name"]] = f
-            project_fields_with_shadowing[proj] = fields.values()
-
         projects_to_delete = list(
             JiraProjectFields.objects.values_list("project_key", flat=True)
             .distinct()
             .difference(projects)
         )
         self.update_metadata(
-            project_fields_with_shadowing, projects_to_delete=projects_to_delete
+            nonempty_project_fields, projects_to_delete=projects_to_delete
         )
 
         self.store(updated_until_dt=start_dt)
