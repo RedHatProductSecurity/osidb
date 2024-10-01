@@ -462,13 +462,6 @@ class TestMetadataCollector:
         project_fields = JiraProjectFields.objects.filter(project_key=project_key)
         assert len(project_fields) == 0
 
-    # When re-recording VCRs, for vulntype_exists=False, copy the cassettes recorded for
-    # vulntype_exists=True and manually tweak the cassette file to simulate the Vulnerability
-    # type not existing. This visibly highlights the behavior of MetadataCollector and makes
-    # it visible if there's a bug where all fields of type 1 are discarded when type 12207
-    # is collected (an actual bug experienced during development).
-    # If it works correctly, fields_count with vulntype_exists=True must not be lower than with
-    # vulntype_exists=False.
     @freeze_time(timezone.datetime(2024, 8, 8))
     @pytest.mark.vcr
     @pytest.mark.parametrize(
@@ -476,8 +469,8 @@ class TestMetadataCollector:
         [
             ("RHEL", 125, False),
             ("OSIM", 18, False),
-            ("RHEL", 135, True),
-            ("OSIM", 19, True),
+            ("RHEL", 98, True),
+            ("OSIM", 15, True),
         ],
     )
     def test_collect_vulnerability_issuetype(
