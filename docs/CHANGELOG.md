@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Remove duplicate results from advanced search (OSIDB-3482)
 - Collect Jira field metadata for only one issuetype for each project (OSIDB-3485)
+- parent_uuid field in Alert had wrong type in OpenAPI schema (OSIDB-3451)
 
 ## [4.3.3] - 2024-09-30
 ### Added
