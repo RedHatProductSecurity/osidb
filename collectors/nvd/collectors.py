@@ -37,6 +37,7 @@ class NVDQuerier:
         "cvssMetricV2": FlawCVSS.CVSSVersion.VERSION2,
         "cvssMetricV30": FlawCVSS.CVSSVersion.VERSION3,
         "cvssMetricV31": FlawCVSS.CVSSVersion.VERSION3,
+        "cvssMetricV40": FlawCVSS.CVSSVersion.VERSION4,
     }
 
     def get(self, **params: dict) -> list:
@@ -155,6 +156,7 @@ class NVDQuerier:
                                 # get CVSS 3.1 or CVSS 3.0 if 3.1 is not present
                                 get_cvss_metric(vulnerability, "cvssMetricV31")
                                 or get_cvss_metric(vulnerability, "cvssMetricV30"),
+                                get_cvss_metric(vulnerability, "cvssMetricV40"),
                             ],
                         )
                     ),
@@ -365,17 +367,22 @@ class NVDCollector(Collector, NVDQuerier):
         """
         original_cvss2 = self.get_original_nvd_cvss(flaw, FlawCVSS.CVSSVersion.VERSION2)
         original_cvss3 = self.get_original_nvd_cvss(flaw, FlawCVSS.CVSSVersion.VERSION3)
+        original_cvss4 = self.get_original_nvd_cvss(flaw, FlawCVSS.CVSSVersion.VERSION4)
 
         new_cvss2 = self.get_new_nvd_cvss(item, FlawCVSS.CVSSVersion.VERSION2)
         new_cvss3 = self.get_new_nvd_cvss(item, FlawCVSS.CVSSVersion.VERSION3)
+        new_cvss4 = self.get_new_nvd_cvss(item, FlawCVSS.CVSSVersion.VERSION4)
 
-        # update CVSS2 and CVSS3 if necessary
+        # update CVSS2, CVSS3 and CVSS4 if necessary
         if were_updated := (
-            (original_cvss2 != new_cvss2) or (original_cvss3 != new_cvss3)
+            (original_cvss2 != new_cvss2)
+            or (original_cvss3 != new_cvss3)
+            or (original_cvss4 != new_cvss4)
         ):
             for original_cvss, new_cvss, version in [
                 (original_cvss2, new_cvss2, FlawCVSS.CVSSVersion.VERSION2),
                 (original_cvss3, new_cvss3, FlawCVSS.CVSSVersion.VERSION3),
+                (original_cvss4, new_cvss4, FlawCVSS.CVSSVersion.VERSION4),
             ]:
                 if original_cvss and new_cvss is None:
                     # NVD CVSS was removed, so do the same in OSIDB
