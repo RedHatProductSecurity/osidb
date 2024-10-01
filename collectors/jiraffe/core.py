@@ -109,7 +109,11 @@ class JiraQuerier(JiraConnector):
         """
         query_items = []
         for name, operator, value in query_list:
-            query_items.append(f'{name}{operator}"{value}"')
+
+            query_value = (
+                f"({value})" if operator.upper() in ("IN", "NOT IN") else f'"{value}"'
+            )
+            query_items.append(f"{name} {operator} {query_value}")
         return " AND ".join(query_items)
 
     def run_query(
@@ -136,7 +140,7 @@ class JiraQuerier(JiraConnector):
         update query dictionary to query trackers
         """
         query_list.append(("labels", "=", "SecurityTracking"))
-        query_list.append(("type", "=", "Bug"))
+        query_list.append(("type", "in", "Bug,Vulnerability"))
         return query_list
 
     def query_updated(

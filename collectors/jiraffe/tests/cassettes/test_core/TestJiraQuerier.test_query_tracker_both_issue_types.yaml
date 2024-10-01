@@ -23,9 +23,7 @@ interactions:
       string: "[{\"id\":\"customfield_12322243\",\"name\":\"Release Date\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322243]\",\"Release
         Date\"],\"schema\":{\"type\":\"date\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:datepicker\",\"customId\":12322243}},{\"id\":\"customfield_12322244\",\"name\":\"PX
         Impact Score\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322244]\",\"PX
-        Impact Score\"],\"schema\":{\"type\":\"number\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlynumber\",\"customId\":12322244}},{\"id\":\"customfield_12324540\",\"name\":\"SFDC
-        Cases Open\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324540]\",\"SFDC
-        Cases Open\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.redhat.engineering.step.step-sfdc-plugin:sfdc_cases_open\",\"customId\":12324540}},{\"id\":\"customfield_12322240\",\"name\":\"Staffing\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322240]\",\"Staffing\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:float\",\"customId\":12322240}},{\"id\":\"customfield_12322241\",\"name\":\"Gating
+        Impact Score\"],\"schema\":{\"type\":\"number\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlynumber\",\"customId\":12322244}},{\"id\":\"customfield_12322240\",\"name\":\"Staffing\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322240]\",\"Staffing\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:float\",\"customId\":12322240}},{\"id\":\"customfield_12322241\",\"name\":\"Gating
         Tests\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12322241]\",\"Gating
         Tests\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12322241}},{\"id\":\"resolution\",\"name\":\"Resolution\",\"custom\":false,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"resolution\"],\"schema\":{\"type\":\"resolution\",\"system\":\"resolution\"}},{\"id\":\"customfield_12310022\",\"name\":\"SVN
         / CVS Isolated Branch\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310022]\",\"SVN
@@ -219,13 +217,9 @@ interactions:
         Priority\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12313442]\",\"PDD
         Priority\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:float\",\"customId\":12313442}},{\"id\":\"customfield_12311141\",\"name\":\"Epic
         Name\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12311141]\",\"Epic
-        Name\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.pyxis.greenhopper.jira:gh-epic-label\",\"customId\":12311141}},{\"id\":\"customfield_12313441\",\"name\":\"SFDC
-        Cases Links\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12313441]\",\"SFDC
-        Cases Links\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.redhat.engineering.step.step-sfdc-plugin:sfdc_cases\",\"customId\":12313441}},{\"id\":\"customfield_12315740\",\"name\":\"issueFunction\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12315740]\",\"issueFunction\"],\"schema\":{\"type\":\"any\",\"custom\":\"com.onresolve.jira.groovy.groovyrunner:jqlFunctionsCustomFieldType\",\"customId\":12315740}},{\"id\":\"customfield_12311142\",\"name\":\"Epic
+        Name\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.pyxis.greenhopper.jira:gh-epic-label\",\"customId\":12311141}},{\"id\":\"customfield_12315740\",\"name\":\"issueFunction\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12315740]\",\"issueFunction\"],\"schema\":{\"type\":\"any\",\"custom\":\"com.onresolve.jira.groovy.groovyrunner:jqlFunctionsCustomFieldType\",\"customId\":12315740}},{\"id\":\"customfield_12311142\",\"name\":\"Epic
         Status\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12311142]\",\"Epic
-        Status\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.pyxis.greenhopper.jira:gh-epic-status\",\"customId\":12311142}},{\"id\":\"customfield_12313440\",\"name\":\"SFDC
-        Cases Counter\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12313440]\",\"SFDC
-        Cases Counter\"],\"schema\":{\"type\":\"number\",\"custom\":\"com.redhat.engineering.step.step-sfdc-plugin:sfdc_cases_counter\",\"customId\":12313440}},{\"id\":\"duedate\",\"name\":\"Due
+        Status\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.pyxis.greenhopper.jira:gh-epic-status\",\"customId\":12311142}},{\"id\":\"duedate\",\"name\":\"Due
         Date\",\"custom\":false,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"due\",\"duedate\"],\"schema\":{\"type\":\"date\",\"system\":\"duedate\"}},{\"id\":\"customfield_12310173\",\"name\":\"Component
         Fix Version(s)\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310173]\",\"Component
         Fix Version(s)\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12310173}},{\"id\":\"customfield_12311140\",\"name\":\"Epic
@@ -903,9 +897,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 02 Oct 2024 11:17:39 GMT
+      - Tue, 01 Oct 2024 14:47:51 GMT
       Expires:
-      - Wed, 02 Oct 2024 11:17:39 GMT
+      - Tue, 01 Oct 2024 14:47:51 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -918,17 +912,17 @@ interactions:
       X-RateLimit-Remaining:
       - '4'
       content-length:
-      - '166072'
+      - '165199'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 677x1278274x2
+      - 887x1099382x10
       x-asessionid:
-      - p6i9kz
+      - 90ps0c
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -940,9 +934,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.64f06e68.1727867858.1074053f
+      - 0.7df06e68.1727794070.7ce20db
       x-rh-edge-request-id:
-      - 1074053f
+      - 7ce20db
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -968,41 +962,26 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/search?fields=issuekey&jql=labels+%3D+%22SecurityTracking%22+AND+type+in+%28Bug%2CVulnerability%29+AND+updated+%3E%3D+%222014-01-01+00%3A00%22+AND+updated+%3C%3D+%222015-01-01+00%3A01%22&startAt=0&validateQuery=True
+    uri: https://example.com/rest/api/2/search?fields=issuekey&fields=issuetype&jql=labels+%3D+%22SecurityTracking%22+AND+type+in+%28Bug%2CVulnerability%29+AND+updated+%3E%3D+%222024-09-30+14%3A00%22+AND+updated+%3C%3D+%222024-10-01+00%3A01%22&startAt=0&validateQuery=True
   response:
     body:
       string: '{"expand": "schema,names", "startAt": 0, "maxResults": 50, "total":
-        15, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12548499", "self": "https://example.com/rest/api/2/issue/12548499",
-        "key": "ENTMQ-755"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12548498", "self": "https://example.com/rest/api/2/issue/12548498",
-        "key": "ENTMQ-754"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12545178", "self": "https://example.com/rest/api/2/issue/12545178",
-        "key": "ENTMQ-701"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12539122", "self": "https://example.com/rest/api/2/issue/12539122",
-        "key": "ENTMQ-643"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12548497", "self": "https://example.com/rest/api/2/issue/12548497",
-        "key": "ENTESB-1767"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12548496", "self": "https://example.com/rest/api/2/issue/12548496",
-        "key": "ENTESB-1766"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12545177", "self": "https://example.com/rest/api/2/issue/12545177",
-        "key": "ENTESB-1660"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12544450", "self": "https://example.com/rest/api/2/issue/12544450",
-        "key": "ENTESB-1639"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12540231", "self": "https://example.com/rest/api/2/issue/12540231",
-        "key": "ENTESB-1525"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12540229", "self": "https://example.com/rest/api/2/issue/12540229",
-        "key": "ENTESB-1524"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12540227", "self": "https://example.com/rest/api/2/issue/12540227",
-        "key": "ENTESB-1523"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12540207", "self": "https://example.com/rest/api/2/issue/12540207",
-        "key": "ENTESB-1521"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12539121", "self": "https://example.com/rest/api/2/issue/12539121",
-        "key": "ENTESB-1431"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12537271", "self": "https://example.com/rest/api/2/issue/12537271",
-        "key": "ENTESB-1383"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12537270", "self": "https://example.com/rest/api/2/issue/12537270",
-        "key": "ENTESB-1382"}]}'
+        3, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "16288546", "self": "https://example.com/rest/api/2/issue/16288546",
+        "key": "RHEL-58856", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/12207",
+        "id": "12207", "description": "", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=57661&avatarType=issuetype",
+        "name": "Vulnerability", "subtask": false, "avatarId": 57661}}}, {"expand":
+        "operations,versionedRepresentations,editmeta,changelog,renderedFields", "id":
+        "16283879", "self": "https://example.com/rest/api/2/issue/16283879", "key":
+        "RHEL-58816", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/1",
+        "id": "1", "description": "A problem that impairs or prevents the functions
+        of the product.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        "name": "Bug", "subtask": false, "avatarId": 13263}}}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "16275154", "self": "https://example.com/rest/api/2/issue/16275154",
+        "key": "ACM-14200", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/1",
+        "id": "1", "description": "A problem that impairs or prevents the functions
+        of the product.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
+        "name": "Bug", "subtask": false, "avatarId": 13263}}}]}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -1011,9 +990,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 02 Oct 2024 11:17:39 GMT
+      - Tue, 01 Oct 2024 14:47:51 GMT
       Expires:
-      - Wed, 02 Oct 2024 11:17:39 GMT
+      - Tue, 01 Oct 2024 14:47:51 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1026,17 +1005,17 @@ interactions:
       X-RateLimit-Remaining:
       - '4'
       content-length:
-      - '2857'
+      - '1587'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 677x1278275x2
+      - 887x1099383x10
       x-asessionid:
-      - zfgqgy
+      - o59l6u
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1048,149 +1027,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.64f06e68.1727867859.107405bf
+      - 0.7df06e68.1727794071.7ce2117
       x-rh-edge-request-id:
-      - 107405bf
-      x-seraph-loginreason:
-      - OK
-      x-xss-protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json,*.*;q=0.9
-      Accept-Encoding:
-      - gzip, deflate
-      Cache-Control:
-      - no-cache
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-requests/2.32.0
-      X-Atlassian-Token:
-      - no-check
-    method: GET
-    uri: https://example.com/rest/api/2/search?fields=issuekey&jql=labels+%3D+%22SecurityTracking%22+AND+type+in+%28Bug%2CVulnerability%29+AND+updated+%3E%3D+%222015-01-01+00%3A00%22+AND+updated+%3C%3D+%222016-01-01+00%3A01%22&startAt=0&validateQuery=True
-  response:
-    body:
-      string: '{"expand": "schema,names", "startAt": 0, "maxResults": 50, "total":
-        31, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12553087", "self": "https://example.com/rest/api/2/issue/12553087",
-        "key": "WFCORE-120"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12574100", "self": "https://example.com/rest/api/2/issue/12574100",
-        "key": "PLINK-708"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12592612", "self": "https://example.com/rest/api/2/issue/12592612",
-        "key": "ENTMQ-1346"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12563202", "self": "https://example.com/rest/api/2/issue/12563202",
-        "key": "ENTMQ-931"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12557880", "self": "https://example.com/rest/api/2/issue/12557880",
-        "key": "ENTMQ-863"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12540232", "self": "https://example.com/rest/api/2/issue/12540232",
-        "key": "ENTMQ-663"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12540230", "self": "https://example.com/rest/api/2/issue/12540230",
-        "key": "ENTMQ-662"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12540228", "self": "https://example.com/rest/api/2/issue/12540228",
-        "key": "ENTMQ-661"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12540208", "self": "https://example.com/rest/api/2/issue/12540208",
-        "key": "ENTMQ-660"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12569236", "self": "https://example.com/rest/api/2/issue/12569236",
-        "key": "ENTESB-3080"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12569234", "self": "https://example.com/rest/api/2/issue/12569234",
-        "key": "ENTESB-3079"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12565738", "self": "https://example.com/rest/api/2/issue/12565738",
-        "key": "ENTESB-2837"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12564386", "self": "https://example.com/rest/api/2/issue/12564386",
-        "key": "ENTESB-2732"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12564385", "self": "https://example.com/rest/api/2/issue/12564385",
-        "key": "ENTESB-2731"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12564384", "self": "https://example.com/rest/api/2/issue/12564384",
-        "key": "ENTESB-2730"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12563218", "self": "https://example.com/rest/api/2/issue/12563218",
-        "key": "ENTESB-2662"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12563217", "self": "https://example.com/rest/api/2/issue/12563217",
-        "key": "ENTESB-2661"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12563216", "self": "https://example.com/rest/api/2/issue/12563216",
-        "key": "ENTESB-2660"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12563212", "self": "https://example.com/rest/api/2/issue/12563212",
-        "key": "ENTESB-2659"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12563211", "self": "https://example.com/rest/api/2/issue/12563211",
-        "key": "ENTESB-2658"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12563201", "self": "https://example.com/rest/api/2/issue/12563201",
-        "key": "ENTESB-2656"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12561595", "self": "https://example.com/rest/api/2/issue/12561595",
-        "key": "ENTESB-2535"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12561388", "self": "https://example.com/rest/api/2/issue/12561388",
-        "key": "ENTESB-2523"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12557949", "self": "https://example.com/rest/api/2/issue/12557949",
-        "key": "ENTESB-2214"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12556143", "self": "https://example.com/rest/api/2/issue/12556143",
-        "key": "ENTESB-2145"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12556141", "self": "https://example.com/rest/api/2/issue/12556141",
-        "key": "ENTESB-2144"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12554599", "self": "https://example.com/rest/api/2/issue/12554599",
-        "key": "ENTESB-2066"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12554598", "self": "https://example.com/rest/api/2/issue/12554598",
-        "key": "ENTESB-2065"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12549781", "self": "https://example.com/rest/api/2/issue/12549781",
-        "key": "ENTESB-1835"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12545995", "self": "https://example.com/rest/api/2/issue/12545995",
-        "key": "ENTESB-1696"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "12545179", "self": "https://example.com/rest/api/2/issue/12545179",
-        "key": "ENTESB-1661"}]}'
-    headers:
-      Cache-Control:
-      - max-age=0, no-cache, no-store
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json;charset=UTF-8
-      Date:
-      - Wed, 02 Oct 2024 11:17:40 GMT
-      Expires:
-      - Wed, 02 Oct 2024 11:17:40 GMT
-      Pragma:
-      - no-cache
-      Retry-After:
-      - '0'
-      Vary:
-      - User-Agent
-      - Accept-Encoding
-      X-RateLimit-Limit:
-      - '5'
-      X-RateLimit-Remaining:
-      - '4'
-      content-length:
-      - '5825'
-      referrer-policy:
-      - strict-origin-when-cross-origin
-      strict-transport-security:
-      - max-age=31536000
-      x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
-      x-arequestid:
-      - 677x1278276x2
-      x-asessionid:
-      - amn740
-      x-content-type-options:
-      - nosniff
-      x-frame-options:
-      - SAMEORIGIN
-      x-ratelimit-fillrate:
-      - '5'
-      x-ratelimit-interval-seconds:
-      - '1'
-      x-rh-edge-cache-status:
-      - NotCacheable from child
-      x-rh-edge-reference-id:
-      - 0.64f06e68.1727867859.10740793
-      x-rh-edge-request-id:
-      - '10740793'
+      - 7ce2117
       x-seraph-loginreason:
       - OK
       x-xss-protection:
