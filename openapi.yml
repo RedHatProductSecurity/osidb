@@ -7426,6 +7426,7 @@ components:
           type: string
         parent_uuid:
           type: string
+          format: uuid
           readOnly: true
         parent_model:
           type: string

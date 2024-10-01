@@ -14,6 +14,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import BadRequest
 from django.db.models import Max
 from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
 from pghistory.models import Events
 from rest_framework import serializers
@@ -483,6 +484,7 @@ class AlertSerializer(serializers.ModelSerializer):
             "parent_model",
         ]
 
+    @extend_schema_field(OpenApiTypes.UUID)
     def get_parent_uuid(self, obj):
         return obj.object_id
 
