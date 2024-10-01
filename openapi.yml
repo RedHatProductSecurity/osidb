@@ -1243,7 +1243,9 @@ paths:
             - trackers__uuid
             - updated_dt
             - uuid
-        description: Ordering
+        description: |+
+          Ordering
+
         explode: false
         style: form
       - in: query
@@ -3336,7 +3338,9 @@ paths:
             - updated_dt
             - uuid
             - workflow_state
-        description: Ordering
+        description: |+
+          Ordering
+
         explode: false
         style: form
       - in: query
@@ -3691,7 +3695,9 @@ paths:
             - REJECTED
             - SECONDARY_ASSESSMENT
             - TRIAGE
-        description: Multiple values may be separated by commas.
+        description: |+
+          Multiple values may be separated by commas.
+
         explode: false
         style: form
       tags:
@@ -5752,6 +5758,7 @@ paths:
           - br
           - bs
           - ca
+          - ckb
           - cs
           - cy
           - da
@@ -5804,6 +5811,7 @@ paths:
           - ml
           - mn
           - mr
+          - ms
           - my
           - nb
           - ne
@@ -6449,7 +6457,9 @@ paths:
             - type
             - updated_dt
             - uuid
-        description: Ordering
+        description: |+
+          Ordering
+
         explode: false
         style: form
       - in: query
@@ -7018,28 +7028,6 @@ components:
           items:
             $ref: '#/components/schemas/Tracker'
           readOnly: true
-        meta_attr:
-          type: object
-          properties:
-            affectedness:
-              type: string
-            component:
-              type: string
-            impact:
-              type: string
-            module_name:
-              type: string
-            module_stream:
-              type: string
-            ps_component:
-              type: string
-            ps_module:
-              type: string
-            ps_product:
-              type: string
-            resolution:
-              type: string
-          readOnly: true
         delegated_resolution:
           type: string
           readOnly: true
@@ -7074,7 +7062,6 @@ components:
       - delegated_resolution
       - embargoed
       - flaw
-      - meta_attr
       - ps_component
       - ps_module
       - ps_product
@@ -7127,28 +7114,6 @@ components:
           items:
             $ref: '#/components/schemas/Tracker'
           readOnly: true
-        meta_attr:
-          type: object
-          properties:
-            affectedness:
-              type: string
-            component:
-              type: string
-            impact:
-              type: string
-            module_name:
-              type: string
-            module_stream:
-              type: string
-            ps_component:
-              type: string
-            ps_module:
-              type: string
-            ps_product:
-              type: string
-            resolution:
-              type: string
-          readOnly: true
         delegated_resolution:
           type: string
           readOnly: true
@@ -7183,7 +7148,6 @@ components:
       - delegated_resolution
       - embargoed
       - flaw
-      - meta_attr
       - ps_component
       - ps_module
       - ps_product
@@ -7206,7 +7170,7 @@ components:
           $ref: '#/components/schemas/IssuerEnum'
         score:
           type: number
-          format: float
+          format: double
           readOnly: true
         uuid:
           type: string
@@ -7257,7 +7221,7 @@ components:
           $ref: '#/components/schemas/IssuerEnum'
         score:
           type: number
-          format: float
+          format: double
           readOnly: true
         uuid:
           type: string
@@ -7302,7 +7266,7 @@ components:
           $ref: '#/components/schemas/IssuerEnum'
         score:
           type: number
-          format: float
+          format: double
           readOnly: true
         uuid:
           type: string
@@ -7378,28 +7342,6 @@ components:
           items:
             $ref: '#/components/schemas/Tracker'
           readOnly: true
-        meta_attr:
-          type: object
-          properties:
-            affectedness:
-              type: string
-            component:
-              type: string
-            impact:
-              type: string
-            module_name:
-              type: string
-            module_stream:
-              type: string
-            ps_component:
-              type: string
-            ps_module:
-              type: string
-            ps_product:
-              type: string
-            resolution:
-              type: string
-          readOnly: true
         delegated_resolution:
           type: string
           readOnly: true
@@ -7429,7 +7371,6 @@ components:
       - delegated_resolution
       - embargoed
       - flaw
-      - meta_attr
       - ps_component
       - ps_module
       - ps_product
@@ -7523,13 +7464,9 @@ components:
           type: string
           description: The event label.
         pgh_context:
-          type: object
-          additionalProperties: {}
           nullable: true
           description: The context associated with the event.
         pgh_diff:
-          type: object
-          additionalProperties: {}
           description: The diff between the previous event of the same label.
         pgh_data:
           type: string
@@ -7601,7 +7538,7 @@ components:
           maxLength: 50
         epss:
           type: number
-          format: float
+          format: double
       required:
       - cve
       - epss
@@ -7649,6 +7586,7 @@ components:
           $ref: '#/components/schemas/ExploitOnlyReportDataSourceEnum'
         reference:
           type: string
+          default: N/A
           maxLength: 512
         maturity_preliminary:
           allOf:
@@ -7714,7 +7652,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/Source521Enum'
+          - $ref: '#/components/schemas/SourceBe0Enum'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
@@ -7743,52 +7681,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Comment'
-          readOnly: true
-        meta_attr:
-          type: object
-          properties:
-            acknowledgments:
-              type: string
-            acks_not_needed:
-              type: string
-            affects:
-              type: string
-            alias:
-              type: string
-            bz_datascore:
-              type: string
-            bz_id:
-              type: string
-            checklists:
-              type: string
-            classification:
-              type: string
-            cwe:
-              type: string
-            depends_on:
-              type: string
-            impact:
-              type: string
-            jira_trackers:
-              type: string
-            mitigate:
-              type: string
-            mitigation:
-              type: string
-            public:
-              type: string
-            references:
-              type: string
-            related_cves:
-              type: string
-            reported:
-              type: string
-            source:
-              type: string
-            statement:
-              type: string
-            task_owner:
-              type: string
           readOnly: true
         package_versions:
           type: array
@@ -7867,7 +7759,6 @@ components:
       - created_dt
       - cvss_scores
       - embargoed
-      - meta_attr
       - package_versions
       - references
       - title
@@ -8020,7 +7911,7 @@ components:
           $ref: '#/components/schemas/IssuerEnum'
         score:
           type: number
-          format: float
+          format: double
           readOnly: true
         uuid:
           type: string
@@ -8071,7 +7962,7 @@ components:
           $ref: '#/components/schemas/IssuerEnum'
         score:
           type: number
-          format: float
+          format: double
           readOnly: true
         uuid:
           type: string
@@ -8116,7 +8007,7 @@ components:
           $ref: '#/components/schemas/IssuerEnum'
         score:
           type: number
-          format: float
+          format: double
           readOnly: true
         uuid:
           type: string
@@ -8205,6 +8096,7 @@ components:
       - embargoed
       - external_system_id
       - flaw
+      - order
       - text
       - updated_dt
       - uuid
@@ -8395,7 +8287,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/Source521Enum'
+          - $ref: '#/components/schemas/SourceBe0Enum'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
@@ -8424,52 +8316,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Comment'
-          readOnly: true
-        meta_attr:
-          type: object
-          properties:
-            acknowledgments:
-              type: string
-            acks_not_needed:
-              type: string
-            affects:
-              type: string
-            alias:
-              type: string
-            bz_datascore:
-              type: string
-            bz_id:
-              type: string
-            checklists:
-              type: string
-            classification:
-              type: string
-            cwe:
-              type: string
-            depends_on:
-              type: string
-            impact:
-              type: string
-            jira_trackers:
-              type: string
-            mitigate:
-              type: string
-            mitigation:
-              type: string
-            public:
-              type: string
-            references:
-              type: string
-            related_cves:
-              type: string
-            reported:
-              type: string
-            source:
-              type: string
-            statement:
-              type: string
-            task_owner:
-              type: string
           readOnly: true
         package_versions:
           type: array
@@ -8543,7 +8389,6 @@ components:
       - created_dt
       - cvss_scores
       - embargoed
-      - meta_attr
       - package_versions
       - references
       - title
@@ -8805,6 +8650,9 @@ components:
       - version
     PaginatedAffectCVSSList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -8825,6 +8673,9 @@ components:
             $ref: '#/components/schemas/AffectCVSS'
     PaginatedAffectList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -8845,6 +8696,9 @@ components:
             $ref: '#/components/schemas/Affect'
     PaginatedAlertList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -8865,6 +8719,9 @@ components:
             $ref: '#/components/schemas/Alert'
     PaginatedAuditList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -8885,6 +8742,9 @@ components:
             $ref: '#/components/schemas/Audit'
     PaginatedEPSSList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -8905,6 +8765,9 @@ components:
             $ref: '#/components/schemas/EPSS'
     PaginatedExploitOnlyReportDataList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -8925,6 +8788,9 @@ components:
             $ref: '#/components/schemas/ExploitOnlyReportData'
     PaginatedFlawAcknowledgmentList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -8945,6 +8811,9 @@ components:
             $ref: '#/components/schemas/FlawAcknowledgment'
     PaginatedFlawCVSSList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -8965,6 +8834,9 @@ components:
             $ref: '#/components/schemas/FlawCVSS'
     PaginatedFlawCommentList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -8985,6 +8857,9 @@ components:
             $ref: '#/components/schemas/FlawComment'
     PaginatedFlawList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -9005,6 +8880,9 @@ components:
             $ref: '#/components/schemas/Flaw'
     PaginatedFlawPackageVersionList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -9025,6 +8903,9 @@ components:
             $ref: '#/components/schemas/FlawPackageVersion'
     PaginatedFlawReferenceList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -9045,6 +8926,9 @@ components:
             $ref: '#/components/schemas/FlawReference'
     PaginatedFlawReportDataList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -9065,6 +8949,9 @@ components:
             $ref: '#/components/schemas/FlawReportData'
     PaginatedSupportedProductsList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -9085,6 +8972,9 @@ components:
             $ref: '#/components/schemas/SupportedProducts'
     PaginatedTrackerList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
@@ -9145,7 +9035,7 @@ components:
       - DELEGATED
       - WONTREPORT
       type: string
-    Source521Enum:
+    SourceBe0Enum:
       enum:
       - ADOBE
       - APPLE
@@ -9302,26 +9192,6 @@ components:
         external_system_id:
           type: string
           readOnly: true
-        meta_attr:
-          type: object
-          properties:
-            bz_id:
-              type: string
-            owner:
-              type: string
-            qe_owner:
-              type: string
-            ps_component:
-              type: string
-            ps_module:
-              type: string
-            ps_update_stream:
-              type: string
-            resolution:
-              type: string
-            status:
-              type: string
-          readOnly: true
         ps_update_stream:
           type: string
           maxLength: 100
@@ -9370,7 +9240,6 @@ components:
       - embargoed
       - errata
       - external_system_id
-      - meta_attr
       - resolution
       - status
       - type
@@ -9389,26 +9258,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Erratum'
-          readOnly: true
-        meta_attr:
-          type: object
-          properties:
-            bz_id:
-              type: string
-            owner:
-              type: string
-            qe_owner:
-              type: string
-            ps_component:
-              type: string
-            ps_module:
-              type: string
-            ps_update_stream:
-              type: string
-            resolution:
-              type: string
-            status:
-              type: string
           readOnly: true
         ps_update_stream:
           type: string
@@ -9457,7 +9306,6 @@ components:
       - created_dt
       - embargoed
       - errata
-      - meta_attr
       - ps_update_stream
       - resolution
       - status

@@ -280,6 +280,7 @@ SPECTACULAR_SETTINGS = {
         "FlawReferenceType": "osidb.models.FlawReference.FlawReferenceType",
         "TrackerType": "osidb.models.Tracker.TrackerType",
     },
+    "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
 }
 
 # Execute once a day by default

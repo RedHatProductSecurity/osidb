@@ -188,12 +188,16 @@ class IncludeMetaAttrMixin(serializers.ModelSerializer):
         request = self.context.get("request")
 
         # Get include meta attr from request
+        include_meta_attr = None
         if request:
             include_meta_attr_param = request.query_params.get("include_meta_attr")
 
-            include_meta_attr = (
-                include_meta_attr_param.split(",") if include_meta_attr_param else []
-            )
+            if include_meta_attr_param:
+                include_meta_attr = (
+                    include_meta_attr_param.split(",")
+                    if include_meta_attr_param
+                    else []
+                )
         # Get include meta attr from context passed from parent serializer
         else:
             include_meta_attr = self.context.get("include_meta_attr")
@@ -204,9 +208,9 @@ class IncludeMetaAttrMixin(serializers.ModelSerializer):
                 self._next_level_include_meta_attr,
             ) = parse_fields(include_meta_attr)
 
-            if not self._include_meta_attr:
-                # No meta_attr keys specified, drop meta_attr field
-                self.fields.pop("meta_attr", None)
+        if not self._include_meta_attr:
+            # No meta_attr keys specified, drop meta_attr field
+            self.fields.pop("meta_attr", None)
 
     def get_meta_attr(self, obj):
         """Filter meta_attr field based on the given keys to include"""
