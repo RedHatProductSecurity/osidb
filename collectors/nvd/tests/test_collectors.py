@@ -228,6 +228,21 @@ class TestNVDCollector:
             else:
                 assert flaw.cvss_scores.filter(version=version).first() is None
 
+    @pytest.mark.vcr
+    @pytest.mark.enable_signals
+    def test_cvss4(self):
+        """
+        Test that CVSSv4 score is correctly loaded in the FlawCVSS model.
+        """
+        cve_id = "CVE-2024-7450"
+        FlawFactory(cve_id=cve_id)
+
+        nvdc = NVDCollector()
+        nvdc.collect(cve_id)
+
+        flaw = Flaw.objects.get(cve_id=cve_id)
+        assert flaw.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION4)
+
     # NOTE: cassette updates may be required to comply with keywords and published date
     @pytest.mark.enable_signals
     @pytest.mark.default_cassette("TestNVDCollector.test_snippet_and_flaw_created.yaml")

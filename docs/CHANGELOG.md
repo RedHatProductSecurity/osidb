@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Create custom DjangoQL lookup field for Flaw.components (OSIDB-3479)
+- Collect NIST CVSSv4 in NVD collector (OSIDB-2300)
 
 ### Fixed
 - Remove duplicate results from advanced search (OSIDB-3482)
