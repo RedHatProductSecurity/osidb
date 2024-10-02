@@ -105,6 +105,8 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     # An Affect can have many trackers, and a tracker can track multiple flaw/affects
     affects = models.ManyToManyField(Affect, related_name="trackers", blank=True)
 
+    last_impact_increase_dt = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         """define meta"""
 

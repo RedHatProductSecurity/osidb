@@ -10,7 +10,7 @@ from jira import JIRA
 from osidb.dmodels import Profile
 from osidb.dmodels.tracker import Tracker
 from osidb.helpers import get_env
-from osidb.models import Affect, AffectCVSS, Flaw, FlawCVSS
+from osidb.models import Affect, AffectCVSS, Flaw, FlawCVSS, Impact
 
 logger = logging.getLogger(__name__)
 
@@ -117,3 +117,39 @@ def update_local_updated_dt_tracker(sender, instance, **kwargs):
             no_alerts=True,  # recreating alerts from nested entities can cause deadlocks
             raise_validation_error=False,
         )
+
+
+@receiver(pre_save, sender=Affect)
+def update_last_impact_increase_dt_affect(sender, instance, **kwargs):
+    if not instance._state.adding and Impact(instance.impact) > Impact(
+        Affect.objects.get(pk=instance.pk).impact
+    ):
+        to_update = set()
+        for tracker in instance.trackers.all():
+            if Impact(instance.impact) > tracker.aggregated_impact:
+                to_update.add(tracker.uuid)
+
+        if to_update:
+            Tracker.objects.filter(uuid__in=to_update).update(
+                last_impact_increase_dt=timezone.now()
+            )
+
+
+@receiver(pre_save, sender=Flaw)
+def update_last_impact_increase_dt_flaw(sender, instance, **kwargs):
+    if not instance._state.adding and Impact(instance.impact) > Impact(
+        Flaw.objects.get(pk=instance.pk).impact
+    ):
+        to_update = set()
+        for tracker in Tracker.objects.filter(affects__flaw=instance).distinct():
+            # Tracker will only take the flaw's impact if none of its affects have an impact
+            if (
+                not tracker.affects.exclude(impact="").exists()
+                and Impact(instance.impact) > tracker.aggregated_impact
+            ):
+                to_update.add(tracker.uuid)
+
+        if to_update:
+            Tracker.objects.filter(uuid__in=to_update).update(
+                last_impact_increase_dt=timezone.now()
+            )

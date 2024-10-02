@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Collect Jira field metadata for only one issuetype for each project (OSIDB-3485)
 - parent_uuid field in Alert had wrong type in OpenAPI schema (OSIDB-3451)
 
+### Changed
+- Record last impact increase in trackers (OSIDB-3448)
+
 ## [4.3.3] - 2024-09-30
 ### Added
 - Update Vulnerability trackers on components change (OSIDB-3323)
