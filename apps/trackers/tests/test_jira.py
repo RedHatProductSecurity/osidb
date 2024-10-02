@@ -2119,13 +2119,13 @@ class TestTrackerJiraQueryBuilderSla:
     """
 
     def test_generate_sla(self, clean_policies):
-        return
         """
         test that the query for the Jira SLA timestamps is generated correctly
         """
         flaw = FlawFactory(
             embargoed=False,
             reported_dt=make_aware(datetime(2000, 1, 1)),
+            source="REDHAT",
         )
         ps_module = PsModuleFactory(bts_name="bugzilla", bts_key="FOOPROJECT")
         affect = AffectFactory(
