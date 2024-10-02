@@ -452,12 +452,8 @@ class PsModuleFactory(factory.django.DjangoModelFactory):
         }
     )
 
-    supported_from_dt = factory.Faker("date_time", tzinfo=UTC)
-    supported_until_dt = factory.Faker(
-        "date_time_between",
-        tzinfo=UTC,
-        start_date=factory.SelfAttribute("..supported_from_dt"),
-    )
+    supported_from_dt = factory.Faker("past_datetime", tzinfo=UTC)
+    supported_until_dt = factory.Faker("future_datetime", tzinfo=UTC)
 
     default_component = factory.Faker("word")
 

@@ -3,6 +3,7 @@ from typing import Union
 
 from django.contrib.postgres import fields
 from django.db import models
+from django.utils import timezone
 
 from apps.bbsync.constants import RHSCL_BTS_KEY
 from osidb.helpers import ps_update_stream_natural_keys
@@ -72,6 +73,23 @@ class PsModule(NullStrFieldsMixin, ValidateMixin):
         the component hierarchy and may require special handling
         """
         return self.bts_key == RHSCL_BTS_KEY
+
+    @property
+    def is_supported(self) -> bool:
+        """
+        check and return whether the PS module is supported now
+        """
+        # unsupported if not yet supported
+        if self.supported_from_dt and self.supported_from_dt > timezone.now():
+            return False
+
+        # unsupported if no more supported
+        if self.supported_until_dt and self.supported_until_dt < timezone.now():
+            return False
+
+        # supported otherwise even if no dates specified
+        # as no support date means unrestricted support
+        return True
 
     @property
     def y_streams(self):
