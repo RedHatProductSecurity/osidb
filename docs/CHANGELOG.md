@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Introduce moderate tracker streams pre-selection (OSIDB-3346)
+
+### Fixed
+- Rework and complete the tracker stream pre-selection module to fix it
 
 ## [4.3.4] - 2024-10-03
 ### Added
@@ -20,7 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - parent_uuid field in Alert had wrong type in OpenAPI schema (OSIDB-3451)
 - Fix Jira Tracker collector to account for Vulnerability issue type (OSIDB-3489)
 - IntegrityError duplicate key during tracker filing (OSIDB-3433)
-
 
 ## [4.3.3] - 2024-09-30
 ### Added
