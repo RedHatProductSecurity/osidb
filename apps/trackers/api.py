@@ -41,7 +41,10 @@ class TrackerFileSuggestionView(RudimentaryUserPathLoggingMixin, APIView):
         active_modules = PsModule.objects.filter(
             active_ps_update_streams__isnull=False
         ).distinct()
-        active_module_names = active_modules.values_list("name", flat=True)
+        # remove unsupported
+        active_module_names = [
+            module.name for module in active_modules if module.is_supported
+        ]
 
         # prepare the list of PS modules which do
         # not allow to create embargoed trackers

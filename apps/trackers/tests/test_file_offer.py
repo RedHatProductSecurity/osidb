@@ -3,6 +3,8 @@ Test cases for tracker suggestion generation
 """
 
 import pytest
+from django.utils import timezone
+from freezegun import freeze_time
 
 from apps.trackers.product_definition_handlers.base import ProductDefinitionRules
 from apps.trackers.product_definition_handlers.default_handler import DefaultHandler
@@ -258,6 +260,53 @@ class TestTrackerSuggestions:
         else:
             assert len(res["modules_components"]) == 0
             assert res["not_applicable"][0]["uuid"] == str(affect.uuid)
+
+    def test_trackers_file_offer_unsupported(self, auth_client, test_app_api_uri):
+        """
+        test that an unsupported PS module is resolved as not applicable
+        """
+        # PS module is supported until tomorrow
+        ps_module = PsModuleFactory(
+            supported_until_dt=timezone.now() + timezone.timedelta(1)
+        )
+        PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            default_to_ps_module=ps_module,
+        )
+
+        flaw = FlawFactory(embargoed=False, impact=Impact.CRITICAL)
+        AffectFactory(
+            flaw=flaw,
+            impact=flaw.impact,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+
+        headers = {"HTTP_JiraAuthentication": "SECRET"}
+        response = auth_client().post(
+            f"{test_app_api_uri}/file",
+            data={"flaw_uuids": [flaw.uuid]},
+            format="json",
+            **headers,
+        )
+        res = response.json()
+        assert not res["not_applicable"]
+        assert res["modules_components"]
+
+        # and now it is the day after tomorrow
+        with freeze_time(timezone.now() + timezone.timedelta(2)):
+            headers = {"HTTP_JiraAuthentication": "SECRET"}
+            response = auth_client().post(
+                f"{test_app_api_uri}/file",
+                data={"flaw_uuids": [flaw.uuid]},
+                format="json",
+                **headers,
+            )
+            res = response.json()
+            assert res["not_applicable"]
+            assert not res["modules_components"]
 
     @pytest.mark.parametrize(
         "impact,"
