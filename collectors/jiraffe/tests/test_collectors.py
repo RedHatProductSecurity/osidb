@@ -219,7 +219,7 @@ class TestJiraTrackerCollector:
         )
 
     @pytest.mark.vcr
-    @freeze_time(timezone.datetime(2024, 9, 9, 9, 9, 9))
+    @freeze_time(timezone.datetime(2024, 10, 1, 12, 0, 0))
     def test_collect_complete(self):
         """
         test that Jira collector data status is changed to complete when the data are current

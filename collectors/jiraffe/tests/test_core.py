@@ -63,3 +63,26 @@ class TestJiraQuerier:
             "ENTMQ-754",
             "ENTMQ-755",
         ]
+
+    @pytest.mark.vcr
+    def test_query_tracker_both_issue_types(self):
+        """
+        test that tracker quering counts for both Bug and Vulnerability
+        issue type
+        """
+        from_dt = timezone.datetime(2024, 9, 30, 14, 0, 0, tzinfo=timezone.utc)
+        before_dt = timezone.datetime(2024, 10, 1, 0, 0, 0, tzinfo=timezone.utc)
+
+        jq = JiraQuerier()
+        query_list = []
+        query_list = jq.query_trackers(query_list)
+        query_list = jq.query_updated(query_list, from_dt, before_dt)
+
+        trackers = jq.run_query(query_list, fields="issuekey,issuetype")
+
+        assert len(trackers) == 3
+        assert all(isinstance(tracker, Issue) for tracker in trackers)
+        assert any(tracker.fields.issuetype.name == "Bug" for tracker in trackers)
+        assert any(
+            tracker.fields.issuetype.name == "Vulnerability" for tracker in trackers
+        )

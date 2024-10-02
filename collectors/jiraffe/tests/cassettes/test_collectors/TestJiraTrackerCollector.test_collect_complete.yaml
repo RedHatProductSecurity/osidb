@@ -243,7 +243,9 @@ interactions:
         PT Test Dev (TD)\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12313144]\",\"EAP
         PT Test Dev (TD)\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12313144}},{\"id\":\"customfield_12317740\",\"name\":\"Planning
         Status\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317740]\",\"Planning
-        Status\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317740}},{\"id\":\"status\",\"name\":\"Status\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"status\"],\"schema\":{\"type\":\"status\",\"system\":\"status\"}},{\"id\":\"customfield_12324240\",\"name\":\"SRE
+        Status\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317740}},{\"id\":\"customfield_12325240\",\"name\":\"PX
+        Data Field\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325240]\",\"PX
+        Data Field\"],\"schema\":{\"type\":\"array\",\"items\":\"string\",\"custom\":\"com.onresolve.jira.groovy.groovyrunner:multiple-custom-picker-cf\",\"customId\":12325240}},{\"id\":\"status\",\"name\":\"Status\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"status\"],\"schema\":{\"type\":\"status\",\"system\":\"status\"}},{\"id\":\"customfield_12324240\",\"name\":\"SRE
         Contact\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12324240]\",\"SRE
         Contact\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12324240}},{\"id\":\"customfield_12310080\",\"name\":\"Tester\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12310080]\",\"Tester\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12310080}},{\"id\":\"archiveddate\",\"name\":\"Archived\",\"custom\":false,\"orderable\":true,\"navigable\":false,\"searchable\":true,\"clauseNames\":[],\"schema\":{\"type\":\"datetime\",\"system\":\"archiveddate\"}},{\"id\":\"customfield_12316747\",\"name\":\"Account
         Number\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Account
@@ -274,15 +276,27 @@ interactions:
         Progress\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317842]\",\"Fuse
         Progress\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.onresolve.jira.groovy.groovyrunner:scripted-field\",\"customId\":12317842}},{\"id\":\"customfield_12316753\",\"name\":\"Manager\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316753]\",\"Manager\"],\"schema\":{\"type\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:userpicker\",\"customId\":12316753}},{\"id\":\"customfield_12317843\",\"name\":\"BZ
         Partner\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"BZ
-        Partner\",\"cf[12317843]\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12317843}},{\"id\":\"timespent\",\"name\":\"Time
-        Spent\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":false,\"clauseNames\":[\"timespent\"],\"schema\":{\"type\":\"number\",\"system\":\"timespent\"}},{\"id\":\"customfield_12320940\",\"name\":\"Test
+        Partner\",\"cf[12317843]\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12317843}},{\"id\":\"customfield_12325158\",\"name\":\"CAB\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"CAB\",\"cf[12325158]\"],\"schema\":{\"type\":\"array\",\"items\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiuserpicker\",\"customId\":12325158}},{\"id\":\"customfield_12325157\",\"name\":\"Change
+        managers\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325157]\",\"Change
+        managers\"],\"schema\":{\"type\":\"array\",\"items\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiuserpicker\",\"customId\":12325157}},{\"id\":\"customfield_12325159\",\"name\":\"Time
+        to close after resolution\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325159]\",\"Time
+        to close after resolution\"],\"schema\":{\"type\":\"sd-servicelevelagreement\",\"custom\":\"com.atlassian.servicedesk:sd-sla-field\",\"customId\":12325159}},{\"id\":\"customfield_12325154\",\"name\":\"Investigation
+        reason\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325154]\",\"Investigation
+        reason\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12325154}},{\"id\":\"customfield_12325153\",\"name\":\"Pending
+        reason\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325153]\",\"Pending
+        reason\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12325153}},{\"id\":\"timespent\",\"name\":\"Time
+        Spent\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":false,\"clauseNames\":[\"timespent\"],\"schema\":{\"type\":\"number\",\"system\":\"timespent\"}},{\"id\":\"customfield_12325156\",\"name\":\"Workaround\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325156]\",\"Workaround\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12325156}},{\"id\":\"customfield_12325155\",\"name\":\"Root
+        cause\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325155]\",\"Root
+        cause\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textarea\",\"customId\":12325155}},{\"id\":\"customfield_12320940\",\"name\":\"Test
         Coverage\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320940]\",\"Test
         Coverage\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12320940}},{\"id\":\"aggregatetimespent\",\"name\":\"\u03A3
         Time Spent\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":false,\"clauseNames\":[],\"schema\":{\"type\":\"number\",\"system\":\"aggregatetimespent\"}},{\"id\":\"customfield_12320944\",\"name\":\"Test
         Link\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320944]\",\"Test
         Link\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:url\",\"customId\":12320944}},{\"id\":\"customfield_12320943\",\"name\":\"Pervasiveness\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320943]\",\"Pervasiveness\"],\"schema\":{\"type\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlyselect\",\"customId\":12320943}},{\"id\":\"customfield_12320941\",\"name\":\"Willingness
         to Pay\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320941]\",\"Willingness
-        to Pay\"],\"schema\":{\"type\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlyselect\",\"customId\":12320941}},{\"id\":\"customfield_12316441\",\"name\":\"Work
+        to Pay\"],\"schema\":{\"type\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlyselect\",\"customId\":12320941}},{\"id\":\"customfield_12325150\",\"name\":\"Product
+        categorization\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325150]\",\"Product
+        categorization\"],\"schema\":{\"type\":\"option-with-child\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect\",\"customId\":12325150}},{\"id\":\"customfield_12316441\",\"name\":\"Work
         Source\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316441]\",\"Work
         Source\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316441}},{\"id\":\"workratio\",\"name\":\"Work
         Ratio\",\"custom\":false,\"orderable\":false,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"workratio\"],\"schema\":{\"type\":\"number\",\"system\":\"workratio\"}},{\"id\":\"customfield_12316442\",\"name\":\"Customer
@@ -291,9 +305,15 @@ interactions:
         Solutions\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12318740]\",\"Portfolio
         Solutions\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlymultiselect\",\"customId\":12318740}},{\"id\":\"customfield_12316443\",\"name\":\"Cluster
         Admin Enabled\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316443]\",\"Cluster
-        Admin Enabled\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316443}},{\"id\":\"customfield_12316444\",\"name\":\"Cloud
+        Admin Enabled\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316443}},{\"id\":\"customfield_12325152\",\"name\":\"Source\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325152]\",\"Source\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12325152}},{\"id\":\"customfield_12316444\",\"name\":\"Cloud
         Platform\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316444]\",\"Cloud
-        Platform\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316444}},{\"id\":\"customfield_12317540\",\"name\":\"Support
+        Platform\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316444}},{\"id\":\"customfield_12325151\",\"name\":\"Operational
+        categorization\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325151]\",\"Operational
+        categorization\"],\"schema\":{\"type\":\"option-with-child\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect\",\"customId\":12325151}},{\"id\":\"customfield_12325047\",\"name\":\"Approvals\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Approvals\",\"cf[12325047]\"],\"schema\":{\"type\":\"sd-approvals\",\"custom\":\"com.atlassian.servicedesk.approvals-plugin:sd-approvals\",\"customId\":12325047}},{\"id\":\"customfield_12325044\",\"name\":\"Satisfaction
+        date\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325044]\",\"Satisfaction
+        date\"],\"schema\":{\"type\":\"datetime\",\"custom\":\"com.atlassian.servicedesk:sd-request-feedback-date\",\"customId\":12325044}},{\"id\":\"customfield_12325043\",\"name\":\"Satisfaction\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325043]\",\"Satisfaction\"],\"schema\":{\"type\":\"any\",\"custom\":\"com.atlassian.servicedesk:sd-request-feedback\",\"customId\":12325043}},{\"id\":\"customfield_12325046\",\"name\":\"Linked
+        major incidents\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325046]\",\"Linked
+        major incidents\"],\"schema\":{\"type\":\"any\",\"custom\":\"com.atlassian.servicedesk.incident-management-plugin:sd-incidents-link\",\"customId\":12325046}},{\"id\":\"customfield_12325045\",\"name\":\"Groups\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325045]\",\"Groups\"],\"schema\":{\"type\":\"array\",\"items\":\"group\",\"custom\":\"com.atlassian.servicedesk:sd-request-groups\",\"customId\":12325045}},{\"id\":\"customfield_12317540\",\"name\":\"Support
         Scope\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317540]\",\"Support
         Scope\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317540}},{\"id\":\"customfield_12315240\",\"name\":\"EAP
         Testing By\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12315240]\",\"EAP
@@ -305,11 +325,17 @@ interactions:
         Requested\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320946]\",\"Intelligence
         Requested\"],\"schema\":{\"type\":\"option\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:jbonlyselect\",\"customId\":12320946}},{\"id\":\"customfield_12320945\",\"name\":\"Risk
         Category\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12320945]\",\"Risk
-        Category\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320945}},{\"id\":\"customfield_12319840\",\"name\":\"External
+        Category\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12320945}},{\"id\":\"customfield_12325040\",\"name\":\"Request
+        participants\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325040]\",\"Request
+        participants\"],\"schema\":{\"type\":\"array\",\"items\":\"user\",\"custom\":\"com.atlassian.servicedesk:sd-request-participants\",\"customId\":12325040}},{\"id\":\"customfield_12319840\",\"name\":\"External
         issue ID\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319840]\",\"External
-        issue ID\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12319840}},{\"id\":\"customfield_12317301\",\"name\":\"Risk
+        issue ID\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12319840}},{\"id\":\"customfield_12325160\",\"name\":\"Time
+        to approve normal change\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325160]\",\"Time
+        to approve normal change\"],\"schema\":{\"type\":\"sd-servicelevelagreement\",\"custom\":\"com.atlassian.servicedesk:sd-sla-field\",\"customId\":12325160}},{\"id\":\"customfield_12325042\",\"name\":\"Organizations\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325042]\",\"Organizations\"],\"schema\":{\"type\":\"array\",\"items\":\"sd-customerorganization\",\"custom\":\"com.atlassian.servicedesk:sd-customer-organizations\",\"customId\":12325042}},{\"id\":\"customfield_12317301\",\"name\":\"Risk
         Type\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317301]\",\"Risk
-        Type\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317301}},{\"id\":\"customfield_12317302\",\"name\":\"Risk
+        Type\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317301}},{\"id\":\"customfield_12325041\",\"name\":\"Customer
+        Request Type\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325041]\",\"Customer
+        Request Type\"],\"schema\":{\"type\":\"sd-customerrequesttype\",\"custom\":\"com.atlassian.servicedesk:vp-origin\",\"customId\":12325041}},{\"id\":\"customfield_12317302\",\"name\":\"Risk
         Probability\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317302]\",\"Risk
         Probability\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12317302}},{\"id\":\"customfield_12317303\",\"name\":\"Risk
         Proximity\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317303]\",\"Risk
@@ -349,7 +375,19 @@ interactions:
         Score\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316546]\",\"Evidence
         Score\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12316546}},{\"id\":\"customfield_12316547\",\"name\":\"Discussed
         with Team\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316547]\",\"Discussed
-        with Team\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:radiobuttons\",\"customId\":12316547}},{\"id\":\"customfield_12313040\",\"name\":\"Test
+        with Team\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:radiobuttons\",\"customId\":12316547}},{\"id\":\"customfield_12325147\",\"name\":\"Change
+        start date\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325147]\",\"Change
+        start date\"],\"schema\":{\"type\":\"datetime\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:datetime\",\"customId\":12325147}},{\"id\":\"customfield_12325146\",\"name\":\"Change
+        reason\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325146]\",\"Change
+        reason\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12325146}},{\"id\":\"customfield_12325149\",\"name\":\"Urgency\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325149]\",\"Urgency\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12325149}},{\"id\":\"customfield_12325148\",\"name\":\"Change
+        completion date\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325148]\",\"Change
+        completion date\"],\"schema\":{\"type\":\"datetime\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:datetime\",\"customId\":12325148}},{\"id\":\"customfield_12325143\",\"name\":\"Impact\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325143]\",\"Impact\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12325143}},{\"id\":\"customfield_12325142\",\"name\":\"Time
+        to first response\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325142]\",\"Time
+        to first response\"],\"schema\":{\"type\":\"sd-servicelevelagreement\",\"custom\":\"com.atlassian.servicedesk:sd-sla-field\",\"customId\":12325142}},{\"id\":\"customfield_12325145\",\"name\":\"Change
+        risk\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325145]\",\"Change
+        risk\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12325145}},{\"id\":\"customfield_12325144\",\"name\":\"Change
+        type\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325144]\",\"Change
+        type\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:select\",\"customId\":12325144}},{\"id\":\"customfield_12313040\",\"name\":\"Test
         Plan\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12313040]\",\"Test
         Plan\"],\"schema\":{\"type\":\"any\",\"custom\":\"org.jboss.labs.jira.plugin.jboss-custom-field-types-plugin:multiurl\",\"customId\":12313040}},{\"id\":\"customfield_12313041\",\"name\":\"Analysis
         Document\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Analysis
@@ -357,7 +395,9 @@ interactions:
         version\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12313042]\",\"Microrelease
         version\"],\"schema\":{\"type\":\"string\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:textfield\",\"customId\":12313042}},{\"id\":\"customfield_12317640\",\"name\":\"DevTestDoc\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317640]\",\"DevTestDoc\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiselect\",\"customId\":12317640}},{\"id\":\"customfield_12319940\",\"name\":\"Target
         Version\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12319940]\",\"Target
-        Version\"],\"schema\":{\"type\":\"array\",\"items\":\"version\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiversion\",\"customId\":12319940}},{\"id\":\"customfield_12317401\",\"name\":\"EXD-Service\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317401]\",\"EXD-Service\"],\"schema\":{\"type\":\"option-with-child\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect\",\"customId\":12317401}},{\"id\":\"customfield_12317403\",\"name\":\"EXD-WorkType\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317403]\",\"EXD-WorkType\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12317403}},{\"id\":\"customfield_12317404\",\"name\":\"Commitment\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317404]\",\"Commitment\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:radiobuttons\",\"customId\":12317404}},{\"id\":\"customfield_12317405\",\"name\":\"Requesting
+        Version\"],\"schema\":{\"type\":\"array\",\"items\":\"version\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiversion\",\"customId\":12319940}},{\"id\":\"customfield_12325141\",\"name\":\"Time
+        to resolution\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12325141]\",\"Time
+        to resolution\"],\"schema\":{\"type\":\"sd-servicelevelagreement\",\"custom\":\"com.atlassian.servicedesk:sd-sla-field\",\"customId\":12325141}},{\"id\":\"customfield_12325140\",\"name\":\"Approvers\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"Approvers\",\"cf[12325140]\"],\"schema\":{\"type\":\"array\",\"items\":\"user\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multiuserpicker\",\"customId\":12325140}},{\"id\":\"customfield_12317401\",\"name\":\"EXD-Service\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317401]\",\"EXD-Service\"],\"schema\":{\"type\":\"option-with-child\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:cascadingselect\",\"customId\":12317401}},{\"id\":\"customfield_12317403\",\"name\":\"EXD-WorkType\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317403]\",\"EXD-WorkType\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12317403}},{\"id\":\"customfield_12317404\",\"name\":\"Commitment\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317404]\",\"Commitment\"],\"schema\":{\"type\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:radiobuttons\",\"customId\":12317404}},{\"id\":\"customfield_12317405\",\"name\":\"Requesting
         Teams\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12317405]\",\"Requesting
         Teams\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12317405}},{\"id\":\"customfield_12316240\",\"name\":\"Planning\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"cf[12316240]\",\"Planning\"],\"schema\":{\"type\":\"array\",\"items\":\"option\",\"custom\":\"com.atlassian.jira.plugin.system.customfieldtypes:multicheckboxes\",\"customId\":12316240}},{\"id\":\"customfield_12317330\",\"name\":\"BZ
         needinfo\",\"custom\":true,\"orderable\":true,\"navigable\":true,\"searchable\":true,\"clauseNames\":[\"BZ
@@ -863,9 +903,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 09 Sep 2024 11:44:46 GMT
+      - Wed, 02 Oct 2024 11:28:58 GMT
       Expires:
-      - Mon, 09 Sep 2024 11:44:46 GMT
+      - Wed, 02 Oct 2024 11:28:58 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -878,17 +918,17 @@ interactions:
       X-RateLimit-Remaining:
       - '4'
       content-length:
-      - '157339'
+      - '166072'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-prod-2
+      - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 704x15518823x13
+      - 688x1278839x2
       x-asessionid:
-      - iwello
+      - 2hquqv
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -900,9 +940,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.692645f.1725882286.63c5563c
+      - 0.64f06e68.1727868538.1079cd8c
       x-rh-edge-request-id:
-      - 63c5563c
+      - 1079cd8c
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -928,111 +968,21 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/search?fields=issuekey&jql=labels%3D%22SecurityTracking%22+AND+type%3D%22Bug%22+AND+updated%3E%3D%222024-09-09+09%3A09%22+AND+updated%3C%3D%222025-09-09+09%3A10%22&startAt=0&validateQuery=True
+    uri: https://example.com/rest/api/2/search?fields=issuekey&jql=labels+%3D+%22SecurityTracking%22+AND+type+in+%28Bug%2CVulnerability%29+AND+updated+%3E%3D+%222024-10-01+12%3A00%22+AND+updated+%3C%3D+%222025-10-01+12%3A01%22&startAt=0&validateQuery=True
   response:
     body:
       string: '{"expand": "schema,names", "startAt": 0, "maxResults": 50, "total":
-        174, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16239584", "self": "https://example.com/rest/api/2/issue/16239584",
-        "key": "SRVKP-6179"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16239671", "self": "https://example.com/rest/api/2/issue/16239671",
-        "key": "SRVKP-6177"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16239667", "self": "https://example.com/rest/api/2/issue/16239667",
-        "key": "SRVKP-6175"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16239583", "self": "https://example.com/rest/api/2/issue/16239583",
-        "key": "SRVKP-6173"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16239726", "self": "https://example.com/rest/api/2/issue/16239726",
-        "key": "SRVKP-6171"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16239724", "self": "https://example.com/rest/api/2/issue/16239724",
-        "key": "SRVKP-6169"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16239663", "self": "https://example.com/rest/api/2/issue/16239663",
-        "key": "SRVKP-6167"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16086528", "self": "https://example.com/rest/api/2/issue/16086528",
-        "key": "SRVKP-5625"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16060457", "self": "https://example.com/rest/api/2/issue/16060457",
-        "key": "SRVKP-5526"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16060455", "self": "https://example.com/rest/api/2/issue/16060455",
-        "key": "SRVKP-5524"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16060452", "self": "https://example.com/rest/api/2/issue/16060452",
-        "key": "SRVKP-5521"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16008001", "self": "https://example.com/rest/api/2/issue/16008001",
-        "key": "SRVKP-4558"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16007928", "self": "https://example.com/rest/api/2/issue/16007928",
-        "key": "SRVKP-4556"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16005364", "self": "https://example.com/rest/api/2/issue/16005364",
-        "key": "SRVKP-4541"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16269824", "self": "https://example.com/rest/api/2/issue/16269824",
-        "key": "RHOAIENG-12623"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16269651", "self": "https://example.com/rest/api/2/issue/16269651",
-        "key": "RHOAIENG-12612"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16242484", "self": "https://example.com/rest/api/2/issue/16242484",
-        "key": "RHOAIENG-11991"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16242633", "self": "https://example.com/rest/api/2/issue/16242633",
-        "key": "RHOAIENG-11990"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16242593", "self": "https://example.com/rest/api/2/issue/16242593",
-        "key": "RHOAIENG-11989"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16176812", "self": "https://example.com/rest/api/2/issue/16176812",
-        "key": "RHOAIENG-10676"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16157073", "self": "https://example.com/rest/api/2/issue/16157073",
-        "key": "RHOAIENG-10150"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16130501", "self": "https://example.com/rest/api/2/issue/16130501",
-        "key": "RHOAIENG-9702"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16060710", "self": "https://example.com/rest/api/2/issue/16060710",
-        "key": "RHINENG-10566"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16034616", "self": "https://example.com/rest/api/2/issue/16034616",
-        "key": "RHINENG-10363"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "15846864", "self": "https://example.com/rest/api/2/issue/15846864",
-        "key": "RHINENG-8637"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "15597475", "self": "https://example.com/rest/api/2/issue/15597475",
-        "key": "RHINENG-2899"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "15583631", "self": "https://example.com/rest/api/2/issue/15583631",
-        "key": "RHINENG-2746"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16269398", "self": "https://example.com/rest/api/2/issue/16269398",
-        "key": "RHEL-58034"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16269396", "self": "https://example.com/rest/api/2/issue/16269396",
-        "key": "RHEL-58033"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16262353", "self": "https://example.com/rest/api/2/issue/16262353",
-        "key": "RHEL-57399"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16262301", "self": "https://example.com/rest/api/2/issue/16262301",
-        "key": "RHEL-57373"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261502", "self": "https://example.com/rest/api/2/issue/16261502",
-        "key": "RHEL-57267"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261395", "self": "https://example.com/rest/api/2/issue/16261395",
-        "key": "RHEL-57266"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261499", "self": "https://example.com/rest/api/2/issue/16261499",
-        "key": "RHEL-57265"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261496", "self": "https://example.com/rest/api/2/issue/16261496",
-        "key": "RHEL-57264"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261393", "self": "https://example.com/rest/api/2/issue/16261393",
-        "key": "RHEL-57263"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261542", "self": "https://example.com/rest/api/2/issue/16261542",
-        "key": "RHEL-57262"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261313", "self": "https://example.com/rest/api/2/issue/16261313",
-        "key": "RHEL-57200"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261196", "self": "https://example.com/rest/api/2/issue/16261196",
-        "key": "RHEL-57199"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261195", "self": "https://example.com/rest/api/2/issue/16261195",
-        "key": "RHEL-57198"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261194", "self": "https://example.com/rest/api/2/issue/16261194",
-        "key": "RHEL-57197"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261256", "self": "https://example.com/rest/api/2/issue/16261256",
-        "key": "RHEL-57196"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261255", "self": "https://example.com/rest/api/2/issue/16261255",
-        "key": "RHEL-57195"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261191", "self": "https://example.com/rest/api/2/issue/16261191",
-        "key": "RHEL-57194"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261253", "self": "https://example.com/rest/api/2/issue/16261253",
-        "key": "RHEL-57193"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261190", "self": "https://example.com/rest/api/2/issue/16261190",
-        "key": "RHEL-57192"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261311", "self": "https://example.com/rest/api/2/issue/16261311",
-        "key": "RHEL-57191"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261310", "self": "https://example.com/rest/api/2/issue/16261310",
-        "key": "RHEL-57190"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261009", "self": "https://example.com/rest/api/2/issue/16261009",
-        "key": "RHEL-57189"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261134", "self": "https://example.com/rest/api/2/issue/16261134",
-        "key": "RHEL-57177"}]}'
+        5, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "16287904", "self": "https://example.com/rest/api/2/issue/16287904",
+        "key": "RHEL-58848"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "16288025", "self": "https://example.com/rest/api/2/issue/16288025",
+        "key": "RHEL-58847"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "16287903", "self": "https://example.com/rest/api/2/issue/16287903",
+        "key": "RHEL-58846"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "16287902", "self": "https://example.com/rest/api/2/issue/16287902",
+        "key": "RHEL-58845"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+        "id": "16288024", "self": "https://example.com/rest/api/2/issue/16288024",
+        "key": "RHEL-58844"}]}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -1041,9 +991,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 09 Sep 2024 11:44:46 GMT
+      - Wed, 02 Oct 2024 11:28:58 GMT
       Expires:
-      - Mon, 09 Sep 2024 11:44:46 GMT
+      - Wed, 02 Oct 2024 11:28:58 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1056,17 +1006,17 @@ interactions:
       X-RateLimit-Remaining:
       - '4'
       content-length:
-      - '9069'
+      - '999'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-prod-2
+      - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 704x15518847x13
+      - 688x1278840x2
       x-asessionid:
-      - 1oc0vw7
+      - ll9tvn
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1078,491 +1028,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.692645f.1725882286.63c55923
+      - 0.64f06e68.1727868538.1079ce6c
       x-rh-edge-request-id:
-      - 63c55923
-      x-seraph-loginreason:
-      - OK
-      x-xss-protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json,*.*;q=0.9
-      Accept-Encoding:
-      - gzip, deflate
-      Cache-Control:
-      - no-cache
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-requests/2.32.0
-      X-Atlassian-Token:
-      - no-check
-    method: GET
-    uri: https://example.com/rest/api/2/search?fields=issuekey&jql=labels%3D%22SecurityTracking%22+AND+type%3D%22Bug%22+AND+updated%3E%3D%222024-09-09+09%3A09%22+AND+updated%3C%3D%222025-09-09+09%3A10%22&maxResults=50&startAt=50&validateQuery=True
-  response:
-    body:
-      string: '{"expand": "schema,names", "startAt": 50, "maxResults": 50, "total":
-        174, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16261073", "self": "https://example.com/rest/api/2/issue/16261073",
-        "key": "RHEL-57176"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16260957", "self": "https://example.com/rest/api/2/issue/16260957",
-        "key": "RHEL-57175"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16260955", "self": "https://example.com/rest/api/2/issue/16260955",
-        "key": "RHEL-57174"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16260638", "self": "https://example.com/rest/api/2/issue/16260638",
-        "key": "RHEL-57137"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16260491", "self": "https://example.com/rest/api/2/issue/16260491",
-        "key": "RHEL-57136"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16260594", "self": "https://example.com/rest/api/2/issue/16260594",
-        "key": "RHEL-57135"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16260573", "self": "https://example.com/rest/api/2/issue/16260573",
-        "key": "RHEL-57128"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16260610", "self": "https://example.com/rest/api/2/issue/16260610",
-        "key": "RHEL-57127"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16260409", "self": "https://example.com/rest/api/2/issue/16260409",
-        "key": "RHEL-57126"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16260455", "self": "https://example.com/rest/api/2/issue/16260455",
-        "key": "RHEL-57125"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16260569", "self": "https://example.com/rest/api/2/issue/16260569",
-        "key": "RHEL-57124"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16260454", "self": "https://example.com/rest/api/2/issue/16260454",
-        "key": "RHEL-57123"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16250471", "self": "https://example.com/rest/api/2/issue/16250471",
-        "key": "RHEL-56846"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16250546", "self": "https://example.com/rest/api/2/issue/16250546",
-        "key": "RHEL-56842"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16243832", "self": "https://example.com/rest/api/2/issue/16243832",
-        "key": "RHEL-56522"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16233707", "self": "https://example.com/rest/api/2/issue/16233707",
-        "key": "RHEL-55969"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16233563", "self": "https://example.com/rest/api/2/issue/16233563",
-        "key": "RHEL-55968"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16233761", "self": "https://example.com/rest/api/2/issue/16233761",
-        "key": "RHEL-55961"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16233313", "self": "https://example.com/rest/api/2/issue/16233313",
-        "key": "RHEL-55910"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16232979", "self": "https://example.com/rest/api/2/issue/16232979",
-        "key": "RHEL-55905"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16233209", "self": "https://example.com/rest/api/2/issue/16233209",
-        "key": "RHEL-55903"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16230102", "self": "https://example.com/rest/api/2/issue/16230102",
-        "key": "RHEL-55592"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16220047", "self": "https://example.com/rest/api/2/issue/16220047",
-        "key": "RHEL-54723"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16220046", "self": "https://example.com/rest/api/2/issue/16220046",
-        "key": "RHEL-54722"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16217647", "self": "https://example.com/rest/api/2/issue/16217647",
-        "key": "RHEL-54626"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16217489", "self": "https://example.com/rest/api/2/issue/16217489",
-        "key": "RHEL-54613"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16203647", "self": "https://example.com/rest/api/2/issue/16203647",
-        "key": "RHEL-53947"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16200392", "self": "https://example.com/rest/api/2/issue/16200392",
-        "key": "RHEL-53683"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16200536", "self": "https://example.com/rest/api/2/issue/16200536",
-        "key": "RHEL-53680"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16192911", "self": "https://example.com/rest/api/2/issue/16192911",
-        "key": "RHEL-53044"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16192690", "self": "https://example.com/rest/api/2/issue/16192690",
-        "key": "RHEL-53027"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16191645", "self": "https://example.com/rest/api/2/issue/16191645",
-        "key": "RHEL-52979"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16177499", "self": "https://example.com/rest/api/2/issue/16177499",
-        "key": "RHEL-51685"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16177497", "self": "https://example.com/rest/api/2/issue/16177497",
-        "key": "RHEL-51683"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16177495", "self": "https://example.com/rest/api/2/issue/16177495",
-        "key": "RHEL-51681"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16177491", "self": "https://example.com/rest/api/2/issue/16177491",
-        "key": "RHEL-51679"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16177487", "self": "https://example.com/rest/api/2/issue/16177487",
-        "key": "RHEL-51675"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16165331", "self": "https://example.com/rest/api/2/issue/16165331",
-        "key": "RHEL-50497"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16165315", "self": "https://example.com/rest/api/2/issue/16165315",
-        "key": "RHEL-50473"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16155076", "self": "https://example.com/rest/api/2/issue/16155076",
-        "key": "RHEL-49897"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16154784", "self": "https://example.com/rest/api/2/issue/16154784",
-        "key": "RHEL-49853"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16145771", "self": "https://example.com/rest/api/2/issue/16145771",
-        "key": "RHEL-48885"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16145767", "self": "https://example.com/rest/api/2/issue/16145767",
-        "key": "RHEL-48883"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16145764", "self": "https://example.com/rest/api/2/issue/16145764",
-        "key": "RHEL-48880"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16145762", "self": "https://example.com/rest/api/2/issue/16145762",
-        "key": "RHEL-48878"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16127794", "self": "https://example.com/rest/api/2/issue/16127794",
-        "key": "RHEL-46749"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16088467", "self": "https://example.com/rest/api/2/issue/16088467",
-        "key": "RHEL-44218"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16088466", "self": "https://example.com/rest/api/2/issue/16088466",
-        "key": "RHEL-44217"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16088459", "self": "https://example.com/rest/api/2/issue/16088459",
-        "key": "RHEL-44212"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16088458", "self": "https://example.com/rest/api/2/issue/16088458",
-        "key": "RHEL-44211"}]}'
-    headers:
-      Cache-Control:
-      - max-age=0, no-cache, no-store
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json;charset=UTF-8
-      Date:
-      - Mon, 09 Sep 2024 11:44:47 GMT
-      Expires:
-      - Mon, 09 Sep 2024 11:44:47 GMT
-      Pragma:
-      - no-cache
-      Retry-After:
-      - '0'
-      Vary:
-      - User-Agent
-      - Accept-Encoding
-      X-RateLimit-Limit:
-      - '5'
-      X-RateLimit-Remaining:
-      - '4'
-      content-length:
-      - '9027'
-      referrer-policy:
-      - strict-origin-when-cross-origin
-      strict-transport-security:
-      - max-age=31536000
-      x-anodeid:
-      - rh1-jira-prod-2
-      x-arequestid:
-      - 704x15518870x11
-      x-asessionid:
-      - 6k0xu6
-      x-content-type-options:
-      - nosniff
-      x-frame-options:
-      - SAMEORIGIN
-      x-ratelimit-fillrate:
-      - '5'
-      x-ratelimit-interval-seconds:
-      - '1'
-      x-rh-edge-cache-status:
-      - NotCacheable from child
-      x-rh-edge-reference-id:
-      - 0.692645f.1725882286.63c55f2d
-      x-rh-edge-request-id:
-      - 63c55f2d
-      x-seraph-loginreason:
-      - OK
-      x-xss-protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json,*.*;q=0.9
-      Accept-Encoding:
-      - gzip, deflate
-      Cache-Control:
-      - no-cache
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-requests/2.32.0
-      X-Atlassian-Token:
-      - no-check
-    method: GET
-    uri: https://example.com/rest/api/2/search?fields=issuekey&jql=labels%3D%22SecurityTracking%22+AND+type%3D%22Bug%22+AND+updated%3E%3D%222024-09-09+09%3A09%22+AND+updated%3C%3D%222025-09-09+09%3A10%22&maxResults=50&startAt=100&validateQuery=True
-  response:
-    body:
-      string: '{"expand": "schema,names", "startAt": 100, "maxResults": 50, "total":
-        174, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16088454", "self": "https://example.com/rest/api/2/issue/16088454",
-        "key": "RHEL-44209"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16074764", "self": "https://example.com/rest/api/2/issue/16074764",
-        "key": "RHEL-41430"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16074762", "self": "https://example.com/rest/api/2/issue/16074762",
-        "key": "RHEL-41428"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16151689", "self": "https://example.com/rest/api/2/issue/16151689",
-        "key": "RHCLOUD-34016"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16151882", "self": "https://example.com/rest/api/2/issue/16151882",
-        "key": "RHCLOUD-34015"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16239378", "self": "https://example.com/rest/api/2/issue/16239378",
-        "key": "OSP-32712"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16239056", "self": "https://example.com/rest/api/2/issue/16239056",
-        "key": "OSP-32695"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16118786", "self": "https://example.com/rest/api/2/issue/16118786",
-        "key": "OCPTOOLS-463"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16118785", "self": "https://example.com/rest/api/2/issue/16118785",
-        "key": "OCPTOOLS-462"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16269770", "self": "https://example.com/rest/api/2/issue/16269770",
-        "key": "OCPBUGS-41506"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268525", "self": "https://example.com/rest/api/2/issue/16268525",
-        "key": "OCPBUGS-41479"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268524", "self": "https://example.com/rest/api/2/issue/16268524",
-        "key": "OCPBUGS-41478"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268523", "self": "https://example.com/rest/api/2/issue/16268523",
-        "key": "OCPBUGS-41477"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268522", "self": "https://example.com/rest/api/2/issue/16268522",
-        "key": "OCPBUGS-41476"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268521", "self": "https://example.com/rest/api/2/issue/16268521",
-        "key": "OCPBUGS-41475"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268520", "self": "https://example.com/rest/api/2/issue/16268520",
-        "key": "OCPBUGS-41474"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268401", "self": "https://example.com/rest/api/2/issue/16268401",
-        "key": "OCPBUGS-41473"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268514", "self": "https://example.com/rest/api/2/issue/16268514",
-        "key": "OCPBUGS-41470"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268454", "self": "https://example.com/rest/api/2/issue/16268454",
-        "key": "OCPBUGS-41469"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268303", "self": "https://example.com/rest/api/2/issue/16268303",
-        "key": "OCPBUGS-41468"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268440", "self": "https://example.com/rest/api/2/issue/16268440",
-        "key": "OCPBUGS-41467"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268439", "self": "https://example.com/rest/api/2/issue/16268439",
-        "key": "OCPBUGS-41466"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268438", "self": "https://example.com/rest/api/2/issue/16268438",
-        "key": "OCPBUGS-41465"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268302", "self": "https://example.com/rest/api/2/issue/16268302",
-        "key": "OCPBUGS-41464"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268383", "self": "https://example.com/rest/api/2/issue/16268383",
-        "key": "OCPBUGS-41463"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268361", "self": "https://example.com/rest/api/2/issue/16268361",
-        "key": "OCPBUGS-41449"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268411", "self": "https://example.com/rest/api/2/issue/16268411",
-        "key": "OCPBUGS-41448"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268284", "self": "https://example.com/rest/api/2/issue/16268284",
-        "key": "OCPBUGS-41447"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268360", "self": "https://example.com/rest/api/2/issue/16268360",
-        "key": "OCPBUGS-41446"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268283", "self": "https://example.com/rest/api/2/issue/16268283",
-        "key": "OCPBUGS-41445"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268282", "self": "https://example.com/rest/api/2/issue/16268282",
-        "key": "OCPBUGS-41444"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16267999", "self": "https://example.com/rest/api/2/issue/16267999",
-        "key": "OCPBUGS-41416"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268136", "self": "https://example.com/rest/api/2/issue/16268136",
-        "key": "OCPBUGS-41415"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16267998", "self": "https://example.com/rest/api/2/issue/16267998",
-        "key": "OCPBUGS-41414"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268135", "self": "https://example.com/rest/api/2/issue/16268135",
-        "key": "OCPBUGS-41413"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268134", "self": "https://example.com/rest/api/2/issue/16268134",
-        "key": "OCPBUGS-41412"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16267997", "self": "https://example.com/rest/api/2/issue/16267997",
-        "key": "OCPBUGS-41411"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268108", "self": "https://example.com/rest/api/2/issue/16268108",
-        "key": "OCPBUGS-41408"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268120", "self": "https://example.com/rest/api/2/issue/16268120",
-        "key": "OCPBUGS-41407"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268114", "self": "https://example.com/rest/api/2/issue/16268114",
-        "key": "OCPBUGS-41406"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16267985", "self": "https://example.com/rest/api/2/issue/16267985",
-        "key": "OCPBUGS-41405"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268096", "self": "https://example.com/rest/api/2/issue/16268096",
-        "key": "OCPBUGS-41404"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268113", "self": "https://example.com/rest/api/2/issue/16268113",
-        "key": "OCPBUGS-41403"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268112", "self": "https://example.com/rest/api/2/issue/16268112",
-        "key": "OCPBUGS-41402"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268084", "self": "https://example.com/rest/api/2/issue/16268084",
-        "key": "OCPBUGS-41399"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16267895", "self": "https://example.com/rest/api/2/issue/16267895",
-        "key": "OCPBUGS-41398"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16259694", "self": "https://example.com/rest/api/2/issue/16259694",
-        "key": "OCPBUGS-39750"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16259719", "self": "https://example.com/rest/api/2/issue/16259719",
-        "key": "OCPBUGS-39749"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16259717", "self": "https://example.com/rest/api/2/issue/16259717",
-        "key": "OCPBUGS-39748"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16259715", "self": "https://example.com/rest/api/2/issue/16259715",
-        "key": "OCPBUGS-39747"}]}'
-    headers:
-      Cache-Control:
-      - max-age=0, no-cache, no-store
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json;charset=UTF-8
-      Date:
-      - Mon, 09 Sep 2024 11:44:47 GMT
-      Expires:
-      - Mon, 09 Sep 2024 11:44:47 GMT
-      Pragma:
-      - no-cache
-      Retry-After:
-      - '0'
-      Vary:
-      - User-Agent
-      - Accept-Encoding
-      X-RateLimit-Limit:
-      - '5'
-      X-RateLimit-Remaining:
-      - '4'
-      content-length:
-      - '9159'
-      referrer-policy:
-      - strict-origin-when-cross-origin
-      strict-transport-security:
-      - max-age=31536000
-      x-anodeid:
-      - rh1-jira-prod-2
-      x-arequestid:
-      - 704x15518897x14
-      x-asessionid:
-      - 1q84p5v
-      x-content-type-options:
-      - nosniff
-      x-frame-options:
-      - SAMEORIGIN
-      x-ratelimit-fillrate:
-      - '5'
-      x-ratelimit-interval-seconds:
-      - '1'
-      x-rh-edge-cache-status:
-      - NotCacheable from child
-      x-rh-edge-reference-id:
-      - 0.692645f.1725882287.63c56479
-      x-rh-edge-request-id:
-      - 63c56479
-      x-seraph-loginreason:
-      - OK
-      x-xss-protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json,*.*;q=0.9
-      Accept-Encoding:
-      - gzip, deflate
-      Cache-Control:
-      - no-cache
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-requests/2.32.0
-      X-Atlassian-Token:
-      - no-check
-    method: GET
-    uri: https://example.com/rest/api/2/search?fields=issuekey&jql=labels%3D%22SecurityTracking%22+AND+type%3D%22Bug%22+AND+updated%3E%3D%222024-09-09+09%3A09%22+AND+updated%3C%3D%222025-09-09+09%3A10%22&maxResults=50&startAt=150&validateQuery=True
-  response:
-    body:
-      string: '{"expand": "schema,names", "startAt": 150, "maxResults": 50, "total":
-        174, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16259714", "self": "https://example.com/rest/api/2/issue/16259714",
-        "key": "OCPBUGS-39746"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16259496", "self": "https://example.com/rest/api/2/issue/16259496",
-        "key": "OCPBUGS-39745"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16256132", "self": "https://example.com/rest/api/2/issue/16256132",
-        "key": "OCPBUGS-39489"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16213457", "self": "https://example.com/rest/api/2/issue/16213457",
-        "key": "OCPBUGS-38511"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "15862081", "self": "https://example.com/rest/api/2/issue/15862081",
-        "key": "OCPBUGS-30465"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16152133", "self": "https://example.com/rest/api/2/issue/16152133",
-        "key": "MWTELE-285"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16266852", "self": "https://example.com/rest/api/2/issue/16266852",
-        "key": "MTV-1422"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16251061", "self": "https://example.com/rest/api/2/issue/16251061",
-        "key": "JBEAP-27831"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "14280887", "self": "https://example.com/rest/api/2/issue/14280887",
-        "key": "JBEAP-22551"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "15921582", "self": "https://example.com/rest/api/2/issue/15921582",
-        "key": "HOSTEDCP-1515"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16258667", "self": "https://example.com/rest/api/2/issue/16258667",
-        "key": "HAWNG-765"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16060376", "self": "https://example.com/rest/api/2/issue/16060376",
-        "key": "GITOPS-4813"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "15918166", "self": "https://example.com/rest/api/2/issue/15918166",
-        "key": "GITOPS-4405"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "15878905", "self": "https://example.com/rest/api/2/issue/15878905",
-        "key": "GITOPS-4254"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16072492", "self": "https://example.com/rest/api/2/issue/16072492",
-        "key": "DIRSRV-108"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16072486", "self": "https://example.com/rest/api/2/issue/16072486",
-        "key": "DIRSRV-103"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16267579", "self": "https://example.com/rest/api/2/issue/16267579",
-        "key": "CEQ-9920"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16152044", "self": "https://example.com/rest/api/2/issue/16152044",
-        "key": "CCXDEV-13113"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16152033", "self": "https://example.com/rest/api/2/issue/16152033",
-        "key": "CCXDEV-13111"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16151907", "self": "https://example.com/rest/api/2/issue/16151907",
-        "key": "CCXDEV-13110"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16151649", "self": "https://example.com/rest/api/2/issue/16151649",
-        "key": "CCXDEV-13104"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268418", "self": "https://example.com/rest/api/2/issue/16268418",
-        "key": "AAP-30732"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16268263", "self": "https://example.com/rest/api/2/issue/16268263",
-        "key": "AAP-30731"}, {"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
-        "id": "16267964", "self": "https://example.com/rest/api/2/issue/16267964",
-        "key": "AAP-30730"}]}'
-    headers:
-      Cache-Control:
-      - max-age=0, no-cache, no-store
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json;charset=UTF-8
-      Date:
-      - Mon, 09 Sep 2024 11:44:47 GMT
-      Expires:
-      - Mon, 09 Sep 2024 11:44:47 GMT
-      Pragma:
-      - no-cache
-      Retry-After:
-      - '0'
-      Vary:
-      - User-Agent
-      - Accept-Encoding
-      X-RateLimit-Limit:
-      - '5'
-      X-RateLimit-Remaining:
-      - '4'
-      content-length:
-      - '4397'
-      referrer-policy:
-      - strict-origin-when-cross-origin
-      strict-transport-security:
-      - max-age=31536000
-      x-anodeid:
-      - rh1-jira-prod-2
-      x-arequestid:
-      - 704x15518915x10
-      x-asessionid:
-      - jo1n5h
-      x-content-type-options:
-      - nosniff
-      x-frame-options:
-      - SAMEORIGIN
-      x-ratelimit-fillrate:
-      - '5'
-      x-ratelimit-interval-seconds:
-      - '1'
-      x-rh-edge-cache-status:
-      - NotCacheable from child
-      x-rh-edge-reference-id:
-      - 0.692645f.1725882287.63c569ac
-      x-rh-edge-request-id:
-      - 63c569ac
+      - 1079ce6c
       x-seraph-loginreason:
       - OK
       x-xss-protection:
