@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Collect Jira field metadata for only one issuetype for each project (OSIDB-3485)
 - parent_uuid field in Alert had wrong type in OpenAPI schema (OSIDB-3451)
 - Fix Jira Tracker collector to account for Vulnerability issue type (OSIDB-3489)
+- IntegrityError duplicate key during tracker filing (OSIDB-3433)
 
 
 ## [4.3.3] - 2024-09-30
