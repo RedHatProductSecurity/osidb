@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [4.3.4] - 2024-10-03
 ### Added
 - Create custom DjangoQL lookup field for Flaw.components (OSIDB-3479)
 - Collect NIST CVSSv4 in NVD collector (OSIDB-2300)
