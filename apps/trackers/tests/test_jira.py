@@ -1935,9 +1935,13 @@ class TestTrackerJiraQueryBuilder:
                 [{"value": "KEV (active exploit case)"}],
                 False,
             ),
+            (Flaw.FlawMajorIncident.MINOR, [{"value": "Minor Incident"}], False),
+            (Flaw.FlawMajorIncident.ZERO_DAY, [{"value": "0-day"}], False),
             (Flaw.FlawMajorIncident.NOVALUE, [], False),
             (Flaw.FlawMajorIncident.APPROVED, None, True),
             (Flaw.FlawMajorIncident.CISA_APPROVED, None, True),
+            (Flaw.FlawMajorIncident.MINOR, None, True),
+            (Flaw.FlawMajorIncident.ZERO_DAY, None, True),
             (Flaw.FlawMajorIncident.NOVALUE, None, True),
         ],
     )

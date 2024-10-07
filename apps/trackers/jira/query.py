@@ -140,7 +140,9 @@ IMPACT_TO_JIRA_CVE_SEVERITY = {
 # NOTE that these four values can change, as they are for sanity-checking
 # allowed values for Jira field Special Handling.
 MAJOR_INCIDENT = "Major Incident"
+MINOR_INCIDENT = "Minor Incident"
 KEV = "KEV (active exploit case)"
+ZERO_DAY = "0-day"
 
 
 class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
@@ -758,7 +760,9 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
 
         expected_allowed_values = [
             MAJOR_INCIDENT,
+            MINOR_INCIDENT,
             KEV,
+            ZERO_DAY,
         ]
         missing_allowed_values = sorted(
             set(expected_allowed_values) - set(allowed_values)
@@ -772,7 +776,9 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         # To make the tracker's Special Handling informative, look across all related flaws.
 
         choice_major_incident = False
+        choice_minor_incident = False
         choice_kev = False
+        choice_zero_day = False
 
         flaw_uuids = self.tracker.affects.values_list("flaw__uuid", flat=True)
 
@@ -781,15 +787,25 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             choice_major_incident |= (
                 flaw.major_incident_state == Flaw.FlawMajorIncident.APPROVED
             )
+            choice_minor_incident |= (
+                flaw.major_incident_state == Flaw.FlawMajorIncident.MINOR
+            )
             choice_kev |= (
                 flaw.major_incident_state == Flaw.FlawMajorIncident.CISA_APPROVED
+            )
+            choice_zero_day |= (
+                flaw.major_incident_state == Flaw.FlawMajorIncident.ZERO_DAY
             )
 
         multichoice_jira_field_value = []
         if choice_major_incident:
             multichoice_jira_field_value.append({"value": MAJOR_INCIDENT})
+        if choice_minor_incident:
+            multichoice_jira_field_value.append({"value": MINOR_INCIDENT})
         if choice_kev:
             multichoice_jira_field_value.append({"value": KEV})
+        if choice_zero_day:
+            multichoice_jira_field_value.append({"value": ZERO_DAY})
 
         self._query["fields"][field_id] = multichoice_jira_field_value
 
