@@ -297,6 +297,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
             Flaw.FlawMajorIncident.APPROVED: ("+", "-"),
             Flaw.FlawMajorIncident.CISA_APPROVED: ("-", "+"),
             # flags NOVALUE and INVALID are ignored
+            # the same as MINOR and 0-day incidents
         }
 
         if self.flaw.major_incident_state in flags_to_write:
