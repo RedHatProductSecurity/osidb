@@ -2246,8 +2246,8 @@ interactions:
         "risk": null, "checklist": null, "exceptions": [], "opengrok": false, "manifest":
         true}, "fuse-7": {"public_description": "Red Hat JBoss Fuse 7", "ps_update_streams":
         ["fuse-7", "fuse-7.0.0", "fuse-7.1.0", "fuse-7.2.0", "fuse-7.3.0", "fuse-7.3.1",
-        "fuse-7.4.0"], "active_ps_update_streams": ["fuse-7"], "default_ps_update_streams":
-        ["fuse-7"], "unacked_ps_update_stream": "fuse-7", "bts": {"name": "jboss",
+        "fuse-7.4.0"], "active_ps_update_streams": ["fuse-7", "fuse-7.0.0"], "default_ps_update_streams":
+        ["fuse-7"], "unacked_ps_update_stream": "fuse-7", "moderate_ps_update_streams": ["fuse-7", "fuse-7.0.0"], "bts": {"name": "jboss",
         "key": "ENTESB", "groups": {"public": ["redhat", "qe_staff", "RedHat_Productisation"],
         "embargoed": ["security", "qe_staff", "RedHat_Productisation"]}}, "allow_defer":
         false, "default_cc": ["chazlett", "pdelbell", "acunning", "janstey", "gmalinko"],

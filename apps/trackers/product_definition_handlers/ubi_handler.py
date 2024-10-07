@@ -7,23 +7,16 @@ from .base import ProductDefinitionHandler
 
 class UBIHandler(ProductDefinitionHandler):
     """
-    UBI product definition handles
-
-    This handler should run after UnackedHandler
-
-    The handler that runs before this handler must avoid doing changes in `offers`
-    that would conflict with UBIHandler:
-    - If UBI streams are selected, the unacked stream must not be selected.
+    UBI pre-selection handler
     """
 
     UBI_OVERRIDES = [Impact.MODERATE]
 
     @staticmethod
-    def will_modify_offers(affect: Affect, impact: Impact, ps_module: PsModule) -> bool:
+    def is_applicable(affect: Affect, impact: Impact, ps_module: PsModule) -> bool:
         """
-        True if UbiHandler will modify the offers passed to get_offer. Can be used
-        by other handlers to avoid doing offers edits that would have to be reverted
-        by UbiHandler.
+        check whether the hanler is applicable to the given affect
+        the caller is responsible for checking the applicability before getting the offer
         """
         is_ubi = UBIHandler.has_ubi_packages(ps_module, affect)
         return is_ubi and impact in UBIHandler.UBI_OVERRIDES
@@ -36,50 +29,37 @@ class UBIHandler(ProductDefinitionHandler):
         packages = UbiPackage.objects.filter(name=affect.ps_component)
         return bool(packages)
 
-    def get_offer(self, affect: Affect, impact: Impact, ps_module: PsModule, offers):
-        if UBIHandler.will_modify_offers(affect, impact, ps_module):
+    @staticmethod
+    def get_offer(affect: Affect, impact: Impact, ps_module: PsModule, offers):
+        """
+        pre-select the streams
+        """
+        z_stream = ps_module.z_stream
+        if not z_stream or z_stream.name not in offers:
+            # no applicable Z-stream exists
+            return offers
 
-            z_stream = ps_module.z_stream
-            if z_stream:
-                # This can pre-select streams that are not marked as default,
-                # so streams_to_preselect may not be a subset of
-                # ps_module.default_ps_update_streams.  The reason for that is
-                # that during the RC phase / after Batch 3, it's better to file
-                # Z-stream trackers for the next minor release Z-stream rather
-                # than the current minor release Z-stream.
+        # This can pre-select streams that are not marked as default,
+        # so streams_to_preselect may not be a subset of
+        # ps_module.default_ps_update_streams.  The reason for that is
+        # that during the RC phase / after Batch 3, it's better to file
+        # Z-stream trackers for the next minor release Z-stream rather
+        # than the current minor release Z-stream.
 
-                # ps_module.z_stream is the latest Z-stream stream defined in
-                # ps_module's active streams - it may not be included in the
-                # default streams list
+        # ps_module.z_stream is the latest Z-stream stream defined in
+        # ps_module's active streams - it may not be included in the
+        # default streams list
 
-                offers[z_stream.name] = {
-                    "ps_update_stream": z_stream.name,
-                    "selected": True,
-                    "eus": bool(
-                        ps_module.eus_ps_update_streams.filter(name=z_stream.name)
-                    ),
-                    "aus": bool(
-                        ps_module.aus_ps_update_streams.filter(name=z_stream.name)
-                    ),
-                    "acked": True,
-                }
+        offers[z_stream.name]["selected"] = True
 
-                # ensure Y-streams earlier than the ps_module.z_stream are not
-                # pre-selected
-                for stream in ps_module.y_streams:
-                    if ps_update_stream_natural_keys(
-                        stream
-                    ) > ps_update_stream_natural_keys(z_stream):
-                        offers[stream.name] = {
-                            "ps_update_stream": stream.name,
-                            "selected": True,
-                            "eus": bool(
-                                ps_module.eus_ps_update_streams.filter(name=stream.name)
-                            ),
-                            "aus": bool(
-                                ps_module.aus_ps_update_streams.filter(name=stream.name)
-                            ),
-                            "acked": True,
-                        }
+        for stream in ps_module.y_streams:
+            if stream.name not in offers:
+                continue
+
+            # skip Y-streams earlier than the Z-stream
+            if ps_update_stream_natural_keys(stream) > ps_update_stream_natural_keys(
+                z_stream
+            ):
+                offers[stream.name]["selected"] = True
 
         return offers

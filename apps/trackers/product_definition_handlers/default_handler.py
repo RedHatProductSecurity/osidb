@@ -3,13 +3,13 @@ from osidb.models import Affect, Impact, PsModule
 from .base import ProductDefinitionHandler
 
 
-class UnackedHandler(ProductDefinitionHandler):
+class DefaultHandler(ProductDefinitionHandler):
     """
-    unacked pre-selection handler
+    default pre-selection handler
     """
 
-    UNACKED_IMPACT_APPLICABLE = [Impact.MODERATE, Impact.LOW]
-    UNACKED_IMPACT_PRESELECTED = [Impact.MODERATE]
+    # only the higher impacts have the default handling
+    DEFAULT_IMPACT_APPLICABLE = [Impact.CRITICAL, Impact.IMPORTANT]
 
     @staticmethod
     def is_applicable(affect: Affect, impact: Impact, ps_module: PsModule) -> bool:
@@ -17,16 +17,14 @@ class UnackedHandler(ProductDefinitionHandler):
         check whether the hanler is applicable to the given affect
         the caller is responsible for checking the applicability before getting the offer
         """
-        return impact in UnackedHandler.UNACKED_IMPACT_APPLICABLE
+        return impact in DefaultHandler.DEFAULT_IMPACT_APPLICABLE
 
     @staticmethod
     def get_offer(affect: Affect, impact: Impact, ps_module: PsModule, offers):
         """
         pre-select the streams
         """
-        unacked_stream = ps_module.unacked_ps_update_stream.first()
-        if unacked_stream and unacked_stream.name in offers:
-            offers[unacked_stream.name]["selected"] = (
-                impact in UnackedHandler.UNACKED_IMPACT_PRESELECTED
-            )
+        for stream in ps_module.default_ps_update_streams.all():
+            if stream.name in offers:
+                offers[stream.name]["selected"] = True
         return offers
