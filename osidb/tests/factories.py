@@ -75,7 +75,12 @@ class FlawFactory(BaseFactory):
 
         is_mi = factory.LazyAttribute(
             lambda f: f.major_incident_state
-            in [Flaw.FlawMajorIncident.APPROVED, Flaw.FlawMajorIncident.CISA_APPROVED]
+            in [
+                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.CISA_APPROVED,
+                Flaw.FlawMajorIncident.MINOR,
+                Flaw.FlawMajorIncident.ZERO_DAY,
+            ]
         )
 
         not_mi_with_cve_description = factory.Faker(

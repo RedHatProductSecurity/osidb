@@ -541,6 +541,8 @@ class Flaw(
         REJECTED = "REJECTED"
         APPROVED = "APPROVED"
         CISA_APPROVED = "CISA_APPROVED"
+        MINOR = "MINOR"
+        ZERO_DAY = "ZERO_DAY"
         INVALID = "INVALID"
 
     class FlawNistCvssValidation(models.TextChoices):
@@ -962,14 +964,17 @@ class Flaw(
 
     def _validate_major_incident_fields(self, **kwargs):
         """
-        Validate that a Flaw that is Major Incident complies with the following:
+        Validate that a Flaw that is Major Incident or 0-day complies with the following:
         * has a mitigation
         * has a statement
         * has a cve_description
         * requires_cve_description is APPROVED
         * has exactly one article
         """
-        if self.major_incident_state != Flaw.FlawMajorIncident.APPROVED:
+        if self.major_incident_state not in [
+            Flaw.FlawMajorIncident.APPROVED,
+            Flaw.FlawMajorIncident.ZERO_DAY,
+        ]:
             return
 
         if not self.mitigation:
@@ -1130,6 +1135,9 @@ class Flaw(
         ] or old_flaw.major_incident_state in [
             Flaw.FlawMajorIncident.APPROVED,
             Flaw.FlawMajorIncident.CISA_APPROVED,
+            # Flaw.FlawMajorIncident.MINOR is not
+            # included as it is only informative
+            Flaw.FlawMajorIncident.ZERO_DAY,
         ]
         is_high_impact = self.impact in [
             Impact.CRITICAL,
@@ -1137,6 +1145,9 @@ class Flaw(
         ] or self.major_incident_state in [
             Flaw.FlawMajorIncident.APPROVED,
             Flaw.FlawMajorIncident.CISA_APPROVED,
+            # Flaw.FlawMajorIncident.MINOR is not
+            # included as it is only informative
+            Flaw.FlawMajorIncident.ZERO_DAY,
         ]
         if (
             was_high_impact != is_high_impact

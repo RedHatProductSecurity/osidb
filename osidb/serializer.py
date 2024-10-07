@@ -1740,6 +1740,9 @@ class FlawSerializer(
                     [
                         Flaw.FlawMajorIncident.APPROVED,
                         Flaw.FlawMajorIncident.CISA_APPROVED,
+                        # Flaw.FlawMajorIncident.MINOR is not
+                        # included as it has no engineering impact
+                        Flaw.FlawMajorIncident.ZERO_DAY,
                     ]
                 )
             )

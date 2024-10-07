@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Introduce moderate tracker streams pre-selection (OSIDB-3346)
+- Introduce minor and 0-day incident types (OSIDB-3390)
 
 ### Fixed
 - Rework and complete the tracker stream pre-selection module to fix it

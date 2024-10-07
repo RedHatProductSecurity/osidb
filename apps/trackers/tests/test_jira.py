@@ -1051,7 +1051,9 @@ def jira_vulnissuetype_fields_setup_without_severity_versions():
         field_id="customfield_12324753",
         field_name="Special Handling",
         allowed_values=[
+            "0-day",
             "Major Incident",
+            "Minor Incident",
             "KEV (active exploit case)",
         ],
     ).save()
