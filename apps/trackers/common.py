@@ -116,21 +116,19 @@ class TrackerQueryBuilder:
         if self.tracker.is_embargoed:
             prefixes.append("EMBARGOED")
 
-        if any(
-            flaw
-            for flaw in self.flaws
-            if flaw.major_incident_state == Flaw.FlawMajorIncident.APPROVED
-        ):
-            prefixes.append("[Major Incident]")
+        prefix_map = {
+            Flaw.FlawMajorIncident.APPROVED: "[Major Incident]",
+            Flaw.FlawMajorIncident.CISA_APPROVED: "[CISA Major Incident]",
+            Flaw.FlawMajorIncident.MINOR: "[Minor Incident]",
+            Flaw.FlawMajorIncident.ZERO_DAY: "[0-day]",
+        }
 
-        # we can theoretically have normal and CISA one at once
-        # and then we prioritize the normal one above CISA
-        elif any(
-            flaw
-            for flaw in self.flaws
-            if flaw.major_incident_state == Flaw.FlawMajorIncident.CISA_APPROVED
-        ):
-            prefixes.append("[CISA Major Incident]")
+        # no incident priority has been given
+        # thus let us assume there is none
+        for flaw in sorted(self.flaws, key=lambda flaw: flaw.major_incident_state):
+            if flaw.major_incident_state in prefix_map:
+                prefixes.append(prefix_map[flaw.major_incident_state])
+                break
 
         if not prefixes:
             return ""

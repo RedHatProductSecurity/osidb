@@ -8,7 +8,7 @@ from osidb.models import FlawReference, PsUpdateStream
 
 TRACKER_COMPONENT_UPDATE_STREAM_RE = re.compile(
     r"^(?:\s*EMBARGOED\s+)?"  # Embargoed keyword
-    r"(?:\[(?:CISA\s)?Major\sIncident\]\s+)?"  # Major Incident
+    r"(?:\[(?:(?:(?:CISA\s)?Major|Minor)\sIncident|0-day)\]\s+)?"  # Major Incident
     r"(?:\s*TRIAGE)?(?:-|\s*)?"  # TRIAGE keyword or prefix
     r"(?:CVE-[0-9]+-[0-9]+,?\s*)*"  # list of CVEs
     r"(?:\.+\s+)?"  # dots, when too many CVEs are present

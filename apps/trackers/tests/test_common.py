@@ -246,6 +246,8 @@ class TestTrackerQueryBuilderSummary:
                 Flaw.FlawMajorIncident.CISA_APPROVED,
                 "EMBARGOED [CISA Major Incident] CVE-2000-1234 ",
             ),
+            (None, False, Flaw.FlawMajorIncident.MINOR, "[Minor Incident] "),
+            (None, False, Flaw.FlawMajorIncident.ZERO_DAY, "[0-day] "),
         ],
     )
     def test_prefixes(self, cve_id, embargoed, major_incident_state, summary_prefix):
