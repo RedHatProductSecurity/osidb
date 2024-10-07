@@ -174,6 +174,8 @@ class JiraTaskmanQuerier(JiraQuerier):
         if flaw.major_incident_state in [
             Flaw.FlawMajorIncident.APPROVED,
             Flaw.FlawMajorIncident.CISA_APPROVED,
+            Flaw.FlawMajorIncident.MINOR,
+            Flaw.FlawMajorIncident.ZERO_DAY,
         ]:
             labels.append("major_incident")
         if flaw.cve_id:
