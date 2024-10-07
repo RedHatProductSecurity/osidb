@@ -70,10 +70,10 @@ class TrackerFileSuggestionView(RudimentaryUserPathLoggingMixin, APIView):
                 affectedness=Affect.AffectAffectedness.NEW,
                 resolution=Affect.AffectResolution.NOVALUE,
             ),
-            Q(ps_module__in=active_module_names),
+            ps_module__in=active_module_names,
         ).exclude(
-            (Q(flaw__acl_read=embargoed_acl) | Q(acl_read=embargoed_acl))
-            & Q(ps_module__in=exclude_private)
+            Q(flaw__acl_read=embargoed_acl) | Q(acl_read=embargoed_acl),
+            ps_module__in=exclude_private,
         )
         # prepare the list of non applicable trackers
         not_applicable = selected_affects.difference(affects)
