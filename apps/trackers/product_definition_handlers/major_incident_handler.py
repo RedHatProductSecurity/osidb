@@ -20,4 +20,5 @@ class MajorIncidentHandler(DefaultHandler):
         return affect.flaw.major_incident_state in [
             Flaw.FlawMajorIncident.APPROVED,
             Flaw.FlawMajorIncident.CISA_APPROVED,
+            Flaw.FlawMajorIncident.ZERO_DAY,
         ]

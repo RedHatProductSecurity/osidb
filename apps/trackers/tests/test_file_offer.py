@@ -561,6 +561,18 @@ class TestTrackerSuggestions:
                 ["stream1"],  # Major Incident enforces default
             ),
             (
+                Impact.LOW,
+                ["stream1", "stream2", "stream3"],
+                ["stream1", "stream2"],
+                ["stream1"],
+                [],
+                [],
+                False,
+                Flaw.FlawMajorIncident.ZERO_DAY,
+                ["stream1", "stream2"],
+                ["stream1"],  # Major Incident enforces default
+            ),
+            (
                 Impact.MODERATE,
                 ["stream1", "stream2", "stream3"],
                 ["stream1", "stream2"],
@@ -571,6 +583,18 @@ class TestTrackerSuggestions:
                 Flaw.FlawMajorIncident.APPROVED,
                 ["stream1", "stream2"],
                 ["stream1"],  # Major Incident beats moderate
+            ),
+            (
+                Impact.MODERATE,
+                ["stream1", "stream2", "stream3"],
+                ["stream1", "stream2"],
+                ["stream1"],
+                ["stream2"],
+                [],
+                False,
+                Flaw.FlawMajorIncident.MINOR,
+                ["stream1", "stream2"],
+                ["stream2"],  # Minor Incident makes no change
             ),
             (
                 Impact.MODERATE,
@@ -753,6 +777,8 @@ class TestTrackerSuggestions:
             [
                 (Flaw.FlawMajorIncident.APPROVED, True),
                 (Flaw.FlawMajorIncident.CISA_APPROVED, True),
+                (Flaw.FlawMajorIncident.MINOR, False),
+                (Flaw.FlawMajorIncident.ZERO_DAY, True),
                 (Flaw.FlawMajorIncident.REQUESTED, False),
                 (Flaw.FlawMajorIncident.REJECTED, False),
                 (Flaw.FlawMajorIncident.NOVALUE, False),
