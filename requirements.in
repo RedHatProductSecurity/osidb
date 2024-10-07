@@ -32,8 +32,7 @@ packageurl-python
 psycogreen
 psycopg2
 pyjwt==2.4.0
-# to get the readable Bugzilla errors we need not yet released version
-python-bugzilla @ https://github.com/python-bugzilla/python-bugzilla/archive/c2b4fedda606ef91202941de70916fb1a32d8add.zip
+python-bugzilla
 python-ldap>=3.4.0
 pyyaml
 redis[hiredis]
