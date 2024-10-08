@@ -70,6 +70,7 @@ class OSVCollector(Collector):
     CVSS_TO_FLAWCVSS = {
         "CVSS_V2": FlawCVSS.CVSSVersion.VERSION2,
         "CVSS_V3": FlawCVSS.CVSSVersion.VERSION3,
+        "CVSS_V4": FlawCVSS.CVSSVersion.VERSION4,
     }
 
     def __init__(self):
