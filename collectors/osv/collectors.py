@@ -67,6 +67,11 @@ class OSVCollector(Collector):
     # API docs: https://google.github.io/osv.dev/api/
     OSV_VULNS_API_URL = "https://api.osv.dev/v1/vulns"
 
+    CVSS_TO_FLAWCVSS = {
+        "CVSS_V2": FlawCVSS.CVSSVersion.VERSION2,
+        "CVSS_V3": FlawCVSS.CVSSVersion.VERSION3,
+    }
+
     def __init__(self):
         """initiate collector"""
         super().__init__()
@@ -218,8 +223,7 @@ class OSVCollector(Collector):
                     updated += 1
             return created, updated
 
-    @staticmethod
-    def extract_content(osv_vuln: dict) -> tuple[str, list, dict]:
+    def extract_content(self, osv_vuln: dict) -> tuple[str, list, dict]:
         """Extract data from an OSV vuln and normalize to Flaw model fields.
 
         Fields that don't have their equivalents in the Flaw model can be used as well if we
@@ -258,25 +262,21 @@ class OSVCollector(Collector):
 
         def get_cvss(data: dict) -> list:
             # https://ossf.github.io/osv-schema/#severity-field
-            scores = []
-            mapping = {
-                "CVSS_V2": FlawCVSS.CVSSVersion.VERSION2,
-                "CVSS_V3": FlawCVSS.CVSSVersion.VERSION3,
-            }
+            cvss_data = []
             for cvss in data.get("severity", []):
-                if not cvss["type"] in mapping:
+                if not cvss["type"] in self.CVSS_TO_FLAWCVSS:
                     # Skip unsupported score types
                     continue
-                scores.append(
+                cvss_data.append(
                     {
                         "issuer": FlawCVSS.CVSSIssuer.OSV,
-                        "version": mapping[cvss["type"]],
+                        "version": self.CVSS_TO_FLAWCVSS[cvss["type"]],
                         # OSV "score" attribute is really a vector string
                         "vector": cvss["score"],
                         # Actual score is generated automatically when FlawCVSS is saved
                     }
                 )
-            return scores
+            return cvss_data
 
         def get_cwes(data: dict) -> str:
             #  https://ossf.github.io/osv-schema/#database_specific-field

@@ -51,6 +51,13 @@ class CVEorgCollector(Collector):
     # From https://cveproject.github.io/cve-schema/schema/docs/#oneOf_i0_containers_cna_descriptions_contains_lang
     EN_LANG = r"^en([_-][A-Za-z]{4})?([_-]([A-Za-z]{2}|[0-9]{3}))?$"
 
+    CVSS_TO_FLAWCVSS = {
+        "cvssV2_0": FlawCVSS.CVSSVersion.VERSION2,
+        "cvssV3_0": FlawCVSS.CVSSVersion.VERSION3,
+        "cvssV3_1": FlawCVSS.CVSSVersion.VERSION3,
+        "cvssV4_0": FlawCVSS.CVSSVersion.VERSION4,
+    }
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -250,14 +257,6 @@ class CVEorgCollector(Collector):
             ][0]
 
         def get_cvss(data: dict) -> list:
-            scores = []
-            mapping = {
-                "cvssV2_0": FlawCVSS.CVSSVersion.VERSION2,
-                "cvssV3_0": FlawCVSS.CVSSVersion.VERSION3,
-                "cvssV3_1": FlawCVSS.CVSSVersion.VERSION3,
-                "cvssV4_0": FlawCVSS.CVSSVersion.VERSION4,
-            }
-
             # Collect all metrics from CNA and ADP containers
             all_metrics = data["containers"]["cna"].get("metrics", [])
             for a in data["containers"].get("adp", []):
@@ -266,24 +265,25 @@ class CVEorgCollector(Collector):
             # Keep only data we are interested in (version and vector)
             cvss_pairs = dict()
             for cvss in all_metrics:
-                for version, data in cvss.items():
-                    if version in mapping and version not in cvss_pairs:
-                        cvss_pairs[version] = data["vectorString"]
+                for version, metrics in cvss.items():
+                    if version in self.CVSS_TO_FLAWCVSS and version not in cvss_pairs:
+                        cvss_pairs[version] = metrics["vectorString"]
 
             # Only one CVSS v3 can be stored
             if bool(cvss_pairs.get("cvssV3_0") and cvss_pairs.get("cvssV3_1")):
                 cvss_pairs.pop("cvssV3_0")
 
+            cvss_data = []
             for version, vector in cvss_pairs.items():
-                scores.append(
+                cvss_data.append(
                     {
                         "issuer": FlawCVSS.CVSSIssuer.CVEORG,
-                        "version": mapping[version],
+                        "version": self.CVSS_TO_FLAWCVSS[version],
                         "vector": vector,
                         # Actual score is generated automatically when FlawCVSS is saved
                     }
                 )
-            return scores
+            return cvss_data
 
         def get_cwes(data: dict) -> str:
             # Collect all problem types from CNA and ADP containers
