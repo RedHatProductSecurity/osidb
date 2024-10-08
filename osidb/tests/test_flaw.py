@@ -1321,6 +1321,8 @@ class TestFlawValidators:
             (Flaw.FlawMajorIncident.REJECTED, False),
             (Flaw.FlawMajorIncident.APPROVED, False),
             (Flaw.FlawMajorIncident.CISA_APPROVED, False),
+            (Flaw.FlawMajorIncident.MINOR, False),
+            (Flaw.FlawMajorIncident.ZERO_DAY, False),
             (Flaw.FlawMajorIncident.INVALID, True),
         ],
     )
@@ -1812,6 +1814,12 @@ class TestFlawValidators:
                 Flaw.FlawMajorIncident.NOVALUE,
                 ["Closed", "Closed"],
                 False,
+            ),
+            (
+                Flaw.FlawMajorIncident.ZERO_DAY,
+                Flaw.FlawMajorIncident.NOVALUE,
+                ["Closed", "Open"],
+                True,
             ),
         ],
     )

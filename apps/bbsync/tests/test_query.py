@@ -493,6 +493,8 @@ class TestGenerateFlags:
             (Flaw.FlawMajorIncident.CISA_APPROVED, "-", "+", True),
             # flags to ignore
             (Flaw.FlawMajorIncident.NOVALUE, None, None, False),
+            (Flaw.FlawMajorIncident.MINOR, None, None, False),
+            (Flaw.FlawMajorIncident.ZERO_DAY, None, None, False),
             (Flaw.FlawMajorIncident.INVALID, None, None, False),
         ],
     )

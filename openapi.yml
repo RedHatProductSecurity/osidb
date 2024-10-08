@@ -3188,8 +3188,10 @@ paths:
           - APPROVED
           - CISA_APPROVED
           - INVALID
+          - MINOR
           - REJECTED
           - REQUESTED
+          - ZERO_DAY
       - in: query
         name: mitigation__isempty
         schema:
@@ -8575,6 +8577,8 @@ components:
       - REJECTED
       - APPROVED
       - CISA_APPROVED
+      - MINOR
+      - ZERO_DAY
       - INVALID
       type: string
     MaturityPreliminaryEnum:

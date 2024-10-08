@@ -720,7 +720,9 @@ class TestTrackerAPI:
             field_id="customfield_12324753",
             field_name="Special Handling",
             allowed_values=[
+                "0-day",
                 "Major Incident",
+                "Minor Incident",
                 "KEV (active exploit case)",
             ],
         ).save()

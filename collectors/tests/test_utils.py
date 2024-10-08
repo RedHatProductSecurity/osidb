@@ -67,6 +67,16 @@ class TestParseUpdateStreamComponent:
                 "stream",
                 "component",
             ),
+            (
+                "[Minor Incident] CVE-2222-1111 component: another: text [stream]",
+                "stream",
+                "component",
+            ),
+            (
+                "[0-day] component: text [stream]",
+                "stream",
+                "component",
+            ),
         ],
     )
     def test_correct(self, title, stream, component):
