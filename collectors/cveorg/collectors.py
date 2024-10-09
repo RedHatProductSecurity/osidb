@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from decimal import Decimal
 from time import sleep
 from typing import Union
 
@@ -16,7 +17,7 @@ from collectors.constants import SNIPPET_CREATION_ENABLED
 from collectors.cveorg.constants import CELERY_PVC_PATH
 from collectors.framework.models import Collector
 from collectors.keywords import should_create_snippet
-from collectors.utils import handle_urls
+from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
 from osidb.dmodels.snippet import Snippet
 from osidb.models import FlawCVSS, FlawReference
@@ -256,25 +257,32 @@ class CVEorgCollector(Collector):
                 if re.match(self.EN_LANG, d["lang"])
             ][0]
 
-        def get_cvss(data: dict) -> list:
+        def get_cvss_and_impact(data: dict) -> tuple[list, str]:
+
             # Collect all metrics from CNA and ADP containers
             all_metrics = data["containers"]["cna"].get("metrics", [])
             for a in data["containers"].get("adp", []):
                 all_metrics.extend(a.get("metrics", []))
 
-            # Keep only data we are interested in (version and vector)
+            # Keep only data we are interested in (version, vector, score)
             cvss_pairs = dict()
             for cvss in all_metrics:
                 for version, metrics in cvss.items():
                     if version in self.CVSS_TO_FLAWCVSS and version not in cvss_pairs:
-                        cvss_pairs[version] = metrics["vectorString"]
+                        cvss_pairs[version] = [
+                            metrics["baseScore"],
+                            metrics["vectorString"],
+                        ]
 
             # Only one CVSS v3 can be stored
             if bool(cvss_pairs.get("cvssV3_0") and cvss_pairs.get("cvssV3_1")):
                 cvss_pairs.pop("cvssV3_0")
 
+            # Create resulted CVSS and get the highest score for Impact calculation
             cvss_data = []
-            for version, vector in cvss_pairs.items():
+            highest_score = Decimal("0.0")
+            for version, values in cvss_pairs.items():
+                score, vector = values
                 cvss_data.append(
                     {
                         "issuer": FlawCVSS.CVSSIssuer.CVEORG,
@@ -283,7 +291,13 @@ class CVEorgCollector(Collector):
                         # Actual score is generated automatically when FlawCVSS is saved
                     }
                 )
-            return cvss_data
+                if score > highest_score:
+                    highest_score = score
+
+            # Create resulted Impact
+            highest_impact = convert_cvss_score_to_impact(highest_score)
+
+            return cvss_data, highest_impact
 
         def get_cwes(data: dict) -> str:
             # Collect all problem types from CNA and ADP containers
@@ -332,11 +346,13 @@ class CVEorgCollector(Collector):
                 return published if published.endswith("Z") else f"{published}Z"
             return None
 
+        cvss_scores, impact = get_cvss_and_impact(content)
         return {
             "comment_zero": get_comment_zero(content),
             "cve_id": content["cveMetadata"]["cveId"],
-            "cvss_scores": get_cvss(content),
+            "cvss_scores": cvss_scores,
             "cwe_id": get_cwes(content),
+            "impact": impact,
             "references": get_refs(content),
             "source": Snippet.Source.CVEORG,
             "title": get_title(content),

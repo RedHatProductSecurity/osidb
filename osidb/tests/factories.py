@@ -524,6 +524,7 @@ class SnippetFactory(factory.django.DjangoModelFactory):
             ],
             "cwe_id": "CWE-110",
             "comment_zero": "some comment zero",
+            "impact": Impact.IMPORTANT,
             "references": [
                 {"url": self.url, "type": FlawReference.FlawReferenceType.SOURCE}
             ],

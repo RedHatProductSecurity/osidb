@@ -1,10 +1,11 @@
 import re
-from typing import Optional
+from decimal import Decimal
+from typing import Optional, Union
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 
-from osidb.models import FlawReference, PsUpdateStream
+from osidb.models import FlawReference, Impact, PsUpdateStream
 
 TRACKER_COMPONENT_UPDATE_STREAM_RE = re.compile(
     r"^(?:\s*EMBARGOED\s+)?"  # Embargoed keyword
@@ -98,3 +99,27 @@ def handle_urls(references: list, source_ref: str) -> list:
             pass
 
     return urls
+
+
+CVSS_SCORE_TO_IMPACT = {
+    # Ordering: Impact, Score, Severity
+    Impact.NOVALUE: (Decimal("0.0"), Decimal("0.0")),  # NONE
+    Impact.LOW: (Decimal("0.1"), Decimal("3.9")),  # LOW
+    Impact.MODERATE: (Decimal("4.0"), Decimal("6.9")),  # MEDIUM
+    Impact.IMPORTANT: (Decimal("7.0"), Decimal("8.9")),  # HIGH
+    Impact.CRITICAL: (Decimal("9.0"), Decimal("10.0")),  # CRITICAL
+}
+
+
+def convert_cvss_score_to_impact(score: Union[Decimal, float]) -> Impact:
+    """
+    This function converts CVSS score to Flaw Impact.
+    Flaw Impact matches CVSS severity, which is defined by CVSS score ranges.
+    """
+    impact = Impact.NOVALUE
+    for key, value in CVSS_SCORE_TO_IMPACT.items():
+        lower, upper = value
+        if lower <= score <= upper:
+            impact = key
+            break
+    return impact
