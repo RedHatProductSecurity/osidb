@@ -1,6 +1,6 @@
-from osidb.dmodels import PsModule
+from osidb.dmodels import Impact, PsModule
 from osidb.dmodels.affect import Affect
-from osidb.models import Flaw, Impact
+from osidb.models import Flaw
 
 from .default_handler import DefaultHandler
 

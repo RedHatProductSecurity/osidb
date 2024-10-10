@@ -12,6 +12,8 @@ from pytz import UTC
 from osidb.constants import DATETIME_FMT
 from osidb.core import generate_acls
 from osidb.dmodels import (
+    CVSS,
+    Impact,
     PsContact,
     PsModule,
     PsProduct,
@@ -24,14 +26,12 @@ from osidb.dmodels.package_versions import Package, PackageVer
 from osidb.dmodels.snippet import Snippet
 from osidb.dmodels.tracker import Tracker
 from osidb.models import (
-    CVSS,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
     FlawCVSS,
     FlawReference,
     FlawSource,
-    Impact,
 )
 
 DATA_PRODSEC_ACL_READ = uuid.uuid5(
