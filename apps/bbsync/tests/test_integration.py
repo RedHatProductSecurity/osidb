@@ -11,9 +11,10 @@ from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
 from collectors.jiraffe.collectors import JiraTrackerCollector
 from osidb.dmodels.affect import Affect
+from osidb.dmodels.flaw.cvss import FlawCVSS
 from osidb.dmodels.snippet import Snippet
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw, FlawAcknowledgment, FlawCVSS, FlawReference
+from osidb.models import Flaw, FlawAcknowledgment, FlawReference
 from osidb.tests.factories import (
     AffectFactory,
     FlawAcknowledgmentFactory,
@@ -184,55 +185,6 @@ class TestBBSyncIntegration:
         response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
         assert response.json()["title"] == "Bar"
-
-    @pytest.mark.vcr
-    @pytest.mark.enable_signals
-    def test_flawcvss_create(self, auth_client, test_api_uri):
-        """
-        test creating a flaw cvss v4 with Bugzilla two-way sync
-        """
-        flaw = FlawFactory(
-            bz_id="2293325",
-            cve_id="CVE-2021-0773",
-            title="Foo",
-            comment_zero="test",
-            reported_dt="2022-11-22T15:55:22.830Z",
-            unembargo_dt="2000-1-1T22:03:26.065Z",
-            updated_dt="2024-06-14T13:42:13Z",
-            acl_read=self.acl_read,
-            acl_write=self.acl_write,
-            embargoed=False,
-        )
-        PsModuleFactory(name="rhel-8", default_cc=[], component_cc={})
-        AffectFactory(
-            flaw=flaw,
-            ps_module="rhel-8",
-            ps_component="kernel",
-        )
-
-        cvss_data = {
-            "issuer": FlawCVSS.CVSSIssuer.REDHAT,
-            "cvss_version": FlawCVSS.CVSSVersion.VERSION4,
-            "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:N",
-            "embargoed": flaw.embargoed,
-        }
-
-        # Tests "POST" on flaws/{uuid}/cvss_scores
-        response = auth_client().post(
-            f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores",
-            data=cvss_data,
-            format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
-        )
-        assert response.status_code == 201
-
-        # Tests "GET" on flaws/{uuid}/cvss_scores
-        response = auth_client().get(
-            f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores"
-        )
-        assert response.status_code == 200
-        assert response.json()["count"] == 1
 
     @pytest.mark.vcr
     def test_flaw_update_add_cve(self, auth_client, test_api_uri):

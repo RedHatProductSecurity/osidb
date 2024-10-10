@@ -12,9 +12,10 @@ from rest_framework import status
 from osidb.core import set_user_acls
 from osidb.dmodels import FlawSource
 from osidb.dmodels.affect import Affect
+from osidb.dmodels.flaw.cvss import FlawCVSS
 from osidb.dmodels.tracker import Tracker
 from osidb.filters import FlawFilter
-from osidb.models import Flaw, FlawComment, FlawCVSS, FlawReference
+from osidb.models import Flaw, FlawComment, FlawReference
 from osidb.tests.factories import (
     AffectFactory,
     FlawAcknowledgmentFactory,
