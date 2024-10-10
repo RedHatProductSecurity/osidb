@@ -5,7 +5,7 @@ import pytest
 from apps.workflows.models import Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from osidb.dmodels.snippet import Snippet
-from osidb.models import Flaw, FlawCVSS, FlawReference
+from osidb.models import Flaw, FlawCVSS, FlawReference, Impact
 from osidb.tests.factories import FlawFactory, SnippetFactory
 
 pytestmark = pytest.mark.unit
@@ -63,6 +63,7 @@ class TestSnippet:
         assert flaw.cvss_scores.count() == 1
         assert flaw.cwe_id == content["cwe_id"]
         assert flaw.comment_zero == content["comment_zero"]
+        assert flaw.impact == Impact.IMPORTANT
         # flaw is newly created, so meta_attr contains custom data
         assert flaw.meta_attr == {"external_ids": json.dumps([content["cve_id"]])}
         assert flaw.references.count() == 1

@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Introduce moderate tracker streams pre-selection (OSIDB-3346)
 - Introduce minor and 0-day incident types (OSIDB-3390)
+- Collect CVSSv4 in OSV collector (OSIDB-3487)
+- Set Impact for collector flaws based on CVSS severity (OSIDB-3487)
 
 ### Fixed
 - Rework and complete the tracker stream pre-selection module to fix it

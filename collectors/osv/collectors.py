@@ -1,11 +1,13 @@
 import json
 import re
+from decimal import Decimal
 from io import BytesIO
 from typing import Union
 from zipfile import ZipFile
 
 import requests
 from celery.utils.log import get_task_logger
+from cvss import CVSS2, CVSS3, CVSS4
 from django.conf import settings
 from django.db import transaction
 from django.utils import dateparse, timezone
@@ -13,7 +15,7 @@ from django.utils import dateparse, timezone
 from apps.taskman.constants import JIRA_AUTH_TOKEN
 from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_START_DATE
 from collectors.framework.models import Collector
-from collectors.utils import handle_urls
+from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
 from osidb.dmodels.snippet import Snippet
 from osidb.models import FlawCVSS, FlawReference
@@ -66,6 +68,14 @@ class OSVCollector(Collector):
     OSV_DATA_SNAPSHOT_URL = "https://storage.googleapis.com/osv-vulnerabilities"
     # API docs: https://google.github.io/osv.dev/api/
     OSV_VULNS_API_URL = "https://api.osv.dev/v1/vulns"
+
+    CVSS_TO_FLAWCVSS = {
+        "CVSS_V2": FlawCVSS.CVSSVersion.VERSION2,
+        "CVSS_V3": FlawCVSS.CVSSVersion.VERSION3,
+        "CVSS_V4": FlawCVSS.CVSSVersion.VERSION4,
+    }
+
+    CVSS_TO_CVSSLIB = {"CVSS_V2": CVSS2, "CVSS_V3": CVSS3, "CVSS_V4": CVSS4}
 
     def __init__(self):
         """initiate collector"""
@@ -218,8 +228,7 @@ class OSVCollector(Collector):
                     updated += 1
             return created, updated
 
-    @staticmethod
-    def extract_content(osv_vuln: dict) -> tuple[str, list, dict]:
+    def extract_content(self, osv_vuln: dict) -> tuple[str, list, dict]:
         """Extract data from an OSV vuln and normalize to Flaw model fields.
 
         Fields that don't have their equivalents in the Flaw model can be used as well if we
@@ -256,27 +265,33 @@ class OSVCollector(Collector):
             #  https://ossf.github.io/osv-schema/#summary-details-fields
             return data.get("summary", "From OSV collector")
 
-        def get_cvss(data: dict) -> list:
+        def get_cvss_and_impact(data: dict) -> tuple[list, str]:
             # https://ossf.github.io/osv-schema/#severity-field
-            scores = []
-            mapping = {
-                "CVSS_V2": FlawCVSS.CVSSVersion.VERSION2,
-                "CVSS_V3": FlawCVSS.CVSSVersion.VERSION3,
-            }
+
+            # Create resulted CVSS and get the highest score for Impact calculation
+            cvss_data = []
+            highest_score = Decimal("0.0")
             for cvss in data.get("severity", []):
-                if not cvss["type"] in mapping:
+                if not cvss["type"] in self.CVSS_TO_FLAWCVSS:
                     # Skip unsupported score types
                     continue
-                scores.append(
+                vector = cvss["score"]
+                score = self.CVSS_TO_CVSSLIB[cvss["type"]](vector).base_score
+                cvss_data.append(
                     {
                         "issuer": FlawCVSS.CVSSIssuer.OSV,
-                        "version": mapping[cvss["type"]],
-                        # OSV "score" attribute is really a vector string
-                        "vector": cvss["score"],
+                        "version": self.CVSS_TO_FLAWCVSS[cvss["type"]],
+                        "vector": vector,
                         # Actual score is generated automatically when FlawCVSS is saved
                     }
                 )
-            return scores
+                if score > highest_score:
+                    highest_score = score
+
+            # Create resulted Impact
+            highest_impact = convert_cvss_score_to_impact(highest_score)
+
+            return cvss_data, highest_impact
 
         def get_cwes(data: dict) -> str:
             #  https://ossf.github.io/osv-schema/#database_specific-field
@@ -291,11 +306,13 @@ class OSVCollector(Collector):
             else:
                 return ""
 
+        cvss_scores, impact = get_cvss_and_impact(osv_vuln)
         content = {
             "comment_zero": get_comment_zero(osv_vuln),
             "title": get_title(osv_vuln),
-            "cvss_scores": get_cvss(osv_vuln),
+            "cvss_scores": cvss_scores,
             "cwe_id": get_cwes(osv_vuln),
+            "impact": impact,
             "references": get_refs(osv_vuln),
             "source": Snippet.Source.OSV,
             "unembargo_dt": osv_vuln.get("published"),
