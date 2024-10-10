@@ -297,7 +297,8 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
         if not self.is_closed and affect:
             raise ValidationError(
-                f"The tracker is associated with a NOTAFFECTED affect: {affect.uuid}",
+                "The tracker is associated with a NOTAFFECTED affect: "
+                f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
             )
 
     def _validate_ooss_open_tracker(self, **kwargs):
@@ -307,7 +308,8 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         affect = self.affects.filter(resolution=Affect.AffectResolution.OOSS).first()
         if not self.is_closed and affect:
             raise ValidationError(
-                f"The tracker is associated with an OOSS affect: {affect.uuid}",
+                "The tracker is associated with an OOSS affect: "
+                f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
             )
 
     def _validate_wontfix_open_tracker(self, **kwargs):
@@ -317,7 +319,8 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         affect = self.affects.filter(resolution=Affect.AffectResolution.WONTFIX).first()
         if not self.is_closed and affect:
             raise ValidationError(
-                f"The tracker is associated with a WONTFIX affect: {affect.uuid}",
+                "The tracker is associated with a WONTFIX affect: "
+                f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
             )
 
     def _validate_defer_open_tracker(self, **kwargs):
@@ -327,7 +330,8 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         affect = self.affects.filter(resolution=Affect.AffectResolution.DEFER).first()
         if not self.is_closed and affect:
             raise ValidationError(
-                f"The tracker is associated with a DEFER affect: {affect.uuid}",
+                "The tracker is associated with a DEFER affect: "
+                f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
             )
 
     def _validate_multi_flaw_tracker(self, **kwargs):
@@ -377,7 +381,8 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             ):
                 raise ValidationError(
                     f"Tracker with the update stream {self.ps_update_stream} "
-                    f"is already associated with the affect {affect.uuid}"
+                    "is already associated with the affect "
+                    f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
                 )
 
     def can_unembargo(self):
