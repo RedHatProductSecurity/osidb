@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Disable flaw drafts creation for NVD collector (OSIDB-3256)
 
+### Changed
+- Select most relevant CVE, CVSS, CWE, Source for Vulnerability trackers (OSIDB-3348)
+
 ### Fixed
 - Rework and complete the tracker stream pre-selection module to fix it
 - Exclude unsupported PS modules from tracker file offer (OSIDB-3498)

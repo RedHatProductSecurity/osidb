@@ -26,8 +26,7 @@ from apps.trackers.exceptions import (
 from apps.trackers.models import JiraProjectFields
 from collectors.jiraffe.constants import JIRA_BZ_ID_LABEL_RE
 from osidb.cc import JiraAffectCCBuilder
-from osidb.helpers import cve_id_comparator
-from osidb.models import Affect, AffectCVSS, Flaw, FlawSource, Impact
+from osidb.models import Affect, AffectCVSS, Flaw, FlawCVSS, FlawSource, Impact
 from osidb.validators import CVE_RE_STR
 
 from .constants import (
@@ -587,6 +586,105 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         self.generate_embargo_status()
         self.generate_special_handling()
 
+    @cached_property
+    def most_important_affect(self):
+        """
+        Selects the most important affect to use for displaying
+        CVE/CVSS/CWE/Source in Vulnerability issuetype Jira tracker
+        fields, which is relevant for multi-flaw trackers where
+        the tracker can have multiple sets of CVE/CVSS/CWE/source
+        but the tracker should display only one such set.
+        Quote from 2024-09-27 in OSIDB-3348:
+          "For multiflaw trackers, select CVE with highest Impact value,
+           if there are multiple such CVE, select the one where flaw has
+           the oldest created_date/time value. Use CVE/cvss/cwe/source
+           from that CVE."
+        Note: The writer assumed a flaw has only one authoritative CVE
+              object (the one issued by RH) and Flaw == CVE in this context.
+        Note: Assuming validations and administrative procedures ensure
+              that the impact model fields are in accordance with the
+              cvss_scores fields.
+        """
+        affects_impacts = sorted(
+            [
+                (affect, affect.aggregated_impact)
+                for affect in self.tracker.affects.all()
+            ],
+            key=lambda pair: pair[1],
+        )
+        greatest_impact_affects_impacts = [
+            (affect, impact)
+            for affect, impact in affects_impacts
+            if impact == affects_impacts[-1][1]
+        ]
+        flaw_created_dt_affects = sorted(
+            [
+                (affect.flaw.created_dt, affect)
+                for affect, impact in greatest_impact_affects_impacts
+            ],
+            key=lambda pair: pair[0],
+        )
+        most_important_affect = flaw_created_dt_affects[0][1]
+        return most_important_affect
+
+    @cached_property
+    def most_important_cvss(self):
+        """
+        Returns a RH-issued CVSS.
+        For explanation see docstring of most_important_affect.
+        If the most important affect doesn't have a related RH CVSS score,
+        then no other affect's/flaw's CVSS score is selected even for multi-flaw
+        trackers, so that the set of CVE/CVSS/CWE/Source is consistent.
+        """
+
+        affect = self.most_important_affect
+        if affect.cvss_scores.filter(issuer=AffectCVSS.CVSSIssuer.REDHAT).exists():
+            # Affect override present.
+            return (
+                affect.cvss_scores.filter(issuer=AffectCVSS.CVSSIssuer.REDHAT)
+                .order_by("-version")
+                .first()
+            )
+
+        return (
+            affect.flaw.cvss_scores.filter(issuer=FlawCVSS.CVSSIssuer.REDHAT)
+            .order_by("-version")
+            .first()
+        )
+
+    @cached_property
+    def most_important_cve(self):
+        """
+        For explanation see docstring of most_important_affect.
+        If the most important affect doesn't have a CVE ID,
+        then no other affect's/flaw's CVE ID is selected even for multi-flaw
+        trackers, so that the set of CVE/CVSS/CWE/Source is consistent.
+        """
+
+        return self.most_important_affect.flaw.cve_id
+
+    @cached_property
+    def most_important_cwe(self):
+        """
+        For explanation see docstring of most_important_affect.
+        If the most important affect doesn't have a CWE ID,
+        then no other affect's/flaw's CWE ID is selected even for multi-flaw
+        trackers, so that the set of CVE/CVSS/CWE/Source is consistent.
+        """
+
+        return self.most_important_affect.flaw.cwe_id
+
+    @cached_property
+    def most_important_source(self):
+        """
+        For explanation see docstring of most_important_affect.
+        If the most important affect doesn't have a Source,
+        then no other affect's/flaw's Source is selected even for multi-flaw
+        trackers, so that the set of CVE/CVSS/CWE/Source is consistent.
+        """
+
+        return self.most_important_affect.flaw.source
+
     def field_check_and_get_values_and_id(self, field_name):
         field = JiraProjectFields.objects.filter(
             project_key=self.ps_module.bts_key, field_name=field_name
@@ -622,11 +720,7 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         field_name = "Source"
         allowed_values, field_id = self.field_check_and_get_values_and_id(field_name)
 
-        # TODO: This logic has to be overhauled to select the most relevant CVSS score
-        #       and also the most related CWE ID and Source.
-        #       Tracked in OSIDB-3348.
-
-        flaw_source = self.tracker.affects.first().flaw.source
+        flaw_source = self.most_important_source
         flaw_source_lower = flaw_source.lower()
         choice_found = FLAW_SOURCE_TO_JIRA_SOURCE.get(flaw_source)
         if choice_found not in allowed_values:
@@ -649,42 +743,17 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         field_name = "CVE ID"
         _, field_id = self.field_check_and_get_values_and_id(field_name)
 
-        cves = sorted(
-            set([flaw.cve_id for flaw in self.flaws if flaw.cve_id]),
-            key=cve_id_comparator,
-        )
-        if not cves:
+        cve = self.most_important_cve
+        if not cve:
             # This is for a placeholder flaw. Do not fill in the Jira field.
             return
-        self._query["fields"][field_id] = ", ".join(cves)
+        self._query["fields"][field_id] = cve
 
     def generate_cvss_score(self):
         field_name = "CVSS Score"
         _, field_id = self.field_check_and_get_values_and_id(field_name)
 
-        # TODO: This logic has to be overhauled to select the most relevant CVSS score
-        #       and also the most related CWE ID and Source.
-        #       Tracked in OSIDB-3348.
-
-        # Preferring RH issuer (which is last when sorted, based on valid choices in CVSSIssuer),
-        # Preferring the highest CVSS version for the preferred issuer.
-        cvss_score = (
-            self.tracker.affects.order_by("flaw__reported_dt")[0]
-            .flaw.cvss_scores.order_by("-issuer", "-version")
-            .first()
-        )
-
-        # If an affect has an associated CVSS score, prefer it over the Flaw.
-        affectcvss_uuids = self.tracker.affects.values_list(
-            "cvss_scores__uuid", flat=True
-        )
-        affect_cvss_score = (
-            AffectCVSS.objects.filter(uuid__in=affectcvss_uuids)
-            .order_by("-issuer", "-version")
-            .first()
-        )
-        if affect_cvss_score:
-            cvss_score = affect_cvss_score
+        cvss_score = self.most_important_cvss
 
         if not cvss_score:
             return
@@ -697,11 +766,7 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         field_name = "CWE ID"
         _, field_id = self.field_check_and_get_values_and_id(field_name)
 
-        # TODO: This logic has to be overhauled to select the most relevant CVSS score
-        #       and also the most related CWE ID and Source.
-        #       Tracked in OSIDB-3348.
-
-        cwe_id = self.tracker.affects.first().flaw.cwe_id
+        cwe_id = self.most_important_cwe
         if not cwe_id:
             return
         self._query["fields"][field_id] = cwe_id
@@ -709,7 +774,7 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
     def generate_downstream_component(self):
         field_name = "Downstream Component Name"
         _, field_id = self.field_check_and_get_values_and_id(field_name)
-        self._query["fields"][field_id] = self.tracker.affects.first().ps_component
+        self._query["fields"][field_id] = self.most_important_affect.ps_component
 
     def generate_upstream_component(self):
         # TODO: Every time the components change in the flaw, the trackers must be updated as well.
