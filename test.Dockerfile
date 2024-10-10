@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi:8.9
+FROM registry.access.redhat.com/ubi9/ubi:9.4
 
 LABEL summary="OSIDB testrunner" \
       maintainer="Product Security DevOps <prodsec-dev@redhat.com>"
@@ -28,9 +28,9 @@ RUN dnf --nodocs --setopt install_weak_deps=false -y install \
         make \
         openldap-devel \
         openssl-devel \
-        python39-devel \
-        python39-pip \
-        python39-wheel \
+        python3-devel \
+        python3-pip \
+        python3-wheel \
         redhat-rpm-config \
         which \
     && dnf --nodocs --setopt install_weak_deps=false -y upgrade --security \
@@ -40,6 +40,6 @@ RUN dnf --nodocs --setopt install_weak_deps=false -y install \
 # This makes podman cache this (lengthy) step as long as devel-requirements.txt stays unchanged.
 # Without this, any change in src/ would make pip install run again.
 COPY ./devel-requirements.txt /opt/app-root/src/devel-requirements.txt
-RUN pip3 install -r /opt/app-root/src/devel-requirements.txt && \
+RUN pip3 install --no-deps -r /opt/app-root/src/devel-requirements.txt && \
     rm -f /opt/app-root/src/devel-requirements.txt
 COPY . /opt/app-root/src
