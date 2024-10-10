@@ -28,10 +28,10 @@ from apps.trackers.jira.query import (
 )
 from apps.trackers.models import JiraProjectFields
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
-from osidb.dmodels import PsUpdateStream
+from osidb.dmodels import CVSS, Impact, PsUpdateStream
 from osidb.dmodels.affect import Affect, AffectCVSS
 from osidb.dmodels.tracker import Tracker
-from osidb.models import CVSS, Flaw, FlawCVSS, Impact
+from osidb.models import Flaw, FlawCVSS
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,

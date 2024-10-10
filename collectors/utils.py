@@ -5,8 +5,8 @@ from typing import Optional, Union
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 
-from osidb.dmodels import PsUpdateStream
-from osidb.models import FlawReference, Impact
+from osidb.dmodels import Impact, PsUpdateStream
+from osidb.models import FlawReference
 
 TRACKER_COMPONENT_UPDATE_STREAM_RE = re.compile(
     r"^(?:\s*EMBARGOED\s+)?"  # Embargoed keyword

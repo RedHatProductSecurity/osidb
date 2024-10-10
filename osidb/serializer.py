@@ -23,7 +23,7 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FIELDS
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.serializers import WorkflowModelSerializer
-from osidb.dmodels import Profile
+from osidb.dmodels import CVSS, Impact, Profile
 from osidb.dmodels.affect import Affect, AffectCVSS
 from osidb.dmodels.erratum import Erratum
 from osidb.dmodels.package_versions import Package, PackageVer
@@ -35,13 +35,11 @@ from .exceptions import DataInconsistencyException
 from .helpers import differ, ensure_list
 from .mixins import ACLMixin, Alert, AlertMixin, TrackingMixin
 from .models import (
-    CVSS,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
     FlawCVSS,
     FlawReference,
-    Impact,
 )
 
 logger = logging.getLogger(__name__)
@@ -936,7 +934,6 @@ class JiraTaskSyncMixinSerializer(JiraAPIKeyMixin, serializers.ModelSerializer):
 class AbstractCVSSSerializer(
     ACLMixinSerializer,
     AlertMixinSerializer,
-    BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
     TrackingMixinSerializer,
 ):

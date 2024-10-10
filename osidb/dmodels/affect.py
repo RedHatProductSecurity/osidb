@@ -13,7 +13,7 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
-
+from osidb.dmodels.abstract import CVSS, Impact
 from osidb.dmodels.ps_constants import SpecialConsiderationPackage
 from osidb.dmodels.ps_module import PsModule
 from osidb.dmodels.ps_update_stream import PsUpdateStream
@@ -25,7 +25,7 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
-from osidb.models import CVSS, Flaw, Impact, search_helper
+from osidb.models import Flaw, search_helper
 
 logger = logging.getLogger(__name__)
 

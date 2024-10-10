@@ -2,7 +2,7 @@ import pytest
 from cvss import CVSS3
 from django.core.exceptions import ValidationError
 
-from osidb.models import CVSS
+from osidb.dmodels import CVSS
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,
