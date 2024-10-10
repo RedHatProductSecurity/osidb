@@ -3,24 +3,14 @@ from typing import Union
 import nvdlib
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.db import transaction
-from django.utils import dateparse, timezone
+from django.utils import timezone
 from nvdlib.classes import CVE
 
-from apps.taskman.constants import JIRA_AUTH_TOKEN
-from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_START_DATE
 from collectors.framework.models import Collector
-from collectors.keywords import should_create_snippet
-from collectors.utils import handle_urls
 from osidb.core import set_user_acls
-from osidb.dmodels.snippet import Snippet
-from osidb.models import Flaw, FlawCVSS, FlawReference
+from osidb.models import Flaw, FlawCVSS
 
 logger = get_task_logger(__name__)
-
-
-class NVDCollectorException(Exception):
-    """exception for NVD Collector"""
 
 
 class NVDQuerier:
@@ -91,52 +81,10 @@ class NVDQuerier:
 
             return {
                 "issuer": FlawCVSS.CVSSIssuer.NIST,
-                "score": cvss_data.cvssData.baseScore,
                 "vector": cvss_data.cvssData.vectorString,
-                "version": self.NVD_CVSS_MAP[version],
+                "version": self.NVD_CVSS_MAP[version]
+                # Actual score is generated automatically when FlawCVSS is saved
             }
-
-        def get_cwes(data: CVE) -> Union[str, None]:
-            """
-            Return all CWEs (weaknesses) from `data`.
-            """
-            # depending on the data, the following attribute might not be present
-            if "weaknesses" not in data:
-                return None
-
-            cwes = set()
-            for cwe in data.weaknesses:
-                for i in cwe.description:
-                    if i.value not in ["NVD-CWE-Other", "NVD-CWE-noinfo"]:
-                        cwes.add(i.value)
-
-            if len(cwes) == 1:
-                return list(cwes)[0]
-            elif len(cwes) > 1:
-                # e.g. (CWE-190|CWE-835)
-                return f"({'|'.join(sorted(cwes))})"
-            else:
-                return None
-
-        def get_comment_zero(descriptions: list) -> Union[str, None]:
-            """
-            Return English comment_zero from `descriptions`.
-            """
-            return [d.value for d in descriptions if d.lang == "en"][0] or None
-
-        def get_references(data: CVE) -> list:
-            """
-            Return the source URL and all other URLs from `data`.
-            """
-            urls = [
-                {
-                    "type": FlawReference.FlawReferenceType.SOURCE,
-                    "url": f"https://nvd.nist.gov/vuln/detail/{data.id}",
-                }
-            ]
-            urls.extend(handle_urls([r.url for r in data.references], urls[0]["url"]))
-
-            return urls
 
         result = []
         for vulnerability in vulnerabilities:
@@ -144,7 +92,7 @@ class NVDQuerier:
                 continue
 
             # the result structure should match the Flaw fields
-            # note that cvss metrics and CWEs may not be present in data
+            # note that CVSS metrics may not be present in data
             result.append(
                 {
                     "cve_id": vulnerability.id,
@@ -160,12 +108,6 @@ class NVDQuerier:
                             ],
                         )
                     ),
-                    "cwe_id": get_cwes(vulnerability),
-                    "comment_zero": get_comment_zero(vulnerability.descriptions),
-                    "references": get_references(vulnerability),
-                    "source": Snippet.Source.NVD,
-                    "title": "From NVD collector",
-                    "unembargo_dt": f"{vulnerability.published}Z",
                 }
             )
 
@@ -176,13 +118,6 @@ class NVDCollector(Collector, NVDQuerier):
     """
     NVD CVSS collector
     """
-
-    # snippet creation is disabled by default for now
-    snippet_creation_enabled = None
-
-    # when the start date is set to None, all snippets are collected
-    # when set to a datetime object, only snippets created after that date are collected
-    snippet_creation_start_date = SNIPPET_CREATION_START_DATE
 
     # the NIST NVD CVE project started in 1999
     # https://nvd.nist.gov/general/cve-process
@@ -195,9 +130,6 @@ class NVDCollector(Collector, NVDQuerier):
     def __init__(self):
         """initiate collector"""
         super().__init__()
-
-        if self.snippet_creation_enabled is None:
-            self.snippet_creation_enabled = SNIPPET_CREATION_ENABLED
 
     def get_batch(self) -> (dict, timezone.datetime):
         """
@@ -231,8 +163,6 @@ class NVDCollector(Collector, NVDQuerier):
         logger.info("Fetching NVD data")
         start_dt = timezone.now()
         updated_flaws = []
-        new_snippets = []
-        new_flaws = []
 
         # fetch data
         # by default for the next batch but can be overridden by a given CVE
@@ -248,52 +178,17 @@ class NVDCollector(Collector, NVDQuerier):
             try:
                 flaw = Flaw.objects.get(cve_id=cve_id)
 
-                # update NVD CVSS2 or CVSS3 data if necessary
+                # update NIST CVSS data if necessary
                 if self.update_cvss_via_flawcvss(flaw, item):
                     updated_flaws.append(cve_id)
-                    # no automatic timestamps as those go from Bugzilla
-                    # and no validation exceptions not to fail here
-                    flaw.save(auto_timestamps=False, raise_validation_error=False)
+                    # no validation exceptions not to fail here
+                    flaw.save(raise_validation_error=False)
             except Flaw.DoesNotExist:
                 pass
-
-            # create a new snippet with a flaw (if it does not exist) and link them
-            snippet = None
-            if self.snippet_creation_enabled:
-                if self.snippet_creation_start_date and (
-                    self.snippet_creation_start_date
-                    >= dateparse.parse_datetime(item["unembargo_dt"])
-                ):
-                    continue
-
-                try:
-                    snippet = Snippet.objects.get(
-                        source=Snippet.Source.NVD, external_id=cve_id
-                    )
-                except Snippet.DoesNotExist:
-                    if should_create_snippet(item["comment_zero"]):
-                        snippet = Snippet(
-                            source=Snippet.Source.NVD, external_id=cve_id, content=item
-                        )
-                        snippet.save()
-                        new_snippets.append(cve_id)
-
-                try:
-                    with transaction.atomic():
-                        if snippet and snippet.convert_snippet_to_flaw(
-                            jira_token=JIRA_AUTH_TOKEN
-                        ):
-                            new_flaws.append(cve_id)
-                except Exception as exc:
-                    message = f"Failed to save flaw for {cve_id}. Error: {exc}."
-                    logger.error(message)
-                    raise NVDCollectorException(message) from exc
 
         changes = (
             f"Updated CVEs due to changes in CVSS scores assigned by NIST: "
             f"{', '.join(updated_flaws) if updated_flaws else 'none'}. "
-            f"Created snippets: {', '.join(new_snippets) if new_snippets else 'none'}. "
-            f"Created CVEs from snippets: {', '.join(new_flaws) if new_flaws else 'none'}."
         )
         logger.info(changes)
 

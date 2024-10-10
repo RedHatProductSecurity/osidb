@@ -11,9 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Collect CVSSv4 in OSV collector (OSIDB-3487)
 - Set Impact for collector flaws based on CVSS severity (OSIDB-3487)
 
+### Changed
+- Disable flaw drafts creation for NVD collector (OSIDB-3256)
+
 ### Fixed
 - Rework and complete the tracker stream pre-selection module to fix it
 - Exclude unsupported PS modules from tracker file offer (OSIDB-3498)
+- Update flaw timestamp after updating NIST CVSS
 
 ## [4.3.4] - 2024-10-03
 ### Added
