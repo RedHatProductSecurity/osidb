@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Rework and complete the tracker stream pre-selection module to fix it
 - Exclude unsupported PS modules from tracker file offer (OSIDB-3498)
+- Update flaw timestamp after updating NIST CVSS
 
 ## [4.3.4] - 2024-10-03
 ### Added

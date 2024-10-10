@@ -181,9 +181,8 @@ class NVDCollector(Collector, NVDQuerier):
                 # update NIST CVSS data if necessary
                 if self.update_cvss_via_flawcvss(flaw, item):
                     updated_flaws.append(cve_id)
-                    # no automatic timestamps as those go from Bugzilla
-                    # and no validation exceptions not to fail here
-                    flaw.save(auto_timestamps=False, raise_validation_error=False)
+                    # no validation exceptions not to fail here
+                    flaw.save(raise_validation_error=False)
             except Flaw.DoesNotExist:
                 pass
 
