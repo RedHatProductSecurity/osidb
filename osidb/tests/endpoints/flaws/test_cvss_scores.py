@@ -1,7 +1,7 @@
 import pytest
 from rest_framework import status
 
-from osidb.models import FlawCVSS
+from osidb.dmodels.flaw.cvss import FlawCVSS
 from osidb.tests.factories import AffectFactory, FlawCVSSFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
