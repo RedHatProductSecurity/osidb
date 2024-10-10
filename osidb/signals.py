@@ -7,10 +7,12 @@ from django.dispatch import receiver
 from django.utils import timezone
 from jira import JIRA
 
-from osidb.dmodels import Profile
+from osidb.dmodels import Impact, Profile
+from osidb.dmodels.affect import Affect, AffectCVSS
+from osidb.dmodels.flaw.cvss import FlawCVSS
 from osidb.dmodels.tracker import Tracker
 from osidb.helpers import get_env
-from osidb.models import Affect, AffectCVSS, Flaw, FlawCVSS, Impact
+from osidb.models import Flaw
 
 logger = logging.getLogger(__name__)
 

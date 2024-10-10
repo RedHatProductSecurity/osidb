@@ -4,7 +4,8 @@ tests related to the test factories
 import pytest
 from django.utils import timezone
 
-from osidb.models import Affect, Tracker
+from osidb.dmodels.affect import Affect
+from osidb.dmodels.tracker import Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,

@@ -1,4 +1,5 @@
-from osidb.models import Affect, Impact, PsModule
+from osidb.dmodels import Impact, PsModule
+from osidb.dmodels.affect import Affect
 
 from .base import ProductDefinitionHandler
 

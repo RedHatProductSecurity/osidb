@@ -7,7 +7,6 @@ from decimal import Decimal
 from typing import Union
 
 import pghistory
-from cvss import CVSS2, CVSS3, CVSS4, CVSSError
 from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import (
@@ -20,24 +19,16 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 from psqlextra.fields import HStoreField
 
-from apps.bbsync.constants import (
-    RHSCL_BTS_KEY,
-    SYNC_FLAWS_TO_BZ,
-    SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY,
-)
+from apps.bbsync.constants import SYNC_FLAWS_TO_BZ, SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY
 from apps.bbsync.mixins import BugzillaSyncMixin
-from apps.bbsync.models import BugzillaComponent
-from apps.exploits.mixins import AffectExploitExtensionMixin
-from apps.exploits.query_sets import AffectQuerySetExploitExtension
 from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FIELDS
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 
-from .dmodels import PsModule, PsUpdateStream, SpecialConsiderationPackage
+from .dmodels import FlawSource, Impact, PsModule, SpecialConsiderationPackage
 from .mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -105,358 +96,6 @@ def search_helper(
     # Add "rank" column to queryset based on search result relevance
     # Exclude results that don't match (rank 0)
     # Order remaining results from highest rank to lowest
-
-
-class ComparableTextChoices(models.TextChoices):
-    """
-    extension of the models.TextChoices classes
-    making them comparable with the standard operators
-
-    the comparison order is defined simply by the
-    top-down order in which the choices are written
-    """
-
-    @classmethod
-    def get_choices(cls):
-        """
-        get processed choices
-        """
-        return [choice[0] for choice in cls.choices]
-
-    @property
-    def weight(self):
-        """
-        weight of the instance for the comparison
-        defined by the order of the definition of the choices
-        """
-        return self.get_choices().index(str(self))
-
-    def incomparable_with(self, other):
-        """
-        to ensure that that we are comparing the instances of the same type as
-        comparing different types (even two ComparableTextChoices) is undefined
-        """
-        return type(self) is not type(other)
-
-    def __hash__(self):
-        return super().__hash__()
-
-    def __eq__(self, other):
-        if self.incomparable_with(other):
-            return NotImplemented
-        return self.weight == other.weight
-
-    def __ne__(self, other):
-        if self.incomparable_with(other):
-            return NotImplemented
-        return self.weight != other.weight
-
-    def __lt__(self, other):
-        if self.incomparable_with(other):
-            return NotImplemented
-        return self.weight < other.weight
-
-    def __gt__(self, other):
-        if self.incomparable_with(other):
-            return NotImplemented
-        return self.weight > other.weight
-
-    def __le__(self, other):
-        if self.incomparable_with(other):
-            return NotImplemented
-        return self == other or self.__lt__(other)
-
-    def __ge__(self, other):
-        if self.incomparable_with(other):
-            return NotImplemented
-        return self == other or self.__gt__(other)
-
-
-class Impact(ComparableTextChoices):
-    """allowable impact"""
-
-    NOVALUE = ""
-    LOW = "LOW"
-    MODERATE = "MODERATE"
-    IMPORTANT = "IMPORTANT"
-    CRITICAL = "CRITICAL"
-
-
-class FlawSource(models.TextChoices):
-    """
-    Enum to indicate where a Flaw was first reported.
-
-    Whether the source is public or private can be determined by calling the
-    is_public() method on any Enum member.
-    """
-
-    ADOBE = "ADOBE"
-    APPLE = "APPLE"
-    ASF = "ASF"  # (APACHE, APACHEANNOUNCE)
-    BIND = "BIND"
-    BK = "BK"
-    BUGTRAQ = "BUGTRAQ"
-    BUGZILLA = "BUGZILLA"
-    CERT = "CERT"
-    CERTFI = "CERTIFI"
-    CORELABS = "CORELABS"
-    CUSTOMER = "CUSTOMER"
-    CVE = "CVE"
-    CVEORG = "CVEORG"
-    DAILYDAVE = "DAILYDAVE"
-    DEBIAN = "DEBIAN"
-    DISTROS = "DISTROS"
-    FEDORA = "FEDORA"
-    FETCHMAIL = "FETCHMAIL"
-    FREEDESKTOP = "FREEDESKTOP"  # FREEDESKTOP.ORG
-    FREERADIUS = "FREERADIUS"
-    FRSIRT = "FRSIRT"
-    FULL_DISCLOSURE = "FULLDISCLOSURE"  # FULLDISC
-    GAIM = "GAIM"
-    GENTOO = "GENTOO"
-    GENTOOBZ = "GENTOOBZ"
-    GIT = "GIT"
-    GNOME = "GNOME"
-    GNUPG = "GNUPG"
-    GOOGLE = "GOOGLE"
-    HP = "HP"
-    HW_VENDOR = "HW_VENDOR"  # HWVENDOR
-    IBM = "IBM"
-    IDEFENSE = "IDEFENSE"
-    INTERNET = "INTERNET"
-    ISC = "ISC"
-    ISEC = "ISEC"
-    IT = "IT"
-    JBOSS = "JBOSS"
-    JPCERT = "JPCERT"
-    KERNELBUGZILLA = "KERNELBUGZILLA"
-    KERNELSEC = "KERNELSEC"
-    LKML = "LKML"
-    LWN = "LWN"
-    MACROMEDIA = "MACROMEDIA"
-    MAGEIA = "MAGEIA"
-    MAILINGLIST = "MAILINGLIST"
-    MILW0RM = "MILW0RM"
-    MIT = "MIT"
-    MITRE = "MITRE"
-    MOZILLA = "MOZILLA"
-    MUTTDEV = "MUTTDEV"
-    NETDEV = "NETDEV"
-    NISCC = "NISCC"
-    NOVALUE = ""
-    NVD = "NVD"
-    OCERT = "OCERT"
-    OPENOFFICE = "OPENOFFICE"  # OPENOFFICE.ORG
-    OPENSSL = "OPENSSL"
-    OPENSUSE = "OPENSUSE"
-    ORACLE = "ORACLE"
-    OSS = "OSS"
-    OSS_SECURITY = "OSSSECURITY"
-    OSV = "OSV"
-    PHP = "PHP"
-    PIDGIN = "PIDGIN"
-    POSTGRESQL = "POSTGRESQL"
-    PRESS = "PRESS"
-    REAL = "REAL"
-    REDHAT = "REDHAT"
-    RESEARCHER = "RESEARCHER"
-    RT = "RT"
-    SAMBA = "SAMBA"
-    SECALERT = "SECALERT"
-    SECUNIA = "SECUNIA"
-    SECURITYFOCUS = "SECURITYFOCUS"
-    SKO = "SKO"
-    SQUID = "SQUID"
-    SQUIRRELMAIL = "SQUIRRELMAIL"
-    SUN = "SUN"
-    SUNSOLVE = "SUNSOLVE"
-    SUSE = "SUSE"
-    TWITTER = "TWITTER"
-    UBUNTU = "UBUNTU"
-    UPSTREAM = "UPSTREAM"
-    VENDOR_SEC = "VENDORSEC"
-    VULNWATCH = "VULNWATCH"
-    WIRESHARK = "WIRESHARK"
-    XCHAT = "XCHAT"
-    XEN = "XEN"
-    XPDF = "XPDF"
-
-    @property
-    def private(self):
-        return {
-            # PRIVATE_SOURCES from SFM2
-            self.ADOBE,
-            self.APPLE,
-            self.CERT,
-            self.CUSTOMER,
-            self.DISTROS,
-            self.GOOGLE,
-            self.HW_VENDOR,
-            self.MOZILLA,
-            self.OPENSSL,
-            self.REDHAT,
-            self.RESEARCHER,
-            self.SECUNIA,
-            self.UPSTREAM,
-            self.XEN,
-            self.VENDOR_SEC,
-            self.SUN,
-        }
-
-    @property
-    def ambiguous(self):
-        return {
-            self.DEBIAN,
-            self.MAGEIA,
-            self.GENTOO,
-            self.SUSE,
-            self.UBUNTU,
-        }
-
-    @property
-    def public(self):
-        return {
-            self.ASF,
-            self.BIND,
-            self.BK,
-            self.BUGTRAQ,
-            self.BUGZILLA,
-            self.CERTFI,
-            self.CORELABS,
-            self.CVE,
-            self.DAILYDAVE,
-            self.FEDORA,
-            self.FETCHMAIL,
-            self.FREEDESKTOP,
-            self.FREERADIUS,
-            self.FRSIRT,
-            self.FULL_DISCLOSURE,
-            self.GAIM,
-            self.GENTOOBZ,
-            self.GIT,
-            self.GNOME,
-            self.GNUPG,
-            self.HP,
-            self.IBM,
-            self.IDEFENSE,
-            self.INTERNET,
-            self.ISC,
-            self.ISEC,
-            self.IT,
-            self.JBOSS,
-            self.JPCERT,
-            self.KERNELBUGZILLA,
-            self.KERNELSEC,
-            self.LKML,
-            self.LWN,
-            self.MACROMEDIA,
-            self.MAILINGLIST,
-            self.MILW0RM,
-            self.MIT,
-            self.MITRE,
-            self.MUTTDEV,
-            self.NETDEV,
-            self.NISCC,
-            self.NOVALUE,
-            self.OCERT,
-            self.OPENOFFICE,
-            self.OPENSUSE,
-            self.ORACLE,
-            self.OSS,
-            self.OSS_SECURITY,
-            self.PHP,
-            self.PIDGIN,
-            self.POSTGRESQL,
-            self.PRESS,
-            self.REAL,
-            self.RT,
-            self.SAMBA,
-            self.SECALERT,
-            self.SECURITYFOCUS,
-            self.SKO,
-            self.SQUID,
-            self.SQUIRRELMAIL,
-            self.SUNSOLVE,
-            self.TWITTER,
-            self.VULNWATCH,
-            self.WIRESHARK,
-            self.XCHAT,
-            self.XPDF,
-        }
-
-    @property
-    def allowed(self):
-        return {
-            self.ADOBE,
-            self.APPLE,
-            self.BUGTRAQ,
-            self.CERT,
-            self.CUSTOMER,
-            self.CVE,
-            self.DEBIAN,
-            self.DISTROS,
-            self.FULL_DISCLOSURE,
-            self.GENTOO,
-            self.GIT,
-            self.GOOGLE,
-            self.HW_VENDOR,
-            self.INTERNET,
-            self.LKML,
-            self.MAGEIA,
-            self.MOZILLA,
-            self.OPENSSL,
-            self.ORACLE,
-            self.OSS_SECURITY,
-            self.REDHAT,
-            self.RESEARCHER,
-            self.SECUNIA,
-            self.SKO,
-            self.SUN,
-            self.SUSE,
-            self.TWITTER,
-            self.UBUNTU,
-            self.UPSTREAM,
-            self.VENDOR_SEC,
-            self.XEN,
-        }
-
-    @property
-    def from_snippet(self):
-        return {
-            self.CVEORG,
-            self.NVD,
-            self.OSV,
-        }
-
-    def is_private(self):
-        """
-        Returns True if the source is private, False otherwise.
-
-        Note that the following sources can be both public and private:
-        DEBIAN, MAGEIA, GENTOO, SUSE, UBUNTU
-        """
-        return self in (self.private | self.ambiguous)
-
-    def is_public(self):
-        """
-        Returns True if the source is public, False otherwise.
-
-        Note that the following sources can be both public and private:
-        DEBIAN, MAGEIA, GENTOO, SUSE, UBUNTU
-        """
-        return self in (self.public | self.ambiguous)
-
-    def is_allowed(self):
-        """
-        Returns True if the source is allowed (not historical), False otherwise.
-        """
-        return self in self.allowed
-
-    def is_from_snippet(self):
-        """
-        Returns True if the source is Snippet, False otherwise.
-        """
-        return self in self.from_snippet
 
 
 class FlawManager(ACLMixinManager, TrackingMixinManager):
@@ -688,6 +327,8 @@ class Flaw(
         """
         Checks that the difference between the RH and NIST CVSSv3 score is not >= 1.0.
         """
+        from osidb.dmodels.flaw.cvss import FlawCVSS
+
         cvss_scores_v3 = self.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION3)
         nist_score = (
             cvss_scores_v3.filter(issuer=FlawCVSS.CVSSIssuer.NIST)
@@ -715,6 +356,8 @@ class Flaw(
         """
         Checks that the NIST and RH CVSSv3 score are not of a different severity.
         """
+        from osidb.dmodels.flaw.cvss import FlawCVSS
+
         cvss_scores_v3 = self.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION3)
         nist_score = (
             cvss_scores_v3.filter(issuer=FlawCVSS.CVSSIssuer.NIST)
@@ -773,6 +416,8 @@ class Flaw(
         * it has no associated NIST feedback loop in progress (see nist_cvss_validation)
         * it has no RH CVSS3 explanation comment
         """
+        from osidb.dmodels.flaw.cvss import FlawCVSS
+
         nist_cvss = self.cvss_scores.filter(
             issuer=FlawCVSS.CVSSIssuer.NIST,
             version=FlawCVSS.CVSSVersion.VERSION3,
@@ -806,6 +451,8 @@ class Flaw(
         Checks that if nist_cvss_validation is set, then both NIST CVSSv3 and RH CVSSv3
         scores need to be present.
         """
+        from osidb.dmodels.flaw.cvss import FlawCVSS
+
         nist_cvss = self.cvss_scores.filter(
             issuer=FlawCVSS.CVSSIssuer.NIST,
             version=FlawCVSS.CVSSVersion.VERSION3,
@@ -938,6 +585,8 @@ class Flaw(
         """
         Check that a CVSSv3 string is present.
         """
+        from osidb.dmodels.flaw.cvss import FlawCVSS
+
         rh_cvss3 = self.cvss_scores.filter(
             version=FlawCVSS.CVSSVersion.VERSION3, issuer=FlawCVSS.CVSSIssuer.REDHAT
         ).first()
@@ -1093,6 +742,8 @@ class Flaw(
         if self._state.adding:
             return
 
+        from osidb.dmodels.affect import Affect  # TODO
+
         if not Affect.objects.filter(flaw=self).exists():
             err = ValidationError("Flaw does not contain any affects.")
             # When a flaw without state or in a "new" workflow state is modified, allow saving
@@ -1125,6 +776,8 @@ class Flaw(
         Check that an update of a flaw with open trackers does not change between
         Critical/Important/Major Incident and Moderate/Low and vice-versa.
         """
+        from osidb.dmodels.tracker import Tracker
+
         if self._state.adding:
             return
 
@@ -1295,6 +948,8 @@ class Flaw(
     @property
     def affects_notaffected(self):
         """check that all affects are in NOTAFFECTED state"""
+        from osidb.dmodels.affect import Affect  # TODO
+
         return not self.affects.exclude(
             affectedness=Affect.AffectAffectedness.NOTAFFECTED
         ).exists()
@@ -1302,6 +957,8 @@ class Flaw(
     @property
     def affects_resolved(self):
         """check that all affects have resolution"""
+        from osidb.dmodels.affect import Affect  # TODO
+
         return not self.affects.filter(
             resolution=Affect.AffectResolution.NOVALUE
         ).exists()
@@ -1313,6 +970,8 @@ class Flaw(
         NEW:NOVALUE or AFFECTED:DELEGATED
         have associated trackers filed
         """
+        from osidb.dmodels.affect import Affect  # TODO
+
         return all(
             affect.trackers.exists()
             for affect in self.affects.filter(
@@ -1484,686 +1143,6 @@ class Flaw(
     bzsync_manager = models.ForeignKey(
         BZSyncManager, null=True, blank=True, on_delete=models.CASCADE
     )
-
-
-class AffectManager(ACLMixinManager, TrackingMixinManager):
-    """affect manager"""
-
-    @staticmethod
-    def create_affect(flaw, ps_module, ps_component, **extra_fields):
-        """return a new affect or update an existing affect without saving"""
-
-        try:
-            affect = Affect.objects.get(
-                flaw=flaw, ps_module=ps_module, ps_component=ps_component
-            )
-            for attr, value in extra_fields.items():
-                setattr(affect, attr, value)
-            return affect
-        except ObjectDoesNotExist:
-            return Affect(
-                flaw=flaw,
-                ps_module=ps_module,
-                ps_component=ps_component,
-                **extra_fields,
-            )
-
-    @staticmethod
-    def fts_search(q):
-        """full text search using postgres FTS via django.contrib.postgres"""
-        fields_to_search = (
-            "ps_component",
-            "ps_module",
-            "resolution",
-            "affectedness",
-            "type",
-        )
-        return search_helper(Affect.objects.get_queryset(), fields_to_search, q)
-        # Search Affect fields specified with equal weights
-        # If search has no results, this will now return an empty queryset
-
-
-@pghistory.track(
-    pghistory.InsertEvent(),
-    pghistory.UpdateEvent(),
-    pghistory.DeleteEvent(),
-    exclude="meta_attr,_alerts",
-    model_name="AffectAudit",
-)
-class Affect(
-    AlertMixin,
-    ACLMixin,
-    AffectExploitExtensionMixin,
-    BugzillaSyncMixin,
-    NullStrFieldsMixin,
-    TrackingMixin,
-):
-    """affect model definition"""
-
-    class AffectAffectedness(models.TextChoices):
-        """allowable states"""
-
-        NOVALUE = "", _("No value")
-        NEW = "NEW", _("Unknown")  # resolution is optional
-        AFFECTED = "AFFECTED", _("Affected")  # always need a resolution
-        NOTAFFECTED = "NOTAFFECTED", _("Not affected")  # resolution can be novalue
-
-    class AffectResolution(models.TextChoices):
-        """allowable resolution"""
-
-        NOVALUE = ""
-        FIX = "FIX"
-        DEFER = "DEFER"
-        WONTFIX = "WONTFIX"
-        OOSS = "OOSS"
-        DELEGATED = "DELEGATED"
-        WONTREPORT = "WONTREPORT"
-
-    class AffectFix(models.TextChoices):
-        AFFECTED = "AFFECTED"
-        NOTAFFECTED = "NOTAFFECTED"
-        WONTFIX = "WONTFIX"
-        OOSS = "OOSS"
-        DEFER = "DEFER"
-
-    # internal primary key
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    # affectedness:resolution status
-    affectedness = models.CharField(
-        choices=AffectAffectedness.choices,
-        default=AffectAffectedness.NEW,
-        max_length=100,
-        blank=True,
-    )
-    resolution = models.CharField(
-        choices=AffectResolution.choices,
-        default=AffectResolution.NOVALUE,
-        max_length=100,
-        blank=True,
-    )
-
-    ps_module = models.CharField(max_length=100)
-
-    # the length 255 does not have any special meaning in Postgres
-    # but it is the maximum SFM2 value so let us just keep parity for now
-    # to fix https://issues.redhat.com/browse/OSIDB-635
-    ps_component = models.CharField(max_length=255)
-
-    impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
-
-    # non operational meta data
-    meta_attr = HStoreField(default=dict)
-
-    # A Flaw can have many Affects
-    flaw = models.ForeignKey(
-        Flaw, null=True, on_delete=models.CASCADE, related_name="affects"
-    )
-
-    class Meta:
-        """define meta"""
-
-        unique_together = ("flaw", "ps_module", "ps_component")
-        ordering = (
-            "created_dt",
-            "uuid",
-        )
-        verbose_name = "Affect"
-        indexes = TrackingMixin.Meta.indexes + [
-            models.Index(fields=["flaw", "ps_module"]),
-            models.Index(fields=["flaw", "ps_component"]),
-            GinIndex(fields=["acl_read"]),
-        ]
-
-    # objects = AffectManager()
-    objects = AffectManager.from_queryset(AffectQuerySetExploitExtension)()
-
-    def __str__(self):
-        return str(self.uuid)
-
-    def _validate_ps_module_old_flaw(self, **kwargs):
-        """
-        Checks that an affect from an older flaw contains a valid ps_module.
-
-        This method will only generate an alert and will not raise a ValidationError,
-        this is because there is legacy data in external systems that we pull from
-        (i.e. BZ) that worked under a different system (ps_update_stream instead of
-        ps_module for affects) and thus raising a ValidationError would make legacy
-        flaws unupdatable.
-        """
-        bz_id = self.flaw.meta_attr.get("bz_id")
-        if bz_id and int(bz_id) <= BZ_ID_SENTINEL:
-            if self.is_unknown:
-                self.alert(
-                    "old_flaw_affect_ps_module",
-                    f"{self.ps_module} is not a valid ps_module "
-                    f"for flaw with bz_id {bz_id}.",
-                    **kwargs,
-                )
-
-    def _validate_ps_module_new_flaw(self, **kwargs):
-        """
-        Checks that an affect from a newer flaw contains a valid ps_module.
-
-        This method will raise a ValidationError if the ps_module being passed
-        is not a valid one, this is the standard for "newer" flaws and violation
-        of this constraint by newer flaws should outright block the creation or
-        update of an affect.
-        """
-        bz_id = self.flaw.meta_attr.get("bz_id")
-        if bz_id and int(bz_id) > BZ_ID_SENTINEL:
-            if self.is_unknown:
-                raise ValidationError(
-                    f"{self.ps_module} is not a valid ps_module "
-                    f"for flaw with bz_id {bz_id}."
-                )
-
-    def _validate_sofware_collection(self, **kwargs):
-        """
-        Check that all RHSCL components in flaw's affects start with a valid collection.
-        """
-        if not self.is_rhscl or self.ps_component in COMPONENTS_WITHOUT_COLLECTION:
-            return
-
-        streams = PsUpdateStream.objects.filter(ps_module__name=self.ps_module)
-        collections = streams.values_list("collections", flat=True).all()
-
-        is_valid_component = False
-        is_meta_package = False
-        for collection in collections:
-            for component in collection:
-                if self.ps_component == component:
-                    is_meta_package = True
-                if self.ps_component.startswith(component + "-"):
-                    is_valid_component = True
-
-        is_valid_component = is_valid_component and not is_meta_package
-
-        if is_meta_package:
-            self.alert(
-                "flaw_affects_rhscl_collection_only",
-                f"PSComponent {self.ps_component} for {self.ps_module} indicates collection "
-                "meta-package rather than a specific component in the collection",
-                **kwargs,
-            )
-
-        if not is_valid_component:
-            self.alert(
-                "flaw_affects_rhscl_invalid_collection",
-                f"PSComponent {self.ps_component} for {self.ps_module} "
-                "does not match any valid collection",
-                **kwargs,
-            )
-
-    def _validate_historical_affectedness_resolution(self, **kwargs):
-        """
-        Alerts that an old flaw has an affectedness/resolution combination that is now invalid,
-        but was valid in the past.
-        """
-        if (
-            self.resolution
-            in AFFECTEDNESS_HISTORICAL_VALID_RESOLUTIONS[self.affectedness]
-        ):
-            # Don't allow new records with historical combinations, or changing old records
-            # to an invalid combination
-            old_affect = (
-                Affect.objects.get(uuid=self.uuid) if not self._state.adding else None
-            )
-            if (
-                self._state.adding
-                or self.affectedness != old_affect.affectedness
-                or self.resolution != old_affect.resolution
-            ):
-                raise ValidationError(
-                    f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has an invalid "
-                    f"affectedness/resolution combination: {self.resolution} is not a valid resolution "
-                    f"for {self.affectedness}."
-                )
-
-            # If modifying something else from a record with an invalid combination, e.g. the
-            # impact, throw an alert
-            self.alert(
-                "flaw_historical_affect_status",
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has a "
-                "historical affectedness/resolution combination which is not valid anymore: "
-                f"{self.resolution} is not a valid resolution for {self.affectedness}.",
-                **kwargs,
-            )
-
-    def _validate_affect_status_resolution(self, **kwargs):
-        """
-        Validates that affected products have a valid combination (currently or historically)
-        of affectedness and resolution.
-        """
-        if (
-            self.resolution not in AFFECTEDNESS_VALID_RESOLUTIONS[self.affectedness]
-            and self.resolution
-            not in AFFECTEDNESS_HISTORICAL_VALID_RESOLUTIONS[self.affectedness]
-        ):
-            raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has an invalid "
-                f"affectedness/resolution combination: {self.resolution} is not a valid resolution "
-                f"for {self.affectedness}."
-            )
-
-    def _validate_notaffected_open_tracker(self, **kwargs):
-        """
-        Check whether notaffected products have open trackers.
-        """
-        if (
-            self.affectedness == Affect.AffectAffectedness.NOTAFFECTED
-            and self.trackers.exclude(
-                status__iexact="CLOSED"
-            ).exists()  # see tracker.is_closed
-        ):
-            raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
-                "NOTAFFECTED but has open tracker(s).",
-            )
-
-    def _validate_ooss_open_tracker(self, **kwargs):
-        """
-        Check whether out of support scope products have open trackers.
-        """
-        if (
-            self.resolution == Affect.AffectResolution.OOSS
-            and self.trackers.exclude(
-                status__iexact="CLOSED"
-            ).exists()  # see tracker.is_closed
-        ):
-            raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
-                "OOSS but has open tracker(s).",
-            )
-
-    def _validate_wontfix_open_tracker(self, **kwargs):
-        """
-        Check whether wontfix affects have open trackers.
-        """
-        if (
-            self.resolution == Affect.AffectResolution.WONTFIX
-            and self.trackers.exclude(
-                status__iexact="CLOSED"
-            ).exists()  # see tracker.is_closed
-        ):
-            raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
-                "WONTFIX but has open tracker(s).",
-            )
-
-    def _validate_defer_open_trackers(self, **kwargs):
-        """
-        Prevent an affect with open trackers from having a resolution of DEFER
-        """
-        if (
-            self.resolution == Affect.AffectResolution.DEFER
-            and self.trackers.exclude(status__iexact="CLOSED").exists()
-        ):
-            raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} cannot have "
-                "resolution DEFER with open tracker(s).",
-            )
-
-    def _validate_unknown_component(self, **kwargs):
-        """
-        Alerts that a flaw affects a component not tracked in Bugzilla.
-        Alternatively, the PSComponent should have an override set in Product Definitions.
-        The used PSComponent is either misspelled or the override is missing.
-        """
-
-        if not self.ps_component:
-            return
-
-        ps_module = PsModule.objects.filter(name=self.ps_module).first()
-        if not ps_module:
-            # unknown PSModule; should be checked in other function
-            return
-
-        if ps_module.default_component:
-            # PSModule has a default component set; assume all as valid
-            return
-
-        if self.is_rhscl:
-            cc_affect = RHSCLAffectCCBuilder(affect=self, embargoed=self.is_embargoed)
-            _, component = cc_affect.collection_component()
-        else:
-            cc_affect = AffectCCBuilder(affect=self, embargoed=self.is_embargoed)
-            component = cc_affect.ps2bz_component()
-
-        if not cc_affect.is_bugzilla:
-            # only Bugzilla BTS is supported
-            return
-
-        if ps_module.component_overrides and component in ps_module.component_overrides:
-            # PSComponent is being overridden for BTS; assume its correct
-            return
-
-        if not BugzillaComponent.objects.filter(name=component).exists():
-            # Components for BTS key does not exist; maybe cache is not populated yet.
-            # Instead of raising warning for all flaw bugs when metadata are not
-            # cache, we will stay quiet.
-            return
-
-        bts_component = BugzillaComponent.objects.filter(
-            name=component, product__name=ps_module.bts_key
-        )
-        if not bts_component.exists():
-            alert_text = (
-                f'Component "{component}" for {self.ps_module} did not match BTS component '
-                f"(in {ps_module.bts_name}) nor component from Product Definitions"
-            )
-            self.alert(
-                "flaw_affects_unknown_component",
-                alert_text,
-                **kwargs,
-            )
-
-    def _validate_wontreport_products(self, **kwargs):
-        """
-        Validate that wontreport resolution only can be used for
-        products associated with services.
-        """
-        if self.resolution == Affect.AffectResolution.WONTREPORT:
-            ps_module = PsModule.objects.filter(name=self.ps_module).first()
-            if (
-                not ps_module
-                or ps_module.ps_product.short_name not in SERVICES_PRODUCTS
-            ):
-                raise ValidationError(
-                    f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as WONTREPORT, "
-                    f"which can only be used for service products."
-                )
-
-    def _validate_wontreport_severity(self, **kwargs):
-        """
-        Validate that wontreport only can be used for
-        low or moderate severity flaws.
-        """
-        if (
-            self.resolution == Affect.AffectResolution.WONTREPORT
-            and self.impact not in [Impact.LOW, Impact.MODERATE]
-        ):
-            raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has impact {self.impact} "
-                f"and is marked as WONTREPORT, which can only be used with low or moderate impact."
-            )
-
-    def _validate_special_consideration_flaw(self, **kwargs):
-        """
-        Checks that a flaw affecting special consideration package(s) has both
-        cve_description and statement
-        """
-        if not self.flaw or (self.flaw.cve_description and self.flaw.statement):
-            return
-
-        affected_special_consideration_package = (
-            SpecialConsiderationPackage.objects.filter(name=self.ps_component)
-        ).values_list("name", flat=True)
-        if affected_special_consideration_package.exists():
-            if not self.flaw.cve_description:
-                self.flaw.alert(
-                    "special_consideration_flaw_missing_cve_description",
-                    "Flaw affecting special consideration package "
-                    f"{affected_special_consideration_package} is missing cve_description.",
-                )
-            if not self.flaw.statement:
-                self.flaw.alert(
-                    "special_consideration_flaw_missing_statement",
-                    "Flaw affecting special consideration package "
-                    f"{affected_special_consideration_package} is missing statement.",
-                )
-
-    @property
-    def aggregated_impact(self):
-        """
-        this property equals Flaw's impact if the Affect's impact is blank, or
-        equals the Affect's impact if the Affect's impact is not blank
-        """
-        if not self.impact:
-            return Impact(self.flaw.impact)
-        else:
-            return Impact(self.impact)
-
-    @property
-    def delegated_resolution(self):
-        """affect delegated resolution based on resolutions of related trackers"""
-        if not (
-            self.affectedness == Affect.AffectAffectedness.AFFECTED
-            and self.resolution == Affect.AffectResolution.DELEGATED
-        ):
-            return None
-
-        # exclude the trackers closed as duplicate or migrated from Bugzilla
-        trackers = self.trackers.exclude(resolution__iregex=r"(duplicate|migrated)")
-        if not trackers:
-            return Affect.AffectFix.AFFECTED
-
-        statuses = [tracker.fix_state for tracker in trackers]
-        # order is **very** important here, if there are multiple trackers
-        # the order of these statuses determines which tracker status takes
-        # precedence over all the rest, meaning that if one tracker is affected
-        # and another is not affected, the overall affect delegated_resolution
-        # will be affected and not notaffected.
-        for status in (
-            Affect.AffectFix.AFFECTED,
-            Affect.AffectFix.WONTFIX,
-            Affect.AffectFix.OOSS,
-            Affect.AffectFix.DEFER,
-            Affect.AffectFix.NOTAFFECTED,
-        ):
-            if status in statuses:
-                return status
-
-        # We don't know. Maybe none of the trackers have a valid resolution; default to "Affected".
-        logger.error("How did we get here??? %s, %s", trackers, statuses)
-
-        return Affect.AffectFix.AFFECTED
-
-    @property
-    def is_community(self) -> bool:
-        """
-        check and return whether the given affect is community one
-        """
-        return PsModule.objects.filter(
-            name=self.ps_module, ps_product__business_unit="Community"
-        ).exists()
-
-    @property
-    def is_notaffected(self) -> bool:
-        """
-        check and return whether the given affect is set as not affected or not to be fixed
-        """
-        return (
-            self.affectedness == Affect.AffectFix.NOTAFFECTED
-            or self.resolution == Affect.AffectResolution.WONTFIX
-        )
-
-    @property
-    def is_rhscl(self) -> bool:
-        """
-        check and return whether the given affect is RHSCL one
-        """
-        return PsModule.objects.filter(
-            name=self.ps_module, bts_key=RHSCL_BTS_KEY
-        ).exists()
-
-    @property
-    def is_unknown(self) -> bool:
-        """
-        check and return whether the given affect has unknown PS module
-        """
-        return not PsModule.objects.filter(name=self.ps_module).exists()
-
-    @property
-    def ps_product(self):
-        ps_module = PsModule.objects.filter(name=self.ps_module).first()
-        if not ps_module:
-            return None
-        return ps_module.ps_product.name
-
-    def bzsync(self, *args, **kwargs):
-        """
-        Bugzilla sync of the Affect instance
-        """
-        self.save()
-        # Affect needs to be synced through flaw
-        self.flaw.save(*args, **kwargs)
-
-
-class FlawCVSSManager(ACLMixinManager, TrackingMixinManager):
-    @staticmethod
-    def create_cvss(flaw, issuer, version, **extra_fields):
-        """return a new CVSS or update an existing CVSS without saving"""
-
-        try:
-            cvss = FlawCVSS.objects.get(flaw=flaw, issuer=issuer, version=version)
-
-            for attr, value in extra_fields.items():
-                setattr(cvss, attr, value)
-            return cvss
-
-        except ObjectDoesNotExist:
-            return FlawCVSS(flaw=flaw, issuer=issuer, version=version, **extra_fields)
-
-
-class AffectCVSSManager(ACLMixinManager, TrackingMixinManager):
-    @staticmethod
-    def create_cvss(affect, issuer, version, **extra_fields):
-        """return a new CVSS or update an existing CVSS without saving"""
-
-        try:
-            cvss = AffectCVSS.objects.get(affect=affect, issuer=issuer, version=version)
-            for attr, value in extra_fields.items():
-                setattr(cvss, attr, value)
-            return cvss
-
-        except ObjectDoesNotExist:
-            return AffectCVSS(
-                affect=affect, issuer=issuer, version=version, **extra_fields
-            )
-
-
-class CVSS(AlertMixin, ACLMixin, BugzillaSyncMixin, NullStrFieldsMixin, TrackingMixin):
-    class CVSSVersion(models.TextChoices):
-        VERSION2 = "V2", "version 2"
-        VERSION3 = "V3", "version 3"
-        VERSION4 = "V4", "version 4"
-
-    class CVSSIssuer(models.TextChoices):
-        CVEORG = "CVEORG", "CVEORG"
-        REDHAT = "RH", "Red Hat"
-        NIST = "NIST", "NIST"
-        OSV = "OSV", "OSV"
-
-    CVSS_HANDLES = {
-        CVSSVersion.VERSION2: CVSS2,
-        CVSSVersion.VERSION3: CVSS3,
-        CVSSVersion.VERSION4: CVSS4,
-    }
-
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    vector = models.CharField(max_length=200, blank=False)
-
-    version = models.CharField(choices=CVSSVersion.choices, max_length=10)
-
-    issuer = models.CharField(choices=CVSSIssuer.choices, max_length=16)
-
-    comment = models.TextField(blank=True)
-
-    # populated by the pre_save signal
-    score = models.FloatField(default=0)
-
-    def __str__(self):
-        return f"{self.score}/{self.vector}"
-
-    @property
-    def full_version(self):
-        """Full name of the CVSS version."""
-        return f"CVSS{self.version[1:]}"
-
-    @property
-    def cvss_object(self):
-        """
-        CVSS object from CVSS library parsed from the vector.
-        """
-        cvss_handle = self.CVSS_HANDLES[self.version]
-        return cvss_handle(self.vector)
-
-    def _validate_cvss_string(self, **kwargs):
-        """
-        Use the cvss library to validate the CVSS vector string.
-        """
-        try:
-            self.cvss_object
-        except CVSSError as e:
-            raise ValidationError(
-                f"Invalid CVSS: Malformed {self.full_version} string: {e}"
-            )
-
-    def _validate_cvss_comment(self, **kwargs):
-        """
-        For non-Red-Hat-issued CVSSs, the comment attribute should be blank.
-        """
-        if self.comment and self.issuer != self.CVSSIssuer.REDHAT:
-            raise ValidationError(
-                "CVSS comment can be set only for CVSSs issued by Red Hat."
-            )
-
-    class Meta:
-        abstract = True
-
-
-class FlawCVSS(CVSS):
-    flaw = models.ForeignKey(
-        Flaw, on_delete=models.CASCADE, blank=True, related_name="cvss_scores"
-    )
-
-    objects = FlawCVSSManager()
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["flaw", "version", "issuer"], name="unique CVSS of a Flaw"
-            ),
-        ]
-        indexes = TrackingMixin.Meta.indexes + [
-            GinIndex(fields=["acl_read"]),
-        ]
-
-    def bzsync(self, *args, **kwargs):
-        """
-        Bugzilla sync of the FlawCVSS instance
-        """
-        self.save()
-        # FlawCVSS needs to be synced through flaw
-        self.flaw.save(*args, **kwargs)
-
-
-class AffectCVSS(CVSS):
-    affect = models.ForeignKey(
-        Affect, on_delete=models.CASCADE, blank=True, related_name="cvss_scores"
-    )
-
-    objects = AffectCVSSManager()
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["affect", "version", "issuer"], name="unique CVSS of an Affect"
-            ),
-        ]
-        indexes = TrackingMixin.Meta.indexes + [
-            GinIndex(fields=["acl_read"]),
-        ]
-
-    def bzsync(self, *args, **kwargs):
-        """
-        Bugzilla sync of the AffectCVSS instance
-        """
-        self.save()
-        # AffectCVSS needs to be synced through affect
-        self.affect.save(*args, **kwargs)
 
 
 class FlawComment(
@@ -2449,20 +1428,4 @@ class FlawReference(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin):
         self.flaw.save(*args, **kwargs)
 
 
-from apps.bbsync.cc import AffectCCBuilder, RHSCLAffectCCBuilder  # noqa: E402
-
-# the following imports are for some reason needed to make
-# Django properly account for the defined many-to-many relation
-from osidb.dmodels.erratum import Erratum  # noqa: E402 F401
-from osidb.dmodels.snippet import Snippet  # noqa: E402 F401
-from osidb.dmodels.tracker import Tracker  # noqa: E402 F401
-
-from .constants import (  # noqa: E402
-    AFFECTEDNESS_HISTORICAL_VALID_RESOLUTIONS,
-    AFFECTEDNESS_VALID_RESOLUTIONS,
-    BZ_ID_SENTINEL,
-    COMPONENTS_WITHOUT_COLLECTION,
-    CVSS3_SEVERITY_SCALE,
-    OSIDB_API_VERSION,
-    SERVICES_PRODUCTS,
-)
+from .constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION  # noqa: E402

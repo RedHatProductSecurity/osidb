@@ -19,20 +19,13 @@ from djangoql.queryset import apply_search
 from djangoql.schema import DjangoQLSchema, StrField
 
 from apps.workflows.workflow import WorkflowModel
+from osidb.dmodels.affect import Affect, AffectCVSS
+from osidb.dmodels.flaw.cvss import FlawCVSS
 from osidb.dmodels.package_versions import Package
+from osidb.dmodels.tracker import Tracker
 
 from .mixins import Alert
-from .models import (
-    Affect,
-    AffectCVSS,
-    Flaw,
-    FlawAcknowledgment,
-    FlawComment,
-    FlawCVSS,
-    FlawReference,
-    Tracker,
-    search_helper,
-)
+from .models import Flaw, FlawAcknowledgment, FlawComment, FlawReference, search_helper
 
 LT_GT_LOOKUP_EXPRS = ["lt", "gt"]
 LTE_GTE_LOOKUP_EXPRS = ["lte", "gte"]
