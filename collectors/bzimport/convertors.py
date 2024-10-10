@@ -16,11 +16,12 @@ from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
 from collectors.jiraffe.convertors import TrackerConvertor
 from osidb.core import generate_acls, set_user_acls
 from osidb.dmodels.affect import Affect, AffectCVSS
+from osidb.dmodels.flaw.cvss import FlawCVSS
 from osidb.dmodels.package_versions import Package, PackageVer
 from osidb.dmodels.tracker import Tracker
 from osidb.helpers import filter_cves
 from osidb.mixins import AlertMixin, TrackingMixin
-from osidb.models import Flaw, FlawAcknowledgment, FlawComment, FlawCVSS, FlawReference
+from osidb.models import Flaw, FlawAcknowledgment, FlawComment, FlawReference
 
 from ..utils import (
     tracker_parse_update_stream_component,

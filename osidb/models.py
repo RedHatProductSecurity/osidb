@@ -28,7 +28,7 @@ from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 
-from .dmodels import CVSS, FlawSource, Impact, PsModule, SpecialConsiderationPackage
+from .dmodels import FlawSource, Impact, PsModule, SpecialConsiderationPackage
 from .mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -327,6 +327,8 @@ class Flaw(
         """
         Checks that the difference between the RH and NIST CVSSv3 score is not >= 1.0.
         """
+        from osidb.dmodels.flaw.cvss import FlawCVSS
+
         cvss_scores_v3 = self.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION3)
         nist_score = (
             cvss_scores_v3.filter(issuer=FlawCVSS.CVSSIssuer.NIST)
@@ -354,6 +356,8 @@ class Flaw(
         """
         Checks that the NIST and RH CVSSv3 score are not of a different severity.
         """
+        from osidb.dmodels.flaw.cvss import FlawCVSS
+
         cvss_scores_v3 = self.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION3)
         nist_score = (
             cvss_scores_v3.filter(issuer=FlawCVSS.CVSSIssuer.NIST)
@@ -412,6 +416,8 @@ class Flaw(
         * it has no associated NIST feedback loop in progress (see nist_cvss_validation)
         * it has no RH CVSS3 explanation comment
         """
+        from osidb.dmodels.flaw.cvss import FlawCVSS
+
         nist_cvss = self.cvss_scores.filter(
             issuer=FlawCVSS.CVSSIssuer.NIST,
             version=FlawCVSS.CVSSVersion.VERSION3,
@@ -445,6 +451,8 @@ class Flaw(
         Checks that if nist_cvss_validation is set, then both NIST CVSSv3 and RH CVSSv3
         scores need to be present.
         """
+        from osidb.dmodels.flaw.cvss import FlawCVSS
+
         nist_cvss = self.cvss_scores.filter(
             issuer=FlawCVSS.CVSSIssuer.NIST,
             version=FlawCVSS.CVSSVersion.VERSION3,
@@ -577,6 +585,8 @@ class Flaw(
         """
         Check that a CVSSv3 string is present.
         """
+        from osidb.dmodels.flaw.cvss import FlawCVSS
+
         rh_cvss3 = self.cvss_scores.filter(
             version=FlawCVSS.CVSSVersion.VERSION3, issuer=FlawCVSS.CVSSIssuer.REDHAT
         ).first()
@@ -1133,48 +1143,6 @@ class Flaw(
     bzsync_manager = models.ForeignKey(
         BZSyncManager, null=True, blank=True, on_delete=models.CASCADE
     )
-
-
-class FlawCVSSManager(ACLMixinManager, TrackingMixinManager):
-    @staticmethod
-    def create_cvss(flaw, issuer, version, **extra_fields):
-        """return a new CVSS or update an existing CVSS without saving"""
-
-        try:
-            cvss = FlawCVSS.objects.get(flaw=flaw, issuer=issuer, version=version)
-
-            for attr, value in extra_fields.items():
-                setattr(cvss, attr, value)
-            return cvss
-
-        except ObjectDoesNotExist:
-            return FlawCVSS(flaw=flaw, issuer=issuer, version=version, **extra_fields)
-
-
-class FlawCVSS(CVSS):
-    flaw = models.ForeignKey(
-        Flaw, on_delete=models.CASCADE, blank=True, related_name="cvss_scores"
-    )
-
-    objects = FlawCVSSManager()
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["flaw", "version", "issuer"], name="unique CVSS of a Flaw"
-            ),
-        ]
-        indexes = TrackingMixin.Meta.indexes + [
-            GinIndex(fields=["acl_read"]),
-        ]
-
-    def bzsync(self, *args, **kwargs):
-        """
-        Bugzilla sync of the FlawCVSS instance
-        """
-        self.save()
-        # FlawCVSS needs to be synced through flaw
-        self.flaw.save(*args, **kwargs)
 
 
 class FlawComment(
