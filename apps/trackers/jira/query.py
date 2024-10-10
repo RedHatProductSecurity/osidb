@@ -26,9 +26,9 @@ from apps.trackers.exceptions import (
 from apps.trackers.models import JiraProjectFields
 from collectors.jiraffe.constants import JIRA_BZ_ID_LABEL_RE
 from osidb.cc import JiraAffectCCBuilder
-from osidb.dmodels import Impact
+from osidb.dmodels import FlawSource, Impact
 from osidb.dmodels.affect import Affect, AffectCVSS
-from osidb.models import Flaw, FlawCVSS, FlawSource
+from osidb.models import Flaw, FlawCVSS
 from osidb.validators import CVE_RE_STR
 
 from .constants import (

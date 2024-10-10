@@ -5,8 +5,8 @@ import pytest
 from django.conf import settings
 
 from osidb.core import generate_acls
+from osidb.dmodels import FlawSource
 from osidb.helpers import get_env
-from osidb.models import FlawSource
 
 
 @pytest.fixture(autouse=True)

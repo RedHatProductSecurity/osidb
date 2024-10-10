@@ -13,6 +13,7 @@ from osidb.constants import DATETIME_FMT
 from osidb.core import generate_acls
 from osidb.dmodels import (
     CVSS,
+    FlawSource,
     Impact,
     PsContact,
     PsModule,
@@ -31,7 +32,6 @@ from osidb.models import (
     FlawComment,
     FlawCVSS,
     FlawReference,
-    FlawSource,
 )
 
 DATA_PRODSEC_ACL_READ = uuid.uuid5(

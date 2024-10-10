@@ -1,4 +1,5 @@
 from .abstract import CVSS, ComparableTextChoices, Impact
+from .flaw import FlawSource
 from .profile import Profile
 from .ps_constants import SpecialConsiderationPackage, UbiPackage
 from .ps_contact import PsContact
@@ -13,6 +14,7 @@ __all__ = (
     "CVSS",
     # Erratum cannot be added here
     # as it would make a cycle with Tracker import
+    "FlawSource",
     "Impact",
     # package versions cannot be added here
     # as it would make a cycle with Flaw import
