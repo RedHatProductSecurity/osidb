@@ -1837,6 +1837,7 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
 
+@extend_schema_serializer(deprecate_fields=["order"])
 class FlawCommentSerializer(
     CommentSerializer,
     ACLMixinSerializer,
@@ -1844,6 +1845,8 @@ class FlawCommentSerializer(
     IncludeExcludeFieldsMixin,
 ):
     """FlawComment serializer for use by flaw_comments endpoint"""
+
+    order = serializers.IntegerField(required=False)
 
     def create(self, validated_data):
         """
