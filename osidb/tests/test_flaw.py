@@ -2101,9 +2101,12 @@ class TestFlawValidators:
         )
         tracker.save(raise_validation_error=False)
         tracker.affects.add(affect)
-
+        error_message = (
+            f"The tracker is associated with a {Affect.AffectAffectedness.NOTAFFECTED} affect: "
+            f"{affect.ps_module}/{affect.ps_component} \\({affect.uuid}\\)"
+        )
         match = (
-            f"The tracker is associated with a NOTAFFECTED affect: {affect.uuid}"
+            error_message
             if entity == "tracker"
             else f"{affect.uuid}.*is marked as.*but has open tracker"
         )
@@ -2161,9 +2164,12 @@ class TestFlawValidators:
         )
         tracker.save(raise_validation_error=False)
         tracker.affects.add(affect)
-
+        error_message = (
+            "The tracker is associated with an OOSS affect: "
+            f"{affect.ps_module}/{affect.ps_component} \\({affect.uuid}\\)"
+        )
         match = (
-            f"The tracker is associated with an OOSS affect: {affect.uuid}"
+            error_message
             if entity == "tracker"
             else f"{affect.uuid}.*is marked as.*but has open tracker"
         )
@@ -2215,9 +2221,12 @@ class TestFlawValidators:
         )
         tracker.save(raise_validation_error=False)
         tracker.affects.add(affect)
-
+        error_message = (
+            f"The tracker is associated with a {Affect.AffectResolution.DEFER} affect: "
+            f"{affect.ps_module}/{affect.ps_component} \\({affect.uuid}\\)"
+        )
         match = (
-            f"The tracker is associated with a {Affect.AffectResolution.DEFER} affect: {affect.uuid}"
+            error_message
             if entity == "tracker"
             else f"{affect.uuid}.*cannot have resolution {Affect.AffectResolution.DEFER} with open tracker"
         )
@@ -2269,9 +2278,12 @@ class TestFlawValidators:
         )
         tracker.save(raise_validation_error=False)
         tracker.affects.add(affect)
-
+        error_message = (
+            f"The tracker is associated with a {Affect.AffectResolution.WONTFIX} affect: "
+            f"{affect.ps_module}/{affect.ps_component} \\({affect.uuid}\\)"
+        )
         match = (
-            f"The tracker is associated with a {Affect.AffectResolution.WONTFIX} affect: {affect.uuid}"
+            error_message
             if entity == "tracker"
             else f"{affect.uuid}.*is marked as WONTFIX but has open tracker"
         )
