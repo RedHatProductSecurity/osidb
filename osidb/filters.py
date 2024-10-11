@@ -1,9 +1,17 @@
 """
 Implement filters for OSIDB REST API results
 """
+from typing import Union
 
+from django.contrib.postgres.search import (
+    SearchQuery,
+    SearchRank,
+    SearchVector,
+    TrigramSimilarity,
+)
 from django.core.exceptions import FieldDoesNotExist
 from django.core.validators import EMPTY_VALUES
+from django.db import models
 from django.db.models import Q
 from django_filters.rest_framework import (
     BaseInFilter,
@@ -28,7 +36,7 @@ from osidb.dmodels.package_versions import Package
 from osidb.dmodels.tracker import Tracker
 
 from .mixins import Alert
-from .models import Flaw, search_helper
+from .models import Flaw
 
 LT_GT_LOOKUP_EXPRS = ["lt", "gt"]
 LTE_GTE_LOOKUP_EXPRS = ["lte", "gte"]
@@ -325,6 +333,60 @@ class FlawComponentField(StrField):
             return ~Q(**{f"components__{lookup}": value})
         elif operator == "=":
             return Q(**{f"components__{lookup}": value})
+
+
+def search_helper(
+    queryset: models.QuerySet,
+    field_names: Union[str, tuple],
+    field_value: str,  # Three positional args are expected by django-filters, keyword args can be added if needed
+):
+    """
+    Customize search filter and other logic for Postgres full-text search
+
+    By default, Django uses the plainto_tsquery() Postgres function, which doesn't support search operators
+    We override this with websearch_to_tsquery() which supports "quoted phrases" and -exclusions
+    We also extend logic here to support weighting and ranking search results, based on which column is matched
+    """
+    query = SearchQuery(field_value, search_type="websearch")
+
+    if field_names and field_names != "search":
+        # Search only field(s) user provided, weighted equally
+        if isinstance(field_names, str):
+            # django-filters gives exactly one field name as str, other users give tuple of fields to search
+            field_names = (field_names,)
+
+        vector = SearchVector(*field_names)
+
+    else:  # Empty tuple or 'search' (default from django-filters when field name not specified)
+        # Search all Flaw text columns, weighted so title is most relevant
+        # TODO: Add logic to make this more generic (for any model) instead of assuming we are searching Flaws
+        # We could just search all fields, or get only text fields from a model dynamically
+        # Logic to set weights makes this more complicated
+        vector = (
+            SearchVector("title", weight="A")
+            + SearchVector("cve_id", weight="A")
+            + SearchVector("comment_zero", weight="B")
+            + SearchVector("cve_description", weight="C")
+            + SearchVector("statement", weight="D")
+        )
+
+    # Allow searching CVEs by similarity instead of tokens like full-text search does.
+    # Using tokens, the word 'securit' will not match with 'security', and 'CVE-2001-04'
+    # will not match with 'CVE-2001-0414'. This behavior may be intended for text based fields, but
+    # when searching for CVEs it's probably because the user forgot part of, or the order of, the numbers.
+    similarity = TrigramSimilarity("cve_id", field_value)
+
+    rank = SearchRank(vector, query, cover_density=True)
+    # Consider proximity of matching terms when ranking
+
+    return (
+        queryset.annotate(rank=rank, similarity=similarity)
+        # The similarity threshold of 0.7 has been found by trial and error to work best with CVEs
+        .filter(Q(rank__gt=0) | Q(similarity__gt=0.7)).order_by("-rank")
+    )
+    # Add "rank" column to queryset based on search result relevance
+    # Exclude results that don't match (rank 0)
+    # Order remaining results from highest rank to lowest
 
 
 class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):

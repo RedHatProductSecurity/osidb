@@ -4,17 +4,10 @@ import re
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import Union
 
 import pghistory
 from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
-from django.contrib.postgres.search import (
-    SearchQuery,
-    SearchRank,
-    SearchVector,
-    TrigramSimilarity,
-)
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Q
@@ -42,60 +35,6 @@ from .sync_manager import BZSyncManager, FlawDownloadManager, JiraTaskDownloadMa
 from .validators import no_future_date, validate_cve_id, validate_cwe_id
 
 logger = logging.getLogger(__name__)
-
-
-def search_helper(
-    queryset: models.QuerySet,
-    field_names: Union[str, tuple],
-    field_value: str,  # Three positional args are expected by django-filters, keyword args can be added if needed
-):
-    """
-    Customize search filter and other logic for Postgres full-text search
-
-    By default, Django uses the plainto_tsquery() Postgres function, which doesn't support search operators
-    We override this with websearch_to_tsquery() which supports "quoted phrases" and -exclusions
-    We also extend logic here to support weighting and ranking search results, based on which column is matched
-    """
-    query = SearchQuery(field_value, search_type="websearch")
-
-    if field_names and field_names != "search":
-        # Search only field(s) user provided, weighted equally
-        if isinstance(field_names, str):
-            # django-filters gives exactly one field name as str, other users give tuple of fields to search
-            field_names = (field_names,)
-
-        vector = SearchVector(*field_names)
-
-    else:  # Empty tuple or 'search' (default from django-filters when field name not specified)
-        # Search all Flaw text columns, weighted so title is most relevant
-        # TODO: Add logic to make this more generic (for any model) instead of assuming we are searching Flaws
-        # We could just search all fields, or get only text fields from a model dynamically
-        # Logic to set weights makes this more complicated
-        vector = (
-            SearchVector("title", weight="A")
-            + SearchVector("cve_id", weight="A")
-            + SearchVector("comment_zero", weight="B")
-            + SearchVector("cve_description", weight="C")
-            + SearchVector("statement", weight="D")
-        )
-
-    # Allow searching CVEs by similarity instead of tokens like full-text search does.
-    # Using tokens, the word 'securit' will not match with 'security', and 'CVE-2001-04'
-    # will not match with 'CVE-2001-0414'. This behavior may be intended for text based fields, but
-    # when searching for CVEs it's probably because the user forgot part of, or the order of, the numbers.
-    similarity = TrigramSimilarity("cve_id", field_value)
-
-    rank = SearchRank(vector, query, cover_density=True)
-    # Consider proximity of matching terms when ranking
-
-    return (
-        queryset.annotate(rank=rank, similarity=similarity)
-        # The similarity threshold of 0.7 has been found by trial and error to work best with CVEs
-        .filter(Q(rank__gt=0) | Q(similarity__gt=0.7)).order_by("-rank")
-    )
-    # Add "rank" column to queryset based on search result relevance
-    # Exclude results that don't match (rank 0)
-    # Order remaining results from highest rank to lowest
 
 
 class FlawManager(ACLMixinManager, TrackingMixinManager):
@@ -134,6 +73,8 @@ class FlawManager(ACLMixinManager, TrackingMixinManager):
     @staticmethod
     def fts_search(q):
         """full text search using postgres FTS via django.contrib.postgres"""
+        from osidb.filters import search_helper
+
         return search_helper(Flaw.objects.get_queryset(), (), q)
         # Search default Flaw fields (title, comment_zero, cve_description, statement) with default weights
         # If search has no results, this will now return an empty queryset
