@@ -14,9 +14,10 @@ from osidb.constants import BZ_ID_SENTINEL
 from osidb.core import generate_acls
 from osidb.dmodels import FlawSource, Impact
 from osidb.dmodels.affect import Affect
+from osidb.dmodels.flaw.comment import FlawComment
 from osidb.dmodels.flaw.cvss import FlawCVSS
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw, FlawAcknowledgment, FlawComment, FlawReference
+from osidb.models import Flaw, FlawAcknowledgment, FlawReference
 from osidb.tests.factories import (
     AffectFactory,
     FlawAcknowledgmentFactory,
