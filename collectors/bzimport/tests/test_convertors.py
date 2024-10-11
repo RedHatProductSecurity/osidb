@@ -7,11 +7,12 @@ from collectors.bzimport.constants import BZ_DT_FMT
 from collectors.bzimport.convertors import FlawConvertor, FlawSaver
 from osidb.dmodels import Impact
 from osidb.dmodels.affect import Affect, AffectCVSS
+from osidb.dmodels.flaw.acknowledgment import FlawAcknowledgment
 from osidb.dmodels.flaw.comment import FlawComment
 from osidb.dmodels.flaw.cvss import FlawCVSS
 from osidb.dmodels.package_versions import Package, PackageVer
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw, FlawAcknowledgment, FlawReference
+from osidb.models import Flaw, FlawReference
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,

@@ -2,7 +2,7 @@ import pytest
 from rest_framework import status
 
 from osidb.dmodels import FlawSource
-from osidb.models import FlawAcknowledgment
+from osidb.dmodels.flaw.acknowledgment import FlawAcknowledgment
 from osidb.tests.factories import AffectFactory, FlawAcknowledgmentFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
