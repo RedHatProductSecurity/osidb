@@ -5,8 +5,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 
 from apps.bbsync.mixins import BugzillaSyncMixin
-from osidb.dmodels.flaw.flaw import Flaw
-from osidb.dmodels.flaw.source import FlawSource
 from osidb.mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -14,6 +12,8 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
+from osidb.models.flaw.flaw import Flaw
+from osidb.models.flaw.source import FlawSource
 
 
 class FlawAcknowledgmentManager(ACLMixinManager, TrackingMixinManager):

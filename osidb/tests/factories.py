@@ -11,7 +11,7 @@ from pytz import UTC
 
 from osidb.constants import DATETIME_FMT
 from osidb.core import generate_acls
-from osidb.dmodels import (
+from osidb.models import (
     CVSS,
     FlawSource,
     Impact,
@@ -21,16 +21,16 @@ from osidb.dmodels import (
     PsUpdateStream,
     SpecialConsiderationPackage,
 )
-from osidb.dmodels.affect import AFFECTEDNESS_VALID_RESOLUTIONS, Affect, AffectCVSS
-from osidb.dmodels.erratum import Erratum
-from osidb.dmodels.flaw.acknowledgment import FlawAcknowledgment
-from osidb.dmodels.flaw.comment import FlawComment
-from osidb.dmodels.flaw.cvss import FlawCVSS
-from osidb.dmodels.flaw.flaw import Flaw
-from osidb.dmodels.flaw.reference import FlawReference
-from osidb.dmodels.package_versions import Package, PackageVer
-from osidb.dmodels.snippet import Snippet
-from osidb.dmodels.tracker import Tracker
+from osidb.models.affect import AFFECTEDNESS_VALID_RESOLUTIONS, Affect, AffectCVSS
+from osidb.models.erratum import Erratum
+from osidb.models.flaw.acknowledgment import FlawAcknowledgment
+from osidb.models.flaw.comment import FlawComment
+from osidb.models.flaw.cvss import FlawCVSS
+from osidb.models.flaw.flaw import Flaw
+from osidb.models.flaw.reference import FlawReference
+from osidb.models.package_versions import Package, PackageVer
+from osidb.models.snippet import Snippet
+from osidb.models.tracker import Tracker
 
 DATA_PRODSEC_ACL_READ = uuid.uuid5(
     uuid.NAMESPACE_URL,

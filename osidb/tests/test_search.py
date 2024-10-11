@@ -2,8 +2,8 @@ import uuid
 
 import pytest
 
-from osidb.dmodels import FlawSource, Impact
-from osidb.dmodels.flaw.flaw import Flaw
+from osidb.models import FlawSource, Impact
+from osidb.models.flaw.flaw import Flaw
 
 from .factories import AffectFactory, FlawFactory
 

@@ -5,7 +5,7 @@ from django.conf import settings
 from taskman.constants import JIRA_AUTH_TOKEN, TASKMAN_API_VERSION
 
 import apps.taskman.mixins as mixins
-import osidb.dmodels.flaw.flaw as flaw_module
+import osidb.models.flaw.flaw as flaw_module
 import osidb.serializer as serializer
 from osidb.constants import OSIDB_API_VERSION
 

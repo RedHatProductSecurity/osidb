@@ -5,9 +5,9 @@ import pytest
 from apps.bbsync.cc import AffectCCBuilder, CCBuilder, RHSCLAffectCCBuilder
 from apps.bbsync.constants import RHSCL_BTS_KEY, USER_BLACKLIST
 from apps.bbsync.tests.factories import BugzillaComponentFactory, BugzillaProductFactory
-from osidb.dmodels import PsModule
-from osidb.dmodels.affect import Affect
-from osidb.dmodels.flaw.flaw import Flaw
+from osidb.models import PsModule
+from osidb.models.affect import Affect
+from osidb.models.flaw.flaw import Flaw
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,

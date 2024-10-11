@@ -6,12 +6,12 @@ from jira.exceptions import JIRAError
 from rest_framework.response import Response
 
 import apps.taskman.mixins as mixins
-import osidb.dmodels.flaw.flaw as flaw_module
+import osidb.models.flaw.flaw as flaw_module
 import osidb.serializer as serializer
 from apps.taskman.exceptions import TaskWritePermissionsException
 from apps.taskman.service import JiraTaskmanQuerier
-from osidb.dmodels import FlawSource, Impact
-from osidb.dmodels.flaw.flaw import Flaw
+from osidb.models import FlawSource, Impact
+from osidb.models.flaw.flaw import Flaw
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit

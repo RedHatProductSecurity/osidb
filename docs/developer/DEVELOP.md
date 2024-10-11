@@ -716,7 +716,7 @@ Before calling any Model function, make sure the ACLs are set correctly:
 
     import uuid
     from django.db import connection
-    from osidb.dmodels.flaw.flaw import Flaw
+    from osidb.models.flaw.flaw import Flaw
 
     acls = [uuid.uuid5(
                 uuid.NAMESPACE_URL, "https://osidb.prod.redhat.com/ns/acls#data-prodsec"

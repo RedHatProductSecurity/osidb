@@ -5,7 +5,7 @@ from django.utils import timezone
 
 import apps.bbsync.mixins as bbsync_mixins
 import apps.taskman.mixins as taskman_mixins
-import osidb.dmodels.flaw.flaw as flaw_module
+import osidb.models.flaw.flaw as flaw_module
 from collectors.cveorg import collectors
 from collectors.cveorg.collectors import CVEorgCollector
 

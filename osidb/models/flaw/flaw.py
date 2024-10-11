@@ -21,7 +21,6 @@ from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 from osidb.constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
-from osidb.dmodels import FlawSource, Impact, PsModule, SpecialConsiderationPackage
 from osidb.mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -31,6 +30,7 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
+from osidb.models import FlawSource, Impact, PsModule, SpecialConsiderationPackage
 from osidb.sync_manager import (
     BZSyncManager,
     FlawDownloadManager,
@@ -272,7 +272,7 @@ class Flaw(
         """
         Checks that the difference between the RH and NIST CVSSv3 score is not >= 1.0.
         """
-        from osidb.dmodels.flaw.cvss import FlawCVSS
+        from osidb.models.flaw.cvss import FlawCVSS
 
         cvss_scores_v3 = self.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION3)
         nist_score = (
@@ -301,7 +301,7 @@ class Flaw(
         """
         Checks that the NIST and RH CVSSv3 score are not of a different severity.
         """
-        from osidb.dmodels.flaw.cvss import FlawCVSS
+        from osidb.models.flaw.cvss import FlawCVSS
 
         cvss_scores_v3 = self.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION3)
         nist_score = (
@@ -361,7 +361,7 @@ class Flaw(
         * it has no associated NIST feedback loop in progress (see nist_cvss_validation)
         * it has no RH CVSS3 explanation comment
         """
-        from osidb.dmodels.flaw.cvss import FlawCVSS
+        from osidb.models.flaw.cvss import FlawCVSS
 
         nist_cvss = self.cvss_scores.filter(
             issuer=FlawCVSS.CVSSIssuer.NIST,
@@ -396,7 +396,7 @@ class Flaw(
         Checks that if nist_cvss_validation is set, then both NIST CVSSv3 and RH CVSSv3
         scores need to be present.
         """
-        from osidb.dmodels.flaw.cvss import FlawCVSS
+        from osidb.models.flaw.cvss import FlawCVSS
 
         nist_cvss = self.cvss_scores.filter(
             issuer=FlawCVSS.CVSSIssuer.NIST,
@@ -530,7 +530,7 @@ class Flaw(
         """
         Check that a CVSSv3 string is present.
         """
-        from osidb.dmodels.flaw.cvss import FlawCVSS
+        from osidb.models.flaw.cvss import FlawCVSS
 
         rh_cvss3 = self.cvss_scores.filter(
             version=FlawCVSS.CVSSVersion.VERSION3, issuer=FlawCVSS.CVSSIssuer.REDHAT
@@ -565,7 +565,7 @@ class Flaw(
         * requires_cve_description is APPROVED
         * has exactly one article
         """
-        from osidb.dmodels.flaw.reference import FlawReference
+        from osidb.models.flaw.reference import FlawReference
 
         if self.major_incident_state not in [
             Flaw.FlawMajorIncident.APPROVED,
@@ -689,7 +689,7 @@ class Flaw(
         if self._state.adding:
             return
 
-        from osidb.dmodels.affect import Affect  # TODO
+        from osidb.models.affect import Affect  # TODO
 
         if not Affect.objects.filter(flaw=self).exists():
             err = ValidationError("Flaw does not contain any affects.")
@@ -723,7 +723,7 @@ class Flaw(
         Check that an update of a flaw with open trackers does not change between
         Critical/Important/Major Incident and Moderate/Low and vice-versa.
         """
-        from osidb.dmodels.tracker import Tracker
+        from osidb.models.tracker import Tracker
 
         if self._state.adding:
             return
@@ -842,7 +842,7 @@ class Flaw(
         """
         Checks that a flaw has maximally one article link.
         """
-        from osidb.dmodels.flaw.reference import FlawReference
+        from osidb.models.flaw.reference import FlawReference
 
         if self.references:
             article_links = self.references.filter(
@@ -897,7 +897,7 @@ class Flaw(
     @property
     def affects_notaffected(self):
         """check that all affects are in NOTAFFECTED state"""
-        from osidb.dmodels.affect import Affect  # TODO
+        from osidb.models.affect import Affect  # TODO
 
         return not self.affects.exclude(
             affectedness=Affect.AffectAffectedness.NOTAFFECTED
@@ -906,7 +906,7 @@ class Flaw(
     @property
     def affects_resolved(self):
         """check that all affects have resolution"""
-        from osidb.dmodels.affect import Affect  # TODO
+        from osidb.models.affect import Affect  # TODO
 
         return not self.affects.filter(
             resolution=Affect.AffectResolution.NOVALUE
@@ -919,7 +919,7 @@ class Flaw(
         NEW:NOVALUE or AFFECTED:DELEGATED
         have associated trackers filed
         """
-        from osidb.dmodels.affect import Affect  # TODO
+        from osidb.models.affect import Affect  # TODO
 
         return all(
             affect.trackers.exists()

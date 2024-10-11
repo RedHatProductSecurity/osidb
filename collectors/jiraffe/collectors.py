@@ -15,7 +15,7 @@ from jira.exceptions import JIRAError
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
 from collectors.framework.models import Collector
-from osidb.dmodels import PsModule
+from osidb.models import PsModule
 from osidb.sync_manager import (
     JiraTaskDownloadManager,
     JiraTrackerDownloadManager,

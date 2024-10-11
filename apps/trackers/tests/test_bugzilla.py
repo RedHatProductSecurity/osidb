@@ -11,9 +11,9 @@ from apps.bbsync.exceptions import ProductDataError
 from apps.bbsync.tests.factories import BugzillaComponentFactory, BugzillaProductFactory
 from apps.sla.tests.test_framework import load_sla_policies
 from apps.trackers.bugzilla.query import TrackerBugzillaQueryBuilder
-from osidb.dmodels import Impact
-from osidb.dmodels.affect import Affect
-from osidb.dmodels.tracker import Tracker
+from osidb.models import Impact
+from osidb.models.affect import Affect
+from osidb.models.tracker import Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,

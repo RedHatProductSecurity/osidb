@@ -13,11 +13,6 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
-from osidb.dmodels.abstract import CVSS, Impact
-from osidb.dmodels.flaw.flaw import Flaw
-from osidb.dmodels.ps_constants import SpecialConsiderationPackage
-from osidb.dmodels.ps_module import PsModule
-from osidb.dmodels.ps_update_stream import PsUpdateStream
 from osidb.mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -26,6 +21,11 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
+from osidb.models.abstract import CVSS, Impact
+from osidb.models.flaw.flaw import Flaw
+from osidb.models.ps_constants import SpecialConsiderationPackage
+from osidb.models.ps_module import PsModule
+from osidb.models.ps_update_stream import PsUpdateStream
 
 logger = logging.getLogger(__name__)
 

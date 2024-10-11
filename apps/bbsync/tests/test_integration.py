@@ -10,13 +10,13 @@ from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
 from collectors.jiraffe.collectors import JiraTrackerCollector
-from osidb.dmodels.affect import Affect
-from osidb.dmodels.flaw.acknowledgment import FlawAcknowledgment
-from osidb.dmodels.flaw.cvss import FlawCVSS
-from osidb.dmodels.flaw.flaw import Flaw
-from osidb.dmodels.flaw.reference import FlawReference
-from osidb.dmodels.snippet import Snippet
-from osidb.dmodels.tracker import Tracker
+from osidb.models.affect import Affect
+from osidb.models.flaw.acknowledgment import FlawAcknowledgment
+from osidb.models.flaw.cvss import FlawCVSS
+from osidb.models.flaw.flaw import Flaw
+from osidb.models.flaw.reference import FlawReference
+from osidb.models.snippet import Snippet
+from osidb.models.tracker import Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawAcknowledgmentFactory,
@@ -33,8 +33,8 @@ pytestmark = pytest.mark.integration
 @pytest.fixture(autouse=True)
 def enable_bbsync_env_var(monkeypatch) -> None:
     import apps.bbsync.mixins as mixins
-    import osidb.dmodels.flaw.flaw as flaw_module
-    import osidb.dmodels.tracker as tracker
+    import osidb.models.flaw.flaw as flaw_module
+    import osidb.models.tracker as tracker
 
     monkeypatch.setattr(flaw_module, "SYNC_FLAWS_TO_BZ", True)
     monkeypatch.setattr(mixins, "SYNC_TO_BZ", True)
@@ -65,7 +65,7 @@ class TestBBSyncIntegration:
         """
         test creating a flaw with Bugzilla two-way sync
         """
-        import osidb.dmodels.flaw.flaw as flaw_module
+        import osidb.models.flaw.flaw as flaw_module
         from osidb.sync_manager import BZSyncManager
 
         monkeypatch.setattr(flaw_module, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
@@ -885,7 +885,7 @@ class TestFlawDraftBBSyncIntegration:
         test creating a flaw draft with Bugzilla two-way sync
         """
         import apps.taskman.mixins as taskman_mixins
-        import osidb.dmodels.flaw.flaw as flaw_module
+        import osidb.models.flaw.flaw as flaw_module
 
         monkeypatch.setattr(taskman_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)

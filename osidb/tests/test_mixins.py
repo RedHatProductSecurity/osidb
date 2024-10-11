@@ -10,8 +10,8 @@ from freezegun import freeze_time
 import apps.bbsync.mixins as bz_mixins
 import apps.bbsync.save as bz_save
 import apps.taskman.mixins as task_mixins
-import osidb.dmodels.flaw.flaw as flaw_module
-import osidb.dmodels.tracker as tracker
+import osidb.models.flaw.flaw as flaw_module
+import osidb.models.tracker as tracker
 import osidb.serializer as serializer
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraBugIssuetype
@@ -20,12 +20,12 @@ from apps.workflows.models import Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.convertors import FlawConvertor
 from osidb.core import generate_acls
-from osidb.dmodels import FlawSource, Impact, PsModule, PsUpdateStream
-from osidb.dmodels.affect import Affect
-from osidb.dmodels.flaw.flaw import Flaw
-from osidb.dmodels.tracker import Tracker
 from osidb.exceptions import DataInconsistencyException
 from osidb.mixins import AlertMixin
+from osidb.models import FlawSource, Impact, PsModule, PsUpdateStream
+from osidb.models.affect import Affect
+from osidb.models.flaw.flaw import Flaw
+from osidb.models.tracker import Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,

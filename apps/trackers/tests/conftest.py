@@ -2,7 +2,7 @@ import pytest
 
 import apps.bbsync.constants as bbsync_constants
 import apps.trackers.common as common
-import osidb.dmodels.flaw.flaw as flaw_module
+import osidb.models.flaw.flaw as flaw_module
 import osidb.serializer as serializer
 from apps.sla.framework import SLAPolicy
 from apps.trackers.constants import TRACKERS_API_VERSION

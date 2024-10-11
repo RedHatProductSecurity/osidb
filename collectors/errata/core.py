@@ -11,8 +11,8 @@ from requests_gssapi import HTTPSPNEGOAuth
 
 from collectors.framework.models import CollectorMetadata
 from osidb.core import set_user_acls
-from osidb.dmodels.erratum import Erratum
-from osidb.dmodels.tracker import Tracker
+from osidb.models.erratum import Erratum
+from osidb.models.tracker import Tracker
 
 from ..utils import BACKOFF_KWARGS, fatal_code
 from .constants import (

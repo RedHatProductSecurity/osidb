@@ -9,7 +9,7 @@ from apps.bbsync.query import BugzillaQueryBuilder
 from apps.sla.framework import sla_classify
 from apps.trackers.common import TrackerQueryBuilder
 from osidb.cc import BugzillaAffectCCBuilder
-from osidb.dmodels.flaw.flaw import Flaw
+from osidb.models.flaw.flaw import Flaw
 
 logger = logging.getLogger(__name__)
 
