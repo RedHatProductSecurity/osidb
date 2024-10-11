@@ -9,16 +9,15 @@ from .ps_update_stream import PsUpdateStream
 from .snippet import Snippet
 
 __all__ = (
-    # Affect cannot be added here
-    # as it would make a cycle with CVSS and Flaw and Impact import
+    "Affect",
     "ComparableTextChoices",
     "CVSS",
-    # Erratum cannot be added here
-    # as it would make a cycle with Tracker import
+    "Erratum",
+    "Flaw",
     "FlawSource",
     "Impact",
-    # package versions cannot be added here
-    # as it would make a cycle with Flaw import
+    "Package",
+    "PackageVer",
     "Profile",
     "PsContact",
     "PsModule",
@@ -26,7 +25,12 @@ __all__ = (
     "PsUpdateStream",
     "Snippet",
     "SpecialConsiderationPackage",
-    # Tracker cannot be added here
-    # as it would make a cycle with Affect and Flaw import
+    "Tracker",
     "UbiPackage",
 )
+
+from .affect import Affect
+from .erratum import Erratum
+from .flaw.flaw import Flaw
+from .package_versions import Package, PackageVer
+from .tracker import Tracker
