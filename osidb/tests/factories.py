@@ -19,6 +19,7 @@ from osidb.models import (
     PsModule,
     PsProduct,
     PsUpdateStream,
+    Snippet,
     SpecialConsiderationPackage,
 )
 from osidb.models.affect import AFFECTEDNESS_VALID_RESOLUTIONS, Affect, AffectCVSS
@@ -29,7 +30,6 @@ from osidb.models.flaw.cvss import FlawCVSS
 from osidb.models.flaw.flaw import Flaw
 from osidb.models.flaw.reference import FlawReference
 from osidb.models.package_versions import Package, PackageVer
-from osidb.models.snippet import Snippet
 from osidb.models.tracker import Tracker
 
 DATA_PRODSEC_ACL_READ = uuid.uuid5(

@@ -10,12 +10,12 @@ from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
 from collectors.jiraffe.collectors import JiraTrackerCollector
+from osidb.models import Snippet
 from osidb.models.affect import Affect
 from osidb.models.flaw.acknowledgment import FlawAcknowledgment
 from osidb.models.flaw.cvss import FlawCVSS
 from osidb.models.flaw.flaw import Flaw
 from osidb.models.flaw.reference import FlawReference
-from osidb.models.snippet import Snippet
 from osidb.models.tracker import Tracker
 from osidb.tests.factories import (
     AffectFactory,

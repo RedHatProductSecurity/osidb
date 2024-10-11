@@ -6,6 +6,7 @@ from .ps_contact import PsContact
 from .ps_module import PsModule
 from .ps_product import PsProduct
 from .ps_update_stream import PsUpdateStream
+from .snippet import Snippet
 
 __all__ = (
     # Affect cannot be added here
@@ -23,9 +24,8 @@ __all__ = (
     "PsModule",
     "PsProduct",
     "PsUpdateStream",
+    "Snippet",
     "SpecialConsiderationPackage",
-    # Snippet cannot be added here
-    # as it would make a cycle with Flaw import
     # Tracker cannot be added here
     # as it would make a cycle with Affect and Flaw import
     "UbiPackage",
