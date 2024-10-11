@@ -6,7 +6,7 @@ import json
 from typing import Any, Dict
 
 import pytest
-from django.utils.timezone import datetime, make_aware
+from django.utils.timezone import datetime, make_aware, utc
 
 from apps.sla.tests.test_framework import load_sla_policies
 from apps.trackers.exceptions import (
@@ -1422,7 +1422,7 @@ class TestTrackerJiraQueryBuilder:
                     TrackerJiraQueryBuilder(tracker).generate()
 
     @pytest.mark.parametrize(
-        "flaw_cvss_present,aff_cvss_present,multi,other_outcome",
+        "flaw_cvss_present,aff_cvss_present,multiscore,other_outcome",
         [
             (False, False, False, []),
             (False, True, False, []),
@@ -1442,15 +1442,11 @@ class TestTrackerJiraQueryBuilder:
         ],
     )
     def test_generate_cve_cvss_cwe(
-        self, flaw_cvss_present, aff_cvss_present, multi, other_outcome
+        self, flaw_cvss_present, aff_cvss_present, multiscore, other_outcome
     ):
         """
         test that query has all fields correctly generated
         """
-
-        # TODO: This logic has to be overhauled to select the most relevant CVSS score
-        #       and also the most related CWE ID and Source.
-        #       Tracked in OSIDB-3348.
 
         flaw = FlawFactory(
             embargoed=False,
@@ -1499,7 +1495,7 @@ class TestTrackerJiraQueryBuilder:
             flawcvss = []
             flawcvss.append(FlawCVSSFactory(flaw=flaw))
             assert flaw.cvss_scores.all().count() == 1
-            if multi:
+            if multiscore:
                 flawcvss.append(FlawCVSSFactory(flaw=flaw))
                 flawcvss.append(FlawCVSSFactory(flaw=flaw))
                 flawcvss.append(FlawCVSSFactory(flaw=flaw))
@@ -1518,7 +1514,9 @@ class TestTrackerJiraQueryBuilder:
                 == 0
             )
             affcvss = []
-            affcvss.append(AffectCVSSFactory(affect=affect))
+            affcvss.append(
+                AffectCVSSFactory(affect=affect, issuer=AffectCVSS.CVSSIssuer.REDHAT)
+            )
             assert affect.cvss_scores.all().count() == 1
             assert (
                 len(
@@ -1530,10 +1528,22 @@ class TestTrackerJiraQueryBuilder:
                 )
                 == 1
             )
-            if multi:
-                affcvss.append(AffectCVSSFactory(affect=affect))
-                affcvss.append(AffectCVSSFactory(affect=affect))
-                affcvss.append(AffectCVSSFactory(affect=affect))
+            if multiscore:
+                affcvss.append(
+                    AffectCVSSFactory(
+                        affect=affect, issuer=AffectCVSS.CVSSIssuer.REDHAT
+                    )
+                )
+                affcvss.append(
+                    AffectCVSSFactory(
+                        affect=affect, issuer=AffectCVSS.CVSSIssuer.REDHAT
+                    )
+                )
+                affcvss.append(
+                    AffectCVSSFactory(
+                        affect=affect, issuer=AffectCVSS.CVSSIssuer.REDHAT
+                    )
+                )
 
         expected1 = {
             "fields": {
@@ -1576,18 +1586,11 @@ class TestTrackerJiraQueryBuilder:
                 if best is None:
                     best = c
                 else:
-                    # The most important issuer is RH, others are just in descending alphabetical order.
-                    if (
-                        best.issuer != CVSS.CVSSIssuer.REDHAT
-                        and c.issuer == CVSS.CVSSIssuer.REDHAT
-                    ):
-                        best = c
-                    elif str(best.issuer) < str(c.issuer):
-                        best = c
+                    # For AffectCVSS, the code doesn't differentiate between
+                    # issuers because in reality only RH-issued should exist.
 
-                    if best.issuer == c.issuer:
-                        if str(best.version) < str(c.version):
-                            best = c
+                    if str(best.version) < str(c.version):
+                        best = c
 
         elif flaw_cvss_present:
             for c in flawcvss:
@@ -1599,19 +1602,10 @@ class TestTrackerJiraQueryBuilder:
                 # Naive sorting algorithm to be very explicit
                 # and to reimplement the logic in a different way
                 # to maximize probability of the test catching a bug.
-                if best is None:
-                    best = c
-                else:
-                    # The most important issuer is RH, others are just in descending alphabetical order.
-                    if (
-                        best.issuer != CVSS.CVSSIssuer.REDHAT
-                        and c.issuer == CVSS.CVSSIssuer.REDHAT
-                    ):
+                if c.issuer == CVSS.CVSSIssuer.REDHAT:
+                    if best is None:
                         best = c
-                    elif str(best.issuer) < str(c.issuer):
-                        best = c
-
-                    if best.issuer == c.issuer:
+                    else:
                         if str(best.version) < str(c.version):
                             best = c
 
@@ -1721,14 +1715,12 @@ class TestTrackerJiraQueryBuilder:
         "components,missing",
         [
             (["foo", "bar", "baz"], True),
-            ([], True),
             (["foo", "bar", "baz"], False),
             (["foo"], False),
             (["z", "y", "x"], False),
             (["a", "b", "c"], False),
             (["b", "a", "c"], False),
-            ([], False),
-            # This is not the place where to deduplicate, if it ever happens.
+            # Duplicates are deduplicated, necessary esp. for multiflaw trackers
             (["foo", "bar", "baz", "baz", "baz"], False),
         ],
     )
@@ -1746,6 +1738,7 @@ class TestTrackerJiraQueryBuilder:
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             title="some description",
             source="REDHAT",
+            components=components,
         )
         affect = AffectFactory(
             flaw=flaw,
@@ -1794,7 +1787,7 @@ class TestTrackerJiraQueryBuilder:
                 "customfield_12324752": affect.ps_component,
                 #
                 # Upstream Affected Component
-                "customfield_12324751": "; ".join(sorted(flaw.components)),
+                "customfield_12324751": "; ".join(sorted(set(components))),
             }
         }
         if not components:
@@ -2010,6 +2003,184 @@ class TestTrackerJiraQueryBuilder:
             quer_builder = TrackerJiraQueryBuilder(tracker)
             quer_builder.generate()
             validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
+
+    def test_generate_query_multiflaw(self):
+        """
+        test that query has all fields correctly generated for a multi-flaw tracker
+        """
+
+        flaw = FlawFactory(
+            embargoed=False,
+            bz_id="123",
+            cve_id="CVE-2999-1000",
+            impact=Impact.MODERATE,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="some description",
+            source="REDHAT",
+            cwe_id="CWE-1",
+        )
+        flwcvss = FlawCVSSFactory(flaw=flaw, issuer=FlawCVSS.CVSSIssuer.REDHAT)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module="foo-module",
+            ps_component="foo-component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=Impact.MODERATE,
+        )
+        flaw2 = FlawFactory(
+            embargoed=False,
+            bz_id="123",
+            cve_id="CVE-2999-1001",
+            impact=Impact.CRITICAL,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="some description",
+            source="REDHAT",
+            cwe_id="CWE-2",
+            created_dt=datetime(2024, 10, 1, tzinfo=utc),
+        )
+        flwcvss2 = FlawCVSSFactory(flaw=flaw2, issuer=FlawCVSS.CVSSIssuer.REDHAT)
+        affect2 = AffectFactory(
+            flaw=flaw2,
+            ps_module="foo-module",
+            ps_component="foo-component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=Impact.CRITICAL,
+        )
+        # flaw3 is the oldest of [flaw2, flaw3, flaw4], so should be the one selected
+        # among the CRITICAL flaws.
+        flaw3 = FlawFactory(
+            embargoed=False,
+            bz_id="123",
+            cve_id="CVE-2999-1002",
+            impact=Impact.CRITICAL,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="some description",
+            source="REDHAT",
+            cwe_id="CWE-3",
+            created_dt=datetime(2024, 9, 1, tzinfo=utc),
+        )
+        flwcvss3 = FlawCVSSFactory(flaw=flaw3, issuer=FlawCVSS.CVSSIssuer.REDHAT)
+        affect3 = AffectFactory(
+            flaw=flaw3,
+            ps_module="foo-module",
+            ps_component="foo-component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=Impact.CRITICAL,
+        )
+        flaw4 = FlawFactory(
+            embargoed=False,
+            bz_id="123",
+            cve_id="CVE-2999-1003",
+            impact=Impact.CRITICAL,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="some description",
+            source="REDHAT",
+            cwe_id="CWE-4",
+            created_dt=datetime(2024, 10, 2, tzinfo=utc),
+        )
+        flwcvss4 = FlawCVSSFactory(flaw=flaw4, issuer=FlawCVSS.CVSSIssuer.REDHAT)
+        affect4 = AffectFactory(
+            flaw=flaw4,
+            ps_module="foo-module",
+            ps_component="foo-component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=Impact.CRITICAL,
+        )
+        ps_module = PsModuleFactory(
+            name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
+        )
+        stream = PsUpdateStreamFactory(
+            ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
+        )
+        tracker = TrackerFactory(
+            affects=[affect, affect2, affect3, affect4],
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=stream.name,
+            embargoed=flaw.is_embargoed,
+        )
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="security",
+            field_name="Security Level",
+            allowed_values=[
+                "Embargoed Security Issue",
+                "Red Hat Employee",
+                "Red Hat Engineering Authorized",
+                "Red Hat Partner",
+                "Restricted",
+                "Team",
+            ],
+        )
+        # Simulating the pre_save signal to calculate the score.
+        for c in [flwcvss, flwcvss2, flwcvss3, flwcvss4]:
+            FlawCVSS.objects.filter(uuid=c.uuid).update(
+                score=float(c.cvss_object.base_score)
+            )
+            c.refresh_from_db()
+        expected1 = {
+            "fields": {
+                "project": {"key": "FOOPROJECT"},
+                "issuetype": {"name": "Vulnerability"},
+                "summary": "CVE-2999-1000 CVE-2999-1001 CVE-2999-1002 CVE-2999-1003 foo-component: various flaws [bar-1.2.3]",
+                "labels": [
+                    "CVE-2999-1000",
+                    "CVE-2999-1001",
+                    "CVE-2999-1002",
+                    "CVE-2999-1003",
+                    "pscomponent:foo-component",
+                    "SecurityTracking",
+                    "Security",
+                ],
+                "versions": [
+                    {"name": "1.2.3"},
+                ],
+                #
+                # CVE Severity
+                "customfield_an_identifier_for_cve_severity_field": {
+                    "value": JiraCVESeverity.CRITICAL,
+                },
+                #
+                # Source
+                "customfield_12324746": {"value": "Red Hat"},
+                #
+                # CVE ID
+                "customfield_12324749": "CVE-2999-1002",  # flaw3 is oldest of CRITICAL
+                #
+                # CVSS Score
+                "customfield_12324748": f"""{flwcvss3.score} {flwcvss3.vector}""",
+                #
+                # CWE ID
+                "customfield_12324747": "CWE-3",  # flaw3 is oldest of CRITICAL
+                #
+                # Downstream Component Name
+                "customfield_12324752": "foo-component",
+                #
+                # Upstream Affected Component
+                "customfield_12324751": "; ".join(
+                    sorted(
+                        set(
+                            flaw.components
+                            + flaw2.components
+                            + flaw3.components
+                            + flaw4.components
+                        )
+                    )
+                ),
+                #
+                # Embargo Status
+                "customfield_12324750": {"value": str(flaw.is_embargoed)},
+                #
+                # Special Handling
+                "customfield_12324753": [],
+            }
+        }
+
+        if not flaw.cwe_id:
+            del expected1["fields"]["customfield_12324747"]
+
+        quer_builder = TrackerJiraQueryBuilder(tracker)
+        quer_builder.generate()
+        validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
 
 
 class TestOldTrackerJiraQueryBuilderSla:
