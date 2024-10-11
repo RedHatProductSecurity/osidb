@@ -2184,7 +2184,7 @@ class FlawComment(
     synced_to_bz = models.BooleanField(default=False)
 
     # explicitly define comment ordering, from BZ comment 'count'
-    order = models.IntegerField(null=True)
+    order = models.IntegerField(null=True, blank=True)
 
     # text of the comment
     text = models.TextField()
@@ -2219,11 +2219,16 @@ class FlawComment(
 
         # Ensure that it's not possible to have two bzimports running concurrently
         # and succeed while creating numbering conditions impossible to handle later.
-        constraints = [
-            models.UniqueConstraint(
-                fields=["flaw", "order"], name="unique_per_flaw_comment_nums"
-            ),
-        ]
+
+        """
+        TODO: Re-enable this constraint once the "order" field is removed from the model.
+              Keep in mind that the "order" field is used in the ordering of the comments and should be updated
+        """
+        # constraints = [
+        #    models.UniqueConstraint(
+        #        fields=["flaw", "order"], name="unique_per_flaw_comment_nums"
+        #    ),
+        # ]
 
     def bzsync(self, *args, bz_api_key=None, **kwargs):
         """
