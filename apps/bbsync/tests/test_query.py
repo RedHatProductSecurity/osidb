@@ -10,9 +10,9 @@ from osidb.core import generate_acls
 from osidb.dmodels import FlawSource
 from osidb.dmodels.affect import Affect
 from osidb.dmodels.flaw.comment import FlawComment
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.dmodels.snippet import Snippet
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw
 from osidb.tests.factories import (
     AffectFactory,
     FlawCommentFactory,

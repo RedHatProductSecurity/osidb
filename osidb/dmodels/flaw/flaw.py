@@ -20,9 +20,9 @@ from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FI
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
-
-from .dmodels import FlawSource, Impact, PsModule, SpecialConsiderationPackage
-from .mixins import (
+from osidb.constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
+from osidb.dmodels import FlawSource, Impact, PsModule, SpecialConsiderationPackage
+from osidb.mixins import (
     ACLMixin,
     ACLMixinManager,
     Alert,
@@ -31,8 +31,12 @@ from .mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
-from .sync_manager import BZSyncManager, FlawDownloadManager, JiraTaskDownloadManager
-from .validators import no_future_date, validate_cve_id, validate_cwe_id
+from osidb.sync_manager import (
+    BZSyncManager,
+    FlawDownloadManager,
+    JiraTaskDownloadManager,
+)
+from osidb.validators import no_future_date, validate_cve_id, validate_cwe_id
 
 logger = logging.getLogger(__name__)
 
@@ -1088,6 +1092,3 @@ class Flaw(
     bzsync_manager = models.ForeignKey(
         BZSyncManager, null=True, blank=True, on_delete=models.CASCADE
     )
-
-
-from .constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION  # noqa: E402

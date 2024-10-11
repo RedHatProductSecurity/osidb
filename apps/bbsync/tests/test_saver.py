@@ -5,8 +5,8 @@ import requests
 from apps.bbsync.query import FlawBugzillaQueryBuilder
 from apps.bbsync.save import BugzillaSaver
 from collectors.bzimport.constants import BZ_URL
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.exceptions import DataInconsistencyException
-from osidb.models import Flaw
 
 pytestmark = pytest.mark.unit
 

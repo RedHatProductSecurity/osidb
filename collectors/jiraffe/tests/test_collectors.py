@@ -8,7 +8,7 @@ from freezegun import freeze_time
 from jira.exceptions import JIRAError
 
 import collectors.jiraffe.collectors as collectors
-import osidb.models as models
+import osidb.dmodels.flaw.flaw as flaw_module
 from apps.taskman.constants import JIRA_AUTH_TOKEN
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
@@ -26,8 +26,8 @@ from collectors.jiraffe.exceptions import (
 )
 from osidb.dmodels import Impact
 from osidb.dmodels.affect import Affect
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw
 from osidb.sync_manager import JiraTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,
@@ -47,7 +47,7 @@ class TestJiraTaskCollector:
         test the Jira collector run
         """
         jira_token = JIRA_AUTH_TOKEN if JIRA_AUTH_TOKEN else "USER_JIRA_TOKEN"
-        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(collectors, "JIRA_TOKEN", jira_token)
 
         collector = JiraTaskCollector()
@@ -113,7 +113,7 @@ class TestJiraTaskCollector:
         test that Jira task collector ignores tasks with outdated timestamp
         """
         jira_token = JIRA_AUTH_TOKEN if JIRA_AUTH_TOKEN else "USER_JIRA_TOKEN"
-        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(collectors, "JIRA_TOKEN", jira_token)
 
         jtq = JiraTaskmanQuerier(token=jira_token)

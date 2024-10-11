@@ -16,7 +16,7 @@ from apps.trackers.product_definition_handlers.ubi_handler import UBIHandler
 from apps.trackers.product_definition_handlers.unacked_handler import UnackedHandler
 from osidb.dmodels import Impact, PsUpdateStream, UbiPackage
 from osidb.dmodels.affect import Affect
-from osidb.models import Flaw
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,

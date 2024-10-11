@@ -2,8 +2,8 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from osidb.core import set_user_acls
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw
 from osidb.sync_manager import SyncManager
 
 

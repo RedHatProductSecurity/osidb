@@ -5,7 +5,7 @@ from django.db.utils import ProgrammingError
 
 from osidb.core import set_user_acls
 from osidb.dmodels import CVSS
-from osidb.models import Flaw
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.tests.factories import FlawCVSSFactory, FlawFactory
 
 pytestmark = pytest.mark.enable_rls

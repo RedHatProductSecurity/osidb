@@ -13,10 +13,10 @@ from collectors.jiraffe.collectors import JiraTrackerCollector
 from osidb.dmodels.affect import Affect
 from osidb.dmodels.flaw.acknowledgment import FlawAcknowledgment
 from osidb.dmodels.flaw.cvss import FlawCVSS
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.dmodels.flaw.reference import FlawReference
 from osidb.dmodels.snippet import Snippet
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw
 from osidb.tests.factories import (
     AffectFactory,
     FlawAcknowledgmentFactory,
@@ -33,11 +33,11 @@ pytestmark = pytest.mark.integration
 @pytest.fixture(autouse=True)
 def enable_bbsync_env_var(monkeypatch) -> None:
     import apps.bbsync.mixins as mixins
+    import osidb.dmodels.flaw.flaw as flaw_module
     import osidb.dmodels.tracker as tracker
-    import osidb.models as models
 
+    monkeypatch.setattr(flaw_module, "SYNC_FLAWS_TO_BZ", True)
     monkeypatch.setattr(mixins, "SYNC_TO_BZ", True)
-    monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ", True)
     monkeypatch.setattr(tracker, "SYNC_TRACKERS_TO_BZ", True)
 
 
@@ -65,10 +65,10 @@ class TestBBSyncIntegration:
         """
         test creating a flaw with Bugzilla two-way sync
         """
-        import osidb.models as models
+        import osidb.dmodels.flaw.flaw as flaw_module
         from osidb.sync_manager import BZSyncManager
 
-        monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
+        monkeypatch.setattr(flaw_module, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
 
         assert Flaw.objects.count() == 0
         assert BZSyncManager.objects.count() == 0
@@ -885,10 +885,10 @@ class TestFlawDraftBBSyncIntegration:
         test creating a flaw draft with Bugzilla two-way sync
         """
         import apps.taskman.mixins as taskman_mixins
-        from osidb import models
+        import osidb.dmodels.flaw.flaw as flaw_module
 
         monkeypatch.setattr(taskman_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
 
         content = {
             "cve_id": cve_id,

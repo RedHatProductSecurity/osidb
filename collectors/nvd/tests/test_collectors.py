@@ -4,7 +4,7 @@ from django.utils import timezone
 from collectors.framework.models import CollectorMetadata
 from collectors.nvd.collectors import NVDCollector
 from osidb.dmodels.flaw.cvss import FlawCVSS
-from osidb.models import Flaw
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.tests.factories import FlawCVSSFactory, FlawFactory
 
 pytestmark = pytest.mark.integration

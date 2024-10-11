@@ -13,8 +13,8 @@ from rest_framework.test import APIClient
 from osidb.core import generate_acls, set_user_acls
 from osidb.dmodels import Impact
 from osidb.dmodels.affect import Affect
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.helpers import ensure_list
-from osidb.models import Flaw
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit

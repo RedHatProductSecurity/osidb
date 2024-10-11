@@ -19,12 +19,12 @@ from osidb.dmodels.affect import Affect, AffectCVSS
 from osidb.dmodels.flaw.acknowledgment import FlawAcknowledgment
 from osidb.dmodels.flaw.comment import FlawComment
 from osidb.dmodels.flaw.cvss import FlawCVSS
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.dmodels.flaw.reference import FlawReference
 from osidb.dmodels.package_versions import Package, PackageVer
 from osidb.dmodels.tracker import Tracker
 from osidb.helpers import filter_cves
 from osidb.mixins import AlertMixin, TrackingMixin
-from osidb.models import Flaw
 
 from ..utils import (
     tracker_parse_update_stream_component,

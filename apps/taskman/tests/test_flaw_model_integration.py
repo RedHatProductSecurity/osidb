@@ -6,12 +6,12 @@ from jira.exceptions import JIRAError
 from rest_framework.response import Response
 
 import apps.taskman.mixins as mixins
-import osidb.models as models
+import osidb.dmodels.flaw.flaw as flaw_module
 import osidb.serializer as serializer
 from apps.taskman.exceptions import TaskWritePermissionsException
 from apps.taskman.service import JiraTaskmanQuerier
 from osidb.dmodels import FlawSource, Impact
-from osidb.models import Flaw
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
@@ -48,7 +48,7 @@ class TestFlawModelIntegration(object):
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
         )
-        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
 
         flaw1 = FlawFactory(cve_id="CVE-2020-8002")
         AffectFactory(flaw=flaw1)
@@ -92,8 +92,8 @@ class TestFlawModelIntegration(object):
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
         )
 
+        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
 
         flaw = Flaw(
             cve_id="CVE-2020-8004",
@@ -141,7 +141,7 @@ class TestFlawModelIntegration(object):
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
         )
-        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
 
         flaw_data = {
@@ -189,7 +189,7 @@ class TestFlawModelIntegration(object):
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
         )
 
-        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
 
         flaw = FlawFactory(embargoed=False, impact=Impact.IMPORTANT)
@@ -260,7 +260,7 @@ class TestFlawModelIntegration(object):
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
         )
 
-        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
 
         flaw = FlawFactory(embargoed=False)

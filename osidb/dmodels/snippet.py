@@ -6,8 +6,8 @@ from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
 from collectors.bzimport.constants import BZ_API_KEY
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.mixins import ACLMixin, AlertMixin, TrackingMixin
-from osidb.models import Flaw
 
 
 class Snippet(ACLMixin, AlertMixin, TrackingMixin):
