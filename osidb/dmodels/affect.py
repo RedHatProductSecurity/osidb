@@ -25,7 +25,7 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
-from osidb.models import Flaw, search_helper
+from osidb.models import Flaw
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,8 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
     @staticmethod
     def fts_search(q):
         """full text search using postgres FTS via django.contrib.postgres"""
+        from osidb.filters import search_helper
+
         fields_to_search = (
             "ps_component",
             "ps_module",
