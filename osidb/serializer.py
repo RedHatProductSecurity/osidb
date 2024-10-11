@@ -26,6 +26,7 @@ from apps.workflows.serializers import WorkflowModelSerializer
 from osidb.dmodels import CVSS, Impact, Profile
 from osidb.dmodels.affect import Affect, AffectCVSS
 from osidb.dmodels.erratum import Erratum
+from osidb.dmodels.flaw.acknowledgment import FlawAcknowledgment
 from osidb.dmodels.flaw.comment import FlawComment
 from osidb.dmodels.flaw.cvss import FlawCVSS
 from osidb.dmodels.package_versions import Package, PackageVer
@@ -36,7 +37,7 @@ from .core import generate_acls
 from .exceptions import DataInconsistencyException
 from .helpers import differ, ensure_list
 from .mixins import ACLMixin, Alert, AlertMixin, TrackingMixin
-from .models import Flaw, FlawAcknowledgment, FlawReference
+from .models import Flaw, FlawReference
 
 logger = logging.getLogger(__name__)
 
@@ -1222,7 +1223,6 @@ class FlawAffectsTrackersField(serializers.Field):
 class FlawAcknowledgmentSerializer(
     ACLMixinSerializer,
     AlertMixinSerializer,
-    BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
     TrackingMixinSerializer,
 ):
