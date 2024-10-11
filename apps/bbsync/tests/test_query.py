@@ -9,9 +9,10 @@ from apps.workflows.workflow import WorkflowModel
 from osidb.core import generate_acls
 from osidb.dmodels import FlawSource
 from osidb.dmodels.affect import Affect
+from osidb.dmodels.flaw.comment import FlawComment
 from osidb.dmodels.snippet import Snippet
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw, FlawComment
+from osidb.models import Flaw
 from osidb.tests.factories import (
     AffectFactory,
     FlawCommentFactory,

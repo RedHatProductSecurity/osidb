@@ -23,11 +23,12 @@ from osidb.dmodels import (
 )
 from osidb.dmodels.affect import AFFECTEDNESS_VALID_RESOLUTIONS, Affect, AffectCVSS
 from osidb.dmodels.erratum import Erratum
+from osidb.dmodels.flaw.comment import FlawComment
 from osidb.dmodels.flaw.cvss import FlawCVSS
 from osidb.dmodels.package_versions import Package, PackageVer
 from osidb.dmodels.snippet import Snippet
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw, FlawAcknowledgment, FlawComment, FlawReference
+from osidb.models import Flaw, FlawAcknowledgment, FlawReference
 
 DATA_PRODSEC_ACL_READ = uuid.uuid5(
     uuid.NAMESPACE_URL,
