@@ -13,9 +13,10 @@ from collectors.jiraffe.collectors import JiraTrackerCollector
 from osidb.dmodels.affect import Affect
 from osidb.dmodels.flaw.acknowledgment import FlawAcknowledgment
 from osidb.dmodels.flaw.cvss import FlawCVSS
+from osidb.dmodels.flaw.reference import FlawReference
 from osidb.dmodels.snippet import Snippet
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw, FlawReference
+from osidb.models import Flaw
 from osidb.tests.factories import (
     AffectFactory,
     FlawAcknowledgmentFactory,

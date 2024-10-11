@@ -5,8 +5,9 @@ from apps.workflows.models import Check, State, Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from osidb.dmodels import FlawSource, Impact
 from osidb.dmodels.affect import Affect
+from osidb.dmodels.flaw.reference import FlawReference
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw, FlawReference
+from osidb.models import Flaw
 from osidb.tests.factories import (
     AffectFactory,
     FlawCVSSFactory,

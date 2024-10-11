@@ -20,8 +20,8 @@ from collectors.keywords import should_create_snippet
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
 from osidb.dmodels.flaw.cvss import FlawCVSS
+from osidb.dmodels.flaw.reference import FlawReference
 from osidb.dmodels.snippet import Snippet
-from osidb.models import FlawReference
 
 logger = get_task_logger(__name__)
 
