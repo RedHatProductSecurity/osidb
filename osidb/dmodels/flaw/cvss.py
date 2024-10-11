@@ -3,8 +3,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
 from osidb.dmodels.abstract import CVSS
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.mixins import ACLMixinManager, TrackingMixin, TrackingMixinManager
-from osidb.models import Flaw
 
 
 class FlawCVSSManager(ACLMixinManager, TrackingMixinManager):

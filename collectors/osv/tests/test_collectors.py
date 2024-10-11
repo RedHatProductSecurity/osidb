@@ -6,8 +6,8 @@ from jira.exceptions import JIRAError
 
 from apps.taskman.service import JiraTaskmanQuerier
 from collectors.osv.collectors import OSVCollector, OSVCollectorException
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.dmodels.snippet import Snippet
-from osidb.models import Flaw
 from osidb.tests.factories import FlawFactory
 
 pytestmark = pytest.mark.integration

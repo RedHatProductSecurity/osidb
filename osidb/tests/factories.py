@@ -26,11 +26,11 @@ from osidb.dmodels.erratum import Erratum
 from osidb.dmodels.flaw.acknowledgment import FlawAcknowledgment
 from osidb.dmodels.flaw.comment import FlawComment
 from osidb.dmodels.flaw.cvss import FlawCVSS
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.dmodels.flaw.reference import FlawReference
 from osidb.dmodels.package_versions import Package, PackageVer
 from osidb.dmodels.snippet import Snippet
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw
 
 DATA_PRODSEC_ACL_READ = uuid.uuid5(
     uuid.NAMESPACE_URL,

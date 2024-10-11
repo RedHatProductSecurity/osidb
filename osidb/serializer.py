@@ -29,6 +29,7 @@ from osidb.dmodels.erratum import Erratum
 from osidb.dmodels.flaw.acknowledgment import FlawAcknowledgment
 from osidb.dmodels.flaw.comment import FlawComment
 from osidb.dmodels.flaw.cvss import FlawCVSS
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.dmodels.flaw.reference import FlawReference
 from osidb.dmodels.package_versions import Package, PackageVer
 from osidb.dmodels.ps_update_stream import PsUpdateStream
@@ -38,7 +39,6 @@ from .core import generate_acls
 from .exceptions import DataInconsistencyException
 from .helpers import differ, ensure_list
 from .mixins import ACLMixin, Alert, AlertMixin, TrackingMixin
-from .models import Flaw
 
 logger = logging.getLogger(__name__)
 

@@ -565,7 +565,7 @@ class ACLMixin(models.Model):
         The only exception is "snippets", which should always have internal ACLs.
         The Flaw itself will be saved later to avoid duplicate operations.
         """
-        from osidb.models import Flaw
+        from osidb.dmodels.flaw.flaw import Flaw
 
         if not isinstance(self, Flaw):
             if not self.is_internal:

@@ -17,8 +17,8 @@ from collectors.bzimport.constants import BZ_DT_FMT
 from collectors.jiraffe.collectors import JiraTrackerCollector
 from osidb.dmodels import Impact
 from osidb.dmodels.affect import Affect
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw
 from osidb.sync_manager import BZTrackerLinkManager, JiraTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,

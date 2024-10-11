@@ -4,6 +4,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -11,7 +12,6 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
-from osidb.models import Flaw
 
 
 class FlawReferenceManager(ACLMixinManager, TrackingMixinManager):

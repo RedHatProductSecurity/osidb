@@ -4,8 +4,8 @@ from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 
 from apps.bbsync.mixins import BugzillaSyncMixin
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.mixins import ACLMixin, AlertMixin, TrackingMixin
-from osidb.models import Flaw
 
 
 class FlawComment(

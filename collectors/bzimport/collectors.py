@@ -18,7 +18,7 @@ from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.convertors import BugzillaTrackerConvertor, FlawConvertor
 from collectors.framework.models import Collector
 from osidb.dmodels import PsModule
-from osidb.models import Flaw
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.sync_manager import (
     BZTrackerDownloadManager,
     BZTrackerLinkManager,

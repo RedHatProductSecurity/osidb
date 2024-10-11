@@ -7,8 +7,8 @@ from django.utils import timezone
 from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
 from osidb.dmodels import Impact, PsModule
 from osidb.dmodels.flaw.comment import FlawComment
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.helpers import cve_id_comparator, filter_cves
-from osidb.models import Flaw
 
 from .cc import CCBuilder
 from .constants import DATE_FMT

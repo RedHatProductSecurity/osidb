@@ -14,10 +14,10 @@ from osidb.dmodels import FlawSource
 from osidb.dmodels.affect import Affect
 from osidb.dmodels.flaw.comment import FlawComment
 from osidb.dmodels.flaw.cvss import FlawCVSS
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.dmodels.flaw.reference import FlawReference
 from osidb.dmodels.tracker import Tracker
 from osidb.filters import FlawFilter
-from osidb.models import Flaw
 from osidb.tests.factories import (
     AffectFactory,
     FlawAcknowledgmentFactory,

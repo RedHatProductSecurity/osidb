@@ -10,11 +10,10 @@ from apps.workflows.serializers import WorkflowSerializer
 from apps.workflows.urls import urlpatterns
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.osv.collectors import OSVCollector
-from osidb import models
 from osidb.core import set_user_acls
 from osidb.dmodels.affect import Affect
+from osidb.dmodels.flaw.flaw import Flaw
 from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -232,9 +231,9 @@ class TestEndpoints(object):
         self, monkeypatch, auth_client, test_api_uri_osidb, user_token
     ):
         """test flaw state promotion after data change"""
-        import osidb.models as models
+        import osidb.dmodels.flaw.flaw as flaw_module
 
-        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
 
         def mock_create_or_update_task(self, flaw):
             return Response(
@@ -464,7 +463,9 @@ class TestFlawDraft:
         """
         test that ACLs are set to public when promoting a flaw draft
         """
-        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        import osidb.dmodels.flaw.flaw as flaw_module
+
+        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", self.mock_create_task
         )
@@ -546,7 +547,9 @@ class TestFlawDraft:
         """
         test that ACLs are still set to internal when rejecting a flaw draft
         """
-        monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        import osidb.dmodels.flaw.flaw as flaw_module
+
+        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", self.mock_create_task
         )

@@ -8,7 +8,7 @@ from django.utils.timezone import make_aware
 
 from osidb.dmodels import FlawSource, Impact
 from osidb.dmodels.affect import Affect
-from osidb.models import Flaw
+from osidb.dmodels.flaw.flaw import Flaw
 
 
 class AffectFixer:

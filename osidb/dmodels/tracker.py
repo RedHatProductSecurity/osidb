@@ -279,7 +279,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         """
         Check whether an public tracker is associated with an embargoed flaw.
         """
-        from osidb.models import Flaw
+        from osidb.dmodels.flaw.flaw import Flaw
 
         if (
             not self.is_embargoed
