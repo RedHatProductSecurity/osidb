@@ -4,11 +4,10 @@ import pytest
 
 from apps.workflows.models import Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
-from osidb.models import Impact
+from osidb.models import Impact, Snippet
 from osidb.models.flaw.cvss import FlawCVSS
 from osidb.models.flaw.flaw import Flaw
 from osidb.models.flaw.reference import FlawReference
-from osidb.models.snippet import Snippet
 from osidb.tests.factories import FlawFactory, SnippetFactory
 
 pytestmark = pytest.mark.unit
