@@ -12,7 +12,7 @@ def description_notaffected_open_tracker(tracker):
     affect = tracker.affects.filter(
         affectedness="NOTAFFECTED"
     ).first()
-    if not tracker.is_closed and affect:
+    if not tracker.status.upper() == "CLOSED" and affect:
         return (
             "The tracker is associated with a NOTAFFECTED affect: "
             f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
@@ -21,7 +21,7 @@ def description_notaffected_open_tracker(tracker):
 
 def description_ooss_open_tracker(tracker):
     affect = tracker.affects.filter(resolution="OOSS").first()
-    if not tracker.is_closed and affect:
+    if not tracker.status.upper() == "CLOSED" and affect:
         return (
             "The tracker is associated with an OOSS affect: "
             f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
@@ -30,7 +30,7 @@ def description_ooss_open_tracker(tracker):
 
 def description_wontfix_open_tracker(tracker):
     affect = tracker.affects.filter(resolution="WONTFIX").first()
-    if not tracker.is_closed and affect:
+    if not tracker.status.upper() == "CLOSED" and affect:
         return (
             "The tracker is associated with a WONTFIX affect: "
             f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
@@ -39,7 +39,7 @@ def description_wontfix_open_tracker(tracker):
 
 def description_defer_open_tracker(tracker):
     affect = tracker.affects.filter(resolution="DEFER").first()
-    if not tracker.is_closed and affect:
+    if not tracker.status.upper() == "CLOSED" and affect:
         return (
             "The tracker is associated with a DEFER affect: "
             f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
@@ -78,7 +78,6 @@ def forwards_func(apps, schema_editor):
 
     alerts_queryset = (
         Alert.objects.filter(name__in=names, content_type=tracker_type)
-        .prefetch_related("content_object", "content_object__affects")
     )
 
     for start in range(0, alerts_queryset.count(), batch_size):
@@ -86,16 +85,17 @@ def forwards_func(apps, schema_editor):
         batch = []
         for alert in alerts_batch:
             description = ""
+            tracker = Tracker.objects.get(uuid=alert.object_id)
             if alert.name == "_validate_notaffected_open_tracker":
-                description = description_notaffected_open_tracker(alert.content_object)
+                description = description_notaffected_open_tracker(tracker)
             elif alert.name == "_validate_ooss_open_tracker":
-                description = description_ooss_open_tracker(alert.content_object)
+                description = description_ooss_open_tracker(tracker)
             elif alert.name == "_validate_wontfix_open_tracker":
-                description = description_wontfix_open_tracker(alert.content_object)
+                description = description_wontfix_open_tracker(tracker)
             elif alert.name == "_validate_defer_open_tracker":
-                description = description_defer_open_tracker(alert.content_object)
+                description = description_defer_open_tracker(tracker)
             elif alert.name == "_validate_tracker_duplicate":
-                description = description_tracker_duplicate(alert.content_object)
+                description = description_tracker_duplicate(tracker)
 
             if description:
                 alert.description = description
