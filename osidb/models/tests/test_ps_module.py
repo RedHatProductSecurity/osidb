@@ -2,7 +2,7 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from osidb.dmodels import PsModule
+from osidb.models import PsModule
 
 
 class TestPsModule:

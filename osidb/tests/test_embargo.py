@@ -2,7 +2,7 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from osidb.dmodels.flaw.flaw import Flaw
+from osidb.models.flaw.flaw import Flaw
 
 from .factories import FlawFactory
 

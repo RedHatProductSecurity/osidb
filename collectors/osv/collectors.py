@@ -17,9 +17,9 @@ from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_STAR
 from collectors.framework.models import Collector
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
-from osidb.dmodels.flaw.cvss import FlawCVSS
-from osidb.dmodels.flaw.reference import FlawReference
-from osidb.dmodels.snippet import Snippet
+from osidb.models.flaw.cvss import FlawCVSS
+from osidb.models.flaw.reference import FlawReference
+from osidb.models.snippet import Snippet
 from osidb.validators import CVE_RE_STR
 
 logger = get_task_logger(__name__)

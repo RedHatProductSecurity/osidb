@@ -10,8 +10,8 @@ def enable_db_access_for_all_tests(db):
 def enable_env_vars(monkeypatch) -> None:
     import apps.bbsync.mixins as bbsync_mixins
     import apps.taskman.mixins as taskman_mixins
-    import osidb.dmodels.flaw.flaw as flaw_module
-    import osidb.dmodels.tracker as tracker
+    import osidb.models.flaw.flaw as flaw_module
+    import osidb.models.tracker as tracker
     from collectors.osv import collectors
 
     monkeypatch.setattr(bbsync_mixins, "SYNC_TO_BZ", True)

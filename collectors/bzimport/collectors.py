@@ -17,8 +17,8 @@ from django.utils import timezone
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.convertors import BugzillaTrackerConvertor, FlawConvertor
 from collectors.framework.models import Collector
-from osidb.dmodels import PsModule
-from osidb.dmodels.flaw.flaw import Flaw
+from osidb.models import PsModule
+from osidb.models.flaw.flaw import Flaw
 from osidb.sync_manager import (
     BZTrackerDownloadManager,
     BZTrackerLinkManager,

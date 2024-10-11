@@ -11,7 +11,6 @@ from psqlextra.fields import HStoreField
 from apps.bbsync.constants import SYNC_TRACKERS_TO_BZ
 from apps.trackers.constants import SYNC_TO_JIRA
 from apps.trackers.models import JiraBugIssuetype
-from osidb.dmodels.affect import Affect
 from osidb.mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -20,6 +19,7 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
+from osidb.models.affect import Affect
 from osidb.sync_manager import (
     BZTrackerDownloadManager,
     BZTrackerLinkManager,
@@ -279,7 +279,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         """
         Check whether an public tracker is associated with an embargoed flaw.
         """
-        from osidb.dmodels.flaw.flaw import Flaw
+        from osidb.models.flaw.flaw import Flaw
 
         if (
             not self.is_embargoed

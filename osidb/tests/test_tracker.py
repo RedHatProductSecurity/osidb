@@ -7,8 +7,8 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
-from osidb.dmodels.affect import Affect
-from osidb.dmodels.tracker import Tracker
+from osidb.models.affect import Affect
+from osidb.models.tracker import Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,

@@ -8,7 +8,7 @@ from freezegun import freeze_time
 from jira.exceptions import JIRAError
 
 import collectors.jiraffe.collectors as collectors
-import osidb.dmodels.flaw.flaw as flaw_module
+import osidb.models.flaw.flaw as flaw_module
 from apps.taskman.constants import JIRA_AUTH_TOKEN
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
@@ -24,10 +24,10 @@ from collectors.jiraffe.core import JiraQuerier
 from collectors.jiraffe.exceptions import (
     MetadataCollectorInsufficientDataJiraffeException,
 )
-from osidb.dmodels import Impact
-from osidb.dmodels.affect import Affect
-from osidb.dmodels.flaw.flaw import Flaw
-from osidb.dmodels.tracker import Tracker
+from osidb.models import Impact
+from osidb.models.affect import Affect
+from osidb.models.flaw.flaw import Flaw
+from osidb.models.tracker import Tracker
 from osidb.sync_manager import JiraTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,

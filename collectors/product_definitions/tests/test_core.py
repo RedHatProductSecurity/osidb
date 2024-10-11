@@ -3,8 +3,8 @@ from typing import Type
 import pytest
 from django.db import models
 
-from osidb.dmodels import PsContact, PsModule, PsProduct, PsUpdateStream
 from osidb.helpers import get_model_fields
+from osidb.models import PsContact, PsModule, PsProduct, PsUpdateStream
 
 from ..constants import PROPERTIES_MAP
 from ..core import (

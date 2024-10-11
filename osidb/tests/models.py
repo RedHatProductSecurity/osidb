@@ -2,8 +2,8 @@ import uuid
 
 from django.db import models
 
-from osidb.dmodels import ComparableTextChoices
 from osidb.mixins import AlertMixin
+from osidb.models import ComparableTextChoices
 
 
 class AlertableModelBasic(AlertMixin):

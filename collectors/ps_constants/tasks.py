@@ -7,7 +7,7 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 from collectors.framework.models import collector
-from osidb.dmodels import SpecialConsiderationPackage, UbiPackage
+from osidb.models import SpecialConsiderationPackage, UbiPackage
 
 from .constants import PS_CONSTANTS_REPO_BRANCH, PS_CONSTANTS_REPO_URL
 from .core import (

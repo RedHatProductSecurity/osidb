@@ -2,9 +2,9 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
-from osidb.dmodels.abstract import CVSS
-from osidb.dmodels.flaw.flaw import Flaw
 from osidb.mixins import ACLMixinManager, TrackingMixin, TrackingMixinManager
+from osidb.models.abstract import CVSS
+from osidb.models.flaw.flaw import Flaw
 
 
 class FlawCVSSManager(ACLMixinManager, TrackingMixinManager):

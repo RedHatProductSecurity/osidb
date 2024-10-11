@@ -1,6 +1,6 @@
-from osidb.dmodels import Impact, PsModule, UbiPackage
-from osidb.dmodels.affect import Affect
 from osidb.helpers import ps_update_stream_natural_keys
+from osidb.models import Impact, PsModule, UbiPackage
+from osidb.models.affect import Affect
 
 from .base import ProductDefinitionHandler
 

@@ -6,7 +6,6 @@ from django.db import models
 from polymorphic.models import PolymorphicModel
 
 from apps.bbsync.mixins import BugzillaSyncMixin
-from osidb.dmodels.flaw.flaw import Flaw
 from osidb.mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -14,6 +13,7 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
+from osidb.models.flaw.flaw import Flaw
 
 
 class VersionStatus(models.TextChoices):
