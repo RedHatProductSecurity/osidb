@@ -1,7 +1,7 @@
 import pytest
 
 from collectors.utils import handle_urls, tracker_parse_update_stream_component
-from osidb.models.flaw.reference import FlawReference
+from osidb.models import FlawReference
 
 pytestmark = pytest.mark.unit
 

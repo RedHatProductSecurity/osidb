@@ -17,12 +17,18 @@ from collectors.jiraffe.convertors import TrackerConvertor
 from osidb.core import generate_acls, set_user_acls
 from osidb.helpers import filter_cves
 from osidb.mixins import AlertMixin, TrackingMixin
-from osidb.models import Affect, Flaw, Package, PackageVer, Tracker
-from osidb.models.affect import AffectCVSS
-from osidb.models.flaw.acknowledgment import FlawAcknowledgment
-from osidb.models.flaw.comment import FlawComment
-from osidb.models.flaw.cvss import FlawCVSS
-from osidb.models.flaw.reference import FlawReference
+from osidb.models import (
+    Affect,
+    AffectCVSS,
+    Flaw,
+    FlawAcknowledgment,
+    FlawComment,
+    FlawCVSS,
+    FlawReference,
+    Package,
+    PackageVer,
+    Tracker,
+)
 
 from ..utils import (
     tracker_parse_update_stream_component,

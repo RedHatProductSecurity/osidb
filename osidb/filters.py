@@ -27,12 +27,17 @@ from djangoql.queryset import apply_search
 from djangoql.schema import DjangoQLSchema, StrField
 
 from apps.workflows.workflow import WorkflowModel
-from osidb.models import Affect, Flaw, Package, Tracker
-from osidb.models.affect import AffectCVSS
-from osidb.models.flaw.acknowledgment import FlawAcknowledgment
-from osidb.models.flaw.comment import FlawComment
-from osidb.models.flaw.cvss import FlawCVSS
-from osidb.models.flaw.reference import FlawReference
+from osidb.models import (
+    Affect,
+    AffectCVSS,
+    Flaw,
+    FlawAcknowledgment,
+    FlawComment,
+    FlawCVSS,
+    FlawReference,
+    Package,
+    Tracker,
+)
 
 from .mixins import Alert
 

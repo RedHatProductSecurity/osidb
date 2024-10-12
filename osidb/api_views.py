@@ -28,8 +28,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ViewSet, ViewSetMixin
 
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
-from osidb.models import Affect, Flaw, Tracker
-from osidb.models.affect import AffectCVSS
+from osidb.models import Affect, AffectCVSS, Flaw, Tracker
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import (
