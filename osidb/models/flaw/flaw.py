@@ -685,11 +685,11 @@ class Flaw(
         """
         Check if flaw have at least one affect
         """
+        from osidb.models import Affect
+
         # Skip validation at creation allowing to draft a Flaw
         if self._state.adding:
             return
-
-        from osidb.models.affect import Affect  # TODO
 
         if not Affect.objects.filter(flaw=self).exists():
             err = ValidationError("Flaw does not contain any affects.")
@@ -723,7 +723,7 @@ class Flaw(
         Check that an update of a flaw with open trackers does not change between
         Critical/Important/Major Incident and Moderate/Low and vice-versa.
         """
-        from osidb.models.tracker import Tracker
+        from osidb.models import Tracker
 
         if self._state.adding:
             return
@@ -897,7 +897,7 @@ class Flaw(
     @property
     def affects_notaffected(self):
         """check that all affects are in NOTAFFECTED state"""
-        from osidb.models.affect import Affect  # TODO
+        from osidb.models import Affect
 
         return not self.affects.exclude(
             affectedness=Affect.AffectAffectedness.NOTAFFECTED
@@ -906,7 +906,7 @@ class Flaw(
     @property
     def affects_resolved(self):
         """check that all affects have resolution"""
-        from osidb.models.affect import Affect  # TODO
+        from osidb.models import Affect
 
         return not self.affects.filter(
             resolution=Affect.AffectResolution.NOVALUE
@@ -919,7 +919,7 @@ class Flaw(
         NEW:NOVALUE or AFFECTED:DELEGATED
         have associated trackers filed
         """
-        from osidb.models.affect import Affect  # TODO
+        from osidb.models import Affect
 
         return all(
             affect.trackers.exists()

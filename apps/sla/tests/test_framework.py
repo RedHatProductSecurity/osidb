@@ -3,10 +3,7 @@ import yaml
 from django.utils.timezone import datetime, make_aware, timedelta
 
 from apps.sla.framework import SLAContext, SLAPolicy, sla_classify
-from osidb.models import Impact, PsUpdateStream
-from osidb.models.affect import Affect
-from osidb.models.flaw.flaw import Flaw
-from osidb.models.tracker import Tracker
+from osidb.models import Affect, Flaw, Impact, PsUpdateStream, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,

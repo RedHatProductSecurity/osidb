@@ -3,11 +3,8 @@ import pytest
 from apps.workflows.exceptions import LastStateException, MissingRequirementsException
 from apps.workflows.models import Check, State, Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
-from osidb.models import FlawSource, Impact
-from osidb.models.affect import Affect
-from osidb.models.flaw.flaw import Flaw
+from osidb.models import Affect, Flaw, FlawSource, Impact, Tracker
 from osidb.models.flaw.reference import FlawReference
-from osidb.models.tracker import Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawCVSSFactory,

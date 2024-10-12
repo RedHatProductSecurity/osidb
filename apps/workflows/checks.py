@@ -19,7 +19,7 @@ class CheckParser:
         default using Flaw as model class
         """
         # import here to prevent cycle
-        from osidb.models.flaw.flaw import Flaw
+        from osidb.models import Flaw
 
         self.model = Flaw if cls is None else cls
         assert issubclass(self.model, models.Model)

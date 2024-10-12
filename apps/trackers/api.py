@@ -6,8 +6,7 @@ from rest_framework.views import APIView
 
 from osidb.api_views import RudimentaryUserPathLoggingMixin
 from osidb.mixins import ACLMixin
-from osidb.models import PsModule
-from osidb.models.affect import Affect
+from osidb.models import Affect, PsModule
 
 from .product_definition_handlers.base import ProductDefinitionRules
 from .serializer import FlawUUIDListSerializer, TrackerSuggestionSerializer

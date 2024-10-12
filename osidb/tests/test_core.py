@@ -9,8 +9,7 @@ from osidb.api_views import get_valid_http_methods
 from osidb.core import set_user_acls
 from osidb.exceptions import OSIDBException
 from osidb.mixins import Alert
-from osidb.models import PsContact
-from osidb.models.flaw.flaw import Flaw
+from osidb.models import Flaw, PsContact
 from osidb.models.flaw.reference import FlawReference
 from osidb.tests.factories import AffectFactory, FlawFactory, FlawReferenceFactory
 from osidb.tests.models import (

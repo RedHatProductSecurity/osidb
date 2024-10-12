@@ -14,7 +14,7 @@ from .exceptions import APIError
 def get_flaw_or_404(pk):
     """get flaw instance or raise HTTP 404 error"""
     # import here to prevent cycle
-    from osidb.models.flaw.flaw import Flaw
+    from osidb.models import Flaw
 
     try:
         if re.match(CVE_RE_STR, pk):

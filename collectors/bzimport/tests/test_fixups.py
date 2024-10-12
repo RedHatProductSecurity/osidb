@@ -1,7 +1,7 @@
 import pytest
 
 from collectors.bzimport.fixups import AffectFixer, FlawFixer
-from osidb.models.flaw.flaw import Flaw
+from osidb.models import Flaw
 
 pytestmark = pytest.mark.unit
 

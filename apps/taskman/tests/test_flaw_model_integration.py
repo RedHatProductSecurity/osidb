@@ -10,8 +10,7 @@ import osidb.models.flaw.flaw as flaw_module
 import osidb.serializer as serializer
 from apps.taskman.exceptions import TaskWritePermissionsException
 from apps.taskman.service import JiraTaskmanQuerier
-from osidb.models import FlawSource, Impact
-from osidb.models.flaw.flaw import Flaw
+from osidb.models import Flaw, FlawSource, Impact
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit

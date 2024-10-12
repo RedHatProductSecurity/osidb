@@ -5,7 +5,8 @@ from django.db import models
 
 from apps.bbsync.mixins import BugzillaSyncMixin
 from osidb.mixins import ACLMixin, AlertMixin, TrackingMixin
-from osidb.models.flaw.flaw import Flaw
+
+from .flaw import Flaw
 
 
 class FlawComment(

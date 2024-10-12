@@ -22,10 +22,15 @@ from collectors.bzimport.convertors import FlawConvertor
 from osidb.core import generate_acls
 from osidb.exceptions import DataInconsistencyException
 from osidb.mixins import AlertMixin
-from osidb.models import FlawSource, Impact, PsModule, PsUpdateStream
-from osidb.models.affect import Affect
-from osidb.models.flaw.flaw import Flaw
-from osidb.models.tracker import Tracker
+from osidb.models import (
+    Affect,
+    Flaw,
+    FlawSource,
+    Impact,
+    PsModule,
+    PsUpdateStream,
+    Tracker,
+)
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
