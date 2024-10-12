@@ -3,10 +3,7 @@ from django.utils.timezone import datetime, make_aware, timedelta
 
 from apps.sla.models import SLA, SLAContext, SLAPolicy
 from apps.sla.time import add_business_days, add_days
-from osidb.models import Impact
-from osidb.models.affect import Affect
-from osidb.models.flaw.flaw import Flaw
-from osidb.models.tracker import Tracker
+from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,

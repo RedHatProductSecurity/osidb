@@ -2,9 +2,7 @@ import pytest
 from django.utils import timezone
 
 from collectors.framework.models import CollectorMetadata
-from osidb.models.affect import Affect
-from osidb.models.erratum import Erratum
-from osidb.models.tracker import Tracker
+from osidb.models import Affect, Erratum, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     ErratumFactory,

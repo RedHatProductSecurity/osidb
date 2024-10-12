@@ -11,9 +11,7 @@ from apps.workflows.urls import urlpatterns
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.osv.collectors import OSVCollector
 from osidb.core import set_user_acls
-from osidb.models.affect import Affect
-from osidb.models.flaw.flaw import Flaw
-from osidb.models.tracker import Tracker
+from osidb.models import Affect, Flaw, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,

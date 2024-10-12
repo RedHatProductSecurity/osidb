@@ -6,8 +6,7 @@ from celery.schedules import crontab
 from celery.utils.log import get_task_logger
 
 from collectors.framework.models import collector
-from osidb.models.flaw.flaw import Flaw
-from osidb.models.tracker import Tracker
+from osidb.models import Flaw, Tracker
 
 from .collectors import JiraTaskCollector, JiraTrackerCollector, MetadataCollector
 from .constants import (

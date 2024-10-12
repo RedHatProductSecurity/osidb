@@ -21,11 +21,12 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
-from osidb.models.abstract import CVSS, Impact
-from osidb.models.flaw.flaw import Flaw
-from osidb.models.ps_constants import SpecialConsiderationPackage
-from osidb.models.ps_module import PsModule
-from osidb.models.ps_update_stream import PsUpdateStream
+
+from .abstract import CVSS, Impact
+from .flaw.flaw import Flaw
+from .ps_constants import SpecialConsiderationPackage
+from .ps_module import PsModule
+from .ps_update_stream import PsUpdateStream
 
 logger = logging.getLogger(__name__)
 

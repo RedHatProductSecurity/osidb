@@ -4,7 +4,8 @@ from django.db import models
 
 from osidb.mixins import ACLMixinManager, TrackingMixin, TrackingMixinManager
 from osidb.models.abstract import CVSS
-from osidb.models.flaw.flaw import Flaw
+
+from .flaw import Flaw
 
 
 class FlawCVSSManager(ACLMixinManager, TrackingMixinManager):

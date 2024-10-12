@@ -23,17 +23,23 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FIELDS
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.serializers import WorkflowModelSerializer
-from osidb.models import CVSS, Impact, Profile
-from osidb.models.affect import Affect, AffectCVSS
-from osidb.models.erratum import Erratum
+from osidb.models import (
+    CVSS,
+    Affect,
+    Erratum,
+    Flaw,
+    Impact,
+    Package,
+    PackageVer,
+    Profile,
+    PsUpdateStream,
+    Tracker,
+)
+from osidb.models.affect import AffectCVSS
 from osidb.models.flaw.acknowledgment import FlawAcknowledgment
 from osidb.models.flaw.comment import FlawComment
 from osidb.models.flaw.cvss import FlawCVSS
-from osidb.models.flaw.flaw import Flaw
 from osidb.models.flaw.reference import FlawReference
-from osidb.models.package_versions import Package, PackageVer
-from osidb.models.ps_update_stream import PsUpdateStream
-from osidb.models.tracker import Tracker
 
 from .core import generate_acls
 from .exceptions import DataInconsistencyException

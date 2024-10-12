@@ -11,7 +11,8 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
-from osidb.models.flaw.flaw import Flaw
+
+from .flaw import Flaw
 
 
 class FlawReferenceManager(ACLMixinManager, TrackingMixinManager):

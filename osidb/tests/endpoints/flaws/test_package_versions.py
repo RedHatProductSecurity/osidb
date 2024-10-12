@@ -1,7 +1,7 @@
 import pytest
 from rest_framework import status
 
-from osidb.models.package_versions import Package, PackageVer
+from osidb.models import Package, PackageVer
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,

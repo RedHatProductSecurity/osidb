@@ -12,8 +12,9 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
-from osidb.models.flaw.flaw import Flaw
-from osidb.models.flaw.source import FlawSource
+
+from .flaw import Flaw
+from .source import FlawSource
 
 
 class FlawAcknowledgmentManager(ACLMixinManager, TrackingMixinManager):

@@ -13,7 +13,8 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
-from osidb.models.flaw.flaw import Flaw
+
+from .flaw.flaw import Flaw
 
 
 class VersionStatus(models.TextChoices):

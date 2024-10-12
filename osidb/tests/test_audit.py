@@ -6,9 +6,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from osidb.core import set_user_acls
-from osidb.models import FlawSource, Impact
-from osidb.models.affect import Affect
-from osidb.models.flaw.flaw import Flaw
+from osidb.models import Affect, Flaw, FlawSource, Impact
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit

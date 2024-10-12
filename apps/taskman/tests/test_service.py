@@ -9,7 +9,7 @@ import pytest
 
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.workflow import WorkflowModel
-from osidb.models.flaw.flaw import Flaw
+from osidb.models import Flaw
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit

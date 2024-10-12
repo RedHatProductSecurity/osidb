@@ -13,24 +13,26 @@ from osidb.constants import DATETIME_FMT
 from osidb.core import generate_acls
 from osidb.models import (
     CVSS,
+    Affect,
+    Erratum,
+    Flaw,
     FlawSource,
     Impact,
+    Package,
+    PackageVer,
     PsContact,
     PsModule,
     PsProduct,
     PsUpdateStream,
     Snippet,
     SpecialConsiderationPackage,
+    Tracker,
 )
-from osidb.models.affect import AFFECTEDNESS_VALID_RESOLUTIONS, Affect, AffectCVSS
-from osidb.models.erratum import Erratum
+from osidb.models.affect import AFFECTEDNESS_VALID_RESOLUTIONS, AffectCVSS
 from osidb.models.flaw.acknowledgment import FlawAcknowledgment
 from osidb.models.flaw.comment import FlawComment
 from osidb.models.flaw.cvss import FlawCVSS
-from osidb.models.flaw.flaw import Flaw
 from osidb.models.flaw.reference import FlawReference
-from osidb.models.package_versions import Package, PackageVer
-from osidb.models.tracker import Tracker
 
 DATA_PRODSEC_ACL_READ = uuid.uuid5(
     uuid.NAMESPACE_URL,

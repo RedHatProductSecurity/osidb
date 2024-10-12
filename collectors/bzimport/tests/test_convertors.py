@@ -5,15 +5,12 @@ from django.utils import timezone
 
 from collectors.bzimport.constants import BZ_DT_FMT
 from collectors.bzimport.convertors import FlawConvertor, FlawSaver
-from osidb.models import Impact
-from osidb.models.affect import Affect, AffectCVSS
+from osidb.models import Affect, Flaw, Impact, Package, PackageVer, Tracker
+from osidb.models.affect import AffectCVSS
 from osidb.models.flaw.acknowledgment import FlawAcknowledgment
 from osidb.models.flaw.comment import FlawComment
 from osidb.models.flaw.cvss import FlawCVSS
-from osidb.models.flaw.flaw import Flaw
 from osidb.models.flaw.reference import FlawReference
-from osidb.models.package_versions import Package, PackageVer
-from osidb.models.tracker import Tracker
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,

@@ -278,7 +278,7 @@ SPECTACULAR_SETTINGS = {
     ],
     "ENUM_NAME_OVERRIDES": {
         "FlawReferenceType": "osidb.models.flaw.reference.FlawReference.FlawReferenceType",
-        "TrackerType": "osidb.models.tracker.Tracker.TrackerType",
+        "TrackerType": "osidb.models.Tracker.TrackerType",
     },
     "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
 }

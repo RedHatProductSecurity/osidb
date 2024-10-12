@@ -14,9 +14,7 @@ from typing import List, Optional, Tuple
 from apps.bbsync.constants import USER_BLACKLIST
 from apps.bbsync.exceptions import ProductDataError
 from apps.bbsync.models import BugzillaComponent
-from osidb.models import PsContact, PsModule, PsUpdateStream
-from osidb.models.affect import Affect
-from osidb.models.flaw.flaw import Flaw
+from osidb.models import Affect, Flaw, PsContact, PsModule, PsUpdateStream
 
 logger = logging.getLogger(__name__)
 

@@ -6,8 +6,7 @@ from jira.exceptions import JIRAError
 
 from apps.taskman.service import JiraTaskmanQuerier
 from collectors.cveorg.collectors import CVEorgCollector, CVEorgCollectorException
-from osidb.models import Snippet
-from osidb.models.flaw.flaw import Flaw
+from osidb.models import Flaw, Snippet
 from osidb.tests.factories import FlawFactory
 
 pytestmark = pytest.mark.integration

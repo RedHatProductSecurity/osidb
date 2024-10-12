@@ -6,7 +6,7 @@ from django.utils.timezone import make_aware
 from collectors.bzimport.collectors import BugzillaQuerier, FlawCollector
 from osidb.constants import DATETIME_FMT
 from osidb.exceptions import DataInconsistencyException
-from osidb.models.flaw.flaw import Flaw
+from osidb.models import Flaw
 
 from .constants import SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY
 from .exceptions import UnsaveableFlawError
