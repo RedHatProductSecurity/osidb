@@ -8,8 +8,7 @@ from nvdlib.classes import CVE
 
 from collectors.framework.models import Collector
 from osidb.core import set_user_acls
-from osidb.models import Flaw
-from osidb.models.flaw.cvss import FlawCVSS
+from osidb.models import Flaw, FlawCVSS
 
 logger = get_task_logger(__name__)
 

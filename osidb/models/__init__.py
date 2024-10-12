@@ -10,10 +10,15 @@ from .snippet import Snippet
 
 __all__ = (
     "Affect",
+    "AffectCVSS",
     "ComparableTextChoices",
     "CVSS",
     "Erratum",
     "Flaw",
+    "FlawAcknowledgment",
+    "FlawComment",
+    "FlawCVSS",
+    "FlawReference",
     "FlawSource",
     "Impact",
     "Package",
@@ -29,8 +34,12 @@ __all__ = (
     "UbiPackage",
 )
 
-from .affect import Affect
+from .affect import Affect, AffectCVSS
 from .erratum import Erratum
+from .flaw.acknowledgment import FlawAcknowledgment
+from .flaw.comment import FlawComment
+from .flaw.cvss import FlawCVSS
 from .flaw.flaw import Flaw
+from .flaw.reference import FlawReference
 from .package_versions import Package, PackageVer
 from .tracker import Tracker

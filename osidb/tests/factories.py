@@ -14,8 +14,13 @@ from osidb.core import generate_acls
 from osidb.models import (
     CVSS,
     Affect,
+    AffectCVSS,
     Erratum,
     Flaw,
+    FlawAcknowledgment,
+    FlawComment,
+    FlawCVSS,
+    FlawReference,
     FlawSource,
     Impact,
     Package,
@@ -28,11 +33,7 @@ from osidb.models import (
     SpecialConsiderationPackage,
     Tracker,
 )
-from osidb.models.affect import AFFECTEDNESS_VALID_RESOLUTIONS, AffectCVSS
-from osidb.models.flaw.acknowledgment import FlawAcknowledgment
-from osidb.models.flaw.comment import FlawComment
-from osidb.models.flaw.cvss import FlawCVSS
-from osidb.models.flaw.reference import FlawReference
+from osidb.models.affect import AFFECTEDNESS_VALID_RESOLUTIONS
 
 DATA_PRODSEC_ACL_READ = uuid.uuid5(
     uuid.NAMESPACE_URL,

@@ -12,11 +12,17 @@ from apps.workflows.workflow import WorkflowModel
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 from osidb.constants import BZ_ID_SENTINEL
 from osidb.core import generate_acls
-from osidb.models import Affect, Flaw, FlawSource, Impact, Tracker
-from osidb.models.flaw.acknowledgment import FlawAcknowledgment
-from osidb.models.flaw.comment import FlawComment
-from osidb.models.flaw.cvss import FlawCVSS
-from osidb.models.flaw.reference import FlawReference
+from osidb.models import (
+    Affect,
+    Flaw,
+    FlawAcknowledgment,
+    FlawComment,
+    FlawCVSS,
+    FlawReference,
+    FlawSource,
+    Impact,
+    Tracker,
+)
 from osidb.tests.factories import (
     AffectFactory,
     FlawAcknowledgmentFactory,

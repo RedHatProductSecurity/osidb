@@ -3,8 +3,7 @@ from unittest.mock import patch
 import pytest
 from rest_framework import status
 
-from osidb.models import Affect, Tracker
-from osidb.models.affect import AffectCVSS
+from osidb.models import Affect, AffectCVSS, Tracker
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,

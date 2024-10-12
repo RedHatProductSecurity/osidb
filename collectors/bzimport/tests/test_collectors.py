@@ -7,8 +7,7 @@ from django.utils import timezone
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.collectors import BugzillaQuerier, MetadataCollector
 from collectors.bzimport.constants import BZ_DT_FMT
-from osidb.models import Affect, Flaw, Package, Tracker
-from osidb.models.flaw.comment import FlawComment
+from osidb.models import Affect, Flaw, FlawComment, Package, Tracker
 from osidb.sync_manager import BZTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,

@@ -26,8 +26,13 @@ from apps.workflows.serializers import WorkflowModelSerializer
 from osidb.models import (
     CVSS,
     Affect,
+    AffectCVSS,
     Erratum,
     Flaw,
+    FlawAcknowledgment,
+    FlawComment,
+    FlawCVSS,
+    FlawReference,
     Impact,
     Package,
     PackageVer,
@@ -35,11 +40,6 @@ from osidb.models import (
     PsUpdateStream,
     Tracker,
 )
-from osidb.models.affect import AffectCVSS
-from osidb.models.flaw.acknowledgment import FlawAcknowledgment
-from osidb.models.flaw.comment import FlawComment
-from osidb.models.flaw.cvss import FlawCVSS
-from osidb.models.flaw.reference import FlawReference
 
 from .core import generate_acls
 from .exceptions import DataInconsistencyException

@@ -8,9 +8,7 @@ from django.utils import timezone
 from jira import JIRA
 
 from osidb.helpers import get_env
-from osidb.models import Affect, Flaw, Impact, Profile, Tracker
-from osidb.models.affect import AffectCVSS
-from osidb.models.flaw.cvss import FlawCVSS
+from osidb.models import Affect, AffectCVSS, Flaw, FlawCVSS, Impact, Profile, Tracker
 
 logger = logging.getLogger(__name__)
 
