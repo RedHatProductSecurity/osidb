@@ -7,7 +7,8 @@ from django.db import models
 
 from collectors.bzimport.constants import BZ_API_KEY
 from osidb.mixins import ACLMixin, AlertMixin, TrackingMixin
-from osidb.models import Flaw
+
+from .flaw.flaw import Flaw
 
 
 class Snippet(ACLMixin, AlertMixin, TrackingMixin):

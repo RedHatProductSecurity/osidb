@@ -5,8 +5,7 @@ import pytest
 
 from collectors.jiraffe.convertors import JiraTrackerConvertor
 from collectors.jiraffe.core import JiraQuerier
-from osidb.dmodels.tracker import Tracker
-from osidb.models import Affect
+from osidb.models import Affect, Tracker
 from osidb.sync_manager import JiraTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,

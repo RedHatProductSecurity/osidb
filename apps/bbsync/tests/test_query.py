@@ -7,9 +7,7 @@ from django.utils import timezone
 from apps.bbsync.query import FlawBugzillaQueryBuilder
 from apps.workflows.workflow import WorkflowModel
 from osidb.core import generate_acls
-from osidb.dmodels.snippet import Snippet
-from osidb.dmodels.tracker import Tracker
-from osidb.models import Affect, Flaw, FlawComment, FlawSource
+from osidb.models import Affect, Flaw, FlawComment, FlawSource, Snippet, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawCommentFactory,

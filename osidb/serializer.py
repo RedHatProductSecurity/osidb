@@ -23,27 +23,28 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FIELDS
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.serializers import WorkflowModelSerializer
-from osidb.dmodels import Profile
-from osidb.dmodels.erratum import Erratum
-from osidb.dmodels.package_versions import Package, PackageVer
-
-from .core import generate_acls
-from .exceptions import DataInconsistencyException
-from .helpers import differ, ensure_list
-from .mixins import ACLMixin, Alert, AlertMixin, TrackingMixin
-from .models import (
+from osidb.models import (
     CVSS,
     Affect,
     AffectCVSS,
+    Erratum,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
     FlawCVSS,
     FlawReference,
     Impact,
+    Package,
+    PackageVer,
+    Profile,
     PsUpdateStream,
     Tracker,
 )
+
+from .core import generate_acls
+from .exceptions import DataInconsistencyException
+from .helpers import differ, ensure_list
+from .mixins import ACLMixin, Alert, AlertMixin, TrackingMixin
 
 logger = logging.getLogger(__name__)
 
@@ -937,7 +938,6 @@ class JiraTaskSyncMixinSerializer(JiraAPIKeyMixin, serializers.ModelSerializer):
 class AbstractCVSSSerializer(
     ACLMixinSerializer,
     AlertMixinSerializer,
-    BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
     TrackingMixinSerializer,
 ):
@@ -1230,7 +1230,6 @@ class FlawAffectsTrackersField(serializers.Field):
 class FlawAcknowledgmentSerializer(
     ACLMixinSerializer,
     AlertMixinSerializer,
-    BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
     TrackingMixinSerializer,
 ):
@@ -1436,7 +1435,6 @@ class FlawPackageVersionPostSerializer(FlawPackageVersionSerializer):
 class FlawReferenceSerializer(
     ACLMixinSerializer,
     AlertMixinSerializer,
-    BugzillaSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
     TrackingMixinSerializer,
 ):

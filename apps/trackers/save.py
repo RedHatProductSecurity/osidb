@@ -1,8 +1,7 @@
 """
 common tracker save funtionality
 """
-from osidb.dmodels.tracker import Tracker
-from osidb.models import Flaw
+from osidb.models import Flaw, Tracker
 
 from .bugzilla.save import TrackerBugzillaSaver
 from .exceptions import BTSException, UnsupportedTrackerError

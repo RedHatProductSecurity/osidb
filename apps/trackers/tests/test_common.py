@@ -5,8 +5,7 @@ import pytest
 from django.utils import timezone
 
 from apps.trackers.common import TrackerQueryBuilder
-from osidb.dmodels.tracker import Tracker
-from osidb.models import Affect, Flaw
+from osidb.models import Affect, Flaw, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,

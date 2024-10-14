@@ -19,7 +19,7 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
-from osidb.models import Affect, Flaw
+from osidb.models.affect import Affect
 from osidb.sync_manager import (
     BZTrackerDownloadManager,
     BZTrackerLinkManager,
@@ -279,6 +279,8 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         """
         Check whether an public tracker is associated with an embargoed flaw.
         """
+        from osidb.models.flaw.flaw import Flaw
+
         if (
             not self.is_embargoed
             and Flaw.objects.filter(affects__trackers=self, embargoed=True).exists()

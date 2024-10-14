@@ -10,8 +10,8 @@ from freezegun import freeze_time
 import apps.bbsync.mixins as bz_mixins
 import apps.bbsync.save as bz_save
 import apps.taskman.mixins as task_mixins
-import osidb.dmodels.tracker as tracker
-import osidb.models as models
+import osidb.models.flaw.flaw as flaw_module
+import osidb.models.tracker as tracker
 import osidb.serializer as serializer
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraBugIssuetype
@@ -46,14 +46,14 @@ pytestmark = pytest.mark.unit
 def enable_sync(monkeypatch):
     """Enables all sync to test integration between mixins"""
 
-    monkeypatch.setattr(task_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-    monkeypatch.setattr(models, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-    monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
     monkeypatch.setattr(bz_mixins, "SYNC_TO_BZ", True)
     monkeypatch.setattr(bz_save, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
-    monkeypatch.setattr(models, "SYNC_FLAWS_TO_BZ", True)
-    monkeypatch.setattr(tracker, "SYNC_TRACKERS_TO_BZ", True)
+    monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+    monkeypatch.setattr(flaw_module, "SYNC_FLAWS_TO_BZ", True)
+    monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+    monkeypatch.setattr(task_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
     monkeypatch.setattr(tracker, "SYNC_TO_JIRA", True)
+    monkeypatch.setattr(tracker, "SYNC_TRACKERS_TO_BZ", True)
 
 
 def get_acl_read():

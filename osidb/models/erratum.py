@@ -3,8 +3,9 @@ import uuid
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
-from osidb.dmodels.tracker import Tracker
 from osidb.mixins import TrackingMixin, TrackingMixinManager
+
+from .tracker import Tracker
 
 
 class ErratumManager(TrackingMixinManager):

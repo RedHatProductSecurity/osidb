@@ -7,10 +7,9 @@ from rest_framework.viewsets import ModelViewSet
 
 from osidb.api_views import get_valid_http_methods
 from osidb.core import set_user_acls
-from osidb.dmodels import PsContact
 from osidb.exceptions import OSIDBException
 from osidb.mixins import Alert
-from osidb.models import Flaw, FlawReference
+from osidb.models import Flaw, FlawReference, PsContact
 from osidb.tests.factories import AffectFactory, FlawFactory, FlawReferenceFactory
 from osidb.tests.models import (
     AlertableModel,
