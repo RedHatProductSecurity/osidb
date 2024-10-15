@@ -505,6 +505,29 @@ class TestAffectCCBuilder:
         assert add_cc == expected_cc
         assert not remove_cc
 
+    def test_private_tracker_cc(self):
+        """
+        test that PS module private tracker CCs are correctly added
+        """
+        flaw = FlawFactory(embargoed=True)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        private_tracker_cc = ["me@redhat.com", "you@redhat.com"]
+        PsModuleFactory(
+            name=affect.ps_module,
+            private_trackers_allowed=True,
+            private_tracker_cc=private_tracker_cc,
+        )
+
+        # no private tracker CC is expected for the flaw
+        assert not AffectCCBuilder(affect, flaw.embargoed, destination="flaw").cc
+        assert sorted(
+            AffectCCBuilder(affect, flaw.embargoed, destination="tracker").cc
+        ) == ["me@redhat.com", "you@redhat.com"]
+
     @pytest.mark.parametrize(
         "ps_component,component_overrides,component_cc",
         [
