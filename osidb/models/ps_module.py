@@ -92,6 +92,22 @@ class PsModule(NullStrFieldsMixin, ValidateMixin):
         return True
 
     @property
+    def is_prodsec_supported(self) -> bool:
+        """
+        check and return whether the PS module is supported now by ProdSec
+
+        which is different from the general support scope as ProdSec often
+        needs to support the security fixes even before the product is GA
+        """
+        # unsupported if no more supported
+        if self.supported_until_dt and self.supported_until_dt < timezone.now():
+            return False
+
+        # supported otherwise even if no dates specified
+        # as no support date means unrestricted support
+        return True
+
+    @property
     def y_streams(self):
         """Current Y-stream(s) - it can be more of them"""
 
