@@ -264,9 +264,11 @@ class TestTrackerSuggestions:
         """
         test that an unsupported PS module is resolved as not applicable
         """
-        # PS module is supported until tomorrow
+        # PS module is supported from tomorrow which should have no effect
+        # PS module is supported until the day after tomorrow so still supported
         ps_module = PsModuleFactory(
-            supported_until_dt=timezone.now() + timezone.timedelta(1)
+            supported_from_dt=timezone.now() + timezone.timedelta(1),
+            supported_until_dt=timezone.now() + timezone.timedelta(2),
         )
         PsUpdateStreamFactory(
             ps_module=ps_module,
@@ -294,8 +296,8 @@ class TestTrackerSuggestions:
         assert not res["not_applicable"]
         assert res["modules_components"]
 
-        # and now it is the day after tomorrow
-        with freeze_time(timezone.now() + timezone.timedelta(2)):
+        # and now it is the day after the support end
+        with freeze_time(timezone.now() + timezone.timedelta(3)):
             headers = {"HTTP_JiraAuthentication": "SECRET"}
             response = auth_client().post(
                 f"{test_app_api_uri}/file",
