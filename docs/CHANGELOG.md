@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Restrict tracker file offer by ProdSec support instead of general one (OSIDB-3559)
 
+### Fixed
+- Do not add private tracker CC to flaws (OSIDB-3558)
+
 ## [4.4.0] - 2024-10-11
 ### Added
 - Introduce moderate tracker streams pre-selection (OSIDB-3346)
