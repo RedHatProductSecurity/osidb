@@ -390,6 +390,29 @@ class TestGenerateGroups:
         assert "security" in remove
         assert bbq.meta_attr["groups"] == "[]"
 
+    def test_unprivate(self):
+        """
+        test making flaw private no more
+        removes groups in BZ query
+        """
+        flaw = FlawFactory(meta_attr={"groups": '["redhat"]', "bz_id": "1"})
+        flaw.set_internal()
+        flaw.save(raise_validation_error=False)
+
+        flaw = Flaw.objects.get(uuid=flaw.uuid)
+        assert flaw.is_internal
+
+        flaw.set_public()
+        # we are in the process of un-privating the flaw
+        assert not flaw.is_internal
+
+        bbq = FlawBugzillaQueryBuilder(flaw)
+        groups = bbq.query.get("groups", [])
+
+        assert not groups.get("add")
+        assert groups.get("remove") == ["redhat"]
+        assert bbq.meta_attr["groups"] == "[]"
+
     def test_affect_change(self):
         """
         test that affect change is properly reflected
