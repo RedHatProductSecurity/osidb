@@ -55,6 +55,10 @@ class FlawReference(AlertMixin, ACLMixin, TrackingMixin):
         SOURCE:
             A link from which we obtained information about a flaw.
             This should be used mostly when converting Snippet to Flaw.
+
+        UPSTREAM:
+            A more specific type of external link which refers to an upstream
+            source, mainly used for upstream fixes.
         """
 
         # NOTE: when moving or renaming this enum, please check and modify
@@ -63,6 +67,7 @@ class FlawReference(AlertMixin, ACLMixin, TrackingMixin):
         ARTICLE = "ARTICLE"
         EXTERNAL = "EXTERNAL"
         SOURCE = "SOURCE"
+        UPSTREAM = "UPSTREAM"
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

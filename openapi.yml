@@ -3411,6 +3411,7 @@ paths:
           - ARTICLE
           - EXTERNAL
           - SOURCE
+          - UPSTREAM
       - in: query
         name: references__updated_dt
         schema:
@@ -5224,6 +5225,7 @@ paths:
           - ARTICLE
           - EXTERNAL
           - SOURCE
+          - UPSTREAM
       - in: query
         name: updated_dt
         schema:
@@ -8523,6 +8525,7 @@ components:
       - ARTICLE
       - EXTERNAL
       - SOURCE
+      - UPSTREAM
       type: string
     FlawReportData:
       type: object
