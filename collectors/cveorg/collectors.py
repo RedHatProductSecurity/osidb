@@ -230,16 +230,21 @@ class CVEorgCollector(Collector):
         ):
             return False, False
 
-        if should_create_snippet(content["comment_zero"]):
-            snippet, snippet_created = Snippet.objects.get_or_create(
-                source=Snippet.Source.CVEORG,
-                external_id=content["cve_id"],
-                defaults={"content": content},
+        if not should_create_snippet(content["comment_zero"]) or (
+            not should_create_snippet(content["title"])
+            and content["title"] != "From CVEorg collector"
+        ):
+            return False, False
+
+        snippet, snippet_created = Snippet.objects.get_or_create(
+            source=Snippet.Source.CVEORG,
+            external_id=content["cve_id"],
+            defaults={"content": content},
+        )
+        if snippet_created:
+            flaw_created = bool(
+                snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN)
             )
-            if snippet_created:
-                flaw_created = bool(
-                    snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN)
-                )
 
         return snippet_created, flaw_created
 
