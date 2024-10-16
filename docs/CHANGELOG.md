@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add new flaw reference type "UPSTREAM"
 
+### Changed
+- Check title for keywords in CVEorg collector (OSIDB-3545)
+
 ## [4.4.0] - 2024-10-11
 ### Added
 - Introduce moderate tracker streams pre-selection (OSIDB-3346)
