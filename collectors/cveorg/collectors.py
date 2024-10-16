@@ -15,8 +15,8 @@ from apps.taskman.constants import JIRA_AUTH_TOKEN
 from collectors.cmd import Cmd
 from collectors.constants import SNIPPET_CREATION_ENABLED
 from collectors.cveorg.constants import CELERY_PVC_PATH
+from collectors.cveorg.keywords import should_create_snippet
 from collectors.framework.models import Collector
-from collectors.keywords import should_create_snippet
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
 from osidb.models import FlawCVSS, FlawReference, Snippet
