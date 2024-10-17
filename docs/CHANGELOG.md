@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Add new flaw reference type "UPSTREAM"
-- Auto-reset CVSS validation flag on NVD CVSS removal (OSIDB-3407)
 
 ### Changed
 - Check title for keywords in CVEorg collector (OSIDB-3545)
+
+## [4.4.1] - 2024-10-17
+### Added
+- Auto-reset CVSS validation flag on NVD CVSS removal (OSIDB-3407)
+
+### Changed
 - Restrict tracker file offer by ProdSec support instead of general one (OSIDB-3559)
 
 ### Fixed
