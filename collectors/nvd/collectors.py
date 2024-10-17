@@ -284,6 +284,12 @@ class NVDCollector(Collector, NVDQuerier):
                     flaw.cvss_scores.filter(issuer=FlawCVSS.CVSSIssuer.NIST).filter(
                         version=version
                     ).delete()
+                    # remove also any potential NIST CVSS validation flag in case
+                    # the removed score is v3 which undergoes the feedback loop
+                    if version == FlawCVSS.CVSSVersion.VERSION3:
+                        Flaw.objects.filter(uuid=flaw.uuid).update(
+                            nist_cvss_validation=Flaw.FlawNistCvssValidation.NOVALUE
+                        )
                     continue
 
                 if original_cvss != new_cvss:
