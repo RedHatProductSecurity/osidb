@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Add new flaw reference type "UPSTREAM"
+- Auto-reset CVSS validation flag on NVD CVSS removal (OSIDB-3407)
 
 ### Changed
 - Check title for keywords in CVEorg collector (OSIDB-3545)

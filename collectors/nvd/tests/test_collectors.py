@@ -236,3 +236,33 @@ class TestNVDCollector:
 
         flaw = Flaw.objects.get(cve_id=cve_id)
         assert flaw.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION4)
+
+    def test_reset_flag_on_removal(self):
+        """
+        test that NIST CVSS validation flag is reset when NVD CVSSv3 is removed
+        """
+        flaw = FlawFactory()
+        FlawCVSSFactory(
+            flaw=flaw,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            vector="CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+            version=FlawCVSS.CVSSVersion.VERSION3,
+        )
+        FlawCVSSFactory(
+            flaw=flaw,
+            issuer=FlawCVSS.CVSSIssuer.NIST,
+            vector="CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H",
+            version=FlawCVSS.CVSSVersion.VERSION3,
+        )
+        flaw.nist_cvss_validation = Flaw.FlawNistCvssValidation.APPROVED
+        flaw.save()
+
+        nvdc = NVDCollector()
+        empty_scores = {"cvss_scores": []}
+        # the CVSS score was removed from NVD database
+        nvdc.update_cvss_via_flawcvss(flaw, empty_scores)
+
+        flaw = Flaw.objects.get(uuid=flaw.uuid)
+        assert flaw.cvss_scores.count() == 1
+        assert flaw.cvss_scores.first().issuer == FlawCVSS.CVSSIssuer.REDHAT
+        assert flaw.nist_cvss_validation == Flaw.FlawNistCvssValidation.NOVALUE
