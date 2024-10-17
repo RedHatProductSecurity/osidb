@@ -43,7 +43,7 @@ class TrackerFileSuggestionView(RudimentaryUserPathLoggingMixin, APIView):
         ).distinct()
         # remove unsupported
         active_module_names = [
-            module.name for module in active_modules if module.is_supported
+            module.name for module in active_modules if module.is_prodsec_supported
         ]
 
         # prepare the list of PS modules which do

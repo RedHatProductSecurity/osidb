@@ -75,14 +75,13 @@ class PsModule(NullStrFieldsMixin, ValidateMixin):
         return self.bts_key == RHSCL_BTS_KEY
 
     @property
-    def is_supported(self) -> bool:
+    def is_prodsec_supported(self) -> bool:
         """
-        check and return whether the PS module is supported now
-        """
-        # unsupported if not yet supported
-        if self.supported_from_dt and self.supported_from_dt > timezone.now():
-            return False
+        check and return whether the PS module is supported now by ProdSec
 
+        which is different from the general support scope as ProdSec often
+        needs to support the security fixes even before the product is GA
+        """
         # unsupported if no more supported
         if self.supported_until_dt and self.supported_until_dt < timezone.now():
             return False

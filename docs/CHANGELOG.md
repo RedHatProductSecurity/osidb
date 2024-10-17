@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Check title for keywords in CVEorg collector (OSIDB-3545)
+- Restrict tracker file offer by ProdSec support instead of general one (OSIDB-3559)
 
 ## [4.4.0] - 2024-10-11
 ### Added
