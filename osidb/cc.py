@@ -28,13 +28,18 @@ class WrongBtsWithJiraAffectCCBuilderError(Exception):
 
 class BaseAffectCCBuilder:
     def __init__(
-        self, affect: Affect, embargoed: bool, bts_name_override: Optional[str] = None
+        self,
+        affect: Affect,
+        embargoed: bool,
+        bts_name_override: Optional[str] = None,
+        destination: Optional[str] = None,  # affect | flaw | tracker
     ) -> None:
         """
         init stuff
         expects a valid affect
         """
         self.affect = affect
+        self.destination = destination
         self.ps_module = affect.ps_module
         self.ps_component = affect.ps_component
         self.ps_module_obj = PsModule.objects.get(name=affect.ps_module)
@@ -147,7 +152,11 @@ class BaseAffectCCBuilder:
         if self.ps_module_obj.default_cc:
             cc_list.extend(self.ps_module_obj.default_cc)
 
-        if self.embargoed and self.ps_module_obj.private_tracker_cc:
+        if (
+            self.destination != "flaw"  # no tracker CC for flaws
+            and self.embargoed
+            and self.ps_module_obj.private_tracker_cc
+        ):
             cc_list.extend(self.ps_module_obj.private_tracker_cc)
 
         return cc_list
@@ -247,13 +256,17 @@ class BugzillaAffectCCBuilder(BaseAffectCCBuilder):
     """
 
     def __init__(
-        self, affect: Affect, embargoed: bool, bts_name_override: Optional[str] = None
+        self,
+        affect: Affect,
+        embargoed: bool,
+        bts_name_override: Optional[str] = None,
+        destination: Optional[str] = None,  # affect | flaw | tracker
     ) -> None:
         """
         init stuff
         expects a valid affect
         """
-        super().__init__(affect, embargoed, bts_name_override)
+        super().__init__(affect, embargoed, bts_name_override, destination)
 
         self.bz_component = self.ps2bz_component() if self.is_bugzilla else None
 
@@ -419,6 +432,9 @@ class BugzillaFlawCCBuilder:
             RHSCLBugzillaAffectCCBuilder if affect.is_rhscl else BugzillaAffectCCBuilder
         )
         affect_cc_builder = affect_cc_builder_class(
-            affect, self.flaw.is_embargoed, bts_name_override="bugzilla"
+            affect,
+            self.flaw.is_embargoed,
+            bts_name_override="bugzilla",
+            destination="flaw",
         )
         return affect_cc_builder.cc
