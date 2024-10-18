@@ -4,6 +4,7 @@ Helpers for direct or development shell usage
 
 import json
 import logging
+import logging.handlers
 import re
 import sys
 import warnings
@@ -238,3 +239,15 @@ def safe_get_response_content(response: Response):
         return response.json()
     except JSONDecodeError:
         return response.text
+
+
+class JSONSocketHandler(logging.handlers.SocketHandler):
+    def __init__(self, *args, logfile: str, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.logfile = logfile
+
+    def makePickle(self, record: logging.LogRecord) -> bytes:
+        formatted_record = self.formatter.format(record)
+        record_json = {"formatted_record": formatted_record, "logfile": self.logfile}
+        encoded_json = f"{json.dumps(record_json)}\n".encode(encoding="utf-8")
+        return encoded_json

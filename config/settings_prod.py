@@ -132,25 +132,21 @@ CISA_COLLECTOR_CRONTAB = crontab(minute=0)
 LOG_FILE_SIZE = 1024 * 1024 * 10  # 10mb
 LOG_FILE_COUNT = 3
 
-# To not disrupt the logging of OSIDB instance running in PSI
-# this guard ensures that only OSIDB running in MPP logs to filesystem
-# TODO: Remove after OSIDB is fully migrated to MPP
-if get_env("MPP", is_bool=True, default="False"):
-    LOGGING["handlers"]["celery"] = {
-        "class": "logging.handlers.RotatingFileHandler",
-        "formatter": "verbose_celery",
-        "filename": "/var/log/prod-celery.log",
-        "maxBytes": LOG_FILE_SIZE,
-        "backupCount": LOG_FILE_COUNT,
-    }
-    LOGGING["handlers"]["console"] = {
-        "level": "INFO",
-        "class": "logging.handlers.RotatingFileHandler",
-        "formatter": "verbose",
-        "filename": "/var/log/prod-django.log",
-        "maxBytes": LOG_FILE_SIZE,
-        "backupCount": LOG_FILE_COUNT,
-    }
+LOGGING["handlers"]["celery"] = {
+    "class": "osidb.helpers.JSONSocketHandler",
+    "formatter": "verbose_celery",
+    "host": "logstash",
+    "port": "5140",
+    "logfile": "celery.log",
+}
+LOGGING["handlers"]["console"] = {
+    "level": "INFO",
+    "class": "osidb.helpers.JSONSocketHandler",
+    "formatter": "verbose",
+    "host": "logstash",
+    "port": "5140",
+    "logfile": "django.log",
+}
 
 # sets the Access-Control-Allow-Origin response header - accepts literal strings
 # example value: ["https://osidb.example.com", "https://workflows.example.com"]

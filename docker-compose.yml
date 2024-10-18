@@ -237,5 +237,17 @@ services:
       ports:
         - "6379"
 
+    logstash:
+      container_name: logstash
+      hostname: logstash
+      image: registry.connect.redhat.com/elastic/logstash:8.15.3
+      ports:
+        - "5140:5140"
+      volumes:
+        - ${PWD}/etc/logstash:/usr/share/logstash/pipeline:z
+      environment:
+        LOGFILE_ENV_PREFIX: "local"
+        # - ${PWD}/etc/logstash/log:/var/log:z
+
 volumes:
   pg-data:
