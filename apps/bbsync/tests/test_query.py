@@ -4,6 +4,7 @@ import pytest
 from django.conf import settings
 from django.utils import timezone
 
+from apps.bbsync.constants import MAX_SUMMARY_LENGTH
 from apps.bbsync.query import FlawBugzillaQueryBuilder
 from apps.workflows.workflow import WorkflowModel
 from osidb.core import generate_acls
@@ -140,6 +141,55 @@ class TestGenerateBasics:
 
         bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["summary"] == summary
+
+    def test_generate_summary_too_long_description(self):
+        """
+        test shortening summary
+        """
+        flaw = FlawFactory(
+            components=["computer"],
+            cve_id="CVE-2020-12345",
+            embargoed=True,
+            title=(
+                "once upon a time there was a flaw and that flaw was a big one like you never saw "
+                "trust me never ever and you would not even wish to see it as that would totally "
+                "ruin your day which might not be super-perfect anyway but still good enough "
+                "without this massive flaw-beast but that is over as it is there and there is "
+                "nothing we can do about except just pray to the whatever flawless we believe in"
+            ),
+        )
+
+        bbq = FlawBugzillaQueryBuilder(flaw)
+        assert len(bbq.query["summary"]) <= MAX_SUMMARY_LENGTH
+        assert bbq.query["summary"] == (
+            "EMBARGOED CVE-2020-12345 computer: once upon a time there was a flaw and that flaw "
+            "was a big one like you never saw trust me never ever and you would not even wish to "
+            "see it as that would totally ruin your day which might not be super-perfect anyway b "
+            "..."
+        )
+
+    def test_generate_summary_too_many_cves(self):
+        """
+        test shortening summary
+        OSIDB-3551 reproducer
+        """
+        # simply use hundreds
+        for i in range(100, 200):
+            flaw = FlawFactory(
+                components=["computer"],
+                cve_id=f"CVE-2020-0{i}",
+                embargoed=True,
+                meta_attr={"bz_id": "123"},
+                title="serious flaw",
+            )
+
+        bbq = FlawBugzillaQueryBuilder(flaw)
+        assert len(bbq.query["summary"]) <= MAX_SUMMARY_LENGTH
+        assert bbq.query["summary"] == (
+            "EMBARGOED CVE-2020-0100 CVE-2020-0101 CVE-2020-0102 CVE-2020-0103 CVE-2020-0104 "
+            "CVE-2020-0105 CVE-2020-0106 CVE-2020-0107 CVE-2020-0108 CVE-2020-0109 CVE-2020-0110 "
+            "CVE-2020-0111 CVE-2020-0112 CVE-2020-0113 CVE-2020-0114 ... computer: serious flaw"
+        )
 
     def test_generate_summary_added_cve(self):
         """

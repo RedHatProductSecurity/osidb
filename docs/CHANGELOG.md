@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Check title for keywords in CVEorg collector (OSIDB-3545)
 
+### Fixed
+- Fix Bugzilla flaw summary exceeding (OSIDB-3551)
+
 ## [4.4.1] - 2024-10-17
 ### Added
 - Auto-reset CVSS validation flag on NVD CVSS removal (OSIDB-3407)

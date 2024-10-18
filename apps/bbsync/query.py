@@ -248,17 +248,29 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         # 3) filter out the empty CVE IDs
         #    there can be one in case we are removing the CVE ID
         cve_ids = [cve_id for cve_id in cve_ids if cve_id]
-        # 4) filter out eventual duplicates | sort by CVE ID | stringify
-        cve_ids = " ".join(sorted(list(set(cve_ids)), key=cve_id_comparator))
-        # 5) add trailing space delimiter in case of non-empty CVE IDs
-        cve_ids = cve_ids + " " if cve_ids else cve_ids
+        # 4) filter out eventual duplicates | sort by CVE ID
+        cve_ids = sorted(list(set(cve_ids)), key=cve_id_comparator)
 
         components = (
             ": ".join([component for component in self.flaw.components]) + ": "
             if self.flaw.components
             else ""
         )
-        self._query["summary"] = embargoed + cve_ids + components + self.flaw.title
+
+        # try to compose the summary
+        # until it is short enough
+        description = self.flaw.title
+        while True:
+
+            cve_string = " ".join(cve_ids) + " " if cve_ids else ""
+            summary = f"{embargoed}{cve_string}{components}{description}"
+
+            if len(summary) <= MAX_SUMMARY_LENGTH:
+                break
+
+            cve_ids, description = summary_shorten(cve_ids, description)
+
+        self._query["summary"] = summary
 
     def generate_description(self):
         """
