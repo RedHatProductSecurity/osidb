@@ -4,12 +4,41 @@ from itertools import chain
 
 from django.utils import timezone
 
+from apps.bbsync.constants import MAX_SUMMARY_LENGTH, MULTIPLE_DESCRIPTIONS_SUBSTITUTION
+from apps.bbsync.exceptions import UnsavableModelError
 from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
 from osidb.helpers import cve_id_comparator, filter_cves
 from osidb.models import Flaw, FlawComment, Impact, PsModule
 
 from .cc import CCBuilder
 from .constants import DATE_FMT
+
+
+def summary_shorten(cves, description):
+    """
+    shorten the aligable parts of the tracker summary
+    """
+    # first shorten CVE list
+    if len(cves) > 1:
+
+        # remove the last CVE
+        cves = cves[0:-1]
+        # add the dots to the new last
+        cves[-1] = cves[-1] + " ..."
+
+    # finally shorten the description
+    else:
+        # when we cannot preserve at least a minimal meaningful description
+        # something is fairly wrong and we cannot create such tracker
+        if len(description) <= len(MULTIPLE_DESCRIPTIONS_SUBSTITUTION):
+            raise UnsavableModelError(
+                f"Summary generated for the tracker is longer than {MAX_SUMMARY_LENGTH}"
+            )
+
+        # simply shorten the desciption by one
+        description = description[0:-5] + " ..."
+
+    return cves, description
 
 
 class BugzillaQueryBuilder:
