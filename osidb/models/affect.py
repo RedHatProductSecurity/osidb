@@ -508,6 +508,13 @@ class Affect(
             Affect.AffectFix.NOTAFFECTED,
         ):
             if status in statuses:
+                if (
+                    self.aggregated_impact == Impact.LOW
+                    and status == Affect.AffectFix.WONTFIX
+                ):
+                    # special handling for LOWs
+                    return Affect.AffectFix.DEFER
+
                 return status
 
         # We don't know. Maybe none of the trackers have a valid resolution; default to "Affected".
