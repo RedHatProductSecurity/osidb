@@ -6,6 +6,10 @@ from osidb.helpers import get_env
 DATE_FMT = "%Y-%m-%d"
 DATETIME_FMT = "%Y-%m-%dT%H:%M:%SZ"
 
+# Bugzilla summary constants
+MAX_SUMMARY_LENGTH = 255
+MULTIPLE_DESCRIPTIONS_SUBSTITUTION = "various flaws"
+
 # RHSCL Bugzilla project key
 RHSCL_BTS_KEY = "Red Hat Software Collections"
 

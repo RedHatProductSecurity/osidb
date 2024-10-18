@@ -4,13 +4,9 @@ common tracker functionality shared between BTSs
 from functools import cached_property
 from urllib.parse import urljoin
 
-from apps.trackers.constants import (
-    KERNEL_PACKAGES,
-    MAX_SUMMARY_LENGTH,
-    MULTIPLE_DESCRIPTIONS_SUBSTITUTION,
-    VIRTUALIZATION_PACKAGES,
-)
-from apps.trackers.exceptions import TrackerCreationError
+from apps.bbsync.constants import MAX_SUMMARY_LENGTH, MULTIPLE_DESCRIPTIONS_SUBSTITUTION
+from apps.bbsync.query import summary_shorten
+from apps.trackers.constants import KERNEL_PACKAGES, VIRTUALIZATION_PACKAGES
 from collectors.bzimport.constants import BZ_URL
 from osidb.helpers import cve_id_comparator
 from osidb.models import Flaw, PsModule, PsUpdateStream, Tracker
@@ -101,7 +97,7 @@ class TrackerQueryBuilder:
             if len(summary) <= MAX_SUMMARY_LENGTH:
                 break
 
-            cves, description = TrackerQueryBuilder._summary_shorten(cves, description)
+            cves, description = summary_shorten(cves, description)
 
         return summary
 
@@ -134,32 +130,6 @@ class TrackerQueryBuilder:
         # join sorted prefixes with space delimiter and
         # add a trailing space to separate from the rest
         return " ".join(sorted(prefixes)) + " "
-
-    def _summary_shorten(cves, description):
-        """
-        shorten the aligable parts of the tracker summary
-        """
-        # first shorten CVE list
-        if len(cves) > 1:
-
-            # remove the last CVE
-            cves = cves[0:-1]
-            # add the dots to the new last
-            cves[-1] = cves[-1] + " ..."
-
-        # finally shorten the description
-        else:
-            # when we cannot preserve at least a minimal meaningful description
-            # something is fairly wrong and we cannot create such tracker
-            if len(description) <= len(MULTIPLE_DESCRIPTIONS_SUBSTITUTION):
-                raise TrackerCreationError(
-                    f"Summary generated for the tracker is longer than {MAX_SUMMARY_LENGTH}"
-                )
-
-            # simply shorten the desciption by one
-            description = description[0:-5] + " ..."
-
-        return cves, description
 
     @cached_property
     def description(self):
