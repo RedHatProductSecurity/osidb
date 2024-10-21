@@ -269,11 +269,13 @@ class TestJiraTrackerCollector:
             ps_module=ps_module.name,
         )
         tracker_id = "ENTMQ-755"
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect],
             type=Tracker.TrackerType.JIRA,
             embargoed=affect.flaw.embargoed,
             external_system_id=tracker_id,
+            ps_update_stream=ps_update_stream.name,
             status="New",
             resolution=None,
             # collector only modify trackers

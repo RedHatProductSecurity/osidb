@@ -59,10 +59,12 @@ class TestTracker:
         )
 
         ps_module = PsModuleFactory(name=affect1.ps_module)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
 
         tracker = TrackerFactory(
             affects=[affect1, affect2],
             embargoed=flaw1.embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
         assert tracker.aggregated_impact == expected_impact
@@ -89,10 +91,12 @@ class TestTracker:
             ps_component=affect1.ps_component,
         )
         ps_module = PsModuleFactory(name=affect1.ps_module)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
 
         tracker = TrackerFactory(
             affects=[affect1, affect2],
             embargoed=flaw1.embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
@@ -132,9 +136,11 @@ class TestTracker:
             resolution=Affect.AffectResolution.DELEGATED,
         )
         ps_module = PsModuleFactory(name=affect.ps_module)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
         assert tracker.last_impact_increase_dt is None
@@ -235,7 +241,7 @@ class TestTrackerValidators:
                 resolution=Affect.AffectResolution.DELEGATED,
                 ps_module=ps_module.name,
             )
-            ps_update_stream = PsUpdateStreamFactory()
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             # do not raise here
             # validation is run on save
             TrackerFactory(
@@ -368,6 +374,7 @@ class TestTrackerValidators:
         test that the tracker type corresponds to its BTS
         """
         ps_module = PsModuleFactory(bts_name=bts)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.NEW, ps_module=ps_module.name
         )
@@ -381,6 +388,7 @@ class TestTrackerValidators:
                     acl_read=affect.acl_read,
                     acl_write=affect.acl_write,
                     affects=[affect],
+                    ps_update_stream=ps_update_stream.name,
                     type=tracker_type,
                 )
         else:
@@ -388,5 +396,6 @@ class TestTrackerValidators:
                 acl_read=affect.acl_read,
                 acl_write=affect.acl_write,
                 affects=[affect],
+                ps_update_stream=ps_update_stream.name,
                 type=tracker_type,
             )

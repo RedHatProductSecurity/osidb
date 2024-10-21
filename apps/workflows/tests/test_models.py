@@ -11,6 +11,7 @@ from osidb.tests.factories import (
     FlawReferenceFactory,
     PackageFactory,
     PsModuleFactory,
+    PsUpdateStreamFactory,
     TrackerFactory,
 )
 
@@ -168,8 +169,12 @@ class TestCheck:
             resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
-            affects=[affect], embargoed=False, type=Tracker.TrackerType.BUGZILLA
+            affects=[affect],
+            embargoed=False,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
         )
 
         check = Check("aggregated impact is low", cls=Tracker)

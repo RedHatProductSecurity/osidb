@@ -127,10 +127,12 @@ class TestFlaw:
             acl_write=self.acl_write,
         )
         affect2.save()
-        PsModuleFactory(bts_name="bugzilla", name="fakemodule")
+        ps_module = PsModuleFactory(bts_name="bugzilla", name="fakemodule")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker1 = TrackerFactory(
             affects=(affect2,),
             embargoed=affect2.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
             status="random_status",
             resolution="random_resolution",
             type=Tracker.TrackerType.BUGZILLA,
@@ -246,9 +248,11 @@ class TestFlaw:
             ps_module=ps_module.name,
             ps_component="component",
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory.create(
             affects=(affect1,),
             embargoed=affect1.flaw.is_embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
         assert len(tracker.affects.all()) == 1
@@ -259,7 +263,10 @@ class TestFlaw:
             ps_component="component",
         )
         Tracker.objects.create_tracker(
-            affect2, tracker.external_system_id, tracker.type
+            affect2,
+            tracker.external_system_id,
+            tracker.type,
+            ps_update_stream=ps_update_stream.name,
         )
         assert len(tracker.affects.all()) == 2
 
@@ -273,9 +280,11 @@ class TestFlaw:
             flaw=flaw,
         )
         assert not flaw.trackers_filed
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=(fix_affect,),
             embargoed=flaw.is_embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
         assert flaw.trackers_filed
@@ -299,15 +308,19 @@ class TestFlaw:
 
         # Migrated/duplicate trackers should be ignored
         # regardless whether there are other trackers or not
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=(delegated_affect,),
+            ps_update_stream=ps_update_stream1.name,
             status="closed",
             resolution="migrated",
             embargoed=delegated_affect.flaw.is_embargoed,
             type=Tracker.TrackerType.BUGZILLA,
         )
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=(delegated_affect,),
+            ps_update_stream=ps_update_stream2.name,
             status="closed",
             resolution="duplicate",
             embargoed=delegated_affect.flaw.is_embargoed,
@@ -315,8 +328,10 @@ class TestFlaw:
         )
         assert delegated_affect.delegated_resolution == Affect.AffectFix.AFFECTED
 
+        ps_update_stream3 = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=(delegated_affect,),
+            ps_update_stream=ps_update_stream3.name,
             status="done",
             resolution="notabug",
             embargoed=delegated_affect.flaw.is_embargoed,
@@ -325,8 +340,10 @@ class TestFlaw:
         # if the only tracker is notaffected, delegated_resolution is notaffected
         assert delegated_affect.delegated_resolution == Affect.AffectFix.NOTAFFECTED
 
+        ps_update_stream4 = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=(delegated_affect,),
+            ps_update_stream=ps_update_stream4.name,
             status="closed",
             resolution="deferred",
             embargoed=delegated_affect.flaw.is_embargoed,
@@ -335,8 +352,10 @@ class TestFlaw:
         # DEFER is ranked higher than NOTAFFECTED
         assert delegated_affect.delegated_resolution == Affect.AffectFix.DEFER
 
+        ps_update_stream5 = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=(delegated_affect,),
+            ps_update_stream=ps_update_stream5.name,
             status="done",
             resolution="eol",
             embargoed=delegated_affect.flaw.is_embargoed,
@@ -345,8 +364,10 @@ class TestFlaw:
         # OOSS is ranked higher than DEFER
         assert delegated_affect.delegated_resolution == Affect.AffectFix.OOSS
 
+        ps_update_stream6 = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=(delegated_affect,),
+            ps_update_stream=ps_update_stream6.name,
             status="won't fix",
             embargoed=delegated_affect.flaw.is_embargoed,
             type=Tracker.TrackerType.BUGZILLA,
@@ -355,8 +376,10 @@ class TestFlaw:
         assert delegated_affect.delegated_resolution == Affect.AffectFix.WONTFIX
 
         # AFFECTED should have higher precedence than any other resolution
+        ps_update_stream7 = PsUpdateStreamFactory(ps_module=ps_module)
         t = TrackerFactory(
             affects=(delegated_affect,),
+            ps_update_stream=ps_update_stream7.name,
             status="foo",
             resolution="bar",
             embargoed=delegated_affect.flaw.is_embargoed,
@@ -387,20 +410,26 @@ class TestFlaw:
             ps_module=ps_module.name,
             flaw__embargoed=False,
         )
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
         wontfix_tracker = TrackerFactory(
             affects=[affect],
+            ps_update_stream=ps_update_stream1.name,
             status="won't fix",
             type=Tracker.TrackerType.BUGZILLA,
         )
         assert wontfix_tracker.fix_state == Affect.AffectFix.WONTFIX
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
         random_tracker = TrackerFactory(
+            ps_update_stream=ps_update_stream2.name,
             status="foo",
             resolution="bar",
             affects=[affect],
             type=Tracker.TrackerType.BUGZILLA,
         )
         assert random_tracker.fix_state == Affect.AffectFix.AFFECTED
+        ps_update_stream3 = PsUpdateStreamFactory(ps_module=ps_module)
         empty_tracker = TrackerFactory(
+            ps_update_stream=ps_update_stream3.name,
             status="foo",
             resolution="",
             affects=[affect],
@@ -494,9 +523,11 @@ class TestFlaw:
             assert f.local_updated_dt == timezone.now()
 
         with freeze_time(tzdatetime(3333, 3, 3, 3, 3, 3)):
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             _ = TrackerFactory(
                 affects=(a,),
                 created_dt=timezone.now(),
+                ps_update_stream=ps_update_stream.name,
                 type=Tracker.TrackerType.BUGZILLA,
                 embargoed=f.embargoed,
             )
@@ -513,8 +544,10 @@ class TestFlaw:
             ps_component="component",
             affectedness=Affect.AffectAffectedness.AFFECTED,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         t = TrackerFactory(
             affects=(a,),
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
             embargoed=f.embargoed,
         )
@@ -1660,7 +1693,8 @@ class TestFlawValidators:
         """test Tracker model validator making sure flaws can't have a public tracker"""
 
         affects = []
-        PsModuleFactory(bts_name="bugzilla", name="module")
+        ps_module = PsModuleFactory(bts_name="bugzilla", name="module")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         for embargoed_flaw in flaws_embargoed_status:
             affects.append(
                 AffectFactory(
@@ -1678,6 +1712,7 @@ class TestFlawValidators:
                 TrackerFactory(
                     affects=affects,
                     embargoed=embargoed_tracker,
+                    ps_update_stream=ps_update_stream.name,
                     type=Tracker.TrackerType.BUGZILLA,
                     status="CLOSED",
                 )
@@ -1685,6 +1720,7 @@ class TestFlawValidators:
             assert TrackerFactory(
                 affects=affects,
                 embargoed=embargoed_tracker,
+                ps_update_stream=ps_update_stream.name,
                 type=Tracker.TrackerType.BUGZILLA,
                 status="CLOSED",
             )
@@ -1763,8 +1799,10 @@ class TestFlawValidators:
             affectedness=Affect.AffectAffectedness.NEW,
         )
         for status in tracker_statuses:
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             TrackerFactory(
                 embargoed=False,
+                ps_update_stream=ps_update_stream.name,
                 status=status,
                 type=Tracker.TrackerType.BUGZILLA,
                 affects=(affect,),
@@ -1846,9 +1884,11 @@ class TestFlawValidators:
             affectedness=Affect.AffectAffectedness.NEW,
         )
         for status in tracker_statuses:
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             TrackerFactory(
                 affects=(affect,),
                 embargoed=False,
+                ps_update_stream=ps_update_stream.name,
                 status=status,
                 type=Tracker.TrackerType.BUGZILLA,
             )
@@ -2094,8 +2134,10 @@ class TestFlawValidators:
             affectedness=affectedness,
             resolution=Affect.AffectResolution.NOVALUE,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory.build(
             embargoed=False,
+            ps_update_stream=ps_update_stream.name,
             status=status,
             type=Tracker.TrackerType.BUGZILLA,
         )
@@ -2157,8 +2199,10 @@ class TestFlawValidators:
             resolution=resolution,
         )
 
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory.build(
             embargoed=False,
+            ps_update_stream=ps_update_stream.name,
             status=status,
             type=Tracker.TrackerType.BUGZILLA,
         )
@@ -2214,8 +2258,10 @@ class TestFlawValidators:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=resolution,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory.build(
             embargoed=False,
+            ps_update_stream=ps_update_stream.name,
             status=status,
             type=Tracker.TrackerType.BUGZILLA,
         )
@@ -2271,8 +2317,10 @@ class TestFlawValidators:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=resolution,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory.build(
             embargoed=False,
+            ps_update_stream=ps_update_stream.name,
             status=status,
             type=Tracker.TrackerType.BUGZILLA,
         )

@@ -109,9 +109,11 @@ class TestTrackerBugzillaQueryBuilder:
             resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
 

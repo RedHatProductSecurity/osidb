@@ -15,6 +15,7 @@ from osidb.tests.factories import (
     PackageFactory,
     PackageVerFactory,
     PsModuleFactory,
+    PsUpdateStreamFactory,
     SnippetFactory,
     TrackerFactory,
 )
@@ -281,9 +282,11 @@ class TestGenerateGroups:
                 ]
             },
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect],
             embargoed=flaw.is_embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
@@ -309,9 +312,11 @@ class TestGenerateGroups:
                 ]
             },
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect],
             embargoed=flaw.is_embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
@@ -341,9 +346,11 @@ class TestGenerateGroups:
                 ]
             },
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect],
             embargoed=flaw.is_embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
@@ -372,9 +379,11 @@ class TestGenerateGroups:
                 ]
             },
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect],
             embargoed=flaw.is_embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
@@ -409,9 +418,11 @@ class TestGenerateGroups:
                 ]
             },
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect],
             embargoed=flaw.is_embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 

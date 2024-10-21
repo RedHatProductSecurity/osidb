@@ -210,9 +210,11 @@ class TestBugzillaTrackerCollector:
             ps_component="jhead",
         )
         creation_dt = datetime(2011, 1, 1, tzinfo=timezone.utc)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory.create(
             affects=(affect,),
             external_system_id="1629664",
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
             embargoed=affect.flaw.is_embargoed,
             created_dt=creation_dt,
@@ -301,9 +303,11 @@ class TestBugzillaTrackerCollector:
             ps_component="novnc",
         )
 
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect1, affect2],
             external_system_id="1765663",
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
             embargoed=False,
             updated_dt=timezone.datetime.strptime("1970-01-01T00:00:00Z", BZ_DT_FMT),
