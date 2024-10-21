@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Add new flaw reference type "UPSTREAM"
+- Implement validation of PS module and PS update stream correspondance (OSIDB-3584)
 
 ### Changed
 - Check title for keywords in CVEorg collector (OSIDB-3545)
