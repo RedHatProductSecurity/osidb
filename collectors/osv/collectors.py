@@ -10,7 +10,8 @@ from celery.utils.log import get_task_logger
 from cvss import CVSS2, CVSS3, CVSS4
 from django.conf import settings
 from django.db import transaction
-from django.utils import dateparse, timezone
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from apps.taskman.constants import JIRA_AUTH_TOKEN
 from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_START_DATE
@@ -110,6 +111,11 @@ class OSVCollector(Collector):
 
     def collect(self, osv_id: Union[str, None] = None) -> str:
         """Collect vulnerability data for each supported ecosystem."""
+        if not self.snippet_creation_enabled:
+            msg = "Snippet creation is disabled. The OSV collector is not running."
+            logger.error(msg)
+            return msg
+
         # Set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
         # Celery workers should be able to read/write any information in order to fulfill their jobs
         set_user_acls(settings.ALL_GROUPS)
@@ -117,11 +123,11 @@ class OSVCollector(Collector):
         logger.info("Starting OSV data collection")
         new_count, updated_count = 0, 0
 
+        # Collection of one osv_id is currently used only in tests
         if osv_id is not None:
             # Surface an exception when collecting an individual OSV vulnerability
             osv_vuln = self.fetch_osv_vuln_by_id(osv_id)
             osv_id, cve_ids, content = self.extract_content(osv_vuln)
-
             try:
                 with transaction.atomic():
                     self.save_snippet(osv_id, cve_ids, content)
@@ -129,7 +135,6 @@ class OSVCollector(Collector):
                 message = f"Failed to save snippet and flaw for {osv_id}. Error: {exc}."
                 logger.error(message)
                 raise OSVCollectorException(message) from exc
-
             return f"OSV collection for {osv_id} was successful."
 
         for ecosystem in self.SUPPORTED_OSV_ECOSYSTEMS:
@@ -185,12 +190,8 @@ class OSVCollector(Collector):
         Creating each snippet per CVE allows us to link them to unique Flaws (which also contain
         single CVE IDs), and reuse their data for the creation of those flaws.
         """
-        if not self.snippet_creation_enabled:
-            return 0, 0
-
         if self.snippet_creation_start_date and (
-            self.snippet_creation_start_date
-            >= dateparse.parse_datetime(content["unembargo_dt"])
+            self.snippet_creation_start_date >= parse_datetime(content["unembargo_dt"])
         ):
             return 0, 0
 
