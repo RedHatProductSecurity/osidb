@@ -302,6 +302,8 @@ class TestFlaw:
             resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
             flaw__embargoed=False,
+            # prevent LOW special handling
+            impact=Impact.MODERATE,
         )
         # no trackers = affected
         assert delegated_affect.delegated_resolution == Affect.AffectFix.AFFECTED
@@ -401,6 +403,24 @@ class TestFlaw:
             resolution=Affect.AffectResolution.WONTFIX,
         )
         assert undelegated_affect.delegated_resolution is None
+
+    def test_delegated_resolution_low(self):
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+            flaw__embargoed=False,
+            impact=Impact.LOW,
+        )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        TrackerFactory(
+            affects=[affect],
+            ps_update_stream=ps_update_stream.name,
+            status="won't fix",
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        assert affect.delegated_resolution == Affect.AffectFix.DEFER
 
     def test_tracker_fix_state(self):
         ps_module = PsModuleFactory(bts_name="bugzilla")

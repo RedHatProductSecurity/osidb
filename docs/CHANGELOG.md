@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Check title for keywords in CVEorg collector (OSIDB-3545)
+- Update delegated resolution mapping so low impact won't fix
+  changes to fix deferred (OSIDB-3575)
 
 ## [4.4.1] - 2024-10-17
 ### Added
