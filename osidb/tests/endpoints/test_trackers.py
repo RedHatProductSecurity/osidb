@@ -151,9 +151,11 @@ class TestEndpointsTrackers:
             resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
         response = auth_client().get(f"{test_api_uri}/trackers/{tracker.uuid}")
@@ -191,9 +193,11 @@ class TestEndpointsTrackers:
             resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect1],
             embargoed=affect1.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
@@ -230,9 +234,11 @@ class TestEndpointsTrackers:
             resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
         tracker_url = f"{test_api_uri}/trackers/{tracker.uuid}"

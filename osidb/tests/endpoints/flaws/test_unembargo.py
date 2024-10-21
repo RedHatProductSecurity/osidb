@@ -26,6 +26,7 @@ from osidb.tests.factories import (
     FlawReferenceFactory,
     PackageFactory,
     PsModuleFactory,
+    PsUpdateStreamFactory,
     TrackerFactory,
 )
 
@@ -108,19 +109,24 @@ class TestEndpointsFlawsUnembargo:
             resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect1],
             embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream1.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
         TrackerFactory(
             affects=[affect1],
             embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream2.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
         TrackerFactory(
             affects=[affect2],
             embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream1.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
@@ -197,9 +203,11 @@ class TestEndpointsFlawsUnembargo:
             ps_module=ps_module.name,
             ps_component=affect1.ps_component,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect1, affect2],
             embargoed=flaw1.embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 

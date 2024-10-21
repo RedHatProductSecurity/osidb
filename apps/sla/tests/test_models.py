@@ -327,9 +327,11 @@ class TestSLA:
                 resolution=Affect.AffectResolution.DELEGATED,
                 ps_module=ps_module.name,
             )
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             tracker = TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.embargoed,
+                ps_update_stream=ps_update_stream.name,
                 type=Tracker.BTS2TYPE[ps_module.bts_name],
             )
             for attribute, value in context.get("tracker", {}):
@@ -730,9 +732,11 @@ class TestSLAPolicy:
                 ps_module=ps_module.name,
                 impact=Impact.MODERATE,
             )
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             tracker = TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.embargoed,
+                ps_update_stream=ps_update_stream.name,
                 type=Tracker.BTS2TYPE[ps_module.bts_name],
             )
 
@@ -803,9 +807,11 @@ class TestSLAPolicy:
                 ps_component="dnf",
                 impact=Impact.LOW,
             )
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             tracker = TrackerFactory(
                 affects=[affect1, affect2],
                 embargoed=flaw1.embargoed,
+                ps_update_stream=ps_update_stream.name,
                 type=Tracker.BTS2TYPE[ps_module.bts_name],
             )
 
@@ -864,9 +870,11 @@ class TestSLAPolicy:
                 resolution=Affect.AffectResolution.DELEGATED,
                 ps_module=ps_module.name,
             )
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             tracker = TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.embargoed,
+                ps_update_stream=ps_update_stream.name,
                 type=Tracker.BTS2TYPE[ps_module.bts_name],
             )
 
@@ -928,9 +936,11 @@ class TestSLAPolicy:
                 ps_module=ps_module.name,
                 ps_component="dnf",
             )
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             tracker = TrackerFactory(
                 affects=[affect1, affect2],
                 embargoed=flaw1.embargoed,
+                ps_update_stream=ps_update_stream.name,
                 type=Tracker.BTS2TYPE[ps_module.bts_name],
             )
 

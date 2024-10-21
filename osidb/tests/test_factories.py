@@ -9,6 +9,7 @@ from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
     PsModuleFactory,
+    PsUpdateStreamFactory,
     TrackerFactory,
 )
 
@@ -32,9 +33,11 @@ class TestTrackerFactory:
             resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
             created_dt="2000-10-10T00:00:00Z",
             updated_dt="2000-10-10T00:00:00Z",

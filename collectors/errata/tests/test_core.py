@@ -7,6 +7,7 @@ from osidb.tests.factories import (
     AffectFactory,
     ErratumFactory,
     PsModuleFactory,
+    PsUpdateStreamFactory,
     TrackerFactory,
 )
 
@@ -120,16 +121,20 @@ class TestErrataToolCollection:
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory.create(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
             external_system_id="2021161",
+            ps_update_stream=ps_update_stream1.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory.create(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
             external_system_id="2021168",
+            ps_update_stream=ps_update_stream2.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
         link_bugs_to_errata(
@@ -178,30 +183,38 @@ class TestErrataToolCollection:
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
+        ps_update_stream11 = PsUpdateStreamFactory(ps_module=ps_module1)
         TrackerFactory.create(
             affects=[affect1],
             embargoed=affect1.flaw.embargoed,
             external_system_id="2021161",
+            ps_update_stream=ps_update_stream11.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
+        ps_update_stream12 = PsUpdateStreamFactory(ps_module=ps_module1)
         TrackerFactory.create(
             affects=[affect1],
             embargoed=affect1.flaw.embargoed,
             external_system_id="2021168",
+            ps_update_stream=ps_update_stream12.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
 
         # extra trackers
+        ps_update_stream13 = PsUpdateStreamFactory(ps_module=ps_module1)
         bugzilla_tracker = TrackerFactory.create(
             affects=[affect1],
             embargoed=affect1.flaw.embargoed,
             external_system_id="7",
+            ps_update_stream=ps_update_stream13.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
         jira_tracker = TrackerFactory.create(
             affects=[affect2],
             embargoed=affect2.flaw.embargoed,
             external_system_id="PROJECT-7",
+            ps_update_stream=ps_update_stream2.name,
             type=Tracker.TrackerType.JIRA,
         )
 
@@ -250,10 +263,12 @@ class TestErrataToolCollection:
         )
 
         # The test uses the same code as above, but no errata I've checked have both Bugzilla and Jira trackers
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory.create(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
             external_system_id="LOG-2064",
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.JIRA,
         )
         link_bugs_to_errata(
@@ -348,16 +363,20 @@ class TestErrataToolCollection:
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory.create(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
             external_system_id="2021161",
+            ps_update_stream=ps_update_stream1.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory.create(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
             external_system_id="2021168",
+            ps_update_stream=ps_update_stream2.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
 

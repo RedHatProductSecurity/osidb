@@ -275,6 +275,31 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 "Tracker must be associated with a valid PS update stream"
             )
 
+    def _validate_tracker_ps_module_ps_update_stream(self, **kwargs):
+        """
+        check that the tracker is associated with a PS update stream corresponding to its PS module
+        """
+        if not self.affects.exists():
+            return
+
+        ps_module = PsModule.objects.filter(name=self.affects.first().ps_module).first()
+        # PS module is checked by a different validation
+        if not ps_module:
+            return
+
+        ps_update_stream = PsUpdateStream.objects.filter(
+            name=self.ps_update_stream
+        ).first()
+        # PS update stream is checked by a different validation
+        if not ps_update_stream:
+            return
+
+        if ps_update_stream not in ps_module.ps_update_streams.all():
+            raise ValidationError(
+                f"PS update stream {ps_update_stream.name} does "
+                f"not belong to PS module {ps_module.name}."
+            )
+
     def _validate_tracker_flaw_accesses(self, **kwargs):
         """
         Check whether an public tracker is associated with an embargoed flaw.

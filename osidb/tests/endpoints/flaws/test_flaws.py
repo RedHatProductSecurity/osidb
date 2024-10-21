@@ -353,9 +353,11 @@ class TestEndpointsFlaws:
             resolution=Affect.AffectResolution.DELEGATED,
             ps_module=ps_module.name,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=(affect,),
             embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
         future_dt = datetime(2021, 11, 27)
@@ -450,9 +452,11 @@ class TestEndpointsFlaws:
             resolution=Affect.AffectResolution.DELEGATED,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=(affect,),
             embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
             type=Tracker.TrackerType.BUGZILLA,
         )
@@ -538,15 +542,18 @@ class TestEndpointsFlaws:
             resolution=Affect.AffectResolution.DELEGATED,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker1 = TrackerFactory(
             affects=(affect1,),
             embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
             type=Tracker.TrackerType.BUGZILLA,
         )
         tracker2 = TrackerFactory(
             affects=(affect2,),
             embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
             type=Tracker.TrackerType.BUGZILLA,
         )
@@ -683,6 +690,7 @@ class TestEndpointsFlaws:
         assert body["count"] == 0
 
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory()
         for _ in range(5):
             affect = AffectFactory(
@@ -694,6 +702,7 @@ class TestEndpointsFlaws:
             TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.is_embargoed,
+                ps_update_stream=ps_update_stream.name,
                 type=Tracker.TrackerType.BUGZILLA,
             )
 
@@ -733,6 +742,7 @@ class TestEndpointsFlaws:
         assert body["count"] == 0
 
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory()
         for _ in range(5):
             affect = AffectFactory(
@@ -744,6 +754,7 @@ class TestEndpointsFlaws:
             TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.is_embargoed,
+                ps_update_stream=ps_update_stream.name,
                 type=Tracker.TrackerType.BUGZILLA,
             )
 
@@ -793,6 +804,7 @@ class TestEndpointsFlaws:
         assert body["count"] == 0
 
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory()
         for _ in range(5):
             affect = AffectFactory(
@@ -804,6 +816,7 @@ class TestEndpointsFlaws:
             TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.is_embargoed,
+                ps_update_stream=ps_update_stream.name,
                 type=Tracker.TrackerType.BUGZILLA,
             )
 
@@ -840,6 +853,7 @@ class TestEndpointsFlaws:
         assert body["count"] == 0
 
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory()
         for _ in range(5):
             affect = AffectFactory(
@@ -851,6 +865,7 @@ class TestEndpointsFlaws:
             TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.is_embargoed,
+                ps_update_stream=ps_update_stream.name,
                 type=Tracker.TrackerType.BUGZILLA,
             )
 
@@ -1047,6 +1062,7 @@ class TestEndpointsFlaws:
 
         for _ in range(2):
             ps_module = PsModuleFactory(bts_name="bugzilla")
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             flaw = FlawFactory(meta_attr={f"test_key_{i}": "test" for i in range(5)})
             for _ in range(3):
                 affect = AffectFactory(
@@ -1060,6 +1076,7 @@ class TestEndpointsFlaws:
                     affects=[affect],
                     embargoed=flaw.is_embargoed,
                     meta_attr={f"test_key_{i}": "test" for i in range(5)},
+                    ps_update_stream=ps_update_stream.name,
                     type=Tracker.TrackerType.BUGZILLA,
                 )
 
@@ -1156,6 +1173,7 @@ class TestEndpointsFlaws:
         """retrieve specific flaw with various meta_attr keys in nested serializers"""
 
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory(meta_attr={f"test_key_{i}": "test" for i in range(5)})
         for _ in range(3):
             affect = AffectFactory(
@@ -1169,6 +1187,7 @@ class TestEndpointsFlaws:
                 affects=[affect],
                 embargoed=flaw.is_embargoed,
                 meta_attr={f"test_key_{i}": "test" for i in range(5)},
+                ps_update_stream=ps_update_stream.name,
                 type=Tracker.TrackerType.BUGZILLA,
             )
 
@@ -1224,7 +1243,9 @@ class TestEndpointsFlaws:
 
     def test_flaw_including_delegated_resolution(self, auth_client, test_api_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
-        PsUpdateStreamFactory(name="rhel-7.0", active_to_ps_module=ps_module)
+        PsUpdateStreamFactory(
+            name="rhel-7.0", active_to_ps_module=ps_module, ps_module=ps_module
+        )
         flaw = FlawFactory()
         delegated_affect = AffectFactory(
             flaw=flaw,
@@ -1684,10 +1705,12 @@ class TestEndpointsFlaws:
             for _ in range(5)
         ]
 
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         trackers_to_fetch = [
             TrackerFactory(
                 affects=[affects_with_trackers_to_fetch[idx]],
                 embargoed=flaw.is_embargoed,
+                ps_update_stream=ps_update_stream.name,
                 type=Tracker.TrackerType.BUGZILLA,
             )
             for idx in range(5)
@@ -1696,6 +1719,7 @@ class TestEndpointsFlaws:
             TrackerFactory(
                 affects=[other_affects[idx]],
                 embargoed=flaw.is_embargoed,
+                ps_update_stream=ps_update_stream.name,
                 type=Tracker.TrackerType.BUGZILLA,
             )
 
