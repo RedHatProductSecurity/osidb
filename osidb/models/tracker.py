@@ -227,11 +227,14 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         else:
             try:
                 super().save(*args, **kwargs)
-            except IntegrityError as e:
+            except (IntegrityError, ValidationError) as e:
                 exc_msg = str(e)
                 if (
-                    "duplicate key value violates unique constraint" in exc_msg
-                    and "osidb_tracker_type_external_system_id" in exc_msg
+                    (
+                        "duplicate key value violates unique constraint" in exc_msg
+                        and "osidb_tracker_type_external_system_id" in exc_msg
+                    )
+                    or "Constraint “unique_external_system_id” is violated." in exc_msg
                 ):
                     # Tracker collector collected this tracker before the whole saving process finished
                     # in the OSIDB, skip the saving and log it
