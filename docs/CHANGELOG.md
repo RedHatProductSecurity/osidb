@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update delegated resolution mapping so low impact won't fix
   changes to fix deferred (OSIDB-3575)
 
+### Fixed
+- ValidationError constraint “unique_external_system_id” during tracker filing (OSIDB-3589)
+
 ## [4.4.1] - 2024-10-17
 ### Added
 - Auto-reset CVSS validation flag on NVD CVSS removal (OSIDB-3407)
