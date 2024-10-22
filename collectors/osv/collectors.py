@@ -143,37 +143,35 @@ class OSVCollector(Collector):
             # for, but continue for others that work.
             logger.info(f"Fetching and processing data for {ecosystem} OSV ecosystem")
             try:
-                osv_vulns = self.fetch_osv_vulns_for_ecosystem(ecosystem)
+                for osv_vuln in self.fetch_osv_vulns_for_ecosystem(ecosystem):
+                    try:
+                        osv_id, cve_ids, content = self.extract_content(osv_vuln)
+                    except Exception as exc:
+                        logger.error(
+                            f"Failed to parse data from {osv_vuln['id']} vulnerability: {exc}"
+                        )
+                        continue
+
+                    if any(
+                        osv_id.startswith(prefix)
+                        for prefix in self.OSV_VULN_ID_SKIPLIST
+                    ):
+                        continue
+                    try:
+                        with transaction.atomic():
+                            (
+                                created_snippets,
+                                created_flaws,
+                            ) = self.save_snippet_and_flaw(osv_id, cve_ids, content)
+                            new_snippets.extend(created_snippets)
+                            new_flaws.extend(created_flaws)
+                    except Exception as exc:
+                        message = f"Failed to save snippet and flaw for {osv_id}. Error: {exc}."
+                        logger.error(message)
+                        raise OSVCollectorException(message) from exc
             except requests.exceptions.RequestException as exc:
                 logger.error(f"Failed to fetch OSV vulns for {ecosystem}: {exc}")
                 continue
-
-            for osv_vuln in osv_vulns:
-                try:
-                    osv_id, cve_ids, content = self.extract_content(osv_vuln)
-                except Exception as exc:
-                    logger.error(
-                        f"Failed to parse data from {osv_vuln['id']} vulnerability: {exc}"
-                    )
-                    continue
-
-                if any(
-                    osv_id.startswith(prefix) for prefix in self.OSV_VULN_ID_SKIPLIST
-                ):
-                    continue
-                try:
-                    with transaction.atomic():
-                        created_snippets, created_flaws = self.save_snippet_and_flaw(
-                            osv_id, cve_ids, content
-                        )
-                        new_snippets.extend(created_snippets)
-                        new_flaws.extend(created_flaws)
-                except Exception as exc:
-                    message = (
-                        f"Failed to save snippet and flaw for {osv_id}. Error: {exc}."
-                    )
-                    logger.error(message)
-                    raise OSVCollectorException(message) from exc
 
         updated_until = timezone.now()
         self.store(complete=True, updated_until_dt=updated_until)
