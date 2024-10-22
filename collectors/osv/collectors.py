@@ -10,7 +10,8 @@ from celery.utils.log import get_task_logger
 from cvss import CVSS2, CVSS3, CVSS4
 from django.conf import settings
 from django.db import transaction
-from django.utils import dateparse, timezone
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from apps.taskman.constants import JIRA_AUTH_TOKEN
 from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_START_DATE
@@ -110,26 +111,31 @@ class OSVCollector(Collector):
 
     def collect(self, osv_id: Union[str, None] = None) -> str:
         """Collect vulnerability data for each supported ecosystem."""
+        if not self.snippet_creation_enabled:
+            msg = "Snippet creation is disabled. The OSV collector is not running."
+            logger.error(msg)
+            return msg
+
         # Set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
         # Celery workers should be able to read/write any information in order to fulfill their jobs
         set_user_acls(settings.ALL_GROUPS)
 
         logger.info("Starting OSV data collection")
-        new_count, updated_count = 0, 0
+        new_snippets = []
+        new_flaws = []
 
+        # Collection of one osv_id is currently used only in tests
         if osv_id is not None:
             # Surface an exception when collecting an individual OSV vulnerability
             osv_vuln = self.fetch_osv_vuln_by_id(osv_id)
             osv_id, cve_ids, content = self.extract_content(osv_vuln)
-
             try:
                 with transaction.atomic():
-                    self.save_snippet(osv_id, cve_ids, content)
+                    self.save_snippet_and_flaw(osv_id, cve_ids, content)
             except Exception as exc:
                 message = f"Failed to save snippet and flaw for {osv_id}. Error: {exc}."
                 logger.error(message)
                 raise OSVCollectorException(message) from exc
-
             return f"OSV collection for {osv_id} was successful."
 
         for ecosystem in self.SUPPORTED_OSV_ECOSYSTEMS:
@@ -137,95 +143,95 @@ class OSVCollector(Collector):
             # for, but continue for others that work.
             logger.info(f"Fetching and processing data for {ecosystem} OSV ecosystem")
             try:
-                for osv_vuln in self.fetch_osv_vulns_for_ecosystem(ecosystem):
-                    try:
-                        osv_id, cve_ids, content = self.extract_content(osv_vuln)
-                    except Exception as exc:
-                        logger.error(
-                            f"Failed to parse data from {osv_vuln['id']} vulnerability: {exc}"
-                        )
-                        continue
-
-                    if any(
-                        osv_id.startswith(prefix)
-                        for prefix in self.OSV_VULN_ID_SKIPLIST
-                    ):
-                        continue
-                    try:
-                        with transaction.atomic():
-                            created, updated = self.save_snippet(
-                                osv_id,
-                                cve_ids,
-                                content,
-                            )
-                            new_count += created
-                            updated_count += updated
-                    except Exception as exc:
-                        message = f"Failed to save snippet and flaw for {osv_id}. Error: {exc}."
-                        logger.error(message)
-                        raise OSVCollectorException(message) from exc
+                osv_vulns = self.fetch_osv_vulns_for_ecosystem(ecosystem)
             except requests.exceptions.RequestException as exc:
                 logger.error(f"Failed to fetch OSV vulns for {ecosystem}: {exc}")
                 continue
+
+            for osv_vuln in osv_vulns:
+                try:
+                    osv_id, cve_ids, content = self.extract_content(osv_vuln)
+                except Exception as exc:
+                    logger.error(
+                        f"Failed to parse data from {osv_vuln['id']} vulnerability: {exc}"
+                    )
+                    continue
+
+                if any(
+                    osv_id.startswith(prefix) for prefix in self.OSV_VULN_ID_SKIPLIST
+                ):
+                    continue
+                try:
+                    with transaction.atomic():
+                        created_snippets, created_flaws = self.save_snippet_and_flaw(
+                            osv_id, cve_ids, content
+                        )
+                        new_snippets.extend(created_snippets)
+                        new_flaws.extend(created_flaws)
+                except Exception as exc:
+                    message = (
+                        f"Failed to save snippet and flaw for {osv_id}. Error: {exc}."
+                    )
+                    logger.error(message)
+                    raise OSVCollectorException(message) from exc
 
         updated_until = timezone.now()
         self.store(complete=True, updated_until_dt=updated_until)
         msg = (
             f"{self.name} is updated until {updated_until}."
-            f"New snippets saved: {new_count}; updated snippets: {updated_count}"
+            f"Created snippets: {f'{len(new_snippets)} {tuple(new_snippets)}' if new_snippets else '0'}. "
+            f"Created CVEs from snippets: {f'{len(new_flaws)} {tuple(new_flaws)}' if new_flaws else '0'}."
         )
         logger.info("OSV sync was successful.")
         return msg
 
-    def save_snippet(
-        self, osv_id: str, cve_ids: list, content: dict
-    ) -> tuple[int, int]:
-        """Save one snippet per CVE and return numbers of updated or created snippets.
+    def save_snippet_and_flaw(
+        self, osv_id: str, cve_ids: list[str], content: dict
+    ) -> tuple[list[str], list[str]]:
+        """Save one snippet and flaw per CVE and return IDs of created snippets and flaws.
 
         Creating each snippet per CVE allows us to link them to unique Flaws (which also contain
         single CVE IDs), and reuse their data for the creation of those flaws.
         """
-        if not self.snippet_creation_enabled:
-            return 0, 0
-
         if self.snippet_creation_start_date and (
-            self.snippet_creation_start_date
-            >= dateparse.parse_datetime(content["unembargo_dt"])
+            self.snippet_creation_start_date >= parse_datetime(content["unembargo_dt"])
         ):
-            return 0, 0
+            return [], []
+
+        created_snippets = []
+        created_flaws = []
 
         if not cve_ids:
             # This keeps the structure consistent and ease snippets filtering without cve_id
             content["cve_id"] = None
-            snippet, created = Snippet.objects.update_or_create(
+            snippet, snippet_created = Snippet.objects.update_or_create(
                 source=Snippet.Source.OSV,
                 external_id=osv_id,
                 defaults={"content": content},
             )
-            if created:
-                snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN)
-                return 1, 0
-            else:
-                return 0, 1
+            if snippet_created:
+                created_snippets.append(osv_id)
+                # We store flaw uuid as CVE id is not present
+                if flaw := snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN):
+                    created_flaws.append(flaw.uuid)
         else:
-            created, updated = 0, 0
             for cve_id in cve_ids:
                 snippet_content = content.copy()
                 snippet_content["cve_id"] = cve_id
                 # We need a unique ID and because we're creating a separate snippet for each
                 # CVE ID we can create a unique ID by appending that CVE ID to the OSV ID.
                 external_id = f"{osv_id}/{cve_id}"
-                snippet, created = Snippet.objects.update_or_create(
+                snippet, snippet_created = Snippet.objects.update_or_create(
                     source=Snippet.Source.OSV,
                     external_id=external_id,
                     defaults={"content": snippet_content},
                 )
-                if created:
-                    snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN)
-                    created += 1
-                else:
-                    updated += 1
-            return created, updated
+                if snippet_created:
+                    created_snippets.append(external_id)
+                    if snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN):
+                        created_flaws.append(cve_id)
+
+        return created_snippets, created_flaws
 
     def extract_content(self, osv_vuln: dict) -> tuple[str, list, dict]:
         """Extract data from an OSV vuln and normalize to Flaw model fields.

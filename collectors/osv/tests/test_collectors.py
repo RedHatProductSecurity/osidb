@@ -112,27 +112,6 @@ class TestOSVCollector:
         assert Flaw.objects.count() == 0
 
     @pytest.mark.vcr
-    def test_atomicity(self, monkeypatch):
-        """Test that flaw and snippet are not created if any error occurs during the flaw creation."""
-
-        def mock_create_or_update_task(self, flaw):
-            raise JIRAError(status_code=401)
-
-        monkeypatch.setattr(
-            JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
-        )
-
-        osvc = OSVCollector()
-        osvc.snippet_creation_enabled = True
-        osvc.snippet_creation_start_date = None
-
-        with pytest.raises(OSVCollectorException):
-            osvc.collect(osv_id="GO-2023-1602")
-
-        assert Snippet.objects.all().count() == 0
-        assert Flaw.objects.all().count() == 0
-
-    @pytest.mark.vcr
     def test_no_bz(self, monkeypatch):
         """Test that external id is included even if BZ sync is disabled."""
         osv_id = "GHSA-3hwm-922r-47hw"
@@ -158,3 +137,26 @@ class TestOSVCollector:
         assert Snippet.objects.first().external_id == osv_id
         assert Flaw.objects.count() == 1
         assert Flaw.objects.first().meta_attr == {"external_ids": json.dumps([osv_id])}
+
+
+class TestOSVCollectorException:
+    @pytest.mark.vcr
+    def test_atomicity(self, monkeypatch):
+        """Test that flaw and snippet are not created if any error occurs during the flaw creation."""
+
+        def mock_create_or_update_task(self, flaw):
+            raise JIRAError(status_code=401)
+
+        monkeypatch.setattr(
+            JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
+        )
+
+        osvc = OSVCollector()
+        osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = None
+
+        with pytest.raises(OSVCollectorException):
+            osvc.collect(osv_id="GO-2023-1602")
+
+        assert Snippet.objects.all().count() == 0
+        assert Flaw.objects.all().count() == 0
