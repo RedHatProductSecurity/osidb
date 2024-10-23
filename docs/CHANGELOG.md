@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Implement validation of PS module and PS update stream correspondance (OSIDB-3584)
 
+### Changed
+- Skip flaws with CVE ID in OSV collector (OSIDB-3351)
+
 ## [4.5.0] - 2024-10-22
 ### Added
 - Add new flaw reference type "UPSTREAM"

@@ -1,0 +1,61 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.32.3
+    method: GET
+    uri: https://example.com/v1/vulns/GO-2022-0646
+  response:
+    body:
+      string: '{"id": "GO-2022-0646", "summary": "Use of risky cryptographic algorithm
+        in github.com/aws/aws-sdk-go", "details": "The Go AWS S3 Crypto SDK contains
+        vulnerabilities that can permit an attacker with write access to a bucket
+        to decrypt files in that bucket.\n\nFiles encrypted by the V1 EncryptionClient
+        using either the AES-CBC content cipher or the KMS key wrap algorithm are
+        vulnerable. Users should migrate to the V1 EncryptionClientV2 API, which will
+        not create vulnerable files. Old files will remain vulnerable until re-encrypted
+        with the new client.", "aliases": ["CVE-2020-8911", "CVE-2020-8912", "GHSA-7f33-f4f5-xwgw",
+        "GHSA-f5pg-7wfw-84q9"], "modified": "2024-05-20T16:03:47Z", "published": "2022-02-11T23:26:26Z",
+        "database_specific": {"url": "https://example.com/vuln/GO-2022-0646", "review_status":
+        "REVIEWED"}, "references": [{"type": "ADVISORY", "url": "https://example.com/blogs/developer/updates-to-the-amazon-s3-encryption-client/?s=09"},
+        {"type": "FIX", "url": "https://example.com/aws/aws-sdk-go/pull/3403"}, {"type":
+        "FIX", "url": "https://example.com/aws/aws-sdk-go/commit/ae9b9fd92af132cfd8d879809d8611825ba135f4"}],
+        "affected": [{"package": {"name": "github.com/aws/aws-sdk-go", "ecosystem":
+        "Go", "purl": "pkg:golang/github.com/aws/aws-sdk-go"}, "ranges": [{"type":
+        "SEMVER", "events": [{"introduced": "0"}]}], "ecosystem_specific": {"imports":
+        [{"symbols": ["NewDecryptionClient", "NewEncryptionClient"], "path": "github.com/aws/aws-sdk-go/service/s3/s3crypto"}]},
+        "database_specific": {"source": "https://example.com/ID/GO-2022-0646.json"}}],
+        "schema_version": "1.6.0", "credits": [{"name": "Sophie Schmieg from the Google
+        ISE team"}]}'
+    headers:
+      Content-Length:
+      - '1600'
+      Date:
+      - Tue, 22 Oct 2024 18:30:41 GMT
+      Server:
+      - Google Frontend
+      X-Cloud-Trace-Context:
+      - 306ea28075602d6b6308903bc5ea33de
+      alt-svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      content-type:
+      - application/json
+      grpc-accept-encoding:
+      - identity, deflate, gzip
+      grpc-message:
+      - ''
+      grpc-status:
+      - '0'
+      x-envoy-decorator-operation:
+      - ingress GetVulnById
+    status:
+      code: 200
+      message: OK
+version: 1

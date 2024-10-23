@@ -9,7 +9,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
     method: GET
     uri: https://example.com/v1/vulns/GHSA-3hwm-922r-47hw
   response:
@@ -37,11 +37,11 @@ interactions:
       Content-Length:
       - '1676'
       Date:
-      - Wed, 14 Aug 2024 12:44:41 GMT
+      - Tue, 22 Oct 2024 18:26:24 GMT
       Server:
       - Google Frontend
       X-Cloud-Trace-Context:
-      - bdda5bcabe9db84deb48675f75e5ffac
+      - 23c5704e695e55e5796aaacd73623fd1
       alt-svc:
       - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
       content-type:
@@ -71,7 +71,7 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
       X-Atlassian-Token:
       - no-check
     method: GET
@@ -80,7 +80,7 @@ interactions:
     body:
       string: '{"permissions": {"ARCHIVE_ISSUES": {"id": "-1", "key": "ARCHIVE_ISSUES",
         "name": "Archive Issues", "type": "PROJECT", "description": "Ability to archive
-        issues for a specific project.", "havePermission": false}, "VIEW_WORKFLOW_READONLY":
+        issues for a specific project.", "havePermission": true}, "VIEW_WORKFLOW_READONLY":
         {"id": "45", "key": "VIEW_WORKFLOW_READONLY", "name": "View Read-Only Workflow",
         "type": "PROJECT", "description": "admin.permissions.descriptions.VIEW_WORKFLOW_READONLY",
         "havePermission": true, "deprecatedKey": true}, "CREATE_ISSUES": {"id": "11",
@@ -103,9 +103,9 @@ interactions:
         Time Tracking is turned on.", "havePermission": true}, "PROJECT_ADMIN": {"id":
         "23", "key": "PROJECT_ADMIN", "name": "Administer Projects", "type": "PROJECT",
         "description": "Ability to administer a project in Jira.", "havePermission":
-        false, "deprecatedKey": true}, "COMMENT_EDIT_ALL": {"id": "34", "key": "COMMENT_EDIT_ALL",
+        true, "deprecatedKey": true}, "COMMENT_EDIT_ALL": {"id": "34", "key": "COMMENT_EDIT_ALL",
         "name": "Edit All Comments", "type": "PROJECT", "description": "Ability to
-        edit all comments made on issues.", "havePermission": false, "deprecatedKey":
+        edit all comments made on issues.", "havePermission": true, "deprecatedKey":
         true}, "ATTACHMENT_DELETE_OWN": {"id": "39", "key": "ATTACHMENT_DELETE_OWN",
         "name": "Delete Own Attachments", "type": "PROJECT", "description": "Users
         with this permission may delete own attachments.", "havePermission": true,
@@ -125,7 +125,7 @@ interactions:
         "description": "Ability to comment on issues.", "havePermission": true}, "COMMENT_DELETE_ALL":
         {"id": "36", "key": "COMMENT_DELETE_ALL", "name": "Delete All Comments", "type":
         "PROJECT", "description": "Ability to delete all comments made on issues.",
-        "havePermission": false, "deprecatedKey": true}, "CREATE_ISSUE": {"id": "11",
+        "havePermission": true, "deprecatedKey": true}, "CREATE_ISSUE": {"id": "11",
         "key": "CREATE_ISSUE", "name": "Create Issues", "type": "PROJECT", "description":
         "Ability to create issues.", "havePermission": true, "deprecatedKey": true},
         "DELETE_OWN_ATTACHMENTS": {"id": "39", "key": "DELETE_OWN_ATTACHMENTS", "name":
@@ -133,7 +133,7 @@ interactions:
         permission may delete own attachments.", "havePermission": true}, "DELETE_ALL_ATTACHMENTS":
         {"id": "38", "key": "DELETE_ALL_ATTACHMENTS", "name": "Delete All Attachments",
         "type": "PROJECT", "description": "Users with this permission may delete all
-        attachments.", "havePermission": false}, "ASSIGN_ISSUE": {"id": "13", "key":
+        attachments.", "havePermission": true}, "ASSIGN_ISSUE": {"id": "13", "key":
         "ASSIGN_ISSUE", "name": "Assign Issues", "type": "PROJECT", "description":
         "Ability to assign issues to other people.", "havePermission": true, "deprecatedKey":
         true}, "LINK_ISSUE": {"id": "21", "key": "LINK_ISSUE", "name": "Link Issues",
@@ -146,7 +146,7 @@ interactions:
         "PROJECT", "description": "Users with this permission may create attachments.",
         "havePermission": true}, "EDIT_ALL_WORKLOGS": {"id": "41", "key": "EDIT_ALL_WORKLOGS",
         "name": "Edit All Worklogs", "type": "PROJECT", "description": "Ability to
-        edit all worklogs made on issues.", "havePermission": false}, "SCHEDULE_ISSUE":
+        edit all worklogs made on issues.", "havePermission": true}, "SCHEDULE_ISSUE":
         {"id": "28", "key": "SCHEDULE_ISSUE", "name": "Schedule Issues", "type": "PROJECT",
         "description": "Ability to view or edit an issue''s due date.", "havePermission":
         true, "deprecatedKey": true}, "CLOSE_ISSUES": {"id": "18", "key": "CLOSE_ISSUES",
@@ -160,16 +160,16 @@ interactions:
         Issues", "type": "PROJECT", "description": "Ability to view or edit an issue''s
         due date.", "havePermission": true}, "WORKLOG_DELETE_ALL": {"id": "43", "key":
         "WORKLOG_DELETE_ALL", "name": "Delete All Worklogs", "type": "PROJECT", "description":
-        "Ability to delete all worklogs made on issues.", "havePermission": false,
+        "Ability to delete all worklogs made on issues.", "havePermission": true,
         "deprecatedKey": true}, "COMMENT_DELETE_OWN": {"id": "37", "key": "COMMENT_DELETE_OWN",
         "name": "Delete Own Comments", "type": "PROJECT", "description": "Ability
         to delete own comments made on issues.", "havePermission": true, "deprecatedKey":
         true}, "ADMINISTER_PROJECTS": {"id": "23", "key": "ADMINISTER_PROJECTS", "name":
         "Administer Projects", "type": "PROJECT", "description": "Ability to administer
-        a project in Jira.", "havePermission": false}, "DELETE_ALL_COMMENTS": {"id":
+        a project in Jira.", "havePermission": true}, "DELETE_ALL_COMMENTS": {"id":
         "36", "key": "DELETE_ALL_COMMENTS", "name": "Delete All Comments", "type":
         "PROJECT", "description": "Ability to delete all comments made on issues.",
-        "havePermission": false}, "RESOLVE_ISSUES": {"id": "14", "key": "RESOLVE_ISSUES",
+        "havePermission": true}, "RESOLVE_ISSUES": {"id": "14", "key": "RESOLVE_ISSUES",
         "name": "Resolve Issues", "type": "PROJECT", "description": "Ability to resolve
         and reopen issues. This includes the ability to set a fix version.", "havePermission":
         true}, "VIEW_READONLY_WORKFLOW": {"id": "45", "key": "VIEW_READONLY_WORKFLOW",
@@ -220,12 +220,12 @@ interactions:
         Results OKRs (Objective and key results) that are linked to a given issue",
         "havePermission": false}, "RESTORE_ISSUES": {"id": "-1", "key": "RESTORE_ISSUES",
         "name": "Restore Issues", "type": "PROJECT", "description": "Ability to restore
-        issues for a specific project.", "havePermission": false}, "BROWSE_ARCHIVE":
+        issues for a specific project.", "havePermission": true}, "BROWSE_ARCHIVE":
         {"id": "-1", "key": "BROWSE_ARCHIVE", "name": "Browse Project Archive", "type":
         "PROJECT", "description": "Ability to browse archived issues from a specific
-        project.", "havePermission": false}, "A4J_PERM_IMPERSONATE_ACTOR_GLOBAL":
-        {"id": "-1", "key": "A4J_PERM_IMPERSONATE_ACTOR_GLOBAL", "name": "Impersonate
-        users in A4J global scope", "type": "GLOBAL", "description": "Having the permission
+        project.", "havePermission": true}, "A4J_PERM_IMPERSONATE_ACTOR_GLOBAL": {"id":
+        "-1", "key": "A4J_PERM_IMPERSONATE_ACTOR_GLOBAL", "name": "Impersonate users
+        in A4J global scope", "type": "GLOBAL", "description": "Having the permission
         allows to select other user as automation rule actor", "havePermission": true},
         "VIEW_VERSION_CONTROL": {"id": "29", "key": "VIEW_VERSION_CONTROL", "name":
         "View Development Tools", "type": "PROJECT", "description": "Allows users
@@ -241,15 +241,15 @@ interactions:
         "description": "Ability to comment on issues.", "havePermission": true, "deprecatedKey":
         true}, "WORKLOG_EDIT_ALL": {"id": "41", "key": "WORKLOG_EDIT_ALL", "name":
         "Edit All Worklogs", "type": "PROJECT", "description": "Ability to edit all
-        worklogs made on issues.", "havePermission": false, "deprecatedKey": true},
+        worklogs made on issues.", "havePermission": true, "deprecatedKey": true},
         "EDIT_ALL_COMMENTS": {"id": "34", "key": "EDIT_ALL_COMMENTS", "name": "Edit
         All Comments", "type": "PROJECT", "description": "Ability to edit all comments
-        made on issues.", "havePermission": false}, "DELETE_ISSUE": {"id": "16", "key":
+        made on issues.", "havePermission": true}, "DELETE_ISSUE": {"id": "16", "key":
         "DELETE_ISSUE", "name": "Delete Issues", "type": "PROJECT", "description":
         "Ability to delete issues.", "havePermission": false, "deprecatedKey": true},
         "MANAGE_SPRINTS_PERMISSION": {"id": "-1", "key": "MANAGE_SPRINTS_PERMISSION",
         "name": "Manage Sprints", "type": "PROJECT", "description": "Ability to manage
-        sprints.", "havePermission": false}, "USER_PICKER": {"id": "27", "key": "USER_PICKER",
+        sprints.", "havePermission": true}, "USER_PICKER": {"id": "27", "key": "USER_PICKER",
         "name": "Browse Users", "type": "GLOBAL", "description": "Ability to select
         a user or group from a popup window as well as the ability to use the ''share''
         issues feature. Users with this permission will also be able to see names
@@ -259,7 +259,7 @@ interactions:
         with other users, groups and roles.", "havePermission": true}, "ATTACHMENT_DELETE_ALL":
         {"id": "38", "key": "ATTACHMENT_DELETE_ALL", "name": "Delete All Attachments",
         "type": "PROJECT", "description": "Users with this permission may delete all
-        attachments.", "havePermission": false, "deprecatedKey": true}, "DELETE_ISSUES":
+        attachments.", "havePermission": true, "deprecatedKey": true}, "DELETE_ISSUES":
         {"id": "16", "key": "DELETE_ISSUES", "name": "Delete Issues", "type": "PROJECT",
         "description": "Ability to delete issues.", "havePermission": false}, "MANAGE_GROUP_FILTER_SUBSCRIPTIONS":
         {"id": "24", "key": "MANAGE_GROUP_FILTER_SUBSCRIPTIONS", "name": "Manage Group
@@ -292,7 +292,7 @@ interactions:
         edit own worklogs made on issues.", "havePermission": true, "deprecatedKey":
         true}, "DELETE_ALL_WORKLOGS": {"id": "43", "key": "DELETE_ALL_WORKLOGS", "name":
         "Delete All Worklogs", "type": "PROJECT", "description": "Ability to delete
-        all worklogs made on issues.", "havePermission": false}, "LINK_ISSUES": {"id":
+        all worklogs made on issues.", "havePermission": true}, "LINK_ISSUES": {"id":
         "21", "key": "LINK_ISSUES", "name": "Link Issues", "type": "PROJECT", "description":
         "Ability to link issues together and create linked issues. Only useful if
         issue linking is turned on.", "havePermission": true}, "gtmhub-view-OKRs-prj-permissions":
@@ -307,9 +307,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 14 Aug 2024 12:44:42 GMT
+      - Tue, 22 Oct 2024 18:26:28 GMT
       Expires:
-      - Wed, 14 Aug 2024 12:44:42 GMT
+      - Tue, 22 Oct 2024 18:26:28 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -322,7 +322,7 @@ interactions:
       X-RateLimit-Remaining:
       - '4'
       content-length:
-      - '16555'
+      - '16539'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -330,9 +330,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 764x20653x1
+      - 1106x379329x4
       x-asessionid:
-      - my3bp3
+      - v9zb08
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -344,9 +344,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4b071002.1723639481.196b75d7
+      - 0.7df06e68.1729621587.4eaca27
       x-rh-edge-request-id:
-      - 196b75d7
+      - 4eaca27
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -368,7 +368,7 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
       X-Atlassian-Token:
       - no-check
     method: GET
@@ -382,7 +382,7 @@ interactions:
         problem that impairs or prevents the functions of the product.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Bug","subtask":false,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/16","id":"16","description":"Created
         by Jira Software - do not edit or delete. Issue type for a big user story
         that needs to be broken down.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13267&avatarType=issuetype","name":"Epic","subtask":false,"avatarId":13267},{"self":"https://example.com/rest/api/2/issuetype/11406","id":"11406","description":"Expresses
-        areas of concern for a project or program''s success.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype","name":"Risk","subtask":false,"avatarId":13268},{"self":"https://example.com/rest/api/2/issuetype/10100","id":"10100","description":"A
+        areas of concern for a project or program''s success.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype","name":"Risk","subtask":false,"avatarId":13268},{"self":"https://example.com/rest/api/2/issuetype/12206","id":"12206","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=57660&avatarType=issuetype","name":"Weakness","subtask":false,"avatarId":57660},{"self":"https://example.com/rest/api/2/issuetype/12207","id":"12207","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=57661&avatarType=issuetype","name":"Vulnerability","subtask":false,"avatarId":57661},{"self":"https://example.com/rest/api/2/issuetype/10100","id":"10100","description":"A
         large product/portfolio goal or focus area that has clear start and completion
         criteria","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10800","id":"10800","description":"Represents
         a research-related task.''","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/12102","id":"12102","description":"Organizational
@@ -483,14 +483,10 @@ interactions:
         Security Exception","subtask":false,"avatarId":40577},{"self":"https://example.com/rest/api/2/issuetype/12100","id":"12100","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Objective","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/12101","id":"12101","description":"Large,
         strategic focus area typically defined by leadership teams to achieve organizational
         long-term vision.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=50977&avatarType=issuetype","name":"Strategic
-        Goal","subtask":false,"avatarId":50977},{"self":"https://example.com/rest/api/2/issuetype/12206","id":"12206","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=55783&avatarType=issuetype","name":"Weakness","subtask":false,"avatarId":55783},{"self":"https://example.com/rest/api/2/issuetype/12207","id":"12207","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=55784&avatarType=issuetype","name":"Vulnerability","subtask":false,"avatarId":55784},{"self":"https://example.com/rest/api/2/issuetype/12300","id":"12300","description":"CASE-461","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Epic
-        Story","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/12301","id":"12301","description":"CASE-461","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Epic
-        Bug","subtask":false,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
+        Goal","subtask":false,"avatarId":50977},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
         new feature of the product, which has yet to be developed.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"New
         Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10200","id":"10200","description":"An
-        improvement or enhancement to an existing feature or task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Improvement","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/12402","id":"12402","description":"Track
-        underlying causes of incidents. Created by Jira Service Management.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=56262&avatarType=issuetype","name":"Problem","subtask":false,"avatarId":56262},{"self":"https://example.com/rest/api/2/issuetype/12401","id":"12401","description":"Created
-        by Jira Service Management.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=56261&avatarType=issuetype","name":"Change","subtask":false,"avatarId":56261}]'
+        improvement or enhancement to an existing feature or task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Improvement","subtask":false,"avatarId":13270}]'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -499,9 +495,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 14 Aug 2024 12:44:42 GMT
+      - Tue, 22 Oct 2024 18:26:28 GMT
       Expires:
-      - Wed, 14 Aug 2024 12:44:42 GMT
+      - Tue, 22 Oct 2024 18:26:28 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -514,7 +510,7 @@ interactions:
       X-RateLimit-Remaining:
       - '4'
       content-length:
-      - '25736'
+      - '24569'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -522,9 +518,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 764x20654x1
+      - 1106x379330x4
       x-asessionid:
-      - 156b0ob
+      - tkoz8p
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -536,9 +532,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4b071002.1723639482.196b7835
+      - 0.7df06e68.1729621588.4eacb43
       x-rh-edge-request-id:
-      - 196b7835
+      - 4eacb43
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -560,7 +556,7 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
       X-Atlassian-Token:
       - no-check
     method: GET
@@ -595,12 +591,16 @@ interactions:
         "name": "Epic", "subtask": false, "avatarId": 13267}, {"self": "https://example.com/rest/api/2/issuetype/11406",
         "id": "11406", "description": "Expresses areas of concern for a project or
         program''s success.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype",
-        "name": "Risk", "subtask": false, "avatarId": 13268}], "assigneeType": "UNASSIGNED",
-        "versions": [], "name": "Open Security Issue Manager", "roles": {"Scrum master":
-        "https://example.com/rest/api/2/project/12337520/role/10540", "Service Desk
-        Team": "https://example.com/rest/api/2/project/12337520/role/11240", "Developers":
-        "https://example.com/rest/api/2/project/12337520/role/10001", "Service Desk
-        Customers": "https://example.com/rest/api/2/project/12337520/role/11241",
+        "name": "Risk", "subtask": false, "avatarId": 13268}, {"self": "https://example.com/rest/api/2/issuetype/12206",
+        "id": "12206", "description": "", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=57660&avatarType=issuetype",
+        "name": "Weakness", "subtask": false, "avatarId": 57660}, {"self": "https://example.com/rest/api/2/issuetype/12207",
+        "id": "12207", "description": "", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=57661&avatarType=issuetype",
+        "name": "Vulnerability", "subtask": false, "avatarId": 57661}], "assigneeType":
+        "UNASSIGNED", "versions": [], "name": "Open Security Issue Manager", "roles":
+        {"Scrum master": "https://example.com/rest/api/2/project/12337520/role/10540",
+        "Service Desk Team": "https://example.com/rest/api/2/project/12337520/role/11241",
+        "Developers": "https://example.com/rest/api/2/project/12337520/role/10001",
+        "Service Desk Customers": "https://example.com/rest/api/2/project/12337520/role/11240",
         "Administrators": "https://example.com/rest/api/2/project/12337520/role/10002",
         "Approver": "https://example.com/rest/api/2/project/12337520/role/10840",
         "Viewers": "https://example.com/rest/api/2/project/12337520/role/10440", "Users":
@@ -619,9 +619,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 14 Aug 2024 12:44:42 GMT
+      - Tue, 22 Oct 2024 18:26:28 GMT
       Expires:
-      - Wed, 14 Aug 2024 12:44:42 GMT
+      - Tue, 22 Oct 2024 18:26:28 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -634,7 +634,7 @@ interactions:
       X-RateLimit-Remaining:
       - '4'
       content-length:
-      - '4215'
+      - '4742'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -642,9 +642,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 764x20655x1
+      - 1106x379331x4
       x-asessionid:
-      - 1gdtpx4
+      - 1vnbt1y
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -656,9 +656,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4b071002.1723639482.196b7bed
+      - 0.7df06e68.1729621588.4eacc1b
       x-rh-edge-request-id:
-      - 196b7bed
+      - 4eacc1b
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -675,8 +675,8 @@ interactions:
       This vulnerability can be exploited by sending a specially crafted request to
       the API with a large payload.\n\nAn attacker can exploit this vulnerability
       to cause a denial of service (DoS) attack on the s42.app API, resulting in unavailability
-      of the API for legitimate users.", "labels": ["flawuuid:95494f57-1878-4022-9830-d7148646167c",
-      "impact:"], "priority": {"name": "Undefined"}, "assignee": {"name": ""}}}'
+      of the API for legitimate users.", "labels": ["flawuuid:6bb1e135-abc1-4419-b434-facb8d5380a1",
+      "impact:IMPORTANT"], "priority": {"name": "Major"}, "assignee": {"name": ""}}}'
     headers:
       Accept:
       - application/json,*.*;q=0.9
@@ -687,36 +687,33 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '817'
+      - '822'
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
       X-Atlassian-Token:
       - no-check
     method: POST
     uri: https://example.com/rest/api/2/issue
   response:
     body:
-      string: '{"id": "16111847", "key": "OSIM-7509", "self": "https://example.com/rest/api/2/issue/16111847"}'
+      string: '{"id": "16295852", "key": "OSIM-11543", "self": "https://example.com/rest/api/2/issue/16295852"}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
       Connection:
       - keep-alive
-      - Transfer-Encoding
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 14 Aug 2024 12:44:43 GMT
+      - Tue, 22 Oct 2024 18:26:30 GMT
       Expires:
-      - Wed, 14 Aug 2024 12:44:43 GMT
+      - Tue, 22 Oct 2024 18:26:30 GMT
       Pragma:
       - no-cache
       Retry-After:
       - '0'
-      Transfer-Encoding:
-      - chunked
       Vary:
       - User-Agent
       - Accept-Encoding
@@ -725,7 +722,7 @@ interactions:
       X-RateLimit-Remaining:
       - '4'
       content-length:
-      - '102'
+      - '103'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -733,9 +730,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 764x20656x1
+      - 1106x379332x4
       x-asessionid:
-      - 53vrkj
+      - 1nuqzyr
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -747,9 +744,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4b071002.1723639482.196b7ded
+      - 0.7df06e68.1729621588.4eaccb8
       x-rh-edge-request-id:
-      - 196b7ded
+      - 4eaccb8
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -771,38 +768,37 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-7509
+    uri: https://example.com/rest/api/2/issue/OSIM-11543
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "16111847", "self": "https://example.com/rest/api/2/issue/16111847",
-        "key": "OSIM-7509", "fields": {"customfield_12324540": "0.0", "fixVersions":
-        [], "resolution": null, "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@2f2f640c[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@c4ce250[overall=PullRequestOverallBean{stateCount=0,
+        "id": "16295852", "self": "https://example.com/rest/api/2/issue/16295852",
+        "key": "OSIM-11543", "fields": {"customfield_12324540": "0.0", "fixVersions":
+        [], "resolution": null, "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@67e21791[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2846833f[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1a088c0f[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@713da37c[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3d6004d1[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@6f974046[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3121c14f[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@2d1ba254[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@10e06daa[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@45209a80[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7a3410d2[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@acd04c2[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1dcc6e15[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@18f49e8[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@19e5a728[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@5e55c9c9[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2097b8d0[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@5b2c7523[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6fc44589[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@1f2fd239[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2e3a834[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@3a5e4026[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
         "customfield_12315950": null, "customfield_12310940": null, "lastViewed":
-        null, "customfield_12325242": null, "customfield_12325241": null, "customfield_12313140":
-        null, "priority": {"self": "https://example.com/rest/api/2/priority/10300",
-        "iconUrl": "https://example.com/images/icons/priorities/trivial.svg", "name":
-        "Undefined", "id": "10300"}, "labels": ["flawuuid:95494f57-1878-4022-9830-d7148646167c",
-        "impact:"], "aggregatetimeoriginalestimate": null, "timeestimate": null, "versions":
-        [], "issuelinks": [], "customfield_12325240": null, "assignee": null, "customfield_12313942":
+        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/3",
+        "iconUrl": "https://example.com/images/icons/priorities/major.svg", "name":
+        "Major", "id": "3"}, "labels": ["flawuuid:6bb1e135-abc1-4419-b434-facb8d5380a1",
+        "impact:IMPORTANT"], "aggregatetimeoriginalestimate": null, "timeestimate":
+        null, "versions": [], "issuelinks": [], "assignee": null, "customfield_12313942":
         null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
         very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
         "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
-        [], "customfield_12314040": null, "customfield_12320844": null, "customfield_12320842":
-        null, "archiveddate": null, "customfield_12310243": null, "aggregatetimeestimate":
+        [], "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
+        null, "customfield_12320842": null, "customfield_12310243": null, "aggregatetimeestimate":
         null, "customfield_12317313": null, "creator": {"self": "https://example.com/rest/api/2/user?username=nobody%40redhat.com",
         "name": "nobody@redhat.com", "key": "nobody", "emailAddress": "nobody+stage@redhat.com",
         "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=nobody&avatarId=29772",
@@ -820,54 +816,58 @@ interactions:
         "displayName": "nobody", "active": true, "timeZone": "Europe/Prague"},
         "aggregateprogress": {"progress": 0, "total": 0}, "customfield_12315542":
         null, "customfield_12313240": null, "customfield_12319742": null, "progress":
-        {"progress": 0, "total": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-7509/votes",
+        {"progress": 0, "total": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-11543/votes",
         "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
-        0, "maxResults": 20, "total": 0, "worklogs": []}, "archivedby": null, "issuetype":
-        {"self": "https://example.com/rest/api/2/issuetype/17", "id": "17", "description":
-        "Created by Jira Software - do not edit or delete. Issue type for a user story.",
-        "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
-        null, "timespent": null, "customfield_12320940": null, "project": {"self":
-        "https://example.com/rest/api/2/project/12337520", "id": "12337520", "key":
-        "OSIM", "name": "Open Security Issue Manager", "projectTypeKey": "software",
+        0, "maxResults": 20, "total": 0, "worklogs": []}, "archivedby": null, "customfield_12325158":
+        null, "issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
+        "id": "17", "description": "Created by Jira Software - do not edit or delete.
+        Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12325157":
+        null, "customfield_12325159": null, "customfield_12318341": null, "customfield_12325154":
+        null, "customfield_12325153": null, "customfield_12325156": null, "timespent":
+        null, "customfield_12325155": null, "customfield_12320940": null, "project":
+        {"self": "https://example.com/rest/api/2/project/12337520", "id": "12337520",
+        "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey": "software",
         "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
         "24x24": "https://example.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
         "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
         "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
         "customfield_12320944": null, "aggregatetimespent": null, "customfield_12310220":
-        null, "resolutiondate": null, "workratio": -1, "customfield_12317379": null,
-        "customfield_12316840": null, "customfield_12316841": null, "customfield_12319040":
-        null, "customfield_12325047": null, "watches": {"self": "https://example.com/rest/api/2/issue/OSIM-7509/watchers",
+        null, "resolutiondate": null, "customfield_12325150": null, "workratio": -1,
+        "customfield_12325152": null, "customfield_12316840": null, "customfield_12317379":
+        null, "customfield_12325151": null, "customfield_12316841": null, "customfield_12319040":
+        null, "customfield_12325047": null, "watches": {"self": "https://example.com/rest/api/2/issue/OSIM-11543/watchers",
         "watchCount": 1, "isWatching": true}, "customfield_12325044": null, "customfield_12325043":
-        null, "customfield_12325046": null, "created": "2024-08-14T12:44:42.850+0000",
+        null, "customfield_12325046": null, "created": "2024-10-22T18:26:29.112+0000",
         "customfield_12321240": null, "customfield_12325045": null, "customfield_12320947":
         [{"self": "https://example.com/rest/api/2/customFieldOption/27714", "value":
         "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
         {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
-        "False", "id": "27705", "disabled": false}, "customfield_12325040": null,
-        "customfield_12325042": null, "customfield_12325041": null, "updated": "2024-08-14T12:44:42.850+0000",
-        "customfield_12324841": null, "customfield_12324840": null, "timeoriginalestimate":
-        null, "description": "A security vulnerability has been identified in the
-        GraphQL parser used by the API of s42.app. An attacker can overload the parser
-        and cause the API pod to crash. With a bit of threading, the attacker can
-        bring down the entire API, resulting in an unhealthy stream. This vulnerability
-        can be exploited by sending a specially crafted request to the API with a
-        large payload.\n\nAn attacker can exploit this vulnerability to cause a denial
-        of service (DoS) attack on the s42.app API, resulting in unavailability of
-        the API for legitimate users.", "customfield_12324843": null, "customfield_12324842":
-        [], "timetracking": {}, "attachment": [], "customfield_12316542": {"self":
+        "False", "id": "27705", "disabled": false}, "customfield_12325040": [], "customfield_12325160":
+        null, "customfield_12325042": null, "customfield_12325041": null, "updated":
+        "2024-10-22T18:26:29.112+0000", "timeoriginalestimate": null, "description":
+        "A security vulnerability has been identified in the GraphQL parser used by
+        the API of s42.app. An attacker can overload the parser and cause the API
+        pod to crash. With a bit of threading, the attacker can bring down the entire
+        API, resulting in an unhealthy stream. This vulnerability can be exploited
+        by sending a specially crafted request to the API with a large payload.\n\nAn
+        attacker can exploit this vulnerability to cause a denial of service (DoS)
+        attack on the s42.app API, resulting in unavailability of the API for legitimate
+        users.", "timetracking": {}, "attachment": [], "customfield_12316542": {"self":
         "https://example.com/rest/api/2/customFieldOption/14655", "value": "False",
         "id": "14655", "disabled": false}, "customfield_12316543": {"self": "https://example.com/rest/api/2/customFieldOption/14657",
-        "value": "False", "id": "14657", "disabled": false}, "customfield_12310840":
-        "9223372036854775807", "customfield_12316544": "None", "summary": "Stud42
-        vulnerable to denial of service", "customfield_12323640": null, "customfield_12323642":
-        null, "customfield_12323641": null, "customfield_12325143": null, "customfield_12325142":
+        "value": "False", "id": "14657", "disabled": false}, "customfield_12316544":
+        "None", "customfield_12310840": "9223372036854775807", "summary": "Stud42
+        vulnerable to denial of service", "customfield_12323640": null, "customfield_12325147":
+        null, "customfield_12325146": null, "customfield_12323642": null, "customfield_12325149":
+        null, "customfield_12323641": null, "customfield_12325148": null, "customfield_12325143":
+        null, "customfield_12325142": null, "customfield_12325145": null, "customfield_12325144":
         null, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
         null, "customfield_12323645": null, "environment": null, "customfield_12315740":
         null, "customfield_12313441": "", "customfield_12313440": "0.0", "duedate":
         null, "customfield_12311140": null, "comment": {"comments": [], "maxResults":
         0, "total": 0, "startAt": 0}, "customfield_12325141": null, "customfield_12325140":
-        null, "customfield_12310213": null, "customfield_12311940": "2|i140cn:"}}'
+        null, "customfield_12310213": null, "customfield_12311940": "2|i1z43j:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -876,9 +876,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Wed, 14 Aug 2024 12:44:44 GMT
+      - Tue, 22 Oct 2024 18:26:30 GMT
       Expires:
-      - Wed, 14 Aug 2024 12:44:44 GMT
+      - Tue, 22 Oct 2024 18:26:30 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -891,7 +891,7 @@ interactions:
       X-RateLimit-Remaining:
       - '4'
       content-length:
-      - '9786'
+      - '10064'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -899,9 +899,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 764x20657x1
+      - 1106x379333x4
       x-asessionid:
-      - imsjx8
+      - 1w8nchh
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -913,9 +913,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4b071002.1723639483.196b8bd9
+      - 0.7df06e68.1729621590.4ead00e
       x-rh-edge-request-id:
-      - 196b8bd9
+      - 4ead00e
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -935,12 +935,12 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-bugzilla/3.2.0
+      - python-bugzilla/3.3.0
     method: GET
     uri: https://example.com/rest/version
   response:
     body:
-      string: '{"version": "5.0.4.rh100"}'
+      string: '{"version": "5.0.4.rh102"}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -955,7 +955,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 14 Aug 2024 12:44:44 GMT
+      - Tue, 22 Oct 2024 18:26:40 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -965,9 +965,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.4b071002.1723639484.196b9308
+      - 0.64f06e68.1729621600.54b0936
       x-rh-edge-request-id:
-      - 196b9308
+      - 54b0936
     status:
       code: 200
       message: OK
@@ -983,13 +983,13 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-bugzilla/3.2.0
+      - python-bugzilla/3.3.0
     method: GET
     uri: https://example.com/rest/user?ids=1
   response:
     body:
-      string: '{"users": [{"name": "aander07@packetmaster.com", "id": 1, "can_login":
-        true, "email": "aander07@packetmaster.com", "real_name": "Need Real Name"}]}'
+      string: '{"users": [{"email": "aander07@packetmaster.com", "id": 1, "can_login":
+        true, "name": "aander07@packetmaster.com", "real_name": "Need Real Name"}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -1004,7 +1004,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 14 Aug 2024 12:44:45 GMT
+      - Tue, 22 Oct 2024 18:26:41 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -1014,33 +1014,25 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.4b071002.1723639484.196b95d1
+      - 0.64f06e68.1729621600.54b0ab5
       x-rh-edge-request-id:
-      - 196b95d1
+      - 54b0ab5
     status:
       code: 200
       message: OK
 - request:
     body: '{"product": "Security Response", "op_sys": "Linux", "platform": "All",
       "version": "unspecified", "component": "vulnerability-draft", "cf_release_notes":
-      "", "severity": "unspecified", "priority": "unspecified", "summary": "Stud42
-      vulnerable to denial of service", "description": "A security vulnerability has
-      been identified in the GraphQL parser used by the API of s42.app. An attacker
-      can overload the parser and cause the API pod to crash. With a bit of threading,
-      the attacker can bring down the entire API, resulting in an unhealthy stream.
-      This vulnerability can be exploited by sending a specially crafted request to
-      the API with a large payload.\n\nAn attacker can exploit this vulnerability
-      to cause a denial of service (DoS) attack on the s42.app API, resulting in unavailability
-      of the API for legitimate users.", "comment_is_private": false, "alias": ["GHSA-3hwm-922r-47hw"],
-      "keywords": ["Security"], "flags": [], "groups": ["redhat"], "cc": [], "cf_srtnotes":
-      "{\"public\": \"2023-03-31T19:33:44Z\", \"reported\": \"2024-08-14T12:44:41Z\",
-      \"external_ids\": [\"GHSA-3hwm-922r-47hw\"], \"references\": [{\"type\": \"source\",
-      \"url\": \"https://osv.dev/vulnerability/GHSA-3hwm-922r-47hw\", \"description\":
-      null}, {\"type\": \"external\", \"url\": \"https://github.com/42Atomys/stud42/security/advisories/GHSA-3hwm-922r-47hw\",
-      \"description\": null}, {\"type\": \"external\", \"url\": \"https://github.com/42Atomys/stud42/issues/412\",
-      \"description\": null}, {\"type\": \"external\", \"url\": \"https://github.com/42Atomys/stud42/commit/a70bfc72fba721917bf681d72a58093fb9deee17\",
-      \"description\": null}, {\"type\": \"external\", \"url\": \"https://github.com/42Atomys/stud42\",
-      \"description\": null}], \"source\": \"osv\", \"cwe\": \"CWE-400\"}"}'
+      "", "severity": "high", "priority": "high", "summary": "Stud42 vulnerable to
+      denial of service", "description": "A security vulnerability has been identified
+      in the GraphQL parser used by the API of s42.app. An attacker can overload the
+      parser and cause the API pod to crash. With a bit of threading, the attacker
+      can bring down the entire API, resulting in an unhealthy stream. This vulnerability
+      can be exploited by sending a specially crafted request to the API with a large
+      payload.\n\nAn attacker can exploit this vulnerability to cause a denial of
+      service (DoS) attack on the s42.app API, resulting in unavailability of the
+      API for legitimate users.", "comment_is_private": false, "alias": ["GHSA-3hwm-922r-47hw"],
+      "keywords": ["Security"], "flags": [], "groups": ["redhat"], "cc": []}'
     headers:
       Accept:
       - '*/*'
@@ -1049,16 +1041,16 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '1763'
+      - '944'
       Content-Type:
       - application/json
       User-Agent:
-      - python-bugzilla/3.2.0
+      - python-bugzilla/3.3.0
     method: POST
     uri: https://example.com/rest/bug
   response:
     body:
-      string: '{"id": 2298927}'
+      string: '{"id": 2305014}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with
@@ -1073,7 +1065,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Wed, 14 Aug 2024 12:44:47 GMT
+      - Tue, 22 Oct 2024 18:26:42 GMT
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains
       X-content-type-options:
@@ -1083,361 +1075,9 @@ interactions:
       x-rh-edge-cache-status:
       - Miss from child, Miss from parent
       x-rh-edge-reference-id:
-      - 0.4b071002.1723639485.196b9d36
+      - 0.64f06e68.1729621601.54b0cef
       x-rh-edge-request-id:
-      - 196b9d36
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://example.com/rest/version
-  response:
-    body:
-      string: '{"version": "5.0.4.rh100"}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '25'
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Wed, 14 Aug 2024 12:44:48 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.4b071002.1723639487.196bbadc
-      x-rh-edge-request-id:
-      - 196bbadc
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://example.com/rest/user?ids=1
-  response:
-    body:
-      string: '{"users": [{"id": 1, "can_login": true, "email": "aander07@packetmaster.com",
-        "real_name": "Need Real Name", "name": "aander07@packetmaster.com"}]}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '137'
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Wed, 14 Aug 2024 12:44:48 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.4b071002.1723639488.196bc151
-      x-rh-edge-request-id:
-      - 196bc151
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://example.com/rest/bug/2298927?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
-  response:
-    body:
-      string: '{"faults": [], "bugs": [{"component": ["vulnerability-draft"], "target_release":
-        ["---"], "op_sys": "Linux", "deadline": null, "cf_release_notes": "", "creator":
-        "nobody@redhat.com", "cf_devel_whiteboard": "", "cf_internal_whiteboard":
-        "", "url": "", "cf_doc_type": "If docs needed, set a value", "id": 2298927,
-        "version": ["unspecified"], "external_bugs": [], "sub_components": {}, "qa_contact":
-        "", "summary": "Stud42 vulnerable to denial of service", "alias": ["GHSA-3hwm-922r-47hw"],
-        "groups": ["redhat"], "whiteboard": "", "flags": [], "cf_pgm_internal": "",
-        "status": "NEW", "docs_contact": "", "cf_last_closed": null, "resolution":
-        "", "cf_clone_of": null, "comments": [{"creation_time": "2024-08-14T12:44:46Z",
-        "creator_id": 425662, "private_groups": [], "time": "2024-08-14T12:44:46Z",
-        "text": "A security vulnerability has been identified in the GraphQL parser
-        used by the API of s42.app. An attacker can overload the parser and cause
-        the API pod to crash. With a bit of threading, the attacker can bring down
-        the entire API, resulting in an unhealthy stream. This vulnerability can be
-        exploited by sending a specially crafted request to the API with a large payload.\n\nAn
-        attacker can exploit this vulnerability to cause a denial of service (DoS)
-        attack on the s42.app API, resulting in unavailability of the API for legitimate
-        users.", "id": 18026778, "creator": "nobody@redhat.com", "is_private": false,
-        "count": 0, "tags": [], "attachment_id": null, "bug_id": 2298927}], "creator_detail":
-        {"active": true, "name": "nobody@redhat.com", "real_name": "nobody",
-        "id": 425662, "insider": true, "email": "nobody@redhat.com", "partner":
-        false}, "platform": "All", "is_open": true, "keywords": ["Security"], "classification":
-        "Other", "is_cc_accessible": true, "depends_on": [], "cf_pm_score": "0", "estimated_time":
-        0, "cf_conditional_nak": [], "cf_fixed_in": "", "cf_environment": "", "creation_time":
-        "2024-08-14T12:44:46Z", "cf_embargoed": null, "assigned_to_detail": {"active":
-        true, "name": "prodsec-dev@redhat.com", "real_name": "Product Security DevOps
-        Team", "id": 377884, "email": "prodsec-dev@redhat.com", "insider": true, "partner":
-        false}, "target_milestone": "---", "cf_qa_whiteboard": "", "description":
-        "A security vulnerability has been identified in the GraphQL parser used by
-        the API of s42.app. An attacker can overload the parser and cause the API
-        pod to crash. With a bit of threading, the attacker can bring down the entire
-        API, resulting in an unhealthy stream. This vulnerability can be exploited
-        by sending a specially crafted request to the API with a large payload.\n\nAn
-        attacker can exploit this vulnerability to cause a denial of service (DoS)
-        attack on the s42.app API, resulting in unavailability of the API for legitimate
-        users.", "cc_detail": [], "cf_qe_conditional_nak": [], "dupe_of": null, "assigned_to":
-        "prodsec-dev@redhat.com", "cf_major_incident": null, "cf_cust_facing": "---",
-        "is_creator_accessible": true, "remaining_time": 0, "priority": "unspecified",
-        "last_change_time": "2024-08-14T12:44:46Z", "cf_srtnotes": "{\"public\": \"2023-03-31T19:33:44Z\",
-        \"reported\": \"2024-08-14T12:44:41Z\", \"external_ids\": [\"GHSA-3hwm-922r-47hw\"],
-        \"references\": [{\"type\": \"source\", \"url\": \"https://example.com/vulnerability/GHSA-3hwm-922r-47hw\",
-        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/42Atomys/stud42/security/advisories/GHSA-3hwm-922r-47hw\",
-        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/42Atomys/stud42/issues/412\",
-        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/42Atomys/stud42/commit/a70bfc72fba721917bf681d72a58093fb9deee17\",
-        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/42Atomys/stud42\",
-        \"description\": null}], \"source\": \"osv\", \"cwe\": \"CWE-400\"}", "product":
-        "Security Response", "tags": [], "cc": [], "blocks": [], "data_category":
-        "Red Hat", "actual_time": 0, "is_confirmed": true, "cf_build_id": "", "severity":
-        "unspecified"}]}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Wed, 14 Aug 2024 12:44:49 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      Vary:
-      - Accept-Encoding
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      content-length:
-      - '3947'
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.4b071002.1723639488.196bc8ba
-      x-rh-edge-request-id:
-      - 196bc8ba
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://example.com/rest/bug/2298927?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
-  response:
-    body:
-      string: '{"faults": [], "bugs": [{"cf_qe_conditional_nak": [], "cf_internal_whiteboard":
-        "", "external_bugs": [], "cf_environment": "", "cf_devel_whiteboard": "",
-        "cf_release_notes": "", "version": ["unspecified"], "actual_time": 0, "creator":
-        "nobody@redhat.com", "keywords": ["Security"], "product": "Security Response",
-        "component": ["vulnerability-draft"], "summary": "Stud42 vulnerable to denial
-        of service", "whiteboard": "", "cc_detail": [], "cf_conditional_nak": [],
-        "url": "", "priority": "unspecified", "cf_clone_of": null, "cf_pgm_internal":
-        "", "cf_srtnotes": "{\"public\": \"2023-03-31T19:33:44Z\", \"reported\": \"2024-08-14T12:44:41Z\",
-        \"external_ids\": [\"GHSA-3hwm-922r-47hw\"], \"references\": [{\"type\": \"source\",
-        \"url\": \"https://example.com/vulnerability/GHSA-3hwm-922r-47hw\", \"description\":
-        null}, {\"type\": \"external\", \"url\": \"https://example.com/42Atomys/stud42/security/advisories/GHSA-3hwm-922r-47hw\",
-        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/42Atomys/stud42/issues/412\",
-        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/42Atomys/stud42/commit/a70bfc72fba721917bf681d72a58093fb9deee17\",
-        \"description\": null}, {\"type\": \"external\", \"url\": \"https://example.com/42Atomys/stud42\",
-        \"description\": null}], \"source\": \"osv\", \"cwe\": \"CWE-400\"}", "flags":
-        [], "creation_time": "2024-08-14T12:44:46Z", "sub_components": {}, "depends_on":
-        [], "resolution": "", "assigned_to_detail": {"email": "prodsec-dev@redhat.com",
-        "name": "prodsec-dev@redhat.com", "partner": false, "insider": true, "id":
-        377884, "real_name": "Product Security DevOps Team", "active": true}, "blocks":
-        [], "is_open": true, "cf_pm_score": "0", "comments": [{"creator": "nobody@redhat.com",
-        "creation_time": "2024-08-14T12:44:46Z", "is_private": false, "private_groups":
-        [], "id": 18026778, "time": "2024-08-14T12:44:46Z", "bug_id": 2298927, "text":
-        "A security vulnerability has been identified in the GraphQL parser used by
-        the API of s42.app. An attacker can overload the parser and cause the API
-        pod to crash. With a bit of threading, the attacker can bring down the entire
-        API, resulting in an unhealthy stream. This vulnerability can be exploited
-        by sending a specially crafted request to the API with a large payload.\n\nAn
-        attacker can exploit this vulnerability to cause a denial of service (DoS)
-        attack on the s42.app API, resulting in unavailability of the API for legitimate
-        users.", "tags": [], "count": 0, "attachment_id": null, "creator_id": 425662}],
-        "id": 2298927, "assigned_to": "prodsec-dev@redhat.com", "target_release":
-        ["---"], "cf_last_closed": null, "cc": [], "deadline": null, "dupe_of": null,
-        "qa_contact": "", "last_change_time": "2024-08-14T12:44:46Z", "groups": ["redhat"],
-        "cf_embargoed": null, "creator_detail": {"real_name": "nobody", "id":
-        425662, "active": true, "email": "nobody@redhat.com", "name": "nobody@redhat.com",
-        "partner": false, "insider": true}, "estimated_time": 0, "op_sys": "Linux",
-        "cf_fixed_in": "", "severity": "unspecified", "cf_build_id": "", "target_milestone":
-        "---", "classification": "Other", "cf_major_incident": null, "cf_qa_whiteboard":
-        "", "is_cc_accessible": true, "description": "A security vulnerability has
-        been identified in the GraphQL parser used by the API of s42.app. An attacker
-        can overload the parser and cause the API pod to crash. With a bit of threading,
-        the attacker can bring down the entire API, resulting in an unhealthy stream.
-        This vulnerability can be exploited by sending a specially crafted request
-        to the API with a large payload.\n\nAn attacker can exploit this vulnerability
-        to cause a denial of service (DoS) attack on the s42.app API, resulting in
-        unavailability of the API for legitimate users.", "remaining_time": 0, "platform":
-        "All", "is_confirmed": true, "is_creator_accessible": true, "cf_doc_type":
-        "If docs needed, set a value", "tags": [], "status": "NEW", "data_category":
-        "Red Hat", "alias": ["GHSA-3hwm-922r-47hw"], "cf_cust_facing": "---", "docs_contact":
-        ""}]}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Wed, 14 Aug 2024 12:44:51 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      Vary:
-      - Accept-Encoding
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      content-length:
-      - '3947'
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.4b071002.1723639489.196bd51d
-      x-rh-edge-request-id:
-      - 196bd51d
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-bugzilla/3.2.0
-    method: GET
-    uri: https://example.com/rest/bug/2298927/comment
-  response:
-    body:
-      string: '{"comments": {}, "bugs": {"2298927": {"comments": [{"private_groups":
-        [], "creator_id": 425662, "text": "A security vulnerability has been identified
-        in the GraphQL parser used by the API of s42.app. An attacker can overload
-        the parser and cause the API pod to crash. With a bit of threading, the attacker
-        can bring down the entire API, resulting in an unhealthy stream. This vulnerability
-        can be exploited by sending a specially crafted request to the API with a
-        large payload.\n\nAn attacker can exploit this vulnerability to cause a denial
-        of service (DoS) attack on the s42.app API, resulting in unavailability of
-        the API for legitimate users.", "id": 18026778, "time": "2024-08-14T12:44:46Z",
-        "creation_time": "2024-08-14T12:44:46Z", "attachment_id": null, "bug_id":
-        2298927, "tags": [], "is_private": false, "count": 0, "creator": "nobody@redhat.com"}]}}}'
-    headers:
-      Access-Control-Allow-Headers:
-      - origin, content-type, accept, x-requested-with
-      Access-Control-Allow-Origin:
-      - '*'
-      Cache-Control:
-      - private, must-revalidate
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '835'
-      Content-Type:
-      - application/json; charset=UTF-8
-      Date:
-      - Wed, 14 Aug 2024 12:44:52 GMT
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains
-      X-content-type-options:
-      - nosniff
-      X-xss-protection:
-      - 1; mode=block
-      x-rh-edge-cache-status:
-      - Miss from child, Miss from parent
-      x-rh-edge-reference-id:
-      - 0.4b071002.1723639491.196beb58
-      x-rh-edge-request-id:
-      - 196beb58
+      - 54b0cef
     status:
       code: 200
       message: OK

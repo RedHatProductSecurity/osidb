@@ -18,7 +18,7 @@ from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_STAR
 from collectors.framework.models import Collector
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
-from osidb.models import FlawCVSS, FlawReference, Snippet
+from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
 from osidb.validators import CVE_RE_STR
 
 logger = get_task_logger(__name__)
@@ -186,7 +186,10 @@ class OSVCollector(Collector):
     def save_snippet_and_flaw(
         self, osv_id: str, cve_ids: list[str], content: dict
     ) -> tuple[list[str], list[str]]:
-        """Save one snippet and flaw per CVE and return IDs of created snippets and flaws.
+        """Save snippet(s) and flaw per OSV vuln and return IDs of created snippets and flaws.
+
+        If vuln does not contain CVE ID, one snippet and flaw are created.
+        If vuln contains CVE ID(s), a snippet is created for each CVE ID whose flaw already exists in DB.
 
         Creating each snippet per CVE allows us to link them to unique Flaws (which also contain
         single CVE IDs), and reuse their data for the creation of those flaws.
@@ -209,11 +212,14 @@ class OSVCollector(Collector):
             )
             if snippet_created:
                 created_snippets.append(osv_id)
-                # We store flaw uuid as CVE id is not present
+                # We store flaw uuid as CVE ID is not present
                 if flaw := snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN):
                     created_flaws.append(flaw.uuid)
         else:
             for cve_id in cve_ids:
+                # Snippet is created only if a flaw with the given CVE iD already exists
+                if not Flaw.objects.filter(cve_id=cve_id):
+                    continue
                 snippet_content = content.copy()
                 snippet_content["cve_id"] = cve_id
                 # We need a unique ID and because we're creating a separate snippet for each
@@ -226,8 +232,8 @@ class OSVCollector(Collector):
                 )
                 if snippet_created:
                     created_snippets.append(external_id)
-                    if snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN):
-                        created_flaws.append(cve_id)
+                    # Only links snippet to already existing flaw
+                    snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN)
 
         return created_snippets, created_flaws
 
