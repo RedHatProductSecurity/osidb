@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement validation of PS module and PS update stream correspondance (OSIDB-3584)
 
 ### Changed
+- Avoid tracker creation conflicts by async tracker sync (OSIDB-3593)
 - Skip flaws with CVE ID in OSV collector (OSIDB-3351)
 
 ### Fixed

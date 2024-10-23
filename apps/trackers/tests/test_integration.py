@@ -12,7 +12,7 @@ from apps.trackers.jira.query import JiraPriority
 from apps.trackers.models import JiraBugIssuetype, JiraProjectFields
 from apps.trackers.save import TrackerSaver
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
-from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
+from collectors.bzimport.collectors import BugzillaTrackerCollector
 from collectors.bzimport.constants import BZ_DT_FMT
 from collectors.jiraffe.collectors import JiraTrackerCollector
 from osidb.models import Affect, Flaw, Impact, Tracker
@@ -241,20 +241,17 @@ class TestTrackerAPI:
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        # 3) get the newly loaded tracker from the DB
-        assert Tracker.objects.count() == 1
-        tracker = Tracker.objects.first()
+        # 3) the tracker is not stored to DB as it happens async
+        #    so check that there is no tracker relic stored
+        assert not Tracker.objects.count()
 
-        # 4) check the correct result of the creation and loading
-        assert tracker.bz_id
-        assert not tracker.embargoed
-        assert tracker.type == Tracker.TrackerType.BUGZILLA
-        assert tracker.ps_update_stream == "rhcertification-6"
-        assert tracker.status == "NEW"
-        assert not tracker.resolution
-        assert tracker.affects.count() == 1
-        assert tracker.affects.first() == affect
-        assert not tracker.alerts.exists()
+        # 4) so check at least the response
+        #    even though it is not complete
+        tracker_json = response.json()
+        assert tracker_json["external_system_id"]
+        assert not tracker_json["embargoed"]
+        assert tracker_json["type"] == Tracker.TrackerType.BUGZILLA
+        assert tracker_json["ps_update_stream"] == "rhcertification-6"
 
     @pytest.mark.vcr
     def test_tracker_update_bugzilla(
@@ -326,23 +323,19 @@ class TestTrackerAPI:
         )
         assert response.status_code == 200
 
-        # 4) get the newly loaded tracker from the DB
-        tracker = Tracker.objects.get(external_system_id=tracker_id)
+        # 4) the actual update in the database happens async
+        #    so check at least the correct data in the response
+        tracker_json = response.json()
+        assert tracker_json["external_system_id"] == tracker_id
+        assert not tracker_json["embargoed"]
+        assert tracker_json["type"] == Tracker.TrackerType.BUGZILLA
+        assert tracker_json["ps_update_stream"] == ps_update_stream2.name
+        assert len(tracker_json["affects"]) == 1
+        assert tracker_json["affects"][0] == str(affect.uuid)
+        assert not tracker_json["alerts"]
 
-        # 5) check the correct result of the update and loading
-        assert tracker.bz_id == tracker_id
-        assert not tracker.embargoed
-        assert tracker.type == Tracker.TrackerType.BUGZILLA
-        assert tracker.ps_update_stream == ps_update_stream2.name
-        assert tracker.status == "NEW"
-        assert not tracker.resolution
-        assert tracker.affects.count() == 1
-        assert tracker.affects.first() == affect
-        assert not tracker.alerts.exists()
-
-        # 6) check that the update actually happened
-        assert "updated_dt" in tracker.meta_attr
-        assert updated_dt != tracker.meta_attr["updated_dt"]
+        # 5) check that the actual update did not happen
+        assert updated_dt == tracker_json["updated_dt"]
 
     @pytest.mark.vcr
     def test_tracker_create_jira(
@@ -419,31 +412,18 @@ class TestTrackerAPI:
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        # 3) get the newly loaded tracker from the DB
-        assert Tracker.objects.count() == 1
-        tracker = Tracker.objects.first()
+        # 3) the tracker is not stored to DB as it happens async
+        #    so check that there is no tracker relic stored
+        assert not Tracker.objects.count()
 
-        # 4) check the correct result of the creation and loading
-        assert tracker.external_system_id
-        assert "OSIDB" in tracker.external_system_id
-        assert not tracker.embargoed
-        assert tracker.type == Tracker.TrackerType.JIRA
-        assert tracker.ps_update_stream == "openshift-4.8.z"
-        assert tracker.status == "New"
-        assert not tracker.resolution
-        labels = json.loads(tracker.meta_attr["labels"])
-        assert "flaw:bz#2217733" in labels
-        assert "flawuuid:675df471-7375-4ba1-9d0f-c178a8a58ae7" in labels
-        assert tracker.affects.count() == 1
-        assert tracker.affects.first() == affect
-        assert not tracker.alerts.exists()
-
-        # 5) reload the flaw and check that the tracker still links
-        fc = FlawCollector()
-        fc.sync_flaw(flaw.bz_id)
-        assert tracker.affects.count() == 1
-        assert tracker.affects.first() == affect
-        assert tracker.affects.first().flaw == flaw
+        # 4) so check at least the response
+        #    even though it is not complete
+        tracker_json = response.json()
+        assert tracker_json["external_system_id"]
+        assert "OSIDB" in tracker_json["external_system_id"]
+        assert not tracker_json["embargoed"]
+        assert tracker_json["type"] == Tracker.TrackerType.JIRA
+        assert tracker_json["ps_update_stream"] == "openshift-4.8.z"
 
     @pytest.mark.vcr
     def test_tracker_update_jira(
@@ -577,43 +557,21 @@ class TestTrackerAPI:
         )
         assert response.status_code == 200
 
-        # 4) get the newly loaded tracker from the DB
-        tracker = Tracker.objects.get(external_system_id=tracker_id)
+        # 4) the actual update in the database happens async
+        #    so check at least the correct data in the response
+        tracker_json = response.json()
+        assert tracker_json["external_system_id"] == tracker_id
+        assert "OSIDB" in tracker_json["external_system_id"]
+        assert not tracker_json["embargoed"]
+        assert tracker_json["type"] == Tracker.TrackerType.JIRA
+        assert tracker_json["ps_update_stream"] == ps_update_stream2.name
+        assert len(tracker_json["affects"]) == 2
+        assert str(affect1.uuid) in tracker_json["affects"]
+        assert str(affect3.uuid) in tracker_json["affects"]
+        assert not tracker_json["alerts"]
 
-        # 5) check the correct result of the update and loading
-        assert tracker.external_system_id == tracker_id
-        assert "OSIDB" in tracker.external_system_id
-        assert not tracker.embargoed
-        assert tracker.type == Tracker.TrackerType.JIRA
-        assert tracker.ps_update_stream == ps_update_stream2.name
-        assert "flaw:bz#1663908" in json.loads(tracker.meta_attr["labels"])
-        assert "flaw:bz#1663907" in json.loads(tracker.meta_attr["labels"])
-        assert tracker.affects.count() == 2
-        assert affect1 in tracker.affects.all()
-        assert affect3 in tracker.affects.all()
-        assert not tracker.alerts.exists()
-
-        # 6) check that the update actually happened
-        assert updated_dt != tracker.updated_dt
-
-        # 7) reload the flaws and check that the tracker links remain
-        fc = FlawCollector()
-        fc.sync_flaw(flaw1.bz_id)
-        fc.sync_flaw(flaw2.bz_id)
-        fc.sync_flaw(flaw3.bz_id)
-        flaw1 = Flaw.objects.get(uuid=flaw1.uuid)
-        flaw2 = Flaw.objects.get(uuid=flaw2.uuid)
-        flaw3 = Flaw.objects.get(uuid=flaw3.uuid)
-        tracker = Tracker.objects.get(uuid=tracker.uuid)
-        assert tracker.affects.count() == 2
-        assert flaw1.affects.count() == 1
-        assert flaw1.affects.first().trackers.count() == 1
-        assert flaw1.affects.first().trackers.first().uuid == tracker.uuid
-        assert flaw2.affects.count() == 1
-        assert not flaw2.affects.first().trackers.exists()
-        assert flaw3.affects.count() == 1
-        assert flaw3.affects.first().trackers.count() == 1
-        assert flaw3.affects.first().trackers.first().uuid == tracker.uuid
+        # 5) check that the actual update did not happen
+        assert updated_dt == tracker_json["updated_dt"]
 
     @pytest.mark.vcr
     def test_tracker_create_update_jira_vulnerability_issuetype(
@@ -836,24 +794,18 @@ class TestTrackerAPI:
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        # 3) get the newly loaded tracker from the DB
-        assert Tracker.objects.count() == 1
-        tracker = Tracker.objects.first()
+        # 3) the tracker is not stored to DB as it happens async
+        #    so check that there is no tracker relic stored
+        assert not Tracker.objects.count()
 
-        # 4) check the correct result of the creation and loading
-        assert tracker.external_system_id
-        assert "OCPBUGS" in tracker.external_system_id
-        assert not tracker.embargoed
-        assert tracker.type == Tracker.TrackerType.JIRA
-        assert tracker.ps_update_stream == "openshift-4.8.z"
-        assert tracker.status == "New"
-        assert not tracker.resolution
-        labels = json.loads(tracker.meta_attr["labels"])
-        assert f"flawuuid:{flaw.uuid}" in labels, labels
-        assert tracker.affects.count() == 1
-        assert tracker.affects.first() == affect
-        assert not tracker.alerts.exists()
-        assert tracker.meta_attr["jira_issuetype"] == "Vulnerability"
+        # 4) so check at least the response
+        #    even though it is not complete
+        tracker_json = response.json()
+        assert tracker_json["external_system_id"]
+        assert "OCPBUGS" in tracker_json["external_system_id"]
+        assert not tracker_json["embargoed"]
+        assert tracker_json["type"] == Tracker.TrackerType.JIRA
+        assert tracker_json["ps_update_stream"] == "openshift-4.8.z"
 
         # NOTE: Reloading flaw is tested in test_tracker_create_jira.
         #       That test requires the flaw to be set up correctly in the BTS
@@ -864,9 +816,7 @@ class TestTrackerAPI:
 
         # 5) check that the data are the same also when collecting the Tracker
 
-        tracker_id = tracker.external_system_id
-
-        Tracker.objects.all().delete()
+        tracker_id = tracker_json["external_system_id"]
 
         assert Flaw.objects.count() == 1
         assert Affect.objects.count() == 1
@@ -888,7 +838,12 @@ class TestTrackerAPI:
         assert tracker_new.status == "New"
         assert not tracker_new.resolution
         labels_new = json.loads(tracker_new.meta_attr["labels"])
-        assert sorted(labels) == sorted(labels_new)
+        assert [
+            "Security",
+            "SecurityTracking",
+            f"flawuuid:{flaw.uuid}",
+            "pscomponent:Security",
+        ] == sorted(labels_new)
         assert tracker_new.meta_attr["jira_issuetype"] == "Vulnerability"
 
         # Not linked yet
@@ -943,21 +898,20 @@ class TestTrackerAPI:
         assert affect.flaw == flaw
         assert affect2.flaw == flaw
 
-        # 7) get the newly loaded tracker from the DB
-        tracker2 = Tracker.objects.get(external_system_id=tracker_id)
+        # 7) the actual update in the database happens async
+        #    so check at least the correct data in the response
+        tracker_json = response.json()
+        assert tracker_json["external_system_id"] == tracker_id
+        assert tracker_json["external_system_id"] == tracker_new.external_system_id
+        assert not tracker_json["embargoed"]
+        assert tracker_json["type"] == Tracker.TrackerType.JIRA
+        assert tracker_json["ps_update_stream"] == ps_update_stream2.name
+        assert len(tracker_json["affects"]) == 1
+        assert str(affect.uuid) not in tracker_json["affects"]
+        assert str(affect2.uuid) in tracker_json["affects"]
+        assert not tracker_json["alerts"]
 
-        # 8) check the correct result of the update and loading
-        assert tracker2.external_system_id == tracker_id
-        assert tracker2.external_system_id == tracker_new.external_system_id
-        assert not tracker2.embargoed
-        assert tracker2.type == Tracker.TrackerType.JIRA
-        assert tracker2.ps_update_stream == ps_update_stream2.name
-        labels2 = json.loads(tracker2.meta_attr["labels"])
-        assert f"flawuuid:{flaw.uuid}" in labels2, labels2
-        assert tracker2.affects.count() == 1
-        assert affect not in tracker2.affects.all()
-        assert affect2 in tracker2.affects.all()
-        assert not tracker2.alerts.exists()
-
-        # 9) check that the update actually happened
-        assert tracker2.updated_dt != tracker_new.updated_dt
+        # 8) check that the actual update did not happen
+        assert tracker_new.updated_dt == timezone.datetime.strptime(
+            tracker_json["updated_dt"], "%Y-%m-%dT%H:%M:%S.%f%z"
+        )
