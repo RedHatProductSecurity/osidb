@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Skip flaws with CVE ID in OSV collector (OSIDB-3351)
 
+### Fixed
+- Fix Bugzilla flaw summary exceeding (OSIDB-3551)
+
 ## [4.5.0] - 2024-10-22
 ### Added
 - Add new flaw reference type "UPSTREAM"
@@ -22,9 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - ValidationError constraint “unique_external_system_id” during tracker filing (OSIDB-3589)
-
-### Fixed
-- Fix Bugzilla flaw summary exceeding (OSIDB-3551)
 
 ## [4.4.1] - 2024-10-17
 ### Added
