@@ -279,8 +279,9 @@ class TestTrackerModelSave:
             tracker.save(bz_api_key="SECRET")
 
             assert bugzilla_save_mock.called
-            assert bugzilla_load_mock.called
-            assert bugzilla_tracker_link_mock.called
+            # the rest is done async
+            assert not bugzilla_load_mock.called
+            assert not bugzilla_tracker_link_mock.called
 
     def test_jira_db_only(self):
         """
@@ -347,8 +348,9 @@ class TestTrackerModelSave:
             tracker.save(jira_token="SECRET")  # nosec
 
             assert jira_save_mock.called
-            assert jira_load_mock.called
-            assert jira_tracker_link_mock.called
+            # the rest is done async
+            assert not jira_load_mock.called
+            assert not jira_tracker_link_mock.called
 
 
 class TestTrackerJiraSaverIssuetype:

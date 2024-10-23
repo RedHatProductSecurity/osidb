@@ -146,8 +146,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         """
         # imports here to prevent cycles
         from apps.trackers.save import TrackerSaver
-        from collectors.bzimport.collectors import BugzillaTrackerCollector
-        from collectors.jiraffe.collectors import JiraTrackerCollector
 
         # when validation is required, run before BTS sync
         raise_validation_error = kwargs.get("raise_validation_error", True)
@@ -170,19 +168,11 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 self._validate_tracker_duplicate()
             # sync to Bugzilla
             tracker_instance = TrackerSaver(self, bz_api_key=bz_api_key).save()
-            # save in case a new Bugzilla ID was obtained
-            # so the tracker is later matched in BZ import
-            kwargs[
-                "auto_timestamps"
-            ] = False  # the timestamps will be get from Bugzilla
-            tracker_instance.save(*args, **kwargs)
-            # fetch from Bugzilla
-            btc = BugzillaTrackerCollector()
-            btc.no_alerts = True
-            btc.sync_tracker(tracker_instance.external_system_id)
-            BZTrackerLinkManager.link_tracker_with_affects(
-                tracker_instance.external_system_id
-            )
+            # no save or fetch to prevent collisions
+            # only schedule an asynchronous sync
+            BZTrackerDownloadManager.schedule(tracker_instance.external_system_id)
+            # at the end delete the temporary empty tacker
+            Tracker.objects.filter(external_system_id="").delete()
 
         # check Jira conditions are met
         elif (
@@ -209,19 +199,11 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             tracker_instance = TrackerSaver(
                 self, jira_token=jira_token, jira_issuetype=actual_jira_issuetype
             ).save()
-            # save in case a new Jira ID was obtained
-            # so the flaw is later matched in Jiraffe sync
-            kwargs[
-                "auto_timestamps"
-            ] = False  # the timestamps will be get from Bugzilla
-            tracker_instance.save(*args, **kwargs)
-            # fetch from Jira
-            jtc = JiraTrackerCollector()
-            jtc.no_alerts = True
-            jtc.collect(tracker_instance.external_system_id)
-            JiraTrackerLinkManager.link_tracker_with_affects(
-                tracker_instance.external_system_id
-            )
+            # no save or fetch to prevent collisions
+            # only schedule an asynchronous sync
+            JiraTrackerDownloadManager.schedule(tracker_instance.external_system_id)
+            # at the end delete the temporary empty tacker
+            Tracker.objects.filter(external_system_id="").delete()
 
         # regular save otherwise
         else:
