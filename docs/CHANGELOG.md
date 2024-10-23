@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - ValidationError constraint “unique_external_system_id” during tracker filing (OSIDB-3589)
 
+### Fixed
+- Fix Bugzilla flaw summary exceeding (OSIDB-3551)
+
 ## [4.4.1] - 2024-10-17
 ### Added
 - Auto-reset CVSS validation flag on NVD CVSS removal (OSIDB-3407)
