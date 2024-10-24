@@ -3,9 +3,6 @@ from pathlib import Path
 import pytest
 from django.utils import timezone
 
-import apps.bbsync.mixins as bbsync_mixins
-import apps.taskman.mixins as taskman_mixins
-import osidb.models.flaw.flaw as flaw_module
 from collectors.cveorg import collectors
 from collectors.cveorg.collectors import CVEorgCollector
 
@@ -16,15 +13,11 @@ def enable_db_access_for_all_tests(db):
 
 
 @pytest.fixture(autouse=True)
-def enable_env_vars(monkeypatch) -> None:
+def enable_env_vars(enable_jira_task_sync, enable_bz_sync, monkeypatch) -> None:
     """
     Set necessary variables when storing flaws to BZ and Jira.
     """
-    monkeypatch.setattr(bbsync_mixins, "SYNC_TO_BZ", True)
     monkeypatch.setattr(collectors, "JIRA_AUTH_TOKEN", "SECRET")
-    monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-    monkeypatch.setattr(flaw_module, "SYNC_FLAWS_TO_BZ", True)
-    monkeypatch.setattr(taskman_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
 
 
 @pytest.fixture()
