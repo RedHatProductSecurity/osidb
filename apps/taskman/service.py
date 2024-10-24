@@ -16,7 +16,12 @@ from collectors.jiraffe.core import JiraQuerier
 from osidb.helpers import safe_get_response_content
 from osidb.models import Flaw, Impact, PsProduct
 
-from .constants import JIRA_TASKMAN_PROJECT_KEY, JIRA_TASKMAN_URL
+from .constants import (
+    JIRA_STORY_ISSUE_TYPE_ID,
+    JIRA_TASKMAN_PROJECT_ID,
+    JIRA_TASKMAN_PROJECT_KEY,
+    JIRA_TASKMAN_URL,
+)
 from .exceptions import (
     JiraTaskErrorException,
     MissingJiraTokenException,
@@ -111,12 +116,8 @@ class JiraTaskmanQuerier(JiraQuerier):
             self._check_token()
 
         data = self._generate_task_data(flaw)
-        data["fields"]["issuetype"]["id"] = self.jira_conn.issue_type_by_name(
-            "Story"
-        ).id
-        data["fields"]["project"]["id"] = self.jira_conn.project(
-            JIRA_TASKMAN_PROJECT_KEY
-        ).id
+        data["fields"]["issuetype"]["id"] = JIRA_STORY_ISSUE_TYPE_ID
+        data["fields"]["project"]["id"] = JIRA_TASKMAN_PROJECT_ID
 
         try:
             if not flaw.task_key:  # create task
