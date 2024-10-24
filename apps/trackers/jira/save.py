@@ -72,6 +72,14 @@ class TrackerJiraSaver(JiraQuerier):
                 issue_key=issue.key,
                 body=comment,
             )
+        # Add upstream links only on tracker creation
+        for reference in tracker.upstream_references:
+            JiraTaskmanQuerier(token=self._jira_token).add_link(
+                issue_key=issue.key,
+                url=reference.url,
+                title=reference.description,
+            )
+
         return tracker
 
     def update(self, tracker):

@@ -98,3 +98,20 @@ class TestTaskmanService(object):
             "Edited comment",
         )
         assert response3.status_code == 200
+
+    @pytest.mark.vcr
+    def test_add_link(self, user_token):
+        """
+        Test that service is able to create remote links in Jira issues.
+        """
+        flaw = FlawFactory(embargoed=False, uuid="b47f7912-7011-463a-b861-6d7dca13aa3c")
+        AffectFactory(flaw=flaw)
+        taskman = JiraTaskmanQuerier(token=user_token)
+
+        response1 = taskman.create_or_update_task(flaw=flaw)
+        assert response1.status_code == 201
+
+        response2 = taskman.add_link(
+            response1.data["key"], "https://www.redhat.com", "Red Hat Webpage"
+        )
+        assert response2.status_code == 201
