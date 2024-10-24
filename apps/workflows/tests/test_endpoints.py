@@ -2,7 +2,6 @@ import pytest
 from django.conf import settings
 from rest_framework.response import Response
 
-import apps.taskman.mixins as taskman_mixins
 import collectors.osv.collectors as collectors
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.models import State, Workflow
@@ -226,12 +225,14 @@ class TestEndpoints(object):
 
     @pytest.mark.enable_signals
     def test_promote_endpoint(
-        self, monkeypatch, auth_client, test_api_uri_osidb, user_token
+        self,
+        enable_jira_task_sync,
+        monkeypatch,
+        auth_client,
+        test_api_uri_osidb,
+        user_token,
     ):
         """test flaw state promotion after data change"""
-        import osidb.models.flaw.flaw as flaw_module
-
-        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
 
         def mock_create_or_update_task(self, flaw):
             return Response(
@@ -457,17 +458,20 @@ class TestFlawDraft:
         return Response(data=data, status=200)
 
     @pytest.mark.vcr
-    def test_promote(self, monkeypatch, auth_client, test_api_uri_osidb, user_token):
+    def test_promote(
+        self,
+        enable_jira_task_sync,
+        monkeypatch,
+        auth_client,
+        test_api_uri_osidb,
+        user_token,
+    ):
         """
         test that ACLs are set to public when promoting a flaw draft
         """
-        import osidb.models.flaw.flaw as flaw_module
-
-        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", self.mock_create_task
         )
-        monkeypatch.setattr(taskman_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(collectors, "JIRA_AUTH_TOKEN", "SERVICE_TOKEN")
 
         osv_id = "GHSA-3hwm-922r-47hw"
@@ -541,17 +545,20 @@ class TestFlawDraft:
         assert flaw.snippets.first().is_internal
 
     @pytest.mark.vcr
-    def test_reject(self, monkeypatch, auth_client, test_api_uri_osidb, user_token):
+    def test_reject(
+        self,
+        enable_jira_task_sync,
+        monkeypatch,
+        auth_client,
+        test_api_uri_osidb,
+        user_token,
+    ):
         """
         test that ACLs are still set to internal when rejecting a flaw draft
         """
-        import osidb.models.flaw.flaw as flaw_module
-
-        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", self.mock_create_task
         )
-        monkeypatch.setattr(taskman_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
         monkeypatch.setattr(collectors, "JIRA_AUTH_TOKEN", "SERVICE_TOKEN")
 
         def mock_create_comment(self, issue_key: str, body: str):
