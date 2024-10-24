@@ -85,8 +85,11 @@ class JiraTaskmanQuerier(JiraQuerier):
         self._jira_server = JIRA_TASKMAN_URL
         self._jira_token = token
 
-    def create_or_update_task(self, flaw: Flaw) -> Response:
-        """Creates or updates a task using Flaw data"""
+    def _check_token(self) -> None:
+        """
+        check the validity of the used API token
+        raise exception if invalid one was given
+        """
         token_validation_url = f"{self.jira_conn._get_url('mypermissions')}?projectKey={JIRA_TASKMAN_PROJECT_KEY}"
 
         # This request raises exception for unauthenticated users
@@ -99,6 +102,13 @@ class JiraTaskmanQuerier(JiraQuerier):
             raise TaskWritePermissionsException(
                 f"Token is valid for {JIRA_TASKMAN_URL} but user doesn't have write permission in {JIRA_TASKMAN_PROJECT_KEY} project."
             )
+
+    def create_or_update_task(self, flaw: Flaw) -> Response:
+        """Creates or updates a task using Flaw data"""
+        # check the token validity in case the user token is used
+        # assuming the service token is valid lowering Jira load
+        if not self.is_service_account():
+            self._check_token()
 
         data = self._generate_task_data(flaw)
         data["fields"]["issuetype"]["id"] = self.jira_conn.issue_type_by_name(

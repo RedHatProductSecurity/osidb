@@ -24,6 +24,13 @@ class JiraConnector:
         self._jira_conn = None
         self._jira_conn_timestamp = None
 
+    def is_service_account(self):
+        """
+        check whether the connection is being performed by the service account by
+        simply comparing the token assuming that the config contains the service one
+        """
+        return self._jira_token == JIRA_TOKEN
+
     ###################
     # JIRA CONNECTION #
     ###################
