@@ -7,12 +7,6 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
-import apps.bbsync.mixins as bz_mixins
-import apps.bbsync.save as bz_save
-import apps.taskman.mixins as task_mixins
-import osidb.models.flaw.flaw as flaw_module
-import osidb.models.tracker as tracker
-import osidb.serializer as serializer
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
@@ -41,19 +35,6 @@ from osidb.tests.factories import (
 from .test_flaw import tzdatetime
 
 pytestmark = pytest.mark.unit
-
-
-def enable_sync(monkeypatch):
-    """Enables all sync to test integration between mixins"""
-
-    monkeypatch.setattr(bz_mixins, "SYNC_TO_BZ", True)
-    monkeypatch.setattr(bz_save, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
-    monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-    monkeypatch.setattr(flaw_module, "SYNC_FLAWS_TO_BZ", True)
-    monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-    monkeypatch.setattr(task_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-    monkeypatch.setattr(tracker, "SYNC_TO_JIRA", True)
-    monkeypatch.setattr(tracker, "SYNC_TRACKERS_TO_BZ", True)
 
 
 def get_acl_read():
@@ -586,9 +567,14 @@ class TestBugzillaJiraMixinIntegration:
     # updated_dt offset.
     @freeze_time(tzdatetime(2024, 8, 1))
     @pytest.mark.vcr
-    def test_manual_changes(self, monkeypatch):
+    def test_manual_changes(
+        self,
+        enable_bz_async_sync,
+        enable_jira_task_sync,
+        enable_jira_tracker_sync,
+        monkeypatch,
+    ):
         """Test that sync occurs using internal OSIDB APIs"""
-        enable_sync(monkeypatch)
         self.setup_workflow()
         flaw = Flaw(
             title="title",
@@ -606,7 +592,9 @@ class TestBugzillaJiraMixinIntegration:
         jira_token = "SECRET"
         bz_token = "SECRET"
 
-        flaw.save(jira_token=jira_token, bz_api_key=bz_token)
+        flaw.save(
+            jira_token=jira_token, bz_api_key=bz_token, force_synchronous_sync=True
+        )
 
         PsModuleFactory(name="ps-module-0")
         assert flaw.bz_id
@@ -614,7 +602,7 @@ class TestBugzillaJiraMixinIntegration:
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
 
         AffectFactory(flaw=flaw, ps_module="ps-module-0")
-        flaw = Flaw.objects.get(pk=flaw.uuid)
+        flaw = Flaw.objects.get(uuid=flaw.uuid)
 
         flaw.promote(jira_token=jira_token, bz_api_key=bz_token)
         assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
@@ -632,9 +620,15 @@ class TestBugzillaJiraMixinIntegration:
 
     @pytest.mark.vcr
     @pytest.mark.enable_signals
-    def test_api_changes(self, monkeypatch, auth_client, test_api_uri):
+    def test_api_changes(
+        self,
+        enable_bz_async_sync,
+        enable_jira_task_sync,
+        enable_jira_tracker_sync,
+        auth_client,
+        test_api_uri,
+    ):
         """Test that sync occurs using OSIDB REST API"""
-        enable_sync(monkeypatch)
         self.setup_workflow()
 
         jira_token = "SECRET"
@@ -665,7 +659,6 @@ class TestBugzillaJiraMixinIntegration:
         flaw = Flaw.objects.get(pk=created_uuid)
 
         PsModuleFactory(name="ps-module-0")
-        assert flaw.bz_id
         assert flaw.task_key
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
 
@@ -701,10 +694,15 @@ class TestBugzillaJiraMixinIntegration:
 
 class TestMultiMixinIntegration:
     @pytest.mark.vcr
-    def test_tracker_validation(self, auth_client, test_api_uri, monkeypatch):
+    def test_tracker_validation(
+        self,
+        enable_bz_async_sync,
+        enable_jira_task_sync,
+        enable_jira_tracker_sync,
+        auth_client,
+        test_api_uri,
+    ):
         """Tests that validations will block for Trackers with all sync enabled"""
-        enable_sync(monkeypatch)
-
         flaw = FlawFactory(embargoed=False)
         ps_module = PsModule(
             name="rhel-8",
@@ -786,9 +784,16 @@ class TestMultiMixinIntegration:
         assert Tracker.objects.all().count() == 0
 
     @pytest.mark.vcr
-    def test_tracker_validation_bugzilla(self, auth_client, test_api_uri, monkeypatch):
+    def test_tracker_validation_bugzilla(
+        self,
+        enable_bz_async_sync,
+        enable_jira_task_sync,
+        enable_jira_tracker_sync,
+        auth_client,
+        test_api_uri,
+        monkeypatch,
+    ):
         """Test that bugzilla Tracker endpoint only recreates alerts when needed"""
-        enable_sync(monkeypatch)
 
         jira_token = "SECRET"
         bz_token = "SECRET"
@@ -889,10 +894,16 @@ class TestMultiMixinIntegration:
         assert validation_counter["osidb | Tracker"] == 1
 
     @pytest.mark.vcr
-    def test_tracker_validation_jira(self, auth_client, test_api_uri, monkeypatch):
+    def test_tracker_validation_jira(
+        self,
+        enable_bz_async_sync,
+        enable_jira_task_sync,
+        enable_jira_tracker_sync,
+        auth_client,
+        test_api_uri,
+        monkeypatch,
+    ):
         """Test that jira Tracker endpoint only recreates alerts when needed"""
-        enable_sync(monkeypatch)
-
         jira_token = "SECRET"
         bz_token = "SECRET"
 
@@ -1020,10 +1031,16 @@ class TestMultiMixinIntegration:
         assert validation_counter["osidb | Tracker"] == 1
 
     @pytest.mark.vcr
-    def test_affect_validation(self, auth_client, test_api_uri, monkeypatch):
+    def test_affect_validation(
+        self,
+        enable_bz_async_sync,
+        enable_jira_task_sync,
+        enable_jira_tracker_sync,
+        auth_client,
+        test_api_uri,
+        monkeypatch,
+    ):
         """Test that Affect endpoint only recreates alerts when needed"""
-        enable_sync(monkeypatch)
-
         jira_token = "SECRET"
         bz_token = "SECRET"
 
@@ -1110,10 +1127,16 @@ class TestMultiMixinIntegration:
         assert validation_counter["osidb | Affect"] == 1
 
     @pytest.mark.vcr
-    def test_flaw_validation(self, auth_client, test_api_uri, monkeypatch):
+    def test_flaw_validation(
+        self,
+        enable_bz_async_sync,
+        enable_jira_task_sync,
+        enable_jira_tracker_sync,
+        auth_client,
+        test_api_uri,
+        monkeypatch,
+    ):
         """Test that Flaw endpoint only recreates alerts when needed"""
-        enable_sync(monkeypatch)
-
         jira_token = "SECRET"
         bz_token = "SECRET"
 

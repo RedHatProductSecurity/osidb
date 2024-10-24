@@ -4,10 +4,6 @@ import pytest
 from django.conf import settings
 from taskman.constants import JIRA_AUTH_TOKEN, TASKMAN_API_VERSION
 
-import apps.taskman.mixins as mixins
-import apps.taskman.service as service
-import osidb.models.flaw.flaw as flaw_module
-import osidb.serializer as serializer
 from osidb.constants import OSIDB_API_VERSION
 
 
@@ -55,15 +51,11 @@ def test_api_uri(test_scheme_host, api_version):
 
 
 @pytest.fixture(autouse=True)
-def pin_envs(monkeypatch) -> None:
+def auto_enable_jira_task_sync(enable_jira_task_sync) -> None:
     """
     the tests should be immune to what .env you build the testrunner with
     """
-    monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-    monkeypatch.setattr(mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-    monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-    monkeypatch.setattr(service, "JIRA_STORY_ISSUE_TYPE_ID", "17")
-    monkeypatch.setattr(service, "JIRA_TASKMAN_PROJECT_ID", "12337520")
+    pass
 
 
 @pytest.fixture
