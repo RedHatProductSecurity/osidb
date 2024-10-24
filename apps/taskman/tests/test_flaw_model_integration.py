@@ -387,6 +387,7 @@ class TestFlawModelIntegration(object):
         # enforce project without writing permissions
         import apps.taskman.service as service
 
+        # using ISO project which has restricted permissions
         monkeypatch.setattr(service, "JIRA_TASKMAN_PROJECT_KEY", "ISO")
 
         with pytest.raises(

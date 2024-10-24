@@ -16,7 +16,12 @@ from collectors.jiraffe.core import JiraQuerier
 from osidb.helpers import safe_get_response_content
 from osidb.models import Flaw, Impact, PsProduct
 
-from .constants import JIRA_TASKMAN_PROJECT_KEY, JIRA_TASKMAN_URL
+from .constants import (
+    JIRA_STORY_ISSUE_TYPE_ID,
+    JIRA_TASKMAN_PROJECT_ID,
+    JIRA_TASKMAN_PROJECT_KEY,
+    JIRA_TASKMAN_URL,
+)
 from .exceptions import (
     JiraTaskErrorException,
     MissingJiraTokenException,
@@ -85,8 +90,11 @@ class JiraTaskmanQuerier(JiraQuerier):
         self._jira_server = JIRA_TASKMAN_URL
         self._jira_token = token
 
-    def create_or_update_task(self, flaw: Flaw) -> Response:
-        """Creates or updates a task using Flaw data"""
+    def _check_token(self) -> None:
+        """
+        check the validity of the used API token
+        raise exception if invalid one was given
+        """
         token_validation_url = f"{self.jira_conn._get_url('mypermissions')}?projectKey={JIRA_TASKMAN_PROJECT_KEY}"
 
         # This request raises exception for unauthenticated users
@@ -100,13 +108,16 @@ class JiraTaskmanQuerier(JiraQuerier):
                 f"Token is valid for {JIRA_TASKMAN_URL} but user doesn't have write permission in {JIRA_TASKMAN_PROJECT_KEY} project."
             )
 
+    def create_or_update_task(self, flaw: Flaw) -> Response:
+        """Creates or updates a task using Flaw data"""
+        # check the token validity in case the user token is used
+        # assuming the service token is valid lowering Jira load
+        if not self.is_service_account():
+            self._check_token()
+
         data = self._generate_task_data(flaw)
-        data["fields"]["issuetype"]["id"] = self.jira_conn.issue_type_by_name(
-            "Story"
-        ).id
-        data["fields"]["project"]["id"] = self.jira_conn.project(
-            JIRA_TASKMAN_PROJECT_KEY
-        ).id
+        data["fields"]["issuetype"]["id"] = JIRA_STORY_ISSUE_TYPE_ID
+        data["fields"]["project"]["id"] = JIRA_TASKMAN_PROJECT_ID
 
         try:
             if not flaw.task_key:  # create task
