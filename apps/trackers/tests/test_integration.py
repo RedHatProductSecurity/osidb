@@ -190,9 +190,7 @@ class TestTrackerSaver:
 
 class TestTrackerAPI:
     @pytest.mark.vcr
-    def test_tracker_create_bugzilla(
-        self, auth_client, enable_bugzilla_sync, test_api_uri
-    ):
+    def test_tracker_create_bugzilla(self, auth_client, enable_bz_sync, test_api_uri):
         """
         test the whole stack Bugzilla tracker creation
         starting on the API and ending in Bugzilla
@@ -254,9 +252,7 @@ class TestTrackerAPI:
         assert tracker_json["ps_update_stream"] == "rhcertification-6"
 
     @pytest.mark.vcr
-    def test_tracker_update_bugzilla(
-        self, auth_client, enable_bugzilla_sync, test_api_uri
-    ):
+    def test_tracker_update_bugzilla(self, auth_client, enable_bz_sync, test_api_uri):
         """
         test the whole stack Bugzilla tracker update
         starting on the API and ending in Bugzilla
@@ -339,7 +335,7 @@ class TestTrackerAPI:
 
     @pytest.mark.vcr
     def test_tracker_create_jira(
-        self, auth_client, enable_bugzilla_sync, enable_jira_sync, test_api_uri
+        self, auth_client, enable_bz_sync, enable_jira_tracker_sync, test_api_uri
     ):
         """
         test the whole stack Jira tracker creation
@@ -427,7 +423,7 @@ class TestTrackerAPI:
 
     @pytest.mark.vcr
     def test_tracker_update_jira(
-        self, auth_client, enable_bugzilla_sync, enable_jira_sync, test_api_uri
+        self, auth_client, enable_bz_sync, enable_jira_tracker_sync, test_api_uri
     ):
         """
         test the whole stack Jira tracker update
@@ -577,8 +573,8 @@ class TestTrackerAPI:
     def test_tracker_create_update_jira_vulnerability_issuetype(
         self,
         auth_client,
-        enable_bugzilla_sync,
-        enable_jira_sync,
+        enable_bz_sync,
+        enable_jira_tracker_sync,
         test_api_uri,
         monkeypatch,
     ):
