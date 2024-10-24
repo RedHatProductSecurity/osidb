@@ -167,7 +167,8 @@ class OSVCollector(Collector):
                             new_snippets.extend(created_snippets)
                             new_flaws.extend(created_flaws)
                         # introduce a small delay after each transaction to not hit the Jira rate limit
-                        sleep(1)
+                        if created_flaws:
+                            sleep(1)
                     except Exception as exc:
                         message = f"Failed to save snippet and flaw for {osv_id}. Error: {exc}."
                         logger.error(message)
