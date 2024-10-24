@@ -265,3 +265,19 @@ class JiraTaskmanQuerier(JiraQuerier):
         query_list = self.query_tasks(query_list)
         query_list = self.query_updated(query_list, updated_after, updated_before)
         return self.run_query(query_list)
+
+    def add_link(self, issue_key, url, title):
+        """Add a remote link to a task."""
+        try:
+            data = {"url": url, "title": title}
+            link = self.jira_conn.add_simple_link(issue_key, data)
+            return Response(data=link.raw, status=201)
+        except JIRAError as e:
+            response_content = safe_get_response_content(e.response)
+            logger.error(
+                (
+                    f"Jira error when creating external link. Status code {e.status_code}, "
+                    f"Jira response {response_content}",
+                )
+            )
+            return Response(data=response_content, status=e.status_code)
