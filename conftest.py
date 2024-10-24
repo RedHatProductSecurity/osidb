@@ -221,9 +221,9 @@ def bypass_rls(db, request):
 
 
 @pytest.fixture
-def enable_bugzilla_sync(monkeypatch) -> None:
+def enable_bz_sync(monkeypatch) -> None:
     """
-    enable the sync to Bugzilla
+    enable the sync of trackers and flaw to Bugzilla
     """
     import apps.bbsync.mixins as mixins
     import osidb.models.flaw.flaw as flaw_module
@@ -235,9 +235,39 @@ def enable_bugzilla_sync(monkeypatch) -> None:
 
 
 @pytest.fixture
-def enable_jira_sync(monkeypatch) -> None:
+def enable_bz_async_sync(enable_bz_sync, monkeypatch) -> None:
     """
-    enable the sync to Jira
+    enable asynchonous synchronization of flaws to Bugzilla
+    enable the sync of trackers to Bugzilla
+    """
+    import apps.bbsync.constants as bbsync_constants
+    import apps.bbsync.save as bz_save
+    import osidb.models.flaw.flaw as flaw_module
+
+    monkeypatch.setattr(bbsync_constants, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
+    monkeypatch.setattr(bz_save, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
+    monkeypatch.setattr(flaw_module, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
+
+
+@pytest.fixture
+def enable_jira_task_sync(monkeypatch) -> None:
+    """
+    enable the sync of tasks to Jira
+    """
+    import apps.taskman.mixins as mixins
+    import osidb.models.flaw.flaw as flaw_module
+    import osidb.serializer as serializer
+
+    monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+    monkeypatch.setattr(mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+    monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+
+
+
+@pytest.fixture
+def enable_jira_tracker_sync(monkeypatch) -> None:
+    """
+    enable the sync of trackers to Jira
     """
     import osidb.models.tracker as tracker
 
