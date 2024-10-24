@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [4.5.2] - 2024-10-24
+### Changed
+- Reduced count of requests to Jira for task management
+
 ## [4.5.1] - 2024-10-23
 ### Added
 - Implement validation of PS module and PS update stream correspondance (OSIDB-3584)
