@@ -4,7 +4,9 @@ Helpers for direct or development shell usage
 
 import json
 import logging
+import logging.handlers
 import re
+import ssl
 import sys
 import warnings
 from distutils.util import strtobool
@@ -238,3 +240,39 @@ def safe_get_response_content(response: Response):
         return response.json()
     except JSONDecodeError:
         return response.text
+
+
+class JSONSocketHandler(logging.handlers.SocketHandler):
+    """
+    Custom Socket handler class for JSON formatting and TLS/SSL support
+    """
+
+    def __init__(self, *args, logfile: str, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.logfile = logfile
+
+    def makePickle(self, record: logging.LogRecord) -> bytes:
+        formatted_record = self.formatter.format(record)
+        record_json = {"formatted_record": formatted_record, "logfile": self.logfile}
+        encoded_json = f"{json.dumps(record_json)}\n".encode(encoding="utf-8")
+        return encoded_json
+
+    def makeSocket(self, *args, **kwargs):
+        """
+        A factory method which allows subclasses to define the precise
+        type of socket they want with SSL support.
+        """
+
+        result = super().makeSocket(*args, *kwargs)
+
+        context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+        context.load_verify_locations(
+            cafile="/opt/app-root/etc/logstash/certs/osidb-logstash-ca.crt"
+        )
+        context.load_cert_chain(
+            certfile="/opt/app-root/etc/logstash/certs/osidb-logstash.crt",
+            keyfile="/opt/app-root/etc/logstash/certs/osidb-logstash.key",
+        )
+
+        result = context.wrap_socket(result, server_hostname=self.address[0])
+        return result
