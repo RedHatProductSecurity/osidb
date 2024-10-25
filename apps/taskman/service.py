@@ -212,39 +212,6 @@ class JiraTaskmanQuerier(JiraQuerier):
 
         return data
 
-    def create_comment(self, issue_key: str, body: str):
-        """Add a comment in a task"""
-        try:
-            comment = self.jira_conn.add_comment(issue_key, body)
-            return Response(data=comment.raw, status=201)
-        except JIRAError as e:
-
-            response_content = safe_get_response_content(e.response)
-            logger.error(
-                (
-                    f"Jira error when creating Task comment. Status code {e.status_code}, "
-                    f"Jira response {response_content}",
-                )
-            )
-            return Response(data=response_content, status=e.status_code)
-
-    def update_comment(self, issue_key, comment_id, body: str):
-        """Edit a comment in a task"""
-        try:
-            comment = self.jira_conn.comment(issue=issue_key, comment=comment_id)
-            comment.update(body=body)
-            return Response(data=comment.raw, status=200)
-        except JIRAError as e:
-
-            response_content = safe_get_response_content(e.response)
-            logger.error(
-                (
-                    f"Jira error when updating Task comment. Status code {e.status_code}, "
-                    f"Jira response {response_content}",
-                )
-            )
-            return Response(data=response_content, status=e.status_code)
-
     def query_tasks(
         self, query_list: List[Tuple[str, str, str]]
     ) -> List[Tuple[str, str, str]]:

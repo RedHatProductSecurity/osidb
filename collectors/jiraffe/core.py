@@ -5,6 +5,9 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 from jira import JIRA, Issue
 from jira.exceptions import JIRAError
+from rest_framework.response import Response
+
+from osidb.helpers import safe_get_response_content
 
 from .constants import JIRA_DT_FMT, JIRA_MAX_CONNECTION_AGE, JIRA_SERVER, JIRA_TOKEN
 from .exceptions import NonRecoverableJiraffeException
@@ -184,6 +187,55 @@ class JiraQuerier(JiraConnector):
                 )
             # re-raise otherwise
             raise e
+
+    def create_comment(self, issue_key: str, body: str) -> Response:
+        """Add a comment in a Jira issue."""
+        try:
+            comment = self.jira_conn.add_comment(issue_key, body)
+            return Response(data=comment.raw, status=201)
+        except JIRAError as e:
+
+            response_content = safe_get_response_content(e.response)
+            logger.error(
+                (
+                    f"Jira error when creating comment. Status code {e.status_code}, "
+                    f"Jira response {response_content}",
+                )
+            )
+            return Response(data=response_content, status=e.status_code)
+
+    def update_comment(self, issue_key, comment_id, body: str) -> Response:
+        """Edit a comment in a Jira issue."""
+        try:
+            comment = self.jira_conn.comment(issue=issue_key, comment=comment_id)
+            comment.update(body=body)
+            return Response(data=comment.raw, status=200)
+        except JIRAError as e:
+
+            response_content = safe_get_response_content(e.response)
+            logger.error(
+                (
+                    f"Jira error when updating comment. Status code {e.status_code}, "
+                    f"Jira response {response_content}",
+                )
+            )
+            return Response(data=response_content, status=e.status_code)
+
+    def add_link(self, issue_key, url, title) -> Response:
+        """Add a remote link to a task."""
+        try:
+            data = {"url": url, "title": title}
+            link = self.jira_conn.add_simple_link(issue_key, data)
+            return Response(data=link.raw, status=201)
+        except JIRAError as e:
+            response_content = safe_get_response_content(e.response)
+            logger.error(
+                (
+                    f"Jira error when creating external link. Status code {e.status_code}, "
+                    f"Jira response {response_content}",
+                )
+            )
+            return Response(data=response_content, status=e.status_code)
 
     #######################
     # MULTI ISSUE QUERIES #
