@@ -243,25 +243,24 @@ def safe_get_response_content(response: Response):
 
 
 class JSONSocketHandler(logging.handlers.SocketHandler):
+    """
+    Custom Socket handler class for JSON formatting and TLS/SSL support
+    """
+
     def __init__(
         self,
         *args,
         logfile: str,
-        # fallback_logfile: Optional[str] = None,
-        # retries: int = 2,
-        # delay: int = 1,
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
         self.logfile = logfile
-        # self.retries = retries
-        # self.delay = delay
-
-        # self.fallback_handler = None
-        # if fallback_logfile is not None:
-        #     self.fallback_handler = logging.FileHandler(filename=fallback_logfile)
 
     def makePickle(self, record: logging.LogRecord) -> bytes:
+        """
+        Pickles the formatted record in binary format and makes it ready for
+        transimission. Adds information about destination logfile.
+        """
         formatted_record = self.formatter.format(record)
         record_json = {"formatted_record": formatted_record, "logfile": self.logfile}
         encoded_json = f"{json.dumps(record_json)}\n".encode(encoding="utf-8")
@@ -270,7 +269,7 @@ class JSONSocketHandler(logging.handlers.SocketHandler):
     def makeSocket(self, *args, **kwargs):
         """
         A factory method which allows subclasses to define the precise
-        type of socket they want with SSL support.
+        type of socket they want with TLS/SSL support.
         """
 
         result = super().makeSocket(*args, *kwargs)
@@ -286,52 +285,3 @@ class JSONSocketHandler(logging.handlers.SocketHandler):
 
         result = context.wrap_socket(result, server_hostname=self.address[0])
         return result
-
-    # def send(self, s):
-    #     print(self.sock)
-    #     if self.sock is None:
-    #         self.createSocket()
-    #     # self.sock can be None either because we haven't reached the retry
-    #     # time yet, or because we have reached the retry time and retried,
-    #     # but are still unable to connect.
-    #     # print(self.sock._cl)
-
-    #     if self.sock:
-    #         print("really really sending")
-    #         self.sock.sendall(s)
-    #         # response = self.sock.recv(1024)
-    #         # print(response)
-
-    #         # try:
-    #         #     self.sock.sendall(s)
-    #         # except OSError:  # pragma: no cover
-    #         #     logging.error("error error")
-    #         #     self.sock.close()
-    #         #     self.sock = None  # so we can call createSocket next time
-    #     else:
-    #         raise socket.error
-
-    # def emit(self, record):
-    #     try:
-    #         s = self.makePickle(record)  # Serialize the log record
-    #         for attempt in range(self.retries):
-    #             try:
-    #                 print("sending")
-
-    #                 self.send(s)  # Attempt to send the serialized log message
-    #                 return  # Exit if send is successful
-    #             except (socket.error, ssl.SSLError, BrokenPipeError):
-    #                 print("retrying")
-    #                 if attempt < self.retries - 1:
-    #                     time.sleep(self.delay)  # Wait before retrying
-    #                 else:
-    #                     # Log to the fallback file after all retries fail
-    #                     if self.fallback_handler is not None:
-    #                         print("fallback")
-    #                         self.fallback_handler.emit(record)  # Fallback to file
-    #                     # self.handleError(record)  # Handle error logging
-    #     except Exception as e:
-    #         # Handle unexpected exceptions and log to fallback file
-    #         if self.fallback_handler is not None:
-    #             print("fallback")
-    #             self.fallback_handler.emit(record)

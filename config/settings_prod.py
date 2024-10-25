@@ -128,14 +128,36 @@ ERRATA_TOOL_XMLRPC_BASE_URL = f"{ERRATA_TOOL_SERVER}/errata/errata_service"
 # Execute once an hour in production
 CISA_COLLECTOR_CRONTAB = crontab(minute=0)
 
-# Setup rotation logging into filesystem
-LOG_FILE_SIZE = 1024 * 1024 * 10  # 10mb
-LOG_FILE_COUNT = 3
+# Use either logstash logging or basic file logging based
+# on the instance configuration
+if get_env("MPP_LOGSTASH_LOGGING_ENABLED", is_bool=True, default="False"):
 
-# To not disrupt the logging of OSIDB instance running in PSI
-# this guard ensures that only OSIDB running in MPP logs to filesystem
-# TODO: Remove after OSIDB is fully migrated to MPP
-if get_env("MPP", is_bool=True, default="False"):
+    LOGSTASH_PORT = 5140
+    LOGSTASH_HOST = "logstash"
+
+    # Setup logging to logstash via TCP socket
+    LOGGING["handlers"]["celery"] = {
+        "class": "osidb.helpers.JSONSocketHandler",
+        "formatter": "verbose_celery",
+        "host": LOGSTASH_HOST,
+        "port": LOGSTASH_PORT,
+        "logfile": "celery.log",
+    }
+    LOGGING["handlers"]["console"] = {
+        "level": "INFO",
+        "class": "osidb.helpers.JSONSocketHandler",
+        "formatter": "verbose",
+        "host": LOGSTASH_HOST,
+        "port": LOGSTASH_PORT,
+        "logfile": "django.log",
+    }
+
+else:
+
+    # Setup rotation logging into filesystem
+    LOG_FILE_SIZE = 1024 * 1024 * 100  # 100mb
+    LOG_FILE_COUNT = 3
+
     LOGGING["handlers"]["celery"] = {
         "class": "logging.handlers.RotatingFileHandler",
         "formatter": "verbose_celery",
@@ -151,6 +173,7 @@ if get_env("MPP", is_bool=True, default="False"):
         "maxBytes": LOG_FILE_SIZE,
         "backupCount": LOG_FILE_COUNT,
     }
+
 
 # sets the Access-Control-Allow-Origin response header - accepts literal strings
 # example value: ["https://osidb.example.com", "https://workflows.example.com"]
