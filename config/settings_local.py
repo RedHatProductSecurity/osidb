@@ -95,3 +95,63 @@ STATIC_ROOT = "/var/www/osidb/static/"
 STATIC_URL = "/static/"
 
 INSTALLED_APPS += ["osidb.tests"]
+
+# Setup rotation logging into filesystem
+LOG_FILE_SIZE_1KB = 1024 * 3  # 1kb
+LOG_FILE_SIZE_1MB = LOG_FILE_SIZE_1KB * LOG_FILE_SIZE_1KB
+LOG_FILE_SIZE_10MB = LOG_FILE_SIZE_1MB * 10
+LOG_FILE_COUNT = 3
+LOG_FILE_PATH = "/opt/app-root/src/log"
+
+# LOGGING["handlers"]["celery"] = {
+#     "class": "logging.handlers.RotatingFileHandler",
+#     "formatter": "verbose_celery",
+#     "filename": f"{LOG_FILE_PATH}/local-celery.log",
+#     "maxBytes": LOG_FILE_SIZE_1KB,
+#     "backupCount": LOG_FILE_COUNT,
+# }
+# LOGGING["handlers"]["console"] = {
+#     "level": "INFO",
+#     "class": "logging.handlers.RotatingFileHandler",
+#     "formatter": "verbose",
+#     "filename": f"{LOG_FILE_PATH}/local-django.log",
+#     "maxBytes": LOG_FILE_SIZE_1KB,
+#     "backupCount": LOG_FILE_COUNT,
+# }
+from logging.handlers import DEFAULT_TCP_LOGGING_PORT, SocketHandler
+
+from osidb.helpers import JSONSocketHandler
+
+LOGGING["handlers"]["celery"] = {
+    "class": "osidb.helpers.JSONSocketHandler",
+    "formatter": "verbose_celery",
+    "host": "logstash",  # The IP of the log receiver
+    "port": "5140",  # The port of the log receiver
+    "logfile": "celery.log",
+    # "fallback_logfile": f"{LOG_FILE_PATH}/local-celery.log"
+    # "filename": f"{LOG_FILE_PATH}/local-django.log",
+    # "maxBytes": LOG_FILE_SIZE_1KB,
+    # "backupCount": LOG_FILE_COUNT,
+}
+LOGGING["handlers"]["console"] = {
+    "level": "INFO",
+    "class": "osidb.helpers.JSONSocketHandler",
+    "formatter": "verbose",
+    "host": "logstash",  # The IP of the log receiver
+    "port": "5140",  # The port of the log receiver
+    "logfile": "django.log",
+    # "fallback_logfile": f"{LOG_FILE_PATH}/local-django.log"
+    # "filename": f"{LOG_FILE_PATH}/local-django.log",
+    # "maxBytes": LOG_FILE_SIZE_1KB,
+    # "backupCount": LOG_FILE_COUNT,
+}
+# LOGGING["handlers"]["console"] = {
+#     "level": "INFO",
+#     "class": "osidb.helpers.JSONSocketHandler",
+#     "formatter": "verbose",
+#     "host": "log-listener",  # The IP of the log receiver
+#     "port": "5141",  # The port of the log receiver
+#     # "filename": f"{LOG_FILE_PATH}/local-django.log",
+#     # "maxBytes": LOG_FILE_SIZE_1KB,
+#     # "backupCount": LOG_FILE_COUNT,
+# }
