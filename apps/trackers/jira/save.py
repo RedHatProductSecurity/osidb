@@ -4,7 +4,6 @@ Jira tracker query module
 import json
 import logging
 
-from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.exceptions import BTSException
 from collectors.jiraffe.core import JiraQuerier
 
@@ -68,13 +67,13 @@ class TrackerJiraSaver(JiraQuerier):
         issue = self.jira_conn.create_issue(fields=query["fields"], prefetch=True)
         tracker.external_system_id = issue.key
         if comment:
-            JiraTaskmanQuerier(token=self._jira_token).create_comment(
+            self.create_comment(
                 issue_key=issue.key,
                 body=comment,
             )
         # Add upstream links only on tracker creation
         for reference in tracker.upstream_references:
-            JiraTaskmanQuerier(token=self._jira_token).add_link(
+            self.add_link(
                 issue_key=issue.key,
                 url=reference.url,
                 title=reference.description,
