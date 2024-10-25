@@ -252,6 +252,10 @@ class JSONSocketHandler(logging.handlers.SocketHandler):
         self.logfile = logfile
 
     def makePickle(self, record: logging.LogRecord) -> bytes:
+        """
+        Pickles the formatted record in binary format and makes it ready for
+        transimission. Adds information about destination logfile.
+        """
         formatted_record = self.formatter.format(record)
         record_json = {"formatted_record": formatted_record, "logfile": self.logfile}
         encoded_json = f"{json.dumps(record_json)}\n".encode(encoding="utf-8")
@@ -260,7 +264,7 @@ class JSONSocketHandler(logging.handlers.SocketHandler):
     def makeSocket(self, *args, **kwargs):
         """
         A factory method which allows subclasses to define the precise
-        type of socket they want with SSL support.
+        type of socket they want with TLS/SSL support.
         """
 
         result = super().makeSocket(*args, *kwargs)
