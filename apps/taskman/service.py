@@ -108,11 +108,16 @@ class JiraTaskmanQuerier(JiraQuerier):
                 f"Token is valid for {JIRA_TASKMAN_URL} but user doesn't have write permission in {JIRA_TASKMAN_PROJECT_KEY} project."
             )
 
-    def create_or_update_task(self, flaw: Flaw) -> Response:
-        """Creates or updates a task using Flaw data"""
+    def create_or_update_task(self, flaw: Flaw, check_token: bool = True) -> Response:
+        """
+        Creates or updates a task using Flaw data
+
+        by default the user tokens are being checked for validity which can
+        be turned off by parameter if not necessary to lower the Jira load
+        """
         # check the token validity in case the user token is used
         # assuming the service token is valid lowering Jira load
-        if not self.is_service_account():
+        if check_token and not self.is_service_account():
             self._check_token()
 
         data = self._generate_task_data(flaw)
@@ -125,8 +130,10 @@ class JiraTaskmanQuerier(JiraQuerier):
                     fields=data["fields"], prefetch=True
                 )
                 flaw.task_key = issue.key
-                if flaw.team_id:  # Jira don't allow setting team during creation
-                    return self.create_or_update_task(flaw)
+                if flaw.team_id:  # Jira does not allow setting team during creation
+                    return self.create_or_update_task(
+                        flaw, check_token=False  # no need to check the token again
+                    )
                 return Response(data=issue.raw, status=201)
             else:  # task exists; update
                 url = f"{self.jira_conn._get_url('issue')}/{flaw.task_key}"
