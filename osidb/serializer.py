@@ -435,7 +435,14 @@ class ACLMixinSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        validated_data = self.embargoed2acls(validated_data)
+        # defaults to keep current ACLs
+        validated_data["acl_read"] = instance.acl_read
+        validated_data["acl_write"] = instance.acl_write
+
+        if instance.is_public or instance.is_embargoed:
+            # only allow manual ACL changes between embargoed and public
+            validated_data = self.embargoed2acls(validated_data)
+
         return super().update(instance, validated_data)
 
 

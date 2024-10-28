@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - Add upstream references to Jira trackers on creation (OSIDB-3148)
+- Change ACL mixin serializer to support internal ACLs (OSIDB-3578)
 
 ## [4.5.2] - 2024-10-24
 ### Changed

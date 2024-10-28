@@ -162,6 +162,50 @@ class TestEndpointsACLs:
         assert flaw.acl_read == self.hash_acl(acl_read)
         assert flaw.acl_write == self.hash_acl(acl_write)
 
+    def test_internal_flaw_update(
+        self,
+        auth_client,
+        test_api_uri,
+    ):
+        """
+        test serializer does not change ACLs from internal flaws
+        """
+        internal_read = [
+            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])
+        ]
+        internal_write = [
+            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
+        ]
+        flaw = FlawFactory(
+            embargoed=False,
+            acl_read=internal_read,
+            acl_write=internal_write,
+        )
+        AffectFactory(flaw=flaw)
+        assert flaw.is_internal
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        original_body = response.json()
+        assert not original_body["embargoed"]
+
+        response = auth_client().put(
+            f"{test_api_uri}/flaws/{flaw.uuid}",
+            {
+                "title": f"{flaw.title} appended test title",
+                "comment_zero": flaw.comment_zero,
+                "owner": "example@redhat.com",
+                "embargoed": False,
+                "updated_dt": flaw.updated_dt,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        flaw = Flaw.objects.get(uuid=flaw.uuid)
+        assert flaw.is_internal
+
     @freeze_time(datetime(2021, 11, 23, tzinfo=timezone.get_current_timezone()))
     def test_flaw_unembargo(self, auth_client, test_api_uri):
         """
