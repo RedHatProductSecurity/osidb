@@ -12,9 +12,7 @@ from .core import (
     PRODUCT_DEFINITIONS_URL,
     fetch_product_definitions,
     sanitize_product_definitions,
-    sync_ps_contacts,
-    sync_ps_products_modules,
-    sync_ps_update_streams,
+    sync_product_definitions,
 )
 
 logger = get_task_logger(__name__)
@@ -55,13 +53,8 @@ def product_definitions_collector(collector_obj) -> None:
         )
     )
 
-    sync_ps_contacts(ps_contacts)
-    sync_ps_update_streams(ps_update_streams)
-    # PS Products and Modules need to be synced together
-    # because every Product holds information about related
-    # Modules, but from Module there is no way of telling
-    # to which Product it relates to
-    sync_ps_products_modules(ps_products, ps_modules)
+    # Sync all product definitions in a single transaction
+    sync_product_definitions(ps_products, ps_modules, ps_update_streams, ps_contacts)
 
     collector_obj.store(updated_until_dt=timezone.now())
     logger.info("Product Definitions sync was successful.")
