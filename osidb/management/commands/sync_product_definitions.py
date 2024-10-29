@@ -5,9 +5,7 @@ from collectors.framework.models import CollectorMetadata
 from collectors.product_definitions.core import (
     fetch_product_definitions,
     sanitize_product_definitions,
-    sync_ps_contacts,
-    sync_ps_products_modules,
-    sync_ps_update_streams,
+    sync_product_definitions,
 )
 
 
@@ -25,9 +23,9 @@ class Command(BaseCommand):
             ps_contacts,
         ) = sanitize_product_definitions(raw_data)
 
-        sync_ps_contacts(ps_contacts)
-        sync_ps_update_streams(ps_update_streams)
-        sync_ps_products_modules(ps_products, ps_modules)
+        sync_product_definitions(
+            ps_products, ps_modules, ps_update_streams, ps_contacts
+        )
 
         cm = CollectorMetadata.objects.get(
             name="collectors.product_definitions.tasks.product_definitions_collector"

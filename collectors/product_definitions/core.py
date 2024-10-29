@@ -71,7 +71,6 @@ def sanitize_product_definitions(data: dict) -> Tuple[dict, dict, dict, dict]:
     )
 
 
-@transaction.atomic
 def sync_ps_contacts(data: dict):
     """
     clean and re-create PS contacts from given data
@@ -89,7 +88,6 @@ def sync_ps_contacts(data: dict):
         PsContact.objects.create(username=contact_username, **filtered_contact_data)
 
 
-@transaction.atomic
 def sync_ps_update_streams(data: dict):
     """
     clean and re-create PS update streams from given data
@@ -107,7 +105,6 @@ def sync_ps_update_streams(data: dict):
         PsUpdateStream.objects.create(name=stream_name, **filtered_stream_data)
 
 
-@transaction.atomic
 def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
     """
     clean and re-create PS products and PS module from given data
@@ -176,3 +173,16 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
                     ).first()
                     if unacked_ps_update_stream:
                         ps_module.ps_update_streams.add(unacked_ps_update_stream)
+
+
+@transaction.atomic
+def sync_product_definitions(
+    ps_products: dict, ps_modules: dict, ps_update_streams: dict, ps_contacts: dict
+):
+    sync_ps_contacts(ps_contacts)
+    sync_ps_update_streams(ps_update_streams)
+    # PS Products and Modules need to be synced together
+    # because every Product holds information about related
+    # Modules, but from Module there is no way of telling
+    # to which Product it relates to
+    sync_ps_products_modules(ps_products, ps_modules)
