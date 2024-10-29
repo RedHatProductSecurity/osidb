@@ -18,6 +18,7 @@ from osidb.models import (
     FlawCVSS,
     FlawReference,
     FlawSource,
+    Impact,
     Tracker,
 )
 from osidb.tests.factories import (
@@ -1249,6 +1250,7 @@ class TestEndpointsFlaws:
         flaw = FlawFactory()
         delegated_affect = AffectFactory(
             flaw=flaw,
+            impact=Impact.MODERATE,
             ps_module=ps_module.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
@@ -1269,8 +1271,6 @@ class TestEndpointsFlaws:
         assert "trackers" in affect
         assert affect["delegated_resolution"] == Affect.AffectFix.WONTFIX
         assert affect["trackers"][0]["ps_update_stream"] == "rhel-7.0"
-
-        # assert delegated_affect.delegated_resolution == Affect.AffectFix.WONTFIX
 
     def test_get_flaw_with_token(
         self,

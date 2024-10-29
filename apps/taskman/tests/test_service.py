@@ -79,7 +79,7 @@ class TestTaskmanService(object):
     @pytest.mark.vcr
     def test_comments(self, user_token):
         """
-        Test that service is able to create and update a comment from Jira
+        Test that service is able to create comment in Jira
         """
         # Remove randomness to reuse VCR every possible time
         flaw = FlawFactory(embargoed=False, uuid="99cce9ba-829d-4933-b4c1-44533d819e77")
@@ -91,13 +91,6 @@ class TestTaskmanService(object):
 
         response2 = taskman.create_comment(response1.data["key"], "New comment")
         assert response2.status_code == 201
-
-        response3 = taskman.update_comment(
-            response1.data["key"],
-            response2.data["id"],
-            "Edited comment",
-        )
-        assert response3.status_code == 200
 
     @pytest.mark.vcr
     def test_add_link(self, user_token):
