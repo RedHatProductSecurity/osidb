@@ -1,6 +1,7 @@
 import logging
 import uuid
 
+import pghistory
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
@@ -63,6 +64,13 @@ class TrackerManager(ACLMixinManager, TrackingMixinManager):
         return tracker
 
 
+@pghistory.track(
+    pghistory.InsertEvent(),
+    pghistory.UpdateEvent(),
+    pghistory.DeleteEvent(),
+    exclude="meta_attr",
+    model_name="TrackerAudit",
+)
 class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     """tracker model definition"""
 

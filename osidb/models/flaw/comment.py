@@ -1,5 +1,6 @@
 import uuid
 
+import pghistory
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 
@@ -9,6 +10,12 @@ from osidb.mixins import ACLMixin, AlertMixin, TrackingMixin
 from .flaw import Flaw
 
 
+@pghistory.track(
+    pghistory.InsertEvent(),
+    pghistory.UpdateEvent(),
+    pghistory.DeleteEvent(),
+    model_name="FlawCommentAudit",
+)
 class FlawComment(
     AlertMixin,
     ACLMixin,

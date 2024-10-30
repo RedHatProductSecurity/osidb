@@ -76,7 +76,7 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
     pghistory.InsertEvent(),
     pghistory.UpdateEvent(),
     pghistory.DeleteEvent(),
-    exclude="meta_attr,_alerts",
+    exclude="meta_attr",
     model_name="AffectAudit",
 )
 class Affect(
@@ -604,6 +604,12 @@ class AffectCVSSManager(ACLMixinManager, TrackingMixinManager):
             )
 
 
+@pghistory.track(
+    pghistory.InsertEvent(),
+    pghistory.UpdateEvent(),
+    pghistory.DeleteEvent(),
+    model_name="AffectCVSSAudit",
+)
 class AffectCVSS(CVSS):
     affect = models.ForeignKey(
         Affect, on_delete=models.CASCADE, blank=True, related_name="cvss_scores"

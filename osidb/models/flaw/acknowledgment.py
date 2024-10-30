@@ -1,5 +1,6 @@
 import uuid
 
+import pghistory
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
@@ -43,6 +44,12 @@ class FlawAcknowledgmentManager(ACLMixinManager, TrackingMixinManager):
             )
 
 
+@pghistory.track(
+    pghistory.InsertEvent(),
+    pghistory.UpdateEvent(),
+    pghistory.DeleteEvent(),
+    model_name="FlawAcknowledgmentAudit",
+)
 class FlawAcknowledgment(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin):
     """
     Model representing flaw acknowledgments.

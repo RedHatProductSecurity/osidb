@@ -1,5 +1,6 @@
 import uuid
 
+import pghistory
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
@@ -32,6 +33,12 @@ class FlawReferenceManager(ACLMixinManager, TrackingMixinManager):
             return FlawReference(flaw=flaw, url=url, **extra_fields)
 
 
+@pghistory.track(
+    pghistory.InsertEvent(),
+    pghistory.UpdateEvent(),
+    pghistory.DeleteEvent(),
+    model_name="FlawReferenceAudit",
+)
 class FlawReference(AlertMixin, ACLMixin, TrackingMixin):
     """Model representing flaw references"""
 
