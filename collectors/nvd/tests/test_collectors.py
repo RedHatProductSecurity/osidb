@@ -1,5 +1,6 @@
+from datetime import datetime, timezone
+
 import pytest
-from django.utils import timezone
 
 from collectors.framework.models import CollectorMetadata
 from collectors.nvd.collectors import NVDCollector
@@ -24,14 +25,12 @@ class TestNVDCollector:
         # https://services.nvd.nist.gov/rest/json/cves/2.0/?lastModStartDate=2010-01-01T00:00:00&lastModEndDate=2010-04-11T00:00:00
 
         nvdc = NVDCollector()
-        nvdc.metadata.updated_until_dt = timezone.datetime(
-            2010, 1, 1, 0, 0, tzinfo=timezone.utc
-        )
+        nvdc.metadata.updated_until_dt = datetime(2010, 1, 1, 0, 0, tzinfo=timezone.utc)
 
         # test that the batch is correctly selected
         batch, period_end = nvdc.get_batch()
         assert len(batch) == 296
-        assert period_end == timezone.datetime(2010, 4, 11, 0, 0, tzinfo=timezone.utc)
+        assert period_end == datetime(2010, 4, 11, 0, 0, tzinfo=timezone.utc)
 
         # test that the batch collection works
         # randomly select a few flaws - not all 296
@@ -103,9 +102,9 @@ class TestNVDCollector:
 
         # let us define a time of last collection
         # and one timestamp before and one after
-        before_collector_run = timezone.datetime(2022, 1, 1, 0, 0, tzinfo=timezone.utc)
-        last_collector_run = timezone.datetime(2022, 2, 1, 0, 0, tzinfo=timezone.utc)
-        after_collector_run = timezone.datetime(2022, 3, 1, 0, 0, tzinfo=timezone.utc)
+        before_collector_run = datetime(2022, 1, 1, 0, 0, tzinfo=timezone.utc)
+        last_collector_run = datetime(2022, 2, 1, 0, 0, tzinfo=timezone.utc)
+        after_collector_run = datetime(2022, 3, 1, 0, 0, tzinfo=timezone.utc)
 
         FlawFactory(cve_id=cve1, updated_dt=before_collector_run)
         FlawFactory(cve_id=cve2, updated_dt=after_collector_run)

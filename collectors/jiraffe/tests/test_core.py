@@ -1,5 +1,6 @@
+from datetime import datetime, timezone
+
 import pytest
-from django.utils import timezone
 from jira import Issue
 
 from collectors.jiraffe.core import JiraQuerier
@@ -50,8 +51,8 @@ class TestJiraQuerier:
         """
         test that getting the Jira issues in the give period works
         """
-        from_dt = timezone.datetime(2014, 6, 16, 0, 0, 0, tzinfo=timezone.utc)
-        till_dt = timezone.datetime(2014, 9, 19, 0, 0, 0, tzinfo=timezone.utc)
+        from_dt = datetime(2014, 6, 16, 0, 0, 0, tzinfo=timezone.utc)
+        till_dt = datetime(2014, 9, 19, 0, 0, 0, tzinfo=timezone.utc)
         trackers = JiraQuerier().get_tracker_period(from_dt, till_dt)
 
         assert len(trackers) == 5
@@ -70,8 +71,8 @@ class TestJiraQuerier:
         test that tracker quering counts for both Bug and Vulnerability
         issue type
         """
-        from_dt = timezone.datetime(2024, 9, 30, 14, 0, 0, tzinfo=timezone.utc)
-        before_dt = timezone.datetime(2024, 10, 1, 0, 0, 0, tzinfo=timezone.utc)
+        from_dt = datetime(2024, 9, 30, 14, 0, 0, tzinfo=timezone.utc)
+        before_dt = datetime(2024, 10, 1, 0, 0, 0, tzinfo=timezone.utc)
 
         jq = JiraQuerier()
         query_list = []

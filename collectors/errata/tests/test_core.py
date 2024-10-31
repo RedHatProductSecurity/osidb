@@ -1,5 +1,6 @@
+from datetime import datetime, timezone
+
 import pytest
-from django.utils import timezone
 
 from collectors.framework.models import CollectorMetadata
 from osidb.models import Affect, Erratum, Tracker
@@ -37,19 +38,19 @@ class TestErrataToolCollection:
         "bz_updated,jira_updated,expected_end",
         [
             (
-                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
-                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
-                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+                datetime(2020, 1, 1, tzinfo=timezone.utc),
+                datetime(2020, 1, 1, tzinfo=timezone.utc),
+                datetime(2020, 1, 1, tzinfo=timezone.utc),
             ),
             (
-                timezone.datetime(2021, 1, 1, tzinfo=timezone.utc),
-                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
-                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+                datetime(2021, 1, 1, tzinfo=timezone.utc),
+                datetime(2020, 1, 1, tzinfo=timezone.utc),
+                datetime(2020, 1, 1, tzinfo=timezone.utc),
             ),
             (
-                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
-                timezone.datetime(2021, 1, 1, tzinfo=timezone.utc),
-                timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+                datetime(2020, 1, 1, tzinfo=timezone.utc),
+                datetime(2021, 1, 1, tzinfo=timezone.utc),
+                datetime(2020, 1, 1, tzinfo=timezone.utc),
             ),
         ],
     )
@@ -153,13 +154,13 @@ class TestErrataToolCollection:
         assert Erratum.objects.count() == 1
         # Which is linked to two Bugzilla trackers, the same as above
         assert Erratum.objects.first().trackers.count() == 2
-        assert Erratum.objects.first().created_dt == timezone.datetime(
+        assert Erratum.objects.first().created_dt == datetime(
             2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
         )
-        assert Erratum.objects.first().shipped_dt == timezone.datetime(
+        assert Erratum.objects.first().shipped_dt == datetime(
             2023, 2, 8, 0, 41, 10, tzinfo=timezone.utc
         )
-        assert Erratum.objects.first().updated_dt == timezone.datetime(
+        assert Erratum.objects.first().updated_dt == datetime(
             2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
         )
 
@@ -287,13 +288,13 @@ class TestErrataToolCollection:
         assert Erratum.objects.count() == 1
         # Which is linked to one Jira tracker, the same as above
         assert Erratum.objects.first().trackers.count() == 1
-        assert Erratum.objects.first().created_dt == timezone.datetime(
+        assert Erratum.objects.first().created_dt == datetime(
             2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
         )
-        assert Erratum.objects.first().shipped_dt == timezone.datetime(
+        assert Erratum.objects.first().shipped_dt == datetime(
             2023, 2, 8, 0, 41, 10, tzinfo=timezone.utc
         )
-        assert Erratum.objects.first().updated_dt == timezone.datetime(
+        assert Erratum.objects.first().updated_dt == datetime(
             2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
         )
 
@@ -341,13 +342,13 @@ class TestErrataToolCollection:
         assert Erratum.objects.count() == 1
         # Which is not linked to any trackers
         assert Erratum.objects.first().trackers.count() == 0
-        assert Erratum.objects.first().created_dt == timezone.datetime(
+        assert Erratum.objects.first().created_dt == datetime(
             2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
         )
-        assert Erratum.objects.first().shipped_dt == timezone.datetime(
+        assert Erratum.objects.first().shipped_dt == datetime(
             2023, 2, 8, 0, 41, 10, tzinfo=timezone.utc
         )
-        assert Erratum.objects.first().updated_dt == timezone.datetime(
+        assert Erratum.objects.first().updated_dt == datetime(
             2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
         )
 
@@ -395,13 +396,13 @@ class TestErrataToolCollection:
         # One erratum was created
         assert Erratum.objects.count() == 1
         assert Erratum.objects.first().advisory_name == f"{sample_erratum_name}-01"
-        assert Erratum.objects.first().created_dt == timezone.datetime(
+        assert Erratum.objects.first().created_dt == datetime(
             2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
         )
-        assert Erratum.objects.first().shipped_dt == timezone.datetime(
+        assert Erratum.objects.first().shipped_dt == datetime(
             2023, 2, 8, 0, 41, 10, tzinfo=timezone.utc
         )
-        assert Erratum.objects.first().updated_dt == timezone.datetime(
+        assert Erratum.objects.first().updated_dt == datetime(
             2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
         )
 
@@ -420,12 +421,12 @@ class TestErrataToolCollection:
         # Erratum is updated
         assert Erratum.objects.count() == 1
         assert Erratum.objects.first().advisory_name == f"{sample_erratum_name}-02"
-        assert Erratum.objects.first().created_dt == timezone.datetime(
+        assert Erratum.objects.first().created_dt == datetime(
             2023, 1, 8, 0, 41, 10, tzinfo=timezone.utc
         )
-        assert Erratum.objects.first().shipped_dt == timezone.datetime(
+        assert Erratum.objects.first().shipped_dt == datetime(
             2023, 3, 8, 0, 41, 10, tzinfo=timezone.utc
         )
-        assert Erratum.objects.first().updated_dt == timezone.datetime(
+        assert Erratum.objects.first().updated_dt == datetime(
             2023, 5, 8, 0, 41, 10, tzinfo=timezone.utc
         )

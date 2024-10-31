@@ -1,7 +1,7 @@
 import json
+from datetime import datetime, timezone
 
 import pytest
-from django.utils.timezone import datetime, utc
 from jira.exceptions import JIRAError
 
 from apps.taskman.service import JiraTaskmanQuerier
@@ -108,7 +108,7 @@ class TestOSVCollector:
         """
         osvc = OSVCollector()
         osvc.snippet_creation_enabled = True
-        osvc.snippet_creation_start_date = datetime(2024, 1, 1, tzinfo=utc)
+        osvc.snippet_creation_start_date = datetime(2024, 1, 1, tzinfo=timezone.utc)
         osvc.collect(osv_id="GHSA-3hwm-922r-47hw")
 
         assert Snippet.objects.count() == 0

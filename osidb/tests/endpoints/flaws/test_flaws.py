@@ -1,10 +1,9 @@
-from datetime import timedelta
+from datetime import timedelta, timezone
 from typing import Set, Union
 
 import pghistory
 import pytest
 from django.conf import settings
-from django.utils import timezone
 from django.utils.timezone import datetime, make_aware
 from freezegun import freeze_time
 from rest_framework import status
@@ -374,9 +373,7 @@ class TestEndpointsFlaws:
         with freeze_time(future_dt):
             tracker.external_system_id = "foo"
             tracker.save()
-        assert tracker.updated_dt == future_dt.astimezone(
-            timezone.get_current_timezone()
-        )
+        assert tracker.updated_dt == future_dt.astimezone(timezone.utc)
 
         # we should get a result now
         response = auth_client().get(f"{test_api_uri}/flaws?changed_after={future_dt}")
@@ -400,9 +397,7 @@ class TestEndpointsFlaws:
         with freeze_time(future_dt):
             affect.ps_component = "foo"
             affect.save()
-        assert affect.updated_dt == future_dt.astimezone(
-            timezone.get_current_timezone()
-        )
+        assert affect.updated_dt == future_dt.astimezone(timezone.utc)
 
         response = auth_client().get(f"{test_api_uri}/flaws?changed_after={future_dt}")
         assert response.status_code == 200
@@ -427,9 +422,7 @@ class TestEndpointsFlaws:
             with freeze_time(future_dt):
                 affect.ps_component = "foo"
                 affect.save()
-            assert affect.updated_dt == future_dt.astimezone(
-                timezone.get_current_timezone()
-            )
+            assert affect.updated_dt == future_dt.astimezone(timezone.utc)
 
         response = auth_client().get(f"{test_api_uri}/flaws?changed_after={future_dt}")
         assert response.status_code == 200
@@ -476,7 +469,7 @@ class TestEndpointsFlaws:
         with freeze_time(past_dt):
             tracker.external_system_id = "foo"
             tracker.save()
-        assert tracker.updated_dt == past_dt.astimezone(timezone.get_current_timezone())
+        assert tracker.updated_dt == past_dt.astimezone(timezone.utc)
 
         # we should get a result now
         response = auth_client().get(
@@ -510,7 +503,7 @@ class TestEndpointsFlaws:
         with freeze_time(past_dt):
             affect.ps_component = "foo"
             affect.save()
-        assert affect.updated_dt == past_dt.astimezone(timezone.get_current_timezone())
+        assert affect.updated_dt == past_dt.astimezone(timezone.utc)
 
         response = auth_client().get(
             f"{test_api_uri}/flaws?changed_before={past_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}"
@@ -574,9 +567,7 @@ class TestEndpointsFlaws:
             with freeze_time(past_dt):
                 tracker.resolution = "foo"
                 tracker.save()
-            assert tracker.updated_dt == past_dt.astimezone(
-                timezone.get_current_timezone()
-            )
+            assert tracker.updated_dt == past_dt.astimezone(timezone.utc)
 
         # we should get a result now
         response = auth_client().get(

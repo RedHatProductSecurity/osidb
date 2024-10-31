@@ -3,10 +3,11 @@ Bugzilla specific tracker test cases
 """
 
 import json
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 import pytest
-from django.utils.timezone import datetime, make_aware, utc
+from django.utils.timezone import make_aware
 
 from apps.sla.tests.test_framework import load_sla_policies
 from apps.trackers.exceptions import (
@@ -2038,7 +2039,7 @@ class TestTrackerJiraQueryBuilder:
             title="some description",
             source="REDHAT",
             cwe_id="CWE-2",
-            created_dt=datetime(2024, 10, 1, tzinfo=utc),
+            created_dt=datetime(2024, 10, 1, tzinfo=timezone.utc),
         )
         flwcvss2 = FlawCVSSFactory(flaw=flaw2, issuer=FlawCVSS.CVSSIssuer.REDHAT)
         affect2 = AffectFactory(
@@ -2059,7 +2060,7 @@ class TestTrackerJiraQueryBuilder:
             title="some description",
             source="REDHAT",
             cwe_id="CWE-3",
-            created_dt=datetime(2024, 9, 1, tzinfo=utc),
+            created_dt=datetime(2024, 9, 1, tzinfo=timezone.utc),
         )
         flwcvss3 = FlawCVSSFactory(flaw=flaw3, issuer=FlawCVSS.CVSSIssuer.REDHAT)
         affect3 = AffectFactory(
@@ -2078,7 +2079,7 @@ class TestTrackerJiraQueryBuilder:
             title="some description",
             source="REDHAT",
             cwe_id="CWE-4",
-            created_dt=datetime(2024, 10, 2, tzinfo=utc),
+            created_dt=datetime(2024, 10, 2, tzinfo=timezone.utc),
         )
         flwcvss4 = FlawCVSSFactory(flaw=flaw4, issuer=FlawCVSS.CVSSIssuer.REDHAT)
         affect4 = AffectFactory(

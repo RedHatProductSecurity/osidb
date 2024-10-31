@@ -1,8 +1,9 @@
 """
 tracker common functionality test cases
 """
+from datetime import datetime, timezone
+
 import pytest
-from django.utils import timezone
 
 from apps.trackers.common import TrackerQueryBuilder
 from osidb.models import Affect, Flaw, Tracker
@@ -467,7 +468,7 @@ class TestTrackerQueryBuilderDescription:
                     ps_component="large-component",
                     # created datetime defines the query result
                     # ordering which is later reflected in description
-                    created_dt=timezone.datetime(2000 + idx, 1, 1, tzinfo=timezone.utc),
+                    created_dt=datetime(2000 + idx, 1, 1, tzinfo=timezone.utc),
                 )
             )
 

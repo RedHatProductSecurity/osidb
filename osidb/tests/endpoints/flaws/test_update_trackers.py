@@ -1,8 +1,7 @@
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
-from django.utils import timezone
-from django.utils.timezone import datetime
 from rest_framework import status
 
 from osidb.models import Affect, Tracker

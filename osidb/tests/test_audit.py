@@ -1,9 +1,9 @@
 import uuid
+from datetime import datetime, timezone
 
 import pghistory
 import pytest
 from django.db import transaction
-from django.utils import timezone
 
 from osidb.core import set_user_acls
 from osidb.models import Affect, Flaw, FlawSource, Impact
@@ -40,14 +40,14 @@ class TestAuditFlaw:
             bz_id="12345",
             cwe_id="CWE-1",
             title="first",
-            unembargo_dt=timezone.datetime(2020, 1, 1, tzinfo=timezone.utc),
+            unembargo_dt=datetime(2020, 1, 1, tzinfo=timezone.utc),
             comment_zero="description",
             impact=Impact.LOW,
             components=["curl"],
             source=FlawSource.INTERNET,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
-            reported_dt=timezone.now(),
+            reported_dt=datetime.now().replace(tzinfo=timezone.utc),
         )
         flaw1.save()
         affect1 = AffectFactory(flaw=flaw1)

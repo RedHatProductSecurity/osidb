@@ -1,8 +1,9 @@
 """
 tests related to the test factories
 """
+from datetime import datetime, timezone
+
 import pytest
-from django.utils import timezone
 
 from osidb.models import Affect, Tracker
 from osidb.tests.factories import (
@@ -42,9 +43,5 @@ class TestTrackerFactory:
             created_dt="2000-10-10T00:00:00Z",
             updated_dt="2000-10-10T00:00:00Z",
         )
-        assert tracker.created_dt == timezone.datetime(
-            2000, 10, 10, tzinfo=timezone.utc
-        )
-        assert tracker.updated_dt == timezone.datetime(
-            2000, 10, 10, tzinfo=timezone.utc
-        )
+        assert tracker.created_dt == datetime(2000, 10, 10, tzinfo=timezone.utc)
+        assert tracker.updated_dt == datetime(2000, 10, 10, tzinfo=timezone.utc)
