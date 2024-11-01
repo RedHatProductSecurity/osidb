@@ -1,7 +1,7 @@
+from datetime import datetime, timezone
 from itertools import chain
 
 import pytest
-from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
 
@@ -39,14 +39,14 @@ class TestEndpointsFlawsUnembargo:
     result from /flaws endpoint PUT calls
     """
 
-    @freeze_time(timezone.datetime(2020, 10, 10, tzinfo=timezone.utc))
+    @freeze_time(datetime(2020, 10, 10, tzinfo=timezone.utc))
     def test_minimal(self, auth_client, test_api_uri):
         """
         test that a minimal flaw context can be correctly unembargoed
         """
         flaw = FlawFactory(
             embargoed=True,
-            unembargo_dt=timezone.datetime(2030, 10, 10, tzinfo=timezone.utc),
+            unembargo_dt=datetime(2030, 10, 10, tzinfo=timezone.utc),
         )
         ps_module = PsModuleFactory()
         AffectFactory(
@@ -59,7 +59,7 @@ class TestEndpointsFlawsUnembargo:
         assert Affect.objects.first().is_embargoed
         assert Flaw.objects.first().is_embargoed
 
-        with freeze_time(timezone.datetime(2030, 10, 10, tzinfo=timezone.utc)):
+        with freeze_time(datetime(2030, 10, 10, tzinfo=timezone.utc)):
             flaw_data = {
                 "comment_zero": flaw.comment_zero,
                 "embargoed": False,
@@ -78,14 +78,14 @@ class TestEndpointsFlawsUnembargo:
             assert not Affect.objects.first().is_embargoed
             assert not Flaw.objects.first().is_embargoed
 
-    @freeze_time(timezone.datetime(2020, 10, 10, tzinfo=timezone.utc))
+    @freeze_time(datetime(2020, 10, 10, tzinfo=timezone.utc))
     def test_complex(self, auth_client, test_api_uri):
         """
         test that a complex flaw context can be correctly unembargoed
         """
         flaw = FlawFactory(
             embargoed=True,
-            unembargo_dt=timezone.datetime(2030, 10, 10, tzinfo=timezone.utc),
+            unembargo_dt=datetime(2030, 10, 10, tzinfo=timezone.utc),
         )
         FlawAcknowledgmentFactory(flaw=flaw, affiliation="Corp1")
         FlawAcknowledgmentFactory(flaw=flaw, affiliation="Corp2")
@@ -145,7 +145,7 @@ class TestEndpointsFlawsUnembargo:
             )
         )
 
-        with freeze_time(timezone.datetime(2030, 10, 10, tzinfo=timezone.utc)):
+        with freeze_time(datetime(2030, 10, 10, tzinfo=timezone.utc)):
             flaw_data = {
                 "comment_zero": flaw.comment_zero,
                 "embargoed": False,
@@ -176,7 +176,7 @@ class TestEndpointsFlawsUnembargo:
                 )
             )
 
-    @freeze_time(timezone.datetime(2020, 10, 10, tzinfo=timezone.utc))
+    @freeze_time(datetime(2020, 10, 10, tzinfo=timezone.utc))
     def test_combined(self, auth_client, test_api_uri):
         """
         test that a combined flaw context of multiple flaws can be correctly unembargoed
@@ -184,7 +184,7 @@ class TestEndpointsFlawsUnembargo:
         ps_module = PsModuleFactory()
         flaw1 = FlawFactory(
             embargoed=True,
-            unembargo_dt=timezone.datetime(2030, 10, 10, tzinfo=timezone.utc),
+            unembargo_dt=datetime(2030, 10, 10, tzinfo=timezone.utc),
         )
         affect1 = AffectFactory(
             flaw=flaw1,
@@ -194,7 +194,7 @@ class TestEndpointsFlawsUnembargo:
         )
         flaw2 = FlawFactory(
             embargoed=flaw1.embargoed,
-            unembargo_dt=timezone.datetime(2040, 10, 10, tzinfo=timezone.utc),
+            unembargo_dt=datetime(2040, 10, 10, tzinfo=timezone.utc),
         )
         affect2 = AffectFactory(
             flaw=flaw2,
@@ -215,7 +215,7 @@ class TestEndpointsFlawsUnembargo:
         assert all(instance.is_embargoed for instance in Flaw.objects.all())
         assert all(instance.is_embargoed for instance in Tracker.objects.all())
 
-        with freeze_time(timezone.datetime(2030, 10, 10, tzinfo=timezone.utc)):
+        with freeze_time(datetime(2030, 10, 10, tzinfo=timezone.utc)):
             flaw_data = {
                 "comment_zero": flaw1.comment_zero,
                 "embargoed": False,
@@ -237,7 +237,7 @@ class TestEndpointsFlawsUnembargo:
             assert Affect.objects.get(uuid=affect2.uuid).is_embargoed
             assert all(instance.is_embargoed for instance in Tracker.objects.all())
 
-        with freeze_time(timezone.datetime(2040, 10, 10, tzinfo=timezone.utc)):
+        with freeze_time(datetime(2040, 10, 10, tzinfo=timezone.utc)):
             flaw_data = {
                 "comment_zero": flaw2.comment_zero,
                 "embargoed": False,

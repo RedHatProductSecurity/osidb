@@ -1,8 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 from django.db.utils import IntegrityError
-from django.utils import timezone
 
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.collectors import BugzillaQuerier, MetadataCollector
@@ -84,7 +83,7 @@ class TestBZImportCollector:
             assert period_start < period_end
 
             period_start = period_end
-            if period_start > timezone.now():
+            if period_start > datetime.now().replace(tzinfo=timezone.utc):
                 break
 
     def test_end_period_heuristic_migrations(self, flaw_collector):
@@ -310,7 +309,7 @@ class TestBugzillaTrackerCollector:
             ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
             embargoed=False,
-            updated_dt=timezone.datetime.strptime("1970-01-01T00:00:00Z", BZ_DT_FMT),
+            updated_dt=datetime.strptime("1970-01-01T00:00:00Z", BZ_DT_FMT),
         )
         # make sure the links are there
         tracker = Tracker.objects.first()

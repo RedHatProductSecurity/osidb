@@ -1,9 +1,8 @@
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
-from django.utils import timezone
 from freezegun import freeze_time
 from jira.exceptions import JIRAError
 
@@ -162,19 +161,19 @@ class TestJiraTrackerCollector:
         """
         collector = JiraTrackerCollector()
         collector.BATCH_PERIOD_DAYS = 365
-        assert collector.BEGINNING == timezone.datetime(2014, 1, 1, tzinfo=timezone.utc)
+        assert collector.BEGINNING == datetime(2014, 1, 1, tzinfo=timezone.utc)
         assert collector.metadata.updated_until_dt is None
 
         trackers, period_end = collector.get_batch()
         assert len(trackers) == 15  # all the trackers from 2014
-        assert period_end == timezone.datetime(2015, 1, 1, tzinfo=timezone.utc)
+        assert period_end == datetime(2015, 1, 1, tzinfo=timezone.utc)
 
         # artificially change the updated until timestamp
         collector.metadata.updated_until_dt = period_end
 
         trackers, period_end = collector.get_batch()
         assert len(trackers) == 31  # all the trackers from 2015
-        assert period_end == timezone.datetime(2016, 1, 1, tzinfo=timezone.utc)
+        assert period_end == datetime(2016, 1, 1, tzinfo=timezone.utc)
 
     @pytest.mark.vcr
     def test_collect(self):
@@ -183,13 +182,13 @@ class TestJiraTrackerCollector:
         """
         collector = JiraTrackerCollector()
         collector.BATCH_PERIOD_DAYS = 365
-        assert collector.BEGINNING == timezone.datetime(2014, 1, 1, tzinfo=timezone.utc)
+        assert collector.BEGINNING == datetime(2014, 1, 1, tzinfo=timezone.utc)
         assert collector.metadata.updated_until_dt is None
 
         msg = collector.collect()
         # the tracker collection is now only scheduled and not really performed
         # assert Tracker.objects.count() == 15  # all the trackers from 2014
-        assert collector.metadata.updated_until_dt == timezone.datetime(
+        assert collector.metadata.updated_until_dt == datetime(
             2015, 1, 1, tzinfo=timezone.utc
         )
         assert msg == (
@@ -203,7 +202,7 @@ class TestJiraTrackerCollector:
         msg = collector.collect()
         # the tracker collection is now only scheduled and not really performed
         # assert Tracker.objects.count() == 45  # all the trackers from 2014 and 2015
-        assert collector.metadata.updated_until_dt == timezone.datetime(
+        assert collector.metadata.updated_until_dt == datetime(
             2016, 1, 1, tzinfo=timezone.utc
         )
         assert msg == (
@@ -218,14 +217,16 @@ class TestJiraTrackerCollector:
         )
 
     @pytest.mark.vcr
-    @freeze_time(timezone.datetime(2024, 10, 1, 12, 0, 0))
+    @freeze_time(datetime(2024, 10, 1, 12, 0, 0))
     def test_collect_complete(self):
         """
         test that Jira collector data status is changed to complete when the data are current
         """
         collector = JiraTrackerCollector()
         collector.BATCH_PERIOD_DAYS = 365
-        collector.metadata.updated_until_dt = timezone.now()
+        collector.metadata.updated_until_dt = datetime.now().replace(
+            tzinfo=timezone.utc
+        )
         assert not collector.is_complete
 
         collector.collect()
@@ -280,7 +281,7 @@ class TestJiraTrackerCollector:
             resolution=None,
             # collector only modify trackers
             # when it is outdated in OSIDB
-            updated_dt=timezone.datetime.strptime("1970-01-01T00:00:00Z", BZ_DT_FMT),
+            updated_dt=datetime.strptime("1970-01-01T00:00:00Z", BZ_DT_FMT),
         )
         collector = JiraTrackerCollector()
 
@@ -326,7 +327,7 @@ class TestJiraTrackerCollector:
             type=Tracker.TrackerType.JIRA,
             external_system_id=tracker_id,
             affects=[affect1, affect2],
-            updated_dt=timezone.datetime.strptime("1970-01-01T00:00:00Z", BZ_DT_FMT),
+            updated_dt=datetime.strptime("1970-01-01T00:00:00Z", BZ_DT_FMT),
         )
         collector = JiraTrackerCollector()
 
@@ -377,7 +378,7 @@ class TestMetadataCollector:
         "TestMetadataCollector.test_collect_basic[RHEL-120].yaml",
     )
 
-    @freeze_time(timezone.datetime(2015, 12, 12))
+    @freeze_time(datetime(2015, 12, 12))
     @pytest.mark.vcr(*BASE_METADATA_COLLECTOR_VCRS)
     @pytest.mark.parametrize("project_key,fields_count", [("RHEL", 120), ("OSIM", 20)])
     def test_collect_basic(self, pin_envs, project_key, fields_count):
@@ -387,7 +388,7 @@ class TestMetadataCollector:
         ps_module = PsModuleFactory(
             bts_name="jira",
             bts_key=project_key,
-            supported_until_dt=timezone.make_aware(timezone.datetime(2020, 12, 12)),
+            supported_until_dt=datetime(2020, 12, 12, tzinfo=timezone.utc),
         )
         PsUpdateStreamFactory(ps_module=ps_module)
 
@@ -400,7 +401,7 @@ class TestMetadataCollector:
         project_fields = JiraProjectFields.objects.filter(project_key=project_key)
         assert len(project_fields) == fields_count
 
-    @freeze_time(timezone.datetime(2015, 12, 12))
+    @freeze_time(datetime(2015, 12, 12))
     @pytest.mark.vcr(*BASE_METADATA_COLLECTOR_VCRS)
     @pytest.mark.parametrize("project_key,fields_count", [("RHEL", 120), ("OSIM", 20)])
     def test_metadata_not_deleted_after_failure(
@@ -409,7 +410,7 @@ class TestMetadataCollector:
         ps_module = PsModuleFactory(
             bts_name="jira",
             bts_key=project_key,
-            supported_until_dt=timezone.make_aware(timezone.datetime(2020, 12, 12)),
+            supported_until_dt=datetime(2020, 12, 12, tzinfo=timezone.utc),
         )
         PsUpdateStreamFactory(ps_module=ps_module)
 
@@ -432,7 +433,7 @@ class TestMetadataCollector:
         project_fields = JiraProjectFields.objects.filter(project_key=project_key)
         assert len(project_fields) == fields_count
 
-    @freeze_time(timezone.datetime(2015, 12, 12))
+    @freeze_time(datetime(2015, 12, 12))
     @pytest.mark.vcr(*BASE_METADATA_COLLECTOR_VCRS)
     @pytest.mark.parametrize("project_key,fields_count", [("RHEL", 120), ("OSIM", 20)])
     def test_metadata_deleted_based_on_product_definitions(
@@ -441,7 +442,7 @@ class TestMetadataCollector:
         ps_module = PsModuleFactory(
             bts_name="jira",
             bts_key=project_key,
-            supported_until_dt=timezone.make_aware(timezone.datetime(2020, 12, 12)),
+            supported_until_dt=datetime(2020, 12, 12, tzinfo=timezone.utc),
         )
         PsUpdateStreamFactory(ps_module=ps_module)
 
@@ -463,7 +464,7 @@ class TestMetadataCollector:
         project_fields = JiraProjectFields.objects.filter(project_key=project_key)
         assert len(project_fields) == 0
 
-    @freeze_time(timezone.datetime(2024, 8, 8))
+    @freeze_time(datetime(2024, 8, 8))
     @pytest.mark.vcr
     @pytest.mark.parametrize(
         "project_key,fields_count,vulntype_exists",
@@ -483,7 +484,7 @@ class TestMetadataCollector:
         ps_module = PsModuleFactory(
             bts_name="jira",
             bts_key=project_key,
-            supported_until_dt=timezone.make_aware(timezone.datetime(2025, 12, 12)),
+            supported_until_dt=datetime(2025, 12, 12, tzinfo=timezone.utc),
         )
         PsUpdateStreamFactory(ps_module=ps_module)
 
