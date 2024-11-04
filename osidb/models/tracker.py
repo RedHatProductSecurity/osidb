@@ -387,14 +387,20 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         validate that there is only one tracker with this update stream associated with each affect
         """
         for affect in self.affects.all():
-            if (
-                affect.trackers.filter(ps_update_stream=self.ps_update_stream).count()
-                > 1
-            ):
+            trackers = affect.trackers.filter(ps_update_stream=self.ps_update_stream)
+            if trackers.count() > 1:
+
                 raise ValidationError(
-                    f"Tracker with the update stream {self.ps_update_stream} "
+                    f"Tracker with the update stream {self.ps_update_stream} ({self.external_system_id}) "
                     "is already associated with the affect "
-                    f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
+                    f"{affect.ps_module}/{affect.ps_component} ({affect.uuid}) "
+                    f"by the tracker(s) {', '.join([str(tracker.external_system_id) for tracker in trackers if tracker.uuid != self.uuid])}",
+                    params={
+                        "resolution_steps": "When manually cloning a tracker, please ensure that each affect has a unique update stream, "
+                        "which can be identified in the tracker's title. "
+                        "If the tracker is a duplicate, remove the 'SecurityTracking' label from the tracker in the external system. "
+                        "If the tracker is not expected to be a duplicate, please contact the Vulnerability Tooling team for further assistance."
+                    },
                 )
 
     def can_unembargo(self):
