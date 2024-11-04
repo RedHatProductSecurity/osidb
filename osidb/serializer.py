@@ -756,8 +756,14 @@ class TrackerSerializer(
         # 1) prepare prerequisites #
         ############################
 
-        # transform the embargoed status to the ACLs
-        validated_data = ACLMixinSerializer.embargoed2acls(self, validated_data)
+        # defaults to keep current ACLs
+        validated_data["acl_read"] = tracker.acl_read
+        validated_data["acl_write"] = tracker.acl_write
+
+        if tracker.is_public or tracker.is_embargoed:
+            # only allow manual ACL changes between embargoed and public
+            # transform the embargoed status to the ACLs
+            validated_data = ACLMixinSerializer.embargoed2acls(self, validated_data)
 
         #########################
         # 2) pre-update actions #
