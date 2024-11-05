@@ -16,6 +16,7 @@ from osidb.models import (
     FlawAcknowledgment,
     FlawCVSS,
     FlawReference,
+    Impact,
     Snippet,
     Tracker,
 )
@@ -914,6 +915,7 @@ class TestFlawDraftBBSyncIntegration:
             ],
             "source": source,
             "title": f"From {source} collector",
+            "impact": Impact.LOW,
             f"published_in_{source.lower()}": "2024-01-21T16:29:00.393Z",
         }
 

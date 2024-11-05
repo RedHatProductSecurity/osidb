@@ -1,5 +1,7 @@
+from decimal import Decimal
+
 from django.contrib.postgres.indexes import GinIndex
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 
 from osidb.mixins import ACLMixinManager, TrackingMixin, TrackingMixinManager
@@ -40,3 +42,9 @@ class FlawCVSS(CVSS):
         indexes = TrackingMixin.Meta.indexes + [
             GinIndex(fields=["acl_read"]),
         ]
+
+    def _validate_empty_impact_and_cvss_score(self, **kwargs):
+        if not self.flaw.impact and self.cvss_object.base_score != Decimal("0.0"):
+            raise ValidationError(
+                {"cvss_score": ["CVSS score must be 0.0 for flaws with no impact"]}
+            )
