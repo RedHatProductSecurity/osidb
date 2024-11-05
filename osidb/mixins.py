@@ -806,6 +806,7 @@ class AlertMixin(ValidateMixin):
                         name=validation_name,
                         description=e.message,
                         alert_type=Alert.AlertType.ERROR,
+                        **(e.params or {}),
                     )
 
     def save(self, *args, **kwargs):
