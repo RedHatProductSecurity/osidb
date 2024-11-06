@@ -6,7 +6,7 @@ from jira.exceptions import JIRAError
 
 from apps.taskman.service import JiraTaskmanQuerier
 from collectors.osv.collectors import OSVCollector, OSVCollectorException
-from osidb.models import Flaw, Snippet
+from osidb.models import Flaw, FlawCVSS, Impact, Snippet
 from osidb.tests.factories import FlawFactory
 
 pytestmark = pytest.mark.integration
@@ -113,6 +113,23 @@ class TestOSVCollector:
 
         assert Snippet.objects.count() == 0
         assert Flaw.objects.count() == 0
+
+    @pytest.mark.enable_signals
+    @pytest.mark.vcr
+    def test_collect_osv_record_with_cvss(self):
+        """
+        Test that snippet, flaw, flaw impact and cvss scores are correctly created.
+        """
+        osvc = OSVCollector()
+        osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = None
+        osvc.collect(osv_id="GHSA-75qh-gg76-p2w4")
+
+        assert Snippet.objects.count() == 1
+        assert Flaw.objects.count() == 1
+        assert Flaw.objects.first().impact == Impact.MODERATE
+        assert Flaw.objects.first().cvss_scores.count() == 2
+        assert FlawCVSS.objects.count() == 2
 
 
 class TestOSVCollectorException:

@@ -116,6 +116,9 @@ def convert_cvss_score_to_impact(score: Union[Decimal, float]) -> Impact:
     This function converts CVSS score to Flaw Impact.
     Flaw Impact matches CVSS severity, which is defined by CVSS score ranges.
     """
+    # Ensure the score is always of Decimal type rounded to 1 decimal place
+    score = round(Decimal(score), 1)
+
     impact = Impact.NOVALUE
     for key, value in CVSS_SCORE_TO_IMPACT.items():
         lower, upper = value

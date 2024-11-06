@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Moved envs monkeypatches to root conftest for reusability (OSIDB-3491)
 
+### Fixed
+- Fix conversion of CVSS severity to impact (OSIDB-3661)
+
 ## [4.5.3] - 2024-11-05
 ### Added
 - Implement resolution steps for duplicate tracker validation (OSIDB-3588)
