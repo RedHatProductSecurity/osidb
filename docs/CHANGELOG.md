@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fix conversion of CVSS severity to impact (OSIDB-3661)
+- Ignore invalid CVSS from OSV collector (OSIDB-3663)
 
 ## [4.5.3] - 2024-11-05
 ### Added
