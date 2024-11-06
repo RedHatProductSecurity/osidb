@@ -1,9 +1,6 @@
 import pytest
 
-import apps.bbsync.constants as bbsync_constants
 import apps.trackers.common as common
-import osidb.models.flaw.flaw as flaw_module
-import osidb.serializer as serializer
 from apps.sla.framework import SLAPolicy
 from apps.trackers.constants import TRACKERS_API_VERSION
 
@@ -27,18 +24,11 @@ def enable_db_access_for_all_tests(db) -> None:
 
 
 @pytest.fixture(autouse=True)
-def pin_envs(monkeypatch) -> None:
+def pin_envs(enable_jira_task_sync, enable_bz_async_sync, monkeypatch) -> None:
     """
     the tests should be immune to what .env you build the testrunner with
     """
     monkeypatch.setattr(common, "BZ_URL", "https://example.com")
-
-    # Mock settings that use the code path actually used in production at the
-    # time of writing test_tracker_create_update_jira_vulnerability_issuetype (2024-09).
-    monkeypatch.setattr(bbsync_constants, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
-    monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-    monkeypatch.setattr(flaw_module, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
-    monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
 
 
 @pytest.fixture

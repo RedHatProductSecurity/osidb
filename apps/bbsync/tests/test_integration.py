@@ -34,14 +34,8 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.fixture(autouse=True)
-def enable_bbsync_env_var(monkeypatch) -> None:
-    import apps.bbsync.mixins as mixins
-    import osidb.models.flaw.flaw as flaw_module
-    import osidb.models.tracker as tracker
-
-    monkeypatch.setattr(flaw_module, "SYNC_FLAWS_TO_BZ", True)
-    monkeypatch.setattr(mixins, "SYNC_TO_BZ", True)
-    monkeypatch.setattr(tracker, "SYNC_TRACKERS_TO_BZ", True)
+def auto_enable_bbsync(enable_bz_sync) -> None:
+    pass
 
 
 class TestBBSyncIntegration:
@@ -64,14 +58,11 @@ class TestBBSyncIntegration:
         ]
 
     @pytest.mark.vcr
-    def test_flaw_create(self, auth_client, test_api_uri, monkeypatch):
+    def test_flaw_create(self, auth_client, test_api_uri, enable_bz_async_sync):
         """
         test creating a flaw with Bugzilla two-way sync
         """
-        import osidb.models.flaw.flaw as flaw_module
         from osidb.sync_manager import BZSyncManager
-
-        monkeypatch.setattr(flaw_module, "SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY", True)
 
         assert Flaw.objects.count() == 0
         assert BZSyncManager.objects.count() == 0
@@ -464,8 +455,8 @@ class TestBBSyncIntegration:
     def test_flaw_unembargo_complex(
         self,
         auth_client,
-        enable_bugzilla_sync,
-        enable_jira_sync,
+        enable_bz_sync,
+        enable_jira_tracker_sync,
         test_api_uri,
     ):
         """
@@ -882,17 +873,11 @@ class TestFlawDraftBBSyncIntegration:
         source,
         cve_id,
         ext_id,
-        monkeypatch,
+        enable_jira_task_sync,
     ):
         """
         test creating a flaw draft with Bugzilla two-way sync
         """
-        import apps.taskman.mixins as taskman_mixins
-        import osidb.models.flaw.flaw as flaw_module
-
-        monkeypatch.setattr(taskman_mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-        monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
-
         content = {
             "cve_id": cve_id,
             "cvss_scores": [

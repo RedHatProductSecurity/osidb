@@ -210,10 +210,14 @@ class TestTrackerModelSave:
     which integrates with the TrackerSaver class
     """
 
-    def test_bugzilla_db_only(self):
+    def test_bugzilla_db_only(self, monkeypatch):
         """
         test the default Bugzilla tracker database only save
         """
+        import osidb.models.tracker as tracker
+
+        monkeypatch.setattr(tracker, "SYNC_TRACKERS_TO_BZ", False)
+
         ps_module = PsModuleFactory(bts_name="bugzilla")
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
 
@@ -244,7 +248,7 @@ class TestTrackerModelSave:
             assert not bugzilla_save_mock.called
             assert not bugzilla_load_mock.called
 
-    def test_bugzilla_backend(self, enable_bugzilla_sync):
+    def test_bugzilla_backend(self, enable_bz_sync):
         """
         test the Bugzilla tracker backend save
         """
@@ -315,7 +319,7 @@ class TestTrackerModelSave:
             assert not jira_save_mock.called
             assert not jira_load_mock.called
 
-    def test_jira_backend(self, enable_jira_sync):
+    def test_jira_backend(self, enable_jira_tracker_sync):
         """
         test the Jira tracker backend save
         """
