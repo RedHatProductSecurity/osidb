@@ -4,7 +4,7 @@ import pytest
 
 from collectors.framework.models import CollectorMetadata
 from collectors.nvd.collectors import NVDCollector
-from osidb.models import Flaw, FlawCVSS
+from osidb.models import Flaw, FlawCVSS, Impact
 from osidb.tests.factories import FlawCVSSFactory, FlawFactory
 
 pytestmark = pytest.mark.integration
@@ -286,3 +286,26 @@ class TestNVDCollector:
         assert flaw.cvss_scores.count() == 1
         assert flaw.cvss_scores.first().issuer == FlawCVSS.CVSSIssuer.REDHAT
         assert flaw.nist_cvss_validation == new_flag
+
+    @pytest.mark.vcr
+    @pytest.mark.enable_signals
+    @pytest.mark.parametrize("impact", [Impact.NOVALUE, Impact.MODERATE])
+    @pytest.mark.default_cassette("TestNVDCollector.test_cvss4.yaml")
+    def test_cvss_and_impact(self, impact):
+        """
+        Test that flaw impact is set if CVSS was changed, and the impact was originally empty.
+        """
+        cve_id = "CVE-2024-7450"
+        FlawFactory(cve_id=cve_id, impact=impact)
+
+        nvdc = NVDCollector()
+        nvdc.collect(cve_id)
+
+        flaw = Flaw.objects.get(cve_id=cve_id)
+        assert flaw.cvss_scores.count() == 2
+        if not impact:
+            # impact was set
+            assert flaw.impact == Impact.IMPORTANT
+        else:
+            # original impact
+            assert flaw.impact == Impact.MODERATE
