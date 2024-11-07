@@ -394,7 +394,7 @@ class Flaw(
     def _validate_cvss_scores_and_nist_cvss_validation(self, **kwargs):
         """
         Checks that if nist_cvss_validation is set, then both NIST CVSSv3 and RH CVSSv3
-        scores need to be present.
+        scores need to be present unless NIST fully accepted our score and deleted theirs.
         """
         from .cvss import FlawCVSS
 
@@ -409,6 +409,10 @@ class Flaw(
         ).first()
 
         if self.nist_cvss_validation and not (nist_cvss and rh_cvss):
+            # it may happen that NIST accepts our score and deletes theirs and
+            # then having a record in the sense of an approved flag makes sense
+            if self.nist_cvss_validation == self.FlawNistCvssValidation.APPROVED:
+                return
             raise ValidationError(
                 "nist_cvss_validation can only be set if a flaw has both "
                 "NIST CVSSv3 and RH CVSSv3 scores assigned.",

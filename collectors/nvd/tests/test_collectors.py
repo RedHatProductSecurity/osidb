@@ -236,9 +236,30 @@ class TestNVDCollector:
         flaw = Flaw.objects.get(cve_id=cve_id)
         assert flaw.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION4)
 
-    def test_reset_flag_on_removal(self):
+    @pytest.mark.parametrize(
+        "old_flag,new_flag",
+        [
+            (
+                Flaw.FlawNistCvssValidation.APPROVED,
+                Flaw.FlawNistCvssValidation.APPROVED,
+            ),
+            (
+                Flaw.FlawNistCvssValidation.REJECTED,
+                Flaw.FlawNistCvssValidation.APPROVED,
+            ),
+            (
+                Flaw.FlawNistCvssValidation.REQUESTED,
+                Flaw.FlawNistCvssValidation.APPROVED,
+            ),
+            (
+                Flaw.FlawNistCvssValidation.NOVALUE,
+                Flaw.FlawNistCvssValidation.NOVALUE,
+            ),
+        ],
+    )
+    def test_reset_flag_on_removal(self, old_flag, new_flag):
         """
-        test that NIST CVSS validation flag is reset when NVD CVSSv3 is removed
+        test that NIST CVSS validation flag is correctly adjusted when NVD CVSSv3 is removed
         """
         flaw = FlawFactory()
         FlawCVSSFactory(
@@ -253,7 +274,7 @@ class TestNVDCollector:
             vector="CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H",
             version=FlawCVSS.CVSSVersion.VERSION3,
         )
-        flaw.nist_cvss_validation = Flaw.FlawNistCvssValidation.APPROVED
+        flaw.nist_cvss_validation = old_flag
         flaw.save()
 
         nvdc = NVDCollector()
@@ -264,4 +285,4 @@ class TestNVDCollector:
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         assert flaw.cvss_scores.count() == 1
         assert flaw.cvss_scores.first().issuer == FlawCVSS.CVSSIssuer.REDHAT
-        assert flaw.nist_cvss_validation == Flaw.FlawNistCvssValidation.NOVALUE
+        assert flaw.nist_cvss_validation == new_flag

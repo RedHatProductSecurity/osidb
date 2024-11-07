@@ -1014,6 +1014,7 @@ class TestFlawValidators:
             (Flaw.FlawNistCvssValidation.REQUESTED, False, True, True),
             (Flaw.FlawNistCvssValidation.REJECTED, False, False, True),
             (Flaw.FlawNistCvssValidation.APPROVED, True, True, False),
+            (Flaw.FlawNistCvssValidation.APPROVED, False, True, False),
             (Flaw.FlawNistCvssValidation.NOVALUE, False, True, False),
         ],
     )
