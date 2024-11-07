@@ -284,11 +284,13 @@ class NVDCollector(Collector, NVDQuerier):
                     flaw.cvss_scores.filter(issuer=FlawCVSS.CVSSIssuer.NIST).filter(
                         version=version
                     ).delete()
-                    # remove also any potential NIST CVSS validation flag in case
-                    # the removed score is v3 which undergoes the feedback loop
+                    # also any existing NIST CVSS validation flag should be set to approved
+                    # when the removed score is v3 as it successfully completes the feedback loop
                     if version == FlawCVSS.CVSSVersion.VERSION3:
-                        Flaw.objects.filter(uuid=flaw.uuid).update(
-                            nist_cvss_validation=Flaw.FlawNistCvssValidation.NOVALUE
+                        Flaw.objects.filter(uuid=flaw.uuid).exclude(
+                            nist_cvss_validation=""  # when no flag then do not set any
+                        ).update(
+                            nist_cvss_validation=Flaw.FlawNistCvssValidation.APPROVED
                         )
                     continue
 
