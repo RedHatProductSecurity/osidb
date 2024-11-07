@@ -318,9 +318,11 @@ class WorkflowModel(models.Model):
         return WorkflowFramework().jira_status(self)
 
     def adjust_acls(self, save=True):
-        # Only new and rejected state can have internal ACLs
+        # a flaw can have internal ACLs before the triage is
+        # completed or if it was rejected during the triage
         internal_supported = [
             WorkflowModel.WorkflowState.NEW,
+            WorkflowModel.WorkflowState.TRIAGE,
             WorkflowModel.WorkflowState.REJECTED,
         ]
 

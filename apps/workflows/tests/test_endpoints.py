@@ -530,6 +530,45 @@ class TestFlawDraft:
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.TRIAGE
         assert flaw.task_key == "TASK-123"
 
+        # check that a flaw and related objects (except for snippets)
+        # still have internal ACLs as we publish only after the triage
+        assert flaw.is_internal
+        assert flaw.affects.count() == 1
+        assert flaw.affects.first().is_internal
+        assert flaw.affects.first().trackers.count() == 1
+        assert flaw.affects.first().trackers.first().is_internal
+        assert flaw.cvss_scores.count() == 1
+        assert flaw.cvss_scores.first().is_internal
+        assert flaw.references.count() == 5
+        for r in flaw.references.all():
+            assert r.is_internal
+        assert flaw.snippets.count() == 1
+        assert flaw.snippets.first().is_internal
+
+        # one more promote to complete the triage
+        headers = {"HTTP_JIRA_API_KEY": user_token}
+        response = auth_client().post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["workflow"] == "DEFAULT"
+        assert (
+            body["classification"]["state"]
+            == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        )
+
+        flaw.refresh_from_db()
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert (
+            flaw.classification["state"]
+            == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        )
+        assert flaw.task_key == "TASK-123"
+
         # check that a flaw and related objects (except for snippets) have public ACLs
         assert flaw.is_public
         assert flaw.affects.count() == 1
