@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Union
 
 import nvdlib
@@ -7,8 +8,9 @@ from django.utils import timezone
 from nvdlib.classes import CVE
 
 from collectors.framework.models import Collector
+from collectors.utils import convert_cvss_score_to_impact
 from osidb.core import set_user_acls
-from osidb.models import Flaw, FlawCVSS
+from osidb.models import Flaw, FlawCVSS, Impact
 
 logger = get_task_logger(__name__)
 
@@ -81,9 +83,9 @@ class NVDQuerier:
 
             return {
                 "issuer": FlawCVSS.CVSSIssuer.NIST,
+                "score": cvss_data.cvssData.baseScore,
                 "vector": cvss_data.cvssData.vectorString,
-                "version": self.NVD_CVSS_MAP[version]
-                # Actual score is generated automatically when FlawCVSS is saved
+                "version": self.NVD_CVSS_MAP[version],
             }
 
         result = []
@@ -246,27 +248,52 @@ class NVDCollector(Collector, NVDQuerier):
         )
 
     @staticmethod
-    def get_new_nvd_cvss(item: dict, cvss_version: str) -> Union[str, None]:
+    def get_new_nvd_cvss(
+        item: dict, cvss_version: str
+    ) -> Union[tuple[str, str], tuple[None, None]]:
         """
         Return NVD CVSS data stored in NVD from `item` for the given `cvss_version`.
         `cvss_version` is of FlawCVSS.CVSSVersion enum type.
         """
         cvss = [i for i in item["cvss_scores"] if i["version"] == cvss_version]
 
-        return cvss[0]["vector"] if cvss else None
+        return (cvss[0]["vector"], cvss[0]["score"]) if cvss else (None, None)
+
+    @staticmethod
+    def calculate_highest_impact(cvss_scores: list[Union[float, None]]) -> Impact:
+        """
+        Return impact calculated from the highest score in `cvss_scores`.
+        """
+        highest_score = Decimal("0.0")
+
+        scores = [s for s in cvss_scores if s]
+        if scores:
+            highest_score = round(Decimal(max(scores)), 1)
+
+        # create resulted impact
+        return convert_cvss_score_to_impact(highest_score)
 
     def update_cvss_via_flawcvss(self, flaw: Flaw, item: dict) -> bool:
         """
         Update NVD CVSS data in `flaw` if they are not equal to new NVD data in `item`.
+        Also, if a `flaw` with the changed NVD CVSS did not have an impact set, set a new one
+        as a validation requires it.
         Return True if CVSS data was updated, False otherwise.
         """
         original_cvss2 = self.get_original_nvd_cvss(flaw, FlawCVSS.CVSSVersion.VERSION2)
         original_cvss3 = self.get_original_nvd_cvss(flaw, FlawCVSS.CVSSVersion.VERSION3)
         original_cvss4 = self.get_original_nvd_cvss(flaw, FlawCVSS.CVSSVersion.VERSION4)
 
-        new_cvss2 = self.get_new_nvd_cvss(item, FlawCVSS.CVSSVersion.VERSION2)
-        new_cvss3 = self.get_new_nvd_cvss(item, FlawCVSS.CVSSVersion.VERSION3)
-        new_cvss4 = self.get_new_nvd_cvss(item, FlawCVSS.CVSSVersion.VERSION4)
+        # score is used in the case when a flaw impact needs to be set
+        new_cvss2, new_cvss2_score = self.get_new_nvd_cvss(
+            item, FlawCVSS.CVSSVersion.VERSION2
+        )
+        new_cvss3, new_cvss3_score = self.get_new_nvd_cvss(
+            item, FlawCVSS.CVSSVersion.VERSION3
+        )
+        new_cvss4, new_cvss4_score = self.get_new_nvd_cvss(
+            item, FlawCVSS.CVSSVersion.VERSION4
+        )
 
         # update CVSS2, CVSS3 and CVSS4 if necessary
         if were_updated := (
@@ -295,6 +322,11 @@ class NVDCollector(Collector, NVDQuerier):
                     continue
 
                 if original_cvss != new_cvss:
+                    # set impact if it was empty because a validation requires it
+                    if not flaw.impact:
+                        flaw.impact = self.calculate_highest_impact(
+                            [new_cvss2_score, new_cvss3_score, new_cvss4_score]
+                        )
                     # perform either update or create
                     cvss_score = FlawCVSS.objects.create_cvss(
                         flaw,

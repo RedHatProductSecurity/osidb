@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Publish internal flaws only when the triage is completed (OSIDB-3669)
 - Adjust the NIST flag instead of removing on NIST score deletion
   and relieve the NIST flag validation to account for it (OSIDB-3672)
+- Adjust flaw impact if NIST CVSS is changed (OSIDB-3661)
 
 ## [4.5.4] - 2024-11-06
 ### Changed
