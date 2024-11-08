@@ -12,6 +12,7 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
+from osidb.query_sets import CustomQuerySetUpdatedDt
 
 from .flaw import Flaw
 from .source import FlawSource
@@ -67,7 +68,7 @@ class FlawAcknowledgment(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin)
         Flaw, on_delete=models.CASCADE, related_name="acknowledgments"
     )
 
-    objects = FlawAcknowledgmentManager()
+    objects = FlawAcknowledgmentManager.from_queryset(CustomQuerySetUpdatedDt)()
 
     class Meta:
         """define meta"""
