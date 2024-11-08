@@ -324,9 +324,11 @@ class NVDCollector(Collector, NVDQuerier):
                 if original_cvss != new_cvss:
                     # set impact if it was empty because a validation requires it
                     if not flaw.impact:
-                        flaw.impact = self.calculate_highest_impact(
+                        impact = self.calculate_highest_impact(
                             [new_cvss2_score, new_cvss3_score, new_cvss4_score]
                         )
+                        Flaw.objects.filter(uuid=flaw.uuid).update(impact=impact)
+                        flaw.refresh_from_db()
                     # perform either update or create
                     cvss_score = FlawCVSS.objects.create_cvss(
                         flaw,
