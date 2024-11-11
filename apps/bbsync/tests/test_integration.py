@@ -1,11 +1,13 @@
 import json
 import uuid
+from unittest.mock import Mock, patch
 
 import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
 from apps.bbsync.exceptions import UnsaveableFlawError
+from apps.bbsync.save import FlawBugzillaSaver
 from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
@@ -853,6 +855,49 @@ class TestBBSyncIntegration:
                 format="json",
                 HTTP_BUGZILLA_API_KEY="SECRET",
             )
+
+
+class TestBBSyncSaveIntegration:
+    """
+    test the integration of BBSync with the model save machinery
+    """
+
+    def test_bz_id(self, monkeypatch):
+        """
+        test preventing regression in the Bugzilla ID sync
+
+        ensuring that the exising behavior is not changed by
+        this or any previous change in the integration
+        """
+        flaw = FlawFactory(cve_id=None, embargoed=False, meta_attr={"bz_id": None})
+        assert not flaw.bz_id
+        assert flaw.meta_attr == {"bz_id": None}
+
+        # fake Bugzilla connection to just return static ID
+        # to pretend that the flaw countrerpart was created
+        response_mock = Mock()
+        response_mock.id = "123"
+        bz_conn_mock = Mock()
+        bz_conn_mock.createbug = Mock(side_effect=[response_mock])
+
+        with patch.object(FlawBugzillaSaver, "bz_conn", bz_conn_mock) as mock:
+            # this is what both the sync manager and synchronous save call
+            flaw._perform_bzsync()
+
+            assert mock.createbug.called
+            assert mock.createbug.call_count == 1
+            call_args = mock.createbug.call_args.args[0]
+            assert "alias" not in call_args
+            assert "cc" in call_args
+            assert call_args["cc"] == []
+            assert call_args["groups"] == []
+
+        flaw = Flaw.objects.get(uuid=flaw.uuid)
+
+        assert flaw.bz_id == "123"
+        assert len(flaw.meta_attr) == 4
+        for item in ["alias", "cc", "groups"]:
+            assert item in flaw.meta_attr and flaw.meta_attr[item] == "[]"
 
 
 class TestFlawDraftBBSyncIntegration:
