@@ -21,14 +21,18 @@ class BugzillaSyncMixin(models.Model):
 
     def save(self, *args, bz_api_key=None, force_synchronous_sync=False, **kwargs):
         """
-        save the model by storing to Bugzilla and fetching back
+        save the model and sync it to Bugzilla
 
         when no Bugzilla API key is provided it is considered to be a call
         done by a collector or test and thus we perform just regular save
 
         Bugzilla sync is also conditional based on environment variable
         """
+        # complete the save before the sync
+        super().save(*args, **kwargs)
+
         # check BBSync conditions are met
+        # and eventually perform the sync
         if SYNC_TO_BZ and bz_api_key is not None:
             self.bzsync(
                 *args,
@@ -36,8 +40,6 @@ class BugzillaSyncMixin(models.Model):
                 force_synchronous_sync=force_synchronous_sync,
                 **kwargs
             )
-        else:
-            super().save(*args, **kwargs)
 
     def bzsync(self, *args, bz_api_key, **kwargs):
         """
