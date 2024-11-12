@@ -12,3 +12,7 @@ class DataInconsistencyException(OSIDBException):
     """Data Inconsistency Exception"""
 
     http_code = status.HTTP_409_CONFLICT
+
+
+class InvalidTestEnvironmentException(OSIDBException):
+    """Invalid Test Environment Exception"""

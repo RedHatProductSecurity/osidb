@@ -20,5 +20,6 @@ pytest-recording
 pytest-spec
 pytest-sugar
 pytest-xdist
+python-dotenv
 tox
 vcrpy

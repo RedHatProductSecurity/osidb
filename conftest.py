@@ -11,10 +11,13 @@ from django.db.models.signals import (
     pre_delete,
     pre_save,
 )
+from dotenv import dotenv_values
 from rest_framework.test import APIClient
 
 from osidb.constants import OSIDB_API_VERSION
 from osidb.core import set_user_acls
+from osidb.exceptions import InvalidTestEnvironmentException
+from osidb.helpers import get_env
 
 # matches base urls starting with http / https until the first slash after the protocol
 base_url_pattern = re.compile(r"(https?://)[^/]+")
@@ -274,3 +277,80 @@ def enable_jira_tracker_sync(monkeypatch) -> None:
     import osidb.models.tracker as tracker
 
     monkeypatch.setattr(tracker, "SYNC_TO_JIRA", True)
+
+
+@pytest.fixture
+def is_recording_vcr(pytestconfig):
+    """
+    identify if tests are running in any VCR recording mode
+    """
+    return pytestconfig.getoption("--record-mode") in ["once", "rewrite"]
+
+
+@pytest.fixture(autouse=True)
+def set_invalid_tokens(is_recording_vcr, monkeypatch):
+    """
+    set required Jira token for collector when not recording VCRs
+    """
+    from collectors.cveorg import collectors as cveorg_collector
+    from collectors.jiraffe import collectors as jira_collector
+    from collectors.osv import collectors as osv_collector
+
+    if not is_recording_vcr:
+        monkeypatch.setattr(osv_collector, "JIRA_AUTH_TOKEN", "SECRET")
+        monkeypatch.setattr(cveorg_collector, "JIRA_AUTH_TOKEN", "SECRET")
+        monkeypatch.setattr(jira_collector, "JIRA_TOKEN", "SECRET")
+
+
+@pytest.fixture(autouse=True)  # Automatically use in tests.
+def set_recording_environments(is_recording_vcr, monkeypatch):
+    """
+    automatically use local environments variables when writing VCRs cassettes
+    """
+    if not is_recording_vcr:
+        return
+
+    from apps.taskman import service as taskman_service
+    from apps.trackers import common
+    from apps.trackers.jira import save as jira_save
+    from collectors.bzimport import collectors as bzimport_collector
+    from collectors.jiraffe import core as jira_core
+    from collectors.jiraffe.core import JiraConnector
+
+    # testrunner should not contains environments set in order to make tests independent
+    # from envs but VCR needs them so we manually load values where it is needed
+    config = dotenv_values(".env")
+
+    jira_url = config.get("JIRA_URL", "https://issues.redhat.com")
+    jira_task_url = config.get("JIRA_TASKMAN_URL", "https://issues.redhat.com")
+    bz_url = config.get("BZIMPORT_BZ_URL", "https://bugzilla.redhat.com")
+
+    if "stage" not in jira_url:
+        raise InvalidTestEnvironmentException(
+            f"{jira_url} is not suitable for integration tests. Make sure JIRA_URL env is properly set."
+        )
+
+    if "stage" not in jira_task_url:
+        raise InvalidTestEnvironmentException(
+            f"{jira_url} is not suitable for integration tests. Make sure JIRA_TASKMAN_URL env is properly set."
+        )
+
+    if "stage" not in bz_url:
+        raise InvalidTestEnvironmentException(
+            f"{bz_url} is not suitable for integration tests. Make sure BZIMPORT_BZ_URL env is properly set."
+        )
+
+    monkeypatch.setenv("HTTPS_PROXY", config.get("HTTPS_PROXY"))
+
+    # Classes that sets urls and tokens at class level (e.g. connectors) and
+    # files that imports environments from constants need specific patches
+    # because fixtures runs after the class loading phase
+
+    # replace urls
+    monkeypatch.setattr(JiraConnector, "_jira_server", jira_url)
+    monkeypatch.setattr(jira_core, "JIRA_SERVER", jira_url)
+    monkeypatch.setattr(jira_save, "JIRA_SERVER", jira_url)
+    monkeypatch.setattr(taskman_service, "JIRA_TASKMAN_URL", jira_task_url)
+
+    monkeypatch.setattr(common, "BZ_URL", bz_url)
+    monkeypatch.setattr(bzimport_collector, "BZ_URL", bz_url)
