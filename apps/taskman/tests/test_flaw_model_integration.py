@@ -369,8 +369,6 @@ class TestFlawModelIntegration(object):
             # Invalid token; Jira library should raise exception
             flaw.save(jira_token="invalid_token")  # nosec
 
-        assert Flaw.objects.filter(uuid=uuid2).count() == 0
-
         # enforce project without writing permissions
         import apps.taskman.service as service
 
@@ -383,5 +381,3 @@ class TestFlawModelIntegration(object):
         ):
             # Valid token for a project without permissions; should raise custom exception
             flaw.save(jira_token=jira_token)
-
-        assert Flaw.objects.filter(uuid=uuid2).count() == 0

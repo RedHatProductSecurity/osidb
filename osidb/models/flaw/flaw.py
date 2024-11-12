@@ -92,11 +92,13 @@ class FlawManager(ACLMixinManager, TrackingMixinManager):
     model_name="FlawAudit",
 )
 class Flaw(
-    AlertMixin,
     ACLMixin,
-    TrackingMixin,
-    JiraTaskSyncMixin,
+    AlertMixin,
     BugzillaSyncMixin,
+    # the task management must go after the Bugzilla sync
+    # since we need to determine first whether it triggers
+    JiraTaskSyncMixin,
+    TrackingMixin,
     NullStrFieldsMixin,
     WorkflowModel,
 ):
