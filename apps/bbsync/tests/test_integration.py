@@ -60,7 +60,14 @@ class TestBBSyncIntegration:
         ]
 
     @pytest.mark.vcr
-    def test_flaw_create(self, auth_client, test_api_uri, enable_bz_async_sync):
+    def test_flaw_create(
+        self,
+        auth_client,
+        test_api_uri,
+        bugzilla_token,
+        jira_token,
+        enable_bz_async_sync,
+    ):
         """
         test creating a flaw with Bugzilla two-way sync
         """
@@ -85,8 +92,8 @@ class TestBBSyncIntegration:
             f"{test_api_uri}/flaws",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 201
         body = response.json()
@@ -116,7 +123,7 @@ class TestBBSyncIntegration:
 
         # Simulating what BZSyncManager would do when executed by Celery
         # part 2/2
-        flaw._perform_bzsync(bz_api_key="SECRET")
+        flaw._perform_bzsync(bz_api_key=bugzilla_token)
 
         # The sync should send data to BZ and save the bz_id to the DB
         assert (
@@ -140,7 +147,7 @@ class TestBBSyncIntegration:
         assert response.json()["mitigation"] == "mitigation"
 
     @pytest.mark.vcr
-    def test_flaw_update(self, auth_client, test_api_uri):
+    def test_flaw_update(self, auth_client, bugzilla_token, jira_token, test_api_uri):
         """
         test updating a flaw with Bugzilla two-way sync
         """
@@ -175,8 +182,8 @@ class TestBBSyncIntegration:
             f"{test_api_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
 
@@ -185,7 +192,9 @@ class TestBBSyncIntegration:
         assert response.json()["title"] == "Bar"
 
     @pytest.mark.vcr
-    def test_flaw_update_add_cve(self, auth_client, test_api_uri):
+    def test_flaw_update_add_cve(
+        self, auth_client, bugzilla_token, jira_token, test_api_uri
+    ):
         """
         test adding a CVE to an existing CVE-less flaw
         """
@@ -227,8 +236,8 @@ class TestBBSyncIntegration:
             f"{test_api_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
 
@@ -237,7 +246,9 @@ class TestBBSyncIntegration:
         assert response.json()["cve_id"] == "CVE-2000-3000"
 
     @pytest.mark.vcr
-    def test_flaw_update_remove_cve(self, auth_client, test_api_uri):
+    def test_flaw_update_remove_cve(
+        self, auth_client, bugzilla_token, jira_token, test_api_uri
+    ):
         """
         test removing of a CVE from a flaw
         """
@@ -279,8 +290,8 @@ class TestBBSyncIntegration:
             f"{test_api_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
 
@@ -289,7 +300,9 @@ class TestBBSyncIntegration:
         assert response.json()["cve_id"] is None
 
     @pytest.mark.vcr
-    def test_flaw_update_modify_cve(self, auth_client, test_api_uri):
+    def test_flaw_update_modify_cve(
+        self, auth_client, bugzilla_token, jira_token, test_api_uri
+    ):
         """
         Test modifying the CVE of an existing flaw which already had a CVE.
         """
@@ -333,8 +346,8 @@ class TestBBSyncIntegration:
             f"{test_api_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
 
@@ -343,7 +356,9 @@ class TestBBSyncIntegration:
         assert response.json()["cve_id"] == "CVE-2024-666666"
 
     @pytest.mark.vcr
-    def test_flaw_update_remove_unembargo_dt(self, auth_client, test_api_uri):
+    def test_flaw_update_remove_unembargo_dt(
+        self, auth_client, bugzilla_token, test_api_uri
+    ):
         """
         test removing unembargo_dt from an embargoed flaw
         """
@@ -388,7 +403,7 @@ class TestBBSyncIntegration:
             f"{test_api_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
         )
         assert response.status_code == 200
 
@@ -397,7 +412,7 @@ class TestBBSyncIntegration:
         assert response.json()["unembargo_dt"] is None
 
     @pytest.mark.vcr
-    def test_flaw_unembargo(self, auth_client, test_api_uri):
+    def test_flaw_unembargo(self, auth_client, bugzilla_token, test_api_uri):
         """
         test flaw unembargo with Bugzilla two-way sync
         """
@@ -447,7 +462,7 @@ class TestBBSyncIntegration:
             f"{test_api_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
         )
         assert response.status_code == 200
         assert not Affect.objects.get(uuid=affect.uuid).is_embargoed
@@ -457,8 +472,10 @@ class TestBBSyncIntegration:
     def test_flaw_unembargo_complex(
         self,
         auth_client,
+        bugzilla_token,
         enable_bz_sync,
         enable_jira_tracker_sync,
+        jira_token,
         test_api_uri,
     ):
         """
@@ -617,8 +634,8 @@ class TestBBSyncIntegration:
             f"{test_api_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
 
@@ -636,7 +653,7 @@ class TestBBSyncIntegration:
         assert not Tracker.objects.get(uuid=tracker2.uuid).is_embargoed
 
     @pytest.mark.vcr
-    def test_affect_create(self, auth_client, test_api_uri):
+    def test_affect_create(self, auth_client, bugzilla_token, test_api_uri):
         """
         test creating a flaw affect with Bugzilla two-way sync
         """
@@ -666,7 +683,7 @@ class TestBBSyncIntegration:
             f"{test_api_uri}/affects",
             affect_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
         )
         assert response.status_code == 201
         body = response.json()
@@ -680,7 +697,7 @@ class TestBBSyncIntegration:
         assert response.json()["resolution"] == "DELEGATED"
 
     @pytest.mark.vcr
-    def test_affect_update(self, auth_client, test_api_uri):
+    def test_affect_update(self, auth_client, bugzilla_token, jira_token, test_api_uri):
         """
         test updating a flaw affect with Bugzilla two-way sync
         """
@@ -718,8 +735,8 @@ class TestBBSyncIntegration:
             f"{test_api_uri}/affects/{affect.uuid}",
             affect_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
 
@@ -731,7 +748,7 @@ class TestBBSyncIntegration:
         assert response.json()["resolution"] == "WONTFIX"
 
     @pytest.mark.vcr
-    def test_affect_delete(self, auth_client, test_api_uri):
+    def test_affect_delete(self, auth_client, bugzilla_token, test_api_uri):
         """
         test deleting a flaw affect with Bugzilla two-way sync
         """
@@ -765,7 +782,7 @@ class TestBBSyncIntegration:
         response = auth_client().delete(
             f"{test_api_uri}/affects/{affect.uuid}",
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
         )
         assert response.status_code == 200
 
@@ -775,7 +792,7 @@ class TestBBSyncIntegration:
     @pytest.mark.vcr(
         vcr_cassette_name="cassettes/TestBBSyncIntegration.test_flaw_create.yaml"
     )
-    def test_flaw_validations(self, auth_client, test_api_uri):
+    def test_flaw_validations(self, auth_client, bugzilla_token, test_api_uri):
         """
         test that flaw validations are not bypassed when syncing to Bugzilla
         """
@@ -791,7 +808,7 @@ class TestBBSyncIntegration:
             f"{test_api_uri}/flaws",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
         )
         assert response.status_code == 400
         assert "Components value is required" in str(response.content)
@@ -915,6 +932,7 @@ class TestFlawDraftBBSyncIntegration:
         self,
         internal_read_groups,
         internal_write_groups,
+        jira_token,
         source,
         cve_id,
         ext_id,
@@ -952,7 +970,7 @@ class TestFlawDraftBBSyncIntegration:
         snippet = SnippetFactory(
             source=source, ext_id=ext_id, cve_id=cve_id, content=content
         )
-        flaw = snippet.convert_snippet_to_flaw(jira_token="SECRET")  # nosec
+        flaw = snippet.convert_snippet_to_flaw(jira_token=jira_token)
 
         assert Flaw.objects.all().count() == 1
         assert Flaw.objects.all()[0] == flaw

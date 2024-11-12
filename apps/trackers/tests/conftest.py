@@ -32,16 +32,6 @@ def pin_envs(enable_jira_task_sync, enable_bz_async_sync, monkeypatch) -> None:
 
 
 @pytest.fixture
-def jira_test_url() -> str:
-    return "https://issues.stage.redhat.com"
-
-
-@pytest.fixture
-def user_token() -> str:
-    return "USER_JIRA_TOKEN"
-
-
-@pytest.fixture
 def stage_jira_project() -> str:
     return "OSIM"
 

@@ -22,7 +22,7 @@ def mock_get_task_missing(self, flaw_uuid: str):
 
 
 class TestFlawModelIntegration(object):
-    def test_tasksync(self, monkeypatch, user_token):
+    def test_tasksync(self, monkeypatch):
         """ """
         sync_count = 0
 
@@ -51,23 +51,27 @@ class TestFlawModelIntegration(object):
         flaw1.save()
 
         # no important changes requires no syncing
-        assert flaw1.tasksync(jira_token=user_token) is None
+        assert flaw1.tasksync(jira_token="SECRET") is None  # nosec
         assert sync_count == 0
 
         flaw1.cve_id = "CVE-2020-8003"
         # provide a fake diff just to pretend that CVE ID has changed
-        assert flaw1.tasksync(diff={"cve_id": None}, jira_token=user_token) is None
+        assert (
+            flaw1.tasksync(diff={"cve_id": None}, jira_token="SECRET") is None  # nosec
+        )
         assert sync_count == 1
 
         flaw2 = FlawFactory(cve_id="CVE-2020-8004")
         AffectFactory(flaw=flaw2)
         flaw2.cve_id = "CVE-2020-8005"
         # provide a fake diff just to pretend that CVE ID has changed
-        assert flaw2.tasksync(diff={"cve_id": None}, jira_token=user_token) is None
+        assert (
+            flaw2.tasksync(diff={"cve_id": None}, jira_token="SECRET") is None  # nosec
+        )
         # flaws without task_key were created by collectors should not sync in jira
         assert sync_count == 1
 
-    def test_syncing(self, monkeypatch, acl_read, acl_write, user_token):
+    def test_syncing(self, monkeypatch, acl_read, acl_write):
         sync_count = 0
 
         def mock_create_or_update_task(self, flaw):
@@ -103,7 +107,7 @@ class TestFlawModelIntegration(object):
             created_dt=make_aware(datetime.now()),
             updated_dt=make_aware(datetime.now()),
         )
-        assert flaw.save(jira_token=user_token) is None
+        assert flaw.save(jira_token="SECRET") is None  # nosec
         assert sync_count == 1
 
         AffectFactory(flaw=flaw)
@@ -112,9 +116,7 @@ class TestFlawModelIntegration(object):
         assert flaw.save() is None
         assert sync_count == 1
 
-    def test_create_api(
-        self, monkeypatch, auth_client, test_osidb_api_uri, bz_api_key, user_token
-    ):
+    def test_create_api(self, monkeypatch, auth_client, test_osidb_api_uri):
         sync_count = 0
 
         def mock_create_or_update_task(self, flaw):
@@ -151,15 +153,13 @@ class TestFlawModelIntegration(object):
             f"{test_osidb_api_uri}/flaws",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_api_key,
-            HTTP_JIRA_API_KEY=user_token,
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 201
         assert sync_count == 1
 
-    def test_update_api(
-        self, monkeypatch, auth_client, test_osidb_api_uri, bz_api_key, user_token
-    ):
+    def test_update_api(self, monkeypatch, auth_client, test_osidb_api_uri):
         sync_count = 0
 
         def mock_create_or_update_task(self, flaw):
@@ -201,8 +201,8 @@ class TestFlawModelIntegration(object):
                 "updated_dt": flaw.updated_dt,
             },
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_api_key,
-            HTTP_JIRA_API_KEY=user_token,
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         # no important changes requires no syncing
         assert response.status_code == 200
@@ -222,15 +222,13 @@ class TestFlawModelIntegration(object):
                 "updated_dt": flaw.updated_dt,
             },
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_api_key,
-            HTTP_JIRA_API_KEY=user_token,
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
         assert sync_count == 1
 
-    def test_create_jira_task_param(
-        self, monkeypatch, auth_client, test_osidb_api_uri, bz_api_key, user_token
-    ):
+    def test_create_jira_task_param(self, monkeypatch, auth_client, test_osidb_api_uri):
         def mock_create_or_update_task(self, flaw):
             flaw.task_key = "TASK-123"
             return Response(
@@ -269,8 +267,8 @@ class TestFlawModelIntegration(object):
                 "updated_dt": flaw.updated_dt,
             },
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_api_key,
-            HTTP_JIRA_API_KEY=user_token,
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
         assert not flaw.task_key
@@ -291,8 +289,8 @@ class TestFlawModelIntegration(object):
                 "updated_dt": flaw.updated_dt,
             },
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_api_key,
-            HTTP_JIRA_API_KEY=user_token,
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert "Source value is required" in str(response.content)
         assert response.status_code == 400
@@ -313,15 +311,15 @@ class TestFlawModelIntegration(object):
                 "updated_dt": flaw.updated_dt,
             },
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_api_key,
-            HTTP_JIRA_API_KEY=user_token,
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         assert flaw.task_key == "TASK-123"
 
     @pytest.mark.vcr
-    def test_token_validation(self, monkeypatch, acl_read, acl_write, user_token):
+    def test_token_validation(self, monkeypatch, acl_read, acl_write, jira_token):
         """
         Test that service is able validate user authentication and raise errors
         """
@@ -329,7 +327,6 @@ class TestFlawModelIntegration(object):
         uuid1 = "73cbc51f-4774-4357-a80a-8f433759020f"
         uuid2 = "323e22a9-5cc5-4627-ba66-19c8eea26e51"
 
-        jira_token = user_token
         reported_dt = make_aware(datetime.now())
         flaw = Flaw(
             uuid=uuid1,

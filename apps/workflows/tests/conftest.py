@@ -59,11 +59,6 @@ def test_api_uri_osidb(test_scheme_host_osidb, api_version):
 
 
 @pytest.fixture
-def user_token():
-    return "USER_JIRA_TOKEN"
-
-
-@pytest.fixture
 def command_curl():
     """define path to curl"""
     test_curl_path = get_env("TEST_CURL_PATH")

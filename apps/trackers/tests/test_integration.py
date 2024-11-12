@@ -30,7 +30,7 @@ pytestmark = pytest.mark.integration
 
 class TestTrackerSaver:
     @pytest.mark.vcr
-    def test_tracker_create_bugzilla(self):
+    def test_tracker_create_bugzilla(self, bugzilla_token):
         """
         test basic Bugzilla tracker creation
         """
@@ -78,7 +78,7 @@ class TestTrackerSaver:
         assert tracker.bz_id is None
 
         # 2) create tracker in OSIDB and Bugzilla
-        ts = TrackerSaver(tracker, bz_api_key="SECRET")
+        ts = TrackerSaver(tracker, bz_api_key=bugzilla_token)
         created_tracker = ts.save()
         assert created_tracker.bz_id
         assert created_tracker.uuid == tracker.uuid
@@ -105,7 +105,7 @@ class TestTrackerSaver:
         assert not loaded_tracker.alerts.exists()
 
     @pytest.mark.vcr
-    def test_tracker_update_bugzilla(self):
+    def test_tracker_update_bugzilla(self, bugzilla_token):
         """
         test basic Bugzilla tracker update
         """
@@ -158,7 +158,7 @@ class TestTrackerSaver:
         )
         assert tracker.bz_id == tracker_id
         # 3) update tracker in OSIDB and Bugzilla
-        ts = TrackerSaver(tracker, bz_api_key="SECRET")
+        ts = TrackerSaver(tracker, bz_api_key=bugzilla_token)
         updated_tracker = ts.save()
         assert updated_tracker.bz_id == tracker_id
         assert updated_tracker.uuid == tracker.uuid
@@ -190,7 +190,9 @@ class TestTrackerSaver:
 
 class TestTrackerAPI:
     @pytest.mark.vcr
-    def test_tracker_create_bugzilla(self, auth_client, enable_bz_sync, test_api_uri):
+    def test_tracker_create_bugzilla(
+        self, auth_client, bugzilla_token, enable_bz_sync, jira_token, test_api_uri
+    ):
         """
         test the whole stack Bugzilla tracker creation
         starting on the API and ending in Bugzilla
@@ -233,8 +235,8 @@ class TestTrackerAPI:
             f"{test_api_uri}/trackers",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -252,7 +254,9 @@ class TestTrackerAPI:
         assert tracker_json["ps_update_stream"] == "rhcertification-6"
 
     @pytest.mark.vcr
-    def test_tracker_update_bugzilla(self, auth_client, enable_bz_sync, test_api_uri):
+    def test_tracker_update_bugzilla(
+        self, auth_client, bugzilla_token, enable_bz_sync, jira_token, test_api_uri
+    ):
         """
         test the whole stack Bugzilla tracker update
         starting on the API and ending in Bugzilla
@@ -314,8 +318,8 @@ class TestTrackerAPI:
             f"{test_api_uri}/trackers/{tracker.uuid}",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
 
@@ -335,7 +339,13 @@ class TestTrackerAPI:
 
     @pytest.mark.vcr
     def test_tracker_create_jira(
-        self, auth_client, enable_bz_sync, enable_jira_tracker_sync, test_api_uri
+        self,
+        auth_client,
+        bugzilla_token,
+        enable_bz_sync,
+        enable_jira_tracker_sync,
+        jira_token,
+        test_api_uri,
     ):
         """
         test the whole stack Jira tracker creation
@@ -402,8 +412,8 @@ class TestTrackerAPI:
             f"{test_api_uri}/trackers",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -423,7 +433,13 @@ class TestTrackerAPI:
 
     @pytest.mark.vcr
     def test_tracker_update_jira(
-        self, auth_client, enable_bz_sync, enable_jira_tracker_sync, test_api_uri
+        self,
+        auth_client,
+        bugzilla_token,
+        enable_bz_sync,
+        enable_jira_tracker_sync,
+        jira_token,
+        test_api_uri,
     ):
         """
         test the whole stack Jira tracker update
@@ -548,8 +564,8 @@ class TestTrackerAPI:
             f"{test_api_uri}/trackers/{tracker.uuid}",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
 
@@ -573,8 +589,10 @@ class TestTrackerAPI:
     def test_tracker_create_update_jira_vulnerability_issuetype(
         self,
         auth_client,
+        bugzilla_token,
         enable_bz_sync,
         enable_jira_tracker_sync,
+        jira_token,
         test_api_uri,
         monkeypatch,
     ):
@@ -738,8 +756,8 @@ class TestTrackerAPI:
             flaw_data,
             format="json",
             # TODO sanitize keys both here and in VCRs
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 201
 
@@ -784,8 +802,8 @@ class TestTrackerAPI:
             f"{test_api_uri}/trackers",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -880,8 +898,8 @@ class TestTrackerAPI:
             f"{test_api_uri}/trackers/{tracker_new.uuid}",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
 

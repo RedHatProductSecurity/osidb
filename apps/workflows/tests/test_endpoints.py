@@ -2,7 +2,6 @@ import pytest
 from django.conf import settings
 from rest_framework.response import Response
 
-import collectors.osv.collectors as collectors
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.models import State, Workflow
 from apps.workflows.serializers import WorkflowSerializer
@@ -230,7 +229,6 @@ class TestEndpoints(object):
         monkeypatch,
         auth_client,
         test_api_uri_osidb,
-        user_token,
     ):
         """test flaw state promotion after data change"""
 
@@ -293,7 +291,7 @@ class TestEndpoints(object):
 
         assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
-        headers = {"HTTP_JIRA_API_KEY": user_token}
+        headers = {"HTTP_JIRA_API_KEY": "SECRET"}
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
@@ -352,7 +350,6 @@ class TestEndpoints(object):
         monkeypatch,
         auth_client,
         test_api_uri_osidb,
-        user_token,
     ):
         """test flaw state promotion after data change"""
 
@@ -410,7 +407,7 @@ class TestEndpoints(object):
 
         assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.NOVALUE
-        headers = {"HTTP_JIRA_API_KEY": user_token}
+        headers = {"HTTP_JIRA_API_KEY": "SECRET"}
 
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reject",
@@ -464,7 +461,7 @@ class TestFlawDraft:
         monkeypatch,
         auth_client,
         test_api_uri_osidb,
-        user_token,
+        jira_token,
     ):
         """
         test that ACLs are set to public when promoting a flaw draft
@@ -472,7 +469,6 @@ class TestFlawDraft:
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", self.mock_create_task
         )
-        monkeypatch.setattr(collectors, "JIRA_AUTH_TOKEN", "SERVICE_TOKEN")
 
         osv_id = "GHSA-3hwm-922r-47hw"
         osvc = OSVCollector()
@@ -513,7 +509,7 @@ class TestFlawDraft:
         assert flaw.affects.first().is_internal
         assert flaw.affects.first().trackers.first().is_internal
 
-        headers = {"HTTP_JIRA_API_KEY": user_token}
+        headers = {"HTTP_JIRA_API_KEY": jira_token}
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
@@ -546,7 +542,7 @@ class TestFlawDraft:
         assert flaw.snippets.first().is_internal
 
         # one more promote to complete the triage
-        headers = {"HTTP_JIRA_API_KEY": user_token}
+        headers = {"HTTP_JIRA_API_KEY": jira_token}
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
@@ -590,7 +586,7 @@ class TestFlawDraft:
         monkeypatch,
         auth_client,
         test_api_uri_osidb,
-        user_token,
+        jira_token,
     ):
         """
         test that ACLs are still set to internal when rejecting a flaw draft
@@ -598,7 +594,6 @@ class TestFlawDraft:
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", self.mock_create_task
         )
-        monkeypatch.setattr(collectors, "JIRA_AUTH_TOKEN", "SERVICE_TOKEN")
 
         def mock_create_comment(self, issue_key: str, body: str):
             return
@@ -618,7 +613,7 @@ class TestFlawDraft:
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
         assert flaw.is_internal is True
 
-        headers = {"HTTP_JIRA_API_KEY": user_token}
+        headers = {"HTTP_JIRA_API_KEY": jira_token}
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reject",
             data={"reason": "Not shipped."},

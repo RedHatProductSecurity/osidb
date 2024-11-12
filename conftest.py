@@ -314,8 +314,13 @@ def set_recording_environments(is_recording_vcr, monkeypatch):
     from apps.trackers import common
     from apps.trackers.jira import save as jira_save
     from collectors.bzimport import collectors as bzimport_collector
+    from collectors.bzimport.collectors import BugzillaConnector
+    from collectors.cveorg import collectors as cveorg_collector
+    from collectors.jiraffe import collectors as jira_collector
     from collectors.jiraffe import core as jira_core
     from collectors.jiraffe.core import JiraConnector
+    from collectors.osv import collectors as osv_collector
+    from osidb.models import snippet
 
     # testrunner should not contains environments set in order to make tests independent
     # from envs but VCR needs them so we manually load values where it is needed
@@ -354,3 +359,37 @@ def set_recording_environments(is_recording_vcr, monkeypatch):
 
     monkeypatch.setattr(common, "BZ_URL", bz_url)
     monkeypatch.setattr(bzimport_collector, "BZ_URL", bz_url)
+
+    # replace tokens
+    monkeypatch.setattr(BugzillaConnector, "_bz_api_key", bugzilla_token)
+    monkeypatch.setattr(snippet, "BZ_API_KEY", bugzilla_token)
+    monkeypatch.setattr(bzimport_collector, "BZ_API_KEY", bugzilla_token)
+
+    monkeypatch.setattr(JiraConnector, "_jira_token", jira_token)
+    monkeypatch.setattr(osv_collector, "JIRA_AUTH_TOKEN", jira_token)
+    monkeypatch.setattr(cveorg_collector, "JIRA_AUTH_TOKEN", jira_token)
+    monkeypatch.setattr(jira_collector, "JIRA_TOKEN", jira_token)
+    monkeypatch.setattr(jira_core, "JIRA_TOKEN", jira_token)
+
+
+
+@pytest.fixture
+def bugzilla_token(is_recording_vcr):
+    """
+    return "SECRET" or user env BZIMPORT_BZ_API_KEY in case of VCR rewrite
+    """
+    # testrunner should not contains environments set in order to make tests
+    # independent from envs so we manually load values where it is needed
+    config = dotenv_values(".env")
+    return config.get("BZIMPORT_BZ_API_KEY", "SECRET") if is_recording_vcr else "SECRET"
+
+
+@pytest.fixture
+def jira_token(is_recording_vcr):
+    """
+    return "SECRET" or user env JIRA_AUTH_TOKEN in case of VCR rewrite
+    """
+    # testrunner should not contains environments set in order to make tests
+    # independent from envs so we manually load values where it is needed
+    config = dotenv_values(".env")
+    return config.get("JIRA_AUTH_TOKEN", "SECRET") if is_recording_vcr else "SECRET"

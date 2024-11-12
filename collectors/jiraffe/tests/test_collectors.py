@@ -6,8 +6,6 @@ import pytest
 from freezegun import freeze_time
 from jira.exceptions import JIRAError
 
-import collectors.jiraffe.collectors as collectors
-from apps.taskman.constants import JIRA_AUTH_TOKEN
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
 from apps.workflows.workflow import WorkflowModel
@@ -37,13 +35,10 @@ pytestmark = pytest.mark.unit
 
 class TestJiraTaskCollector:
     @pytest.mark.vcr
-    def test_collect(self, enable_jira_task_sync, monkeypatch):
+    def test_collect(self, enable_jira_task_sync, jira_token, monkeypatch):
         """
         test the Jira collector run
         """
-        jira_token = JIRA_AUTH_TOKEN if JIRA_AUTH_TOKEN else "USER_JIRA_TOKEN"
-        monkeypatch.setattr(collectors, "JIRA_TOKEN", jira_token)
-
         collector = JiraTaskCollector()
         jtq = JiraTaskmanQuerier(token=jira_token)
 
@@ -88,8 +83,6 @@ class TestJiraTaskCollector:
 
     @pytest.mark.vcr
     def test_link_on_cve(self, monkeypatch):
-        monkeypatch.setattr(collectors, "JIRA_TOKEN", "SECRET")
-
         # some random UUID
         flaw = FlawFactory(cve_id="CVE-2024-34703")
         # this is super-unprobable to happen but based
@@ -102,12 +95,10 @@ class TestJiraTaskCollector:
         assert Flaw.objects.get(uuid=flaw.uuid).task_key
 
     @pytest.mark.vcr
-    def test_outdated_query(self, enable_jira_task_sync, monkeypatch):
+    def test_outdated_query(self, enable_jira_task_sync, jira_token, monkeypatch):
         """
         test that Jira task collector ignores tasks with outdated timestamp
         """
-        jira_token = JIRA_AUTH_TOKEN if JIRA_AUTH_TOKEN else "USER_JIRA_TOKEN"
-        monkeypatch.setattr(collectors, "JIRA_TOKEN", jira_token)
 
         jtq = JiraTaskmanQuerier(token=jira_token)
 

@@ -2,7 +2,7 @@ import uuid
 
 import pytest
 from django.conf import settings
-from taskman.constants import JIRA_AUTH_TOKEN, TASKMAN_API_VERSION
+from taskman.constants import TASKMAN_API_VERSION
 
 from osidb.constants import OSIDB_API_VERSION
 
@@ -23,16 +23,6 @@ def use_debug(settings):
 @pytest.fixture(autouse=True)
 def enable_db_access_for_all_tests(db):
     pass
-
-
-@pytest.fixture
-def user_token():
-    return JIRA_AUTH_TOKEN if JIRA_AUTH_TOKEN else "USER_JIRA_TOKEN"
-
-
-@pytest.fixture
-def bz_api_key():
-    return "USER_BZ_API_KEY"
 
 
 @pytest.fixture
