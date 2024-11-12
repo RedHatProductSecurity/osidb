@@ -266,6 +266,21 @@ class Flaw(
         # empty strings
         if self.cve_id == "":
             self.cve_id = None
+
+        # provide the save diff as an argument
+        # so we can freely save and still have it
+        if not self._state.adding:
+            old_flaw = Flaw.objects.get(uuid=self.uuid)
+
+            diff = {}
+            for field in self._meta.fields:
+                if getattr(old_flaw, field.name) != getattr(self, field.name):
+                    diff[field.name] = {
+                        "old": getattr(old_flaw, field.name),
+                        "new": getattr(self, field.name),
+                    }
+            kwargs["diff"] = diff
+
         super().save(*args, **kwargs)
 
     def _validate_rh_nist_cvss_score_diff(self, **kwargs):
@@ -1005,6 +1020,7 @@ class Flaw(
     def tasksync(
         self,
         jira_token,
+        diff=None,
         force_creation=False,
         force_update=False,
         *args,
@@ -1063,9 +1079,9 @@ class Flaw(
                 return
 
             # we're handling an existing OSIDB-authored flaw -- update
-            if force_update or any(
-                getattr(old_flaw, field) != getattr(self, field)
-                for field in SYNC_REQUIRED_FIELDS
+            if force_update or (
+                diff is not None
+                and any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS)
             ):
                 issue = jtq.create_or_update_task(self)
                 status = issue.data["fields"]["status"]["name"]

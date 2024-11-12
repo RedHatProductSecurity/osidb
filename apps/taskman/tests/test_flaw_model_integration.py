@@ -55,13 +55,15 @@ class TestFlawModelIntegration(object):
         assert sync_count == 0
 
         flaw1.cve_id = "CVE-2020-8003"
-        assert flaw1.tasksync(jira_token=user_token) is None
+        # provide a fake diff just to pretend that CVE ID has changed
+        assert flaw1.tasksync(diff={"cve_id": None}, jira_token=user_token) is None
         assert sync_count == 1
 
         flaw2 = FlawFactory(cve_id="CVE-2020-8004")
         AffectFactory(flaw=flaw2)
         flaw2.cve_id = "CVE-2020-8005"
-        assert flaw2.tasksync(jira_token=user_token) is None
+        # provide a fake diff just to pretend that CVE ID has changed
+        assert flaw2.tasksync(diff={"cve_id": None}, jira_token=user_token) is None
         # flaws without task_key were created by collectors should not sync in jira
         assert sync_count == 1
 

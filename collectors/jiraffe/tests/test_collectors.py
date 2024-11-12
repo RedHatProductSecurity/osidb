@@ -133,7 +133,8 @@ class TestJiraTaskCollector:
 
         # 4 - simulate user promoting a flaw
         flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
-        flaw.tasksync(jira_token=jira_token)
+        # provide a fake diff just to pretend that the workflow state has changed
+        flaw.tasksync(diff={"workflow_state": None}, jira_token=jira_token)
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         assert last_update < flaw.task_updated_dt
         assert flaw.workflow_state == "TRIAGE"

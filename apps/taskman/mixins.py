@@ -14,14 +14,14 @@ class JiraTaskSyncMixin(models.Model):
     class Meta:
         abstract = True
 
-    def save(self, *args, jira_token=None, **kwargs):
+    def save(self, *args, diff=None, jira_token=None, **kwargs):
         """
         save the model by storing to Jira and then persisting in database
         Jira sync is conditional based on environment variable so
         development environment not enforces it
         """
         if JIRA_TASKMAN_AUTO_SYNC_FLAW and jira_token is not None:
-            self.tasksync(*args, jira_token=jira_token, **kwargs)
+            self.tasksync(*args, diff=diff, jira_token=jira_token, **kwargs)
         else:
             super().save(*args, **kwargs)
 
