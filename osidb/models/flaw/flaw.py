@@ -31,6 +31,7 @@ from osidb.mixins import (
     TrackingMixinManager,
 )
 from osidb.models import FlawSource, Impact, PsModule, SpecialConsiderationPackage
+from osidb.query_sets import CustomQuerySetUpdatedDt
 from osidb.sync_manager import (
     BZSyncManager,
     FlawDownloadManager,
@@ -902,7 +903,7 @@ class Flaw(
         """return osidb api url"""
         return f"/api/{OSIDB_API_VERSION}/{self.uuid}"
 
-    objects = FlawManager()
+    objects = FlawManager.from_queryset(CustomQuerySetUpdatedDt)()
 
     def get_affect(self, ps_module, ps_component):
         """return related affect by PS module and PS component"""

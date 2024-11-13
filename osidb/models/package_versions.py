@@ -13,6 +13,7 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
+from osidb.query_sets import CustomQuerySetUpdatedDt
 
 from .flaw.flaw import Flaw
 
@@ -144,7 +145,7 @@ class Package(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin):
 
     package = models.CharField(max_length=2048)
 
-    objects = PackageManager()
+    objects = PackageManager.from_queryset(CustomQuerySetUpdatedDt)()
 
     def bzsync(self, *args, bz_api_key, **kwargs):
         """

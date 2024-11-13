@@ -21,6 +21,7 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
+from osidb.query_sets import CustomQuerySetUpdatedDt
 
 from .abstract import CVSS, Impact
 from .flaw.flaw import Flaw
@@ -595,7 +596,7 @@ class AffectCVSS(CVSS):
         Affect, on_delete=models.CASCADE, blank=True, related_name="cvss_scores"
     )
 
-    objects = AffectCVSSManager()
+    objects = AffectCVSSManager.from_queryset(CustomQuerySetUpdatedDt)()
 
     class Meta:
         constraints = [

@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
 from osidb.mixins import TrackingMixin, TrackingMixinManager
+from osidb.query_sets import CustomQuerySetUpdatedDt
 
 from .tracker import Tracker
 
@@ -46,7 +47,7 @@ class Erratum(TrackingMixin):
     # But all errata report the same Bugzilla / Jira tracker as "fixed"
     trackers = models.ManyToManyField(Tracker, related_name="errata")
 
-    objects = ErratumManager()
+    objects = ErratumManager.from_queryset(CustomQuerySetUpdatedDt)()
 
     class Meta:
         verbose_name = "Erratum"

@@ -6,6 +6,7 @@ from django.db import models
 
 from osidb.mixins import ACLMixinManager, TrackingMixin, TrackingMixinManager
 from osidb.models.abstract import CVSS
+from osidb.query_sets import CustomQuerySetUpdatedDt
 
 from .flaw import Flaw
 
@@ -31,7 +32,7 @@ class FlawCVSS(CVSS):
         Flaw, on_delete=models.CASCADE, blank=True, related_name="cvss_scores"
     )
 
-    objects = FlawCVSSManager()
+    objects = FlawCVSSManager.from_queryset(CustomQuerySetUpdatedDt)()
 
     class Meta:
         constraints = [

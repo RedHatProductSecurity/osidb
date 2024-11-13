@@ -11,6 +11,7 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
+from osidb.query_sets import CustomQuerySetUpdatedDt
 
 from .flaw import Flaw
 
@@ -85,7 +86,7 @@ class FlawReference(AlertMixin, ACLMixin, TrackingMixin):
     # one flaw can have many references
     flaw = models.ForeignKey(Flaw, on_delete=models.CASCADE, related_name="references")
 
-    objects = FlawReferenceManager()
+    objects = FlawReferenceManager.from_queryset(CustomQuerySetUpdatedDt)()
 
     class Meta:
         """define meta"""
