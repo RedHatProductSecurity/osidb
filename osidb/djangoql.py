@@ -1,5 +1,9 @@
+import uuid
+
+from django.conf import settings
+from django.db import models
 from django.db.models import Q
-from djangoql.schema import DjangoQLSchema, StrField
+from djangoql.schema import BoolField, DjangoQLSchema, StrField
 
 from osidb.models import (
     Affect,
@@ -57,7 +61,7 @@ class FlawQLSchema(DjangoQLSchema):
         if model == Flaw:
             exclude += ["snippets", "local_updated_dt"]
             fields.remove("components")
-            fields += [FlawComponentField()]
+            fields += [FlawComponentField(), FlawEmbargoedField()]
         return set(fields) - set(exclude)
 
 
@@ -93,3 +97,29 @@ class FlawComponentField(StrField):
             return ~Q(**{f"components__{lookup}": value})
         elif operator == "=":
             return Q(**{f"components__{lookup}": value})
+
+
+class FlawEmbargoedField(BoolField):
+    """Embargoed field is calculated based on the ACLs."""
+
+    model = Flaw
+    name = "embargoed"
+
+    def get_options(self, search):
+        return (
+            super()
+            .get_options(search)
+            .annotate(
+                embargoed=models.Case(
+                    models.When(
+                        acl_read=[
+                            uuid.UUID(acl)
+                            for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+                        ],
+                        then=True,
+                    ),
+                    default=False,
+                    output_field=models.BooleanField(),
+                )
+            )
+        )
