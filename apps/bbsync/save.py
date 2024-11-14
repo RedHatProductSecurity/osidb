@@ -62,7 +62,7 @@ class BugzillaSaver(BugzillaQuerier):
         bugzilla_query_builder = self.query_builder(self.instance)
         response = self.bz_conn.createbug(bugzilla_query_builder.query)
         self.instance.bz_id = str(response.id)
-        if isinstance(self.instance, Flaw) and SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY:
+        if isinstance(self.instance, Flaw):
             # update the meta_attr according to the changes
             # since in the async mode we do not fetch them
             self.model.objects.filter(uuid=self.instance.uuid).update(

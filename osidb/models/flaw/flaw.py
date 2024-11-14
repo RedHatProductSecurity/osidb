@@ -93,11 +93,13 @@ class FlawManager(ACLMixinManager, TrackingMixinManager):
     model_name="FlawAudit",
 )
 class Flaw(
-    AlertMixin,
     ACLMixin,
-    TrackingMixin,
-    JiraTaskSyncMixin,
+    AlertMixin,
     BugzillaSyncMixin,
+    # the task management must go after the Bugzilla sync
+    # since we need to determine first whether it triggers
+    JiraTaskSyncMixin,
+    TrackingMixin,
     NullStrFieldsMixin,
     WorkflowModel,
 ):
@@ -267,6 +269,21 @@ class Flaw(
         # empty strings
         if self.cve_id == "":
             self.cve_id = None
+
+        # provide the save diff as an argument
+        # so we can freely save and still have it
+        if not self._state.adding:
+            old_flaw = Flaw.objects.get(uuid=self.uuid)
+
+            diff = {}
+            for field in self._meta.fields:
+                if getattr(old_flaw, field.name) != getattr(self, field.name):
+                    diff[field.name] = {
+                        "old": getattr(old_flaw, field.name),
+                        "new": getattr(self, field.name),
+                    }
+            kwargs["diff"] = diff
+
         super().save(*args, **kwargs)
 
     def _validate_rh_nist_cvss_score_diff(self, **kwargs):
@@ -984,25 +1001,10 @@ class Flaw(
         # imports here to prevent cycles
         from apps.bbsync.save import FlawBugzillaSaver
 
-        creating = self.bz_id is None
-
         try:
             # sync to Bugzilla
             bs = FlawBugzillaSaver(self, bz_api_key)  # prepare data for save to BZ
-            flaw_instance = bs.save()  # actually send to BZ (but not save to DB)
-
-            if creating:
-                # Save bz_id to DB
-                kwargs["auto_timestamps"] = False  # no timestamps changes on save to BZ
-                kwargs[
-                    "raise_validation_error"
-                ] = False  # the validations were already run
-                # save in case a new Bugzilla ID was obtained
-                # Instead of self.save(*args, **kwargs), just update the single field to avoid
-                # race conditions.
-                flaw_instance.save(
-                    *args, update_fields=["meta_attr"], no_alerts=no_alerts, **kwargs
-                )
+            bs.save()  # actually send to BZ and update meta attributes in the DB
         except Exception as e:
             # Sync failed but if it was done async the original flaw may be saved, resulting in
             # incosnsitent data between OSIDB and BZ.
@@ -1021,6 +1023,7 @@ class Flaw(
     def tasksync(
         self,
         jira_token,
+        diff=None,
         force_creation=False,
         force_update=False,
         *args,
@@ -1079,9 +1082,9 @@ class Flaw(
                 return
 
             # we're handling an existing OSIDB-authored flaw -- update
-            if force_update or any(
-                getattr(old_flaw, field) != getattr(self, field)
-                for field in SYNC_REQUIRED_FIELDS
+            if force_update or (
+                diff is not None
+                and any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS)
             ):
                 issue = jtq.create_or_update_task(self)
                 status = issue.data["fields"]["status"]["name"]
