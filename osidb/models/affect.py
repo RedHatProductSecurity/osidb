@@ -6,6 +6,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from packageurl import PackageURL
 from psqlextra.fields import HStoreField
 
 from apps.bbsync.constants import RHSCL_BTS_KEY
@@ -137,6 +138,8 @@ class Affect(
     # but it is the maximum SFM2 value so let us just keep parity for now
     # to fix https://issues.redhat.com/browse/OSIDB-635
     ps_component = models.CharField(max_length=255)
+
+    purl = models.TextField(blank=True)
 
     impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
 
@@ -469,6 +472,16 @@ class Affect(
                     "Flaw affecting special consideration package "
                     f"{affected_special_consideration_package} is missing statement.",
                 )
+
+    def _validate_purl(self, **kwargs):
+        """
+        Checks that the purl field can be parsed into PackageURL object.
+        """
+        try:
+            if self.purl:
+                PackageURL.from_string(self.purl)
+        except Exception as exc:
+            raise ValidationError(f"Invalid purl '{self.purl}': {exc}")
 
     @property
     def aggregated_impact(self):

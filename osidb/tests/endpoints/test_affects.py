@@ -611,3 +611,96 @@ class TestEndpointsAffectsUpdateTrackers:
             )
             assert response.status_code == status.HTTP_200_OK
             assert mock_save.called
+
+
+class TestEndpointsAffectsPurl:
+    """
+    Class for testing the purl field on the Affects endpoint.
+    """
+
+    @pytest.mark.parametrize(
+        "purl,should_fail",
+        [
+            ("pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25", False),
+            ("rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25", True),
+        ],
+    )
+    def test_affect_purl_create(self, auth_client, test_api_uri, purl, should_fail):
+        """
+        Test that Affect record is created only in the case when its purl field is correct.
+        """
+        flaw = FlawFactory(embargoed=False)
+        affect_data = {
+            "flaw": str(flaw.uuid),
+            "affectedness": Affect.AffectAffectedness.NEW,
+            "resolution": Affect.AffectResolution.NOVALUE,
+            "ps_module": "rhacm-2",
+            "ps_component": "curl",
+            "purl": purl,
+            "embargoed": False,
+        }
+        response = auth_client().post(
+            f"{test_api_uri}/affects",
+            affect_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        if should_fail:
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert "Invalid purl" in str(response.content)
+
+        else:
+            assert response.status_code == status.HTTP_201_CREATED
+            body = response.json()
+            created_uuid = body["uuid"]
+
+            response = auth_client().get(f"{test_api_uri}/affects/{created_uuid}")
+            assert response.status_code == status.HTTP_200_OK
+            body = response.json()
+            assert body["purl"] == purl
+
+    @pytest.mark.parametrize(
+        "purl,should_fail",
+        [
+            ("pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25", False),
+            ("curl", True),
+        ],
+    )
+    def test_affect_purl_update(self, auth_client, test_api_uri, purl, should_fail):
+        """
+        Test the update of Affect record only with the correct purl field.
+        """
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(
+            flaw=flaw,
+            purl="pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-24",
+        )
+
+        response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
+        assert response.status_code == 200
+        original_body = response.json()
+
+        response = auth_client().put(
+            f"{test_api_uri}/affects/{affect.uuid}",
+            {
+                **original_body,
+                "purl": purl,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        if should_fail:
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert "Invalid purl" in str(response.content)
+
+        else:
+            assert response.status_code == status.HTTP_200_OK
+            body = response.json()
+            created_uuid = body["uuid"]
+
+            response = auth_client().get(f"{test_api_uri}/affects/{created_uuid}")
+            assert response.status_code == status.HTTP_200_OK
+            body = response.json()
+            assert original_body["purl"] != body["purl"]
+            assert body["purl"] == purl

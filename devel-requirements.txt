@@ -465,9 +465,9 @@ oauthlib==3.2.2 \
 openshift==0.12.1 \
     --hash=sha256:a38957684b17ad0e140a87226249bf26de7267db0c83a6d512b48be258052e1a
     # via -r devel-requirements.in
-packageurl-python==0.9.6 \
-    --hash=sha256:676dcb8278721df952e2444bfcd8d7bf3518894498050f0c6a5faddbe0860cd0 \
-    --hash=sha256:c01fbaf62ad2eb791e97158d1f30349e830bee2dd3e9503a87f6c3ffae8d1cf0
+packageurl-python==0.16.0 \
+    --hash=sha256:5c3872638b177b0f1cf01c3673017b7b27ebee485693ae12a8bed70fa7fa7c35 \
+    --hash=sha256:69e3bf8a3932fe9c2400f56aaeb9f86911ecee2f9398dbe1b58ec34340be365d
     # via
     #   -c requirements.txt
     #   -r devel-requirements.in
