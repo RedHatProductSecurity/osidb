@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+import pghistory
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
@@ -27,6 +28,12 @@ class FlawCVSSManager(ACLMixinManager, TrackingMixinManager):
             return FlawCVSS(flaw=flaw, issuer=issuer, version=version, **extra_fields)
 
 
+@pghistory.track(
+    pghistory.InsertEvent(),
+    pghistory.UpdateEvent(),
+    pghistory.DeleteEvent(),
+    model_name="FlawCVSSAudit",
+)
 class FlawCVSS(CVSS):
     flaw = models.ForeignKey(
         Flaw, on_delete=models.CASCADE, blank=True, related_name="cvss_scores"

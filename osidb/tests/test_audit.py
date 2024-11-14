@@ -6,8 +6,20 @@ import pytest
 from django.db import transaction
 
 from osidb.core import set_user_acls
-from osidb.models import Affect, Flaw, FlawSource, Impact
-from osidb.tests.factories import AffectFactory, FlawFactory
+from osidb.models import Affect, Flaw, FlawSource, Impact, Tracker
+from osidb.tests.factories import (
+    AffectCVSSFactory,
+    AffectFactory,
+    FlawAcknowledgmentFactory,
+    FlawCommentFactory,
+    FlawCVSSFactory,
+    FlawFactory,
+    FlawReferenceFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
+    SnippetFactory,
+    TrackerFactory,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -129,25 +141,86 @@ class TestAuditFlaw:
         public_write_groups,
         embargoed_read_groups,
         embargoed_write_groups,
+        internal_read_groups,
+        internal_write_groups,
     ):
-        """ """
+        """Test that public user cannot access flaw events as per ACLs"""
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
 
-        flaw1 = FlawFactory(embargoed=True)
-        assert flaw1.acl_read == embargoed_read_groups
-        assert flaw1.acl_write == embargoed_write_groups
+        flaw = FlawFactory(embargoed=True)
+        assert flaw.acl_read == embargoed_read_groups
+        assert flaw.acl_write == embargoed_write_groups
 
-        affect1 = AffectFactory(flaw=flaw1)
-        assert affect1.acl_read == embargoed_read_groups
-        assert affect1.acl_write == embargoed_write_groups
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        assert affect.acl_read == embargoed_read_groups
+        assert affect.acl_write == embargoed_write_groups
 
-        assert pghistory.models.Events.objects.tracks(flaw1).count() == 1
-        assert pghistory.models.Events.objects.tracks(affect1).count() == 1
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+        assert tracker.acl_read == embargoed_read_groups
+        assert tracker.acl_write == embargoed_write_groups
 
+        flaw_ack = FlawAcknowledgmentFactory(flaw=flaw)
+        assert flaw_ack.acl_read == embargoed_read_groups
+        assert flaw_ack.acl_write == embargoed_write_groups
+
+        flaw_ref = FlawReferenceFactory(flaw=flaw)
+        assert flaw_ref.acl_read == embargoed_read_groups
+        assert flaw_ref.acl_write == embargoed_write_groups
+
+        flaw_com = FlawCommentFactory(flaw=flaw)
+        assert flaw_com.acl_read == embargoed_read_groups
+        assert flaw_com.acl_write == embargoed_write_groups
+
+        flaw_cvss = FlawCVSSFactory(flaw=flaw)
+        assert flaw_cvss.acl_read == embargoed_read_groups
+        assert flaw_cvss.acl_write == embargoed_write_groups
+
+        affect_cvss = AffectCVSSFactory(affect=affect)
+        assert affect_cvss.acl_read == embargoed_read_groups
+        assert affect_cvss.acl_write == embargoed_write_groups
+
+        snippet = SnippetFactory()
+        assert snippet.acl_read == internal_read_groups
+        assert snippet.acl_write == internal_write_groups
+
+        assert pghistory.models.Events.objects.tracks(flaw).count() == 1
+        assert pghistory.models.Events.objects.tracks(affect).count() == 1
+        assert pghistory.models.Events.objects.tracks(tracker).count() == 1
+        assert pghistory.models.Events.objects.tracks(flaw_ack).count() == 1
+        assert pghistory.models.Events.objects.tracks(flaw_ref).count() == 1
+        assert pghistory.models.Events.objects.tracks(flaw_com).count() == 1
+        assert pghistory.models.Events.objects.tracks(flaw_cvss).count() == 1
+        assert pghistory.models.Events.objects.tracks(affect_cvss).count() == 1
+        assert pghistory.models.Events.objects.tracks(snippet).count() == 1
+
+        # Check that public user cannot 'see' the events
         set_user_acls(public_read_groups + public_write_groups)
         with transaction.atomic():
-            # public user cannot 'see' flaw1 events
-            assert pghistory.models.Events.objects.tracks(flaw1).count() == 0
-
+            assert pghistory.models.Events.objects.tracks(flaw).count() == 0
         with transaction.atomic():
-            # public user cannot 'see' affect1 events
-            assert pghistory.models.Events.objects.tracks(affect1).count() == 0
+            assert pghistory.models.Events.objects.tracks(affect).count() == 0
+        with transaction.atomic():
+            assert pghistory.models.Events.objects.tracks(tracker).count() == 0
+        with transaction.atomic():
+            assert pghistory.models.Events.objects.tracks(flaw_ack).count() == 0
+        with transaction.atomic():
+            assert pghistory.models.Events.objects.tracks(flaw_ref).count() == 0
+        with transaction.atomic():
+            assert pghistory.models.Events.objects.tracks(flaw_com).count() == 0
+        with transaction.atomic():
+            assert pghistory.models.Events.objects.tracks(flaw_cvss).count() == 0
+        with transaction.atomic():
+            assert pghistory.models.Events.objects.tracks(affect_cvss).count() == 0
+        with transaction.atomic():
+            assert pghistory.models.Events.objects.tracks(snippet).count() == 0

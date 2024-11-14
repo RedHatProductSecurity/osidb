@@ -89,7 +89,7 @@ class FlawManager(ACLMixinManager, TrackingMixinManager):
     pghistory.InsertEvent(),
     pghistory.UpdateEvent(),
     pghistory.DeleteEvent(),
-    exclude="local_updated_dt,meta_attr,_alerts",
+    exclude="local_updated_dt,meta_attr",
     model_name="FlawAudit",
 )
 class Flaw(

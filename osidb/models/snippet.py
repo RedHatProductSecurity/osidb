@@ -2,6 +2,7 @@ import json
 import uuid
 from typing import Union
 
+import pghistory
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
@@ -11,6 +12,12 @@ from osidb.mixins import ACLMixin, AlertMixin, TrackingMixin
 from .flaw.flaw import Flaw
 
 
+@pghistory.track(
+    pghistory.InsertEvent(),
+    pghistory.UpdateEvent(),
+    pghistory.DeleteEvent(),
+    model_name="SnippetAudit",
+)
 class Snippet(ACLMixin, AlertMixin, TrackingMixin):
     """
     Snippet stores data scraped by collectors. One or more snippets can either be linked
