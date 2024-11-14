@@ -7040,6 +7040,8 @@ components:
           items:
             $ref: '#/components/schemas/AffectCVSS'
           readOnly: true
+        purl:
+          type: string
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7126,6 +7128,8 @@ components:
           items:
             $ref: '#/components/schemas/AffectCVSS'
           readOnly: true
+        purl:
+          type: string
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7354,6 +7358,8 @@ components:
           items:
             $ref: '#/components/schemas/AffectCVSS'
           readOnly: true
+        purl:
+          type: string
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as

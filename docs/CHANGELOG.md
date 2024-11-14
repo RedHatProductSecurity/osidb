@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Update field `updated_dt` on queryset update (OSIDB-3573)
+- Introduce purl to Affect (OSIDB-3409)
 
 ## [4.5.6] - 2024-11-08
 ### Fixed

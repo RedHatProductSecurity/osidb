@@ -1077,6 +1077,7 @@ class AffectSerializer(
                 "meta_attr",
                 "delegated_resolution",
                 "cvss_scores",
+                "purl",
             ]
             + ACLMixinSerializer.Meta.fields
             + AlertMixinSerializer.Meta.fields
