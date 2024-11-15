@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update field `updated_dt` on queryset update (OSIDB-3573)
 - Introduce purl to Affect (OSIDB-3409)
 - Implement field `embargoed` for advanced search (OSIDB-3549)
+- Implement no-week-ending SLA policy support (OSIDB-3500)
 
 ### Changed
 - Add history to several other models: AffectCVSS, FlawAcknowledgment, FlawComment,

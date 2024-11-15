@@ -174,6 +174,60 @@ sla:
             assert policy.conditions
             assert policy.sla
 
+        @pytest.mark.parametrize(
+            "type_desc,expected_ending,expected_type",
+            [
+                (
+                    "calendar days",
+                    "any day",
+                    "calendar days",
+                ),
+                (
+                    "business days any day",
+                    "any day",
+                    "business days",
+                ),
+                (
+                    "no week ending calendar days",
+                    "no week ending",
+                    "calendar days",
+                ),
+            ],
+        )
+        def test_ending(self, type_desc, expected_ending, expected_type):
+            """
+            test that a policy ending is correctly loaded from the definition
+            """
+            sla_file = f"""
+# some comment
+---
+name: Low
+description: SLA policy applied to low impact
+conditions:
+  affect:
+    - aggregated impact is low
+  flaw:
+    - is not embargoed
+sla:
+  duration: 180
+  start:
+    latest:
+      flaw:
+        - reported date
+        - unembargo date
+      tracker:
+        - created date
+  type: {type_desc}
+"""
+
+            load_sla_policies(sla_file)
+
+            assert SLAPolicy.objects.count() == 1
+            policy = SLAPolicy.objects.first()
+            assert policy.sla
+            assert policy.sla.duration_type == expected_type
+            assert policy.sla.ending == expected_ending
+
     class TestClassify:
         """
         test that a model instance is properly
