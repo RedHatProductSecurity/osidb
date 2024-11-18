@@ -10,7 +10,7 @@ from apps.workflows.models import Check
 from osidb.models import Affect, Flaw, PsUpdateStream, Tracker
 
 from .exceptions import SLAExecutionError
-from .time import add_business_days, add_days
+from .time import add_business_days, add_days, skip_week_ending
 
 
 class SLA(models.Model):
@@ -21,6 +21,12 @@ class SLA(models.Model):
     class DurationTypes(models.TextChoices):
         BUSINESS_DAYS = "Business Days"
         CALENDAR_DAYS = "Calendar Days"
+
+    class EndingTypes(models.TextChoices):
+        ANY_DAY = "any day"
+        # this currently means Moday-Thursday as the purpose is to exclude Friday and weekend
+        # releases and this is the best naming I was able to come up with for this range
+        NO_WEEK_ENDING = "no week ending"
 
     class StartCriteria(models.TextChoices):
         EARLIEST = "Earliest"
@@ -36,10 +42,18 @@ class SLA(models.Model):
         "latest": max,
     }
 
+    SET_ENDING = {
+        "any day": lambda x: x,  # noop
+        "no week ending": skip_week_ending,
+    }
+
     VALID_DATE_SOURCES = ("flaw", "affect", "tracker")
 
     duration = models.IntegerField()
     duration_type = models.CharField(max_length=20, choices=DurationTypes.choices)
+    ending = models.CharField(
+        max_length=20, choices=EndingTypes.choices, default=EndingTypes.ANY_DAY
+    )
     start_criteria = models.CharField(max_length=20, choices=StartCriteria.choices)
     start_dates = models.JSONField(default=dict)
 
@@ -51,8 +65,22 @@ class SLA(models.Model):
             """
             return date_desc.lower().strip().replace(" ", "_").replace("_date", "_dt")
 
+        def parse_type(type_desc):
+            """
+            translate human-readable SLA type description
+            into the actual SLA type and its optional ending
+            """
+            ending = cls.EndingTypes.ANY_DAY
+            for ending_type, _ in cls.EndingTypes.choices:
+                if ending_type in type_desc:
+                    ending = ending_type
+                    type_desc = type_desc.replace(ending_type, "").strip()
+                    break
+
+            return type_desc, ending
+
         duration = int(sla_desc["duration"])
-        sla_type = sla_desc["type"]
+        sla_type, ending = parse_type(sla_desc["type"])
 
         start_desc = sla_desc["start"]
         if isinstance(start_desc, str):
@@ -79,6 +107,7 @@ class SLA(models.Model):
         sla = SLA(
             duration=duration,
             duration_type=sla_type,
+            ending=ending,
             start_criteria=start_criteria,
             start_dates=start_dates,
         )
@@ -106,9 +135,11 @@ class SLA(models.Model):
         """
         compute SLA end moment for the given instance
         """
-        return self.add_days(
-            self.start(sla_context),
-            self.duration,
+        return self.SET_ENDING[self.ending](
+            self.add_days(
+                self.start(sla_context),
+                self.duration,
+            )
         )
 
     @property

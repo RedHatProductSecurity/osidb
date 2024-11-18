@@ -166,3 +166,37 @@ def add_business_days(dt, days):
         new_dt = new_dt.astimezone(orig_tz)
 
     return new_dt
+
+
+# as both weekend and also Friday are not considered suitable for
+# risky operations we need to extend the definition beyond weekend
+WEEK_ENDING = (5, 6, 7)  # Fri, Sat, Sun
+
+
+def is_week_ending(day):
+    """
+    Returns True if the day is Friday, Saturday, Sunday.
+    Returns False otherwise.
+
+    Args:
+      day (datetime or date): the day in question
+
+    Returns:
+      boolean: if the day is in the week ending
+    """
+    try:
+        day = day.date()  # get date from datetime
+    except AttributeError:
+        pass  # is already a date
+
+    return day.isoweekday() in WEEK_ENDING
+
+
+def skip_week_ending(dt):
+    """
+    if the given date falls on Friday or weekend move it to the next Monday
+    """
+    while is_week_ending(dt):
+        dt = add_days(dt, 1)
+
+    return dt

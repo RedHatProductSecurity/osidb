@@ -398,6 +398,33 @@ class TestSLA:
 
             assert sla.end(sla_context) == make_aware(expected)
 
+        @pytest.mark.parametrize(
+            "definition,expected",
+            [
+                (1, datetime(2024, 11, 14, 5, 5, 5)),
+                (2, datetime(2024, 11, 18, 5, 5, 5)),  # skipping
+                (3, datetime(2024, 11, 18, 5, 5, 5)),  # skipping
+                (4, datetime(2024, 11, 18, 5, 5, 5)),  # skipping
+                (5, datetime(2024, 11, 18, 5, 5, 5)),
+                (6, datetime(2024, 11, 19, 5, 5, 5)),
+            ],
+        )
+        def test_no_week_ending(self, definition, expected):
+            """
+            test computation of SLA end when no-week-ending is specified
+            """
+            sla_desc = {
+                "duration": definition,
+                "start": "reported date",
+                "type": "no week ending calendar days",
+            }
+            sla = SLA.create_from_description(sla_desc)
+            # Wednesday
+            flaw = FlawFactory(reported_dt=make_aware(datetime(2024, 11, 13, 5, 5, 5)))
+            sla_context = SLAContext(flaw=flaw)
+
+            assert sla.end(sla_context) == make_aware(expected)
+
 
 class TestSLAContext:
     """
