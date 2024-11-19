@@ -879,7 +879,7 @@ class TestBBSyncSaveIntegration:
     test the integration of BBSync with the model save machinery
     """
 
-    def test_bz_id(self, monkeypatch):
+    def test_bz_id(self):
         """
         test preventing regression in the Bugzilla ID sync
 

@@ -574,7 +574,6 @@ class TestBugzillaJiraMixinIntegration:
         enable_jira_task_sync,
         enable_jira_tracker_sync,
         jira_token,
-        monkeypatch,
     ):
         """Test that sync occurs using internal OSIDB APIs"""
         self.setup_workflow()

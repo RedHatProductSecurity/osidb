@@ -35,7 +35,7 @@ pytestmark = pytest.mark.unit
 
 class TestJiraTaskCollector:
     @pytest.mark.vcr
-    def test_collect(self, enable_jira_task_sync, jira_token, monkeypatch):
+    def test_collect(self, enable_jira_task_sync, jira_token):
         """
         test the Jira collector run
         """
@@ -82,7 +82,7 @@ class TestJiraTaskCollector:
         assert flaw.workflow_state == "TRIAGE"
 
     @pytest.mark.vcr
-    def test_link_on_cve(self, monkeypatch):
+    def test_link_on_cve(self):
         # some random UUID
         flaw = FlawFactory(cve_id="CVE-2024-34703")
         # this is super-unprobable to happen but based
@@ -370,7 +370,7 @@ class TestMetadataCollector:
     @freeze_time(datetime(2015, 12, 12))
     @pytest.mark.vcr(*BASE_METADATA_COLLECTOR_VCRS)
     @pytest.mark.parametrize("project_key,fields_count", [("RHEL", 120), ("OSIM", 20)])
-    def test_collect_basic(self, pin_envs, project_key, fields_count):
+    def test_collect_basic(self, project_key, fields_count):
         """
         Test that collector is able to get metadata from Jira projects
         """
@@ -465,7 +465,7 @@ class TestMetadataCollector:
         ],
     )
     def test_collect_vulnerability_issuetype(
-        self, pin_envs, project_key, fields_count, vulntype_exists
+        self, project_key, fields_count, vulntype_exists
     ):
         """
         Test that collector is able to get metadata from Jira projects
