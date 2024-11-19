@@ -16,15 +16,15 @@ pytestmark = pytest.mark.unit
 
 
 class TestTaskmanService(object):
-    def test_jira_connection(self, user_token):
+    def test_jira_connection(self):
         """
         Test that taskman is able to instantiate a Jira connection object
         """
-        assert JiraTaskmanQuerier(token=user_token).jira_conn
+        assert JiraTaskmanQuerier(token="SECRET").jira_conn  # nosec
 
     @pytest.mark.vcr
     @pytest.mark.enable_signals
-    def test_create_or_update_task(self, user_token):
+    def test_create_or_update_task(self, jira_token):
         """
         Test that service is able to create and update regular fields, team, assignment and status
         """
@@ -35,7 +35,7 @@ class TestTaskmanService(object):
             workflow_state=WorkflowModel.WorkflowState.NEW,
         )
         AffectFactory(flaw=flaw)
-        taskman = JiraTaskmanQuerier(token=user_token)
+        taskman = JiraTaskmanQuerier(token=jira_token)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
         assert response1.status_code == 201
@@ -77,14 +77,14 @@ class TestTaskmanService(object):
         assert not issue["fields"]["assignee"]
 
     @pytest.mark.vcr
-    def test_comments(self, user_token):
+    def test_comments(self, jira_token):
         """
         Test that service is able to create comment in Jira
         """
         # Remove randomness to reuse VCR every possible time
         flaw = FlawFactory(embargoed=False, uuid="99cce9ba-829d-4933-b4c1-44533d819e77")
         AffectFactory(flaw=flaw)
-        taskman = JiraTaskmanQuerier(token=user_token)
+        taskman = JiraTaskmanQuerier(token=jira_token)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
         assert response1.status_code == 201
@@ -93,13 +93,13 @@ class TestTaskmanService(object):
         assert response2.status_code == 201
 
     @pytest.mark.vcr
-    def test_add_link(self, user_token):
+    def test_add_link(self, jira_token):
         """
         Test that service is able to create remote links in Jira issues.
         """
         flaw = FlawFactory(embargoed=False, uuid="b47f7912-7011-463a-b861-6d7dca13aa3c")
         AffectFactory(flaw=flaw)
-        taskman = JiraTaskmanQuerier(token=user_token)
+        taskman = JiraTaskmanQuerier(token=jira_token)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
         assert response1.status_code == 201

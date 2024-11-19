@@ -65,7 +65,6 @@ class TestTrackerSuggestions:
         affectedness,
         resolution,
         is_valid,
-        user_token,
         auth_client,
         test_app_api_uri,
     ):
@@ -90,7 +89,7 @@ class TestTrackerSuggestions:
             active_to_ps_module=ps_module_regular,
         )
 
-        headers = {"HTTP_JiraAuthentication": user_token}
+        headers = {"HTTP_JiraAuthentication": "SECRET"}
         response = auth_client().post(
             f"{test_app_api_uri}/file",
             data={"flaw_uuids": [flaw.uuid]},
@@ -111,9 +110,7 @@ class TestTrackerSuggestions:
             assert res["not_applicable"][0]["uuid"] == str(affect.uuid)
             assert len(res["modules_components"]) == 0
 
-    def test_trackers_file_offer_embargoed(
-        self, user_token, auth_client, test_app_api_uri
-    ):
+    def test_trackers_file_offer_embargoed(self, auth_client, test_app_api_uri):
         """
         Test auto tracker auto filing defined in product
         definition rules related to embargo status
@@ -155,7 +152,7 @@ class TestTrackerSuggestions:
             ps_module="public-only-module",
         )
 
-        headers = {"HTTP_JiraAuthentication": user_token}
+        headers = {"HTTP_JiraAuthentication": "SECRET"}
         response = auth_client().post(
             f"{test_app_api_uri}/file",
             data={"flaw_uuids": [flaw.uuid, flaw_embargoed.uuid]},
@@ -201,7 +198,6 @@ class TestTrackerSuggestions:
         self,
         auth_client,
         test_app_api_uri,
-        user_token,
         affectedness,
         resolution,
         should_suggest,
@@ -244,7 +240,7 @@ class TestTrackerSuggestions:
             unacked_to_ps_module=ps_module,
         ).save()
 
-        headers = {"HTTP_JiraAuthentication": user_token}
+        headers = {"HTTP_JiraAuthentication": "SECRET"}
         response = auth_client().post(
             f"{test_app_api_uri}/file",
             data={"flaw_uuids": [flaw.uuid]},

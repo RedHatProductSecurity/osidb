@@ -11,10 +11,16 @@ from django.db.models.signals import (
     pre_delete,
     pre_save,
 )
+from dotenv import dotenv_values
 from rest_framework.test import APIClient
 
+from apps.trackers.models import JiraBugIssuetype, JiraProjectFields
 from osidb.constants import OSIDB_API_VERSION
 from osidb.core import set_user_acls
+from osidb.exceptions import InvalidTestEnvironmentException
+from osidb.helpers import get_env
+from osidb.models import PsModule, PsUpdateStream
+from osidb.tests.factories import PsModuleFactory, PsProductFactory
 
 # matches base urls starting with http / https until the first slash after the protocol
 base_url_pattern = re.compile(r"(https?://)[^/]+")
@@ -274,3 +280,321 @@ def enable_jira_tracker_sync(monkeypatch) -> None:
     import osidb.models.tracker as tracker
 
     monkeypatch.setattr(tracker, "SYNC_TO_JIRA", True)
+
+
+@pytest.fixture
+def is_recording_vcr(pytestconfig):
+    """
+    identify if tests are running in any VCR recording mode
+    """
+    return pytestconfig.getoption("--record-mode") in ["once", "rewrite"]
+
+
+@pytest.fixture(autouse=True)
+def set_invalid_tokens(is_recording_vcr, monkeypatch):
+    """
+    set required Jira token for collector when not recording VCRs
+    """
+    from collectors.cveorg import collectors as cveorg_collector
+    from collectors.jiraffe import collectors as jira_collector
+    from collectors.osv import collectors as osv_collector
+
+    if not is_recording_vcr:
+        monkeypatch.setattr(osv_collector, "JIRA_AUTH_TOKEN", "SECRET")
+        monkeypatch.setattr(cveorg_collector, "JIRA_AUTH_TOKEN", "SECRET")
+        monkeypatch.setattr(jira_collector, "JIRA_TOKEN", "SECRET")
+
+
+@pytest.fixture(autouse=True)  # Automatically use in tests.
+def set_recording_environments(is_recording_vcr, monkeypatch):
+    """
+    automatically use local environments variables when writing VCRs cassettes
+    """
+    if not is_recording_vcr:
+        return
+
+    from apps.taskman import service as taskman_service
+    from apps.trackers import common
+    from apps.trackers.jira import save as jira_save
+    from collectors.bzimport import collectors as bzimport_collector
+    from collectors.bzimport.collectors import BugzillaConnector
+    from collectors.cveorg import collectors as cveorg_collector
+    from collectors.jiraffe import collectors as jira_collector
+    from collectors.jiraffe import core as jira_core
+    from collectors.jiraffe.core import JiraConnector
+    from collectors.osv import collectors as osv_collector
+    from osidb.models import snippet
+
+    # testrunner should not contains environments set in order to make tests independent
+    # from envs but VCR needs them so we manually load values where it is needed
+    config = dotenv_values(".env")
+
+    jira_url = config.get("JIRA_URL", "https://issues.redhat.com")
+    jira_task_url = config.get("JIRA_TASKMAN_URL", "https://issues.redhat.com")
+    bz_url = config.get("BZIMPORT_BZ_URL", "https://bugzilla.redhat.com")
+
+    if "stage" not in jira_url:
+        raise InvalidTestEnvironmentException(
+            f"{jira_url} is not suitable for integration tests. Make sure JIRA_URL env is properly set."
+        )
+
+    if "stage" not in jira_task_url:
+        raise InvalidTestEnvironmentException(
+            f"{jira_url} is not suitable for integration tests. Make sure JIRA_TASKMAN_URL env is properly set."
+        )
+
+    if "stage" not in bz_url:
+        raise InvalidTestEnvironmentException(
+            f"{bz_url} is not suitable for integration tests. Make sure BZIMPORT_BZ_URL env is properly set."
+        )
+
+    monkeypatch.setenv("HTTPS_PROXY", config.get("HTTPS_PROXY"))
+
+    # Classes that sets urls and tokens at class level (e.g. connectors) and
+    # files that imports environments from constants need specific patches
+    # because fixtures runs after the class loading phase
+
+    # replace urls
+    monkeypatch.setattr(JiraConnector, "_jira_server", jira_url)
+    monkeypatch.setattr(jira_core, "JIRA_SERVER", jira_url)
+    monkeypatch.setattr(jira_save, "JIRA_SERVER", jira_url)
+    monkeypatch.setattr(taskman_service, "JIRA_TASKMAN_URL", jira_task_url)
+
+    monkeypatch.setattr(common, "BZ_URL", bz_url)
+    monkeypatch.setattr(bzimport_collector, "BZ_URL", bz_url)
+
+    # replace tokens
+    monkeypatch.setattr(BugzillaConnector, "_bz_api_key", bugzilla_token)
+    monkeypatch.setattr(snippet, "BZ_API_KEY", bugzilla_token)
+    monkeypatch.setattr(bzimport_collector, "BZ_API_KEY", bugzilla_token)
+
+    monkeypatch.setattr(JiraConnector, "_jira_token", jira_token)
+    monkeypatch.setattr(osv_collector, "JIRA_AUTH_TOKEN", jira_token)
+    monkeypatch.setattr(cveorg_collector, "JIRA_AUTH_TOKEN", jira_token)
+    monkeypatch.setattr(jira_collector, "JIRA_TOKEN", jira_token)
+    monkeypatch.setattr(jira_core, "JIRA_TOKEN", jira_token)
+
+
+@pytest.fixture
+def bugzilla_token(is_recording_vcr):
+    """
+    return "SECRET" or user env BZIMPORT_BZ_API_KEY in case of VCR rewrite
+    """
+    # testrunner should not contains environments set in order to make tests
+    # independent from envs so we manually load values where it is needed
+    config = dotenv_values(".env")
+    return config.get("BZIMPORT_BZ_API_KEY", "SECRET") if is_recording_vcr else "SECRET"
+
+
+@pytest.fixture
+def jira_token(is_recording_vcr):
+    """
+    return "SECRET" or user env JIRA_AUTH_TOKEN in case of VCR rewrite
+    """
+    # testrunner should not contains environments set in order to make tests
+    # independent from envs so we manually load values where it is needed
+    config = dotenv_values(".env")
+    return config.get("JIRA_AUTH_TOKEN", "SECRET") if is_recording_vcr else "SECRET"
+
+
+@pytest.fixture
+def setup_sample_external_resources():
+    """
+    create sample of valid externaly collected resources including:
+    - product definitions data for modules in both Bugzilla and Jira BTS
+    - Jira public project metadata
+
+    return a list of valid components for the sample data
+    """
+
+    # 1) create sample data from prod-defs for Jira BTS
+    ps_product = PsProductFactory(
+        name="Red Hat Enterprise Linux",
+        short_name="rhel",
+    )
+    ps_module = PsModule(
+        name="rhel-8",
+        bts_name="jboss",
+        bts_key="RHEL",
+        default_component="kernel",
+        public_description="RHEL",
+        ps_product=ps_product,
+        bts_groups={"public": [], "embargoed": []},
+        component_overrides={
+            "kernel": "kernel / Other",
+            "kernel-rt": "kernel-rt / Other",
+        },
+    )
+    ps_module.save()
+    PsUpdateStream(
+        name="rhel-8.8.0.z",
+        version="rhel-8.8.0.z",
+        ps_module=ps_module,
+        default_to_ps_module=ps_module,
+        active_to_ps_module=ps_module,
+    ).save()
+    PsUpdateStream(
+        name="rhel-8.10.z",
+        version="rhel-8.10.z",
+        ps_module=ps_module,
+        moderate_to_ps_module=ps_module,
+        default_to_ps_module=ps_module,
+        active_to_ps_module=ps_module,
+    ).save()
+    PsUpdateStream(
+        name="rhel-8.4.0.z",
+        version="rhel-8.4.0.z",
+        ps_module=ps_module,
+        aus_to_ps_module=ps_module,
+        default_to_ps_module=ps_module,
+        active_to_ps_module=ps_module,
+    ).save()
+    PsUpdateStream(
+        name="rhel-8.6.0.z",
+        version="rhel-8.6.0.z",
+        ps_module=ps_module,
+        eus_to_ps_module=ps_module,
+        default_to_ps_module=ps_module,
+        active_to_ps_module=ps_module,
+    ).save()
+    PsUpdateStream(
+        name="rhel-8",
+        version="rhel-8",
+        ps_module=ps_module,
+        unacked_to_ps_module=ps_module,
+        default_to_ps_module=ps_module,
+        active_to_ps_module=ps_module,
+    ).save()
+
+    # 2) create sample data from prod-defs for Bugzilla BTS
+    bz_ps_module = PsModuleFactory(
+        bts_name="bugzilla",
+        bts_groups={
+            "public": ["devel"],
+            "embargoed": [
+                "private",
+            ],
+        },
+        bts_key="Red Hat Certification Program",
+        name="rhcertification-8",
+        default_component="redhat-certification",
+        private_trackers_allowed=True,
+        default_cc=[],
+        component_cc={},
+    )
+    PsUpdateStream(
+        name="rhcertification-8-default",
+        ps_module=bz_ps_module,
+        version="1.0",
+        unacked_to_ps_module=bz_ps_module,
+        active_to_ps_module=bz_ps_module,
+    ).save()
+    PsUpdateStream(
+        name="rhcertification-8",
+        ps_module=bz_ps_module,
+        version="1.0",
+        active_to_ps_module=bz_ps_module,
+    ).save()
+
+    # 3) create sample data collected by MetadataCollector
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="priority",
+        field_name="Priority",
+        allowed_values=[
+            "Blocker",
+            "Critical",
+            "Major",
+            "Normal",
+            "Minor",
+            "Undefined",
+        ],
+    ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="security",
+        field_name="Security Level",
+        allowed_values=[
+            "Embargoed Security Issue",
+            "Red Hat Employee",
+            "Red Hat Engineering Authorized",
+            "Red Hat Partner",
+            "Restricted",
+            "Team",
+        ],
+    ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="customfield_12324746",
+        field_name="Source",
+        # Severely pruned for the test
+        allowed_values=["Red Hat", "Upstream"],
+    ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="customfield_12324749",
+        field_name="CVE ID",
+        allowed_values=[],
+    ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="customfield_12324748",
+        field_name="CVSS Score",
+        allowed_values=[],
+    ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="customfield_12324747",
+        field_name="CWE ID",
+        allowed_values=[],
+    ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="customfield_12324752",
+        field_name="Downstream Component Name",
+        allowed_values=[],
+    ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="customfield_12324751",
+        field_name="Upstream Affected Component",
+        allowed_values=[],
+    ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="customfield_12324750",
+        field_name="Embargo Status",
+        allowed_values=["True", "False"],
+    ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="customfield_12324753",
+        field_name="Special Handling",
+        allowed_values=[
+            "0-day",
+            "Major Incident",
+            "Minor Incident",
+            "KEV (active exploit case)",
+        ],
+    ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="customfield_12324940",
+        field_name="CVE Severity",
+        allowed_values=[
+            "Critical",
+            "Important",
+            "Moderate",
+            "Low",
+            "An Irrelevant Value To Be Ignored",
+            "None",
+        ],
+    ).save()
+    JiraBugIssuetype(project=ps_module.bts_key).save()
+
+    # 4) list some valid components accepeted for the
+    #    projects in BTS that can be used in tests
+    return {
+        "jboss_components": ["kernel", "kernel-rt"],
+        "bz_components": ["redhat-certification", "openssl"],
+    }

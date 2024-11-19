@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Add history to several other models: AffectCVSS, FlawAcknowledgment, FlawComment,
   FlawCVSS, FlawReference, Snippet and Tracker. (OSIDB-3466)
+- Moved metadata creation during tests to root level conftest and
+  automatically set envs during VCR recording (OSIDB-3492)
 
 ## [4.5.6] - 2024-11-08
 ### Fixed

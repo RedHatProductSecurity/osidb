@@ -485,7 +485,7 @@ class TestTrackerQueryBuilderDescription:
         if flaw_count == 1:
             assert tqb.description == (
                 "More information about this security flaw is available in the following bug:\n\n"
-                "https://example.com/show_bug.cgi?id=0\n\n"
+                "https://bugzilla.redhat.com/show_bug.cgi?id=0\n\n"
                 "Disclaimer: Community trackers are created by Red Hat Product Security team on a "
                 "best effort basis. Package maintainers are required to ascertain if the flaw indeed "
                 "affects their package, before starting the update process."
@@ -493,8 +493,8 @@ class TestTrackerQueryBuilderDescription:
         elif flaw_count == 2:
             assert tqb.description == (
                 "More information about these security flaws is available in the following bugs:\n\n"
-                "https://example.com/show_bug.cgi?id=0\n"
-                "https://example.com/show_bug.cgi?id=1\n\n"
+                "https://bugzilla.redhat.com/show_bug.cgi?id=0\n"
+                "https://bugzilla.redhat.com/show_bug.cgi?id=1\n\n"
                 "Disclaimer: Community trackers are created by Red Hat Product Security team on a "
                 "best effort basis. Package maintainers are required to ascertain if the flaw indeed "
                 "affects their package, before starting the update process."
@@ -503,9 +503,9 @@ class TestTrackerQueryBuilderDescription:
             assert tqb.description == (
                 (
                     "More information about these security flaws is available in the following bugs:\n\n"
-                    "https://example.com/show_bug.cgi?id=0\n"
-                    "https://example.com/show_bug.cgi?id=1\n"
-                    "https://example.com/show_bug.cgi?id=2\n\n"
+                    "https://bugzilla.redhat.com/show_bug.cgi?id=0\n"
+                    "https://bugzilla.redhat.com/show_bug.cgi?id=1\n"
+                    "https://bugzilla.redhat.com/show_bug.cgi?id=2\n\n"
                     "Disclaimer: Community trackers are created by Red Hat Product Security team on a "
                     "best effort basis. Package maintainers are required to ascertain if the flaw indeed "
                     "affects their package, before starting the update process."
@@ -557,7 +557,7 @@ class TestTrackerQueryBuilderDescription:
             "Flaw:\n"
             "-----\n\n"
             "serious flaw\n"
-            "https://example.com/show_bug.cgi?id=12345\n\n"
+            "https://bugzilla.redhat.com/show_bug.cgi?id=12345\n\n"
             "this flaw is very hard to fix\n\n"
             "~~~"
         )
@@ -609,7 +609,7 @@ class TestTrackerQueryBuilderDescription:
             "Flaw:\n"
             "-----\n\n"
             "serious flaw\n"
-            "https://example.com/show_bug.cgi?id=12345\n\n"
+            "https://bugzilla.redhat.com/show_bug.cgi?id=12345\n\n"
             "this flaw is very hard to fix\n\n"
             "~~~"
         )

@@ -569,10 +569,11 @@ class TestBugzillaJiraMixinIntegration:
     @pytest.mark.vcr
     def test_manual_changes(
         self,
+        bugzilla_token,
         enable_bz_async_sync,
         enable_jira_task_sync,
         enable_jira_tracker_sync,
-        monkeypatch,
+        jira_token,
     ):
         """Test that sync occurs using internal OSIDB APIs"""
         self.setup_workflow()
@@ -589,11 +590,10 @@ class TestBugzillaJiraMixinIntegration:
             unembargo_dt=tzdatetime(2000, 1, 1),
         )
 
-        jira_token = "SECRET"
-        bz_token = "SECRET"
-
         flaw.save(
-            jira_token=jira_token, bz_api_key=bz_token, force_synchronous_sync=True
+            jira_token=jira_token,
+            bz_api_key=bugzilla_token,
+            force_synchronous_sync=True,
         )
 
         PsModuleFactory(name="ps-module-0")
@@ -604,14 +604,14 @@ class TestBugzillaJiraMixinIntegration:
         AffectFactory(flaw=flaw, ps_module="ps-module-0")
         flaw = Flaw.objects.get(uuid=flaw.uuid)
 
-        flaw.promote(jira_token=jira_token, bz_api_key=bz_token)
+        flaw.promote(jira_token=jira_token, bz_api_key=bugzilla_token)
         assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
 
         jtq = JiraTaskmanQuerier(jira_token)
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Refinement"
-        flaw.reject(jira_token=jira_token, bz_api_key=bz_token)
+        flaw.reject(jira_token=jira_token, bz_api_key=bugzilla_token)
         assert flaw.workflow_state == WorkflowModel.WorkflowState.REJECTED
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
@@ -622,17 +622,16 @@ class TestBugzillaJiraMixinIntegration:
     @pytest.mark.enable_signals
     def test_api_changes(
         self,
+        auth_client,
+        bugzilla_token,
         enable_bz_async_sync,
         enable_jira_task_sync,
         enable_jira_tracker_sync,
-        auth_client,
+        jira_token,
         test_api_uri,
     ):
         """Test that sync occurs using OSIDB REST API"""
         self.setup_workflow()
-
-        jira_token = "SECRET"
-        bz_token = "SECRET"
 
         flaw_data = {
             "title": "Foo",
@@ -649,7 +648,7 @@ class TestBugzillaJiraMixinIntegration:
             f"{test_api_uri}/flaws",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
 
@@ -667,7 +666,7 @@ class TestBugzillaJiraMixinIntegration:
         response = auth_client().post(
             f"{test_api_uri}/flaws/{created_uuid}/promote",
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
 
@@ -683,7 +682,7 @@ class TestBugzillaJiraMixinIntegration:
             f"{test_api_uri}/flaws/{created_uuid}/reject",
             {"reason": "This is not a bug."},
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
 
@@ -696,10 +695,12 @@ class TestMultiMixinIntegration:
     @pytest.mark.vcr
     def test_tracker_validation(
         self,
+        auth_client,
+        bugzilla_token,
         enable_bz_async_sync,
         enable_jira_task_sync,
         enable_jira_tracker_sync,
-        auth_client,
+        jira_token,
         test_api_uri,
     ):
         """Tests that validations will block for Trackers with all sync enabled"""
@@ -772,8 +773,8 @@ class TestMultiMixinIntegration:
             f"{test_api_uri}/trackers",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert any(
             "The tracker is associated with a DEFER affect" in error
@@ -786,18 +787,16 @@ class TestMultiMixinIntegration:
     @pytest.mark.vcr
     def test_tracker_validation_bugzilla(
         self,
+        auth_client,
+        bugzilla_token,
         enable_bz_async_sync,
         enable_jira_task_sync,
         enable_jira_tracker_sync,
-        auth_client,
-        test_api_uri,
+        jira_token,
         monkeypatch,
+        test_api_uri,
     ):
         """Test that bugzilla Tracker endpoint only recreates alerts when needed"""
-
-        jira_token = "SECRET"
-        bz_token = "SECRET"
-
         validation_counter = {}
         original_validate = AlertMixin.validate
 
@@ -846,7 +845,7 @@ class TestMultiMixinIntegration:
             f"{test_api_uri}/flaws",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 201
@@ -868,7 +867,7 @@ class TestMultiMixinIntegration:
             f"{test_api_uri}/affects/bulk",
             affects_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
@@ -885,7 +884,7 @@ class TestMultiMixinIntegration:
             f"{test_api_uri}/trackers",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 201
@@ -896,17 +895,16 @@ class TestMultiMixinIntegration:
     @pytest.mark.vcr
     def test_tracker_validation_jira(
         self,
+        auth_client,
+        bugzilla_token,
         enable_bz_async_sync,
         enable_jira_task_sync,
         enable_jira_tracker_sync,
-        auth_client,
-        test_api_uri,
+        jira_token,
         monkeypatch,
+        test_api_uri,
     ):
         """Test that jira Tracker endpoint only recreates alerts when needed"""
-        jira_token = "SECRET"
-        bz_token = "SECRET"
-
         validation_counter = {}
         original_validate = AlertMixin.validate
 
@@ -982,7 +980,7 @@ class TestMultiMixinIntegration:
             f"{test_api_uri}/flaws",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 201
@@ -1004,7 +1002,7 @@ class TestMultiMixinIntegration:
             f"{test_api_uri}/affects/bulk",
             affects_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
@@ -1021,7 +1019,7 @@ class TestMultiMixinIntegration:
             f"{test_api_uri}/trackers",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 201
@@ -1033,17 +1031,16 @@ class TestMultiMixinIntegration:
     @pytest.mark.vcr
     def test_affect_validation(
         self,
+        auth_client,
+        bugzilla_token,
         enable_bz_async_sync,
         enable_jira_task_sync,
         enable_jira_tracker_sync,
-        auth_client,
+        jira_token,
         test_api_uri,
         monkeypatch,
     ):
         """Test that Affect endpoint only recreates alerts when needed"""
-        jira_token = "SECRET"
-        bz_token = "SECRET"
-
         validation_counter = {}
         original_validate = AlertMixin.validate
 
@@ -1072,7 +1069,7 @@ class TestMultiMixinIntegration:
             f"{test_api_uri}/flaws",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
         body = response.json()
@@ -1096,7 +1093,7 @@ class TestMultiMixinIntegration:
             f"{test_api_uri}/affects/bulk",
             affects_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
         # osidb/api_views.py::AffectView:bulk_post triggers flaw save
@@ -1117,7 +1114,7 @@ class TestMultiMixinIntegration:
             f"{test_api_uri}/affects/bulk",
             affects_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
@@ -1129,17 +1126,16 @@ class TestMultiMixinIntegration:
     @pytest.mark.vcr
     def test_flaw_validation(
         self,
+        auth_client,
+        bugzilla_token,
         enable_bz_async_sync,
         enable_jira_task_sync,
         enable_jira_tracker_sync,
-        auth_client,
-        test_api_uri,
+        jira_token,
         monkeypatch,
+        test_api_uri,
     ):
         """Test that Flaw endpoint only recreates alerts when needed"""
-        jira_token = "SECRET"
-        bz_token = "SECRET"
-
         validation_counter = {}
         original_validate = AlertMixin.validate
 
@@ -1169,7 +1165,7 @@ class TestMultiMixinIntegration:
             f"{test_api_uri}/flaws",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 201
@@ -1189,7 +1185,7 @@ class TestMultiMixinIntegration:
             f"{test_api_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY=bz_token,
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200

@@ -1,6 +1,5 @@
 import pytest
 
-import apps.trackers.common as common
 from apps.sla.framework import SLAPolicy
 from apps.trackers.constants import TRACKERS_API_VERSION
 
@@ -24,21 +23,8 @@ def enable_db_access_for_all_tests(db) -> None:
 
 
 @pytest.fixture(autouse=True)
-def pin_envs(enable_jira_task_sync, enable_bz_async_sync, monkeypatch) -> None:
-    """
-    the tests should be immune to what .env you build the testrunner with
-    """
-    monkeypatch.setattr(common, "BZ_URL", "https://example.com")
-
-
-@pytest.fixture
-def jira_test_url() -> str:
-    return "https://issues.stage.redhat.com"
-
-
-@pytest.fixture
-def user_token() -> str:
-    return "USER_JIRA_TOKEN"
+def auto_enable_sync(enable_jira_task_sync, enable_bz_async_sync) -> None:
+    pass
 
 
 @pytest.fixture

@@ -3,7 +3,6 @@ from pathlib import Path
 import pytest
 from django.utils import timezone
 
-from collectors.cveorg import collectors
 from collectors.cveorg.collectors import CVEorgCollector
 
 
@@ -13,11 +12,8 @@ def enable_db_access_for_all_tests(db):
 
 
 @pytest.fixture(autouse=True)
-def enable_env_vars(enable_jira_task_sync, enable_bz_sync, monkeypatch) -> None:
-    """
-    Set necessary variables when storing flaws to BZ and Jira.
-    """
-    monkeypatch.setattr(collectors, "JIRA_AUTH_TOKEN", "SECRET")
+def auto_enable_sync(enable_jira_task_sync, enable_bz_sync) -> None:
+    pass
 
 
 @pytest.fixture()

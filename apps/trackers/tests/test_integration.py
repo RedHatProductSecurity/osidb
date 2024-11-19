@@ -8,45 +8,34 @@ import pytest
 from django.utils import timezone
 from rest_framework import status
 
-from apps.trackers.jira.query import JiraPriority
-from apps.trackers.models import JiraBugIssuetype, JiraProjectFields
 from apps.trackers.save import TrackerSaver
-from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from collectors.bzimport.collectors import BugzillaTrackerCollector
 from collectors.bzimport.constants import BZ_DT_FMT
 from collectors.jiraffe.collectors import JiraTrackerCollector
-from osidb.models import Affect, Flaw, Impact, Tracker
+from osidb.models import Affect, Flaw, Impact, PsUpdateStream, Tracker
 from osidb.sync_manager import BZTrackerLinkManager, JiraTrackerLinkManager
-from osidb.tests.factories import (
-    AffectFactory,
-    FlawFactory,
-    PsModuleFactory,
-    PsUpdateStreamFactory,
-    TrackerFactory,
-)
+from osidb.tests.factories import AffectFactory, FlawFactory, TrackerFactory
 
 pytestmark = pytest.mark.integration
 
 
 class TestTrackerSaver:
     @pytest.mark.vcr
-    def test_tracker_create_bugzilla(self):
+    def test_tracker_create_bugzilla(
+        self, bugzilla_token, setup_sample_external_resources
+    ):
         """
         test basic Bugzilla tracker creation
         """
-        # 1) define all the context
-        ps_module = PsModuleFactory(
-            bts_name="bugzilla",
-            bts_key="Red Hat Certification Program",
-            bts_groups={"public": ["devel"]},
-            default_component="redhat-certification",
-            name="rhcertification-6",
+        # 1) get valid external data
+        ps_update_stream = (
+            PsUpdateStream.objects.filter(active_to_ps_module__bts_name="bugzilla")
+            .order_by("name")
+            .first()
         )
-        ps_update_stream = PsUpdateStreamFactory(
-            name="rhcertification-6",
-            ps_module=ps_module,
-            version="1.0",
-        )
+        ps_module = ps_update_stream.active_to_ps_module
+
+        # 2) define all the context
         flaw = FlawFactory(
             bz_id="2217733",
             embargoed=False,
@@ -56,7 +45,7 @@ class TestTrackerSaver:
         affect = AffectFactory(
             flaw=flaw,
             ps_module=ps_module.name,
-            ps_component="openssl",
+            ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
@@ -77,27 +66,27 @@ class TestTrackerSaver:
         )
         assert tracker.bz_id is None
 
-        # 2) create tracker in OSIDB and Bugzilla
-        ts = TrackerSaver(tracker, bz_api_key="SECRET")
+        # 3) create tracker in OSIDB and Bugzilla
+        ts = TrackerSaver(tracker, bz_api_key=bugzilla_token)
         created_tracker = ts.save()
         assert created_tracker.bz_id
         assert created_tracker.uuid == tracker.uuid
         created_tracker.save()
 
-        # 3) load tracker from Bugzilla
+        # 4) load tracker from Bugzilla
         btc = BugzillaTrackerCollector()
         btc.sync_tracker(created_tracker.bz_id)
         BZTrackerLinkManager.link_tracker_with_affects(created_tracker.bz_id)
 
-        # 4) get the newly loaded tracker from the DB
+        # 5) get the newly loaded tracker from the DB
         loaded_tracker = Tracker.objects.get(external_system_id=created_tracker.bz_id)
         loaded_tracker.save()  # get rid of Tracker alerts related to missing affect
 
-        # 5) check the correct result of the creation and loading
+        # 6) check the correct result of the creation and loading
         assert loaded_tracker.bz_id == created_tracker.bz_id
         assert not loaded_tracker.embargoed
         assert loaded_tracker.type == Tracker.TrackerType.BUGZILLA
-        assert loaded_tracker.ps_update_stream == "rhcertification-6"
+        assert loaded_tracker.ps_update_stream == ps_update_stream.name
         assert loaded_tracker.status == "NEW"
         assert not loaded_tracker.resolution
         assert loaded_tracker.affects.count() == 1
@@ -105,23 +94,21 @@ class TestTrackerSaver:
         assert not loaded_tracker.alerts.exists()
 
     @pytest.mark.vcr
-    def test_tracker_update_bugzilla(self):
+    def test_tracker_update_bugzilla(
+        self, bugzilla_token, setup_sample_external_resources
+    ):
         """
         test basic Bugzilla tracker update
         """
-        # 1) define all the context
-        ps_module = PsModuleFactory(
-            bts_name="bugzilla",
-            bts_key="Red Hat Certification Program",
-            bts_groups={"public": ["devel"]},
-            default_component="redhat-certification",
-            name="rhcertification-6",
+        # 1) get valid external data
+        ps_update_stream = (
+            PsUpdateStream.objects.filter(active_to_ps_module__bts_name="bugzilla")
+            .order_by("name")
+            .first()
         )
-        ps_update_stream = PsUpdateStreamFactory(
-            name="rhcertification-6",
-            ps_module=ps_module,
-            version="1.0",
-        )
+        ps_module = ps_update_stream.active_to_ps_module
+
+        # 2) define all the context
         flaw = FlawFactory(
             bz_id="2217733",
             embargoed=False,
@@ -130,15 +117,15 @@ class TestTrackerSaver:
         affect = AffectFactory(
             flaw=flaw,
             ps_module=ps_module.name,
-            ps_component="openssl",
+            ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
-        # 2) define a tracker model instance
+        # 3) define a tracker model instance
         #    according an exising Bugzilla tracker
         tracker_id = "2291491"
-        updated_dt = "2024-08-12T20:26:54Z"
+        updated_dt = "2024-11-13T12:56:45Z"
         tracker = TrackerFactory(
             affects=[affect],
             bz_id=tracker_id,
@@ -148,7 +135,6 @@ class TestTrackerSaver:
             status="NEW",
             resolution="",
             meta_attr={
-                "blocks": f"[{flaw.bz_id}]",
                 "whiteboard": {"flaws": [flaw.uuid]},
                 "updated_dt": updated_dt,
                 "ps_module": affect.ps_module,
@@ -157,57 +143,63 @@ class TestTrackerSaver:
             updated_dt=timezone.datetime.strptime(updated_dt, BZ_DT_FMT),
         )
         assert tracker.bz_id == tracker_id
-        # 3) update tracker in OSIDB and Bugzilla
-        ts = TrackerSaver(tracker, bz_api_key="SECRET")
+        # 4) update tracker in OSIDB and Bugzilla
+        ts = TrackerSaver(tracker, bz_api_key=bugzilla_token)
         updated_tracker = ts.save()
         assert updated_tracker.bz_id == tracker_id
         assert updated_tracker.uuid == tracker.uuid
         updated_tracker.save(auto_timestamps=False)
 
-        # 4) load tracker from Bugzilla
+        # 5) load tracker from Bugzilla
         btc = BugzillaTrackerCollector()
+        btc.bz_querier._bz_api_key = bugzilla_token
+
         btc.sync_tracker(updated_tracker.bz_id)
         BZTrackerLinkManager.link_tracker_with_affects(updated_tracker.bz_id)
 
-        # 5) get the newly loaded tracker from the DB
+        # 6) get the newly loaded tracker from the DB
         loaded_tracker = Tracker.objects.get(external_system_id=tracker_id)
 
-        # 6) check the correct result of the update and loading
+        # 7) check the correct result of the update and loading
         assert loaded_tracker.bz_id == tracker_id
         assert not loaded_tracker.embargoed
         assert loaded_tracker.type == Tracker.TrackerType.BUGZILLA
-        assert loaded_tracker.ps_update_stream == "rhcertification-6"
+        assert loaded_tracker.ps_update_stream == ps_update_stream.name
         assert loaded_tracker.status == "NEW"
         assert not loaded_tracker.resolution
         assert loaded_tracker.affects.count() == 1
         assert loaded_tracker.affects.first() == affect
         assert not loaded_tracker.alerts.exists()
 
-        # 7) check that the update actually happened
+        # 8) check that the update actually happened
         assert "updated_dt" in loaded_tracker.meta_attr
         assert updated_dt != loaded_tracker.meta_attr["updated_dt"]
 
 
 class TestTrackerAPI:
     @pytest.mark.vcr
-    def test_tracker_create_bugzilla(self, auth_client, enable_bz_sync, test_api_uri):
+    def test_tracker_create_bugzilla(
+        self,
+        auth_client,
+        bugzilla_token,
+        enable_bz_sync,
+        jira_token,
+        setup_sample_external_resources,
+        test_api_uri,
+    ):
         """
         test the whole stack Bugzilla tracker creation
         starting on the API and ending in Bugzilla
         """
-        # 1) define all the context
-        ps_module = PsModuleFactory(
-            bts_name="bugzilla",
-            bts_key="Red Hat Certification Program",
-            bts_groups={"public": ["devel"]},
-            default_component="redhat-certification",
-            name="rhcertification-6",
+        # 1) get valid external data
+        ps_update_stream = (
+            PsUpdateStream.objects.filter(active_to_ps_module__bts_name="bugzilla")
+            .order_by("name")
+            .first()
         )
-        ps_update_stream = PsUpdateStreamFactory(
-            name="rhcertification-6",
-            ps_module=ps_module,
-            version="1.0",
-        )
+        ps_module = ps_update_stream.active_to_ps_module
+
+        # 2) define all the context
         flaw = FlawFactory(
             bz_id="2217733",
             cve_id=None,
@@ -218,12 +210,12 @@ class TestTrackerAPI:
         affect = AffectFactory(
             flaw=flaw,
             ps_module=ps_module.name,
-            ps_component="openssl",
+            ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
-        # 2) create tracker in OSIDB and Bugzilla
+        # 3) create tracker in OSIDB and Bugzilla
         tracker_data = {
             "affects": [affect.uuid],
             "embargoed": flaw.embargoed,
@@ -233,48 +225,45 @@ class TestTrackerAPI:
             f"{test_api_uri}/trackers",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        # 3) the tracker is not stored to DB as it happens async
+        # 4) the tracker is not stored to DB as it happens async
         #    so check that there is no tracker relic stored
         assert not Tracker.objects.count()
 
-        # 4) so check at least the response
+        # 5) so check at least the response
         #    even though it is not complete
         tracker_json = response.json()
         assert tracker_json["external_system_id"]
         assert not tracker_json["embargoed"]
         assert tracker_json["type"] == Tracker.TrackerType.BUGZILLA
-        assert tracker_json["ps_update_stream"] == "rhcertification-6"
+        assert tracker_json["ps_update_stream"] == ps_update_stream.name
 
     @pytest.mark.vcr
-    def test_tracker_update_bugzilla(self, auth_client, enable_bz_sync, test_api_uri):
+    def test_tracker_update_bugzilla(
+        self,
+        auth_client,
+        bugzilla_token,
+        enable_bz_sync,
+        jira_token,
+        setup_sample_external_resources,
+        test_api_uri,
+    ):
         """
         test the whole stack Bugzilla tracker update
         starting on the API and ending in Bugzilla
         """
-        # 1) define all the context
-        ps_module = PsModuleFactory(
-            bts_name="bugzilla",
-            bts_key="Red Hat Certification Program",
-            bts_groups={"public": ["devel"]},
-            default_component="redhat-certification",
-            name="rhcertification-6",
-        )
-        ps_update_stream1 = PsUpdateStreamFactory(
-            name="rhcertification-6",
-            ps_module=ps_module,
-            version="1.0",
-        )
-        ps_update_stream2 = PsUpdateStreamFactory(
-            name="rhcertification-6-default",
-            ps_module=ps_module,
-            version="1.0",
-        )
+        # 1) get valid external data
+        ps_update_streams = PsUpdateStream.objects.filter(
+            active_to_ps_module__bts_name="bugzilla"
+        ).order_by("name")
+        ps_module = ps_update_streams.first().active_to_ps_module
+
+        # 2) define all the context
         flaw = FlawFactory(
             bz_id="2217733",
             embargoed=False,
@@ -283,12 +272,12 @@ class TestTrackerAPI:
         affect = AffectFactory(
             flaw=flaw,
             ps_module=ps_module.name,
-            ps_component="openssl",
+            ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
-        # 2) define a tracker model instance
+        # 3) define a tracker model instance
         #    according an exising Bugzilla tracker
         tracker_id = "2291491"
         updated_dt = "2024-06-13T14:29:58Z"
@@ -296,17 +285,17 @@ class TestTrackerAPI:
             affects=[affect],
             bz_id=tracker_id,
             embargoed=flaw.embargoed,
-            ps_update_stream=ps_update_stream1.name,
+            ps_update_stream=ps_update_streams[0].name,
             type=Tracker.TrackerType.BUGZILLA,
             meta_attr={"blocks": '["2217733"]', "updated_dt": updated_dt},
             updated_dt=timezone.datetime.strptime(updated_dt, BZ_DT_FMT),
         )
-
-        # 3) update tracker in OSIDB and Bugzilla
+        print(ps_update_streams[0].name)
+        # 4) update tracker in OSIDB and Bugzilla
         tracker_data = {
             "affects": [affect.uuid],
             "embargoed": flaw.embargoed,
-            "ps_update_stream": ps_update_stream2.name,  # new value
+            "ps_update_stream": ps_update_streams[1].name,  # new value
             "status": "NEW",  # this one is mandatory even though ignored in the backend query for now
             "updated_dt": updated_dt,
         }
@@ -314,46 +303,49 @@ class TestTrackerAPI:
             f"{test_api_uri}/trackers/{tracker.uuid}",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
 
-        # 4) the actual update in the database happens async
+        # 5) the actual update in the database happens async
         #    so check at least the correct data in the response
         tracker_json = response.json()
         assert tracker_json["external_system_id"] == tracker_id
         assert not tracker_json["embargoed"]
         assert tracker_json["type"] == Tracker.TrackerType.BUGZILLA
-        assert tracker_json["ps_update_stream"] == ps_update_stream2.name
+        assert tracker_json["ps_update_stream"] == ps_update_streams[1].name
         assert len(tracker_json["affects"]) == 1
         assert tracker_json["affects"][0] == str(affect.uuid)
         assert not tracker_json["alerts"]
 
-        # 5) check that the actual update did not happen
+        # 6) check that the actual update did not happen
         assert updated_dt == tracker_json["updated_dt"]
 
     @pytest.mark.vcr
     def test_tracker_create_jira(
-        self, auth_client, enable_bz_sync, enable_jira_tracker_sync, test_api_uri
+        self,
+        auth_client,
+        bugzilla_token,
+        enable_bz_sync,
+        enable_jira_tracker_sync,
+        jira_token,
+        setup_sample_external_resources,
+        test_api_uri,
     ):
         """
         test the whole stack Jira tracker creation
         starting on the API and ending in Jira
         """
-        # 1) define all the context
-        ps_module = PsModuleFactory(
-            bts_name="jboss",
-            bts_key="OSIDB",
-            bts_groups={"public": []},
-            default_component="Security",
-            name="openshift-4",
+        # 1) get valid external data
+        ps_update_stream = (
+            PsUpdateStream.objects.filter(active_to_ps_module__bts_name="jboss")
+            .order_by("name")
+            .first()
         )
-        ps_update_stream = PsUpdateStreamFactory(
-            name="openshift-4.8.z",
-            ps_module=ps_module,
-            version="4.8",
-        )
+        ps_module = ps_update_stream.active_to_ps_module
+
+        # 2) define all the context
         flaw = FlawFactory(
             uuid="675df471-7375-4ba1-9d0f-c178a8a58ae7",
             bz_id="2217733",
@@ -367,32 +359,13 @@ class TestTrackerAPI:
         affect = AffectFactory(
             flaw=flaw,
             ps_module=ps_module.name,
-            ps_component="openshift",
+            ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             impact=flaw.impact,
         )
-        JiraProjectFieldsFactory(
-            project_key="OSIDB",
-            field_id="priority",
-            allowed_values=[JiraPriority.MINOR],
-        )
-        JiraProjectFieldsFactory(
-            project_key=ps_module.bts_key,
-            field_id="security",
-            field_name="Security Level",
-            allowed_values=[
-                "Embargoed Security Issue",
-                "Red Hat Employee",
-                "Red Hat Engineering Authorized",
-                "Red Hat Partner",
-                "Restricted",
-                "Team",
-            ],
-        )
-        JiraBugIssuetype(project=ps_module.bts_key).save()
 
-        # 2) create tracker in OSIDB and Jira
+        # 3) create tracker in OSIDB and Jira
         tracker_data = {
             "affects": [affect.uuid],
             "embargoed": flaw.embargoed,
@@ -402,70 +375,47 @@ class TestTrackerAPI:
             f"{test_api_uri}/trackers",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        # 3) the tracker is not stored to DB as it happens async
+        # 4) the tracker is not stored to DB as it happens async
         #    so check that there is no tracker relic stored
         assert not Tracker.objects.count()
 
-        # 4) so check at least the response
+        # 5) so check at least the response
         #    even though it is not complete
         tracker_json = response.json()
         assert tracker_json["external_system_id"]
         assert "OSIDB" in tracker_json["external_system_id"]
         assert not tracker_json["embargoed"]
         assert tracker_json["type"] == Tracker.TrackerType.JIRA
-        assert tracker_json["ps_update_stream"] == "openshift-4.8.z"
+        assert tracker_json["ps_update_stream"] == ps_update_stream.name
 
     @pytest.mark.vcr
     def test_tracker_update_jira(
-        self, auth_client, enable_bz_sync, enable_jira_tracker_sync, test_api_uri
+        self,
+        auth_client,
+        bugzilla_token,
+        enable_bz_sync,
+        enable_jira_tracker_sync,
+        jira_token,
+        setup_sample_external_resources,
+        test_api_uri,
     ):
         """
         test the whole stack Jira tracker update
         starting on the API and ending in Jira
         """
-        # 1) define all the context
-        ps_module = PsModuleFactory(
-            bts_name="jboss",
-            bts_key="OSIDB",
-            bts_groups={"public": []},
-            default_component="Security",
-            name="openshift-4",
-        )
-        ps_update_stream1 = PsUpdateStreamFactory(
-            name="openshift-4.8.z",
-            ps_module=ps_module,
-            version="4.8",
-        )
-        ps_update_stream2 = PsUpdateStreamFactory(
-            name="openshift-4.9.z",
-            ps_module=ps_module,
-            version="4.9",
-        )
-        JiraProjectFieldsFactory(
-            project_key="OSIDB",
-            field_id="priority",
-            allowed_values=[JiraPriority.MINOR],
-        )
-        JiraProjectFieldsFactory(
-            project_key=ps_module.bts_key,
-            field_id="security",
-            field_name="Security Level",
-            allowed_values=[
-                "Embargoed Security Issue",
-                "Red Hat Employee",
-                "Red Hat Engineering Authorized",
-                "Red Hat Partner",
-                "Restricted",
-                "Team",
-            ],
-        )
-        JiraBugIssuetype(project=ps_module.bts_key).save()
+        # 1) get valid external data
+        ps_update_streams = PsUpdateStream.objects.filter(
+            active_to_ps_module__bts_name="jboss"
+        ).order_by("name")
+        ps_module = ps_update_streams.first().active_to_ps_module
+
+        # 2) define all the context
         # flaw to keep linked
         flaw1 = FlawFactory(
             bz_id="1663908",
@@ -479,7 +429,7 @@ class TestTrackerAPI:
         affect1 = AffectFactory(
             flaw=flaw1,
             ps_module=ps_module.name,
-            ps_component="openshift",
+            ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             impact=flaw1.impact,
@@ -497,7 +447,7 @@ class TestTrackerAPI:
         affect2 = AffectFactory(
             flaw=flaw2,
             ps_module=ps_module.name,
-            ps_component="openshift",
+            ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             impact=flaw2.impact,
@@ -515,66 +465,69 @@ class TestTrackerAPI:
         affect3 = AffectFactory(
             flaw=flaw3,
             ps_module=ps_module.name,
-            ps_component="openshift",
+            ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             impact=flaw3.impact,
         )
 
-        # 2) define a tracker model instance
-        #    according an exising Bugzilla tracker
+        # 3) define a tracker model instance
+        #    according an exising Jira tracker
         tracker_id = "OSIDB-920"
         updated_dt = "2024-06-17T12:41:00Z"
         tracker = TrackerFactory(
             affects=[affect1, affect2],
             bz_id=tracker_id,
             embargoed=flaw1.embargoed,
-            ps_update_stream=ps_update_stream1.name,
+            ps_update_stream=ps_update_streams[0].name,
             type=Tracker.TrackerType.JIRA,
             updated_dt=timezone.datetime.strptime(updated_dt, BZ_DT_FMT),
         )
 
-        # 3) update tracker in OSIDB and Bugzilla
+        # 4) update tracker in OSIDB and Jira
         tracker_data = {
             "affects": [
                 affect1.uuid,
                 affect3.uuid,
             ],  # affect2 removed and affect3 added
             "embargoed": flaw1.embargoed,
-            "ps_update_stream": ps_update_stream2.name,  # new value
+            "ps_update_stream": ps_update_streams[2].name,  # new value
             "updated_dt": updated_dt,
         }
         response = auth_client().put(
             f"{test_api_uri}/trackers/{tracker.uuid}",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
 
-        # 4) the actual update in the database happens async
+        # 5) the actual update in the database happens async
         #    so check at least the correct data in the response
         tracker_json = response.json()
         assert tracker_json["external_system_id"] == tracker_id
         assert "OSIDB" in tracker_json["external_system_id"]
         assert not tracker_json["embargoed"]
         assert tracker_json["type"] == Tracker.TrackerType.JIRA
-        assert tracker_json["ps_update_stream"] == ps_update_stream2.name
+        assert tracker_json["ps_update_stream"] == ps_update_streams[2].name
         assert len(tracker_json["affects"]) == 2
         assert str(affect1.uuid) in tracker_json["affects"]
         assert str(affect3.uuid) in tracker_json["affects"]
         assert not tracker_json["alerts"]
 
-        # 5) check that the actual update did not happen
+        # 6) check that the actual update did not happen
         assert updated_dt == tracker_json["updated_dt"]
 
     @pytest.mark.vcr
     def test_tracker_create_update_jira_vulnerability_issuetype(
         self,
         auth_client,
+        bugzilla_token,
         enable_bz_sync,
         enable_jira_tracker_sync,
+        jira_token,
+        setup_sample_external_resources,
         test_api_uri,
         monkeypatch,
     ):
@@ -584,115 +537,15 @@ class TestTrackerAPI:
         Tested in just one test so that complex set up is not necessary for the follow-up
         test of tracker update.
         """
+        # 1) get valid external data
+        ps_update_streams = PsUpdateStream.objects.filter(
+            active_to_ps_module__bts_name="jboss"
+        ).order_by("name")
+        ps_module = ps_update_streams.first().active_to_ps_module
+        ps_component1 = setup_sample_external_resources["jboss_components"][0]
+        ps_component2 = setup_sample_external_resources["jboss_components"][1]
 
-        # 1) define all the context
-        ps_module = PsModuleFactory(
-            bts_name="jboss",
-            bts_key="OCPBUGS",
-            bts_groups={"public": []},
-            default_component="Security",
-            name="openshift-4",
-        )
-        ps_update_stream = PsUpdateStreamFactory(
-            name="openshift-4.8.z",
-            ps_module=ps_module,
-            version="4.8",
-        )
-
-        JiraProjectFieldsFactory(
-            project_key="OCPBUGS",
-            field_id="priority",
-            allowed_values=[JiraPriority.MINOR],
-        )
-        JiraProjectFieldsFactory(
-            project_key=ps_module.bts_key,
-            field_id="security",
-            field_name="Security Level",
-            allowed_values=[
-                "Embargoed Security Issue",
-                "Red Hat Employee",
-                "Red Hat Engineering Authorized",
-                "Red Hat Partner",
-                "Restricted",
-                "Team",
-            ],
-        )
-
-        JiraProjectFields(
-            project_key=ps_module.bts_key,
-            field_id="customfield_12324746",
-            field_name="Source",
-            # Severely pruned for the test
-            allowed_values=["Red Hat", "Upstream"],
-        ).save()
-
-        JiraProjectFields(
-            project_key=ps_module.bts_key,
-            field_id="customfield_12324749",
-            field_name="CVE ID",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key=ps_module.bts_key,
-            field_id="customfield_12324748",
-            field_name="CVSS Score",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key=ps_module.bts_key,
-            field_id="customfield_12324747",
-            field_name="CWE ID",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key=ps_module.bts_key,
-            field_id="customfield_12324752",
-            field_name="Downstream Component Name",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key=ps_module.bts_key,
-            field_id="customfield_12324751",
-            field_name="Upstream Affected Component",
-            allowed_values=[],
-        ).save()
-
-        JiraProjectFields(
-            project_key=ps_module.bts_key,
-            field_id="customfield_12324750",
-            field_name="Embargo Status",
-            allowed_values=["True", "False"],
-        ).save()
-
-        JiraProjectFields(
-            project_key=ps_module.bts_key,
-            field_id="customfield_12324753",
-            field_name="Special Handling",
-            allowed_values=[
-                "0-day",
-                "Major Incident",
-                "Minor Incident",
-                "KEV (active exploit case)",
-            ],
-        ).save()
-
-        JiraProjectFields(
-            project_key=ps_module.bts_key,
-            field_id="customfield_12324940",
-            field_name="CVE Severity",
-            allowed_values=[
-                "Critical",
-                "Important",
-                "Moderate",
-                "Low",
-                "An Irrelevant Value To Be Ignored",
-                "None",
-            ],
-        ).save()
+        # 2) define all the context
 
         # Create the flaw for the purpose of the test
         # (this is not part of the test per se, but necessary setup).
@@ -738,8 +591,8 @@ class TestTrackerAPI:
             flaw_data,
             format="json",
             # TODO sanitize keys both here and in VCRs
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 201
 
@@ -759,7 +612,7 @@ class TestTrackerAPI:
             uuid="7cb199fd-86eb-45eb-aa3a-8fd7ecd32c1d",
             flaw=flaw,
             ps_module=ps_module.name,
-            ps_component="Security",
+            ps_component=ps_component1,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             impact=flaw.impact,
@@ -774,34 +627,34 @@ class TestTrackerAPI:
         assert Affect.objects.first() == affect
         assert affect.flaw == flaw
 
-        # 2) create tracker in OSIDB and Jira
+        # 3) create tracker in OSIDB and Jira
         tracker_data = {
             "affects": [affect.uuid],
             "embargoed": flaw.embargoed,
-            "ps_update_stream": ps_update_stream.name,
+            "ps_update_stream": ps_update_streams[0].name,
         }
         response = auth_client().post(
             f"{test_api_uri}/trackers",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        # 3) the tracker is not stored to DB as it happens async
+        # 4) the tracker is not stored to DB as it happens async
         #    so check that there is no tracker relic stored
         assert not Tracker.objects.count()
 
-        # 4) so check at least the response
+        # 5) so check at least the response
         #    even though it is not complete
         tracker_json = response.json()
         assert tracker_json["external_system_id"]
-        assert "OCPBUGS" in tracker_json["external_system_id"]
+        assert ps_module.bts_key in tracker_json["external_system_id"]
         assert not tracker_json["embargoed"]
         assert tracker_json["type"] == Tracker.TrackerType.JIRA
-        assert tracker_json["ps_update_stream"] == "openshift-4.8.z"
+        assert tracker_json["ps_update_stream"] == ps_update_streams[0].name
 
         # NOTE: Reloading flaw is tested in test_tracker_create_jira.
         #       That test requires the flaw to be set up correctly in the BTS
@@ -810,7 +663,7 @@ class TestTrackerAPI:
         #       The flaw sync works the same for both Bug and Vulnerability
         #       issuetype trackers. No need to test it here.
 
-        # 5) check that the data are the same also when collecting the Tracker
+        # 6) check that the data are the same also when collecting the Tracker
 
         tracker_id = tracker_json["external_system_id"]
 
@@ -830,7 +683,7 @@ class TestTrackerAPI:
         assert tracker_new.external_system_id == tracker_id
         assert not tracker_new.embargoed
         assert tracker_new.type == Tracker.TrackerType.JIRA
-        assert tracker_new.ps_update_stream == "openshift-4.8.z"
+        assert tracker_new.ps_update_stream == ps_update_streams[0].name
         assert tracker_new.status == "New"
         assert not tracker_new.resolution
         labels_new = json.loads(tracker_new.meta_attr["labels"])
@@ -838,9 +691,9 @@ class TestTrackerAPI:
             "Security",
             "SecurityTracking",
             f"flawuuid:{flaw.uuid}",
-            "pscomponent:Security",
+            "pscomponent:" + ps_component1,
         ] == sorted(labels_new)
-        assert tracker_new.meta_attr["jira_issuetype"] == "Vulnerability"
+        assert tracker_new.meta_attr["jira_issuetype"] == "Bug"
 
         # Not linked yet
         assert tracker_new.affects.count() == 0
@@ -852,20 +705,15 @@ class TestTrackerAPI:
         assert tracker_new.affects.first() == affect
         assert not tracker_new.alerts.exists()
 
-        # 6) test tracker update
+        # 7) test tracker update
         affect2 = AffectFactory(
             uuid="8db199fd-86eb-45eb-aa3a-8fd7ecd32c2e",
             flaw=flaw,
             ps_module=ps_module.name,
-            ps_component="openshift-apiserver",
+            ps_component=ps_component2,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             impact=flaw.impact,
-        )
-        ps_update_stream2 = PsUpdateStreamFactory(
-            name="openshift-4.10.z",
-            ps_module=ps_module,
-            version="4.10",
         )
 
         tracker_data = {
@@ -873,15 +721,15 @@ class TestTrackerAPI:
                 affect2.uuid,
             ],
             "embargoed": flaw.embargoed,
-            "ps_update_stream": ps_update_stream2.name,  # new value
+            "ps_update_stream": ps_update_streams[1].name,  # new value
             "updated_dt": tracker_new.updated_dt,
         }
         response = auth_client().put(
             f"{test_api_uri}/trackers/{tracker_new.uuid}",
             tracker_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
 
@@ -894,20 +742,20 @@ class TestTrackerAPI:
         assert affect.flaw == flaw
         assert affect2.flaw == flaw
 
-        # 7) the actual update in the database happens async
+        # 8) the actual update in the database happens async
         #    so check at least the correct data in the response
         tracker_json = response.json()
         assert tracker_json["external_system_id"] == tracker_id
         assert tracker_json["external_system_id"] == tracker_new.external_system_id
         assert not tracker_json["embargoed"]
         assert tracker_json["type"] == Tracker.TrackerType.JIRA
-        assert tracker_json["ps_update_stream"] == ps_update_stream2.name
+        assert tracker_json["ps_update_stream"] == ps_update_streams[1].name
         assert len(tracker_json["affects"]) == 1
         assert str(affect.uuid) not in tracker_json["affects"]
         assert str(affect2.uuid) in tracker_json["affects"]
         assert not tracker_json["alerts"]
 
-        # 8) check that the actual update did not happen
+        # 9) check that the actual update did not happen
         assert tracker_new.updated_dt == timezone.datetime.strptime(
             tracker_json["updated_dt"], "%Y-%m-%dT%H:%M:%S.%f%z"
         )

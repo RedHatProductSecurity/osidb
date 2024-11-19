@@ -20,7 +20,7 @@ class TestUsers:
 
     @pytest.mark.enable_signals
     @pytest.mark.vcr
-    def test_profile_creation(self, test_user_dict):
+    def test_profile_creation(self, bugzilla_token, jira_token, test_user_dict):
         new_user = User.objects.create(**test_user_dict)
 
         assert new_user.profile
@@ -30,11 +30,9 @@ class TestUsers:
         assert str(new_user.profile) == "foo"
 
         # verify that the user info can be fetched from bugzilla / jira
-        bz_token = get_env("BZIMPORT_BZ_API_KEY")
         bz_url = get_env("BZIMPORT_BZ_URL", "https://bugzilla.redhat.com")
-        jira_token = get_env("JIRA_AUTH_TOKEN")
         jira_url = get_env("JIRA_URL", "https://issues.redhat.com")
-        bz_api = Bugzilla(bz_url, api_key=bz_token, force_rest=True)
+        bz_api = Bugzilla(bz_url, api_key=bugzilla_token, force_rest=True)
         jira_api = JIRA(
             options={
                 "server": jira_url,

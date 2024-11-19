@@ -255,7 +255,7 @@ class TestJiraTrackerConvertor:
         assert tracker.affects.first() == affect
 
     @pytest.mark.vcr
-    def test_convert_linked_from_tracker_side_flawuuid(self, pin_envs):
+    def test_convert_linked_from_tracker_side_flawuuid(self):
         """
         test that the convertor linking works
         when the link is in tracker flawuuid label
