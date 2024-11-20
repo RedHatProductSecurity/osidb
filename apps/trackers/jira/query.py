@@ -203,6 +203,9 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         Generate Jira "components" field (with 1 component)
         """
+        # exclude from updates
+        if not self.is_creating:
+            return
 
         component = self.ps_component
 
@@ -385,6 +388,10 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         generates the versions
         """
+        # exclude from updates
+        if not self.is_creating:
+            return
+
         versions = JiraProjectFields.objects.filter(
             project_key=self.ps_module.bts_key, field_name="Affects Version/s"
         )

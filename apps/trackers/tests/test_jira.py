@@ -134,6 +134,7 @@ class TestOldTrackerJiraQueryBuilder:
         )
         tracker = TrackerFactory(
             affects=[affect],
+            external_system_id=None,
             type=Tracker.TrackerType.JIRA,
             ps_update_stream=stream.name,
             embargoed=flaw.is_embargoed,
@@ -884,6 +885,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         )
         tracker = TrackerFactory(
             affects=[affect],
+            external_system_id=None,
             type=Tracker.TrackerType.JIRA,
             ps_update_stream=ps_update_stream.name,
             embargoed=flaw.embargoed,
@@ -967,6 +969,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         )
         tracker = TrackerFactory(
             affects=[affect],
+            external_system_id=None,
             type=Tracker.TrackerType.JIRA,
             ps_update_stream=stream.name,
             embargoed=flaw.is_embargoed,
@@ -981,6 +984,156 @@ class TestBothNewOldTrackerJiraQueryBuilder:
             ]
         else:
             assert "versions" not in query_builder.query["fields"]
+
+    def test_creation_specifics(self, querybuilder_class):
+        """
+        test that certain fields are only being set on tracker creation
+        """
+        JiraProjectFieldsFactory(
+            project_key="PROJECT",
+            field_id="contributors",
+            field_name="Contributors",
+            allowed_values=[],
+        )
+        JiraProjectFields(
+            project_key="PROJECT",
+            field_id="customfield_12324749",
+            field_name="CVE ID",
+            allowed_values=[],
+        ).save()
+        JiraProjectFields(
+            project_key="PROJECT",
+            field_id="customfield_an_identifier_for_cve_severity_field",
+            field_name="CVE Severity",
+            allowed_values=[
+                "Critical",
+                "Important",
+                "Moderate",
+                "Low",
+                "None",
+            ],
+        ).save()
+        JiraProjectFields(
+            project_key="PROJECT",
+            field_id="customfield_12324748",
+            field_name="CVSS Score",
+            allowed_values=[],
+        ).save()
+        JiraProjectFields(
+            project_key="PROJECT",
+            field_id="customfield_12324747",
+            field_name="CWE ID",
+            allowed_values=[],
+        ).save()
+        JiraProjectFields(
+            project_key="PROJECT",
+            field_id="customfield_12324752",
+            field_name="Downstream Component Name",
+            allowed_values=[],
+        ).save()
+        JiraProjectFields(
+            project_key="PROJECT",
+            field_id="customfield_12324750",
+            field_name="Embargo Status",
+            allowed_values=["True", "False"],
+        ).save()
+        JiraProjectFields(
+            project_key="PROJECT",
+            field_id="priority",
+            field_name="Priority",
+            allowed_values=[
+                "Blocker",
+                "Critical",
+                "Major",
+                "Normal",
+                "Minor",
+                "Undefined",
+            ],
+        ).save()
+        JiraProjectFieldsFactory(
+            project_key="PROJECT",
+            field_id="security",
+            field_name="Security Level",
+            allowed_values=[
+                "Embargoed Security Issue",
+                "Red Hat Employee",
+                "Red Hat Engineering Authorized",
+                "Red Hat Partner",
+                "Restricted",
+                "Team",
+            ],
+        )
+        source = "DEBIAN"
+        JiraProjectFields(
+            project_key="PROJECT",
+            field_id="customfield_12324746",
+            field_name="Source",
+            allowed_values=[source],
+        ).save()
+        JiraProjectFields(
+            project_key="PROJECT",
+            field_id="customfield_12324753",
+            field_name="Special Handling",
+            allowed_values=[
+                "0-day",
+                "Major Incident",
+                "Minor Incident",
+                "KEV (active exploit case)",
+            ],
+        ).save()
+        JiraProjectFields(
+            project_key="PROJECT",
+            field_id="customfield_12324751",
+            field_name="Upstream Affected Component",
+            allowed_values=[],
+        ).save()
+        version = "1.2.3"
+        JiraProjectFields(
+            project_key="PROJECT",
+            field_id="versions",
+            field_name="Affects Version/s",
+            allowed_values=[version],
+        ).save()
+
+        ps_module = PsModuleFactory(
+            bts_key="PROJECT",
+            bts_name="jboss",
+            default_cc=["me@redhat.com"],
+            private_trackers_allowed=True,
+        )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module, version=version)
+
+        flaw = FlawFactory(source=source)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            ps_component="component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.is_embargoed,
+            external_system_id=None,  # creation
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        query_builder = querybuilder_class(tracker)
+        query_builder.generate()
+
+        assert "components" in query_builder.query["fields"]
+        assert "contributors" in query_builder.query["fields"]
+        assert "versions" in query_builder.query["fields"]
+
+        # no creation any more
+        tracker.external_system_id = "PROJECT-123"
+
+        query_builder = querybuilder_class(tracker)
+        query_builder.generate()
+
+        assert "components" not in query_builder.query["fields"]
+        assert "contributors" not in query_builder.query["fields"]
+        assert "versions" not in query_builder.query["fields"]
 
 
 def validate_minimum_key_value(minimum: Dict[str, Any], evaluated: Dict[str, Any]):
@@ -1134,6 +1287,7 @@ class TestTrackerJiraQueryBuilder:
         )
         tracker = TrackerFactory(
             affects=[affect],
+            external_system_id=None,
             type=Tracker.TrackerType.JIRA,
             ps_update_stream=stream.name,
             embargoed=flaw.is_embargoed,
@@ -1281,6 +1435,7 @@ class TestTrackerJiraQueryBuilder:
         )
         tracker = TrackerFactory(
             affects=[affect],
+            external_system_id=None,
             type=Tracker.TrackerType.JIRA,
             ps_update_stream=stream.name,
             embargoed=flaw.is_embargoed,
@@ -1375,6 +1530,7 @@ class TestTrackerJiraQueryBuilder:
         )
         tracker = TrackerFactory(
             affects=[affect],
+            external_system_id=None,
             type=Tracker.TrackerType.JIRA,
             ps_update_stream=stream.name,
             embargoed=flaw.is_embargoed,
@@ -2097,6 +2253,7 @@ class TestTrackerJiraQueryBuilder:
         )
         tracker = TrackerFactory(
             affects=[affect, affect2, affect3, affect4],
+            external_system_id=None,
             type=Tracker.TrackerType.JIRA,
             ps_update_stream=stream.name,
             embargoed=flaw.is_embargoed,
