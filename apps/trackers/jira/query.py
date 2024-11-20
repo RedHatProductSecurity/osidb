@@ -458,12 +458,11 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         generate query for CC list
         """
-
         # Each instance of OldTrackerJiraQueryBuilder is used only once, but if ever used twice,
         # always produce consistent query and comment.
         self._comment = None
 
-        if self.tracker.external_system_id:
+        if not self.is_creating:
             # Add CCs only on creation.
             return
 
