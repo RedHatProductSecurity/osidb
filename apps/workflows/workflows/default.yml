@@ -47,4 +47,8 @@ states:
     jira_state: Closed
     jira_resolution: Done
     requirements:
-      - has trackers
+      - condition: OR
+        requirements:
+          - has trackers
+          - impact is low
+          - impact is moderate

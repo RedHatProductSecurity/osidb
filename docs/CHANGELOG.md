@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved metadata creation during tests to root level conftest and
   automatically set envs during VCR recording (OSIDB-3492)
 - Exclude component and version from Jira tracker updates (OSIDB-3677)
+- Allow moving a flaw to state DONE if it has no trackers but impact is moderate
+  or low (OSIDB-3524)
 
 ## [4.5.6] - 2024-11-08
 ### Fixed
