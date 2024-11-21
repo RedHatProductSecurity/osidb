@@ -81,7 +81,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
             )
         )
 
-        if self.creation:
+        if self.is_creating:
             self._query["blocks"] = flaw_ids
 
             # update blocks in meta_attr
@@ -111,7 +111,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         generate query for CC list
         """
 
-        if self.tracker.external_system_id:
+        if not self.is_creating:
             # Add CCs only on creation.
             return
 
@@ -207,7 +207,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         """
         generate query for flaw description
         """
-        if self.creation:
+        if self.is_creating:
             self._query["description"] = self.description
             # auto-created description should be always public
             self._query["comment_is_private"] = False
@@ -219,7 +219,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         generate query for Bugzilla flags
         """
         # we add flags on creation only
-        if not self.creation:
+        if not self.is_creating:
             return
 
         self._query["flags"] = []
@@ -249,7 +249,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
             groups = self.ps_module.bts_groups["public"]
 
         # on creation we provide a list of groups
-        if self.creation:
+        if self.is_creating:
             self._query["groups"] = groups
 
         # otherwise we provide the differences
@@ -269,7 +269,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         """
         self._query["keywords"] = (
             ["Security", "SecurityTracking"]
-            if self.creation
+            if self.is_creating
             else {"add": ["Security", "SecurityTracking"]}
         )
 

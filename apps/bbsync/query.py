@@ -67,7 +67,7 @@ class BugzillaQueryBuilder:
         return self._query
 
     @property
-    def creation(self):
+    def is_creating(self):
         """
         boolean property True on creation and False on update
         """
@@ -276,7 +276,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         """
         generate query for flaw description on create
         """
-        if self.creation:
+        if self.is_creating:
             self._query["description"] = self.flaw.comment_zero
             self._query["comment_is_private"] = False
 
@@ -287,7 +287,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
 
         if a collector created a flaw, check the external ID, as CVE might not be present
         """
-        if self.creation:
+        if self.is_creating:
             if self.flaw.cve_id is not None:
                 # create query requires pure list
                 self._query["alias"] = [self.flaw.cve_id]
@@ -315,7 +315,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         generate keywords query based on creation|update
         """
         self._query["keywords"] = (
-            ["Security"] if self.creation else {"add": ["Security"]}
+            ["Security"] if self.is_creating else {"add": ["Security"]}
         )
 
     def generate_flags(self):
@@ -450,7 +450,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
             groups = ["redhat"]
 
         # on creation we provide a list of groups
-        if self.creation:
+        if self.is_creating:
             self._query["groups"] = groups
 
         # otherwise we provide the differences
@@ -473,7 +473,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
                 self._query["deadline"] = self.flaw.unembargo_dt.strftime(DATE_FMT)
 
         # unembargo
-        elif not self.creation and self.embargoed:
+        elif not self.is_creating and self.embargoed:
             self._query["deadline"] = ""
 
     def generate_cc(self):
@@ -484,7 +484,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         # let us ignore CCs to be removed
         add_cc, _ = cc_builder.content
 
-        if self.creation:
+        if self.is_creating:
             self._query["cc"] = add_cc
 
         else:
