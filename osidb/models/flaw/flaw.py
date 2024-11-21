@@ -1048,9 +1048,6 @@ class Flaw(
         def _create_new_flaw():
             issue = jtq.create_or_update_task(self)
             self.task_key = issue.data["key"]
-            self.task_updated_dt = datetime.strptime(
-                issue.data["fields"]["updated"], "%Y-%m-%dT%H:%M:%S.%f%z"
-            )
             self.workflow_state = WorkflowModel.WorkflowState.NEW
             self.save(no_alerts=True, *args, **kwargs)
 
@@ -1097,9 +1094,6 @@ class Flaw(
                 )
                 self.workflow_state = workflow_state
                 self.workflow_name = workflow_name
-                self.task_updated_dt = datetime.strptime(
-                    issue.data["fields"]["updated"], "%Y-%m-%dT%H:%M:%S.%f%z"
-                )
                 self.adjust_acls(save=False)
                 self.save(no_alerts=True, *args, **kwargs)
         except Flaw.DoesNotExist:
