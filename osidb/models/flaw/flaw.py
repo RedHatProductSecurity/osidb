@@ -2,7 +2,6 @@ import json
 import logging
 import re
 import uuid
-from datetime import datetime
 from decimal import Decimal
 
 import pghistory
@@ -16,9 +15,13 @@ from psqlextra.fields import HStoreField
 
 from apps.bbsync.constants import SYNC_FLAWS_TO_BZ, SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY
 from apps.bbsync.mixins import BugzillaSyncMixin
-from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FIELDS
+from apps.taskman.constants import (
+    JIRA_TASKMAN_AUTO_SYNC_FLAW,
+    SYNC_REQUIRED_FIELDS,
+    TRANSITION_REQUIRED_FIELDS,
+)
 from apps.taskman.mixins import JiraTaskSyncMixin
-from apps.workflows.workflow import WorkflowFramework, WorkflowModel
+from apps.workflows.workflow import WorkflowModel
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 from osidb.constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
 from osidb.mixins import (
@@ -1083,19 +1086,16 @@ class Flaw(
                 diff is not None
                 and any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS)
             ):
-                issue = jtq.create_or_update_task(self)
-                status = issue.data["fields"]["status"]["name"]
-                resolution = issue.data["fields"]["resolution"]
-                resolution = resolution["name"] if resolution else None
+                jtq.create_or_update_task(self)
 
-                framework = WorkflowFramework()
-                workflow_name, workflow_state = framework.jira_to_state(
-                    status, resolution
-                )
-                self.workflow_state = workflow_state
-                self.workflow_name = workflow_name
+            if force_update or (
+                diff is not None
+                and any(field in diff.keys() for field in TRANSITION_REQUIRED_FIELDS)
+            ):
+                jtq.transition_task(self)
                 self.adjust_acls(save=False)
                 self.save(no_alerts=True, *args, **kwargs)
+
         except Flaw.DoesNotExist:
             # we're handling a new OSIDB-authored flaw -- create
             _create_new_flaw()
