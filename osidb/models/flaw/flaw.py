@@ -1047,6 +1047,8 @@ class Flaw(
 
         If the flaw is not OSIDB-authored then it's a no-op.
         """
+        # if there was no flaw then fail right away
+        old_flaw = Flaw.objects.get(uuid=self.uuid)
 
         def _create_task():
             self.task_key = jtq.create_or_update_task(self)
@@ -1068,36 +1070,29 @@ class Flaw(
             _create_task()
             return
 
-        try:
-            old_flaw = Flaw.objects.get(uuid=self.uuid)
-
-            # we're handling a new OSIDB-authored flaw from collectors -- create
-            if not old_flaw.meta_attr.get("bz_id") and old_flaw.task_key == "":
-                _create_task()
-                return
-
-            # the flaw exists but the task doesn't, not an OSIDB-authored flaw -- no-op
-            if not old_flaw.task_key:
-                return
-
-            # we're handling an existing OSIDB-authored flaw -- update
-            if force_update or (
-                diff is not None
-                and any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS)
-            ):
-                jtq.create_or_update_task(self)
-
-            if force_update or (
-                diff is not None
-                and any(field in diff.keys() for field in TRANSITION_REQUIRED_FIELDS)
-            ):
-                jtq.transition_task(self)
-                self.adjust_acls(save=False)
-                self.save(no_alerts=True, *args, **kwargs)
-
-        except Flaw.DoesNotExist:
-            # we're handling a new OSIDB-authored flaw -- create
+        # we're handling a new OSIDB-authored flaw from collectors -- create
+        if not old_flaw.meta_attr.get("bz_id") and old_flaw.task_key == "":
             _create_task()
+            return
+
+        # the flaw exists but the task doesn't, not an OSIDB-authored flaw -- no-op
+        if not old_flaw.task_key:
+            return
+
+        # we're handling an existing OSIDB-authored flaw -- update
+        if force_update or (
+            diff is not None
+            and any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS)
+        ):
+            jtq.create_or_update_task(self)
+
+        if force_update or (
+            diff is not None
+            and any(field in diff.keys() for field in TRANSITION_REQUIRED_FIELDS)
+        ):
+            jtq.transition_task(self)
+            self.adjust_acls(save=False)
+            self.save(no_alerts=True, *args, **kwargs)
 
     download_manager = models.ForeignKey(
         FlawDownloadManager, null=True, blank=True, on_delete=models.CASCADE
