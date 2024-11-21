@@ -1049,8 +1049,7 @@ class Flaw(
         """
 
         def _create_new_flaw():
-            issue = jtq.create_or_update_task(self)
-            self.task_key = issue.data["key"]
+            self.task_key = jtq.create_or_update_task(self)
             self.workflow_state = WorkflowModel.WorkflowState.NEW
             self.save(no_alerts=True, *args, **kwargs)
 
