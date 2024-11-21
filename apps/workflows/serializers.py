@@ -5,6 +5,7 @@ Workflows models serializers
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
+from .models import Check, Condition
 from .workflow import WorkflowModel
 
 
@@ -15,11 +16,80 @@ class CheckSerializer(serializers.Serializer):
     description = serializers.CharField()
 
 
+class ConditionSerializer(serializers.Serializer):
+    """Condition serializer"""
+
+    condition = serializers.CharField()
+    requirements = serializers.ListField()
+
+    def to_representation(self, instance):
+        if isinstance(instance, Condition):
+            return {
+                "condition": instance.condition,
+                "requirements": [
+                    (
+                        CheckSerializer(check).data
+                        if isinstance(check, Check)
+                        else ConditionSerializer(check).data
+                    )
+                    for check in instance.checks
+                ],
+            }
+        return super().to_representation(instance)
+
+    def to_internal_value(self, data):
+        parsed_requirements = []
+        for requirement in data.get("requirements", []):
+            if "condition" in requirement:
+                parsed_requirements.append(
+                    ConditionSerializer().to_internal_value(requirement)
+                )
+            else:
+                parsed_requirements.append(
+                    CheckSerializer().to_internal_value(requirement)
+                )
+
+        return {
+            "condition": data["condition"],
+            "requirements": parsed_requirements,
+        }
+
+
 class StateSerializer(serializers.Serializer):
     """State serializer"""
 
     name = serializers.CharField()
-    requirements = CheckSerializer(many=True)
+    requirements = serializers.ListField()
+
+    def to_representation(self, instance):
+        return {
+            "name": instance.name,
+            "requirements": [
+                (
+                    CheckSerializer(req).data
+                    if isinstance(req, Check)
+                    else ConditionSerializer(req).data
+                )
+                for req in instance.requirements
+            ],
+        }
+
+    def to_internal_value(self, data):
+        parsed_requirements = []
+        for requirement in data.get("requirements", []):
+            if "condition" in requirement:
+                parsed_requirements.append(
+                    ConditionSerializer().to_internal_value(requirement)
+                )
+            else:
+                parsed_requirements.append(
+                    CheckSerializer().to_internal_value(requirement)
+                )
+
+        return {
+            "name": data["name"],
+            "requirements": parsed_requirements,
+        }
 
 
 class WorkflowSerializer(serializers.Serializer):

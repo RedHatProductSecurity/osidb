@@ -1,7 +1,7 @@
 import pytest
 
 from apps.workflows.exceptions import LastStateException, MissingRequirementsException
-from apps.workflows.models import Check, State, Workflow
+from apps.workflows.models import Check, Condition, State, Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from osidb.models import Affect, Flaw, FlawReference, FlawSource, Impact, Tracker
 from osidb.tests.factories import (
@@ -329,6 +329,84 @@ class TestCheck:
             assert check(flaw)
 
 
+class TestCondition:
+    @pytest.mark.parametrize(
+        "cve_id,impact,accepted",
+        [
+            ("CVE-2000-12345", Impact.CRITICAL, True),
+            ("CVE-2000-54321", Impact.CRITICAL, False),
+            ("CVE-2000-12345", Impact.MODERATE, False),
+            ("CVE-2000-54321", Impact.MODERATE, False),
+        ],
+    )
+    def test_and_condition(self, cve_id, impact, accepted):
+        """Test the AND condition"""
+        condition_desc = {
+            "condition": "AND",
+            "requirements": ["CVE is CVE-2000-12345", "impact is critical"],
+        }
+        flaw = FlawFactory(cve_id=cve_id, impact=impact)
+        condition = Condition(**condition_desc)
+        assert condition.accepts(flaw) == accepted
+
+    @pytest.mark.parametrize(
+        "cve_id,impact,accepted",
+        [
+            ("CVE-2000-12345", Impact.CRITICAL, True),
+            ("CVE-2000-54321", Impact.CRITICAL, True),
+            ("CVE-2000-12345", Impact.MODERATE, True),
+            ("CVE-2000-54321", Impact.MODERATE, False),
+        ],
+    )
+    def test_or_condition(self, cve_id, impact, accepted):
+        """Test the OR condition"""
+        condition_desc = {
+            "condition": "OR",
+            "requirements": ["CVE is CVE-2000-12345", "impact is critical"],
+        }
+        flaw = FlawFactory(cve_id=cve_id, impact=impact)
+        condition = Condition(**condition_desc)
+        assert condition.accepts(flaw) == accepted
+
+    @pytest.mark.parametrize(
+        "cve_id,impact,title,accepted",
+        [
+            ("CVE-2000-12345", Impact.CRITICAL, "maracuya", True),
+            ("CVE-2000-54321", Impact.CRITICAL, "maracuya", False),
+            ("CVE-2000-12345", Impact.MODERATE, "maracuya", True),
+            ("CVE-2000-12345", Impact.MODERATE, "gulupa", False),
+            ("CVE-2000-12345", Impact.CRITICAL, "gulupa", True),
+            ("CVE-2000-54321", Impact.MODERATE, "gulupa", False),
+        ],
+    )
+    def test_nested_condition(self, cve_id, impact, title, accepted):
+        """Test nested conditions of different types"""
+        condition_desc = {
+            "condition": "AND",
+            "requirements": [
+                "CVE is CVE-2000-12345",
+                {
+                    "condition": "OR",
+                    "requirements": ["impact is critical", "title is maracuya"],
+                },
+            ],
+        }
+        flaw = FlawFactory(cve_id=cve_id, impact=impact, title=title)
+        condition = Condition(**condition_desc)
+        assert condition.accepts(flaw) == accepted
+
+    def test_wrong_condition(self):
+        """Test that using a non-implemented condition raises an error"""
+        condition_desc = {
+            "condition": "MULT",
+            "requirements": ["CVE is CVE-2000-12345", "impact is critical"],
+        }
+        flaw = FlawFactory()
+        condition = Condition(**condition_desc)
+        with pytest.raises(ValueError, match="MULT"):
+            condition.accepts(flaw)
+
+
 class TestState:
     def test_empty_requirements(self):
         """test that a state with empty requirements accepts any flaw"""
@@ -381,6 +459,40 @@ class TestState:
         assert not state.accepts(
             flaw
         ), f'state accepted flaw without the requirements "{requirements}"'
+
+    def test_condition_requirements(self):
+        """
+        Test that a state can take conditional requirements to accept flaws
+        """
+        requirements = [
+            {
+                "condition": "OR",
+                "requirements": ["has affects", "impact is low", "impact is moderate"],
+            },
+        ]
+        state = State(
+            {
+                "name": "state with conditions",
+                "requirements": requirements,
+                "jira_state": "To do",
+                "jira_resolution": None,
+            }
+        )
+
+        flaw = FlawFactory(impact=Impact.LOW)
+        assert state.accepts(flaw)
+
+        flaw.impact = Impact.CRITICAL
+        assert not state.accepts(flaw)
+
+        AffectFactory(
+            flaw=flaw,
+            impact=flaw.impact,
+            resolution=Affect.AffectResolution.DELEGATED,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+        )
+
+        assert state.accepts(flaw)
 
 
 class TestWorkflow:

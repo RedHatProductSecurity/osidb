@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduce purl to Affect (OSIDB-3409)
 - Implement field `embargoed` for advanced search (OSIDB-3549)
 - Implement no-week-ending SLA policy support (OSIDB-3500)
+- Implement complex logic in workflow state requirements (OSIDB-3524)
 
 ### Changed
 - Add history to several other models: AffectCVSS, FlawAcknowledgment, FlawComment,
@@ -17,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved metadata creation during tests to root level conftest and
   automatically set envs during VCR recording (OSIDB-3492)
 - Exclude component and version from Jira tracker updates (OSIDB-3677)
+- Allow moving a flaw to state DONE if it has no trackers but impact is moderate
+  or low (OSIDB-3524)
 
 ## [4.5.6] - 2024-11-08
 ### Fixed

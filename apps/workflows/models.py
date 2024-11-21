@@ -39,6 +39,39 @@ class Check:
         return self(instance)
 
 
+class Condition:
+    """
+    A logical condition which is applied on multiple checks (requirements).
+    """
+
+    def __init__(self, condition, requirements, cls=None):
+        """
+        Initializes a condition with a logic condition (AND, OR) and a set
+        of rules on which to apply the condition.
+        """
+        self.condition = condition.upper()
+        self.checks = [
+            (
+                Check(check_desc, cls=cls)
+                if isinstance(check_desc, str)
+                else Condition(**check_desc, cls=cls)
+            )
+            for check_desc in requirements
+        ]
+
+    def __call__(self, instance):
+        if self.condition == "AND":
+            return all(check(instance) for check in self.checks)
+        if self.condition == "OR":
+            return any(check(instance) for check in self.checks)
+        raise ValueError(
+            f"Unsupported logical condition in workflow definition: {self.condition}"
+        )
+
+    def accepts(self, instance):
+        return self(instance)
+
+
 class State:
     """
     workflow state
@@ -51,8 +84,20 @@ class State:
         self.jira_state = state_desc["jira_state"]
         self.jira_resolution = state_desc["jira_resolution"]
         self.requirements = [
-            Check(requirement_desc) for requirement_desc in state_desc["requirements"]
+            self.parse_requirement(requirement_desc)
+            for requirement_desc in state_desc["requirements"]
         ]
+
+    def parse_requirement(self, requirement_desc):
+        """
+        Parse a requirement, which can be a regular check or a logical condition involving
+        several checks.
+        """
+        if isinstance(requirement_desc, str):
+            return Check(requirement_desc)
+        if isinstance(requirement_desc, dict):
+            return Condition(**requirement_desc)
+        raise ValueError(f"Invalid requirement format in workflow: {requirement_desc}")
 
     def accepts(self, instance):
         """accepts a given instance if it meets all the requirements"""
