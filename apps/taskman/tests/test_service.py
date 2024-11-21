@@ -38,9 +38,9 @@ class TestTaskmanService(object):
         taskman = JiraTaskmanQuerier(token=jira_token)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
-        assert response1.status_code == 201
+        assert response1 == "OSIM-14332"
 
-        old_title = response1.data["fields"]["summary"]
+        old_title = flaw.title
         new_title = f"{old_title} edited title"
 
         flaw.title = new_title
@@ -51,26 +51,20 @@ class TestTaskmanService(object):
 
         response2 = taskman.create_or_update_task(flaw=flaw)
         status, _ = flaw.jira_status()
-        assert response2.status_code == 200
-        assert response2.data["fields"]["summary"] == new_title
-        assert response2.data["fields"]["customfield_12313240"]["id"] == 2861
-        assert response2.data["fields"]["customfield_12313240"]["name"] == "OSIDB"
-        assert response2.data["fields"]["assignee"]["name"] == "concosta@redhat.com"
-        assert response2.data["fields"]["status"]["name"] == status
+        assert response2 is None
 
         assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
         flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
         flaw.save(raise_validation_error=False)
         response3 = taskman.create_or_update_task(flaw=flaw)
-        assert response3.status_code == 200
+        assert response3 is None
         status, _ = flaw.jira_status()
-        assert response3.data["fields"]["status"]["name"] == status
 
         # test unassign
         flaw.owner = ""
         flaw.save(raise_validation_error=False)
         response4 = taskman.create_or_update_task(flaw=flaw)
-        assert response4.status_code == 200
+        assert response4 is None
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         assert flaw.owner == ""
         issue = taskman.jira_conn.issue(flaw.task_key).raw
@@ -87,9 +81,9 @@ class TestTaskmanService(object):
         taskman = JiraTaskmanQuerier(token=jira_token)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
-        assert response1.status_code == 201
+        assert response1 == "OSIM-421"
 
-        response2 = taskman.create_comment(response1.data["key"], "New comment")
+        response2 = taskman.create_comment(response1, "New comment")
         assert response2.status_code == 201
 
     @pytest.mark.vcr
@@ -102,9 +96,9 @@ class TestTaskmanService(object):
         taskman = JiraTaskmanQuerier(token=jira_token)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
-        assert response1.status_code == 201
+        assert response1 == "OSIM-11643"
 
         response2 = taskman.add_link(
-            response1.data["key"], "https://www.redhat.com", "Red Hat Webpage"
+            response1, "https://www.redhat.com", "Red Hat Webpage"
         )
         assert response2.status_code == 201
