@@ -160,10 +160,21 @@ class JiraTaskmanQuerier(JiraQuerier):
                         **resolution_data,
                     )
                     return Response(
-                        data=self.jira_conn.issue(flaw.task_key).raw,
+                        data={
+                            "key": flaw.task_key,
+                            "resolution": resolution,
+                            "status": status,
+                        },
                         status=200,
                     )
-                return Response(data=issue, status=200)
+                return Response(
+                    data={
+                        "key": flaw.task_key,
+                        "resolution": resolution,
+                        "status": status,
+                    },
+                    status=200,
+                )
         except JIRAError as e:
             creating = not flaw.task_key
             creating_updating_word = "creating" if creating else "updating"
