@@ -18,5 +18,7 @@ SYNC_REQUIRED_FIELDS = [
     "is_embargoed",
     "owner",
     "team_id",
+]
+TRANSITION_REQUIRED_FIELDS = [
     "workflow_state",
 ]
