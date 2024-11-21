@@ -1048,7 +1048,7 @@ class Flaw(
         If the flaw is not OSIDB-authored then it's a no-op.
         """
 
-        def _create_new_flaw():
+        def _create_task():
             self.task_key = jtq.create_or_update_task(self)
             self.workflow_state = WorkflowModel.WorkflowState.NEW
             self.save(no_alerts=True, *args, **kwargs)
@@ -1065,7 +1065,7 @@ class Flaw(
 
         # REST API can force new tasks since it has no access to flaw creation runtime -- create
         if force_creation:
-            _create_new_flaw()
+            _create_task()
             return
 
         try:
@@ -1073,7 +1073,7 @@ class Flaw(
 
             # we're handling a new OSIDB-authored flaw from collectors -- create
             if not old_flaw.meta_attr.get("bz_id") and old_flaw.task_key == "":
-                _create_new_flaw()
+                _create_task()
                 return
 
             # the flaw exists but the task doesn't, not an OSIDB-authored flaw -- no-op
@@ -1097,7 +1097,7 @@ class Flaw(
 
         except Flaw.DoesNotExist:
             # we're handling a new OSIDB-authored flaw -- create
-            _create_new_flaw()
+            _create_task()
 
     download_manager = models.ForeignKey(
         FlawDownloadManager, null=True, blank=True, on_delete=models.CASCADE
