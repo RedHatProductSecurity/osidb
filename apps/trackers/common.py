@@ -40,6 +40,13 @@ class TrackerQueryBuilder:
         """
         return self.instance
 
+    @property
+    def is_creating(self):
+        """
+        True on tracker creation
+        """
+        return not self.tracker.external_system_id
+
     @cached_property
     def flaws(self):
         """

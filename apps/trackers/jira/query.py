@@ -203,6 +203,9 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         Generate Jira "components" field (with 1 component)
         """
+        # exclude from updates
+        if not self.is_creating:
+            return
 
         component = self.ps_component
 
@@ -385,6 +388,10 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         generates the versions
         """
+        # exclude from updates
+        if not self.is_creating:
+            return
+
         versions = JiraProjectFields.objects.filter(
             project_key=self.ps_module.bts_key, field_name="Affects Version/s"
         )
@@ -458,12 +465,11 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         generate query for CC list
         """
-
         # Each instance of OldTrackerJiraQueryBuilder is used only once, but if ever used twice,
         # always produce consistent query and comment.
         self._comment = None
 
-        if self.tracker.external_system_id:
+        if not self.is_creating:
             # Add CCs only on creation.
             return
 
