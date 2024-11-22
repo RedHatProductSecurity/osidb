@@ -363,6 +363,7 @@ Try starting the **full** development environment first:
 
 ```bash
 $ make start-local
+```
 
 Then, you can stop the environment and retry the action you tried to do (such as `make start-local-psql` or `make db-restore`).
 
