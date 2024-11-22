@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exclude component and version from Jira tracker updates (OSIDB-3677)
 - Allow moving a flaw to state DONE if it has no trackers but impact is moderate
   or low (OSIDB-3524)
+- Set hard limit of paginated results (OSIDB-643)
 
 ## [4.5.6] - 2024-11-08
 ### Fixed

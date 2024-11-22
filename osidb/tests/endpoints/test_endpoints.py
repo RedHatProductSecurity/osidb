@@ -13,6 +13,7 @@ from rest_framework.test import APIClient
 from osidb.core import generate_acls, set_user_acls
 from osidb.helpers import ensure_list
 from osidb.models import Affect, Flaw, Impact
+from osidb.pagination import HardLimitOffsetPagination
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
@@ -541,3 +542,18 @@ class TestCustomExceptionHandling:
         response = APIClient().get(url)
         assert response.status_code == 409
         assert response.json()["detail"] == "This was a big failure"
+
+
+class TestPagination:
+    def test_hard_limit(self, auth_client, test_api_uri, monkeypatch):
+        """Test the custom hard limit pagination."""
+        monkeypatch.setattr(HardLimitOffsetPagination, "hard_limit", 5)
+
+        for _ in range(10):
+            FlawFactory(embargoed=False)
+
+        response = auth_client().get(f"{test_api_uri}/flaws?limit=10")
+        assert response.status_code == 200
+        assert len(response.json()["results"]) == 5
+        # The next page uses the max limit, not the one the user specified
+        assert "limit=5" in response.json()["next"]
