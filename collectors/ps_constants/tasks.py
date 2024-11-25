@@ -7,7 +7,7 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 from collectors.framework.models import collector
-from osidb.models import SpecialConsiderationPackage, UbiPackage
+from osidb.models import SpecialConsiderationPackage
 
 from .constants import PS_CONSTANTS_REPO_BRANCH, PS_CONSTANTS_REPO_URL
 from .core import (
@@ -15,7 +15,6 @@ from .core import (
     sync_jira_bug_issuetype,
     sync_sla_policies,
     sync_special_consideration_packages,
-    sync_ubi_packages,
 )
 
 logger = get_task_logger(__name__)
@@ -35,10 +34,6 @@ PS_CONSTANTS_BASE_URL = "/".join(
 
 def collect_step_1_fetch():
     # Fetch raw yml data from GitLab
-    url = "/".join((PS_CONSTANTS_BASE_URL, "ubi_packages.yml"))
-    logger.info(f"Fetching PS Constants (Ubi Packages) from '{url}'")
-    ubi_packages = fetch_ps_constants(url)
-
     url = "/".join((PS_CONSTANTS_BASE_URL, "special_consideration_packages.yml"))
     logger.info(f"Fetching PS Constants (Special Consideration Packages) from '{url}'")
     sc_packages = fetch_ps_constants(url)
@@ -52,7 +47,6 @@ def collect_step_1_fetch():
     jira_bug_issuetype = fetch_ps_constants(url)
 
     return (
-        ubi_packages,
         sc_packages,
         sla_policies,
         jira_bug_issuetype,
@@ -60,12 +54,10 @@ def collect_step_1_fetch():
 
 
 def collect_step_2_sync(
-    ubi_packages,
     sc_packages,
     sla_policies,
     jira_bug_issuetype,
 ):
-    sync_ubi_packages(ubi_packages)
     sync_special_consideration_packages(sc_packages)
     sync_sla_policies(sla_policies)
     sync_jira_bug_issuetype(jira_bug_issuetype)
@@ -85,14 +77,12 @@ def collect_step_2_sync(
     crontab=crontab(minute="49", hour="*/5"),
     data_models=[
         SpecialConsiderationPackage,
-        UbiPackage,
     ],
 )
 def ps_constants_collector(collector_obj) -> str:
     """ps constants collector"""
 
     (
-        ubi_packages,
         sc_packages,
         sla_policies,
         jira_bug_issuetype,
@@ -100,14 +90,12 @@ def ps_constants_collector(collector_obj) -> str:
 
     logger.info(
         (
-            f"Fetched ubi packages for {len(ubi_packages)} RHEL major versions "
             f"and {len(sc_packages)} special consideration packages data."
             f"Going to sync."
         )
     )
 
     collect_step_2_sync(
-        ubi_packages,
         sc_packages,
         sla_policies,
         jira_bug_issuetype,

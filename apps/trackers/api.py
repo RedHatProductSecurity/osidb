@@ -28,7 +28,7 @@ class TrackerFileSuggestionView(RudimentaryUserPathLoggingMixin, APIView):
         - remove any embargoed flaw/affects related to modules that does not contains the private_trackers_allowed flag
 
         This method will also considers specific rules from product definition
-        (e.g. unacked streams rules, UBI speacial handling)
+        (e.g. unacked streams rules)
         """
         serializer = FlawUUIDListSerializer(data=request.data)
 

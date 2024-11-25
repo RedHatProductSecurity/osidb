@@ -12,9 +12,8 @@ from apps.trackers.product_definition_handlers.major_incident_handler import (
     MajorIncidentHandler,
 )
 from apps.trackers.product_definition_handlers.moderate_handler import ModerateHandler
-from apps.trackers.product_definition_handlers.ubi_handler import UBIHandler
 from apps.trackers.product_definition_handlers.unacked_handler import UnackedHandler
-from osidb.models import Affect, Flaw, Impact, PsUpdateStream, UbiPackage
+from osidb.models import Affect, Flaw, Impact, PsUpdateStream
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -312,7 +311,6 @@ class TestTrackerSuggestions:
         "default_streams,"
         "moderate_streams,"
         "unacked_streams,"
-        "ubi,"
         "major_incident_state,"
         "expected_available_streams,"
         "expected_selected_streams",
@@ -325,7 +323,6 @@ class TestTrackerSuggestions:
                 [],
                 [],
                 [],
-                False,
                 Flaw.FlawMajorIncident.NOVALUE,
                 [],
                 [],
@@ -338,7 +335,6 @@ class TestTrackerSuggestions:
                 [],
                 [],
                 [],
-                False,
                 Flaw.FlawMajorIncident.NOVALUE,
                 [],
                 [],
@@ -351,7 +347,6 @@ class TestTrackerSuggestions:
                 [],
                 [],
                 [],
-                False,
                 Flaw.FlawMajorIncident.NOVALUE,
                 ["stream1"],
                 [],
@@ -364,7 +359,6 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 [],
                 [],
-                False,
                 Flaw.FlawMajorIncident.NOVALUE,
                 ["stream1", "stream2"],
                 ["stream1"],
@@ -376,7 +370,6 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 [],
                 [],
-                False,
                 Flaw.FlawMajorIncident.NOVALUE,
                 ["stream1", "stream2"],
                 ["stream1"],
@@ -389,7 +382,6 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 [],
                 [],
-                False,
                 Flaw.FlawMajorIncident.NOVALUE,
                 ["stream1", "stream2"],
                 [],
@@ -401,7 +393,6 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 [],
                 [],
-                False,
                 Flaw.FlawMajorIncident.NOVALUE,
                 ["stream1", "stream2"],
                 [],
@@ -414,7 +405,6 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 [],
                 ["stream2"],
-                False,
                 Flaw.FlawMajorIncident.NOVALUE,
                 ["stream1", "stream2"],
                 ["stream1"],  # default beats unacked
@@ -426,7 +416,6 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 [],
                 ["stream2"],
-                False,
                 Flaw.FlawMajorIncident.NOVALUE,
                 ["stream1", "stream2"],
                 ["stream2"],  # unacked beats default
@@ -438,7 +427,6 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 [],
                 ["stream2"],
-                False,
                 Flaw.FlawMajorIncident.NOVALUE,
                 ["stream1", "stream2"],
                 [],
@@ -451,7 +439,6 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 ["stream2"],
                 [],
-                False,
                 Flaw.FlawMajorIncident.NOVALUE,
                 ["stream1", "stream2"],
                 ["stream1"],  # default beats moderate
@@ -463,7 +450,6 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 ["stream2"],
                 [],
-                False,
                 Flaw.FlawMajorIncident.NOVALUE,
                 ["stream1", "stream2"],
                 ["stream2"],  # moderate beats default
@@ -475,7 +461,6 @@ class TestTrackerSuggestions:
                 [],
                 ["stream1"],
                 ["stream2"],
-                False,
                 Flaw.FlawMajorIncident.NOVALUE,
                 ["stream1", "stream2"],
                 ["stream1"],  # moderate beats unacked
@@ -487,50 +472,9 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 ["stream2"],
                 [],
-                False,
                 Flaw.FlawMajorIncident.NOVALUE,
                 ["stream1", "stream2"],
                 [],
-            ),
-            # UBI streams
-            (
-                Impact.IMPORTANT,
-                # Z-stream above 1 required
-                ["stream1", "stream2.z", "stream3"],
-                ["stream1", "stream2.z"],
-                ["stream1"],
-                ["stream2.z"],
-                [],
-                True,
-                Flaw.FlawMajorIncident.NOVALUE,
-                ["stream1", "stream2.z"],
-                ["stream1"],  # default beats UBI
-            ),
-            (
-                Impact.MODERATE,
-                # Z-stream above 1 required
-                ["stream1", "stream2.z", "stream3"],
-                ["stream1", "stream2.z"],
-                ["stream1"],
-                ["stream2.z"],
-                [],
-                True,
-                Flaw.FlawMajorIncident.NOVALUE,
-                ["stream1", "stream2.z"],
-                ["stream2.z"],  # UBI beats moderate
-            ),
-            (
-                Impact.MODERATE,
-                ["stream1", "stream2.z", "stream3"],
-                ["stream1", "stream2.z"],
-                # Z-stream above 1 required
-                ["stream2.z"],
-                [],
-                ["stream1"],
-                True,
-                Flaw.FlawMajorIncident.NOVALUE,
-                ["stream1", "stream2.z"],
-                ["stream2.z"],  # UBI beats unacked
             ),
             # Major Incident streams
             (
@@ -540,7 +484,6 @@ class TestTrackerSuggestions:
                 ["stream2"],
                 [],
                 [],
-                False,
                 Flaw.FlawMajorIncident.APPROVED,
                 ["stream1", "stream2"],
                 ["stream2"],  # Major Incident enforces default
@@ -552,7 +495,6 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 [],
                 [],
-                False,
                 Flaw.FlawMajorIncident.CISA_APPROVED,
                 ["stream1", "stream2"],
                 ["stream1"],  # Major Incident enforces default
@@ -564,7 +506,6 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 [],
                 [],
-                False,
                 Flaw.FlawMajorIncident.ZERO_DAY,
                 ["stream1", "stream2"],
                 ["stream1"],  # Major Incident enforces default
@@ -576,7 +517,6 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 ["stream2"],
                 [],
-                False,
                 Flaw.FlawMajorIncident.APPROVED,
                 ["stream1", "stream2"],
                 ["stream1"],  # Major Incident beats moderate
@@ -588,7 +528,6 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 ["stream2"],
                 [],
-                False,
                 Flaw.FlawMajorIncident.MINOR,
                 ["stream1", "stream2"],
                 ["stream2"],  # Minor Incident makes no change
@@ -600,23 +539,9 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 [],
                 ["stream2"],
-                False,
                 Flaw.FlawMajorIncident.APPROVED,
                 ["stream1", "stream2"],
                 ["stream1"],  # Major Incident beats unacked
-            ),
-            (
-                Impact.MODERATE,
-                ["stream1", "stream2.z", "stream3"],
-                ["stream1", "stream2.z", "stream3"],
-                ["stream1", "stream2.z", "stream3"],
-                [],
-                [],
-                True,
-                Flaw.FlawMajorIncident.APPROVED,
-                ["stream1", "stream2.z", "stream3"],
-                ["stream1", "stream2.z", "stream3"],  # Major Incident beats UBI
-                # as UBI would not preselect Y-stream older then last Z-stream
             ),
         ],
     )
@@ -630,7 +555,6 @@ class TestTrackerSuggestions:
         default_streams,
         moderate_streams,
         unacked_streams,
-        ubi,
         major_incident_state,
         expected_available_streams,
         expected_selected_streams,
@@ -640,10 +564,7 @@ class TestTrackerSuggestions:
         """
         # 1) context
 
-        UbiPackage(name="component").save()
-        ps_module = PsModuleFactory(
-            special_handling_features=["ubi_packages"] if ubi else []
-        )
+        ps_module = PsModuleFactory()
 
         flaw = FlawFactory(
             embargoed=False,
@@ -862,131 +783,6 @@ class TestTrackerSuggestions:
             assert ps_update_stream3.name in offer
             assert offer[ps_update_stream2.name]["selected"] is False
             assert offer[ps_update_stream3.name]["selected"] is True
-
-    class TestUBIHandler:
-        @pytest.mark.parametrize(
-            "impact,is_applicable",
-            [
-                (Impact.CRITICAL, False),
-                (Impact.IMPORTANT, False),
-                (Impact.MODERATE, True),
-                (Impact.LOW, False),
-            ],
-        )
-        def test_is_applicable_impact(self, impact, is_applicable):
-            UbiPackage(name="component").save()
-            ps_module = PsModuleFactory(special_handling_features=["ubi_packages"])
-            affect = AffectFactory(ps_module=ps_module.name, ps_component="component")
-            assert is_applicable == UBIHandler.is_applicable(affect, impact, ps_module)
-
-        @pytest.mark.parametrize(
-            "component,is_applicable",
-            [
-                ("component", False),
-                ("ubi-component", True),
-            ],
-        )
-        def test_is_applicable_ubi(self, component, is_applicable):
-            UbiPackage(name="ubi-component").save()
-            ps_module = PsModuleFactory(special_handling_features=["ubi_packages"])
-            affect = AffectFactory(ps_module=ps_module.name, ps_component=component)
-            assert is_applicable == UBIHandler.is_applicable(
-                affect, Impact.MODERATE, ps_module
-            )
-
-        def test_get_offer_no_z(self):
-            UbiPackage(name="no-z-ending").save()
-            ps_module = PsModuleFactory(special_handling_features=["ubi_packages"])
-            affect = AffectFactory(ps_module=ps_module.name)
-            ps_update_stream = PsUpdateStreamFactory(
-                active_to_ps_module=ps_module,
-                name="no-z-ending",
-            )
-
-            framework = ProductDefinitionRules()
-            framework.handlers = [UBIHandler()]
-            # no existing Z-stream to be selected
-            offer = framework.file_tracker_offers(affect, Impact.MODERATE, ps_module)
-            assert offer
-            assert len(offer) == 1
-            assert ps_update_stream.name in offer
-            assert offer[ps_update_stream.name]["selected"] is False
-
-        def test_get_offer_inactive_z(self):
-            UbiPackage(name="stream-z").save()
-            ps_module = PsModuleFactory(special_handling_features=["ubi_packages"])
-            affect = AffectFactory(ps_module=ps_module.name)
-            PsUpdateStreamFactory(
-                ps_module=ps_module,
-                active_to_ps_module=None,
-                name="stream-z",
-            )
-
-            framework = ProductDefinitionRules()
-            framework.handlers = [UBIHandler()]
-            # no active Z-stream to be selected
-            framework.file_tracker_offers(affect, Impact.MODERATE, ps_module) == {}
-
-        def test_get_offer_z(self):
-            UbiPackage(name="ubi-component").save()
-            ps_module = PsModuleFactory(special_handling_features=["ubi_packages"])
-            affect = AffectFactory(
-                ps_module=ps_module.name,
-                ps_component="ubi-component",
-            )
-            ps_update_stream = PsUpdateStreamFactory(
-                active_to_ps_module=ps_module,
-                name="stream-z",
-            )
-
-            framework = ProductDefinitionRules()
-            framework.handlers = [UBIHandler()]
-            # Z-stream should be included in the offer
-            offer = framework.file_tracker_offers(affect, Impact.MODERATE, ps_module)
-            assert offer
-            assert len(offer) == 1
-            assert ps_update_stream.name in offer
-            assert offer[ps_update_stream.name]["selected"] is True
-
-        def test_get_offer_y(self):
-            UbiPackage(name="ubi-component").save()
-            ps_module = PsModuleFactory(special_handling_features=["ubi_packages"])
-            affect = AffectFactory(
-                ps_module=ps_module.name,
-                ps_component="ubi-component",
-            )
-            z_stream = PsUpdateStreamFactory(
-                active_to_ps_module=ps_module,
-                name="stream-1.2.3.z",
-            )
-            y_stream_pre = PsUpdateStreamFactory(
-                active_to_ps_module=ps_module,
-                name="stream-1.2.1",  # earlier Y-stream
-            )
-            y_stream_post = PsUpdateStreamFactory(
-                active_to_ps_module=ps_module,
-                name="stream-1.3.1",  # latter Y-stream
-            )
-            PsUpdateStreamFactory(
-                ps_module=ps_module,
-                active_to_ps_module=None,  # inactive
-                name="stream-1.4.1",  # latter Y-stream
-            )
-
-            framework = ProductDefinitionRules()
-            framework.handlers = [UBIHandler()]
-            # Z-stream and Y-stream should be included in the offer
-            offer = framework.file_tracker_offers(affect, Impact.MODERATE, ps_module)
-            assert offer
-            assert len(offer) == 3
-            assert z_stream.name in offer
-            assert y_stream_pre.name in offer
-            assert y_stream_post.name in offer
-            assert offer[z_stream.name]["selected"] is True
-            assert (
-                offer[y_stream_pre.name]["selected"] is False
-            )  # old Y-stream not selected
-            assert offer[y_stream_post.name]["selected"] is True
 
     class TestUnackedHandler:
         @pytest.mark.parametrize(

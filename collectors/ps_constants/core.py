@@ -8,7 +8,7 @@ from requests_gssapi import HTTPSPNEGOAuth
 
 from apps.sla.models import SLA, SLAPolicy
 from apps.trackers.models import JiraBugIssuetype
-from osidb.models import SpecialConsiderationPackage, UbiPackage
+from osidb.models import SpecialConsiderationPackage
 
 logger = logging.getLogger(__name__)
 
@@ -33,19 +33,6 @@ def fetch_ps_constants(url, multi=False):
         return yaml.safe_load_all(response.text)
     except yaml.YAMLError as e:
         print("Error parsing YAML:", e)
-
-
-@transaction.atomic
-def sync_ubi_packages(ubi_packages):
-    """
-    Sync a dict of major rhel versions
-    with its ubi components
-    """
-    UbiPackage.objects.all().delete()
-    for major, packages in ubi_packages.items():
-        for package_name in packages:
-            package = UbiPackage(name=package_name, major_stream_version=major)
-            package.save()
 
 
 @transaction.atomic
