@@ -511,15 +511,13 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         )
 
     @property
-    def upstream_references(self):
-        """Get a list of upstream references related to this tracker."""
+    def references(self):
+        """Get a list of references related to this tracker."""
         from osidb.models.flaw.flaw import Flaw
         from osidb.models.flaw.reference import FlawReference
 
         flaws = Flaw.objects.filter(affects__trackers=self)
-        return FlawReference.objects.filter(
-            flaw__in=flaws, type=FlawReference.FlawReferenceType.UPSTREAM
-        )
+        return FlawReference.objects.filter(flaw__in=flaws)
 
     bz_download_manager = models.ForeignKey(
         BZTrackerDownloadManager, null=True, blank=True, on_delete=models.CASCADE
