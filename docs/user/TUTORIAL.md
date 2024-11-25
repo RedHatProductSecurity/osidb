@@ -130,7 +130,7 @@ With python
 import requests
 
 REFRESH_URL = "${SERVICE_URL}/auth/token/refresh"
-response = requests.get(REFRESH_URL, json={"refresh": refresh})
+response = requests.post(REFRESH_URL, json={"refresh": refresh})
 assert response.ok
 token = response.json()["access"]
 ```
@@ -163,7 +163,7 @@ With python
 import requests
 
 VERIFY_URL = "${SERVICE_URL}/auth/token/verify"
-response = requests.get(VERIFY_URL, json={"token": refresh})
+response = requests.post(VERIFY_URL, json={"token": refresh})
 assert response.ok
 ```
 
