@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or low (OSIDB-3524)
 - Set hard limit of paginated results (OSIDB-643)
 
+### Removed
+- Remove UBI handler special treatment (OSIDB-3728)
+
 ## [4.5.6] - 2024-11-08
 ### Fixed
 - Properly save updated flaw in NVD collector (OSIDB-3661)

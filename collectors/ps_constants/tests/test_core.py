@@ -5,9 +5,8 @@ from collectors.ps_constants.core import (
     fetch_ps_constants,
     sync_jira_bug_issuetype,
     sync_special_consideration_packages,
-    sync_ubi_packages,
 )
-from osidb.models import SpecialConsiderationPackage, UbiPackage
+from osidb.models import SpecialConsiderationPackage
 
 pytestmark = pytest.mark.unit
 
@@ -37,34 +36,11 @@ class TestPsConstantsCollection:
     @pytest.mark.vcr
     def test_fetch_ps_constants(self, ps_constant_base_url):
         """Check collector is capable of pull data from gitlab"""
-        url = "/".join((ps_constant_base_url, "ubi_packages.yml"))
-        ubi_packages = fetch_ps_constants(url)
-        assert "rhel-9" in ubi_packages
-        assert len(ubi_packages["rhel-9"]) > 0
-
         url = "/".join((ps_constant_base_url, "special_consideration_packages.yml"))
         sc_packages = fetch_ps_constants(url)
         assert "dnf" in sc_packages
 
         # TODO: Record cassette for jira_bug_issuetype, tracked in OSIDB-2980
-
-    def test_sync_ubi_packages(self):
-        """Check collector can correctly sync ubi data in database"""
-        sampled_data = {
-            "rhel-1": [
-                "test-package",
-                "another-package",
-            ],
-            "rhel-2": [
-                "test-package",
-                "another-package",
-            ],
-        }
-        sync_ubi_packages(sampled_data)
-
-        assert UbiPackage.objects.all().count() == 4
-        assert UbiPackage.objects.filter(major_stream_version="rhel-1").count() == 2
-        assert UbiPackage.objects.filter(name="test-package").count() == 2
 
     def test_sync_special_consideration_packages(self):
         """

@@ -12,14 +12,12 @@ class Command(BaseCommand):
         now = timezone.now()
 
         (
-            ubi_packages,
             sc_packages,
             sla_policies,
             jira_bug_issuetype,
         ) = collect_step_1_fetch()
 
         collect_step_2_sync(
-            ubi_packages,
             sc_packages,
             sla_policies,
             jira_bug_issuetype,

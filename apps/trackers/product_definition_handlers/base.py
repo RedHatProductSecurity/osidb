@@ -6,7 +6,6 @@ class ProductDefinitionRules:
         from .default_handler import DefaultHandler
         from .major_incident_handler import MajorIncidentHandler
         from .moderate_handler import ModerateHandler
-        from .ubi_handler import UBIHandler
         from .unacked_handler import UnackedHandler
 
         # top-down priority
@@ -15,7 +14,6 @@ class ProductDefinitionRules:
         self.handlers = [
             MajorIncidentHandler(),
             DefaultHandler(),
-            UBIHandler(),
             ModerateHandler(),
             UnackedHandler(),
         ]
