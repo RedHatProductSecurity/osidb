@@ -1,4 +1,7 @@
+from datetime import datetime
+
 import pytest
+from freezegun import freeze_time
 from rest_framework import status
 
 from osidb.models import Package, PackageVer
@@ -159,6 +162,7 @@ class TestEndpointsFlawsPackageVersions:
         response_vers = {v["version"] for v in response.data["versions"]}
         assert expected_vers == response_vers
 
+    @freeze_time(datetime(2020, 12, 12))  # freeze against top of the second crossing
     @pytest.mark.parametrize(
         "correct_timestamp",
         [

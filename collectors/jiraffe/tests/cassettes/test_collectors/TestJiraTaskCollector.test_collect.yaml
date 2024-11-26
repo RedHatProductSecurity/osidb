@@ -13,7 +13,7 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
       X-Atlassian-Token:
       - no-check
     method: GET
@@ -210,21 +210,25 @@ interactions:
         "RESOLVE_ISSUE": {"id": "14", "key": "RESOLVE_ISSUE", "name": "Resolve Issues",
         "type": "PROJECT", "description": "Ability to resolve and reopen issues. This
         includes the ability to set a fix version.", "havePermission": true, "deprecatedKey":
-        true}, "A4J_PERM_IMPERSONATE_ACTOR_PROJECT": {"id": "-1", "key": "A4J_PERM_IMPERSONATE_ACTOR_PROJECT",
-        "name": "Impersonate users in A4J project scope", "type": "PROJECT", "description":
-        "Having the permission allows to select other user as automation rule actor",
-        "havePermission": false}, "ASSIGNABLE_USER": {"id": "17", "key": "ASSIGNABLE_USER",
-        "name": "Assignable User", "type": "PROJECT", "description": "Users with this
-        permission may be assigned to issues.", "havePermission": true}, "TRANSITION_ISSUE":
-        {"id": "46", "key": "TRANSITION_ISSUE", "name": "Transition Issues", "type":
-        "PROJECT", "description": "Ability to transition issues.", "havePermission":
-        true, "deprecatedKey": true}, "COMMENT_EDIT_OWN": {"id": "35", "key": "COMMENT_EDIT_OWN",
-        "name": "Edit Own Comments", "type": "PROJECT", "description": "Ability to
-        edit own comments made on issues.", "havePermission": true, "deprecatedKey":
-        true}, "MOVE_ISSUE": {"id": "25", "key": "MOVE_ISSUE", "name": "Move Issues",
-        "type": "PROJECT", "description": "Ability to move issues between projects
-        or between workflows of the same project (if applicable). Note the user can
-        only move issues to a project he or she has the create permission for.", "havePermission":
+        true}, "SERVICEDESK_AGENT": {"id": "-1", "key": "SERVICEDESK_AGENT", "name":
+        "Service Desk Agent", "type": "PROJECT", "description": "Allows users to interact
+        with customers and access Jira Service Management features of a project.",
+        "havePermission": false}, "A4J_PERM_IMPERSONATE_ACTOR_PROJECT": {"id": "-1",
+        "key": "A4J_PERM_IMPERSONATE_ACTOR_PROJECT", "name": "Impersonate users in
+        A4J project scope", "type": "PROJECT", "description": "Having the permission
+        allows to select other user as automation rule actor", "havePermission": false},
+        "ASSIGNABLE_USER": {"id": "17", "key": "ASSIGNABLE_USER", "name": "Assignable
+        User", "type": "PROJECT", "description": "Users with this permission may be
+        assigned to issues.", "havePermission": true}, "TRANSITION_ISSUE": {"id":
+        "46", "key": "TRANSITION_ISSUE", "name": "Transition Issues", "type": "PROJECT",
+        "description": "Ability to transition issues.", "havePermission": true, "deprecatedKey":
+        true}, "COMMENT_EDIT_OWN": {"id": "35", "key": "COMMENT_EDIT_OWN", "name":
+        "Edit Own Comments", "type": "PROJECT", "description": "Ability to edit own
+        comments made on issues.", "havePermission": true, "deprecatedKey": true},
+        "MOVE_ISSUE": {"id": "25", "key": "MOVE_ISSUE", "name": "Move Issues", "type":
+        "PROJECT", "description": "Ability to move issues between projects or between
+        workflows of the same project (if applicable). Note the user can only move
+        issues to a project he or she has the create permission for.", "havePermission":
         true, "deprecatedKey": true}, "WORKLOG_EDIT_OWN": {"id": "40", "key": "WORKLOG_EDIT_OWN",
         "name": "Edit Own Worklogs", "type": "PROJECT", "description": "Ability to
         edit own worklogs made on issues.", "havePermission": true, "deprecatedKey":
@@ -245,9 +249,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Fri, 28 Jun 2024 11:42:39 GMT
+      - Tue, 26 Nov 2024 12:05:55 GMT
       Expires:
-      - Fri, 28 Jun 2024 11:42:39 GMT
+      - Tue, 26 Nov 2024 12:05:55 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -260,17 +264,17 @@ interactions:
       X-RateLimit-Remaining:
       - '4'
       content-length:
-      - '16299'
+      - '16539'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 702x214280x1
+      - 725x1711877x1
       x-asessionid:
-      - 154jn9w
+      - vmb9sd
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -282,316 +286,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4e24c317.1719574959.32d64b5b
+      - 0.dfb1060.1732622755.7eeb4686
       x-rh-edge-request-id:
-      - 32d64b5b
-      x-seraph-loginreason:
-      - OK
-      x-xss-protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json,*.*;q=0.9
-      Accept-Encoding:
-      - gzip, deflate
-      Cache-Control:
-      - no-cache
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-requests/2.32.0
-      X-Atlassian-Token:
-      - no-check
-    method: GET
-    uri: https://example.com/rest/api/2/issuetype
-  response:
-    body:
-      string: '[{"self":"https://example.com/rest/api/2/issuetype/3","id":"3","description":"Represents
-        a small unit of work that is not end-user facing.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Task","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/5","id":"5","description":"The
-        sub-task of the issue","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13276&avatarType=issuetype","name":"Sub-task","subtask":true,"avatarId":13276},{"self":"https://example.com/rest/api/2/issuetype/17","id":"17","description":"Created
-        by Jira Software - do not edit or delete. Issue type for a user story.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Story","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/1","id":"1","description":"A
-        problem that impairs or prevents the functions of the product.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Bug","subtask":false,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/16","id":"16","description":"Created
-        by Jira Software - do not edit or delete. Issue type for a big user story
-        that needs to be broken down.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13267&avatarType=issuetype","name":"Epic","subtask":false,"avatarId":13267},{"self":"https://example.com/rest/api/2/issuetype/11406","id":"11406","description":"Expresses
-        areas of concern for a project or program''s success.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype","name":"Risk","subtask":false,"avatarId":13268},{"self":"https://example.com/rest/api/2/issuetype/10100","id":"10100","description":"A
-        large product/portfolio goal or focus area that has clear start and completion
-        criteria","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10800","id":"10800","description":"Represents
-        a research-related task.''","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/12102","id":"12102","description":"Organizational
-        objective focused on a measurable outcome. May be in support of larger strategic
-        goals.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Outcome","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/2","id":"2","description":"Feature
-        requests from customers and/or users","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature
-        Request","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/13","id":"13","description":"An
-        enhancement to or refactoring of existing functionality that is not configurable
-        by an end user (typically a change made by an internal team that affects users)","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13269&avatarType=issuetype","name":"Enhancement","subtask":false,"avatarId":13269},{"self":"https://example.com/rest/api/2/issuetype/18","id":"18","description":"A
-        technical task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Technical
-        task","subtask":true,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/11403","id":"11403","description":"Used
-        to track RCA work with specific custom fields defined by the QE Closed Loop
-        Process.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13269&avatarType=issuetype","name":"Closed
-        Loop","subtask":false,"avatarId":13269},{"self":"https://example.com/rest/api/2/issuetype/8","id":"8","description":"A
-        one-off patch related to a customer support case, provided by Support and
-        not Engineering","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Support
-        Patch","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/4","id":"4","description":"An
-        improvement or enhancement to an existing feature or task. Includes patches
-        submitted by community commiters.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Patch","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/7","id":"7","description":"Indicates
-        a possible testsuite challenge","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17262&avatarType=issuetype","name":"CTS
-        Challenge","subtask":false,"avatarId":17262},{"self":"https://example.com/rest/api/2/issuetype/9","id":"9","description":"A
-        container task to coordinate the tasks for a given release.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Release","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10","id":"10","description":"A
-        potential bug.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype","name":"Quality
-        Risk","subtask":false,"avatarId":13268},{"self":"https://example.com/rest/api/2/issuetype/11","id":"11","description":"A
-        subtask tracking an update to a bundled component","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Component
-        Upgrade Subtask","subtask":true,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/12","id":"12","description":"A
-        task tracking an update to a bundled component or revision of component upstream
-        of the project.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Component
-        Upgrade","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11401","id":"11401","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"RFE","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
-        or a well-defined set of functionality that delivers business value. Features
-        can include additions or changes to existing functionality. Features can easily
-        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
-        of a library dependency","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Library
-        Upgrade","subtask":false,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/15","id":"15","description":"A
-        clarification needed to a specification based on community feedback","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Clarification","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/19","id":"19","description":"Issue
-        tracking a bug fix or improvement in another component","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Tracker","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/20","id":"20","description":"Used
-        for conducting internal reviews of our products and process with 3rd party
-        auditors","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Requirement","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/21","id":"21","description":"Same
-        as Requirement type but for subtasks","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13276&avatarType=issuetype","name":"Sub-requirement
-        ","subtask":true,"avatarId":13276},{"self":"https://example.com/rest/api/2/issuetype/22","id":"22","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Documentation","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/24","id":"24","description":"Support
-        Request","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13264&avatarType=issuetype","name":"Support
-        Request","subtask":false,"avatarId":13264},{"self":"https://example.com/rest/api/2/issuetype/10000","id":"10000","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Content
-        Change","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10001","id":"10001","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Technical
-        Requirement","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/10002","id":"10002","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13274&avatarType=issuetype","name":"Business
-        Requirement","subtask":false,"avatarId":13274},{"self":"https://example.com/rest/api/2/issuetype/10300","id":"10300","description":"Development
-        task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Dev
-        Task","subtask":false,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/10301","id":"10301","description":"QE
-        Task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"QE
-        Task","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/10302","id":"10302","description":"Docs
-        Task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Docs
-        Task","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10400","id":"10400","description":"Objectives
-        and Key Results","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13274&avatarType=issuetype","name":"OKR","subtask":false,"avatarId":13274},{"self":"https://example.com/rest/api/2/issuetype/10500","id":"10500","description":"Policies
-        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
-        issue requiring coordinated response","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10304&avatarType=issuetype","name":"Flare","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10900","id":"10900","description":"This
-        issue type is created for Service Desk functions in Jira Software","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Service
-        Request","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/10901","id":"10901","description":"Used
-        to represent an interrupt request identifying a problem that must be addressed,
-        usually from customer support","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13264&avatarType=issuetype","name":"Incident","subtask":false,"avatarId":13264},{"self":"https://example.com/rest/api/2/issuetype/10902","id":"10902","description":"Custom
-        Task issuetype for OCSPLAT","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Platform","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/11000","id":"11000","description":"A
-        request for change, often with an approval step at the beginning to confirm
-        the change.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Change
-        Request","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11100","id":"11100","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Support
-        Exception","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11101","id":"11101","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13276&avatarType=issuetype","name":"Review","subtask":true,"avatarId":13276},{"self":"https://example.com/rest/api/2/issuetype/11200","id":"11200","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Simple
-        Task","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11201","id":"11201","description":"The
-        sub-task of the issue used to track related QE work","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13273&avatarType=issuetype","name":"QE
-        Sub-task","subtask":true,"avatarId":13273},{"self":"https://example.com/rest/api/2/issuetype/11202","id":"11202","description":"The
-        sub-task of the issue used to track related development work","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Dev
-        Sub-task","subtask":true,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/11203","id":"11203","description":"The
-        sub-task of the issue used to track related documentation work","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Docs
-        Sub-task","subtask":true,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/11204","id":"11204","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Simple
-        Sub-task","subtask":true,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/11300","id":"11300","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Next
-        Action","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11400","id":"11400","description":"This
-        is a Business Unit Initiative a.k.a. \"BUI\"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"BU
-        Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11402","id":"11402","description":"General
-        issue to be triaged","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Issue","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11404","id":"11404","description":"HSS
-        PA tracking issue for Milestones","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Milestone","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11405","id":"11405","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Build
-        Task","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11407","id":"11407","description":"RT355021","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Report","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11408","id":"11408","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Schedule","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11409","id":"11409","description":"For
-        Documentation Issues","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Doc","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11410","id":"11410","description":"Mixed
-        type for Feature as Story","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Technical
-        Feature","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/11411","id":"11411","description":"Used
-        for grouping release operations, typically to identify milestones associated
-        with shipping a major release","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13273&avatarType=issuetype","name":"Release
-        Milestone","subtask":false,"avatarId":13273},{"self":"https://example.com/rest/api/2/issuetype/11412","id":"11412","description":"tracks
-        major releases","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Release
-        tracker","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/11413","id":"11413","description":"Generic
-        Service issue or operations request from an end user.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Ticket","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11414","id":"11414","description":"Higher
-        level than an epic","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Project","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/11415","id":"11415","description":"Root
-        Cause Analysis","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13269&avatarType=issuetype","name":"Root
-        Cause Analysis","subtask":false,"avatarId":13269},{"self":"https://example.com/rest/api/2/issuetype/11416","id":"11416","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13264&avatarType=issuetype","name":"Weather-item","subtask":false,"avatarId":13264},{"self":"https://example.com/rest/api/2/issuetype/11417","id":"11417","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Ad-Hoc
-        Task","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/11419","id":"11419","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Stakeholder
-        Request","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11600","id":"11600","description":"A
-        defect that needs to be fixed before Story can be \"Done\"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Story
-        Bug","subtask":true,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/11700","id":"11700","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=39777&avatarType=issuetype","name":"Info","subtask":false,"avatarId":39777},{"self":"https://example.com/rest/api/2/issuetype/11701","id":"11701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Team
-        Improvement","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11702","id":"11702","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Wireframe","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11800","id":"11800","description":"Product
-        Security Supply Chain Security Exception","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=39905&avatarType=issuetype","name":"Supply
-        Chain Exception","subtask":false,"avatarId":39905},{"self":"https://example.com/rest/api/2/issuetype/11900","id":"11900","description":"ProdSec
-        Software Security Exception","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=40577&avatarType=issuetype","name":"Software
-        Security Exception","subtask":false,"avatarId":40577},{"self":"https://example.com/rest/api/2/issuetype/12100","id":"12100","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Objective","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/12101","id":"12101","description":"Large,
-        strategic focus area typically defined by leadership teams to achieve organizational
-        long-term vision.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=50977&avatarType=issuetype","name":"Strategic
-        Goal","subtask":false,"avatarId":50977},{"self":"https://example.com/rest/api/2/issuetype/12206","id":"12206","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=55783&avatarType=issuetype","name":"Weakness","subtask":false,"avatarId":55783},{"self":"https://example.com/rest/api/2/issuetype/12207","id":"12207","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=55784&avatarType=issuetype","name":"Vulnerability","subtask":false,"avatarId":55784},{"self":"https://example.com/rest/api/2/issuetype/12300","id":"12300","description":"CASE-461","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Epic
-        Story","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/12301","id":"12301","description":"CASE-461","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Epic
-        Bug","subtask":false,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
-        new feature of the product, which has yet to be developed.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"New
-        Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10200","id":"10200","description":"An
-        improvement or enhancement to an existing feature or task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Improvement","subtask":false,"avatarId":13270}]'
-    headers:
-      Cache-Control:
-      - max-age=0, no-cache, no-store
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json;charset=UTF-8
-      Date:
-      - Fri, 28 Jun 2024 11:42:39 GMT
-      Expires:
-      - Fri, 28 Jun 2024 11:42:39 GMT
-      Pragma:
-      - no-cache
-      Retry-After:
-      - '0'
-      Vary:
-      - User-Agent
-      - Accept-Encoding
-      X-RateLimit-Limit:
-      - '5'
-      X-RateLimit-Remaining:
-      - '3'
-      content-length:
-      - '25109'
-      referrer-policy:
-      - strict-origin-when-cross-origin
-      strict-transport-security:
-      - max-age=31536000
-      x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
-      x-arequestid:
-      - 702x214281x1
-      x-asessionid:
-      - 18gu9x1
-      x-content-type-options:
-      - nosniff
-      x-frame-options:
-      - SAMEORIGIN
-      x-ratelimit-fillrate:
-      - '5'
-      x-ratelimit-interval-seconds:
-      - '1'
-      x-rh-edge-cache-status:
-      - NotCacheable from child
-      x-rh-edge-reference-id:
-      - 0.4e24c317.1719574959.32d64c48
-      x-rh-edge-request-id:
-      - 32d64c48
-      x-seraph-loginreason:
-      - OK
-      x-xss-protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json,*.*;q=0.9
-      Accept-Encoding:
-      - gzip, deflate
-      Cache-Control:
-      - no-cache
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-requests/2.32.0
-      X-Atlassian-Token:
-      - no-check
-    method: GET
-    uri: https://example.com/rest/api/2/project/OSIM
-  response:
-    body:
-      string: '{"expand": "description,lead,url,projectKeys", "self": "https://example.com/rest/api/2/project/12337520",
-        "id": "12337520", "key": "OSIM", "description": "This project will serve Incident
-        Response team as a task repository, managing the workflow in PSIR and integrating
-        with OSIDB.", "lead": {"self": "https://example.com/rest/api/2/user?username=concosta@redhat.com",
-        "key": "JIRAUSER196381", "name": "concosta@redhat.com", "avatarUrls": {"48x48":
-        "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
-        "displayName": "Conrado Costa", "active": true}, "components": [], "issueTypes":
-        [{"self": "https://example.com/rest/api/2/issuetype/3", "id": "3", "description":
-        "Represents a small unit of work that is not end-user facing.", "iconUrl":
-        "https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype",
-        "name": "Task", "subtask": false, "avatarId": 13278}, {"self": "https://example.com/rest/api/2/issuetype/5",
-        "id": "5", "description": "The sub-task of the issue", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13276&avatarType=issuetype",
-        "name": "Sub-task", "subtask": true, "avatarId": 13276}, {"self": "https://example.com/rest/api/2/issuetype/17",
-        "id": "17", "description": "Created by Jira Software - do not edit or delete.
-        Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, {"self": "https://example.com/rest/api/2/issuetype/1",
-        "id": "1", "description": "A problem that impairs or prevents the functions
-        of the product.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
-        "name": "Bug", "subtask": false, "avatarId": 13263}, {"self": "https://example.com/rest/api/2/issuetype/16",
-        "id": "16", "description": "Created by Jira Software - do not edit or delete.
-        Issue type for a big user story that needs to be broken down.", "iconUrl":
-        "https://example.com/secure/viewavatar?size=xsmall&avatarId=13267&avatarType=issuetype",
-        "name": "Epic", "subtask": false, "avatarId": 13267}, {"self": "https://example.com/rest/api/2/issuetype/11406",
-        "id": "11406", "description": "Expresses areas of concern for a project or
-        program''s success.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype",
-        "name": "Risk", "subtask": false, "avatarId": 13268}], "assigneeType": "UNASSIGNED",
-        "versions": [], "name": "Open Security Issue Manager", "roles": {"Scrum master":
-        "https://example.com/rest/api/2/project/12337520/role/10540", "Developers":
-        "https://example.com/rest/api/2/project/12337520/role/10001", "Administrators":
-        "https://example.com/rest/api/2/project/12337520/role/10002", "Approver":
-        "https://example.com/rest/api/2/project/12337520/role/10840", "Viewers": "https://example.com/rest/api/2/project/12337520/role/10440",
-        "Users": "https://example.com/rest/api/2/project/12337520/role/10000", "Curriculum
-        Developer External": "https://example.com/rest/api/2/project/12337520/role/11140"},
-        "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
-        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
-        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
-        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"},
-        "projectTypeKey": "software", "archived": false}'
-    headers:
-      Cache-Control:
-      - max-age=0, no-cache, no-store
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json;charset=UTF-8
-      Date:
-      - Fri, 28 Jun 2024 11:42:39 GMT
-      Expires:
-      - Fri, 28 Jun 2024 11:42:39 GMT
-      Pragma:
-      - no-cache
-      Retry-After:
-      - '0'
-      Vary:
-      - User-Agent
-      - Accept-Encoding
-      X-RateLimit-Limit:
-      - '5'
-      X-RateLimit-Remaining:
-      - '3'
-      content-length:
-      - '4024'
-      referrer-policy:
-      - strict-origin-when-cross-origin
-      strict-transport-security:
-      - max-age=31536000
-      x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
-      x-arequestid:
-      - 702x214282x1
-      x-asessionid:
-      - 16x8lvt
-      x-content-type-options:
-      - nosniff
-      x-frame-options:
-      - SAMEORIGIN
-      x-ratelimit-fillrate:
-      - '5'
-      x-ratelimit-interval-seconds:
-      - '1'
-      x-rh-edge-cache-status:
-      - NotCacheable from child
-      x-rh-edge-reference-id:
-      - 0.4e24c317.1719574959.32d64d90
-      x-rh-edge-request-id:
-      - 32d64d90
+      - 7eeb4686
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -603,7 +300,8 @@ interactions:
     body: '{"fields": {"issuetype": {"id": "17"}, "project": {"id": "12337520"}, "summary":
       "CVE-2020-10000 kernel: some description", "description": "Comment zero for
       CVE-2020-10000", "labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
-      "impact:IMPORTANT", "major_incident"], "priority": {"name": "Major"}}}'
+      "impact:IMPORTANT", "CVE-2020-10000"], "priority": {"name": "Major"}, "assignee":
+      {"name": ""}}}'
     headers:
       Accept:
       - application/json,*.*;q=0.9
@@ -614,18 +312,18 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '304'
+      - '330'
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
       X-Atlassian-Token:
       - no-check
     method: POST
     uri: https://example.com/rest/api/2/issue
   response:
     body:
-      string: '{"id": "16090950", "key": "OSIM-495", "self": "https://example.com/rest/api/2/issue/16090950"}'
+      string: '{"id": "16312059", "key": "OSIM-14341", "self": "https://example.com/rest/api/2/issue/16312059"}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -635,9 +333,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Fri, 28 Jun 2024 11:42:40 GMT
+      - Tue, 26 Nov 2024 12:05:58 GMT
       Expires:
-      - Fri, 28 Jun 2024 11:42:40 GMT
+      - Tue, 26 Nov 2024 12:05:58 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -650,19 +348,19 @@ interactions:
       X-RateLimit-Limit:
       - '5'
       X-RateLimit-Remaining:
-      - '2'
+      - '3'
       content-length:
-      - '101'
+      - '103'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 702x214283x1
+      - 725x1711879x1
       x-asessionid:
-      - 1dkzmpl
+      - 1iwzs1q
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -674,9 +372,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4e24c317.1719574959.32d64ebb
+      - 0.dfb1060.1732622755.7eeb475a
       x-rh-edge-request-id:
-      - 32d64ebb
+      - 7eeb475a
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -698,90 +396,100 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-495
+    uri: https://example.com/rest/api/2/issue/OSIM-14341
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "16090950", "self": "https://example.com/rest/api/2/issue/16090950",
-        "key": "OSIM-495", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
-        "id": "17", "description": "Created by Jira Software - do not edit or delete.
-        Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
-        null, "customfield_12324540": "0.0", "timespent": null, "customfield_12320940":
-        null, "project": {"self": "https://example.com/rest/api/2/project/12337520",
-        "id": "12337520", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
-        "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
-        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
-        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
-        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
-        "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
-        "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@56aa7440[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7f4961c7[overall=PullRequestOverallBean{stateCount=0,
+        "id": "16312059", "self": "https://example.com/rest/api/2/issue/16312059",
+        "key": "OSIM-14341", "fields": {"customfield_12324540": "0.0", "fixVersions":
+        [], "resolution": null, "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@5a9a784d[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2cde79c0[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3effbc10[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@a0ca551[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5f116272[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@7274a6dd[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@31a88bbf[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@5e6196f6[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@a376dba[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@5da2606f[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@28a2fd17[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@7a2608d3[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3f55022c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@601a6c7f[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6b927335[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@7fe7cb32[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6834f280[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@5bfe126d[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@238dd9fc[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@62f228e4[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2d9d76c8[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@6db746c[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
-        "resolutiondate": null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
-        null, "customfield_12316841": null, "customfield_12315950": null, "customfield_12310940":
-        null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://example.com/rest/api/2/issue/OSIM-495/watchers", "watchCount": 1,
-        "isWatching": true}, "created": "2024-06-28T11:42:39.549+0000", "customfield_12321240":
+        "customfield_12315950": null, "customfield_12310940": null, "lastViewed":
         null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/3",
         "iconUrl": "https://example.com/images/icons/priorities/major.svg", "name":
-        "Major", "id": "3"}, "labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
-        "impact:IMPORTANT", "major_incident"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
-        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
-        {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
-        "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
-        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
-        null, "updated": "2024-06-28T11:42:39.549+0000", "customfield_12313942": null,
-        "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
+        "Major", "id": "3"}, "labels": ["CVE-2020-10000", "flawuuid:fb145b06-82a7-4851-a429-541288633d16",
+        "impact:IMPORTANT"], "aggregatetimeoriginalestimate": null, "timeestimate":
+        null, "versions": [], "issuelinks": [], "assignee": null, "customfield_12313942":
+        null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
         very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
         "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
-        [], "timeoriginalestimate": null, "description": "Comment zero for CVE-2020-10000",
-        "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
-        null, "timetracking": {}, "customfield_12320842": null, "customfield_12310243":
-        null, "attachment": [], "aggregatetimeestimate": null, "customfield_12316542":
-        {"self": "https://example.com/rest/api/2/customFieldOption/14655", "value":
-        "False", "id": "14655", "disabled": false}, "customfield_12317313": null,
-        "customfield_12316543": {"self": "https://example.com/rest/api/2/customFieldOption/14657",
-        "value": "False", "id": "14657", "disabled": false}, "customfield_12316544":
-        "None", "customfield_12310840": "9223372036854775807", "summary": "CVE-2020-10000
-        kernel: some description", "customfield_12323640": null, "customfield_12323642":
-        null, "creator": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
-        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
-        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
-        "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "customfield_12320850": null, "reporter": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
-        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
-        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
-        "aggregateprogress": {"progress": 0, "total": 0}, "customfield_12323644":
-        null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
-        null, "environment": null, "customfield_12315542": null, "customfield_12315740":
-        null, "customfield_12313441": "", "customfield_12313440": "0.0", "customfield_12313240":
-        null, "duedate": null, "customfield_12311140": null, "customfield_12319742":
-        null, "progress": {"progress": 0, "total": 0}, "comment": {"comments": [],
-        "maxResults": 0, "total": 0, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-495/votes",
+        [], "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
+        null, "customfield_12320842": null, "customfield_12310243": null, "aggregatetimeestimate":
+        null, "customfield_12317313": null, "creator": {"self": "https://example.com/rest/api/2/user?username=osoukup%40redhat.com",
+        "name": "osoukup@redhat.com", "key": "osoukup", "emailAddress": "osoukup+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17283",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17283",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17283",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17283"},
+        "displayName": "Ondrej Soukup", "active": true, "timeZone": "UTC"}, "subtasks":
+        [], "customfield_12321140": null, "customfield_12320850": null, "reporter":
+        {"self": "https://example.com/rest/api/2/user?username=osoukup%40redhat.com",
+        "name": "osoukup@redhat.com", "key": "osoukup", "emailAddress": "osoukup+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17283",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17283",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17283",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17283"},
+        "displayName": "Ondrej Soukup", "active": true, "timeZone": "UTC"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12315542": null, "customfield_12313240":
+        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
+        "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-14341/votes",
         "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
-        0, "maxResults": 20, "total": 0, "worklogs": []}, "customfield_12310213":
-        null, "archivedby": null, "customfield_12311940": "2|i10z5r:"}}'
+        0, "maxResults": 20, "total": 0, "worklogs": []}, "archivedby": null, "customfield_12325158":
+        null, "issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
+        "id": "17", "description": "Created by Jira Software - do not edit or delete.
+        Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12325157":
+        null, "customfield_12325159": null, "customfield_12318341": null, "customfield_12325154":
+        null, "customfield_12325153": null, "customfield_12325156": null, "timespent":
+        null, "customfield_12325155": null, "customfield_12320940": null, "project":
+        {"self": "https://example.com/rest/api/2/project/12337520", "id": "12337520",
+        "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey": "software",
+        "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
+        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
+        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
+        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
+        "customfield_12320944": null, "aggregatetimespent": null, "customfield_12310220":
+        null, "resolutiondate": null, "customfield_12325150": null, "workratio": -1,
+        "customfield_12325152": null, "customfield_12316840": null, "customfield_12317379":
+        null, "customfield_12325151": null, "customfield_12316841": null, "customfield_12319040":
+        null, "customfield_12325047": null, "watches": {"self": "https://example.com/rest/api/2/issue/OSIM-14341/watchers",
+        "watchCount": 1, "isWatching": true}, "customfield_12325044": null, "customfield_12325043":
+        null, "customfield_12325046": null, "created": "2024-11-26T12:05:56.086+0000",
+        "customfield_12321240": null, "customfield_12325045": null, "customfield_12320947":
+        [{"self": "https://example.com/rest/api/2/customFieldOption/27714", "value":
+        "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
+        "False", "id": "27705", "disabled": false}, "customfield_12325040": [], "customfield_12325160":
+        null, "customfield_12325042": null, "customfield_12325041": null, "updated":
+        "2024-11-26T12:05:56.086+0000", "timeoriginalestimate": null, "description":
+        "Comment zero for CVE-2020-10000", "timetracking": {}, "attachment": [], "customfield_12316542":
+        {"self": "https://example.com/rest/api/2/customFieldOption/14655", "value":
+        "False", "id": "14655", "disabled": false}, "customfield_12316543": {"self":
+        "https://example.com/rest/api/2/customFieldOption/14657", "value": "False",
+        "id": "14657", "disabled": false}, "customfield_12316544": "None", "customfield_12310840":
+        "9223372036854775807", "summary": "CVE-2020-10000 kernel: some description",
+        "customfield_12323640": null, "customfield_12325147": null, "customfield_12325146":
+        null, "customfield_12323642": null, "customfield_12325149": null, "customfield_12323641":
+        null, "customfield_12325148": null, "customfield_12325143": null, "customfield_12325142":
+        null, "customfield_12325145": null, "customfield_12325144": null, "customfield_12323644":
+        null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
+        null, "environment": null, "customfield_12315740": null, "customfield_12313441":
+        "", "customfield_12313440": "0.0", "duedate": null, "customfield_12311140":
+        null, "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt":
+        0}, "customfield_12325141": null, "customfield_12325140": null, "customfield_12310213":
+        null, "customfield_12311940": "2|i21qzr:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -790,9 +498,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Fri, 28 Jun 2024 11:42:40 GMT
+      - Tue, 26 Nov 2024 12:05:58 GMT
       Expires:
-      - Fri, 28 Jun 2024 11:42:40 GMT
+      - Tue, 26 Nov 2024 12:05:58 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -805,17 +513,17 @@ interactions:
       X-RateLimit-Remaining:
       - '4'
       content-length:
-      - '8817'
+      - '9404'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
+      - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 702x214284x1
+      - 725x1711892x1
       x-asessionid:
-      - 182ivda
+      - 5zqvtd
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -827,9 +535,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4e24c317.1719574960.32d65c1b
+      - 0.dfb1060.1732622758.7eeb5336
       x-rh-edge-request-id:
-      - 32d65c1b
+      - 7eeb5336
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -851,90 +559,100 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-495
+    uri: https://example.com/rest/api/2/issue/OSIM-14341
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "16090950", "self": "https://example.com/rest/api/2/issue/16090950",
-        "key": "OSIM-495", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
-        "id": "17", "description": "Created by Jira Software - do not edit or delete.
-        Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
-        null, "customfield_12324540": "0.0", "timespent": null, "customfield_12320940":
-        null, "project": {"self": "https://example.com/rest/api/2/project/12337520",
-        "id": "12337520", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
-        "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
-        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
-        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
-        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
-        "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
-        "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@7197c949[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5fe357f8[overall=PullRequestOverallBean{stateCount=0,
+        "id": "16312059", "self": "https://example.com/rest/api/2/issue/16312059",
+        "key": "OSIM-14341", "fields": {"customfield_12324540": "0.0", "fixVersions":
+        [], "resolution": null, "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@6eaa2c7f[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@24fbf62a[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@47f6a126[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@26f62b7[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@22d8e44b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@d749f1e[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7f79e007[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@6fa4f85[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@636519ad[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@4ac0e6b0[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7a095e37[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@2edbb094[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2809e64a[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@53380fc7[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@a5c61ac[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@6203de70[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@55f4fcc[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@168a2e97[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7fb27ceb[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@3bedd33[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7ce0c3a7[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@3b59b43a[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
-        "resolutiondate": null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
-        null, "customfield_12316841": null, "customfield_12315950": null, "customfield_12310940":
-        null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://example.com/rest/api/2/issue/OSIM-495/watchers", "watchCount": 1,
-        "isWatching": true}, "created": "2024-06-28T11:42:39.549+0000", "customfield_12321240":
+        "customfield_12315950": null, "customfield_12310940": null, "lastViewed":
         null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/3",
         "iconUrl": "https://example.com/images/icons/priorities/major.svg", "name":
-        "Major", "id": "3"}, "labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
-        "impact:IMPORTANT", "major_incident"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
-        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
-        {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
-        "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
-        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
-        null, "updated": "2024-06-28T11:42:39.549+0000", "customfield_12313942": null,
-        "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
+        "Major", "id": "3"}, "labels": ["CVE-2020-10000", "flawuuid:fb145b06-82a7-4851-a429-541288633d16",
+        "impact:IMPORTANT"], "aggregatetimeoriginalestimate": null, "timeestimate":
+        null, "versions": [], "issuelinks": [], "assignee": null, "customfield_12313942":
+        null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/10016",
         "description": "Initial creation status. Implies nothing yet and should be
         very short lived; also can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
         "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
-        [], "timeoriginalestimate": null, "description": "Comment zero for CVE-2020-10000",
-        "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
-        null, "timetracking": {}, "customfield_12320842": null, "customfield_12310243":
-        null, "attachment": [], "aggregatetimeestimate": null, "customfield_12316542":
-        {"self": "https://example.com/rest/api/2/customFieldOption/14655", "value":
-        "False", "id": "14655", "disabled": false}, "customfield_12317313": null,
-        "customfield_12316543": {"self": "https://example.com/rest/api/2/customFieldOption/14657",
-        "value": "False", "id": "14657", "disabled": false}, "customfield_12316544":
-        "None", "customfield_12310840": "9223372036854775807", "summary": "CVE-2020-10000
-        kernel: some description", "customfield_12323640": null, "customfield_12323642":
-        null, "creator": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
-        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
-        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
-        "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "customfield_12320850": null, "reporter": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
-        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
-        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
-        "aggregateprogress": {"progress": 0, "total": 0}, "customfield_12323644":
-        null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
-        null, "environment": null, "customfield_12315542": null, "customfield_12315740":
-        null, "customfield_12313441": "", "customfield_12313440": "0.0", "customfield_12313240":
-        null, "duedate": null, "customfield_12311140": null, "customfield_12319742":
-        null, "progress": {"progress": 0, "total": 0}, "comment": {"comments": [],
-        "maxResults": 0, "total": 0, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-495/votes",
+        [], "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
+        null, "customfield_12320842": null, "customfield_12310243": null, "aggregatetimeestimate":
+        null, "customfield_12317313": null, "creator": {"self": "https://example.com/rest/api/2/user?username=osoukup%40redhat.com",
+        "name": "osoukup@redhat.com", "key": "osoukup", "emailAddress": "osoukup+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17283",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17283",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17283",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17283"},
+        "displayName": "Ondrej Soukup", "active": true, "timeZone": "UTC"}, "subtasks":
+        [], "customfield_12321140": null, "customfield_12320850": null, "reporter":
+        {"self": "https://example.com/rest/api/2/user?username=osoukup%40redhat.com",
+        "name": "osoukup@redhat.com", "key": "osoukup", "emailAddress": "osoukup+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17283",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17283",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17283",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17283"},
+        "displayName": "Ondrej Soukup", "active": true, "timeZone": "UTC"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12315542": null, "customfield_12313240":
+        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
+        "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-14341/votes",
         "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
-        0, "maxResults": 20, "total": 0, "worklogs": []}, "customfield_12310213":
-        null, "archivedby": null, "customfield_12311940": "2|i10z5r:"}}'
+        0, "maxResults": 20, "total": 0, "worklogs": []}, "archivedby": null, "customfield_12325158":
+        null, "issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
+        "id": "17", "description": "Created by Jira Software - do not edit or delete.
+        Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12325157":
+        null, "customfield_12325159": null, "customfield_12318341": null, "customfield_12325154":
+        null, "customfield_12325153": null, "customfield_12325156": null, "timespent":
+        null, "customfield_12325155": null, "customfield_12320940": null, "project":
+        {"self": "https://example.com/rest/api/2/project/12337520", "id": "12337520",
+        "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey": "software",
+        "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
+        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
+        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
+        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
+        "customfield_12320944": null, "aggregatetimespent": null, "customfield_12310220":
+        null, "resolutiondate": null, "customfield_12325150": null, "workratio": -1,
+        "customfield_12325152": null, "customfield_12316840": null, "customfield_12317379":
+        null, "customfield_12325151": null, "customfield_12316841": null, "customfield_12319040":
+        null, "customfield_12325047": null, "watches": {"self": "https://example.com/rest/api/2/issue/OSIM-14341/watchers",
+        "watchCount": 1, "isWatching": true}, "customfield_12325044": null, "customfield_12325043":
+        null, "customfield_12325046": null, "created": "2024-11-26T12:05:56.086+0000",
+        "customfield_12321240": null, "customfield_12325045": null, "customfield_12320947":
+        [{"self": "https://example.com/rest/api/2/customFieldOption/27714", "value":
+        "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
+        "False", "id": "27705", "disabled": false}, "customfield_12325040": [], "customfield_12325160":
+        null, "customfield_12325042": null, "customfield_12325041": null, "updated":
+        "2024-11-26T12:05:56.086+0000", "timeoriginalestimate": null, "description":
+        "Comment zero for CVE-2020-10000", "timetracking": {}, "attachment": [], "customfield_12316542":
+        {"self": "https://example.com/rest/api/2/customFieldOption/14655", "value":
+        "False", "id": "14655", "disabled": false}, "customfield_12316543": {"self":
+        "https://example.com/rest/api/2/customFieldOption/14657", "value": "False",
+        "id": "14657", "disabled": false}, "customfield_12316544": "None", "customfield_12310840":
+        "9223372036854775807", "summary": "CVE-2020-10000 kernel: some description",
+        "customfield_12323640": null, "customfield_12325147": null, "customfield_12325146":
+        null, "customfield_12323642": null, "customfield_12325149": null, "customfield_12323641":
+        null, "customfield_12325148": null, "customfield_12325143": null, "customfield_12325142":
+        null, "customfield_12325145": null, "customfield_12325144": null, "customfield_12323644":
+        null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
+        null, "environment": null, "customfield_12315740": null, "customfield_12313441":
+        "", "customfield_12313440": "0.0", "duedate": null, "customfield_12311140":
+        null, "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt":
+        0}, "customfield_12325141": null, "customfield_12325140": null, "customfield_12310213":
+        null, "customfield_12311940": "2|i21qzr:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -943,9 +661,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Fri, 28 Jun 2024 11:42:41 GMT
+      - Tue, 26 Nov 2024 12:05:58 GMT
       Expires:
-      - Fri, 28 Jun 2024 11:42:41 GMT
+      - Tue, 26 Nov 2024 12:05:58 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -958,7 +676,7 @@ interactions:
       X-RateLimit-Remaining:
       - '4'
       content-length:
-      - '8816'
+      - '9402'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -966,9 +684,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 702x214285x1
+      - 725x1719582x1
       x-asessionid:
-      - wdprau
+      - 6jtb1l
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -980,9 +698,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4c24c317.1719574961.89d44fec
+      - 0.18fb1060.1732622758.880b8d87
       x-rh-edge-request-id:
-      - 89d44fec
+      - 880b8d87
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1003,15 +721,15 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '87'
+      - '93'
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
       X-Atlassian-Token:
       - no-check
     method: PUT
-    uri: https://example.com/rest/api/2/issue/OSIM-495
+    uri: https://example.com/rest/api/2/issue/OSIM-14341
   response:
     body:
       string: ''
@@ -1023,9 +741,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Fri, 28 Jun 2024 11:42:42 GMT
+      - Tue, 26 Nov 2024 12:05:59 GMT
       Expires:
-      - Fri, 28 Jun 2024 11:42:42 GMT
+      - Tue, 26 Nov 2024 12:05:59 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1041,9 +759,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 702x214286x1
+      - 725x1719603x1
       x-asessionid:
-      - zw3wvg
+      - 10iws4f
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1055,9 +773,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4c24c317.1719574961.89d45322
+      - 0.18fb1060.1732622758.880b9351
       x-rh-edge-request-id:
-      - 89d45322
+      - 880b9351
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1079,11 +797,11 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-495/transitions
+    uri: https://example.com/rest/api/2/issue/OSIM-14341/transitions
   response:
     body:
       string: '{"expand": "transitions", "transitions": [{"id": "11", "name": "New",
@@ -1128,9 +846,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Fri, 28 Jun 2024 11:42:42 GMT
+      - Tue, 26 Nov 2024 12:05:59 GMT
       Expires:
-      - Fri, 28 Jun 2024 11:42:42 GMT
+      - Tue, 26 Nov 2024 12:05:59 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1151,9 +869,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 702x214287x1
+      - 725x1719650x1
       x-asessionid:
-      - 1x9wp1t
+      - mnoodr
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1165,9 +883,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4c24c317.1719574962.89d46e7e
+      - 0.18fb1060.1732622759.880ba63e
       x-rh-edge-request-id:
-      - 89d46e7e
+      - 880ba63e
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1191,11 +909,11 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
       X-Atlassian-Token:
       - no-check
     method: POST
-    uri: https://example.com/rest/api/2/issue/OSIM-495/transitions
+    uri: https://example.com/rest/api/2/issue/OSIM-14341/transitions
   response:
     body:
       string: ''
@@ -1207,9 +925,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Fri, 28 Jun 2024 11:42:43 GMT
+      - Tue, 26 Nov 2024 12:06:00 GMT
       Expires:
-      - Fri, 28 Jun 2024 11:42:43 GMT
+      - Tue, 26 Nov 2024 12:06:00 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -1217,7 +935,7 @@ interactions:
       X-RateLimit-Limit:
       - '5'
       X-RateLimit-Remaining:
-      - '3'
+      - '4'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -1225,9 +943,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 702x214288x1
+      - 726x1719657x2
       x-asessionid:
-      - 1a7zcl5
+      - 1pe58rc
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -1239,9 +957,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4c24c317.1719574962.89d4724a
+      - 0.18fb1060.1732622760.880ba98f
       x-rh-edge-request-id:
-      - 89d4724a
+      - 880ba98f
       x-seraph-loginreason:
       - OK
       x-xss-protection:
@@ -1263,843 +981,100 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-495
+    uri: https://example.com/rest/api/2/issue/OSIM-14341
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "16090950", "self": "https://example.com/rest/api/2/issue/16090950",
-        "key": "OSIM-495", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
-        "id": "17", "description": "Created by Jira Software - do not edit or delete.
-        Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
-        null, "customfield_12324540": "0.0", "timespent": null, "customfield_12320940":
-        null, "project": {"self": "https://example.com/rest/api/2/project/12337520",
-        "id": "12337520", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
-        "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
-        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
-        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
-        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
-        "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
-        "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@6ad753ba[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2064b2b5[overall=PullRequestOverallBean{stateCount=0,
+        "id": "16312059", "self": "https://example.com/rest/api/2/issue/16312059",
+        "key": "OSIM-14341", "fields": {"customfield_12324540": "0.0", "fixVersions":
+        [], "resolution": null, "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@5ca7ffaf[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5a9012c6[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@240175b[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@734ecbc[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@54677d6d[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@50189044[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5260bfd3[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@7291e82f[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1df26f05[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@97c464f[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5eb5fe94[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@2318b5fd[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4b579d89[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@110bb007[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6ffc127[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@5ce6b771[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@2baac2b1[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@676dc44b[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1fe3c778[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@7657a6ca[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@b954dfb[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@2d38f5e[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
-        "resolutiondate": null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
-        null, "customfield_12316841": null, "customfield_12315950": null, "customfield_12310940":
-        null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://example.com/rest/api/2/issue/OSIM-495/watchers", "watchCount": 1,
-        "isWatching": true}, "created": "2024-06-28T11:42:39.549+0000", "customfield_12321240":
+        "customfield_12315950": null, "customfield_12310940": null, "lastViewed":
         null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/3",
         "iconUrl": "https://example.com/images/icons/priorities/major.svg", "name":
         "Major", "id": "3"}, "labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
-        "impact:IMPORTANT"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
-        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
-        {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
-        "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
-        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
-        null, "updated": "2024-06-28T11:42:42.803+0000", "customfield_12313942": null,
-        "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/15021",
+        "impact:IMPORTANT"], "aggregatetimeoriginalestimate": null, "timeestimate":
+        null, "versions": [], "issuelinks": [], "assignee": null, "customfield_12313942":
+        null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/15021",
         "description": "Work is being scoped and discussed (To Do status category;
         see also Draft)", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
         "name": "Refinement", "id": "15021", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
-        [], "timeoriginalestimate": null, "description": "Comment zero for CVE-2020-10000",
-        "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
-        null, "timetracking": {}, "customfield_12320842": null, "customfield_12310243":
-        null, "attachment": [], "aggregatetimeestimate": null, "customfield_12316542":
-        {"self": "https://example.com/rest/api/2/customFieldOption/14655", "value":
-        "False", "id": "14655", "disabled": false}, "customfield_12317313": null,
-        "customfield_12316543": {"self": "https://example.com/rest/api/2/customFieldOption/14657",
-        "value": "False", "id": "14657", "disabled": false}, "customfield_12316544":
-        "None", "customfield_12310840": "9223372036854775807", "summary": "CVE-2020-10000
-        kernel: some description", "customfield_12323640": null, "customfield_12323642":
-        null, "creator": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
-        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
-        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
-        "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "customfield_12320850": null, "reporter": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
-        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
-        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
-        "aggregateprogress": {"progress": 0, "total": 0}, "customfield_12323644":
-        null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
-        null, "environment": null, "customfield_12315542": null, "customfield_12315740":
-        null, "customfield_12313441": "", "customfield_12313440": "0.0", "customfield_12313240":
-        null, "duedate": null, "customfield_12311140": null, "customfield_12319742":
-        null, "progress": {"progress": 0, "total": 0}, "comment": {"comments": [],
-        "maxResults": 0, "total": 0, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-495/votes",
+        [], "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
+        null, "customfield_12320842": null, "customfield_12310243": null, "aggregatetimeestimate":
+        null, "customfield_12317313": null, "creator": {"self": "https://example.com/rest/api/2/user?username=osoukup%40redhat.com",
+        "name": "osoukup@redhat.com", "key": "osoukup", "emailAddress": "osoukup+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17283",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17283",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17283",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17283"},
+        "displayName": "Ondrej Soukup", "active": true, "timeZone": "UTC"}, "subtasks":
+        [], "customfield_12321140": null, "customfield_12320850": null, "reporter":
+        {"self": "https://example.com/rest/api/2/user?username=osoukup%40redhat.com",
+        "name": "osoukup@redhat.com", "key": "osoukup", "emailAddress": "osoukup+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17283",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17283",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17283",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17283"},
+        "displayName": "Ondrej Soukup", "active": true, "timeZone": "UTC"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12315542": null, "customfield_12313240":
+        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
+        "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-14341/votes",
         "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
-        0, "maxResults": 20, "total": 0, "worklogs": []}, "customfield_12310213":
-        null, "archivedby": null, "customfield_12311940": "2|i10z5r:"}}'
-    headers:
-      Cache-Control:
-      - max-age=0, no-cache, no-store
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json;charset=UTF-8
-      Date:
-      - Fri, 28 Jun 2024 11:42:43 GMT
-      Expires:
-      - Fri, 28 Jun 2024 11:42:43 GMT
-      Pragma:
-      - no-cache
-      Retry-After:
-      - '0'
-      Vary:
-      - User-Agent
-      - Accept-Encoding
-      X-RateLimit-Limit:
-      - '5'
-      X-RateLimit-Remaining:
-      - '4'
-      content-length:
-      - '8767'
-      referrer-policy:
-      - strict-origin-when-cross-origin
-      strict-transport-security:
-      - max-age=31536000
-      x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
-      x-arequestid:
-      - 702x214289x1
-      x-asessionid:
-      - 19ief8q
-      x-content-type-options:
-      - nosniff
-      x-frame-options:
-      - SAMEORIGIN
-      x-ratelimit-fillrate:
-      - '5'
-      x-ratelimit-interval-seconds:
-      - '1'
-      x-rh-edge-cache-status:
-      - NotCacheable from child
-      x-rh-edge-reference-id:
-      - 0.4c24c317.1719574963.89d489aa
-      x-rh-edge-request-id:
-      - 89d489aa
-      x-seraph-loginreason:
-      - OK
-      x-xss-protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json,*.*;q=0.9
-      Accept-Encoding:
-      - gzip, deflate
-      Cache-Control:
-      - no-cache
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-requests/2.32.0
-      X-Atlassian-Token:
-      - no-check
-    method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-495
-  response:
-    body:
-      string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "16090950", "self": "https://example.com/rest/api/2/issue/16090950",
-        "key": "OSIM-495", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
+        0, "maxResults": 20, "total": 0, "worklogs": []}, "archivedby": null, "customfield_12325158":
+        null, "issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
         "id": "17", "description": "Created by Jira Software - do not edit or delete.
         Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
-        null, "customfield_12324540": "0.0", "timespent": null, "customfield_12320940":
-        null, "project": {"self": "https://example.com/rest/api/2/project/12337520",
-        "id": "12337520", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
-        "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
-        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
-        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
-        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
-        "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
-        "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@7e54ab7e[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1d842f2d[overall=PullRequestOverallBean{stateCount=0,
-        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@26547ad1[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@1a15d471[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@29425975[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@55b4d718[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5033ad8d[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@64314da6[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5f8329a4[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@2c7c295b[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@61eeb69c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@fdc8b7a[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
-        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
-        "resolutiondate": null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
-        null, "customfield_12316841": null, "customfield_12315950": null, "customfield_12310940":
-        null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://example.com/rest/api/2/issue/OSIM-495/watchers", "watchCount": 1,
-        "isWatching": true}, "created": "2024-06-28T11:42:39.549+0000", "customfield_12321240":
-        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/3",
-        "iconUrl": "https://example.com/images/icons/priorities/major.svg", "name":
-        "Major", "id": "3"}, "labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
-        "impact:IMPORTANT"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
-        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
-        {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
-        "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
-        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
-        null, "updated": "2024-06-28T11:42:42.803+0000", "customfield_12313942": null,
-        "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/15021",
-        "description": "Work is being scoped and discussed (To Do status category;
-        see also Draft)", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
-        "name": "Refinement", "id": "15021", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
-        "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
-        [], "timeoriginalestimate": null, "description": "Comment zero for CVE-2020-10000",
-        "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
-        null, "timetracking": {}, "customfield_12320842": null, "customfield_12310243":
-        null, "attachment": [], "aggregatetimeestimate": null, "customfield_12316542":
-        {"self": "https://example.com/rest/api/2/customFieldOption/14655", "value":
-        "False", "id": "14655", "disabled": false}, "customfield_12317313": null,
-        "customfield_12316543": {"self": "https://example.com/rest/api/2/customFieldOption/14657",
-        "value": "False", "id": "14657", "disabled": false}, "customfield_12316544":
-        "None", "customfield_12310840": "9223372036854775807", "summary": "CVE-2020-10000
-        kernel: some description", "customfield_12323640": null, "customfield_12323642":
-        null, "creator": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
-        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
-        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
-        "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "customfield_12320850": null, "reporter": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
-        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
-        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
-        "aggregateprogress": {"progress": 0, "total": 0}, "customfield_12323644":
-        null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
-        null, "environment": null, "customfield_12315542": null, "customfield_12315740":
-        null, "customfield_12313441": "", "customfield_12313440": "0.0", "customfield_12313240":
-        null, "duedate": null, "customfield_12311140": null, "customfield_12319742":
-        null, "progress": {"progress": 0, "total": 0}, "comment": {"comments": [],
-        "maxResults": 0, "total": 0, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-495/votes",
-        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
-        0, "maxResults": 20, "total": 0, "worklogs": []}, "customfield_12310213":
-        null, "archivedby": null, "customfield_12311940": "2|i10z5r:"}}'
-    headers:
-      Cache-Control:
-      - max-age=0, no-cache, no-store
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json;charset=UTF-8
-      Date:
-      - Fri, 28 Jun 2024 11:42:44 GMT
-      Expires:
-      - Fri, 28 Jun 2024 11:42:44 GMT
-      Pragma:
-      - no-cache
-      Retry-After:
-      - '0'
-      Vary:
-      - User-Agent
-      - Accept-Encoding
-      X-RateLimit-Limit:
-      - '5'
-      X-RateLimit-Remaining:
-      - '4'
-      content-length:
-      - '8769'
-      referrer-policy:
-      - strict-origin-when-cross-origin
-      strict-transport-security:
-      - max-age=31536000
-      x-anodeid:
-      - rh1-jira-dc-stg-mpp-1
-      x-arequestid:
-      - 702x214290x1
-      x-asessionid:
-      - 858pih
-      x-content-type-options:
-      - nosniff
-      x-frame-options:
-      - SAMEORIGIN
-      x-ratelimit-fillrate:
-      - '5'
-      x-ratelimit-interval-seconds:
-      - '1'
-      x-rh-edge-cache-status:
-      - NotCacheable from child
-      x-rh-edge-reference-id:
-      - 0.4c24c317.1719574964.89d491b8
-      x-rh-edge-request-id:
-      - 89d491b8
-      x-seraph-loginreason:
-      - OK
-      x-xss-protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json,*.*;q=0.9
-      Accept-Encoding:
-      - gzip, deflate
-      Cache-Control:
-      - no-cache
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-requests/2.32.0
-      X-Atlassian-Token:
-      - no-check
-    method: GET
-    uri: https://example.com/rest/api/2/mypermissions?projectKey=OSIM
-  response:
-    body:
-      string: '{"permissions": {"ARCHIVE_ISSUES": {"id": "-1", "key": "ARCHIVE_ISSUES",
-        "name": "Archive Issues", "type": "PROJECT", "description": "Ability to archive
-        issues for a specific project.", "havePermission": true}, "VIEW_WORKFLOW_READONLY":
-        {"id": "45", "key": "VIEW_WORKFLOW_READONLY", "name": "View Read-Only Workflow",
-        "type": "PROJECT", "description": "admin.permissions.descriptions.VIEW_WORKFLOW_READONLY",
-        "havePermission": true, "deprecatedKey": true}, "CREATE_ISSUES": {"id": "11",
-        "key": "CREATE_ISSUES", "name": "Create Issues", "type": "PROJECT", "description":
-        "Ability to create issues.", "havePermission": true}, "VIEW_DEV_TOOLS": {"id":
-        "29", "key": "VIEW_DEV_TOOLS", "name": "View Development Tools", "type": "PROJECT",
-        "description": "Allows users in a software project to view development-related
-        information on the issue, such as commits, reviews and build information.",
-        "havePermission": true}, "BULK_CHANGE": {"id": "33", "key": "BULK_CHANGE",
-        "name": "Bulk Change", "type": "GLOBAL", "description": "Ability to modify
-        a collection of issues at once. For example, resolve multiple issues in one
-        step.", "havePermission": true}, "CREATE_ATTACHMENT": {"id": "19", "key":
-        "CREATE_ATTACHMENT", "name": "Create Attachments", "type": "PROJECT", "description":
-        "Users with this permission may create attachments.", "havePermission": true,
-        "deprecatedKey": true}, "DELETE_OWN_COMMENTS": {"id": "37", "key": "DELETE_OWN_COMMENTS",
-        "name": "Delete Own Comments", "type": "PROJECT", "description": "Ability
-        to delete own comments made on issues.", "havePermission": true}, "WORK_ON_ISSUES":
-        {"id": "20", "key": "WORK_ON_ISSUES", "name": "Work On Issues", "type": "PROJECT",
-        "description": "Ability to log work done against an issue. Only useful if
-        Time Tracking is turned on.", "havePermission": true}, "PROJECT_ADMIN": {"id":
-        "23", "key": "PROJECT_ADMIN", "name": "Administer Projects", "type": "PROJECT",
-        "description": "Ability to administer a project in Jira.", "havePermission":
-        true, "deprecatedKey": true}, "COMMENT_EDIT_ALL": {"id": "34", "key": "COMMENT_EDIT_ALL",
-        "name": "Edit All Comments", "type": "PROJECT", "description": "Ability to
-        edit all comments made on issues.", "havePermission": true, "deprecatedKey":
-        true}, "ATTACHMENT_DELETE_OWN": {"id": "39", "key": "ATTACHMENT_DELETE_OWN",
-        "name": "Delete Own Attachments", "type": "PROJECT", "description": "Users
-        with this permission may delete own attachments.", "havePermission": true,
-        "deprecatedKey": true}, "WORKLOG_DELETE_OWN": {"id": "42", "key": "WORKLOG_DELETE_OWN",
-        "name": "Delete Own Worklogs", "type": "PROJECT", "description": "Ability
-        to delete own worklogs made on issues.", "havePermission": true, "deprecatedKey":
-        true}, "CLOSE_ISSUE": {"id": "18", "key": "CLOSE_ISSUE", "name": "Close Issues",
-        "type": "PROJECT", "description": "Ability to close issues. Often useful where
-        your developers resolve issues, and a QA department closes them.", "havePermission":
-        true, "deprecatedKey": true}, "MANAGE_WATCHER_LIST": {"id": "32", "key": "MANAGE_WATCHER_LIST",
-        "name": "Manage Watchers", "type": "PROJECT", "description": "Ability to manage
-        the watchers of an issue.", "havePermission": true, "deprecatedKey": true},
-        "VIEW_VOTERS_AND_WATCHERS": {"id": "31", "key": "VIEW_VOTERS_AND_WATCHERS",
-        "name": "View Voters and Watchers", "type": "PROJECT", "description": "Ability
-        to view the voters and watchers of an issue.", "havePermission": true}, "ADD_COMMENTS":
-        {"id": "15", "key": "ADD_COMMENTS", "name": "Add Comments", "type": "PROJECT",
-        "description": "Ability to comment on issues.", "havePermission": true}, "COMMENT_DELETE_ALL":
-        {"id": "36", "key": "COMMENT_DELETE_ALL", "name": "Delete All Comments", "type":
-        "PROJECT", "description": "Ability to delete all comments made on issues.",
-        "havePermission": true, "deprecatedKey": true}, "CREATE_ISSUE": {"id": "11",
-        "key": "CREATE_ISSUE", "name": "Create Issues", "type": "PROJECT", "description":
-        "Ability to create issues.", "havePermission": true, "deprecatedKey": true},
-        "DELETE_OWN_ATTACHMENTS": {"id": "39", "key": "DELETE_OWN_ATTACHMENTS", "name":
-        "Delete Own Attachments", "type": "PROJECT", "description": "Users with this
-        permission may delete own attachments.", "havePermission": true}, "DELETE_ALL_ATTACHMENTS":
-        {"id": "38", "key": "DELETE_ALL_ATTACHMENTS", "name": "Delete All Attachments",
-        "type": "PROJECT", "description": "Users with this permission may delete all
-        attachments.", "havePermission": true}, "ASSIGN_ISSUE": {"id": "13", "key":
-        "ASSIGN_ISSUE", "name": "Assign Issues", "type": "PROJECT", "description":
-        "Ability to assign issues to other people.", "havePermission": true, "deprecatedKey":
-        true}, "LINK_ISSUE": {"id": "21", "key": "LINK_ISSUE", "name": "Link Issues",
-        "type": "PROJECT", "description": "Ability to link issues together and create
-        linked issues. Only useful if issue linking is turned on.", "havePermission":
-        true, "deprecatedKey": true}, "EDIT_OWN_WORKLOGS": {"id": "40", "key": "EDIT_OWN_WORKLOGS",
-        "name": "Edit Own Worklogs", "type": "PROJECT", "description": "Ability to
-        edit own worklogs made on issues.", "havePermission": true}, "CREATE_ATTACHMENTS":
-        {"id": "19", "key": "CREATE_ATTACHMENTS", "name": "Create Attachments", "type":
-        "PROJECT", "description": "Users with this permission may create attachments.",
-        "havePermission": true}, "EDIT_ALL_WORKLOGS": {"id": "41", "key": "EDIT_ALL_WORKLOGS",
-        "name": "Edit All Worklogs", "type": "PROJECT", "description": "Ability to
-        edit all worklogs made on issues.", "havePermission": true}, "SCHEDULE_ISSUE":
-        {"id": "28", "key": "SCHEDULE_ISSUE", "name": "Schedule Issues", "type": "PROJECT",
-        "description": "Ability to view or edit an issue''s due date.", "havePermission":
-        true, "deprecatedKey": true}, "CLOSE_ISSUES": {"id": "18", "key": "CLOSE_ISSUES",
-        "name": "Close Issues", "type": "PROJECT", "description": "Ability to close
-        issues. Often useful where your developers resolve issues, and a QA department
-        closes them.", "havePermission": true}, "SET_ISSUE_SECURITY": {"id": "26",
-        "key": "SET_ISSUE_SECURITY", "name": "Set Issue Security", "type": "PROJECT",
-        "description": "Ability to set the level of security on an issue so that only
-        people in that security level can see the issue.", "havePermission": true},
-        "SCHEDULE_ISSUES": {"id": "28", "key": "SCHEDULE_ISSUES", "name": "Schedule
-        Issues", "type": "PROJECT", "description": "Ability to view or edit an issue''s
-        due date.", "havePermission": true}, "WORKLOG_DELETE_ALL": {"id": "43", "key":
-        "WORKLOG_DELETE_ALL", "name": "Delete All Worklogs", "type": "PROJECT", "description":
-        "Ability to delete all worklogs made on issues.", "havePermission": true,
-        "deprecatedKey": true}, "COMMENT_DELETE_OWN": {"id": "37", "key": "COMMENT_DELETE_OWN",
-        "name": "Delete Own Comments", "type": "PROJECT", "description": "Ability
-        to delete own comments made on issues.", "havePermission": true, "deprecatedKey":
-        true}, "ADMINISTER_PROJECTS": {"id": "23", "key": "ADMINISTER_PROJECTS", "name":
-        "Administer Projects", "type": "PROJECT", "description": "Ability to administer
-        a project in Jira.", "havePermission": true}, "DELETE_ALL_COMMENTS": {"id":
-        "36", "key": "DELETE_ALL_COMMENTS", "name": "Delete All Comments", "type":
-        "PROJECT", "description": "Ability to delete all comments made on issues.",
-        "havePermission": true}, "RESOLVE_ISSUES": {"id": "14", "key": "RESOLVE_ISSUES",
-        "name": "Resolve Issues", "type": "PROJECT", "description": "Ability to resolve
-        and reopen issues. This includes the ability to set a fix version.", "havePermission":
-        true}, "VIEW_READONLY_WORKFLOW": {"id": "45", "key": "VIEW_READONLY_WORKFLOW",
-        "name": "View Read-Only Workflow", "type": "PROJECT", "description": "Users
-        with this permission may view a read-only version of a workflow.", "havePermission":
-        true}, "ADMINISTER": {"id": "0", "key": "ADMINISTER", "name": "Jira Administrators",
-        "type": "GLOBAL", "description": "Ability to perform most administration functions
-        (excluding Import & Export, SMTP Configuration, etc.).", "havePermission":
-        false}, "GLOBAL_BROWSE_ARCHIVE": {"id": "-1", "key": "GLOBAL_BROWSE_ARCHIVE",
-        "name": "Browse Archive", "type": "GLOBAL", "description": "Ability to browse
-        all archived issues.", "havePermission": false}, "MOVE_ISSUES": {"id": "25",
-        "key": "MOVE_ISSUES", "name": "Move Issues", "type": "PROJECT", "description":
-        "Ability to move issues between projects or between workflows of the same
-        project (if applicable). Note the user can only move issues to a project he
-        or she has the create permission for.", "havePermission": true}, "TRANSITION_ISSUES":
-        {"id": "46", "key": "TRANSITION_ISSUES", "name": "Transition Issues", "type":
-        "PROJECT", "description": "Ability to transition issues.", "havePermission":
-        true}, "EDIT_SPRINT_NAME_AND_GOAL_PERMISSION": {"id": "-1", "key": "EDIT_SPRINT_NAME_AND_GOAL_PERMISSION",
-        "name": "Edit Sprints", "type": "PROJECT", "description": "Ability to edit
-        sprint name and goal.", "havePermission": false}, "SYSTEM_ADMIN": {"id": "44",
-        "key": "SYSTEM_ADMIN", "name": "Jira System Administrators", "type": "GLOBAL",
-        "description": "Ability to perform all administration functions. There must
-        be at least one group with this permission.", "havePermission": false}, "DELETE_OWN_WORKLOGS":
-        {"id": "42", "key": "DELETE_OWN_WORKLOGS", "name": "Delete Own Worklogs",
-        "type": "PROJECT", "description": "Ability to delete own worklogs made on
-        issues.", "havePermission": true}, "BROWSE": {"id": "10", "key": "BROWSE",
-        "name": "Browse Projects", "type": "PROJECT", "description": "Ability to browse
-        projects and the issues within them.", "havePermission": true, "deprecatedKey":
-        true}, "EDIT_ISSUE": {"id": "12", "key": "EDIT_ISSUE", "name": "Edit Issues",
-        "type": "PROJECT", "description": "Ability to edit issues.", "havePermission":
-        true, "deprecatedKey": true}, "MODIFY_REPORTER": {"id": "30", "key": "MODIFY_REPORTER",
-        "name": "Modify Reporter", "type": "PROJECT", "description": "Ability to modify
-        the reporter when creating or editing an issue.", "havePermission": true},
-        "EDIT_ISSUES": {"id": "12", "key": "EDIT_ISSUES", "name": "Edit Issues", "type":
-        "PROJECT", "description": "Ability to edit issues.", "havePermission": true},
-        "MANAGE_WATCHERS": {"id": "32", "key": "MANAGE_WATCHERS", "name": "Manage
-        Watchers", "type": "PROJECT", "description": "Ability to manage the watchers
-        of an issue.", "havePermission": true}, "EDIT_OWN_COMMENTS": {"id": "35",
-        "key": "EDIT_OWN_COMMENTS", "name": "Edit Own Comments", "type": "PROJECT",
-        "description": "Ability to edit own comments made on issues.", "havePermission":
-        true}, "ASSIGN_ISSUES": {"id": "13", "key": "ASSIGN_ISSUES", "name": "Assign
-        Issues", "type": "PROJECT", "description": "Ability to assign issues to other
-        people.", "havePermission": true}, "BROWSE_PROJECTS": {"id": "10", "key":
-        "BROWSE_PROJECTS", "name": "Browse Projects", "type": "PROJECT", "description":
-        "Ability to browse projects and the issues within them.", "havePermission":
-        true}, "gtmhub-view-OKRs-permissions": {"id": "-1", "key": "gtmhub-view-OKRs-permissions",
-        "name": "View OKRs", "type": "GLOBAL", "description": "Ability to view Quantive
-        Results OKRs (Objective and key results) that are linked to a given issue",
-        "havePermission": false}, "RESTORE_ISSUES": {"id": "-1", "key": "RESTORE_ISSUES",
-        "name": "Restore Issues", "type": "PROJECT", "description": "Ability to restore
-        issues for a specific project.", "havePermission": true}, "BROWSE_ARCHIVE":
-        {"id": "-1", "key": "BROWSE_ARCHIVE", "name": "Browse Project Archive", "type":
-        "PROJECT", "description": "Ability to browse archived issues from a specific
-        project.", "havePermission": true}, "A4J_PERM_IMPERSONATE_ACTOR_GLOBAL": {"id":
-        "-1", "key": "A4J_PERM_IMPERSONATE_ACTOR_GLOBAL", "name": "Impersonate users
-        in A4J global scope", "type": "GLOBAL", "description": "Having the permission
-        allows to select other user as automation rule actor", "havePermission": true},
-        "VIEW_VERSION_CONTROL": {"id": "29", "key": "VIEW_VERSION_CONTROL", "name":
-        "View Development Tools", "type": "PROJECT", "description": "Allows users
-        to view development-related information on the view issue screen, like commits,
-        reviews and build information.", "havePermission": true, "deprecatedKey":
-        true}, "START_STOP_SPRINTS_PERMISSION": {"id": "-1", "key": "START_STOP_SPRINTS_PERMISSION",
-        "name": "Start/Complete Sprints", "type": "PROJECT", "description": "Ability
-        to start and complete sprints.", "havePermission": true}, "WORK_ISSUE": {"id":
-        "20", "key": "WORK_ISSUE", "name": "Work On Issues", "type": "PROJECT", "description":
-        "Ability to log work done against an issue. Only useful if Time Tracking is
-        turned on.", "havePermission": true, "deprecatedKey": true}, "COMMENT_ISSUE":
-        {"id": "15", "key": "COMMENT_ISSUE", "name": "Add Comments", "type": "PROJECT",
-        "description": "Ability to comment on issues.", "havePermission": true, "deprecatedKey":
-        true}, "WORKLOG_EDIT_ALL": {"id": "41", "key": "WORKLOG_EDIT_ALL", "name":
-        "Edit All Worklogs", "type": "PROJECT", "description": "Ability to edit all
-        worklogs made on issues.", "havePermission": true, "deprecatedKey": true},
-        "EDIT_ALL_COMMENTS": {"id": "34", "key": "EDIT_ALL_COMMENTS", "name": "Edit
-        All Comments", "type": "PROJECT", "description": "Ability to edit all comments
-        made on issues.", "havePermission": true}, "DELETE_ISSUE": {"id": "16", "key":
-        "DELETE_ISSUE", "name": "Delete Issues", "type": "PROJECT", "description":
-        "Ability to delete issues.", "havePermission": false, "deprecatedKey": true},
-        "MANAGE_SPRINTS_PERMISSION": {"id": "-1", "key": "MANAGE_SPRINTS_PERMISSION",
-        "name": "Manage Sprints", "type": "PROJECT", "description": "Ability to manage
-        sprints.", "havePermission": true}, "USER_PICKER": {"id": "27", "key": "USER_PICKER",
-        "name": "Browse Users", "type": "GLOBAL", "description": "Ability to select
-        a user or group from a popup window as well as the ability to use the ''share''
-        issues feature. Users with this permission will also be able to see names
-        of all users and groups in the system.", "havePermission": true}, "CREATE_SHARED_OBJECTS":
-        {"id": "22", "key": "CREATE_SHARED_OBJECTS", "name": "Create Shared Objects",
-        "type": "GLOBAL", "description": "Ability to share dashboards and filters
-        with other users, groups and roles.", "havePermission": true}, "ATTACHMENT_DELETE_ALL":
-        {"id": "38", "key": "ATTACHMENT_DELETE_ALL", "name": "Delete All Attachments",
-        "type": "PROJECT", "description": "Users with this permission may delete all
-        attachments.", "havePermission": true, "deprecatedKey": true}, "DELETE_ISSUES":
-        {"id": "16", "key": "DELETE_ISSUES", "name": "Delete Issues", "type": "PROJECT",
-        "description": "Ability to delete issues.", "havePermission": false}, "MANAGE_GROUP_FILTER_SUBSCRIPTIONS":
-        {"id": "24", "key": "MANAGE_GROUP_FILTER_SUBSCRIPTIONS", "name": "Manage Group
-        Filter Subscriptions", "type": "GLOBAL", "description": "Ability to manage
-        (create and delete) group filter subscriptions.", "havePermission": true},
-        "RESOLVE_ISSUE": {"id": "14", "key": "RESOLVE_ISSUE", "name": "Resolve Issues",
-        "type": "PROJECT", "description": "Ability to resolve and reopen issues. This
-        includes the ability to set a fix version.", "havePermission": true, "deprecatedKey":
-        true}, "A4J_PERM_IMPERSONATE_ACTOR_PROJECT": {"id": "-1", "key": "A4J_PERM_IMPERSONATE_ACTOR_PROJECT",
-        "name": "Impersonate users in A4J project scope", "type": "PROJECT", "description":
-        "Having the permission allows to select other user as automation rule actor",
-        "havePermission": false}, "ASSIGNABLE_USER": {"id": "17", "key": "ASSIGNABLE_USER",
-        "name": "Assignable User", "type": "PROJECT", "description": "Users with this
-        permission may be assigned to issues.", "havePermission": true}, "TRANSITION_ISSUE":
-        {"id": "46", "key": "TRANSITION_ISSUE", "name": "Transition Issues", "type":
-        "PROJECT", "description": "Ability to transition issues.", "havePermission":
-        true, "deprecatedKey": true}, "COMMENT_EDIT_OWN": {"id": "35", "key": "COMMENT_EDIT_OWN",
-        "name": "Edit Own Comments", "type": "PROJECT", "description": "Ability to
-        edit own comments made on issues.", "havePermission": true, "deprecatedKey":
-        true}, "MOVE_ISSUE": {"id": "25", "key": "MOVE_ISSUE", "name": "Move Issues",
-        "type": "PROJECT", "description": "Ability to move issues between projects
-        or between workflows of the same project (if applicable). Note the user can
-        only move issues to a project he or she has the create permission for.", "havePermission":
-        true, "deprecatedKey": true}, "WORKLOG_EDIT_OWN": {"id": "40", "key": "WORKLOG_EDIT_OWN",
-        "name": "Edit Own Worklogs", "type": "PROJECT", "description": "Ability to
-        edit own worklogs made on issues.", "havePermission": true, "deprecatedKey":
-        true}, "DELETE_ALL_WORKLOGS": {"id": "43", "key": "DELETE_ALL_WORKLOGS", "name":
-        "Delete All Worklogs", "type": "PROJECT", "description": "Ability to delete
-        all worklogs made on issues.", "havePermission": true}, "LINK_ISSUES": {"id":
-        "21", "key": "LINK_ISSUES", "name": "Link Issues", "type": "PROJECT", "description":
-        "Ability to link issues together and create linked issues. Only useful if
-        issue linking is turned on.", "havePermission": true}, "gtmhub-view-OKRs-prj-permissions":
-        {"id": "-1", "key": "gtmhub-view-OKRs-prj-permissions", "name": "View OKRs",
-        "type": "PROJECT", "description": "Ability to view Quantive Results OKRs (Objective
-        and key results) that are linked to a given issue", "havePermission": false}}}'
-    headers:
-      Cache-Control:
-      - max-age=0, no-cache, no-store
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json;charset=UTF-8
-      Date:
-      - Fri, 28 Jun 2024 11:42:44 GMT
-      Expires:
-      - Fri, 28 Jun 2024 11:42:44 GMT
-      Pragma:
-      - no-cache
-      Retry-After:
-      - '0'
-      Vary:
-      - User-Agent
-      - Accept-Encoding
-      X-RateLimit-Limit:
-      - '5'
-      X-RateLimit-Remaining:
-      - '4'
-      content-length:
-      - '16299'
-      referrer-policy:
-      - strict-origin-when-cross-origin
-      strict-transport-security:
-      - max-age=31536000
-      x-anodeid:
-      - rh1-jira-dc-stg-mpp-0
-      x-arequestid:
-      - 702x590423x1
-      x-asessionid:
-      - 9wyfv0
-      x-content-type-options:
-      - nosniff
-      x-frame-options:
-      - SAMEORIGIN
-      x-ratelimit-fillrate:
-      - '5'
-      x-ratelimit-interval-seconds:
-      - '1'
-      x-rh-edge-cache-status:
-      - NotCacheable from child
-      x-rh-edge-reference-id:
-      - 0.4e24c317.1719574964.32d68c84
-      x-rh-edge-request-id:
-      - 32d68c84
-      x-seraph-loginreason:
-      - OK
-      x-xss-protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json,*.*;q=0.9
-      Accept-Encoding:
-      - gzip, deflate
-      Cache-Control:
-      - no-cache
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-requests/2.32.0
-      X-Atlassian-Token:
-      - no-check
-    method: GET
-    uri: https://example.com/rest/api/2/issuetype
-  response:
-    body:
-      string: '[{"self":"https://example.com/rest/api/2/issuetype/3","id":"3","description":"Represents
-        a small unit of work that is not end-user facing.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Task","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/5","id":"5","description":"The
-        sub-task of the issue","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13276&avatarType=issuetype","name":"Sub-task","subtask":true,"avatarId":13276},{"self":"https://example.com/rest/api/2/issuetype/17","id":"17","description":"Created
-        by Jira Software - do not edit or delete. Issue type for a user story.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Story","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/1","id":"1","description":"A
-        problem that impairs or prevents the functions of the product.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Bug","subtask":false,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/16","id":"16","description":"Created
-        by Jira Software - do not edit or delete. Issue type for a big user story
-        that needs to be broken down.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13267&avatarType=issuetype","name":"Epic","subtask":false,"avatarId":13267},{"self":"https://example.com/rest/api/2/issuetype/11406","id":"11406","description":"Expresses
-        areas of concern for a project or program''s success.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype","name":"Risk","subtask":false,"avatarId":13268},{"self":"https://example.com/rest/api/2/issuetype/10100","id":"10100","description":"A
-        large product/portfolio goal or focus area that has clear start and completion
-        criteria","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10800","id":"10800","description":"Represents
-        a research-related task.''","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=37062&avatarType=issuetype","name":"Spike","subtask":false,"avatarId":37062},{"self":"https://example.com/rest/api/2/issuetype/12102","id":"12102","description":"Organizational
-        objective focused on a measurable outcome. May be in support of larger strategic
-        goals.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Outcome","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/2","id":"2","description":"Feature
-        requests from customers and/or users","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature
-        Request","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/13","id":"13","description":"An
-        enhancement to or refactoring of existing functionality that is not configurable
-        by an end user (typically a change made by an internal team that affects users)","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13269&avatarType=issuetype","name":"Enhancement","subtask":false,"avatarId":13269},{"self":"https://example.com/rest/api/2/issuetype/18","id":"18","description":"A
-        technical task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Technical
-        task","subtask":true,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/11403","id":"11403","description":"Used
-        to track RCA work with specific custom fields defined by the QE Closed Loop
-        Process.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13269&avatarType=issuetype","name":"Closed
-        Loop","subtask":false,"avatarId":13269},{"self":"https://example.com/rest/api/2/issuetype/8","id":"8","description":"A
-        one-off patch related to a customer support case, provided by Support and
-        not Engineering","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Support
-        Patch","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/4","id":"4","description":"An
-        improvement or enhancement to an existing feature or task. Includes patches
-        submitted by community commiters.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Patch","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/7","id":"7","description":"Indicates
-        a possible testsuite challenge","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17262&avatarType=issuetype","name":"CTS
-        Challenge","subtask":false,"avatarId":17262},{"self":"https://example.com/rest/api/2/issuetype/9","id":"9","description":"A
-        container task to coordinate the tasks for a given release.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Release","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10","id":"10","description":"A
-        potential bug.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype","name":"Quality
-        Risk","subtask":false,"avatarId":13268},{"self":"https://example.com/rest/api/2/issuetype/11","id":"11","description":"A
-        subtask tracking an update to a bundled component","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Component
-        Upgrade Subtask","subtask":true,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/12","id":"12","description":"A
-        task tracking an update to a bundled component or revision of component upstream
-        of the project.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Component
-        Upgrade","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11401","id":"11401","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"RFE","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/10700","id":"10700","description":"Capability
-        or a well-defined set of functionality that delivers business value. Features
-        can include additions or changes to existing functionality. Features can easily
-        span multiple teams, and potentially multiple releases.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/14","id":"14","description":"Upgrade
-        of a library dependency","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Library
-        Upgrade","subtask":false,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/15","id":"15","description":"A
-        clarification needed to a specification based on community feedback","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Clarification","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/19","id":"19","description":"Issue
-        tracking a bug fix or improvement in another component","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Tracker","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/20","id":"20","description":"Used
-        for conducting internal reviews of our products and process with 3rd party
-        auditors","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Requirement","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/21","id":"21","description":"Same
-        as Requirement type but for subtasks","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13276&avatarType=issuetype","name":"Sub-requirement
-        ","subtask":true,"avatarId":13276},{"self":"https://example.com/rest/api/2/issuetype/22","id":"22","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Documentation","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/24","id":"24","description":"Support
-        Request","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13264&avatarType=issuetype","name":"Support
-        Request","subtask":false,"avatarId":13264},{"self":"https://example.com/rest/api/2/issuetype/10000","id":"10000","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Content
-        Change","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10001","id":"10001","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Technical
-        Requirement","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/10002","id":"10002","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13274&avatarType=issuetype","name":"Business
-        Requirement","subtask":false,"avatarId":13274},{"self":"https://example.com/rest/api/2/issuetype/10300","id":"10300","description":"Development
-        task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Dev
-        Task","subtask":false,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/10301","id":"10301","description":"QE
-        Task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"QE
-        Task","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/10302","id":"10302","description":"Docs
-        Task","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Docs
-        Task","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10400","id":"10400","description":"Objectives
-        and Key Results","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13274&avatarType=issuetype","name":"OKR","subtask":false,"avatarId":13274},{"self":"https://example.com/rest/api/2/issuetype/10500","id":"10500","description":"Policies
-        are the way we interact with our work and with each other.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Policy","subtask":false,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/10600","id":"10600","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13280&avatarType=issuetype","name":"Question","subtask":false,"avatarId":13280},{"self":"https://example.com/rest/api/2/issuetype/10601","id":"10601","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Analysis","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/10701","id":"10701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10300&avatarType=issuetype","name":"Request","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10702","id":"10702","description":"Customer-impacting
-        issue requiring coordinated response","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=10304&avatarType=issuetype","name":"Flare","subtask":false},{"self":"https://example.com/rest/api/2/issuetype/10900","id":"10900","description":"This
-        issue type is created for Service Desk functions in Jira Software","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Service
-        Request","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/10901","id":"10901","description":"Used
-        to represent an interrupt request identifying a problem that must be addressed,
-        usually from customer support","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13264&avatarType=issuetype","name":"Incident","subtask":false,"avatarId":13264},{"self":"https://example.com/rest/api/2/issuetype/10902","id":"10902","description":"Custom
-        Task issuetype for OCSPLAT","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Platform","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/11000","id":"11000","description":"A
-        request for change, often with an approval step at the beginning to confirm
-        the change.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Change
-        Request","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11100","id":"11100","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Support
-        Exception","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11101","id":"11101","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13276&avatarType=issuetype","name":"Review","subtask":true,"avatarId":13276},{"self":"https://example.com/rest/api/2/issuetype/11200","id":"11200","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Simple
-        Task","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11201","id":"11201","description":"The
-        sub-task of the issue used to track related QE work","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13273&avatarType=issuetype","name":"QE
-        Sub-task","subtask":true,"avatarId":13273},{"self":"https://example.com/rest/api/2/issuetype/11202","id":"11202","description":"The
-        sub-task of the issue used to track related development work","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17260&avatarType=issuetype","name":"Dev
-        Sub-task","subtask":true,"avatarId":17260},{"self":"https://example.com/rest/api/2/issuetype/11203","id":"11203","description":"The
-        sub-task of the issue used to track related documentation work","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13266&avatarType=issuetype","name":"Docs
-        Sub-task","subtask":true,"avatarId":13266},{"self":"https://example.com/rest/api/2/issuetype/11204","id":"11204","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Simple
-        Sub-task","subtask":true,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/11300","id":"11300","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Next
-        Action","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11400","id":"11400","description":"This
-        is a Business Unit Initiative a.k.a. \"BUI\"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"BU
-        Initiative","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11402","id":"11402","description":"General
-        issue to be triaged","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Issue","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11404","id":"11404","description":"HSS
-        PA tracking issue for Milestones","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Milestone","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11405","id":"11405","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Build
-        Task","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11407","id":"11407","description":"RT355021","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Report","subtask":false,"avatarId":13270},{"self":"https://example.com/rest/api/2/issuetype/11408","id":"11408","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Schedule","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11409","id":"11409","description":"For
-        Documentation Issues","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Doc","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11410","id":"11410","description":"Mixed
-        type for Feature as Story","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Technical
-        Feature","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/11411","id":"11411","description":"Used
-        for grouping release operations, typically to identify milestones associated
-        with shipping a major release","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13273&avatarType=issuetype","name":"Release
-        Milestone","subtask":false,"avatarId":13273},{"self":"https://example.com/rest/api/2/issuetype/11412","id":"11412","description":"tracks
-        major releases","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Release
-        tracker","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/11413","id":"11413","description":"Generic
-        Service issue or operations request from an end user.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Ticket","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11414","id":"11414","description":"Higher
-        level than an epic","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"Project","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/11415","id":"11415","description":"Root
-        Cause Analysis","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13269&avatarType=issuetype","name":"Root
-        Cause Analysis","subtask":false,"avatarId":13269},{"self":"https://example.com/rest/api/2/issuetype/11416","id":"11416","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13264&avatarType=issuetype","name":"Weather-item","subtask":false,"avatarId":13264},{"self":"https://example.com/rest/api/2/issuetype/11417","id":"11417","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype","name":"Ad-Hoc
-        Task","subtask":false,"avatarId":13278},{"self":"https://example.com/rest/api/2/issuetype/11419","id":"11419","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=17261&avatarType=issuetype","name":"Stakeholder
-        Request","subtask":false,"avatarId":17261},{"self":"https://example.com/rest/api/2/issuetype/11600","id":"11600","description":"A
-        defect that needs to be fixed before Story can be \"Done\"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Story
-        Bug","subtask":true,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/11700","id":"11700","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=39777&avatarType=issuetype","name":"Info","subtask":false,"avatarId":39777},{"self":"https://example.com/rest/api/2/issuetype/11701","id":"11701","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Team
-        Improvement","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11702","id":"11702","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Wireframe","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/11800","id":"11800","description":"Product
-        Security Supply Chain Security Exception","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=39905&avatarType=issuetype","name":"Supply
-        Chain Exception","subtask":false,"avatarId":39905},{"self":"https://example.com/rest/api/2/issuetype/11900","id":"11900","description":"ProdSec
-        Software Security Exception","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=40577&avatarType=issuetype","name":"Software
-        Security Exception","subtask":false,"avatarId":40577},{"self":"https://example.com/rest/api/2/issuetype/12100","id":"12100","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13260&avatarType=issuetype","name":"Objective","subtask":false,"avatarId":13260},{"self":"https://example.com/rest/api/2/issuetype/12101","id":"12101","description":"Large,
-        strategic focus area typically defined by leadership teams to achieve organizational
-        long-term vision.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=50977&avatarType=issuetype","name":"Strategic
-        Goal","subtask":false,"avatarId":50977},{"self":"https://example.com/rest/api/2/issuetype/12206","id":"12206","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=55783&avatarType=issuetype","name":"Weakness","subtask":false,"avatarId":55783},{"self":"https://example.com/rest/api/2/issuetype/12207","id":"12207","description":"","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=55784&avatarType=issuetype","name":"Vulnerability","subtask":false,"avatarId":55784},{"self":"https://example.com/rest/api/2/issuetype/12300","id":"12300","description":"CASE-461","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype","name":"Epic
-        Story","subtask":false,"avatarId":13275},{"self":"https://example.com/rest/api/2/issuetype/12301","id":"12301","description":"CASE-461","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype","name":"Epic
-        Bug","subtask":false,"avatarId":13263},{"self":"https://example.com/rest/api/2/issuetype/23","id":"23","description":"A
-        new feature of the product, which has yet to be developed.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13271&avatarType=issuetype","name":"New
-        Feature","subtask":false,"avatarId":13271},{"self":"https://example.com/rest/api/2/issuetype/10200","id":"10200","description":"An
-        improvement or enhancement to an existing feature or task.","iconUrl":"https://example.com/secure/viewavatar?size=xsmall&avatarId=13270&avatarType=issuetype","name":"Improvement","subtask":false,"avatarId":13270}]'
-    headers:
-      Cache-Control:
-      - max-age=0, no-cache, no-store
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json;charset=UTF-8
-      Date:
-      - Fri, 28 Jun 2024 11:42:44 GMT
-      Expires:
-      - Fri, 28 Jun 2024 11:42:44 GMT
-      Pragma:
-      - no-cache
-      Retry-After:
-      - '0'
-      Vary:
-      - User-Agent
-      - Accept-Encoding
-      X-RateLimit-Limit:
-      - '5'
-      X-RateLimit-Remaining:
-      - '3'
-      content-length:
-      - '25109'
-      referrer-policy:
-      - strict-origin-when-cross-origin
-      strict-transport-security:
-      - max-age=31536000
-      x-anodeid:
-      - rh1-jira-dc-stg-mpp-0
-      x-arequestid:
-      - 702x590424x1
-      x-asessionid:
-      - 1jko7js
-      x-content-type-options:
-      - nosniff
-      x-frame-options:
-      - SAMEORIGIN
-      x-ratelimit-fillrate:
-      - '5'
-      x-ratelimit-interval-seconds:
-      - '1'
-      x-rh-edge-cache-status:
-      - NotCacheable from child
-      x-rh-edge-reference-id:
-      - 0.4e24c317.1719574964.32d68db1
-      x-rh-edge-request-id:
-      - 32d68db1
-      x-seraph-loginreason:
-      - OK
-      x-xss-protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/json,*.*;q=0.9
-      Accept-Encoding:
-      - gzip, deflate
-      Cache-Control:
-      - no-cache
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-requests/2.32.0
-      X-Atlassian-Token:
-      - no-check
-    method: GET
-    uri: https://example.com/rest/api/2/project/OSIM
-  response:
-    body:
-      string: '{"expand": "description,lead,url,projectKeys", "self": "https://example.com/rest/api/2/project/12337520",
-        "id": "12337520", "key": "OSIM", "description": "This project will serve Incident
-        Response team as a task repository, managing the workflow in PSIR and integrating
-        with OSIDB.", "lead": {"self": "https://example.com/rest/api/2/user?username=concosta@redhat.com",
-        "key": "JIRAUSER196381", "name": "concosta@redhat.com", "avatarUrls": {"48x48":
-        "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
-        "displayName": "Conrado Costa", "active": true}, "components": [], "issueTypes":
-        [{"self": "https://example.com/rest/api/2/issuetype/3", "id": "3", "description":
-        "Represents a small unit of work that is not end-user facing.", "iconUrl":
-        "https://example.com/secure/viewavatar?size=xsmall&avatarId=13278&avatarType=issuetype",
-        "name": "Task", "subtask": false, "avatarId": 13278}, {"self": "https://example.com/rest/api/2/issuetype/5",
-        "id": "5", "description": "The sub-task of the issue", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13276&avatarType=issuetype",
-        "name": "Sub-task", "subtask": true, "avatarId": 13276}, {"self": "https://example.com/rest/api/2/issuetype/17",
-        "id": "17", "description": "Created by Jira Software - do not edit or delete.
-        Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, {"self": "https://example.com/rest/api/2/issuetype/1",
-        "id": "1", "description": "A problem that impairs or prevents the functions
-        of the product.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13263&avatarType=issuetype",
-        "name": "Bug", "subtask": false, "avatarId": 13263}, {"self": "https://example.com/rest/api/2/issuetype/16",
-        "id": "16", "description": "Created by Jira Software - do not edit or delete.
-        Issue type for a big user story that needs to be broken down.", "iconUrl":
-        "https://example.com/secure/viewavatar?size=xsmall&avatarId=13267&avatarType=issuetype",
-        "name": "Epic", "subtask": false, "avatarId": 13267}, {"self": "https://example.com/rest/api/2/issuetype/11406",
-        "id": "11406", "description": "Expresses areas of concern for a project or
-        program''s success.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13268&avatarType=issuetype",
-        "name": "Risk", "subtask": false, "avatarId": 13268}], "assigneeType": "UNASSIGNED",
-        "versions": [], "name": "Open Security Issue Manager", "roles": {"Scrum master":
-        "https://example.com/rest/api/2/project/12337520/role/10540", "Developers":
-        "https://example.com/rest/api/2/project/12337520/role/10001", "Administrators":
-        "https://example.com/rest/api/2/project/12337520/role/10002", "Approver":
-        "https://example.com/rest/api/2/project/12337520/role/10840", "Viewers": "https://example.com/rest/api/2/project/12337520/role/10440",
-        "Users": "https://example.com/rest/api/2/project/12337520/role/10000", "Curriculum
-        Developer External": "https://example.com/rest/api/2/project/12337520/role/11140"},
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12325157":
+        null, "customfield_12325159": null, "customfield_12318341": null, "customfield_12325154":
+        null, "customfield_12325153": null, "customfield_12325156": null, "timespent":
+        null, "customfield_12325155": null, "customfield_12320940": null, "project":
+        {"self": "https://example.com/rest/api/2/project/12337520", "id": "12337520",
+        "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey": "software",
         "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
         "24x24": "https://example.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
         "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
-        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"},
-        "projectTypeKey": "software", "archived": false}'
+        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
+        "customfield_12320944": null, "aggregatetimespent": null, "customfield_12310220":
+        null, "resolutiondate": null, "customfield_12325150": null, "workratio": -1,
+        "customfield_12325152": null, "customfield_12316840": null, "customfield_12317379":
+        null, "customfield_12325151": null, "customfield_12316841": null, "customfield_12319040":
+        null, "customfield_12325047": null, "watches": {"self": "https://example.com/rest/api/2/issue/OSIM-14341/watchers",
+        "watchCount": 1, "isWatching": true}, "customfield_12325044": null, "customfield_12325043":
+        null, "customfield_12325046": null, "created": "2024-11-26T12:05:56.086+0000",
+        "customfield_12321240": null, "customfield_12325045": null, "customfield_12320947":
+        [{"self": "https://example.com/rest/api/2/customFieldOption/27714", "value":
+        "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
+        "False", "id": "27705", "disabled": false}, "customfield_12325040": [], "customfield_12325160":
+        null, "customfield_12325042": null, "customfield_12325041": null, "updated":
+        "2024-11-26T12:06:00.149+0000", "timeoriginalestimate": null, "description":
+        "Comment zero for CVE-2020-10000", "timetracking": {}, "attachment": [], "customfield_12316542":
+        {"self": "https://example.com/rest/api/2/customFieldOption/14655", "value":
+        "False", "id": "14655", "disabled": false}, "customfield_12316543": {"self":
+        "https://example.com/rest/api/2/customFieldOption/14657", "value": "False",
+        "id": "14657", "disabled": false}, "customfield_12316544": "None", "customfield_12310840":
+        "9223372036854775807", "summary": "CVE-2020-10000 kernel: some description",
+        "customfield_12323640": null, "customfield_12325147": null, "customfield_12325146":
+        null, "customfield_12323642": null, "customfield_12325149": null, "customfield_12323641":
+        null, "customfield_12325148": null, "customfield_12325143": null, "customfield_12325142":
+        null, "customfield_12325145": null, "customfield_12325144": null, "customfield_12323644":
+        null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
+        null, "environment": null, "customfield_12315740": null, "customfield_12313441":
+        "", "customfield_12313440": "0.0", "duedate": null, "customfield_12311140":
+        null, "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt":
+        0}, "customfield_12325141": null, "customfield_12325140": null, "customfield_12310213":
+        null, "customfield_12311940": "2|i21qzr:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -2108,9 +1083,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Fri, 28 Jun 2024 11:42:44 GMT
+      - Tue, 26 Nov 2024 12:06:01 GMT
       Expires:
-      - Fri, 28 Jun 2024 11:42:44 GMT
+      - Tue, 26 Nov 2024 12:06:01 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -2118,99 +1093,22 @@ interactions:
       Vary:
       - User-Agent
       - Accept-Encoding
-      X-RateLimit-Limit:
-      - '5'
-      X-RateLimit-Remaining:
-      - '3'
-      content-length:
-      - '4024'
-      referrer-policy:
-      - strict-origin-when-cross-origin
-      strict-transport-security:
-      - max-age=31536000
-      x-anodeid:
-      - rh1-jira-dc-stg-mpp-0
-      x-arequestid:
-      - 702x590425x1
-      x-asessionid:
-      - 1m1bb79
-      x-content-type-options:
-      - nosniff
-      x-frame-options:
-      - SAMEORIGIN
-      x-ratelimit-fillrate:
-      - '5'
-      x-ratelimit-interval-seconds:
-      - '1'
-      x-rh-edge-cache-status:
-      - NotCacheable from child
-      x-rh-edge-reference-id:
-      - 0.4e24c317.1719574964.32d68f9e
-      x-rh-edge-request-id:
-      - 32d68f9e
-      x-seraph-loginreason:
-      - OK
-      x-xss-protection:
-      - 1; mode=block
-    status:
-      code: 200
-      message: OK
-- request:
-    body: '{"fields": {"issuetype": {"id": "17"}, "project": {"id": "12337520"}, "summary":
-      "CVE-2020-10000 kernel: some description", "description": "Comment zero for
-      CVE-2020-10000", "labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
-      "impact:IMPORTANT", "major_incident"], "priority": {"name": "Minor"}}}'
-    headers:
-      Accept:
-      - application/json,*.*;q=0.9
-      Accept-Encoding:
-      - gzip, deflate
-      Cache-Control:
-      - no-cache
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '298'
-      Content-Type:
-      - application/json
-      User-Agent:
-      - python-requests/2.32.0
-      X-Atlassian-Token:
-      - no-check
-    method: PUT
-    uri: https://example.com/rest/api/2/issue/OSIM-495
-  response:
-    body:
-      string: ''
-    headers:
-      Cache-Control:
-      - max-age=0, no-cache, no-store
-      Connection:
-      - keep-alive
-      Content-Type:
-      - application/json;charset=UTF-8
-      Date:
-      - Fri, 28 Jun 2024 11:42:45 GMT
-      Expires:
-      - Fri, 28 Jun 2024 11:42:45 GMT
-      Pragma:
-      - no-cache
-      Retry-After:
-      - '0'
       X-RateLimit-Limit:
       - '5'
       X-RateLimit-Remaining:
       - '2'
+      content-length:
+      - '9359'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
       - max-age=31536000
       x-anodeid:
-      - rh1-jira-dc-stg-mpp-0
+      - rh1-jira-dc-stg-mpp-1
       x-arequestid:
-      - 702x590426x1
+      - 726x1719674x6
       x-asessionid:
-      - 137s4aq
+      - a5o1bs
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -2222,16 +1120,16 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4e24c317.1719574964.32d690d6
+      - 0.18fb1060.1732622760.880bbd6d
       x-rh-edge-request-id:
-      - 32d690d6
+      - 880bbd6d
       x-seraph-loginreason:
       - OK
       x-xss-protection:
       - 1; mode=block
     status:
-      code: 204
-      message: No Content
+      code: 200
+      message: OK
 - request:
     body: null
     headers:
@@ -2246,90 +1144,100 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - python-requests/2.32.0
+      - python-requests/2.32.3
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/issue/OSIM-495
+    uri: https://example.com/rest/api/2/issue/OSIM-14341
   response:
     body:
       string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
-        "id": "16090950", "self": "https://example.com/rest/api/2/issue/16090950",
-        "key": "OSIM-495", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
-        "id": "17", "description": "Created by Jira Software - do not edit or delete.
-        Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
-        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
-        null, "customfield_12324540": "0.0", "timespent": null, "customfield_12320940":
-        null, "project": {"self": "https://example.com/rest/api/2/project/12337520",
-        "id": "12337520", "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey":
-        "software", "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
-        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
-        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
-        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
-        "fixVersions": [], "customfield_12320944": null, "aggregatetimespent": null,
-        "resolution": null, "customfield_12310220": null, "customfield_12314740":
-        "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@753b60ec[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5e5a457a[overall=PullRequestOverallBean{stateCount=0,
+        "id": "16312059", "self": "https://example.com/rest/api/2/issue/16312059",
+        "key": "OSIM-14341", "fields": {"customfield_12324540": "0.0", "fixVersions":
+        [], "resolution": null, "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@1c1d45e8[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@10e12080[overall=PullRequestOverallBean{stateCount=0,
         state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
-        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4c2735a5[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@40dad8ce[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3052dce[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@4952cd5c[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@3cad43ce[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@2aa7e03d[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@66c3fa[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@5f01d687[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
-        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@9645d9a[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@1c57e283[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@6eb9475d[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@77c59f2a[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5a401143[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@2953613f[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@df448e7[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@5693babc[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@c837324[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@3e6ba112[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@11776548[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@5afa6b80[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
         devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
-        "resolutiondate": null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
-        null, "customfield_12316841": null, "customfield_12315950": null, "customfield_12310940":
-        null, "customfield_12319040": null, "lastViewed": null, "watches": {"self":
-        "https://example.com/rest/api/2/issue/OSIM-495/watchers", "watchCount": 1,
-        "isWatching": true}, "created": "2024-06-28T11:42:39.549+0000", "customfield_12321240":
-        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/4",
-        "iconUrl": "https://example.com/images/icons/priorities/minor.svg", "name":
-        "Minor", "id": "4"}, "labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
-        "impact:IMPORTANT", "major_incident"], "customfield_12320947": [{"self": "https://example.com/rest/api/2/customFieldOption/27714",
-        "value": "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
-        {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
-        "False", "id": "27705", "disabled": false}, "aggregatetimeoriginalestimate":
-        null, "timeestimate": null, "versions": [], "issuelinks": [], "assignee":
-        null, "updated": "2024-06-28T11:42:44.995+0000", "customfield_12313942": null,
-        "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/15021",
+        "customfield_12315950": null, "customfield_12310940": null, "lastViewed":
+        null, "customfield_12313140": null, "priority": {"self": "https://example.com/rest/api/2/priority/3",
+        "iconUrl": "https://example.com/images/icons/priorities/major.svg", "name":
+        "Major", "id": "3"}, "labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
+        "impact:IMPORTANT"], "aggregatetimeoriginalestimate": null, "timeestimate":
+        null, "versions": [], "issuelinks": [], "assignee": null, "customfield_12313942":
+        null, "customfield_12313941": null, "status": {"self": "https://example.com/rest/api/2/status/15021",
         "description": "Work is being scoped and discussed (To Do status category;
         see also Draft)", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
         "name": "Refinement", "id": "15021", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
         "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
-        [], "timeoriginalestimate": null, "description": "Comment zero for CVE-2020-10000",
-        "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
-        null, "timetracking": {}, "customfield_12320842": null, "customfield_12310243":
-        null, "attachment": [], "aggregatetimeestimate": null, "customfield_12316542":
-        {"self": "https://example.com/rest/api/2/customFieldOption/14655", "value":
-        "False", "id": "14655", "disabled": false}, "customfield_12317313": null,
-        "customfield_12316543": {"self": "https://example.com/rest/api/2/customFieldOption/14657",
-        "value": "False", "id": "14657", "disabled": false}, "customfield_12316544":
-        "None", "customfield_12310840": "9223372036854775807", "summary": "CVE-2020-10000
-        kernel: some description", "customfield_12323640": null, "customfield_12323642":
-        null, "creator": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
-        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
-        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
-        "customfield_12323641": null, "subtasks": [], "customfield_12321140": null,
-        "customfield_12320850": null, "reporter": {"self": "https://example.com/rest/api/2/user?username=concosta%40redhat.com",
-        "name": "concosta@redhat.com", "key": "JIRAUSER196381", "emailAddress": "concosta+stage@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER196381&avatarId=41326",
-        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER196381&avatarId=41326",
-        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER196381&avatarId=41326",
-        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER196381&avatarId=41326"},
-        "displayName": "Conrado Costa", "active": true, "timeZone": "America/New_York"},
-        "aggregateprogress": {"progress": 0, "total": 0}, "customfield_12323644":
-        null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
-        null, "environment": null, "customfield_12315542": null, "customfield_12315740":
-        null, "customfield_12313441": "", "customfield_12313440": "0.0", "customfield_12313240":
-        null, "duedate": null, "customfield_12311140": null, "customfield_12319742":
-        null, "progress": {"progress": 0, "total": 0}, "comment": {"comments": [],
-        "maxResults": 0, "total": 0, "startAt": 0}, "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-495/votes",
+        [], "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
+        null, "customfield_12320842": null, "customfield_12310243": null, "aggregatetimeestimate":
+        null, "customfield_12317313": null, "creator": {"self": "https://example.com/rest/api/2/user?username=osoukup%40redhat.com",
+        "name": "osoukup@redhat.com", "key": "osoukup", "emailAddress": "osoukup+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17283",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17283",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17283",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17283"},
+        "displayName": "Ondrej Soukup", "active": true, "timeZone": "UTC"}, "subtasks":
+        [], "customfield_12321140": null, "customfield_12320850": null, "reporter":
+        {"self": "https://example.com/rest/api/2/user?username=osoukup%40redhat.com",
+        "name": "osoukup@redhat.com", "key": "osoukup", "emailAddress": "osoukup+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?avatarId=17283",
+        "24x24": "https://example.com/secure/useravatar?size=small&avatarId=17283",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&avatarId=17283",
+        "32x32": "https://example.com/secure/useravatar?size=medium&avatarId=17283"},
+        "displayName": "Ondrej Soukup", "active": true, "timeZone": "UTC"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12315542": null, "customfield_12313240":
+        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
+        "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-14341/votes",
         "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
-        0, "maxResults": 20, "total": 0, "worklogs": []}, "customfield_12310213":
-        null, "archivedby": null, "customfield_12311940": "2|i10z5r:"}}'
+        0, "maxResults": 20, "total": 0, "worklogs": []}, "archivedby": null, "customfield_12325158":
+        null, "issuetype": {"self": "https://example.com/rest/api/2/issuetype/17",
+        "id": "17", "description": "Created by Jira Software - do not edit or delete.
+        Issue type for a user story.", "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12325157":
+        null, "customfield_12325159": null, "customfield_12318341": null, "customfield_12325154":
+        null, "customfield_12325153": null, "customfield_12325156": null, "timespent":
+        null, "customfield_12325155": null, "customfield_12320940": null, "project":
+        {"self": "https://example.com/rest/api/2/project/12337520", "id": "12337520",
+        "key": "OSIM", "name": "Open Security Issue Manager", "projectTypeKey": "software",
+        "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
+        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
+        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
+        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
+        "customfield_12320944": null, "aggregatetimespent": null, "customfield_12310220":
+        null, "resolutiondate": null, "customfield_12325150": null, "workratio": -1,
+        "customfield_12325152": null, "customfield_12316840": null, "customfield_12317379":
+        null, "customfield_12325151": null, "customfield_12316841": null, "customfield_12319040":
+        null, "customfield_12325047": null, "watches": {"self": "https://example.com/rest/api/2/issue/OSIM-14341/watchers",
+        "watchCount": 1, "isWatching": true}, "customfield_12325044": null, "customfield_12325043":
+        null, "customfield_12325046": null, "created": "2024-11-26T12:05:56.086+0000",
+        "customfield_12321240": null, "customfield_12325045": null, "customfield_12320947":
+        [{"self": "https://example.com/rest/api/2/customFieldOption/27714", "value":
+        "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
+        "False", "id": "27705", "disabled": false}, "customfield_12325040": [], "customfield_12325160":
+        null, "customfield_12325042": null, "customfield_12325041": null, "updated":
+        "2024-11-26T12:06:00.149+0000", "timeoriginalestimate": null, "description":
+        "Comment zero for CVE-2020-10000", "timetracking": {}, "attachment": [], "customfield_12316542":
+        {"self": "https://example.com/rest/api/2/customFieldOption/14655", "value":
+        "False", "id": "14655", "disabled": false}, "customfield_12316543": {"self":
+        "https://example.com/rest/api/2/customFieldOption/14657", "value": "False",
+        "id": "14657", "disabled": false}, "customfield_12316544": "None", "customfield_12310840":
+        "9223372036854775807", "summary": "CVE-2020-10000 kernel: some description",
+        "customfield_12323640": null, "customfield_12325147": null, "customfield_12325146":
+        null, "customfield_12323642": null, "customfield_12325149": null, "customfield_12323641":
+        null, "customfield_12325148": null, "customfield_12325143": null, "customfield_12325142":
+        null, "customfield_12325145": null, "customfield_12325144": null, "customfield_12323644":
+        null, "customfield_12323643": null, "customfield_12323646": null, "customfield_12323645":
+        null, "environment": null, "customfield_12315740": null, "customfield_12313441":
+        "", "customfield_12313440": "0.0", "duedate": null, "customfield_12311140":
+        null, "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt":
+        0}, "customfield_12325141": null, "customfield_12325140": null, "customfield_12310213":
+        null, "customfield_12311940": "2|i21qzr:"}}'
     headers:
       Cache-Control:
       - max-age=0, no-cache, no-store
@@ -2338,9 +1246,9 @@ interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Fri, 28 Jun 2024 11:42:46 GMT
+      - Tue, 26 Nov 2024 12:06:01 GMT
       Expires:
-      - Fri, 28 Jun 2024 11:42:46 GMT
+      - Tue, 26 Nov 2024 12:06:01 GMT
       Pragma:
       - no-cache
       Retry-After:
@@ -2353,7 +1261,7 @@ interactions:
       X-RateLimit-Remaining:
       - '4'
       content-length:
-      - '8783'
+      - '9360'
       referrer-policy:
       - strict-origin-when-cross-origin
       strict-transport-security:
@@ -2361,9 +1269,9 @@ interactions:
       x-anodeid:
       - rh1-jira-dc-stg-mpp-0
       x-arequestid:
-      - 702x590430x1
+      - 726x1711921x1
       x-asessionid:
-      - 1sch7qu
+      - mr119h
       x-content-type-options:
       - nosniff
       x-frame-options:
@@ -2375,9 +1283,9 @@ interactions:
       x-rh-edge-cache-status:
       - NotCacheable from child
       x-rh-edge-reference-id:
-      - 0.4e24c317.1719574965.32d69c5b
+      - 0.dfb1060.1732622761.7eeb63c7
       x-rh-edge-request-id:
-      - 32d69c5b
+      - 7eeb63c7
       x-seraph-loginreason:
       - OK
       x-xss-protection:
