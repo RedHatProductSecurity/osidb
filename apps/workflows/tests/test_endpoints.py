@@ -1,5 +1,8 @@
+from datetime import datetime
+
 import pytest
 from django.conf import settings
+from freezegun import freeze_time
 
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.models import State, Workflow
@@ -426,6 +429,7 @@ class TestFlawDraft:
     def mock_create_task(self, flaw):
         return "OSIM-123"
 
+    @freeze_time(datetime(2020, 12, 12))  # freeze against top of the second crossing
     @pytest.mark.vcr
     def test_promote(
         self,

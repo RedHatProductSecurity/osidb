@@ -46,8 +46,11 @@ class TestJiraTaskCollector:
         uuid = "fb145b06-82a7-4851-a429-541288633d16"
         flaw = FlawFactory(uuid=uuid, embargoed=False, impact=Impact.IMPORTANT)
         AffectFactory(flaw=flaw)
-        flaw.tasksync(force_creation=True, jira_token=jira_token)
-        assert flaw.impact == Impact.IMPORTANT
+
+        # freeze the time so NOW corresponds to the Jira as it is split
+        with freeze_time(datetime(2024, 11, 26, 12, 6, 0)):
+            flaw.tasksync(force_creation=True, jira_token=jira_token)
+            assert flaw.impact == Impact.IMPORTANT
 
         assert flaw.task_key
 
@@ -102,27 +105,31 @@ class TestJiraTaskCollector:
 
         jtq = JiraTaskmanQuerier(token=jira_token)
 
-        # 1 - create a flaw with task
+        # 1 - create a flaw
         # remove randomness for VCR usage
         uuid = "e49a732a-06fe-4942-94d8-3a8b0407e827"
         flaw = FlawFactory(uuid=uuid, embargoed=False, impact=Impact.IMPORTANT)
         AffectFactory(flaw=flaw)
-        flaw.tasksync(force_creation=True, jira_token=jira_token)
-        assert flaw.task_key
 
-        # 2 - get the current Jira task and make sure db is in-sync
+        # 2 - create a task
+        #     freezing the time so NOW corresponds to the Jira as it is split
+        with freeze_time(datetime(2024, 7, 22, 14, 30, 14, 665000)):
+            flaw.tasksync(force_creation=True, jira_token=jira_token)
+            assert flaw.task_key
+
+        # 3 - get the current Jira task and make sure db is in-sync
         issue = jtq.jira_conn.issue(flaw.task_key)
         last_update = datetime.strptime(issue.fields.updated, "%Y-%m-%dT%H:%M:%S.%f%z")
         assert last_update == flaw.task_updated_dt
         assert issue.fields.status.name == "New"
 
-        # 3 - freeze the issue in time to simulate long queries being outdated
+        # 4 - freeze the issue in time to simulate long queries being outdated
         def mock_get_issue(self, jira_id: str):
             return issue
 
         monkeypatch.setattr(JiraQuerier, "get_issue", mock_get_issue)
 
-        # 4 - simulate user promoting a flaw
+        # 5 - simulate user promoting a flaw
         flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
         # provide a fake diff just to pretend that the workflow state has changed
         flaw.tasksync(diff={"workflow_state": None}, jira_token=jira_token)
@@ -130,7 +137,7 @@ class TestJiraTaskCollector:
         assert last_update < flaw.task_updated_dt
         assert flaw.workflow_state == "TRIAGE"
 
-        # 5 - make sure collector does not change flaw if it is holding outdated issue
+        # 6 - make sure collector does not change flaw if it is holding outdated issue
         collector = JiraTaskCollector()
         collector.collect(flaw.task_key)
         flaw = Flaw.objects.get(uuid=flaw.uuid)

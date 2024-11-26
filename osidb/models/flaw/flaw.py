@@ -1051,9 +1051,14 @@ class Flaw(
         old_flaw = Flaw.objects.get(uuid=self.uuid)
 
         def _create_task():
+            self.task_updated_dt = timezone.now()  # timestamp at or before the change
             self.task_key = jtq.create_or_update_task(self)
             self.workflow_state = WorkflowModel.WorkflowState.NEW
-            self.save(no_alerts=True, *args, **kwargs)
+            Flaw.objects.filter(uuid=self.uuid).update(
+                task_key=self.task_key,
+                task_updated_dt=self.task_updated_dt,
+                workflow_state=self.workflow_state,
+            )
 
         if not JIRA_TASKMAN_AUTO_SYNC_FLAW or not jira_token:
             return
@@ -1084,15 +1089,26 @@ class Flaw(
             diff is not None
             and any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS)
         ):
+            self.task_updated_dt = timezone.now()  # timestamp at or before the change
             jtq.create_or_update_task(self)
+            Flaw.objects.filter(uuid=self.uuid).update(
+                task_updated_dt=self.task_updated_dt
+            )
 
         if force_update or (
             diff is not None
             and any(field in diff.keys() for field in TRANSITION_REQUIRED_FIELDS)
         ):
+            self.task_updated_dt = timezone.now()  # timestamp at or before the change
             jtq.transition_task(self)
             self.adjust_acls(save=False)
-            self.save(no_alerts=True, *args, **kwargs)
+            Flaw.objects.filter(uuid=self.uuid).update(
+                acl_read=self.acl_read,
+                acl_write=self.acl_write,
+                task_updated_dt=self.task_updated_dt,
+                workflow_name=self.workflow_name,
+                workflow_state=self.workflow_state,
+            )
 
     download_manager = models.ForeignKey(
         FlawDownloadManager, null=True, blank=True, on_delete=models.CASCADE
