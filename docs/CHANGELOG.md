@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or low (OSIDB-3524)
 - Set hard limit of paginated results (OSIDB-643)
 - Add all references as links when creating Jira trackers (OSIDB-3733)
+- Set security level together with embargo status (OSIDB-3598)
 
 ### Removed
 - Remove UBI handler special treatment (OSIDB-3728)

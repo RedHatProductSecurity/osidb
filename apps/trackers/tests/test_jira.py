@@ -20,7 +20,10 @@ from apps.trackers.exceptions import (
     MissingVulnerabilityIssueFieldError,
     TrackerCreationError,
 )
-from apps.trackers.jira.constants import PS_ADDITIONAL_FIELD_TO_JIRA
+from apps.trackers.jira.constants import (
+    JIRA_EMBARGO_SECURITY_LEVEL_NAME,
+    PS_ADDITIONAL_FIELD_TO_JIRA,
+)
 from apps.trackers.jira.query import (
     JiraCVESeverity,
     JiraPriority,
@@ -1428,7 +1431,10 @@ class TestTrackerJiraQueryBuilder:
             impact=affect_impact,
         )
         ps_module = PsModuleFactory(
-            name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
+            bts_key="FOOPROJECT",
+            bts_name="jboss",
+            name="foo-module",
+            private_trackers_allowed=False,
         )
         stream = PsUpdateStreamFactory(
             ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
@@ -2082,6 +2088,14 @@ class TestTrackerJiraQueryBuilder:
                 validate_minimum_key_value(
                     minimum=expected1, evaluated=query_builder._query
                 )
+                # additionally the security level must be set as the Jira
+                # automation setting it based on the embargo status has
+                # delay potentially causing sencitive information leak
+                if emb is True:
+                    assert "security" in query_builder.query["fields"]
+                    assert query_builder.query["fields"]["security"] == {
+                        "name": JIRA_EMBARGO_SECURITY_LEVEL_NAME
+                    }
             else:
                 with pytest.raises(MissingEmbargoStatusError):
                     query_builder.generate()
@@ -2476,7 +2490,11 @@ class TestTrackerJiraQueryBuilderSla:
             reported_dt=make_aware(datetime(2000, 1, 1)),
             source="REDHAT",
         )
-        ps_module = PsModuleFactory(bts_name="bugzilla", bts_key="FOOPROJECT")
+        ps_module = PsModuleFactory(
+            bts_key="FOOPROJECT",
+            bts_name="bugzilla",
+            private_trackers_allowed=False,
+        )
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,

@@ -569,7 +569,6 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         # NOTE: NOT calling super().generate() on purpose.
 
         # NOTE: no self.generate_priority() as compared to OldTrackerJiraQueryBuilder
-        # NOTE: no self.generate_security() as compared to OldTrackerJiraQueryBuilder
 
         self.generate_base()
         self.generate_component()
@@ -589,8 +588,13 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         self.generate_cwe_id()
         self.generate_downstream_component()
         self.generate_upstream_component()
-        self.generate_embargo_status()
         self.generate_special_handling()
+
+        # we set both embargo status and security level field values since
+        # the Jira automation responsible for handling the security level based
+        # on embargo status has a delay during which the embargo might leak
+        self.generate_embargo_status()
+        self.generate_security()
 
     @cached_property
     def most_important_affect(self):
