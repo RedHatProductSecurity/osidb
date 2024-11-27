@@ -153,9 +153,9 @@ class TestOldTrackerJiraQueryBuilder:
             ],
         )
 
-        quer_builder = OldTrackerJiraQueryBuilder(tracker)
-        quer_builder.generate()
-        validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
+        query_builder = OldTrackerJiraQueryBuilder(tracker)
+        query_builder.generate()
+        validate_minimum_key_value(minimum=expected1, evaluated=query_builder._query)
 
     @pytest.mark.parametrize(
         "embargoed, private, valid_jira_field",
@@ -1355,9 +1355,9 @@ class TestTrackerJiraQueryBuilder:
         if not flaw.cwe_id:
             del expected1["fields"]["customfield_12324747"]
 
-        quer_builder = TrackerJiraQueryBuilder(tracker)
-        quer_builder.generate()
-        validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
+        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder.generate()
+        validate_minimum_key_value(minimum=expected1, evaluated=query_builder._query)
 
     @pytest.mark.parametrize(
         "missing,wrong,flaw_impact,affect_impact,expected_severity",
@@ -1463,9 +1463,9 @@ class TestTrackerJiraQueryBuilder:
                 }
             }
 
-            quer_builder = TrackerJiraQueryBuilder(tracker)
-            quer_builder.generate()
-            validate_minimum_key_value(minimum=expected, evaluated=quer_builder._query)
+            query_builder = TrackerJiraQueryBuilder(tracker)
+            query_builder.generate()
+            validate_minimum_key_value(minimum=expected, evaluated=query_builder._query)
         else:
             if missing:
                 with pytest.raises(MissingVulnerabilityIssueFieldError):
@@ -1569,9 +1569,11 @@ class TestTrackerJiraQueryBuilder:
                 }
             }
 
-            quer_builder = TrackerJiraQueryBuilder(tracker)
-            quer_builder.generate()
-            validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
+            query_builder = TrackerJiraQueryBuilder(tracker)
+            query_builder.generate()
+            validate_minimum_key_value(
+                minimum=expected1, evaluated=query_builder._query
+            )
         else:
             if other_outcome == 1:
                 with pytest.raises(MissingVulnerabilityIssueFieldError):
@@ -1777,9 +1779,11 @@ class TestTrackerJiraQueryBuilder:
             )
 
         if not other_outcome:
-            quer_builder = TrackerJiraQueryBuilder(tracker)
-            quer_builder.generate()
-            validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
+            query_builder = TrackerJiraQueryBuilder(tracker)
+            query_builder.generate()
+            validate_minimum_key_value(
+                minimum=expected1, evaluated=query_builder._query
+            )
         else:
             with pytest.raises(MissingVulnerabilityIssueFieldError):
                 TrackerJiraQueryBuilder(tracker).generate()
@@ -1866,9 +1870,11 @@ class TestTrackerJiraQueryBuilder:
             with pytest.raises(MissingVulnerabilityIssueFieldError):
                 TrackerJiraQueryBuilder(tracker).generate()
         else:
-            quer_builder = TrackerJiraQueryBuilder(tracker)
-            quer_builder.generate()
-            validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
+            query_builder = TrackerJiraQueryBuilder(tracker)
+            query_builder.generate()
+            validate_minimum_key_value(
+                minimum=expected1, evaluated=query_builder._query
+            )
 
     @pytest.mark.parametrize(
         "components,missing",
@@ -1959,9 +1965,11 @@ class TestTrackerJiraQueryBuilder:
             with pytest.raises(MissingVulnerabilityIssueFieldError):
                 TrackerJiraQueryBuilder(tracker).generate()
         else:
-            quer_builder = TrackerJiraQueryBuilder(tracker)
-            quer_builder.generate()
-            validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
+            query_builder = TrackerJiraQueryBuilder(tracker)
+            query_builder.generate()
+            validate_minimum_key_value(
+                minimum=expected1, evaluated=query_builder._query
+            )
 
     @pytest.mark.parametrize(
         "emb,missing,allowed_values,allowed_values_accepted",
@@ -2068,15 +2076,15 @@ class TestTrackerJiraQueryBuilder:
             with pytest.raises(MissingVulnerabilityIssueFieldError):
                 TrackerJiraQueryBuilder(tracker).generate()
         else:
-            quer_builder = TrackerJiraQueryBuilder(tracker)
+            query_builder = TrackerJiraQueryBuilder(tracker)
             if allowed_values_accepted:
-                quer_builder.generate()
+                query_builder.generate()
                 validate_minimum_key_value(
-                    minimum=expected1, evaluated=quer_builder._query
+                    minimum=expected1, evaluated=query_builder._query
                 )
             else:
                 with pytest.raises(MissingEmbargoStatusError):
-                    quer_builder.generate()
+                    query_builder.generate()
 
     @pytest.mark.parametrize(
         "major_incident_state,expected,missing",
@@ -2159,9 +2167,11 @@ class TestTrackerJiraQueryBuilder:
             with pytest.raises(MissingVulnerabilityIssueFieldError):
                 TrackerJiraQueryBuilder(tracker).generate()
         else:
-            quer_builder = TrackerJiraQueryBuilder(tracker)
-            quer_builder.generate()
-            validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
+            query_builder = TrackerJiraQueryBuilder(tracker)
+            query_builder.generate()
+            validate_minimum_key_value(
+                minimum=expected1, evaluated=query_builder._query
+            )
 
     def test_generate_query_multiflaw(self):
         """
@@ -2338,9 +2348,9 @@ class TestTrackerJiraQueryBuilder:
         if not flaw.cwe_id:
             del expected1["fields"]["customfield_12324747"]
 
-        quer_builder = TrackerJiraQueryBuilder(tracker)
-        quer_builder.generate()
-        validate_minimum_key_value(minimum=expected1, evaluated=quer_builder._query)
+        query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder.generate()
+        validate_minimum_key_value(minimum=expected1, evaluated=query_builder._query)
 
 
 class TestOldTrackerJiraQueryBuilderSla:
