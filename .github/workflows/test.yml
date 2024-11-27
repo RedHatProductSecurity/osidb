@@ -14,7 +14,7 @@ jobs:
       # it much simpler to transition from GitLab to GitHub as we use the
       # same image and dependencies / setup as before, it should probably
       # be revisited in the not-so-distant future
-      image: quay.io/prodsecdev/fedora-latest:35
+      image: quay.io/fedora/fedora:latest
       credentials:
         username: ${{ secrets.QUAY_REGISTRY_USERNAME }}
         password: ${{ secrets.QUAY_REGISTRY_TOKEN }}
@@ -44,8 +44,50 @@ jobs:
         image: redis
     steps:
       - uses: actions/checkout@v4
+      # This step is required in order to install python-ldap
+      # see https://github.com/python-ldap/python-ldap/issues/432
+      - name: Fix installing python-ldap
+        run: echo "INPUT ( libldap.so )" > /usr/lib64/libldap_r.so
       - name: Install required packages
-        run: dnf install -y openldap-devel openldap-clients python3.9 postgresql-contrib
+        run: >
+          dnf install -y
+          asciidoc
+          asciidoctor
+          bandit
+          cpio
+          dnf-plugins-core
+          enchant
+          findutils
+          gcc
+          git
+          krb5-devel
+          krb5-server
+          krb5-workstation
+          libcap-devel
+          make
+          openldap-clients
+          openldap-devel
+          openssh
+          openssh-clients
+          openssl-devel
+          postgresql-contrib
+          postgresql-devel
+          python-srpm-macros
+          python3-devel
+          python3-pycodestyle
+          python3-pylint
+          python3-pytest
+          python3-pytest-cov
+          python3.9
+          python36
+          python38
+          redhat-rpm-config
+          rpm-build
+          rpmlint
+          rsync
+          tox
+          wget
+          which
       - name: Setup PostgreSQL service
         run: psql -f etc/pg/local-dev-app-user.sql postgres://postgres:test@postgres:5432/
       - name: Setup LDAP service
