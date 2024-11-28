@@ -604,7 +604,25 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         self.generate_cc()
         self.generate_target_release()
 
-        self.generate_cve_severity()
+        # in the future we will standardize on Severity deprecating CVE Severity but it first
+        # needs to standardize in Jira so for the time being we still set both if available
+        # however we require at least one to be set so if neither is available we raise
+        severity_error = False
+        for severity_method in [
+            self.generate_cve_severity,
+            self.generate_severity,
+        ]:
+            try:
+                severity_method()
+            except MissingVulnerabilityIssueFieldError:
+                if severity_error:
+                    raise MissingVulnerabilityIssueFieldError(
+                        "Neither CVE Severity nor Severity field is available for Vulnerability "
+                        f"issuetype in Jira project {self.ps_module.bts_key} while at least one "
+                        "of the two fields is required."
+                    )
+                severity_error = True
+
         self.generate_source()
         self.generate_cve_id()
         self.generate_cvss_score()
