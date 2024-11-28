@@ -71,8 +71,8 @@ class TrackerJiraSaver(JiraQuerier):
                 issue_key=issue.key,
                 body=comment,
             )
-        # Add upstream links only on tracker creation
-        for reference in tracker.upstream_references:
+        # Add references only on tracker creation
+        for reference in tracker.references:
             self.add_link(
                 issue_key=issue.key,
                 url=reference.url,
