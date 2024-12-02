@@ -136,6 +136,29 @@ IMPACT_TO_JIRA_CVE_SEVERITY = {
     # NONE exists in Jira, but not allowable for OSIDB to set.
 }
 
+
+class JiraSeverity:
+    """
+    allowed Jira Severity field values compatible with
+    https://access.redhat.com/security/updates/classification
+    """
+
+    CRITICAL = "Critical"
+    IMPORTANT = "Important"
+    MODERATE = "Moderate"
+    LOW = "Low"
+    INFORMATIONAL = "Informational"
+    NONE = "None"
+
+
+IMPACT_TO_JIRA_SEVERITY = {
+    Impact.CRITICAL: JiraSeverity.CRITICAL,
+    Impact.IMPORTANT: JiraSeverity.IMPORTANT,
+    Impact.MODERATE: JiraSeverity.MODERATE,
+    Impact.LOW: JiraSeverity.LOW,
+    # INFORMATIONAL and NONE exist in Jira but are not used by OSIDB
+}
+
 # NOTE that these four values can change, as they are for sanity-checking
 # allowed values for Jira field Special Handling.
 MAJOR_INCIDENT = "Major Incident"
@@ -421,7 +444,8 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
                 return
             raise MissingSecurityLevelError(
                 f"Jira project {self.ps_module.bts_key} does not have available Security Level "
-                f"{JIRA_EMBARGO_SECURITY_LEVEL_NAME}; allowed Jira priority values are: {', '.join(allowed_values)}"
+                f"{JIRA_EMBARGO_SECURITY_LEVEL_NAME}; allowed Security Level values are: "
+                f"{', '.join(allowed_values)}"
             )
         elif self.ps_module.private_trackers_allowed:
             if JIRA_INTERNAL_SECURITY_LEVEL_NAME in allowed_values:
@@ -431,7 +455,8 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
                 return
             raise MissingSecurityLevelError(
                 f"Jira project {self.ps_module.bts_key} does not have available Security Level "
-                f"{JIRA_INTERNAL_SECURITY_LEVEL_NAME}; allowed Jira priority values are: {', '.join(allowed_values)}"
+                f"{JIRA_INTERNAL_SECURITY_LEVEL_NAME}; allowed Security Level values are: "
+                f"{', '.join(allowed_values)}"
             )
         else:
             # This tells Jira to remove the field value if there is one set.
@@ -581,7 +606,25 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         self.generate_cc()
         self.generate_target_release()
 
-        self.generate_cve_severity()
+        # in the future we will standardize on Severity deprecating CVE Severity but it first
+        # needs to standardize in Jira so for the time being we still set both if available
+        # however we require at least one to be set so if neither is available we raise
+        severity_error = False
+        for severity_method in [
+            self.generate_cve_severity,
+            self.generate_severity,
+        ]:
+            try:
+                severity_method()
+            except MissingVulnerabilityIssueFieldError:
+                if severity_error:
+                    raise MissingVulnerabilityIssueFieldError(
+                        "Neither CVE Severity nor Severity field is available for Vulnerability "
+                        f"issuetype in Jira project {self.ps_module.bts_key} while at least one "
+                        "of the two fields is required."
+                    )
+                severity_error = True
+
         self.generate_source()
         self.generate_cve_id()
         self.generate_cvss_score()
@@ -719,6 +762,23 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             )
 
         severity = IMPACT_TO_JIRA_CVE_SEVERITY[self.impact]
+        if severity not in allowed_values:
+            raise MissingSeverityError(
+                f"Jira project {self.ps_module.bts_key} does not have the {field_name} field value "
+                f"{severity}; allowed values are: {', '.join(allowed_values)}"
+            )
+        self._query["fields"][field_id] = {"value": severity}
+
+    def generate_severity(self):
+        field_name = "Severity"
+        allowed_values, field_id = self.field_check_and_get_values_and_id(field_name)
+
+        if self.impact is Impact.NOVALUE:
+            raise TrackerCreationError(
+                "Tracker has disallowed Impact value Impact.NOVALUE (empty string)."
+            )
+
+        severity = IMPACT_TO_JIRA_SEVERITY[self.impact]
         if severity not in allowed_values:
             raise MissingSeverityError(
                 f"Jira project {self.ps_module.bts_key} does not have the {field_name} field value "

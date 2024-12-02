@@ -27,6 +27,7 @@ from apps.trackers.jira.constants import (
 from apps.trackers.jira.query import (
     JiraCVESeverity,
     JiraPriority,
+    JiraSeverity,
     OldTrackerJiraQueryBuilder,
     TrackerJiraQueryBuilder,
 )
@@ -1472,6 +1473,125 @@ class TestTrackerJiraQueryBuilder:
             query_builder = TrackerJiraQueryBuilder(tracker)
             query_builder.generate()
             validate_minimum_key_value(minimum=expected, evaluated=query_builder._query)
+        else:
+            if missing:
+                with pytest.raises(MissingVulnerabilityIssueFieldError):
+                    TrackerJiraQueryBuilder(tracker).generate()
+            if wrong:
+                with pytest.raises(MissingSeverityError):
+                    TrackerJiraQueryBuilder(tracker).generate()
+            if flaw_impact == Impact.NOVALUE:
+                with pytest.raises(TrackerCreationError):
+                    TrackerJiraQueryBuilder(tracker).generate()
+
+    @pytest.mark.parametrize(
+        "missing,wrong,flaw_impact,affect_impact,expected_severity",
+        [
+            (False, False, Impact.LOW, Impact.LOW, JiraSeverity.LOW),
+            (False, False, Impact.LOW, Impact.MODERATE, JiraSeverity.MODERATE),
+            (False, False, Impact.LOW, Impact.IMPORTANT, JiraSeverity.IMPORTANT),
+            (False, False, Impact.LOW, Impact.CRITICAL, JiraSeverity.CRITICAL),
+            (False, False, Impact.NOVALUE, Impact.NOVALUE, None),
+            (True, False, Impact.LOW, Impact.CRITICAL, None),
+            (False, True, Impact.LOW, Impact.CRITICAL, None),
+        ],
+    )
+    def test_severity_field(
+        self, missing, wrong, flaw_impact, affect_impact, expected_severity
+    ):
+        """
+        Test that the Severity field is populated correctly. Test that an exception is thrown
+        when the Severity field is missing or doesn't have the required allowed value or when
+        the aggregated impact is the disallowed empty value.
+        """
+        # until there is CVE Severity field being set remove its specification
+        # so the exception on missing is solely based on the Severity field
+        JiraProjectFields.objects.filter(field_name="CVE Severity").delete()
+        if not missing:
+            if not wrong:
+                JiraProjectFields(
+                    project_key="FOOPROJECT",
+                    field_id="123-severity",
+                    field_name="Severity",
+                    allowed_values=[
+                        "Critical",
+                        "Important",
+                        "Moderate",
+                        "Low",
+                        "unexpected mess here",
+                        "Informational",
+                        "None",
+                    ],
+                ).save()
+            else:
+                JiraProjectFields(
+                    project_key="FOOPROJECT",
+                    field_id="123-severity",
+                    field_name="Severity",
+                    allowed_values=[
+                        "Foobar",
+                        "Asphalt",
+                        "Drink",
+                        "Room",
+                        "Airplane",
+                        "Yes",
+                    ],
+                ).save()
+
+        flaw = FlawFactory(
+            embargoed=False,
+            bz_id="123",
+            cve_id="CVE-2000-1000",
+            impact=flaw_impact,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="some description",
+            source="REDHAT",
+        )
+        ps_module = PsModuleFactory(
+            bts_key="FOOPROJECT",
+            bts_name="jboss",
+            private_trackers_allowed=False,
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            ps_component="component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=affect_impact,
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            name="stream-1", ps_module=ps_module, version="1.2.3"
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            external_system_id=None,
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=ps_update_stream.name,
+            embargoed=flaw.is_embargoed,
+        )
+        if not missing and not wrong and flaw_impact != Impact.NOVALUE:
+            expected = {
+                "fields": {
+                    "project": {"key": "FOOPROJECT"},
+                    "issuetype": {"name": "Vulnerability"},
+                    "summary": "CVE-2000-1000 component: some description [stream-1]",
+                    "labels": [
+                        "CVE-2000-1000",
+                        "pscomponent:component",
+                        "SecurityTracking",
+                        "Security",
+                    ],
+                    "versions": [
+                        {"name": "1.2.3"},
+                    ],
+                    # Severity
+                    "123-severity": {"value": expected_severity},
+                }
+            }
+
+            quer_builder = TrackerJiraQueryBuilder(tracker)
+            quer_builder.generate()
+            validate_minimum_key_value(minimum=expected, evaluated=quer_builder._query)
         else:
             if missing:
                 with pytest.raises(MissingVulnerabilityIssueFieldError):
