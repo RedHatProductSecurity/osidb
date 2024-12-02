@@ -300,9 +300,6 @@ class AffectFactory(BaseFactory):
     )
     ps_module = factory.sequence(lambda n: f"ps-module-{n}")
     ps_component = factory.sequence(lambda n: f"ps-component-{n}")
-    purl = factory.sequence(
-        lambda n: f"pkg:rpm/fedora/ps-component-{n}@7.50.3-1.fc25?arch=i386&distro=fedora-25"
-    )
     impact = factory.Faker(
         "random_element",
         elements=filter(lambda i: i != "LOW", list(Impact))

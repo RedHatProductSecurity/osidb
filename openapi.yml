@@ -7022,6 +7022,7 @@ components:
           readOnly: true
         ps_component:
           type: string
+          nullable: true
           maxLength: 255
         impact:
           oneOf:
@@ -7042,6 +7043,7 @@ components:
           readOnly: true
         purl:
           type: string
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7068,7 +7070,6 @@ components:
       - delegated_resolution
       - embargoed
       - flaw
-      - ps_component
       - ps_module
       - ps_product
       - trackers
@@ -7110,6 +7111,7 @@ components:
           readOnly: true
         ps_component:
           type: string
+          nullable: true
           maxLength: 255
         impact:
           oneOf:
@@ -7130,6 +7132,7 @@ components:
           readOnly: true
         purl:
           type: string
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7156,7 +7159,6 @@ components:
       - delegated_resolution
       - embargoed
       - flaw
-      - ps_component
       - ps_module
       - ps_product
       - trackers
@@ -7340,6 +7342,7 @@ components:
           readOnly: true
         ps_component:
           type: string
+          nullable: true
           maxLength: 255
         impact:
           oneOf:
@@ -7360,6 +7363,7 @@ components:
           readOnly: true
         purl:
           type: string
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7381,7 +7385,6 @@ components:
       - delegated_resolution
       - embargoed
       - flaw
-      - ps_component
       - ps_module
       - ps_product
       - trackers

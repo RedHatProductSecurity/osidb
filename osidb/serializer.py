@@ -1035,6 +1035,11 @@ class AffectSerializer(
     trackers = serializers.SerializerMethodField()
     meta_attr = serializers.SerializerMethodField()
     cvss_scores = AffectCVSSSerializer(many=True, read_only=True)
+    # at least one of ps_component or purl is required
+    ps_component = serializers.CharField(
+        max_length=255, allow_blank=True, allow_null=True, required=False
+    )
+    purl = serializers.CharField(allow_blank=True, allow_null=True, required=False)
 
     @extend_schema_field(
         {

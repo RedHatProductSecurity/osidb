@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement field `embargoed` for advanced search (OSIDB-3549)
 - Implement no-week-ending SLA policy support (OSIDB-3500)
 - Implement complex logic in workflow state requirements (OSIDB-3524)
+- Validate and set ps_component from purl (OSIDB-3410)
 
 ### Changed
 - Add history to several other models: AffectCVSS, FlawAcknowledgment, FlawComment,
