@@ -444,7 +444,8 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
                 return
             raise MissingSecurityLevelError(
                 f"Jira project {self.ps_module.bts_key} does not have available Security Level "
-                f"{JIRA_EMBARGO_SECURITY_LEVEL_NAME}; allowed Jira priority values are: {', '.join(allowed_values)}"
+                f"{JIRA_EMBARGO_SECURITY_LEVEL_NAME}; allowed Security Level values are: "
+                f"{', '.join(allowed_values)}"
             )
         elif self.ps_module.private_trackers_allowed:
             if JIRA_INTERNAL_SECURITY_LEVEL_NAME in allowed_values:
@@ -454,7 +455,8 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
                 return
             raise MissingSecurityLevelError(
                 f"Jira project {self.ps_module.bts_key} does not have available Security Level "
-                f"{JIRA_INTERNAL_SECURITY_LEVEL_NAME}; allowed Jira priority values are: {', '.join(allowed_values)}"
+                f"{JIRA_INTERNAL_SECURITY_LEVEL_NAME}; allowed Security Level values are: "
+                f"{', '.join(allowed_values)}"
             )
         else:
             # This tells Jira to remove the field value if there is one set.
