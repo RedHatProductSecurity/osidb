@@ -172,6 +172,22 @@ class Affect(
     def __str__(self):
         return str(self.uuid)
 
+    def save(self, *args, **kwargs):
+        if self.purl and not self.ps_component:
+            try:
+                self.ps_component = PackageURL.from_string(self.purl).name
+            except ValueError:
+                pass
+
+        # TODO: if ps_component is still missing, we must catch an error now
+        #  because the error message in AlertMixin's standard validations is
+        #  not helpful and changing the order of validations is not possible now
+        #  (this should be removed once custom validations run before standard validations)
+        if not self.ps_component:
+            self._validate_purl_and_ps_component()
+
+        super().save(*args, **kwargs)
+
     def _validate_ps_module_old_flaw(self, **kwargs):
         """
         Checks that an affect from an older flaw contains a valid ps_module.
@@ -473,15 +489,32 @@ class Affect(
                     f"{affected_special_consideration_package} is missing statement.",
                 )
 
-    def _validate_purl(self, **kwargs):
+    def _validate_purl_and_ps_component(self, **kwargs):
         """
-        Checks that the purl field can be parsed into PackageURL object.
+        Validate that purl and ps_component comply with one of the following options:
+        * purl is correct and ps_component is not provided
+        * purl is correct and ps_component matches the one included in purl
         """
-        try:
-            if self.purl:
-                PackageURL.from_string(self.purl)
-        except Exception as exc:
-            raise ValidationError(f"Invalid purl '{self.purl}': {exc}")
+        if not self.purl and not self.ps_component:
+            raise ValidationError(
+                f"Affect ({self.uuid}) for {self.ps_module} must have either purl or ps_component."
+            )
+
+        if self.purl:
+            try:
+                ps_component_from_purl = PackageURL.from_string(self.purl).name
+            except ValueError as exc:
+                raise ValidationError(
+                    f"Affect ({self.uuid}) for {self.ps_module} has "
+                    f"an invalid purl '{self.purl}': {exc}."
+                )
+
+            if self.ps_component and self.ps_component != ps_component_from_purl:
+                raise ValidationError(
+                    f"Affect ({self.uuid}) for {self.ps_module} has a ps_component "
+                    "that does not match the one included in purl: "
+                    f"ps_component: {self.ps_component}, purl: {self.purl}."
+                )
 
     @property
     def aggregated_impact(self):

@@ -615,19 +615,100 @@ class TestEndpointsAffectsUpdateTrackers:
 
 class TestEndpointsAffectsPurl:
     """
-    Class for testing the purl field on the Affects endpoint.
+    Class for testing the purl field and its ps_component validation/update on the Affects endpoint.
     """
 
+    @pytest.mark.parametrize("ps_component", ["", None, "curl"])
+    def test_affect_purl_create(self, auth_client, test_api_uri, ps_component):
+        """
+        Test that Affect is created when new data contains correct purl
+        and its ps_component is either not provided or matches the one included in purl.
+        """
+        purl = "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25"
+        flaw = FlawFactory(embargoed=False)
+        affect_data = {
+            "flaw": str(flaw.uuid),
+            "affectedness": Affect.AffectAffectedness.NEW,
+            "resolution": Affect.AffectResolution.NOVALUE,
+            "ps_module": "rhacm-2",
+            "ps_component": ps_component,
+            "purl": purl,
+            "embargoed": False,
+        }
+
+        response = auth_client().post(
+            f"{test_api_uri}/affects",
+            affect_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        body = response.json()
+        created_uuid = body["uuid"]
+
+        response = auth_client().get(f"{test_api_uri}/affects/{created_uuid}")
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["ps_component"] == "curl"
+        assert body["purl"] == purl
+
+    @pytest.mark.parametrize("ps_component", ["", None, "curl"])
+    def test_affect_purl_update(self, auth_client, test_api_uri, ps_component):
+        """
+        Test that Affect's purl and ps_component are updated when new data contains correct purl
+        and its ps_component is either not provided or matches the one included in purl.
+        """
+        purl = "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25"
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw, ps_component="podman", purl="")
+
+        response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
+        assert response.status_code == 200
+        original_body = response.json()
+        assert original_body["ps_component"] == "podman"
+        assert original_body["purl"] == ""
+
+        response = auth_client().put(
+            f"{test_api_uri}/affects/{affect.uuid}",
+            {**original_body, "ps_component": ps_component, "purl": purl},
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        created_uuid = body["uuid"]
+
+        response = auth_client().get(f"{test_api_uri}/affects/{created_uuid}")
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["ps_component"] == "curl"
+        assert body["purl"] == purl
+
     @pytest.mark.parametrize(
-        "purl,should_fail",
+        "ps_component,purl,error",
         [
-            ("pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25", False),
-            ("rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25", True),
+            (
+                "",
+                "rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25",
+                "invalid purl",
+            ),
+            (
+                "podman",
+                "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25",
+                "ps_component that does not match the one included in purl",
+            ),
+            ("", "", "must have either purl or ps_component"),
+            (None, None, "must have either purl or ps_component"),
         ],
     )
-    def test_affect_purl_create(self, auth_client, test_api_uri, purl, should_fail):
+    def test_invalid_data_create(
+        self, auth_client, test_api_uri, ps_component, purl, error
+    ):
         """
-        Test that Affect record is created only in the case when its purl field is correct.
+        Test that Affect is not created when new data contains incorrect purl,
+        correct purl but its ps_component does not match the one included in purl,
+        or purl and ps_component are missing.
         """
         flaw = FlawFactory(embargoed=False)
         affect_data = {
@@ -635,46 +716,47 @@ class TestEndpointsAffectsPurl:
             "affectedness": Affect.AffectAffectedness.NEW,
             "resolution": Affect.AffectResolution.NOVALUE,
             "ps_module": "rhacm-2",
-            "ps_component": "curl",
+            "ps_component": ps_component,
             "purl": purl,
             "embargoed": False,
         }
+
         response = auth_client().post(
             f"{test_api_uri}/affects",
             affect_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
         )
-        if should_fail:
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert "Invalid purl" in str(response.content)
-
-        else:
-            assert response.status_code == status.HTTP_201_CREATED
-            body = response.json()
-            created_uuid = body["uuid"]
-
-            response = auth_client().get(f"{test_api_uri}/affects/{created_uuid}")
-            assert response.status_code == status.HTTP_200_OK
-            body = response.json()
-            assert body["purl"] == purl
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert error in str(response.content)
 
     @pytest.mark.parametrize(
-        "purl,should_fail",
+        "ps_component,purl,error",
         [
-            ("pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25", False),
-            ("curl", True),
+            (
+                "",
+                "rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25",
+                "invalid purl",
+            ),
+            (
+                "podman",
+                "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25",
+                "ps_component that does not match the one included in purl",
+            ),
+            ("", "", "must have either purl or ps_component"),
+            (None, None, "must have either purl or ps_component"),
         ],
     )
-    def test_affect_purl_update(self, auth_client, test_api_uri, purl, should_fail):
+    def test_invalid_data_update(
+        self, auth_client, test_api_uri, ps_component, purl, error
+    ):
         """
-        Test the update of Affect record only with the correct purl field.
+        Test that Affect's purl and ps_component are not updated when new data contains incorrect purl,
+        correct purl but its ps_component does not match the one included in purl,
+        or purl and ps_component are missing.
         """
         flaw = FlawFactory(embargoed=False)
-        affect = AffectFactory(
-            flaw=flaw,
-            purl="pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-24",
-        )
+        affect = AffectFactory(flaw=flaw, ps_component="podman", purl="")
 
         response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
@@ -682,25 +764,10 @@ class TestEndpointsAffectsPurl:
 
         response = auth_client().put(
             f"{test_api_uri}/affects/{affect.uuid}",
-            {
-                **original_body,
-                "purl": purl,
-            },
+            {**original_body, "ps_component": ps_component, "purl": purl},
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
             HTTP_JIRA_API_KEY="SECRET",
         )
-        if should_fail:
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert "Invalid purl" in str(response.content)
-
-        else:
-            assert response.status_code == status.HTTP_200_OK
-            body = response.json()
-            created_uuid = body["uuid"]
-
-            response = auth_client().get(f"{test_api_uri}/affects/{created_uuid}")
-            assert response.status_code == status.HTTP_200_OK
-            body = response.json()
-            assert original_body["purl"] != body["purl"]
-            assert body["purl"] == purl
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert error in str(response.content)
