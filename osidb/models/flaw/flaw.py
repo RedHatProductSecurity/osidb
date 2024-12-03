@@ -1032,72 +1032,73 @@ class Flaw(
         **kwargs,
     ):
         """
-        Task sync of the Flaw instance in Jira.
+        decides what to do about the Jira task of this flaw
 
-        If the flaw is OSIDB-authored and already exists in the database
-        the corresponding JIRA task will be updated if any of the
-        SYNC_REQUIRED_FIELDS has been updated.
-
-        If the flaw is OSIDB-authored and comes from collectors (exists in the database),
-        then a corresponding JIRA task will be created.
-
-        If the flaw is OSIDB-authored and does not exist in the database
-        then a corresponding JIRA task will be created.
-
-        If the flaw is not OSIDB-authored then it's a no-op.
+        based on the task existence it is either created or updated and/or transitioned
+        old pre-OSIDB flaws without tasks are ignored unless force_creation is set
         """
-
-        def _create_or_update_task():
-            # timestamp at or before the change
-            self.task_updated_dt = timezone.now()
-
-            # creation
-            if not self.task_key:
-                self.task_key = jtq.create_or_update_task(self)
-                self.workflow_state = WorkflowModel.WorkflowState.NEW
-                Flaw.objects.filter(uuid=self.uuid).update(
-                    task_key=self.task_key,
-                    task_updated_dt=self.task_updated_dt,
-                    workflow_state=self.workflow_state,
-                )
-            else:
-                jtq.create_or_update_task(self)
-                Flaw.objects.filter(uuid=self.uuid).update(
-                    task_updated_dt=self.task_updated_dt
-                )
-
-        def _transition_task():
-            self.task_updated_dt = timezone.now()  # timestamp at or before the change
-            jtq.transition_task(self)
-            # workflow transition may result in ACL change
-            self.adjust_acls(save=False)
-            Flaw.objects.filter(uuid=self.uuid).update(
-                acl_read=self.acl_read,
-                acl_write=self.acl_write,
-                task_updated_dt=self.task_updated_dt,
-                workflow_name=self.workflow_name,
-                workflow_state=self.workflow_state,
-            )
-
         if not JIRA_TASKMAN_AUTO_SYNC_FLAW or not jira_token:
             return
 
-        # imports here to prevent cycles
+        if not self.task_key:
+            # old pre-OSIDB flaws without tasks are ignored by default
+            if force_creation or not self.meta_attr.get("bz_id"):
+                self._create_or_update_task(jira_token)
+
+        elif diff is not None:
+            if any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS):
+                self._create_or_update_task(jira_token)
+
+            if any(field in diff.keys() for field in TRANSITION_REQUIRED_FIELDS):
+                self._transition_task(jira_token)
+
+    def _create_or_update_task(self, jira_token):
+        """
+        create or update the Jira task of this flaw based on its existence
+        """
+        # import here to prevent cycles
         from apps.taskman.service import JiraTaskmanQuerier
 
         jtq = JiraTaskmanQuerier(token=jira_token)
 
+        # timestamp at or before the change
+        self.task_updated_dt = timezone.now()
+
+        # creation
         if not self.task_key:
-            # old pre-OSIDB flaws without task are ignored by default
-            if force_creation or not self.meta_attr.get("bz_id"):
-                _create_or_update_task()
-
+            self.task_key = jtq.create_or_update_task(self)
+            self.workflow_state = WorkflowModel.WorkflowState.NEW
+            Flaw.objects.filter(uuid=self.uuid).update(
+                task_key=self.task_key,
+                task_updated_dt=self.task_updated_dt,
+                workflow_state=self.workflow_state,
+            )
         else:
-            if any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS):
-                _create_or_update_task()
+            jtq.create_or_update_task(self)
+            Flaw.objects.filter(uuid=self.uuid).update(
+                task_updated_dt=self.task_updated_dt
+            )
 
-            if any(field in diff.keys() for field in TRANSITION_REQUIRED_FIELDS):
-                _transition_task()
+    def _transition_task(self, jira_token):
+        """
+        transition the Jira task of this flaw
+        """
+        # import here to prevent cycles
+        from apps.taskman.service import JiraTaskmanQuerier
+
+        jtq = JiraTaskmanQuerier(token=jira_token)
+
+        self.task_updated_dt = timezone.now()  # timestamp at or before the change
+        jtq.transition_task(self)
+        # workflow transition may result in ACL change
+        self.adjust_acls(save=False)
+        Flaw.objects.filter(uuid=self.uuid).update(
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
+            task_updated_dt=self.task_updated_dt,
+            workflow_name=self.workflow_name,
+            workflow_state=self.workflow_state,
+        )
 
     download_manager = models.ForeignKey(
         FlawDownloadManager, null=True, blank=True, on_delete=models.CASCADE
