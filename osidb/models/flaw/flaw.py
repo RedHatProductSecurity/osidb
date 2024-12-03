@@ -1057,6 +1057,27 @@ class Flaw(
                 workflow_state=self.workflow_state,
             )
 
+        def _update_task(diff):
+            if any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS) :
+                self.task_updated_dt = timezone.now()  # timestamp at or before the change
+                jtq.create_or_update_task(self)
+                Flaw.objects.filter(uuid=self.uuid).update(
+                    task_updated_dt=self.task_updated_dt
+                )
+
+            if any(field in diff.keys() for field in TRANSITION_REQUIRED_FIELDS):
+                self.task_updated_dt = timezone.now()  # timestamp at or before the change
+                jtq.transition_task(self)
+                # workflow transition may result in ACL change
+                self.adjust_acls(save=False)
+                Flaw.objects.filter(uuid=self.uuid).update(
+                    acl_read=self.acl_read,
+                    acl_write=self.acl_write,
+                    task_updated_dt=self.task_updated_dt,
+                    workflow_name=self.workflow_name,
+                    workflow_state=self.workflow_state,
+                )
+
         if not JIRA_TASKMAN_AUTO_SYNC_FLAW or not jira_token:
             return
 
@@ -1064,48 +1085,31 @@ class Flaw(
         from apps.taskman.service import JiraTaskmanQuerier
 
         jtq = JiraTaskmanQuerier(token=jira_token)
-        kwargs["auto_timestamps"] = False  # the timestamps will be get from Bugzilla
-        kwargs["raise_validation_error"] = False  # the validations were already run
 
-        # REST API can force new tasks since it has no access to flaw creation runtime -- create
+        # task force-creation
         if force_creation:
             _create_task()
             return
 
-        # we're handling a new OSIDB-authored flaw from collectors -- create
+        # new OSIDB flaw
         if not self.meta_attr.get("bz_id") and self.task_key == "":
             _create_task()
             return
 
-        # the flaw exists but the task doesn't, not an OSIDB-authored flaw -- no-op
+        # old pre-OSIDB flaw
+        # resolved without task
         if not self.task_key:
             return
 
-        # we're handling an existing OSIDB-authored flaw -- update
-        if force_update or (
-            diff is not None
-            and any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS)
-        ):
-            self.task_updated_dt = timezone.now()  # timestamp at or before the change
-            jtq.create_or_update_task(self)
-            Flaw.objects.filter(uuid=self.uuid).update(
-                task_updated_dt=self.task_updated_dt
-            )
+        # task force-update
+        if force_update:
+            _update_task(diff or {})
+            return
 
-        if force_update or (
-            diff is not None
-            and any(field in diff.keys() for field in TRANSITION_REQUIRED_FIELDS)
-        ):
-            self.task_updated_dt = timezone.now()  # timestamp at or before the change
-            jtq.transition_task(self)
-            self.adjust_acls(save=False)
-            Flaw.objects.filter(uuid=self.uuid).update(
-                acl_read=self.acl_read,
-                acl_write=self.acl_write,
-                task_updated_dt=self.task_updated_dt,
-                workflow_name=self.workflow_name,
-                workflow_state=self.workflow_state,
-            )
+        # task update
+        if diff is not None:
+            _update_task(diff)
+            return
 
     download_manager = models.ForeignKey(
         FlawDownloadManager, null=True, blank=True, on_delete=models.CASCADE
