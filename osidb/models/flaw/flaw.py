@@ -1028,7 +1028,6 @@ class Flaw(
         jira_token,
         diff=None,
         force_creation=False,
-        force_update=False,
         *args,
         **kwargs,
     ):
@@ -1099,11 +1098,6 @@ class Flaw(
         # old pre-OSIDB flaw
         # resolved without task
         if not self.task_key:
-            return
-
-        # task force-update
-        if force_update:
-            _update_task(diff or {})
             return
 
         # task update

@@ -20,7 +20,7 @@ from pghistory.models import Events
 from rest_framework import serializers
 
 from apps.bbsync.mixins import BugzillaSyncMixin
-from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FIELDS
+from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.serializers import WorkflowModelSerializer
 from osidb.models import (
@@ -931,16 +931,9 @@ class JiraTaskSyncMixinSerializer(JiraAPIKeyMixin, serializers.ModelSerializer):
         """
         # to allow other mixings to override update we call parent's update method
         # and validate if an important change were made forcing a sync when it is needed
-        sync_required = any(
-            field in validated_data
-            and getattr(instance, field) != validated_data[field]
-            for field in SYNC_REQUIRED_FIELDS
-        )
         updated_instance = super().update(instance, validated_data)
-        if JIRA_TASKMAN_AUTO_SYNC_FLAW and sync_required:
-            updated_instance.tasksync(
-                jira_token=self.get_jira_token(), force_update=True
-            )
+        if JIRA_TASKMAN_AUTO_SYNC_FLAW:
+            updated_instance.tasksync(jira_token=self.get_jira_token())
         return updated_instance
 
     class Meta:
