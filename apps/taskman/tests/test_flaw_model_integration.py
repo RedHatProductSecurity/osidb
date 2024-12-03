@@ -185,8 +185,8 @@ class TestFlawModelIntegration(object):
             HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
-        # update and transition forced
-        assert sync_count == 2
+        # changes require sync
+        assert sync_count == 1
 
     def test_create_jira_task_param(self, monkeypatch, auth_client, test_osidb_api_uri):
         def mock_create_or_update_task(self, flaw):
