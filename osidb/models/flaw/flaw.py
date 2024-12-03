@@ -1047,9 +1047,6 @@ class Flaw(
 
         If the flaw is not OSIDB-authored then it's a no-op.
         """
-        # if there was no flaw then fail right away
-        old_flaw = Flaw.objects.get(uuid=self.uuid)
-
         def _create_task():
             self.task_updated_dt = timezone.now()  # timestamp at or before the change
             self.task_key = jtq.create_or_update_task(self)
@@ -1076,12 +1073,12 @@ class Flaw(
             return
 
         # we're handling a new OSIDB-authored flaw from collectors -- create
-        if not old_flaw.meta_attr.get("bz_id") and old_flaw.task_key == "":
+        if not self.meta_attr.get("bz_id") and self.task_key == "":
             _create_task()
             return
 
         # the flaw exists but the task doesn't, not an OSIDB-authored flaw -- no-op
-        if not old_flaw.task_key:
+        if not self.task_key:
             return
 
         # we're handling an existing OSIDB-authored flaw -- update
