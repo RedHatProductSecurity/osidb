@@ -397,7 +397,7 @@ class BaseSerializer(serializers.ModelSerializer):
         abstract = True
 
 
-class ACLMixinSerializer(serializers.ModelSerializer):
+class ACLMixinSerializer(BaseSerializer):
     """
     ACLMixin class serializer
     translates embargoed boolean to ACLs
@@ -479,7 +479,7 @@ class ACLMixinSerializer(serializers.ModelSerializer):
         validated_data = self.embargoed2acls(validated_data)
         return super().create(validated_data)
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data, *args, **kwargs):
         # defaults to keep current ACLs
         validated_data["acl_read"] = instance.acl_read
         validated_data["acl_write"] = instance.acl_write
@@ -488,7 +488,7 @@ class ACLMixinSerializer(serializers.ModelSerializer):
             # only allow manual ACL changes between embargoed and public
             validated_data = self.embargoed2acls(validated_data)
 
-        return super().update(instance, validated_data)
+        return super().update(instance, validated_data, *args, **kwargs)
 
 
 class BugzillaAPIKeyMixin:
@@ -919,7 +919,7 @@ class BugzillaBareSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSeri
         abstract = True
 
 
-class BugzillaSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSerializer):
+class BugzillaSyncMixinSerializer(BaseSerializer, BugzillaAPIKeyMixin):
     """
     serializer mixin class implementing special handling of the models
     which need to perform Bugzilla sync as part of the save procedure
@@ -937,23 +937,22 @@ class BugzillaSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSerializ
             instance.bzsync(bz_api_key=self.get_bz_api_key())
         return instance
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data, *args, **kwargs):
         """
         perform the ordinary instance update
         with providing BZ API key while saving
         """
-        skip_bz_sync = validated_data.pop("skip_bz_sync", False)
-        instance = super().update(instance, validated_data)
-        if not skip_bz_sync:
-            instance.bzsync(bz_api_key=self.get_bz_api_key())
-        return instance
+        if not validated_data.pop("skip_bz_sync", False):
+            kwargs["bz_api_key"] = self.get_bz_api_key()
+
+        return super().update(instance, validated_data, *args, **kwargs)
 
     class Meta:
         model = BugzillaSyncMixin
         abstract = True
 
 
-class JiraTaskSyncMixinSerializer(JiraAPIKeyMixin, serializers.ModelSerializer):
+class JiraTaskSyncMixinSerializer(BaseSerializer, JiraAPIKeyMixin):
     """
     serializer mixin class implementing special handling of the models
     which need to perform Jira sync as part of the save procedure
@@ -969,17 +968,15 @@ class JiraTaskSyncMixinSerializer(JiraAPIKeyMixin, serializers.ModelSerializer):
             instance.tasksync(jira_token=self.get_jira_token(), force_creation=True)
         return instance
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data, *args, **kwargs):
         """
         perform the ordinary instance create
         with providing Jira token while saving
         """
-        # to allow other mixings to override update we call parent's update method
-        # and validate if an important change were made forcing a sync when it is needed
-        updated_instance = super().update(instance, validated_data)
         if JIRA_TASKMAN_AUTO_SYNC_FLAW:
-            updated_instance.tasksync(jira_token=self.get_jira_token())
-        return updated_instance
+            kwargs["jira_token"] = self.get_jira_token()
+
+        return super().update(instance, validated_data, *args, **kwargs)
 
     class Meta:
         model = JiraTaskSyncMixin
@@ -1716,7 +1713,7 @@ class FlawSerializer(
 
         return super().create(validated_data)
 
-    def update(self, new_flaw, validated_data):
+    def update(self, new_flaw, validated_data, *args, **kwargs):
         """
         perform the flaw instance update
         with any necessary extra actions
@@ -1752,15 +1749,14 @@ class FlawSerializer(
                 "requires_cve_description"
             ] = Flaw.FlawRequiresCVEDescription.REQUESTED
 
-        # perform regular flaw update
-        new_flaw = super().update(new_flaw, validated_data)
-
         # Force Jira task creation if requested
         request = self.context.get("request")
         if request:
-            create_jira_task = request.query_params.get("create_jira_task")
-            if create_jira_task:
-                new_flaw.tasksync(jira_token=self.get_jira_token(), force_creation=True)
+            if request.query_params.get("create_jira_task"):
+                kwargs["force_creation"] = True
+
+        # perform regular flaw update
+        new_flaw = super().update(new_flaw, validated_data, *args, **kwargs)
 
         ##########################
         # 3) post-update actions #
