@@ -18,6 +18,8 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
 from pghistory.models import Events
 from rest_framework import serializers
+from rest_framework.serializers import raise_errors_on_nested_writes
+from rest_framework.utils import model_meta
 
 from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW
@@ -350,6 +352,49 @@ class EmbargoedField(serializers.BooleanField):
                 raise serializers.ValidationError(
                     f"Cannot provide access for the LDAP group without being a member: {acl}"
                 )
+
+
+class BaseSerializer(serializers.ModelSerializer):
+    """
+    base serializer class which should be inherited by every serializer
+    of a model which save method requires any additional parameters
+
+    the reason is that the Django ModelSerializer does not provide any way
+    how to pass these parameters through create or update methods and then
+    those need to be called multiple times repeating the same actions and
+    complicating the whole save machinery
+    """
+
+    # TODO rewrite create machinery to use save
+    # def create(self, validated_data, *args, **kwargs):
+
+    def update(self, instance, validated_data, *args, **kwargs):
+        """
+        extended standard Django REST framework update method
+        optionally calling save with additional parameters
+        """
+        raise_errors_on_nested_writes("update", self, validated_data)
+        info = model_meta.get_field_info(instance)
+
+        m2m_fields = []
+        for attr, value in validated_data.items():
+            if attr in info.relations and info.relations[attr].to_many:
+                m2m_fields.append((attr, value))
+            else:
+                setattr(instance, attr, value)
+
+        # the additional arguments to the following save call are the only difference from the original
+        # https://github.com/encode/django-rest-framework/blob/3.15.2/rest_framework/serializers.py#L1018
+        instance.save(*args, **kwargs)
+
+        for attr, value in m2m_fields:
+            field = getattr(instance, attr)
+            field.set(value)
+
+        return instance
+
+    class Meta:
+        abstract = True
 
 
 class ACLMixinSerializer(serializers.ModelSerializer):
