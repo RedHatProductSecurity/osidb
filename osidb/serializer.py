@@ -1451,8 +1451,108 @@ class FlawPackageVersionSerializerMixin:
         return package_instance
 
 
+# TODO I split the ACLMixinSerializer into two for now
+# as the PackageVersion specifics are not compatible with
+# the fixed way the serializers should work (calling save
+# just once using proper arguments and not multiple times)
+# and the specifics are too complicated and fitting them
+# into the same right base class would make it ugly
+class FlawPackageVersionACLMixinSerializer(serializers.ModelSerializer):
+    """
+    ACLMixin class serializer
+    translates embargoed boolean to ACLs
+    """
+
+    embargoed = EmbargoedField(
+        source="*",
+        help_text=(
+            "The embargoed boolean attribute is technically read-only as it just indirectly "
+            "modifies the ACLs but is mandatory as it controls the access to the resource."
+        ),
+    )
+
+    class Meta:
+        abstract = True
+        fields = ["embargoed"]
+        model = ACLMixin
+
+    def hash_acl(self, acl):
+        """
+        convert ACL names to hashed UUIDs
+        """
+        return [uuid.UUID(ac) for ac in generate_acls(acl)]
+
+    def get_acls(self, embargoed):
+        """
+        generate ACLs based on embargo status
+        """
+        acl_read = (
+            settings.EMBARGO_READ_GROUP if embargoed else settings.PUBLIC_READ_GROUPS
+        )
+        acl_write = (
+            settings.EMBARGO_WRITE_GROUP if embargoed else settings.PUBLIC_WRITE_GROUP
+        )
+        acl_read, acl_write = ensure_list(acl_read), ensure_list(acl_write)
+        return self.hash_acl(acl_read), self.hash_acl(acl_write)
+
+    def embargoed2acls(self, validated_data):
+        """
+        process validated data converting embargoed status into the ACLs
+        """
+        # Already validated in EmbargoedField for non-bulk requests
+        try:
+            # For usual dict-typed requests with one object per request.
+            embargoed = self.context["request"].data.get("embargoed")
+        except AttributeError:
+            # For bulk list-typed requests with multiple objects per request.
+            embargoed_values = [
+                d.get("embargoed") for d in self.context["request"].data
+            ]
+            if not embargoed_values:
+                raise serializers.ValidationError(
+                    {
+                        "embargoed": "No value provided. All objects in a bulk request must have the (same) value for embargoed."
+                    }
+                )
+            embargoed_values_dedup = tuple(set(embargoed_values))
+            if len(embargoed_values_dedup) > 1 or len(embargoed_values) != len(
+                self.context["request"].data
+            ):
+                # Even if boolean-equivalent values are provided, still require an identical value.
+                raise serializers.ValidationError(
+                    {
+                        "embargoed": "Different values provided in a bulk request. All objects in a bulk request must have the same value for embargoed."
+                    }
+                )
+            embargoed = embargoed_values_dedup[0]
+
+        if isinstance(embargoed, str):
+            embargoed = bool(strtobool(embargoed))
+
+        acl_read, acl_write = self.get_acls(embargoed)
+        validated_data["acl_read"] = acl_read
+        validated_data["acl_write"] = acl_write
+
+        return validated_data
+
+    def create(self, validated_data):
+        validated_data = self.embargoed2acls(validated_data)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # defaults to keep current ACLs
+        validated_data["acl_read"] = instance.acl_read
+        validated_data["acl_write"] = instance.acl_write
+
+        if instance.is_public or instance.is_embargoed:
+            # only allow manual ACL changes between embargoed and public
+            validated_data = self.embargoed2acls(validated_data)
+
+        return super().update(instance, validated_data)
+
+
 class FlawPackageVersionSerializer(
-    ACLMixinSerializer,
+    FlawPackageVersionACLMixinSerializer,
     FlawPackageVersionSerializerMixin,
     BugzillaBareSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
