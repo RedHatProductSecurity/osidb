@@ -547,20 +547,9 @@ class BZSyncManager(SyncManager):
         """
         Schedule BZSyncManager's sync_task to Celery queue.
 
-        TODO:
-          - This is a workaround. SyncManager.schedule should not
-            decide to skip or postpone tasks, but we need it to:
-            - Reduce noise in flower logs that would be generated
-              by duplicate tasks failing.
-            - Reduce amount of requests sent needlessly to Bugzilla.
-            - Avoid sending potentially incomplete data immediately.
-          - Move the deduplication logic to Flaw.bzsync:
-            - No BZSyncManager-related action upon client request.
-            - A periodic task to query recently changed tasks once per
-              X minutes and call BZSyncManager.schedule for them.
-            - BZSyncManager.schedule to be left not implemented,
-              inherited SyncManager.schedule used.
-          - OSIDB-3205
+        This implementation uses custom de-duplication logic
+        and a 20 seconds delay to mitigate "outdated model" conflicts on bugzilla.
+        See OSIDB-3205 for more details.
 
         :param sync_id: Unique ID for synchronized data object.
         """
