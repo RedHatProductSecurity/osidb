@@ -1,6 +1,6 @@
 import re
 
-WHITELIST = [
+ALLOWLIST = [
     "GIMP",
     "Spring",
     "dotnet",
@@ -9,9 +9,9 @@ WHITELIST = [
 
 # r'\b\.NET\b' does not match properly because word boundary \b does not cooperate well
 # with dot.
-WHITELIST_SPECIAL_CASES = [r"(?:\W|^)\.NET\b"]
+ALLOWLIST_SPECIAL_CASES = [r"(?:\W|^)\.NET\b"]
 
-BLACKLIST = [
+BLOCKLIST = [
     r"(HPE|Hewlett Packard Enterprise).*(IceWall|FlexNetwork|FlexFabric|OneView|Nimble)",
     r"(Industrial Edge Management|Nucleus NET|SINEC).*[\n]*.*siemens",
     r"(Jfinal|Final)[ _]CMS",
@@ -772,34 +772,34 @@ BLACKLIST = [
     "zzcms",
 ]
 
-BLACKLIST_CASE_SENSITIVE = ["iOS"]
+BLOCKLIST_CASE_SENSITIVE = ["iOS"]
 
-KEYWORD_WHITELIST = [
-    re.compile(rf"\b{keyword}\b", re.IGNORECASE) for keyword in WHITELIST
-] + [re.compile(keyword) for keyword in WHITELIST_SPECIAL_CASES]
+KEYWORD_ALLOWLIST = [
+    re.compile(rf"\b{keyword}\b", re.IGNORECASE) for keyword in ALLOWLIST
+] + [re.compile(keyword) for keyword in ALLOWLIST_SPECIAL_CASES]
 
-KEYWORD_BLACKLIST = [
-    re.compile(rf"\b{keyword}\b", re.IGNORECASE) for keyword in BLACKLIST
-] + [re.compile(rf"\b{keyword}\b") for keyword in BLACKLIST_CASE_SENSITIVE]
+KEYWORD_BLOCKLIST = [
+    re.compile(rf"\b{keyword}\b", re.IGNORECASE) for keyword in BLOCKLIST
+] + [re.compile(rf"\b{keyword}\b") for keyword in BLOCKLIST_CASE_SENSITIVE]
 
 
 def check_keywords(text):
     """
     Checks if a specified text is relevant or not based on found keywords.
 
-    Returns tuple of matched blacklisted and whitelisted keywords.
+    Returns tuple of matched blocklisted and allowlisted keywords.
     """
-    whitelist = []
-    for word in (regex.search(text) for regex in KEYWORD_WHITELIST):
+    allowlist = []
+    for word in (regex.search(text) for regex in KEYWORD_ALLOWLIST):
         if word is not None:
-            whitelist.append(word.group().strip())
+            allowlist.append(word.group().strip())
 
-    blacklist = []
-    for word in (regex.search(text) for regex in KEYWORD_BLACKLIST):
+    blocklist = []
+    for word in (regex.search(text) for regex in KEYWORD_BLOCKLIST):
         if word is not None:
-            blacklist.append(word.group())
+            blocklist.append(word.group())
 
-    return sorted(blacklist), sorted(whitelist)
+    return sorted(blocklist), sorted(allowlist)
 
 
 def should_create_snippet(text):
@@ -807,17 +807,17 @@ def should_create_snippet(text):
     Returns True if a snippet should be created, False otherwise.
 
     Snippet should be created if:
-        words in `text` are in both whitelist and blacklist ([x], [x])
-        words in `text` are in whitelist only               ([x], [])
-        words in `text` are not in whitelist or blacklist   ([], [])
+        words in `text` are in both allowlist and blocklist ([x], [x])
+        words in `text` are in allowlist only               ([x], [])
+        words in `text` are not in allowlist or blocklist   ([], [])
 
     Snippet should not be created if:
-        words in `text` are in blacklist only               ([], [x])
+        words in `text` are in blocklist only               ([], [x])
         `text` is empty
     """
     if not text:
         return False
 
-    blacklist, whitelist = check_keywords(text)
+    blocklist, allowlist = check_keywords(text)
 
-    return False if (blacklist and not whitelist) else True
+    return False if (blocklist and not allowlist) else True
