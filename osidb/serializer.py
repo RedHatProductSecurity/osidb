@@ -1562,7 +1562,6 @@ class FlawSerializer(
     WorkflowModelSerializer,
     IncludeExcludeFieldsMixin,
     IncludeMetaAttrMixin,
-    JiraAPIKeyMixin,
     AlertMixinSerializer,
     HistoryMixinSerializer,
 ):
