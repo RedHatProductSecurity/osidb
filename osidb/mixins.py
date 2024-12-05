@@ -604,7 +604,7 @@ class AlertManager(ACLMixinManager):
     """Alert manager"""
 
     @staticmethod
-    def create_alert(name, object_id, content_type, **extra_fields):
+    def create_alert(name, object_id, content_type,validation_version, **extra_fields):
         """
         Returns the alert with the given data, or a new alert if it does not exist
         in the database.
@@ -612,7 +612,7 @@ class AlertManager(ACLMixinManager):
         try:
             # Alerts are uniquely defined by their name and their parent object
             alert = Alert.objects.get(
-                name=name, object_id=object_id, content_type=content_type
+                name=name, object_id=object_id, content_type=content_type, validation_version=validation_version
             )
             for attr, value in extra_fields.items():
                 setattr(alert, attr, value)
@@ -622,6 +622,7 @@ class AlertManager(ACLMixinManager):
                 name=name,
                 object_id=object_id,
                 content_type=content_type,
+                validation_version=validation_version,
                 **extra_fields,
             )
 
@@ -651,6 +652,8 @@ class Alert(ACLMixin):
 
     objects = AlertManager()
 
+    validation_version = models.IntegerField(default=0, blank=True)
+
     def _validate_acl_identical_to_parent(self, **kwargs):
         if (
             self.acl_read != self.content_object.acl_read
@@ -665,7 +668,7 @@ class Alert(ACLMixin):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["name", "object_id", "content_type"],
+                fields=["name", "object_id", "content_type", "validation_version"],
                 name="unique Alert for name and object",
             ),
         ]
@@ -686,6 +689,8 @@ class AlertMixin(ValidateMixin):
     """
 
     alerts = GenericRelation(Alert)
+
+    validation_version = models.IntegerField(default=0, blank=True)
 
     def alert(
         self,
@@ -756,6 +761,7 @@ class AlertMixin(ValidateMixin):
                     name=name,
                     object_id=self.uuid,
                     content_type=ContentType.objects.get_for_model(self),
+                    validation_version=self.validation_version,
                     description=description,
                     alert_type=alert_type,
                     resolution_steps=resolution_steps,
@@ -785,10 +791,6 @@ class AlertMixin(ValidateMixin):
         # exclude meta attributes
         self.full_clean(exclude=["meta_attr"])
 
-        # clean all alerts before a new validation
-        if not dry_run:
-            self.alerts.all().delete()
-
         # custom validations
         for validation_name in [
             item for item in dir(self) if item.startswith("_validate_")
@@ -813,9 +815,14 @@ class AlertMixin(ValidateMixin):
         """
         Save with validate call parametrized by raise_validation_error
         """
+
+        dry_run = kwargs.pop("no_alerts", False)
+        if not dry_run:
+            self.validation_version += 1
+
         self.validate(
             raise_validation_error=kwargs.pop("raise_validation_error", True),
-            dry_run=kwargs.pop("no_alerts", False),
+            dry_run=dry_run,
         )
         # here we have to skip ValidateMixin level save as otherwise
         # it would run validate again and without proper arguments

@@ -503,12 +503,17 @@ class AlertSerializer(serializers.ModelSerializer):
 class AlertMixinSerializer(serializers.ModelSerializer):
     """Serializes the alerts in models that implement AlertMixin."""
 
-    alerts = AlertSerializer(many=True, read_only=True)
+    alerts = serializers.SerializerMethodField()
 
     class Meta:
         model = AlertMixin
         abstract = True
         fields = ["alerts"]
+    
+    def get_alerts(self, instance):
+        query_set = Alert.objects.filter(validation_version=instance.validation_version)
+        serializer = AlertSerializer(query_set, many=True)
+        return serializer.data
 
 
 class AuditSerializer(serializers.ModelSerializer):
