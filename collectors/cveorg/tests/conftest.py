@@ -42,3 +42,22 @@ def mock_repo(monkeypatch) -> None:
     monkeypatch.setattr(CVEorgCollector, "clone_repo", clone_repo)
     monkeypatch.setattr(CVEorgCollector, "update_repo", update_repo)
     monkeypatch.setattr(CVEorgCollector, "get_repo_changes", get_repo_changes)
+
+
+@pytest.fixture()
+def mock_keywords(monkeypatch) -> None:
+    """
+    Set testing keywords to mock the ones from the ps-constants repository.
+    """
+    import collectors.cveorg.keywords as cveorg_keywords
+
+    def mock_keywords():
+        allowlist = ["kernel"]
+        allowlist_special_cases = [r"(?:\W|^)\.NET\b"]
+        blocklist = [r".*plugin.*for WordPress", "Cisco", "IBM Tivoli", "iTunes"]
+        blocklist_special_cases = ["iOS"]
+        return allowlist, allowlist_special_cases, blocklist, blocklist_special_cases
+
+    monkeypatch.setattr(
+        cveorg_keywords, "fetch_keywords_from_ps_constants", mock_keywords
+    )

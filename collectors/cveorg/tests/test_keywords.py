@@ -8,10 +8,10 @@ from collectors.cveorg.keywords import check_keywords, should_create_snippet
     [
         ("Internet is a great thing!", ([], [])),
         ("IBM Tivoli is blue and red.", (["IBM Tivoli"], [])),
-        ("we want to whitelist kernel", ([], ["kernel"])),
+        ("we want to allowlist kernel", ([], ["kernel"])),
     ],
 )
-def test_check_keywords(text, expected_output):
+def test_check_keywords(text, expected_output, mock_keywords):
     assert check_keywords(text) == expected_output
 
 
@@ -22,7 +22,7 @@ def test_check_keywords(text, expected_output):
         ("new iOS is released", (["iOS"], [])),
     ],
 )
-def test_check_keywords_case_sensitive(text, expected_output):
+def test_check_keywords_case_sensitive(text, expected_output, mock_keywords):
     assert check_keywords(text) == expected_output
 
 
@@ -39,7 +39,7 @@ def test_check_keywords_case_sensitive(text, expected_output):
         ("new iOS is released", (["iOS"], [])),
     ],
 )
-def test_check_keywords_word_boundary(text, expected_output):
+def test_check_keywords_word_boundary(text, expected_output, mock_keywords):
     assert check_keywords(text) == expected_output
 
 
@@ -54,7 +54,7 @@ def test_check_keywords_word_boundary(text, expected_output):
         ("end of sentence .NET. new sentence", ([], [".NET"])),
     ],
 )
-def test_check_keywords_dotnet_special_case(text, expected_output):
+def test_check_keywords_dotnet_special_case(text, expected_output, mock_keywords):
     assert check_keywords(text) == expected_output
 
 
@@ -78,26 +78,26 @@ def test_check_keywords_dotnet_special_case(text, expected_output):
         ),
     ],
 )
-def test_check_keywords_wordpress(text, expected_output):
+def test_check_keywords_wordpress(text, expected_output, mock_keywords):
     assert check_keywords(text) == expected_output
 
 
 @pytest.mark.parametrize(
     "text, should_create",
     [
-        # in both blacklist and whitelist
+        # in both blocklist and allowlist
         ("kernel and iOS in description", True),
-        # in whitelist only
+        # in allowlist only
         ("kernel and ios in description", True),
-        # not in whitelist or blacklist
+        # not in allowlist or blocklist
         ("something else in description", True),
-        # in blacklist only
+        # in blocklist only
         ("iOS in description", False),
         # nothing to check
         (None, False),
     ],
 )
-def test_should_create_snippet(text, should_create):
+def test_should_create_snippet(text, should_create, mock_keywords):
     """
     Check whether a snippet should be created based on keywords in `text`.
     """
