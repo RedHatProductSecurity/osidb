@@ -11,7 +11,7 @@ from collectors.cveorg.keywords import check_keywords, should_create_snippet
         ("we want to allowlist kernel", ([], ["kernel"])),
     ],
 )
-def test_check_keywords(text, expected_output):
+def test_check_keywords(text, expected_output, mock_keywords):
     assert check_keywords(text) == expected_output
 
 
@@ -22,7 +22,7 @@ def test_check_keywords(text, expected_output):
         ("new iOS is released", (["iOS"], [])),
     ],
 )
-def test_check_keywords_case_sensitive(text, expected_output):
+def test_check_keywords_case_sensitive(text, expected_output, mock_keywords):
     assert check_keywords(text) == expected_output
 
 
@@ -39,7 +39,7 @@ def test_check_keywords_case_sensitive(text, expected_output):
         ("new iOS is released", (["iOS"], [])),
     ],
 )
-def test_check_keywords_word_boundary(text, expected_output):
+def test_check_keywords_word_boundary(text, expected_output, mock_keywords):
     assert check_keywords(text) == expected_output
 
 
@@ -54,7 +54,7 @@ def test_check_keywords_word_boundary(text, expected_output):
         ("end of sentence .NET. new sentence", ([], [".NET"])),
     ],
 )
-def test_check_keywords_dotnet_special_case(text, expected_output):
+def test_check_keywords_dotnet_special_case(text, expected_output, mock_keywords):
     assert check_keywords(text) == expected_output
 
 
@@ -78,7 +78,7 @@ def test_check_keywords_dotnet_special_case(text, expected_output):
         ),
     ],
 )
-def test_check_keywords_wordpress(text, expected_output):
+def test_check_keywords_wordpress(text, expected_output, mock_keywords):
     assert check_keywords(text) == expected_output
 
 
@@ -97,7 +97,7 @@ def test_check_keywords_wordpress(text, expected_output):
         (None, False),
     ],
 )
-def test_should_create_snippet(text, should_create):
+def test_should_create_snippet(text, should_create, mock_keywords):
     """
     Check whether a snippet should be created based on keywords in `text`.
     """
