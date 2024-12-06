@@ -1,6 +1,8 @@
+from datetime import datetime
+
 import pytest
 from django.conf import settings
-from rest_framework.response import Response
+from freezegun import freeze_time
 
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.models import State, Workflow
@@ -232,24 +234,11 @@ class TestEndpoints(object):
     ):
         """test flaw state promotion after data change"""
 
-        def mock_create_or_update_task(self, flaw):
-            return Response(
-                data={
-                    "key": "TASK-123",
-                    "fields": {
-                        "status": {
-                            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
-                        },
-                        "resolution": None,
-                        "updated": "2024-06-25T21:20:43.988+0000",
-                    },
-                },
-                status=200,
-            )
+        def mock(self, flaw):
+            return None
 
-        monkeypatch.setattr(
-            JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
-        )
+        monkeypatch.setattr(JiraTaskmanQuerier, "create_or_update_task", mock)
+        monkeypatch.setattr(JiraTaskmanQuerier, "transition_task", mock)
 
         workflow_framework = WorkflowFramework()
         workflow_framework._workflows = []
@@ -286,7 +275,7 @@ class TestEndpoints(object):
         )
         workflow_framework.register_workflow(workflow)
 
-        flaw = FlawFactory(cwe_id="", cve_description="", task_key="TASK-123")
+        flaw = FlawFactory(cwe_id="", cve_description="", task_key="OSIM-123")
         AffectFactory(flaw=flaw)
 
         assert flaw.classification["workflow"] == "DEFAULT"
@@ -438,22 +427,9 @@ class TestEndpoints(object):
 
 class TestFlawDraft:
     def mock_create_task(self, flaw):
-        data = {
-            "key": "TASK-123",
-            "fields": {
-                "status": {"name": "New"},
-                "resolution": None,
-                "updated": "2024-06-25T21:20:43.988+0000",
-            },
-        }
-        if flaw.workflow_state:
-            status, resolution = flaw.jira_status()
-            data["fields"]["status"]["name"] = status
-            if resolution:
-                data["fields"]["resolution"] = {"name": resolution}
+        return "OSIM-123"
 
-        return Response(data=data, status=200)
-
+    @freeze_time(datetime(2020, 12, 12))  # freeze against top of the second crossing
     @pytest.mark.vcr
     def test_promote(
         self,
@@ -480,7 +456,7 @@ class TestFlawDraft:
         flaw = Flaw.objects.first()
         assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
-        assert flaw.task_key == "TASK-123"
+        assert flaw.task_key == "OSIM-123"
         assert flaw.is_internal
 
         # set owner to comply with TRIAGE requirements
@@ -524,7 +500,7 @@ class TestFlawDraft:
         flaw.refresh_from_db()
         assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.TRIAGE
-        assert flaw.task_key == "TASK-123"
+        assert flaw.task_key == "OSIM-123"
 
         # check that a flaw and related objects (except for snippets)
         # still have internal ACLs as we publish only after the triage
@@ -563,7 +539,7 @@ class TestFlawDraft:
             flaw.classification["state"]
             == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
         )
-        assert flaw.task_key == "TASK-123"
+        assert flaw.task_key == "OSIM-123"
 
         # check that a flaw and related objects (except for snippets) have public ACLs
         assert flaw.is_public
@@ -608,7 +584,7 @@ class TestFlawDraft:
 
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
-        assert flaw.task_key == "TASK-123"
+        assert flaw.task_key == "OSIM-123"
         assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
         assert flaw.is_internal is True

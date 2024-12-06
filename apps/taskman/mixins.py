@@ -14,7 +14,7 @@ class JiraTaskSyncMixin(models.Model):
     class Meta:
         abstract = True
 
-    def save(self, *args, diff=None, jira_token=None, **kwargs):
+    def save(self, *args, diff=None, force_creation=False, jira_token=None, **kwargs):
         """
         save the model and sync it to Jira
 
@@ -26,7 +26,13 @@ class JiraTaskSyncMixin(models.Model):
         # check taskman conditions are met
         # and eventually perform the sync
         if JIRA_TASKMAN_AUTO_SYNC_FLAW and jira_token is not None:
-            self.tasksync(*args, diff=diff, jira_token=jira_token, **kwargs)
+            self.tasksync(
+                *args,
+                diff=diff,
+                force_creation=force_creation,
+                jira_token=jira_token,
+                **kwargs
+            )
 
     def tasksync(self, *args, jira_token, force_creation=False, **kwargs):
         """

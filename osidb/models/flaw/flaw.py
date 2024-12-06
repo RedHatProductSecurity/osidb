@@ -2,7 +2,6 @@ import json
 import logging
 import re
 import uuid
-from datetime import datetime
 from decimal import Decimal
 
 import pghistory
@@ -16,9 +15,13 @@ from psqlextra.fields import HStoreField
 
 from apps.bbsync.constants import SYNC_FLAWS_TO_BZ, SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY
 from apps.bbsync.mixins import BugzillaSyncMixin
-from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FIELDS
+from apps.taskman.constants import (
+    JIRA_TASKMAN_AUTO_SYNC_FLAW,
+    SYNC_REQUIRED_FIELDS,
+    TRANSITION_REQUIRED_FIELDS,
+)
 from apps.taskman.mixins import JiraTaskSyncMixin
-from apps.workflows.workflow import WorkflowFramework, WorkflowModel
+from apps.workflows.workflow import WorkflowModel
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 from osidb.constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
 from osidb.mixins import (
@@ -1025,86 +1028,77 @@ class Flaw(
         jira_token,
         diff=None,
         force_creation=False,
-        force_update=False,
         *args,
         **kwargs,
     ):
         """
-        Task sync of the Flaw instance in Jira.
+        decides what to do about the Jira task of this flaw
 
-        If the flaw is OSIDB-authored and already exists in the database
-        the corresponding JIRA task will be updated if any of the
-        SYNC_REQUIRED_FIELDS has been updated.
-
-        If the flaw is OSIDB-authored and comes from collectors (exists in the database),
-        then a corresponding JIRA task will be created.
-
-        If the flaw is OSIDB-authored and does not exist in the database
-        then a corresponding JIRA task will be created.
-
-        If the flaw is not OSIDB-authored then it's a no-op.
+        based on the task existence it is either created or updated and/or transitioned
+        old pre-OSIDB flaws without tasks are ignored unless force_creation is set
         """
-
-        def _create_new_flaw():
-            issue = jtq.create_or_update_task(self)
-            self.task_key = issue.data["key"]
-            self.task_updated_dt = datetime.strptime(
-                issue.data["fields"]["updated"], "%Y-%m-%dT%H:%M:%S.%f%z"
-            )
-            self.workflow_state = WorkflowModel.WorkflowState.NEW
-            self.save(no_alerts=True, *args, **kwargs)
-
         if not JIRA_TASKMAN_AUTO_SYNC_FLAW or not jira_token:
             return
 
-        # imports here to prevent cycles
+        if not self.task_key:
+            # old pre-OSIDB flaws without tasks are ignored by default
+            if force_creation or not self.meta_attr.get("bz_id"):
+                self._create_or_update_task(jira_token)
+
+        elif diff is not None:
+            if any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS):
+                self._create_or_update_task(jira_token)
+
+            if any(field in diff.keys() for field in TRANSITION_REQUIRED_FIELDS):
+                self._transition_task(jira_token)
+
+    def _create_or_update_task(self, jira_token):
+        """
+        create or update the Jira task of this flaw based on its existence
+        """
+        # import here to prevent cycles
         from apps.taskman.service import JiraTaskmanQuerier
 
         jtq = JiraTaskmanQuerier(token=jira_token)
-        kwargs["auto_timestamps"] = False  # the timestamps will be get from Bugzilla
-        kwargs["raise_validation_error"] = False  # the validations were already run
 
-        # REST API can force new tasks since it has no access to flaw creation runtime -- create
-        if force_creation:
-            _create_new_flaw()
-            return
+        # timestamp at or before the change
+        self.task_updated_dt = timezone.now()
 
-        try:
-            old_flaw = Flaw.objects.get(uuid=self.uuid)
+        # creation
+        if not self.task_key:
+            self.task_key = jtq.create_or_update_task(self)
+            self.workflow_state = WorkflowModel.WorkflowState.NEW
+            Flaw.objects.filter(uuid=self.uuid).update(
+                task_key=self.task_key,
+                task_updated_dt=self.task_updated_dt,
+                workflow_state=self.workflow_state,
+            )
+        else:
+            jtq.create_or_update_task(self)
+            Flaw.objects.filter(uuid=self.uuid).update(
+                task_updated_dt=self.task_updated_dt
+            )
 
-            # we're handling a new OSIDB-authored flaw from collectors -- create
-            if not old_flaw.meta_attr.get("bz_id") and old_flaw.task_key == "":
-                _create_new_flaw()
-                return
+    def _transition_task(self, jira_token):
+        """
+        transition the Jira task of this flaw
+        """
+        # import here to prevent cycles
+        from apps.taskman.service import JiraTaskmanQuerier
 
-            # the flaw exists but the task doesn't, not an OSIDB-authored flaw -- no-op
-            if not old_flaw.task_key:
-                return
+        jtq = JiraTaskmanQuerier(token=jira_token)
 
-            # we're handling an existing OSIDB-authored flaw -- update
-            if force_update or (
-                diff is not None
-                and any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS)
-            ):
-                issue = jtq.create_or_update_task(self)
-                status = issue.data["fields"]["status"]["name"]
-                resolution = issue.data["fields"]["resolution"]
-                resolution = resolution["name"] if resolution else None
-
-                framework = WorkflowFramework()
-                workflow_name, workflow_state = framework.jira_to_state(
-                    status, resolution
-                )
-                self.workflow_state = workflow_state
-                self.workflow_name = workflow_name
-                self.task_updated_dt = datetime.strptime(
-                    issue.data["fields"]["updated"], "%Y-%m-%dT%H:%M:%S.%f%z"
-                )
-                self.adjust_acls(save=False)
-                self.save(no_alerts=True, *args, **kwargs)
-        except Flaw.DoesNotExist:
-            # we're handling a new OSIDB-authored flaw -- create
-            _create_new_flaw()
+        self.task_updated_dt = timezone.now()  # timestamp at or before the change
+        jtq.transition_task(self)
+        # workflow transition may result in ACL change
+        self.adjust_acls(save=False)
+        Flaw.objects.filter(uuid=self.uuid).update(
+            acl_read=self.acl_read,
+            acl_write=self.acl_write,
+            task_updated_dt=self.task_updated_dt,
+            workflow_name=self.workflow_name,
+            workflow_state=self.workflow_state,
+        )
 
     download_manager = models.ForeignKey(
         FlawDownloadManager, null=True, blank=True, on_delete=models.CASCADE

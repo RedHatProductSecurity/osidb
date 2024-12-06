@@ -3,13 +3,12 @@ Task Manager API endpoints
 """
 import json
 import logging
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from django.db import models
 from django.utils import timezone
 from jira import Issue
 from jira.exceptions import JIRAError
-from rest_framework.response import Response
 
 from apps.trackers.jira.query import JiraPriority
 from collectors.jiraffe.core import JiraQuerier
@@ -108,9 +107,12 @@ class JiraTaskmanQuerier(JiraQuerier):
                 f"Token is valid for {JIRA_TASKMAN_URL} but user doesn't have write permission in {JIRA_TASKMAN_PROJECT_KEY} project."
             )
 
-    def create_or_update_task(self, flaw: Flaw, check_token: bool = True) -> Response:
+    def create_or_update_task(
+        self, flaw: Flaw, check_token: bool = True
+    ) -> Optional[str]:
         """
         Creates or updates a task using Flaw data
+        returns the Jira task ID if newly created
 
         by default the user tokens are being checked for validity which can
         be turned off by parameter if not necessary to lower the Jira load
@@ -131,39 +133,15 @@ class JiraTaskmanQuerier(JiraQuerier):
                 )
                 flaw.task_key = issue.key
                 if flaw.team_id:  # Jira does not allow setting team during creation
-                    return self.create_or_update_task(
+                    self.create_or_update_task(
                         flaw, check_token=False  # no need to check the token again
                     )
-                return Response(data=issue.raw, status=201)
+                return flaw.task_key
             else:  # task exists; update
                 url = f"{self.jira_conn._get_url('issue')}/{flaw.task_key}"
                 if flaw.team_id:
                     data["fields"]["customfield_12313240"] = flaw.team_id
                 self.jira_conn._session.put(url, json.dumps(data))
-
-                status, resolution = flaw.jira_status()
-                issue = self.jira_conn.issue(flaw.task_key).raw
-                if (
-                    (resolution and not issue["fields"]["resolution"])
-                    or (
-                        issue["fields"]["resolution"]
-                        and issue["fields"]["resolution"]["name"] != resolution
-                    )
-                    or status != issue["fields"]["status"]["name"]
-                ):
-                    resolution_data = (
-                        {"resolution": {"name": resolution}} if resolution else {}
-                    )
-                    self.jira_conn.transition_issue(
-                        issue=flaw.task_key,
-                        transition=status,
-                        **resolution_data,
-                    )
-                    return Response(
-                        data=self.jira_conn.issue(flaw.task_key).raw,
-                        status=200,
-                    )
-                return Response(data=issue, status=200)
         except JIRAError as e:
             creating = not flaw.task_key
             creating_updating_word = "creating" if creating else "updating"
@@ -180,6 +158,42 @@ class JiraTaskmanQuerier(JiraQuerier):
             # replace raise with logger.error(message) and raise selectively where
             # create_or_update_task is used.
             raise JiraTaskErrorException(message)
+
+    def transition_task(self, flaw: Flaw, check_token: bool = True) -> None:
+        """
+        transition a task through the Jira workflow using Flaw data
+
+        by default the user tokens are being checked for validity which can
+        be turned off by parameter if not necessary to lower the Jira load
+        """
+        # check the token validity in case the user token is used
+        # assuming the service token is valid lowering Jira load
+        if check_token and not self.is_service_account():
+            self._check_token()
+
+        # when there is no task we assume that the caller
+        # made a mistake and simply refuse the operation
+        if not flaw.task_key:
+            raise JiraTaskErrorException(
+                f"Cannot promote flaw {flaw.cve_id or flaw.uuid} without an associated task."
+            )
+
+        try:
+            status, resolution = flaw.jira_status()
+            resolution_data = {"resolution": {"name": resolution}} if resolution else {}
+            self.jira_conn.transition_issue(
+                issue=flaw.task_key,
+                transition=status,
+                **resolution_data,
+            )
+        except JIRAError as e:
+            # raising so that the error from Jira is communicated to the client
+            raise JiraTaskErrorException(
+                f"Jira error when transitioning "
+                f"Task for Flaw UUID {flaw.uuid} cve_id {flaw.cve_id}. "
+                f"Jira HTTP status code {e.status_code}, "
+                f"Jira response {safe_get_response_content(e.response)}"
+            )
 
     def _generate_task_data(self, flaw: Flaw):
         modules = flaw.affects.values_list("ps_module", flat=True).distinct()
