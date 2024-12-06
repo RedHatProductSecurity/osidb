@@ -14,7 +14,6 @@ from apps.trackers.exceptions import (
     ComponentUnavailableError,
     MissingEmbargoStatusError,
     MissingSecurityLevelError,
-    MissingSeverityError,
     MissingSourceError,
     MissingTargetReleaseVersionError,
     MissingVulnerabilityIssueFieldError,
@@ -1475,10 +1474,10 @@ class TestTrackerJiraQueryBuilder:
             validate_minimum_key_value(minimum=expected, evaluated=query_builder._query)
         else:
             if missing:
-                with pytest.raises(MissingVulnerabilityIssueFieldError):
+                with pytest.raises(TrackerCreationError):
                     TrackerJiraQueryBuilder(tracker).generate()
             if wrong:
-                with pytest.raises(MissingSeverityError):
+                with pytest.raises(TrackerCreationError):
                     TrackerJiraQueryBuilder(tracker).generate()
             if flaw_impact == Impact.NOVALUE:
                 with pytest.raises(TrackerCreationError):
@@ -1594,14 +1593,60 @@ class TestTrackerJiraQueryBuilder:
             validate_minimum_key_value(minimum=expected, evaluated=quer_builder._query)
         else:
             if missing:
-                with pytest.raises(MissingVulnerabilityIssueFieldError):
+                with pytest.raises(TrackerCreationError):
                     TrackerJiraQueryBuilder(tracker).generate()
             if wrong:
-                with pytest.raises(MissingSeverityError):
+                with pytest.raises(TrackerCreationError):
                     TrackerJiraQueryBuilder(tracker).generate()
             if flaw_impact == Impact.NOVALUE:
                 with pytest.raises(TrackerCreationError):
                     TrackerJiraQueryBuilder(tracker).generate()
+
+    def test_severity_field_values(self):
+        """
+        properly account for an unexpected
+        value scheme of the Severity field
+
+        this test is OSIDB-3767 reproducer
+        """
+        JiraProjectFields(
+            project_key="FOOPROJECT",
+            field_id="123-severity",
+            field_name="Severity",
+            allowed_values=[
+                "Urgent",
+                "More Urgent",
+                "Super Urgent",
+                "Totally Urgent",
+            ],
+        ).save()
+
+        flaw = FlawFactory(
+            embargoed=False,
+            source="REDHAT",
+        )
+        ps_module = PsModuleFactory(
+            bts_key="FOOPROJECT",
+            bts_name="jboss",
+            private_trackers_allowed=False,
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+        )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        tracker = TrackerFactory(
+            affects=[affect],
+            external_system_id=None,
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=ps_update_stream.name,
+            embargoed=flaw.is_embargoed,
+        )
+
+        quer_builder = TrackerJiraQueryBuilder(tracker)
+        # do not throw exception here but fallback
+        quer_builder.generate()
 
     @pytest.mark.parametrize(
         "model_src,allowed_jira_src,expected_jira_src,other_outcome",
