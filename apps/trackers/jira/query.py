@@ -616,12 +616,13 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         ]:
             try:
                 severity_method()
-            except MissingVulnerabilityIssueFieldError:
+            except (MissingSeverityError, MissingVulnerabilityIssueFieldError):
                 if severity_error:
-                    raise MissingVulnerabilityIssueFieldError(
-                        "Neither CVE Severity nor Severity field is available for Vulnerability "
-                        f"issuetype in Jira project {self.ps_module.bts_key} while at least one "
-                        "of the two fields is required."
+                    raise TrackerCreationError(
+                        "Neither CVE Severity nor Severity field is available as expected for "
+                        f"Vulnerability issuetype in Jira project {self.ps_module.bts_key} while "
+                        "at least one of the two fields is required to be available with allowed "
+                        "values containing Critical, Important, Moderate, and Low."
                     )
                 severity_error = True
 
