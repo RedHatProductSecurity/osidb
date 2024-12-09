@@ -8,6 +8,12 @@ from requests_gssapi import HTTPSPNEGOAuth
 
 from apps.sla.models import SLA, SLAPolicy
 from apps.trackers.models import JiraBugIssuetype
+from collectors.cveorg.models import (
+    Allowlist,
+    AllowlistSpecialCase,
+    Blocklist,
+    BlocklistSpecialCase,
+)
 from osidb.models import SpecialConsiderationPackage
 
 logger = logging.getLogger(__name__)
@@ -68,3 +74,28 @@ def sync_jira_bug_issuetype(source_dict):
     JiraBugIssuetype.objects.all().delete()
     for project in list(source_dict.values())[0]:
         JiraBugIssuetype.objects.get_or_create(project=project)
+
+
+@transaction.atomic
+def sync_cveorg_keywords(source: dict) -> None:
+    """
+    Sync CVEorg keywords in the database
+    """
+    try:
+        keywords = [
+            (Allowlist, source["allowlist"]),
+            (AllowlistSpecialCase, source["allowlist_special_cases"]),
+            (Blocklist, source["blocklist"]),
+            (BlocklistSpecialCase, source["blocklist_special_cases"]),
+        ]
+    except KeyError:
+        raise KeyError(
+            "The ps-constants repository does not contain the expected CVEorg keyword lists."
+        )
+
+    # Delete and recreate keywords
+    for model, data in keywords:
+        model.objects.all().delete()
+        for entry in data:
+            keyword = model(keyword=entry)
+            keyword.save()
