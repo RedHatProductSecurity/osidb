@@ -79,8 +79,10 @@ def auto_create_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(
             user=instance,
-            bz_user_id=get_bz_user_id(instance.email),
-            jira_user_id=get_jira_user_id(instance.email),
+            # TODO I am disabling the external system queries for now to safe the extra API calls
+            # and dependencies but the full removal requires User-Profile rework and major release
+            # bz_user_id=get_bz_user_id(instance.email),
+            # jira_user_id=get_jira_user_id(instance.email),
         ).save()
 
 
