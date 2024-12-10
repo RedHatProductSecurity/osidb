@@ -14,7 +14,7 @@ pytestmark = pytest.mark.integration
 
 class TestCVEorgCollector:
     @pytest.mark.vcr
-    def test_collect_cveorg_records(self, mock_repo):
+    def test_collect_cveorg_records(self, mock_keywords, mock_repo):
         """
         Test that snippets and flaws are created correctly.
         """
@@ -38,7 +38,7 @@ class TestCVEorgCollector:
         assert snippet2
         assert snippet2.flaw == flaw2
 
-    def test_collect_cveorg_record_when_flaw_exists(self, mock_repo):
+    def test_collect_cveorg_record_when_flaw_exists(self, mock_keywords, mock_repo):
         """
         Test that only a snippet is created when a flaw already exists.
         """
@@ -57,7 +57,7 @@ class TestCVEorgCollector:
         snippet = Snippet.objects.first()
         assert snippet.flaw == flaw
 
-    def test_ignored_cveorg_records(self, mock_repo):
+    def test_ignored_cveorg_records(self, mock_keywords, mock_repo):
         """
         Test that snippets and flaws are not created when they do not comply with rules.
         """
@@ -157,7 +157,7 @@ class TestCVEorgCollectorException:
         assert Snippet.objects.all().count() == 0
         assert Flaw.objects.all().count() == 0
 
-    def test_atomicity(self, monkeypatch, mock_repo):
+    def test_atomicity(self, monkeypatch, mock_keywords, mock_repo):
         """
         Test that flaw and snippet are not created if any error occurs during the flaw creation.
         """
