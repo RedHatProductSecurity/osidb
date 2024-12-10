@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 from itertools import chain
 
+import pghistory
 import pytest
+from django.conf import settings
 from freezegun import freeze_time
 from rest_framework import status
 
@@ -161,19 +163,30 @@ class TestEndpointsFlawsUnembargo:
                 HTTP_JIRA_API_KEY="SECRET",
             )
             assert response.status_code == status.HTTP_200_OK
+            models = [
+                Flaw,
+                FlawAcknowledgment,
+                FlawComment,
+                FlawCVSS,
+                FlawReference,
+                Affect,
+                AffectCVSS,
+                Package,
+                Tracker,
+            ]
             assert not any(
                 instance.is_embargoed
-                for instance in chain(
-                    Flaw.objects.all(),
-                    FlawAcknowledgment.objects.all(),
-                    FlawComment.objects.all(),
-                    FlawCVSS.objects.all(),
-                    FlawReference.objects.all(),
-                    Affect.objects.all(),
-                    AffectCVSS.objects.all(),
-                    Package.objects.all(),
-                    Tracker.objects.all(),
-                )
+                for instance in chain(*[model.objects.all() for model in models])
+            )
+
+            audit_models = [
+                pghistory.models.Events.objects.references(model).all()
+                for model in models
+            ]
+            assert (
+                audit_model["acls_read"] == settings.PUBLIC_READ_GROUPS
+                and audit_model["acls_write"] == [settings.PUBLIC_WRITE_GROUP]
+                for audit_model in audit_models
             )
 
     @freeze_time(datetime(2020, 10, 10, tzinfo=timezone.utc))
