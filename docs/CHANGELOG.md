@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Changed
+- Added last_validated_dt field to AlertMixin and created_dt to alerts;
+  optimized alert handling by matching valid alerts via timestamps
+  and scheduling stale alert removal to reduce database locks. (OSIDB-3579)
+
 ## [4.6.1] - 2024-12-06
 ### Fixed
 - Fix not enough general CVE Severity/Severity error fallback (OSIDB-3767)
