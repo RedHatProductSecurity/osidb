@@ -18,9 +18,11 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
 from pghistory.models import Events
 from rest_framework import serializers
+from rest_framework.serializers import raise_errors_on_nested_writes
+from rest_framework.utils import model_meta
 
 from apps.bbsync.mixins import BugzillaSyncMixin
-from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW, SYNC_REQUIRED_FIELDS
+from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.serializers import WorkflowModelSerializer
 from osidb.models import (
@@ -352,7 +354,50 @@ class EmbargoedField(serializers.BooleanField):
                 )
 
 
-class ACLMixinSerializer(serializers.ModelSerializer):
+class BaseSerializer(serializers.ModelSerializer):
+    """
+    base serializer class which should be inherited by every serializer
+    of a model which save method requires any additional parameters
+
+    the reason is that the Django ModelSerializer does not provide any way
+    how to pass these parameters through create or update methods and then
+    those need to be called multiple times repeating the same actions and
+    complicating the whole save machinery
+    """
+
+    # TODO rewrite create machinery to use save
+    # def create(self, validated_data, *args, **kwargs):
+
+    def update(self, instance, validated_data, *args, **kwargs):
+        """
+        extended standard Django REST framework update method
+        optionally calling save with additional parameters
+        """
+        raise_errors_on_nested_writes("update", self, validated_data)
+        info = model_meta.get_field_info(instance)
+
+        m2m_fields = []
+        for attr, value in validated_data.items():
+            if attr in info.relations and info.relations[attr].to_many:
+                m2m_fields.append((attr, value))
+            else:
+                setattr(instance, attr, value)
+
+        # the additional arguments to the following save call are the only difference from the original
+        # https://github.com/encode/django-rest-framework/blob/3.15.2/rest_framework/serializers.py#L1018
+        instance.save(*args, **kwargs)
+
+        for attr, value in m2m_fields:
+            field = getattr(instance, attr)
+            field.set(value)
+
+        return instance
+
+    class Meta:
+        abstract = True
+
+
+class ACLMixinSerializer(BaseSerializer):
     """
     ACLMixin class serializer
     translates embargoed boolean to ACLs
@@ -434,7 +479,7 @@ class ACLMixinSerializer(serializers.ModelSerializer):
         validated_data = self.embargoed2acls(validated_data)
         return super().create(validated_data)
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data, *args, **kwargs):
         # defaults to keep current ACLs
         validated_data["acl_read"] = instance.acl_read
         validated_data["acl_write"] = instance.acl_write
@@ -443,7 +488,7 @@ class ACLMixinSerializer(serializers.ModelSerializer):
             # only allow manual ACL changes between embargoed and public
             validated_data = self.embargoed2acls(validated_data)
 
-        return super().update(instance, validated_data)
+        return super().update(instance, validated_data, *args, **kwargs)
 
 
 class BugzillaAPIKeyMixin:
@@ -874,7 +919,7 @@ class BugzillaBareSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSeri
         abstract = True
 
 
-class BugzillaSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSerializer):
+class BugzillaSyncMixinSerializer(BaseSerializer, BugzillaAPIKeyMixin):
     """
     serializer mixin class implementing special handling of the models
     which need to perform Bugzilla sync as part of the save procedure
@@ -892,23 +937,22 @@ class BugzillaSyncMixinSerializer(BugzillaAPIKeyMixin, serializers.ModelSerializ
             instance.bzsync(bz_api_key=self.get_bz_api_key())
         return instance
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data, *args, **kwargs):
         """
         perform the ordinary instance update
         with providing BZ API key while saving
         """
-        skip_bz_sync = validated_data.pop("skip_bz_sync", False)
-        instance = super().update(instance, validated_data)
-        if not skip_bz_sync:
-            instance.bzsync(bz_api_key=self.get_bz_api_key())
-        return instance
+        if not validated_data.pop("skip_bz_sync", False):
+            kwargs["bz_api_key"] = self.get_bz_api_key()
+
+        return super().update(instance, validated_data, *args, **kwargs)
 
     class Meta:
         model = BugzillaSyncMixin
         abstract = True
 
 
-class JiraTaskSyncMixinSerializer(JiraAPIKeyMixin, serializers.ModelSerializer):
+class JiraTaskSyncMixinSerializer(BaseSerializer, JiraAPIKeyMixin):
     """
     serializer mixin class implementing special handling of the models
     which need to perform Jira sync as part of the save procedure
@@ -924,24 +968,15 @@ class JiraTaskSyncMixinSerializer(JiraAPIKeyMixin, serializers.ModelSerializer):
             instance.tasksync(jira_token=self.get_jira_token(), force_creation=True)
         return instance
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data, *args, **kwargs):
         """
         perform the ordinary instance create
         with providing Jira token while saving
         """
-        # to allow other mixings to override update we call parent's update method
-        # and validate if an important change were made forcing a sync when it is needed
-        sync_required = any(
-            field in validated_data
-            and getattr(instance, field) != validated_data[field]
-            for field in SYNC_REQUIRED_FIELDS
-        )
-        updated_instance = super().update(instance, validated_data)
-        if JIRA_TASKMAN_AUTO_SYNC_FLAW and sync_required:
-            updated_instance.tasksync(
-                jira_token=self.get_jira_token(), force_update=True
-            )
-        return updated_instance
+        if JIRA_TASKMAN_AUTO_SYNC_FLAW:
+            kwargs["jira_token"] = self.get_jira_token()
+
+        return super().update(instance, validated_data, *args, **kwargs)
 
     class Meta:
         model = JiraTaskSyncMixin
@@ -1416,8 +1451,108 @@ class FlawPackageVersionSerializerMixin:
         return package_instance
 
 
+# TODO I split the ACLMixinSerializer into two for now
+# as the PackageVersion specifics are not compatible with
+# the fixed way the serializers should work (calling save
+# just once using proper arguments and not multiple times)
+# and the specifics are too complicated and fitting them
+# into the same right base class would make it ugly
+class FlawPackageVersionACLMixinSerializer(serializers.ModelSerializer):
+    """
+    ACLMixin class serializer
+    translates embargoed boolean to ACLs
+    """
+
+    embargoed = EmbargoedField(
+        source="*",
+        help_text=(
+            "The embargoed boolean attribute is technically read-only as it just indirectly "
+            "modifies the ACLs but is mandatory as it controls the access to the resource."
+        ),
+    )
+
+    class Meta:
+        abstract = True
+        fields = ["embargoed"]
+        model = ACLMixin
+
+    def hash_acl(self, acl):
+        """
+        convert ACL names to hashed UUIDs
+        """
+        return [uuid.UUID(ac) for ac in generate_acls(acl)]
+
+    def get_acls(self, embargoed):
+        """
+        generate ACLs based on embargo status
+        """
+        acl_read = (
+            settings.EMBARGO_READ_GROUP if embargoed else settings.PUBLIC_READ_GROUPS
+        )
+        acl_write = (
+            settings.EMBARGO_WRITE_GROUP if embargoed else settings.PUBLIC_WRITE_GROUP
+        )
+        acl_read, acl_write = ensure_list(acl_read), ensure_list(acl_write)
+        return self.hash_acl(acl_read), self.hash_acl(acl_write)
+
+    def embargoed2acls(self, validated_data):
+        """
+        process validated data converting embargoed status into the ACLs
+        """
+        # Already validated in EmbargoedField for non-bulk requests
+        try:
+            # For usual dict-typed requests with one object per request.
+            embargoed = self.context["request"].data.get("embargoed")
+        except AttributeError:
+            # For bulk list-typed requests with multiple objects per request.
+            embargoed_values = [
+                d.get("embargoed") for d in self.context["request"].data
+            ]
+            if not embargoed_values:
+                raise serializers.ValidationError(
+                    {
+                        "embargoed": "No value provided. All objects in a bulk request must have the (same) value for embargoed."
+                    }
+                )
+            embargoed_values_dedup = tuple(set(embargoed_values))
+            if len(embargoed_values_dedup) > 1 or len(embargoed_values) != len(
+                self.context["request"].data
+            ):
+                # Even if boolean-equivalent values are provided, still require an identical value.
+                raise serializers.ValidationError(
+                    {
+                        "embargoed": "Different values provided in a bulk request. All objects in a bulk request must have the same value for embargoed."
+                    }
+                )
+            embargoed = embargoed_values_dedup[0]
+
+        if isinstance(embargoed, str):
+            embargoed = bool(strtobool(embargoed))
+
+        acl_read, acl_write = self.get_acls(embargoed)
+        validated_data["acl_read"] = acl_read
+        validated_data["acl_write"] = acl_write
+
+        return validated_data
+
+    def create(self, validated_data):
+        validated_data = self.embargoed2acls(validated_data)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # defaults to keep current ACLs
+        validated_data["acl_read"] = instance.acl_read
+        validated_data["acl_write"] = instance.acl_write
+
+        if instance.is_public or instance.is_embargoed:
+            # only allow manual ACL changes between embargoed and public
+            validated_data = self.embargoed2acls(validated_data)
+
+        return super().update(instance, validated_data)
+
+
 class FlawPackageVersionSerializer(
-    ACLMixinSerializer,
+    FlawPackageVersionACLMixinSerializer,
     FlawPackageVersionSerializerMixin,
     BugzillaBareSyncMixinSerializer,
     IncludeExcludeFieldsMixin,
@@ -1524,7 +1659,6 @@ class FlawSerializer(
     WorkflowModelSerializer,
     IncludeExcludeFieldsMixin,
     IncludeMetaAttrMixin,
-    JiraAPIKeyMixin,
     AlertMixinSerializer,
     HistoryMixinSerializer,
 ):
@@ -1679,7 +1813,7 @@ class FlawSerializer(
 
         return super().create(validated_data)
 
-    def update(self, new_flaw, validated_data):
+    def update(self, new_flaw, validated_data, *args, **kwargs):
         """
         perform the flaw instance update
         with any necessary extra actions
@@ -1715,15 +1849,14 @@ class FlawSerializer(
                 "requires_cve_description"
             ] = Flaw.FlawRequiresCVEDescription.REQUESTED
 
-        # perform regular flaw update
-        new_flaw = super().update(new_flaw, validated_data)
-
         # Force Jira task creation if requested
         request = self.context.get("request")
         if request:
-            create_jira_task = request.query_params.get("create_jira_task")
-            if create_jira_task:
-                new_flaw.tasksync(jira_token=self.get_jira_token(), force_creation=True)
+            if request.query_params.get("create_jira_task"):
+                kwargs["force_creation"] = True
+
+        # perform regular flaw update
+        new_flaw = super().update(new_flaw, validated_data, *args, **kwargs)
 
         ##########################
         # 3) post-update actions #

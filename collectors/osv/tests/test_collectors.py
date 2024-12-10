@@ -2,6 +2,7 @@ import json
 from datetime import datetime, timezone
 
 import pytest
+from freezegun import freeze_time
 from jira.exceptions import JIRAError
 
 from apps.taskman.service import JiraTaskmanQuerier
@@ -13,6 +14,7 @@ pytestmark = pytest.mark.integration
 
 
 class TestOSVCollector:
+    @freeze_time(datetime(2020, 12, 12))  # freeze against top of the second crossing
     @pytest.mark.vcr
     def test_collect_osv_record_without_cve(self):
         """

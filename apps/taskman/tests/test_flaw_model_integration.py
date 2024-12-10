@@ -29,17 +29,7 @@ class TestFlawModelIntegration(object):
         def mock_create_or_update_task(self, flaw):
             nonlocal sync_count
             sync_count += 1
-            return Response(
-                data={
-                    "key": "TASK-123",
-                    "fields": {
-                        "status": {"name": "New"},
-                        "resolution": None,
-                        "updated": "2024-06-25T21:20:43.988+0000",
-                    },
-                },
-                status=200,
-            )
+            return None
 
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
@@ -77,17 +67,7 @@ class TestFlawModelIntegration(object):
         def mock_create_or_update_task(self, flaw):
             nonlocal sync_count
             sync_count += 1
-            return Response(
-                data={
-                    "key": "TASK-123",
-                    "fields": {
-                        "status": {"name": "New"},
-                        "resolution": None,
-                        "updated": "2024-06-25T21:20:43.988+0000",
-                    },
-                },
-                status=200,
-            )
+            return "TASK-123"
 
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
@@ -122,17 +102,7 @@ class TestFlawModelIntegration(object):
         def mock_create_or_update_task(self, flaw):
             nonlocal sync_count
             sync_count += 1
-            return Response(
-                data={
-                    "key": "TASK-123",
-                    "fields": {
-                        "status": {"name": "New"},
-                        "resolution": None,
-                        "updated": "2024-06-25T21:20:43.988+0000",
-                    },
-                },
-                status=200,
-            )
+            return "TASK-123"
 
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
@@ -162,24 +132,13 @@ class TestFlawModelIntegration(object):
     def test_update_api(self, monkeypatch, auth_client, test_osidb_api_uri):
         sync_count = 0
 
-        def mock_create_or_update_task(self, flaw):
+        def mock(self, flaw):
             nonlocal sync_count
             sync_count += 1
-            return Response(
-                data={
-                    "key": "TASK-123",
-                    "fields": {
-                        "status": {"name": "New"},
-                        "resolution": None,
-                        "updated": "2024-06-25T21:20:43.988+0000",
-                    },
-                },
-                status=200,
-            )
+            return None
 
-        monkeypatch.setattr(
-            JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
-        )
+        monkeypatch.setattr(JiraTaskmanQuerier, "create_or_update_task", mock)
+        monkeypatch.setattr(JiraTaskmanQuerier, "transition_task", mock)
 
         flaw = FlawFactory(embargoed=False, impact=Impact.IMPORTANT)
         AffectFactory(flaw=flaw)
@@ -226,22 +185,13 @@ class TestFlawModelIntegration(object):
             HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
+        # changes require sync
         assert sync_count == 1
 
     def test_create_jira_task_param(self, monkeypatch, auth_client, test_osidb_api_uri):
         def mock_create_or_update_task(self, flaw):
             flaw.task_key = "TASK-123"
-            return Response(
-                data={
-                    "key": "TASK-123",
-                    "fields": {
-                        "status": {"name": "New"},
-                        "resolution": None,
-                        "updated": "2024-06-25T21:20:43.988+0000",
-                    },
-                },
-                status=200,
-            )
+            return "TASK-123"
 
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
