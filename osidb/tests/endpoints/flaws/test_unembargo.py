@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from itertools import chain
 
 import pytest
+from django.conf import settings
 from freezegun import freeze_time
 from rest_framework import status
 
@@ -174,6 +175,12 @@ class TestEndpointsFlawsUnembargo:
                     Package.objects.all(),
                     Tracker.objects.all(),
                 )
+            )
+
+            assert (
+                flaw["acls_read"] == settings.PUBLIC_READ_GROUPS
+                and flaw["acls_write"] == [settings.PUBLIC_WRITE_GROUP]
+                for flaw in Flaw.objects.all()
             )
 
     @freeze_time(datetime(2020, 10, 10, tzinfo=timezone.utc))
