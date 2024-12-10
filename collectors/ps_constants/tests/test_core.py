@@ -13,17 +13,6 @@ from osidb.models import SpecialConsiderationPackage
 pytestmark = pytest.mark.unit
 
 
-SAMPLE_DATA = {
-    "rhel-1": [
-        "test1",
-        "another1",
-    ],
-    "rhel-2": [
-        "test2",
-        "another2",
-    ],
-}
-
 SAMPLE_JIRA_BUG_ISSUETYPE = {
     "bug_issuetype": [
         "PROJ1",
