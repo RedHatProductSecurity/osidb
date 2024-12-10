@@ -15,7 +15,7 @@ from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.bzimport.convertors import FlawConvertor
 from osidb.core import generate_acls
 from osidb.exceptions import DataInconsistencyException
-from osidb.mixins import AlertMixin
+from osidb.mixins import Alert, AlertMixin
 from osidb.models import (
     Affect,
     Flaw,
@@ -692,6 +692,31 @@ class TestBugzillaJiraMixinIntegration:
         assert issue["fields"]["resolution"]["name"] == "Won't Do"
 
 
+class TestAlertMixin:
+    @freeze_time(tzdatetime(2024, 12, 10, 12, 0, 0))
+    def test_validate_dt(self):
+        """Tests that last_validated_dt matches the created_dt field"""
+        flaw = FlawFactory(embargoed=False, source=FlawSource.REDHAT)
+
+        alerts = Alert.objects.filter(object_id=flaw.uuid, name="private_source_no_ack")
+
+        assert flaw.last_validated_dt == tzdatetime(2024, 12, 10, 12, 0, 0)
+        assert alerts.count() == 1
+        assert alerts[0].created_dt == tzdatetime(2024, 12, 10, 12, 0, 0)
+
+        with freeze_time(tzdatetime(2024, 12, 10, 12, 0, 1)):
+            flaw.source = FlawSource.INTERNET
+            flaw.save()
+            alerts = Alert.objects.filter(
+                object_id=flaw.uuid, name="private_source_no_ack"
+            )
+
+            assert flaw.last_validated_dt == tzdatetime(2024, 12, 10, 12, 0, 1)
+            assert alerts.count() == 1
+            # The alert should not be updated as is resolved
+            assert alerts[0].created_dt == tzdatetime(2024, 12, 10, 12, 0, 0)
+
+
 class TestMultiMixinIntegration:
     @pytest.mark.vcr
     def test_tracker_validation(
@@ -1192,3 +1217,29 @@ class TestMultiMixinIntegration:
         assert response.status_code == 200
         assert len(validation_counter) == 1
         assert validation_counter["osidb | Flaw"] == 1
+
+    @pytest.mark.vcr
+    def test_alert_serialization(self, auth_client, test_api_uri):
+        """Test that the AlertMixinSerializer filters out stale alerts"""
+
+        flaw = FlawFactory(embargoed=False, source=FlawSource.REDHAT)
+        alerts = Alert.objects.filter(object_id=flaw.uuid)
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
+
+        assert response.status_code == 200
+        body = response.json()
+        assert len(body["alerts"]) == alerts.count()
+
+        # Test might finish in the same millisecond, so we need to advance time
+        with freeze_time(timezone.now() + timezone.timedelta(1)):
+            flaw.source = FlawSource.INTERNET
+            flaw.save()
+
+        flaw = Flaw.objects.get(uuid=flaw.uuid)
+        alerts = Alert.objects.filter(object_id=flaw.uuid)
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        body = response.json()
+        # Alert is still on the database but is stale
+        assert len(body["alerts"]) == alerts.count() - 1

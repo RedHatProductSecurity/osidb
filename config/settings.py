@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "collectors.jiraffe",
     "collectors.nvd",
     "collectors.osv",
+    "collectors.osidb_scheduler",
     "collectors.product_definitions",
     "collectors.ps_constants",
     "corsheaders",
@@ -244,6 +245,7 @@ LOGGING = {
                 "collectors.jiraffe",
                 "collectors.nvd",
                 "collectors.osv",
+                "collectors.osidb_scheduler",
                 "collectors.product_definitions",
                 "collectors.ps_constants",
             ]
