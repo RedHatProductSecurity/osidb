@@ -176,6 +176,12 @@ class TestEndpointsFlawsUnembargo:
                 )
             )
 
+            assert (
+                flaw["acls_read"] == settings.PUBLIC_READ_GROUPS
+                and flaw["acls_write"] == [settings.PUBLIC_WRITE_GROUP]
+                for flaw in Flaw.objects.all()
+            )
+
     @freeze_time(datetime(2020, 10, 10, tzinfo=timezone.utc))
     def test_combined(self, auth_client, test_api_uri):
         """
