@@ -1,0 +1,61 @@
+from celery.utils.log import get_task_logger
+from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import OuterRef, Q, Subquery
+from django.db.models.functions import Cast
+
+from config.celery import app
+from osidb.core import set_user_acls
+from osidb.mixins import Alert
+
+logger = get_task_logger(__name__)
+
+
+@app.task
+def stale_alert_cleanup():
+    """Delete stale alerts from the database.
+
+    On every run, this collector will check if the alert is still valid by comparing
+    the creation time of the alert with the validation time of the Model.
+
+    If the creation time of the alert is older than the validation time of the Model,
+    the alert is considered stale and will be deleted.
+    """
+    set_user_acls(settings.ALL_GROUPS)
+
+    content_types = ContentType.objects.filter(
+        id__in=Alert.objects.values_list("content_type", flat=True).distinct()
+    )
+
+    logger.info(f"Searching for stale alerts in {content_types.count()} content types")
+
+    query = Q()
+
+    for content_type in content_types:
+        model_class = content_type.model_class()
+
+        subquery = Subquery(
+            model_class.objects.filter(
+                pk=Cast(OuterRef("object_id"), output_field=model_class._meta.pk)
+            )
+            .order_by("last_validated_dt")
+            .values("last_validated_dt")[:1]
+        )
+
+        query |= Q(
+            content_type=content_type,
+            created_dt__lt=subquery,
+        )
+
+    filtered_queryset = Alert.objects.filter(query)
+
+    if filtered_queryset.count() == 0:
+        return "No Stale Alerts Found"
+
+    logger.info(f"Found {filtered_queryset.count()} stale alerts")
+
+    deleted_alerts_count = filtered_queryset.delete()[0]
+
+    logger.info(f"Deleted {deleted_alerts_count} stale alerts")
+
+    return f"Deleted {deleted_alerts_count} Stale Alerts"

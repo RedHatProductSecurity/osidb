@@ -165,7 +165,13 @@ CELERY_TASK_ROUTES = (
         ("*", {"queue": "fast"}),  # default other tasks go to 'fast'
     ],
 )
-CELERY_BEAT_SCHEDULE = {}
+CELERY_BEAT_SCHEDULE = {
+    "stale_alert_cleanup": {
+        "task": "osidb.tasks.stale_alert_cleanup",
+        # Run every hour
+        "schedule": crontab(minute=0),
+    }
+}
 
 # There are multiple possible memory leaks in Celery. To work around these issues it is
 # recommended to restart Celery worker children processes after set number of tasks.
