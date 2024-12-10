@@ -527,24 +527,15 @@ class FlawIntrospectionView(RudimentaryUserPathLoggingMixin, APIView):
 class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
     queryset = Flaw.objects.prefetch_related(
         "acknowledgments",
-        "acknowledgments__alerts",
         "affects",
-        "affects__alerts",
         "affects__cvss_scores",
-        "affects__cvss_scores__alerts",
         "affects__trackers",
         "affects__trackers__errata",
         "affects__trackers__affects",
-        "affects__trackers__alerts",
-        "alerts",
         "comments",
-        "comments__alerts",
         "cvss_scores",
-        "cvss_scores__alerts",
         "package_versions",
-        "package_versions__alerts",
         "references",
-        "references__alerts",
     ).all()
     serializer_class = FlawSerializer
     filter_backends = (DjangoFilterBackend,)
@@ -827,13 +818,10 @@ class AffectView(
     RudimentaryUserPathLoggingMixin, SubFlawViewDestroyMixin, ModelViewSet
 ):
     queryset = Affect.objects.prefetch_related(
-        "alerts",
         "cvss_scores",
-        "cvss_scores__alerts",
         "trackers",
         "trackers__errata",
         "trackers__affects",
-        "trackers__alerts",
     ).all()
     serializer_class = AffectSerializer
     filterset_class = AffectFilter
@@ -1095,7 +1083,7 @@ class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
     ),
 )
 class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
-    queryset = Tracker.objects.prefetch_related("alerts", "errata", "affects").all()
+    queryset = Tracker.objects.prefetch_related("errata", "affects").all()
     serializer_class = TrackerSerializer
     filterset_class = TrackerFilter
     http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])

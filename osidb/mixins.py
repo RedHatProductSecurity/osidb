@@ -687,9 +687,16 @@ class AlertMixin(ValidateMixin):
     It also provides the automatic validation mechanism on every save.
     """
 
-    alerts = GenericRelation(Alert)
+    _alerts = GenericRelation(Alert)
 
     last_validated_dt = models.DateTimeField(blank=True, default=timezone.now)
+
+    @property
+    def alerts(self):
+        """
+        Get all alerts related to this object.
+        """
+        return self._alerts.filter(created_dt__gte=self.last_validated_dt)
 
     def alert(
         self,
@@ -817,7 +824,7 @@ class AlertMixin(ValidateMixin):
 
         dry_run = kwargs.pop("no_alerts", False)
         if not dry_run:
-            self.last_validated_dt = timezone.now().replace(microsecond=0)
+            self.last_validated_dt = timezone.now()
 
         self.validate(
             raise_validation_error=kwargs.pop("raise_validation_error", True),
