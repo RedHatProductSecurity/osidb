@@ -9,591 +9,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - python-requests/2.31.0
-    method: GET
-    uri: https://example.com/prodsec-dev/ps-constants/-/raw/master/data/compliance_priority.yml?job=build
-  response:
-    body:
-      string: "# list of packages / components that are in the scope of the compliance
-        priority special handling and where a dedicated SLAs are applied\n# separate
-        list provided for each primary product, keys need to match ps module names\n#
-        https://example.com/browse/OSIDB-1316\n# For any component from the below
-        list in the particular product the following SLA are applicable:\n# Critical
-        = 7 days\n# Important = 21 days\n# Moderate = 50 days\n# Low = 180 days\n#\n#
-        File structure based on the rhel8 example:\n#\n# rhel-8:  (name of the ps_module)\n#
-        \  components:  (list of the components, can be left empty as components:
-        [] what would mean ALL components in that ps_module)\n#   streams: (list of
-        product streams where the compliance priority rules will be applied, this
-        object CANNOT be empty)\n#\n# The key values (ps_module) must be unique across
-        this document, duplicates are not allowed.\n#\n\nrhel-8:\n  components:\n
-        \ - acl\n  - adcli\n  - attr\n  - audit\n  - authselect\n  - avahi\n  - basesystem\n
-        \ - bash\n  - bash-completion\n  - bind\n  - binutils\n  - brotli\n  - bubblewrap\n
-        \ - bzip2\n  - c-ares\n  - ca-certificates\n  - checkpolicy\n  - chkconfig\n
-        \ - chrony\n  - cifs-utils\n  - clevis\n  - cloud-utils-growpart\n  - compat-openssl10\n
-        \ - conntrack-tools\n  - coreutils\n  - cpio\n  - cracklib\n  - cri-tools\n
-        \ - crypto-policies\n  - cryptsetup\n  - cups\n  - curl\n  - cyrus-sasl\n
-        \ - dbus\n  - dbus-glib\n  - dbus-python\n  - device-mapper-multipath\n  -
-        device-mapper-persistent-data\n  - diffutils\n  - ding-libs\n  - dmidecode\n
-        \ - dnf\n  - dnf-plugins-core\n  - dnsmasq\n  - dosfstools\n  - dracut\n  -
-        dtc\n  - e2fsprogs\n  - edk2\n  - efi-rpm-macros\n  - efibootmgr\n  - efivar\n
-        \ - elfutils\n  - emacs\n  - ethtool\n  - expat\n  - file\n  - filesystem\n
-        \ - findutils\n  - firewalld\n  - freetype\n  - fstrm\n  - fuse\n  - fwupd\n
-        \ - gawk\n  - gcab\n  - gcc\n  - gdb\n  - gdbm\n  - gdisk\n  - geolite2\n
-        \ - gettext\n  - git\n  - glib2\n  - glibc\n  - glusterfs\n  - gmp\n  - gnupg2\n
-        \ - gnutls\n  - gobject-introspection\n  - gpgme\n  - grep\n  - groff\n  -
-        grub2\n  - gssproxy\n  - gzip\n  - haproxy\n  - hardlink\n  - hdparm\n  -
-        hostname\n  - hwdata\n  - icu\n  - ima-evm-utils\n  - initscripts\n  - iproute\n
-        \ - iptables\n  - iputils\n  - ipxe\n  - irqbalance\n  - iscsi-initiator-utils\n
-        \ - isns-utils\n  - jansson\n  - jose\n  - jq\n  - json-c\n  - json-glib\n
-        \ - kata-containers\n  - kbd\n  - kernel\n  - kexec-tools\n  - keyutils\n
-        \ - kmod\n  - krb5\n  - langpacks\n  - less\n  - libaio\n  - libarchive\n
-        \ - libassuan\n  - libbpf\n  - libcap\n  - libcap-ng\n  - libcomps\n  - libcroco\n
-        \ - libdaemon\n  - libdb\n  - libdnf\n  - libdrm\n  - libedit\n  - libestr\n
-        \ - libevent\n  - libfastjson\n  - libffi\n  - libgcrypt\n  - libgpg-error\n
-        \ - libgudev\n  - libgusb\n  - libidn2\n  - libkcapi\n  - libksba\n  - libldb\n
-        \ - libmaxminddb\n  - libmetalink\n  - libmicrohttpd\n  - libmnl\n  - libmodulemd\n
-        \ - libmspack\n  - libndp\n  - libnet\n  - libnetfilter_conntrack\n  - libnetfilter_cthelper\n
-        \ - libnetfilter_cttimeout\n  - libnetfilter_queue\n  - libnfnetlink\n  -
-        libnftnl\n  - libnl3\n  - libnsl2\n  - libpcap\n  - libpciaccess\n  - libpeas\n
-        \ - libpng\n  - libpsl\n  - libpwquality\n  - libqb\n  - librepo\n  - libreport\n
-        \ - librhsm\n  - librtas\n  - libseccomp\n  - libsecret\n  - libselinux\n
-        \ - libsemanage\n  - libsepol\n  - libsigsegv\n  - libsmbios\n  - libsolv\n
-        \ - libssh\n  - libtalloc\n  - libtasn1\n  - libtdb\n  - libteam\n  - libtevent\n
-        \ - libtirpc\n  - libtool\n  - libunistring\n  - libusbx\n  - libuser\n  -
-        libutempter\n  - libverto\n  - libxcrypt\n  - libxkbcommon\n  - libxml2\n
-        \ - libxmlb\n  - libxslt\n  - libyaml\n  - linux-firmware\n  - lmdb\n  - logrotate\n
-        \ - lsof\n  - lua\n  - luksmeta\n  - lvm2\n  - lz4\n  - lzo\n  - make\n  -
-        mdadm\n  - memstrack\n  - microcode_ctl\n  - microdnf\n  - mokutil\n  - mozjs60\n
-        \ - mpfr\n  - nano\n  - ncurses\n  - net-tools\n  - nettle\n  - NetworkManager\n
-        \ - newt\n  - nfs-utils\n  - nftables\n  - nghttp2\n  - nmap\n  - npth\n  -
-        nss-altfiles\n  - numactl\n  - nvme-cli\n  - oniguruma\n  - open-vm-tools\n
-        \ - openldap\n  - openshift\n  - openshift-clients\n  - openssh\n  - openssl\n
-        \ - openssl-pkcs11\n  - os-prober\n  - ostree\n  - p11-kit\n  - pam\n  - passwd\n
-        \ - pciutils\n  - pcre\n  - pcre2\n  - perl\n  - perl-Carp\n  - perl-constant\n
-        \ - perl-Data-Dumper\n  - perl-Digest\n  - perl-Digest-MD5\n  - perl-Encode\n
-        \ - perl-Error\n  - perl-Exporter\n  - perl-File-Path\n  - perl-File-Temp\n
-        \ - perl-Getopt-Long\n  - perl-HTTP-Tiny\n  - perl-IO-Socket-IP\n  - perl-IO-Socket-SSL\n
-        \ - perl-libnet\n  - perl-MIME-Base64\n  - perl-Mozilla-CA\n  - perl-Net-SSLeay\n
-        \ - perl-parent\n  - perl-PathTools\n  - perl-Pod-Escapes\n  - perl-Pod-Perldoc\n
-        \ - perl-Pod-Simple\n  - perl-Pod-Usage\n  - perl-podlators\n  - perl-Scalar-List-Utils\n
-        \ - perl-Socket\n  - perl-Storable\n  - perl-Term-ANSIColor\n  - perl-Term-Cap\n
-        \ - perl-TermReadKey\n  - perl-Text-ParseWords\n  - perl-Text-Tabs+Wrap\n
-        \ - perl-threads\n  - perl-threads-shared\n  - perl-Time-Local\n  - perl-Unicode-Normalize\n
-        \ - perl-URI\n  - pigz\n  - pinentry\n  - pixman\n  - pkgconf\n  - pmdk\n
-        \ - policycoreutils\n  - polkit\n  - polkit-pkla-compat\n  - popt\n  - procps-ng\n
-        \ - protobuf\n  - protobuf-c\n  - psmisc\n  - publicsuffix-list\n  - pygobject3\n
-        \ - python-chardet\n  - python-dateutil\n  - python-decorator\n  - python-dmidecode\n
-        \ - python-ethtool\n  - python-idna\n  - python-iniparse\n  - python-inotify\n
-        \ - python-linux-procfs\n  - python-pip\n  - python-ply\n  - python-pysocks\n
-        \ - python-pyudev\n  - python-requests\n  - python-setuptools\n  - python-six\n
-        \ - python-systemd\n  - python-urllib3\n  - python3\n  - python36\n  - PyYAML\n
-        \ - qemu-kvm\n  - quota\n  - rdma-core\n  - readline\n  - redhat-release\n
-        \ - rootfiles\n  - rpcbind\n  - rpm\n  - rpm-ostree\n  - rsync\n  - rsyslog\n
-        \ - samba\n  - seabios\n  - sed\n  - selinux-policy\n  - setools\n  - setup\n
-        \ - sg3_utils\n  - sgabios\n  - shadow-utils\n  - shared-mime-info\n  - shim\n
-        \ - slang\n  - snappy\n  - socat\n  - sqlite\n  - squashfs-tools\n  - sssd\n
-        \ - stalld\n  - strace\n  - subscription-manager\n  - subscription-manager-rhsm-certificates\n
-        \ - sudo\n  - systemd\n  - tar\n  - tcpdump\n  - texinfo\n  - timedatex\n
-        \ - tmux\n  - tpm2-tools\n  - tpm2-tss\n  - tree\n  - trousers\n  - tuna\n
-        \ - tuned\n  - tzdata\n  - unbound\n  - usbguard\n  - usermode\n  - userspace-rcu\n
-        \ - util-linux\n  - vim\n  - virt-what\n  - WALinuxAgent\n  - wget\n  - which\n
-        \ - xfsprogs\n  - xkeyboard-config\n  - xmlsec1\n  - xz\n  - yajl\n  - zlib\n
-        \ - zstd\n  - abattis-cantarell-fonts\n  - adwaita-icon-theme\n  - alsa-lib\n
-        \ - at-spi2-atk\n  - at-spi2-core\n  - atk\n  - bc\n  - cairo\n  - cmake\n
-        \ - colord\n  - copy-jdk-configs\n  - dconf\n  - dejavu-fonts\n  - environment-modules\n
-        \ - fontconfig\n  - fontpackages\n  - fribidi\n  - gdk-pixbuf2\n  - git-lfs\n
-        \ - glib-networking\n  - graphite2\n  - grubby\n  - gsettings-desktop-schemas\n
-        \ - gtk2\n  - gtk3\n  - harfbuzz\n  - hicolor-icon-theme\n  - jasper\n  -
-        java-1.8.0-openjdk\n  - java-11-openjdk\n  - javapackages-runtime:201801/javapackages-tools\n
-        \ - jbigkit\n  - lcms2\n  - libdatrie\n  - libepoxy\n  - libfontenc\n  - libjpeg-turbo\n
-        \ - libmodman\n  - libpipeline\n  - libproxy\n  - libsoup\n  - libthai\n  -
-        libtiff\n  - libuv\n  - libX11\n  - libXau\n  - libxcb\n  - libXcomposite\n
-        \ - libXcursor\n  - libXdamage\n  - libXext\n  - libXfixes\n  - libXft\n  -
-        libXi\n  - libXinerama\n  - libXrandr\n  - libXrender\n  - libXtst\n  - lksctp-tools\n
-        \ - man-db\n  - nspr\n  - nss\n  - nss_wrapper\n  - pango\n  - perl-libwww-perl\n
-        \ - postgresql:15/postgresql\n  - rest\n  - scl-utils\n  - tcl\n  - ttmkfdir\n
-        \ - unzip\n  - uuid\n  - wayland\n  - xmlstarlet\n  - xorg-x11-font-utils\n
-        \ - xorg-x11-fonts\n  - zip\n  streams:\n  - rhel-8.6.0.z\n  - rhel-8.9.0.z\n#
-        IMPORTANT NOTE: starting from \"zlib\" component there are components from
-        the IBM FedRAMP environment\n\n# the \"openshift-golang-builder-container\"
-        in the openshift-4 components list is a special entry to help RHEL Golang
-        team with with prioritization\nopenshift-4:\n  components:\n  - cluster-etcd-operator-container\n
-        \ - cluster-monitoring-operator-container\n  - cluster-network-operator-container\n
-        \ - cluster-node-tuning-operator-container\n  - conmon\n  - console-login-helper-messages\n
-        \ - container-selinux\n  - containernetworking-plugins\n  - containers-common\n
-        \ - coredns-container\n  - coreos-installer\n  - cri-o\n  - criu\n  - crun\n
-        \ - csi-attacher-container\n  - csi-livenessprobe-container\n  - csi-node-driver-registrar-container\n
-        \ - csi-provisioner-container\n  - fuse-overlayfs\n  - golang-github-openshift-oauth-proxy-container\n
-        \ - golang-github-prometheus-alertmanager-container\n  - golang-github-prometheus-node_exporter-container\n
-        \ - golang-github-prometheus-prometheus-container\n  - ignition\n  - kube-rbac-proxy-container\n
-        \ - kube-state-metrics-container\n  - libslirp\n  - marketplace-operator-container\n
-        \ - multus-cni-container\n  - oauth-server-container\n  - openshift-enterprise-builder-container\n
-        \ - openshift-enterprise-cli-container\n  - openshift-enterprise-console-container\n
-        \ - openshift-enterprise-console-operator-container\n  - openshift-enterprise-haproxy-router-container\n
-        \ - openshift-enterprise-hyperkube-container\n  - openshift-enterprise-registry-container\n
-        \ - openshift-state-metrics-container\n  - openshift-golang-builder-container\n
-        \ - openvswitch-selinux-extra-policy\n  - openvswitch2.13\n  - openvswitch2.17\n
-        \ - operator-lifecycle-manager-container\n  - ose-aws-ebs-csi-driver-container\n
-        \ - ose-aws-ebs-csi-driver-operator-container\n  - ose-aws-pod-identity-webhook-container\n
-        \ - ose-cli-artifacts-container\n  - ose-cloud-credential-operator-container\n
-        \ - ose-cloud-network-config-controller-container\n  - ose-cluster-authentication-operator-container\n
-        \ - ose-cluster-autoscaler-operator-container\n  - ose-cluster-baremetal-operator-container\n
-        \ - ose-cluster-cloud-controller-manager-operator-container\n  - ose-cluster-config-operator-container\n
-        \ - ose-cluster-csi-snapshot-controller-operator-container\n  - ose-cluster-dns-operator-container\n
-        \ - ose-cluster-image-registry-operator-container\n  - ose-cluster-ingress-operator-container\n
-        \ - ose-cluster-kube-apiserver-operator-container\n  - ose-cluster-kube-controller-manager-operator-container\n
-        \ - ose-cluster-kube-scheduler-operator-container\n  - ose-cluster-kube-storage-version-migrator-operator-container\n
-        \ - ose-cluster-machine-approver-container\n  - ose-cluster-openshift-apiserver-operator-container\n
-        \ - ose-cluster-openshift-controller-manager-operator-container\n  - ose-cluster-samples-operator-container\n
-        \ - ose-cluster-storage-operator-container\n  - ose-csi-external-resizer-container\n
-        \ - ose-csi-external-snapshotter-container\n  - ose-csi-snapshot-controller-container\n
-        \ - ose-csi-snapshot-validation-webhook-container\n  - ose-etcd-container\n
-        \ - ose-insights-operator-container\n  - ose-kube-storage-version-migrator-container\n
-        \ - ose-machine-api-operator-container\n  - ose-machine-api-provider-aws-container\n
-        \ - ose-machine-config-operator-container\n  - ose-multus-admission-controller-container\n
-        \ - ose-network-metrics-daemon-container\n  - ose-node-container\n  - ose-oauth-apiserver-container\n
-        \ - ose-openshift-apiserver-container\n  - ose-openshift-controller-manager-container\n
-        \ - ose-prometheus-adapter-container\n  - ose-service-ca-operator-container\n
-        \ - ose-thanos-container\n  - podman\n  - prom-label-proxy-container\n  -
-        prometheus-config-reloader-container\n  - prometheus-operator-admission-webhook-container\n
-        \ - prometheus-operator-container\n  - runc\n  - rust-afterburn\n  - rust-bootupd\n
-        \ - skopeo\n  - slirp4netns\n  - telemeter-container\n  - toolbox\n  streams:\n
-        \ - openshift-4.12.z\n\nfdp-el8-ovs:\n  components:\n  - openvswitch-selinux-extra-policy\n
-        \ - openvswitch2.13\n  - openvswitch2.17\n  streams:\n  - fdp-el8-ovs\n\n#
-        IBM FedRAMP components\nocp-tools-4:\n  components:\n  - jenkins\n  - jenkins-2-plugins\n
-        \ - jenkins-agent-base-rhel8-container\n  - openshift-jenkins-2-container\n
-        \ streams:\n  - ocp-tools-4.14\n\n# IBM FedRAMP components\nrhel-9:\n  components:\n
-        \ - alsa-lib\n  - chkconfig\n  - audit\n  - avahi\n  - basesystem\n  - bash\n
-        \ - bzip2\n  - ca-certificates\n  - copy-jdk-configs\n  - coreutils\n  - crypto-policies\n
-        \ - cups\n  - curl\n  - cyrus-sasl\n  - dbus\n  - dejavu-fonts\n  - dnf\n
-        \ - expat\n  - file\n  - filesystem\n  - findutils\n  - fonts-rpm-macros\n
-        \ - gawk\n  - gdbm\n  - glib2\n  - glibc\n  - gmp\n  - gnupg2\n  - gnutls\n
-        \ - gobject-introspection\n  - gpgme\n  - grep\n  - java-17-openjdk\n  - javapackages-tools\n
-        \ - json-c\n  - json-glib\n  - keyutils\n  - krb5\n  - langpacks\n  - acl\n
-        \ - libarchive\n  - libassuan\n  - attr\n  - util-linux\n  - libcap\n  - libcap-ng\n
-        \ - e2fsprogs\n  - libdnf\n  - libevent\n  - libffi\n  - gcc\n  - libgcrypt\n
-        \ - libgpg-error\n  - libidn2\n  - libksba\n  - libmodulemd\n  - nghttp2\n
-        \ - libpeas\n  - librepo\n  - libreport\n  - librhsm\n  - libselinux\n  -
-        libsemanage\n  - libsepol\n  - libsigsegv\n  - libsolv\n  - libtasn1\n  -
-        libunistring\n  - libusbx\n  - libverto\n  - libxcrypt\n  - libxml2\n  - libyaml\n
-        \ - zstd\n  - lksctp-tools\n  - lua\n  - lua-posix\n  - lz4\n  - microdnf\n
-        \ - mpfr\n  - ncurses\n  - nettle\n  - npth\n  - nss\n  - openldap\n  - openssl\n
-        \ - p11-kit\n  - pcre\n  - pcre2\n  - popt\n  - python3.9\n  - python-pip\n
-        \ - python-setuptools\n  - readline\n  - redhat-release\n  - rootfiles\n  -
-        rpm\n  - sed\n  - setup\n  - shadow-utils\n  - sqlite\n  - systemd\n  - tzdata\n
-        \ - xz\n  - zlib\n  streams:\n  - rhel-9.3.0.z\n\n\n# Red Hat Build of Keycloak
-        22 components\nrhbk:\n  components:\n  - aesh\n  - agroal-api\n  - agroal-narayana\n
-        \ - agroal-pool\n  - angus-activation\n  - angus-mail\n  - annotations\n  -
-        antlr4-runtime\n  - aopalliance\n  - apache-mime4j-core\n  - apache-mime4j-dom\n
-        \ - apache-mime4j-storage\n  - apiguardian-api\n  - arc\n  - arc-processor\n
-        \ - asm\n  - asm-analysis\n  - asm-commons\n  - asm-tree\n  - asm-util\n  -
-        asyncutil\n  - awaitility\n  - bcpkix-jdk18on\n  - bcprov-jdk18on\n  - bcutil-jdk18on\n
-        \ - btf\n  - byte-buddy\n  - caffeine\n  - cockroachdb\n  - codemodel\n  -
-        commons-cli\n  - commons-codec\n  - commons-collections4\n  - commons-compress\n
-        \ - commons-io\n  - commons-lang3\n  - commons-logging-jboss-logging\n  -
-        core\n  - database-commons\n  - docker-java-api\n  - docker-java-transport\n
-        \ - docker-java-transport-zerodep\n  - duct-tape\n  - failureaccess\n  - freemarker\n
-        \ - gizmo\n  - graal-sdk\n  - guava\n  - guice\n  - hamcrest-core\n  - hibernate-commons-annotations\n
-        \ - hibernate-core\n  - hibernate-graalvm\n  - httpclient\n  - httpcore\n
-        \ - importmap\n  - infinispan-cachestore-remote\n  - infinispan-client-hotrod-jakarta\n
-        \ - infinispan-commons-jakarta\n  - infinispan-core-jakarta\n  - infinispan-jboss-marshalling\n
-        \ - infinispan-query-dsl\n  - infinispan-remote-query-client\n  - istack-commons-runtime\n
-        \ - istack-commons-tools\n  - jackson-annotations\n  - jackson-core\n  - jackson-coreutils\n
-        \ - jackson-databind\n  - jackson-dataformat-cbor\n  - jackson-dataformat-yaml\n
-        \ - jackson-datatype-jdk8\n  - jackson-datatype-jsr310\n  - jackson-jakarta-rs-base\n
-        \ - jackson-jakarta-rs-json-provider\n  - jackson-module-jakarta-xmlbind-annotations\n
-        \ - jackson-module-parameter-names\n  - jakarta.activation\n  - jakarta.activation-api\n
-        \ - jakarta.annotation-api\n  - jakarta.ejb-api\n  - jakarta.el-api\n  - jakarta.enterprise.cdi-api\n
-        \ - jakarta.enterprise.lang-model\n  - jakarta.inject-api\n  - jakarta.interceptor-api\n
-        \ - jakarta.json-api\n  - jakarta.mail-api\n  - jakarta.persistence-api\n
-        \ - jakarta.resource-api\n  - jakarta.servlet-api\n  - jakarta.transaction-api\n
-        \ - jakarta.validation-api\n  - jakarta.ws.rs-api\n  - jakarta.xml.bind-api\n
-        \ - jakarta.xml.soap-api\n  - jandex\n  - jansi\n  - javase\n  - javassist\n
-        \ - javax.activation-api\n  - javax.annotation-api\n  - javax.inject\n  -
-        jaxb-api\n  - jaxb-core\n  - jaxb-jxc\n  - jaxb-runtime\n  - jaxb-xjc\n  -
-        jboss-invocation\n  - jboss-logging\n  - jboss-logging-annotations\n  - jboss-logmanager-embedded\n
-        \ - jboss-marshalling\n  - jboss-marshalling-river\n  - jboss-metadata-common\n
-        \ - jboss-metadata-web\n  - jboss-threads\n  - jboss-transaction-spi\n  -
-        jdbc\n  - jgroups\n  - jna\n  - jna-platform\n  - json-patch\n  - jts-core\n
-        \ - junit\n  - junit-jupiter\n  - junit-jupiter-api\n  - junit-jupiter-engine\n
-        \ - junit-jupiter-params\n  - junit-platform-commons\n  - junit-platform-engine\n
-        \ - junit-platform-launcher\n  - kerby-asn1\n  - keycloak-account-ui\n  -
-        keycloak-admin-cli\n  - keycloak-admin-ui\n  - keycloak-authz-policy-common\n
-        \ - keycloak-client-cli-dist\n  - keycloak-client-registration-cli\n  - keycloak-common\n
-        \ - keycloak-config-api\n  - keycloak-core\n  - keycloak-crypto-default\n
-        \ - keycloak-crypto-fips1402\n  - keycloak-js-adapter-jar\n  - keycloak-kerberos-federation\n
-        \ - keycloak-ldap-federation\n  - keycloak-model-infinispan\n  - keycloak-model-jpa\n
-        \ - keycloak-model-legacy\n  - keycloak-model-legacy-private\n  - keycloak-model-legacy-services\n
-        \ - keycloak-model-map\n  - keycloak-model-map-file\n  - keycloak-model-map-hot-rod\n
-        \ - keycloak-model-map-jpa\n  - keycloak-quarkus-dist\n  - keycloak-quarkus-server\n
-        \ - keycloak-quarkus-server-app\n  - keycloak-rest-admin-ui-ext\n  - keycloak-saml-core\n
-        \ - keycloak-saml-core-public\n  - keycloak-server-spi\n  - keycloak-server-spi-private\n
-        \ - keycloak-services\n  - keycloak-sssd-federation\n  - keycloak-themes\n
-        \ - liquibase-core\n  - logstash-gelf\n  - mariadb\n  - mariadb-java-client\n
-        \ - maven-api-meta\n  - maven-api-xml\n  - maven-artifact\n  - maven-builder-support\n
-        \ - maven-core\n  - maven-embedder\n  - maven-model\n  - maven-model-builder\n
-        \ - maven-plugin-api\n  - maven-repository-metadata\n  - maven-resolver-api\n
-        \ - maven-resolver-connector-basic\n  - maven-resolver-impl\n  - maven-resolver-named-locks\n
-        \ - maven-resolver-provider\n  - maven-resolver-spi\n  - maven-resolver-transport-http\n
-        \ - maven-resolver-transport-wagon\n  - maven-resolver-util\n  - maven-settings\n
-        \ - maven-settings-builder\n  - maven-shared-utils\n  - maven-xml-impl\n  -
-        micrometer-commons\n  - micrometer-core\n  - micrometer-observation\n  - micrometer-registry-prometheus\n
-        \ - microprofile-config\n  - microprofile-config-api\n  - microprofile-context-propagation-api\n
-        \ - microprofile-health-api\n  - microprofile-openapi-api\n  - microprofile-reactive-streams-operators-api\n
-        \ - msg-simple\n  - mssql-jdbc\n  - mssqlserver\n  - mutiny\n  - mutiny-smallrye-context-propagation\n
-        \ - mutiny-zero-flow-adapters\n  - mxparser\n  - mysql\n  - mysql-connector-java\n
-        \ - narayana-jta\n  - narayana-jts-integration\n  - nashorn-core\n  - netty-buffer\n
-        \ - netty-codec\n  - netty-codec-dns\n  - netty-codec-haproxy\n  - netty-codec-http\n
-        \ - netty-codec-http2\n  - netty-codec-socks\n  - netty-common\n  - netty-handler\n
-        \ - netty-handler-proxy\n  - netty-resolver\n  - netty-resolver-dns\n  - netty-transport\n
-        \ - netty-transport-classes-epoll\n  - netty-transport-native-epoll\n  - netty-transport-native-unix-common\n
-        \ - ojdbc11\n  - opencsv\n  - opentest4j\n  - orai18n\n  - org-crac\n  - org.eclipse.sisu.inject\n
-        \ - org.eclipse.sisu.plexus\n  - owasp-java-html-sanitizer\n  - parsson\n
-        \ - picocli\n  - plexus-cipher\n  - plexus-classworlds\n  - plexus-component-annotations\n
-        \ - plexus-interpolation\n  - plexus-sec-dispatcher\n  - plexus-utils\n  -
-        plexus-xml\n  - postgresql\n  - protoparser\n  - protostream\n  - protostream-types\n
-        \ - quarkus-agroal\n  - quarkus-agroal-deployment\n  - quarkus-agroal-spi\n
-        \ - quarkus-arc\n  - quarkus-arc-deployment\n  - quarkus-bootstrap-app-model\n
-        \ - quarkus-bootstrap-core\n  - quarkus-bootstrap-gradle-resolver\n  - quarkus-bootstrap-maven-resolver\n
-        \ - quarkus-bootstrap-runner\n  - quarkus-builder\n  - quarkus-caffeine\n
-        \ - quarkus-caffeine-deployment\n  - quarkus-class-change-agent\n  - quarkus-core\n
-        \ - quarkus-core-deployment\n  - quarkus-credentials\n  - quarkus-credentials-deployment\n
-        \ - quarkus-datasource\n  - quarkus-datasource-common\n  - quarkus-datasource-deployment\n
-        \ - quarkus-datasource-deployment-spi\n  - quarkus-development-mode-spi\n
-        \ - quarkus-devtools-utilities\n  - quarkus-fs-util\n  - quarkus-hibernate-orm\n
-        \ - quarkus-hibernate-orm-deployment\n  - quarkus-hibernate-orm-deployment-spi\n
-        \ - quarkus-hibernate-validator-spi\n  - quarkus-http-core\n  - quarkus-http-http-core\n
-        \ - quarkus-http-servlet\n  - quarkus-ide-launcher\n  - quarkus-jackson\n
-        \ - quarkus-jackson-deployment\n  - quarkus-jackson-spi\n  - quarkus-jaxrs-spi-deployment\n
-        \ - quarkus-jdbc-h2\n  - quarkus-jdbc-h2-deployment\n  - quarkus-jdbc-mariadb\n
-        \ - quarkus-jdbc-mariadb-deployment\n  - quarkus-jdbc-mssql\n  - quarkus-jdbc-mssql-deployment\n
-        \ - quarkus-jdbc-mysql\n  - quarkus-jdbc-mysql-deployment\n  - quarkus-jdbc-oracle\n
-        \ - quarkus-jdbc-oracle-deployment\n  - quarkus-jdbc-postgresql\n  - quarkus-jdbc-postgresql-deployment\n
-        \ - quarkus-jsonp\n  - quarkus-jsonp-deployment\n  - quarkus-junit5\n  - quarkus-junit5-internal\n
-        \ - quarkus-junit5-properties\n  - quarkus-kubernetes-service-binding-spi\n
-        \ - quarkus-kubernetes-spi\n  - quarkus-local-cache\n  - quarkus-logging-gelf\n
-        \ - quarkus-logging-gelf-deployment\n  - quarkus-logging-json\n  - quarkus-logging-json-deployment\n
-        \ - quarkus-micrometer\n  - quarkus-micrometer-deployment\n  - quarkus-micrometer-registry-prometheus\n
-        \ - quarkus-micrometer-registry-prometheus-deployment\n  - quarkus-mutiny\n
-        \ - quarkus-mutiny-deployment\n  - quarkus-narayana-jta\n  - quarkus-narayana-jta-deployment\n
-        \ - quarkus-netty\n  - quarkus-netty-deployment\n  - quarkus-panache-common\n
-        \ - quarkus-panache-common-deployment\n  - quarkus-panache-hibernate-common\n
-        \ - quarkus-panache-hibernate-common-deployment\n  - quarkus-reactive-routes\n
-        \ - quarkus-reactive-routes-deployment\n  - quarkus-resteasy\n  - quarkus-resteasy-common\n
-        \ - quarkus-resteasy-common-deployment\n  - quarkus-resteasy-common-spi\n
-        \ - quarkus-resteasy-deployment\n  - quarkus-resteasy-jackson\n  - quarkus-resteasy-jackson-deployment\n
-        \ - quarkus-resteasy-reactive-server-spi-deployment\n  - quarkus-resteasy-reactive-spi-deployment\n
-        \ - quarkus-resteasy-server-common\n  - quarkus-resteasy-server-common-deployment\n
-        \ - quarkus-resteasy-server-common-spi\n  - quarkus-security\n  - quarkus-security-runtime-spi\n
-        \ - quarkus-security-spi\n  - quarkus-smallrye-context-propagation\n  - quarkus-smallrye-context-propagation-deployment\n
-        \ - quarkus-smallrye-context-propagation-spi\n  - quarkus-smallrye-health\n
-        \ - quarkus-smallrye-health-deployment\n  - quarkus-smallrye-health-spi\n
-        \ - quarkus-smallrye-openapi-spi\n  - quarkus-test-common\n  - quarkus-transaction-annotations\n
-        \ - quarkus-undertow-spi\n  - quarkus-vertx\n  - quarkus-vertx-deployment\n
-        \ - quarkus-vertx-http\n  - quarkus-vertx-http-deployment\n  - quarkus-vertx-http-deployment-spi\n
-        \ - quarkus-vertx-http-dev-console-runtime-spi\n  - quarkus-vertx-http-dev-console-spi\n
-        \ - quarkus-vertx-http-dev-ui-spi\n  - quarkus-vertx-latebound-mdc-provider\n
-        \ - qute-core\n  - reactive-streams\n  - readline\n  - relaxng-datatype\n
-        \ - resteasy-cdi\n  - resteasy-core\n  - resteasy-core-spi\n  - resteasy-jackson2-provider\n
-        \ - resteasy-jaxb-provider\n  - resteasy-multipart-provider\n  - resteasy-reactive\n
-        \ - resteasy-reactive-common\n  - resteasy-reactive-common-processor\n  -
-        resteasy-reactive-common-types\n  - resteasy-reactive-processor\n  - rngom\n
-        \ - rxjava\n  - saaj-impl\n  - shrinkwrap-api\n  - shrinkwrap-depchain\n  -
-        simpleclient\n  - simpleclient_common\n  - simpleclient_tracer_common\n  -
-        simpleclient_tracer_otel\n  - simpleclient_tracer_otel_agent\n  - slf4j-api\n
-        \ - slf4j-jboss-logmanager\n  - smallrye-beanbag\n  - smallrye-beanbag-maven\n
-        \ - smallrye-beanbag-sisu\n  - smallrye-common-annotation\n  - smallrye-common-classloader\n
-        \ - smallrye-common-constraint\n  - smallrye-common-expression\n  - smallrye-common-function\n
-        \ - smallrye-common-io\n  - smallrye-common-os\n  - smallrye-common-vertx-context\n
-        \ - smallrye-config\n  - smallrye-config-common\n  - smallrye-config-core\n
-        \ - smallrye-config-source-keystore\n  - smallrye-context-propagation\n  -
-        smallrye-context-propagation-api\n  - smallrye-context-propagation-jta\n  -
-        smallrye-context-propagation-storage\n  - smallrye-fault-tolerance-vertx\n
-        \ - smallrye-health\n  - smallrye-health-api\n  - smallrye-health-provided-checks\n
-        \ - smallrye-health-ui\n  - smallrye-mutiny-vertx-auth-common\n  - smallrye-mutiny-vertx-bridge-common\n
-        \ - smallrye-mutiny-vertx-core\n  - smallrye-mutiny-vertx-runtime\n  - smallrye-mutiny-vertx-uri-template\n
-        \ - smallrye-mutiny-vertx-web\n  - smallrye-mutiny-vertx-web-common\n  - smallrye-open-api-core\n
-        \ - smallrye-reactive-converter-api\n  - smallrye-reactive-converter-mutiny\n
-        \ - snakeyaml\n  - snakeyaml-engine\n  - stax-ex\n  - testcontainers\n  -
-        twitter4j-core\n  - txw2\n  - uap-java\n  - vertx-auth-common\n  - vertx-bridge-common\n
-        \ - vertx-codegen\n  - vertx-core\n  - vertx-mutiny-generator\n  - vertx-web\n
-        \ - vertx-web-common\n  - waffle-jna\n  - wagon-file\n  - wagon-http\n  -
-        wagon-http-shared\n  - wagon-provider-api\n  - webauthn4j-core\n  - webauthn4j-util\n
-        \ - weld-api\n  - wildfly-elytron-asn1\n  - wildfly-elytron-auth\n  - wildfly-elytron-auth-server\n
-        \ - wildfly-elytron-base\n  - wildfly-elytron-credential\n  - wildfly-elytron-http\n
-        \ - wildfly-elytron-keystore\n  - wildfly-elytron-mechanism\n  - wildfly-elytron-mechanism-digest\n
-        \ - wildfly-elytron-mechanism-gssapi\n  - wildfly-elytron-mechanism-oauth2\n
-        \ - wildfly-elytron-mechanism-scram\n  - wildfly-elytron-password-impl\n  -
-        wildfly-elytron-permission\n  - wildfly-elytron-provider-util\n  - wildfly-elytron-sasl\n
-        \ - wildfly-elytron-sasl-digest\n  - wildfly-elytron-sasl-external\n  - wildfly-elytron-sasl-gs2\n
-        \ - wildfly-elytron-sasl-gssapi\n  - wildfly-elytron-sasl-oauth2\n  - wildfly-elytron-sasl-plain\n
-        \ - wildfly-elytron-sasl-scram\n  - wildfly-elytron-security-manager-action\n
-        \ - wildfly-elytron-ssl\n  - wildfly-elytron-util\n  - wildfly-elytron-x500\n
-        \ - wildfly-elytron-x500-cert\n  - wildfly-elytron-x500-cert-util\n  - xmlpull\n
-        \ - xmlsec\n  - xsom\n  - xstream\n  streams:\n  - rhbk-22\n"
-    headers:
-      Cache-Control:
-      - max-age=60, public, must-revalidate, stale-while-revalidate=60, stale-if-error=300,
-        s-maxage=60
-      Connection:
-      - keep-alive
-      Content-Disposition:
-      - inline
-      Content-Type:
-      - text/plain; charset=utf-8
-      Date:
-      - Mon, 11 Mar 2024 14:44:09 GMT
-      Etag:
-      - W/"b64753605007cc8644a5d5d16a207709"
-      Permissions-Policy:
-      - interest-cohort=()
-      Referrer-Policy:
-      - strict-origin-when-cross-origin
-      Server:
-      - nginx
-      Strict-Transport-Security:
-      - max-age=63072000
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Accept-Encoding
-      - Accept
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-Frame-Options:
-      - SAMEORIGIN
-      X-Gitlab-Meta:
-      - '{"correlation_id":"01HRPZH4PYSQXYZ2BP6QVB8AQS","version":"1"}'
-      X-Permitted-Cross-Domain-Policies:
-      - none
-      X-Request-Id:
-      - 01HRPZH4PYSQXYZ2BP6QVB8AQS
-      X-Runtime:
-      - '0.091745'
-      X-Ua-Compatible:
-      - IE=edge
-      X-Xss-Protection:
-      - 1; mode=block
-      content-length:
-      - '25125'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.31.0
-    method: GET
-    uri: https://example.com/prodsec-dev/ps-constants/-/raw/master/data/contract_priority.yml?job=build
-  response:
-    body:
-      string: '# list of update streams that are in the scope of the contract priority
-        special handling
-
-        # keys need to match PS update stream names from product definitions
-
-        # https://example.com/browse/OSIDB-1707
-
-        #
-
-        # when creating a tracker with any PS update stream from the below list we
-        add contract-priority Jira label
-
-
-        openshift-4:
-
-        - openshift-4.12.z
-
-        - openshift-4.14.z
-
-
-        rhel-8:
-
-        - rhel-8.8.0.z
-
-        '
-    headers:
-      Cache-Control:
-      - max-age=60, public, must-revalidate, stale-while-revalidate=60, stale-if-error=300,
-        s-maxage=60
-      Connection:
-      - keep-alive
-      Content-Disposition:
-      - inline
-      Content-Type:
-      - text/plain; charset=utf-8
-      Date:
-      - Mon, 11 Mar 2024 14:44:09 GMT
-      Etag:
-      - W/"b213fc4391a512d06e735dc7a67b3d91"
-      Permissions-Policy:
-      - interest-cohort=()
-      Referrer-Policy:
-      - strict-origin-when-cross-origin
-      Server:
-      - nginx
-      Strict-Transport-Security:
-      - max-age=63072000
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Accept-Encoding
-      - Accept
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-Frame-Options:
-      - SAMEORIGIN
-      X-Gitlab-Meta:
-      - '{"correlation_id":"01HRPZH5B1GNAG6BDABH4Y691Y","version":"1"}'
-      X-Permitted-Cross-Domain-Policies:
-      - none
-      X-Request-Id:
-      - 01HRPZH5B1GNAG6BDABH4Y691Y
-      X-Runtime:
-      - '0.102553'
-      X-Ua-Compatible:
-      - IE=edge
-      X-Xss-Protection:
-      - 1; mode=block
-      content-length:
-      - '390'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.31.0
-    method: GET
-    uri: https://example.com/prodsec-dev/ps-constants/-/raw/master/data/ubi_packages.yml?job=build
-  response:
-    body:
-      string: "# This list of packages is used to indicate the UBI flag in the SFM2.
-        \n# This list is NOT used to calculate SLA.\n\n\n# list of packages / components
-        in UBI images\n# separate list provided for each RHEL version, keys need to
-        match ps module\n# names\n# https://example.com/browse/PSIRT-730\n# https://example.com/browse/PSDEVOPS-2076\n\nrhel-8:\n-
-        acl\n- attr\n- audit\n- basesystem\n- bash\n- brotli\n- bzip2\n- ca-certificates\n-
-        chkconfig\n- coreutils\n- cracklib\n- crypto-policies\n- cryptsetup\n- curl\n-
-        cyrus-sasl\n- dbus\n- dbus-glib\n- dbus-python\n- dmidecode\n- dnf\n- dnf-plugins-core\n-
-        e2fsprogs\n- elfutils\n- expat\n- file\n- filesystem\n- findutils\n- gawk\n-
-        gcc\n- gdb\n- gdbm\n- glib2\n- glibc\n- gmp\n- gnupg2\n- gnutls\n- gobject-introspection\n-
-        gpgme\n- grep\n- gzip\n- ima-evm-utils\n- json-c\n- json-glib\n- keyutils\n-
-        kmod\n- krb5\n- langpacks\n- libarchive\n- libassuan\n- libcap\n- libcap-ng\n-
-        libcomps\n- libdb\n- libdnf\n- libffi\n- libgcrypt\n- libgpg-error\n- libidn2\n-
-        libksba\n- libmodulemd\n- libnl3\n- libnsl2\n- libpeas\n- libpsl\n- libpwquality\n-
-        librepo\n- libreport\n- librhsm\n- libseccomp\n- libselinux\n- libsemanage\n-
-        libsepol\n- libsigsegv\n- libsolv\n- libssh\n- libtasn1\n- libtirpc\n- libunistring\n-
-        libusbx\n- libuser\n- libutempter\n- libverto\n- libxcrypt\n- libxml2\n- libyaml\n-
-        lua\n- lvm2\n- lz4\n- microdnf\n- mpfr\n- ncurses\n- nettle\n- nghttp2\n-
-        npth\n- openldap\n- openssl\n- p11-kit\n- pam\n- passwd\n- pcre\n- pcre2\n-
-        popt\n- procps-ng\n- publicsuffix-list\n- pygobject3\n- python-chardet\n-
-        python-dateutil\n- python-decorator\n- python-ethtool\n- python-idna\n- python-iniparse\n-
-        python-inotify\n- python-pip\n- python-pysocks\n- python-requests\n- python-setuptools\n-
-        python-six\n- python-systemd\n- python-urllib3\n- python3\n- readline\n- redhat-release\n-
-        rootfiles\n- rpm\n- sed\n- setup\n- shadow-utils\n- sqlite\n- subscription-manager\n-
-        subscription-manager-rhsm-certificates\n- systemd\n- tar\n- texinfo\n- tpm2-tss\n-
-        tzdata\n- usermode\n- util-linux\n- vim\n- virt-what\n- which\n- xz\n- zlib\n-
-        zstd\n\nrhel-9:\n- acl\n- attr\n- audit\n- basesystem\n- bash\n- bzip2\n-
-        ca-certificates\n- chkconfig\n- coreutils\n- cracklib\n- crypto-policies\n-
-        curl\n- cyrus-sasl\n- dbus\n- dbus-broker\n- dbus-python\n- dejavu-fonts\n-
-        dmidecode\n- dnf\n- dnf-plugins-core\n- e2fsprogs\n- elfutils\n- expat\n-
-        file\n- filesystem\n- findutils\n- fonts-rpm-macros\n- gawk\n- gcc\n- gdb\n-
-        gdbm\n- glib2\n- glibc\n- gmp\n- gnupg2\n- gnutls\n- gobject-introspection\n-
-        gpgme\n- grep\n- gzip\n- ima-evm-utils\n- iproute\n- json-c\n- json-glib\n-
-        keyutils\n- kmod\n- krb5\n- langpacks\n- libarchive\n- libassuan\n- libbpf\n-
-        libcap\n- libcap-ng\n- libcomps\n- libdb\n- libdnf\n- libeconf\n- libevent\n-
-        libffi\n- libgcrypt\n- libgpg-error\n- libidn2\n- libksba\n- libmnl\n- libmodulemd\n-
-        libpeas\n- libpwquality\n- librepo\n- libreport\n- librhsm\n- libseccomp\n-
-        libselinux\n- libsemanage\n- libsepol\n- libsigsegv\n- libsolv\n- libtasn1\n-
-        libunistring\n- libusbx\n- libuser\n- libutempter\n- libverto\n- libxcrypt\n-
-        libxml2\n- libyaml\n- lua\n- lz4\n- microdnf\n- mpfr\n- ncurses\n- nettle\n-
-        nghttp2\n- npth\n- openldap\n- openssl\n- p11-kit\n- pam\n- passwd\n- pcre\n-
-        pcre2\n- popt\n- procps-ng\n- psmisc\n- pygobject3\n- python-chardet\n- python-dateutil\n-
-        python-decorator\n- python-idna\n- python-iniparse\n- python-inotify\n- python-pip\n-
-        python-pysocks\n- python-requests\n- python-setuptools\n- python-six\n- python-systemd\n-
-        python-urllib3\n- python3.9\n- readline\n- redhat-release\n- rootfiles\n-
-        rpm\n- sed\n- setup\n- shadow-utils\n- sqlite\n- subscription-manager\n- subscription-manager-rhsm-certificates\n-
-        systemd\n- tar\n- tpm2-tss\n- tzdata\n- usermode\n- util-linux\n- vim\n- virt-what\n-
-        which\n- xz\n- zlib\n- zstd\n\n"
-    headers:
-      Cache-Control:
-      - max-age=60, public, must-revalidate, stale-while-revalidate=60, stale-if-error=300,
-        s-maxage=60
-      Connection:
-      - keep-alive
-      Content-Disposition:
-      - inline
-      Content-Type:
-      - text/plain; charset=utf-8
-      Date:
-      - Mon, 11 Mar 2024 14:44:10 GMT
-      Etag:
-      - W/"4ce2e18af50d11b4c912fd6d020ee9db"
-      Permissions-Policy:
-      - interest-cohort=()
-      Referrer-Policy:
-      - strict-origin-when-cross-origin
-      Server:
-      - nginx
-      Strict-Transport-Security:
-      - max-age=63072000
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Accept-Encoding
-      - Accept
-      X-Content-Type-Options:
-      - nosniff
-      X-Download-Options:
-      - noopen
-      X-Frame-Options:
-      - SAMEORIGIN
-      X-Gitlab-Meta:
-      - '{"correlation_id":"01HRPZH5KRTF302WVJXCA98PJV","version":"1"}'
-      X-Permitted-Cross-Domain-Policies:
-      - none
-      X-Request-Id:
-      - 01HRPZH5KRTF302WVJXCA98PJV
-      X-Runtime:
-      - '0.094147'
-      X-Ua-Compatible:
-      - IE=edge
-      X-Xss-Protection:
-      - 1; mode=block
-      content-length:
-      - '3562'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - python-requests/2.31.0
+      - python-requests/2.32.3
     method: GET
     uri: https://example.com/prodsec-dev/ps-constants/-/raw/master/data/special_consideration_packages.yml?job=build
   response:
@@ -652,7 +68,7 @@ interactions:
       Content-Type:
       - text/plain; charset=utf-8
       Date:
-      - Mon, 11 Mar 2024 14:44:10 GMT
+      - Mon, 09 Dec 2024 11:41:59 GMT
       Etag:
       - W/"e421bf00158b35d34131f5f4673f888e"
       Permissions-Policy:
@@ -675,19 +91,320 @@ interactions:
       X-Frame-Options:
       - SAMEORIGIN
       X-Gitlab-Meta:
-      - '{"correlation_id":"01HRPZH69JW7772HSYAFHSPER3","version":"1"}'
+      - '{"correlation_id":"01JENKKSTEA7WFM6E0JRW1KNWM","version":"1"}'
       X-Permitted-Cross-Domain-Policies:
       - none
       X-Request-Id:
-      - 01HRPZH69JW7772HSYAFHSPER3
+      - 01JENKKSTEA7WFM6E0JRW1KNWM
       X-Runtime:
-      - '0.077396'
+      - '0.079601'
       X-Ua-Compatible:
       - IE=edge
       X-Xss-Protection:
       - 1; mode=block
       content-length:
       - '278'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.32.3
+    method: GET
+    uri: https://example.com/prodsec-dev/ps-constants/-/raw/master/data/cveorg_keywords.yml?job=build
+  response:
+    body:
+      string: "# The keywords defined below are used in the CVEorg collector to determine\n#
+        whether a flaw should be created based on its `title` and `comment_zero`.\n#
+        If at least one of `title` or `comment_zero` contains only blocklisted and
+        not allowlisted keywords\n# (i.e. keywords only in `blocklist` or `blocklist_special_cases`),
+        a flaw is not created.\n# Otherwise, a flaw is created.\n#\n# All keywords
+        are evaluated as a Python regular expression.\n# `blocklist` and `allowlist`
+        are meant for case-insensitive matching,\n# `blocklist_special_cases` and
+        `allowlist_special_cases` for case-sensitive matching.\n#\n# For more information
+        about how the keywords are used in OSIDB, see\n# https://example.com/RedHatProductSecurity/osidb/blob/master/collectors/cveorg/keywords.py\n\n\nallowlist:\n
+        \ - GIMP\n  - Spring\n  - dotnet\n  - kernel\n\n# '\\b\\.NET\\b' does not
+        match properly because word boundary \\b does not cooperate well with dot\nallowlist_special_cases:\n
+        \ - (?:\\W|^)\\.NET\\b\n\nblocklist:\n  - (HPE|Hewlett Packard Enterprise).*(IceWall|FlexNetwork|FlexFabric|OneView|Nimble)\n
+        \ - (Industrial Edge Management|Nucleus NET|SINEC).*[\\n]*.*siemens\n  - (Jfinal|Final)[
+        _]CMS\n  - (Pinniped Supervisor|VMware Cloud Foundation).*[\\n]*.*vmware.*\n
+        \ - (SIMATIC|Mendix|Parasolid|Opcenter Quality|SCALANCE).*[\\n]*.*siemens\n
+        \ - (Simcenter Femap|LOGO!|Solid Edge|APOGEE).*[\\n]*.*siemens\n  - .*plugin.*for
+        WordPress\n  - 1Password\n  - 72crm\n  - 74cmsSE\n  - ABB e-Design\n  - ABB
+        netCADOPS\n  - ACEweb Online Portal\n  - AEF CMS\n  - ALPS ALPINE touchpad
+        driver\n  - APNGDis\n  - ASANHAMAYESH CMS\n  - Academy Learning Management
+        System\n  - Accusoft ImageGear\n  - Acronis Cyber Backup\n  - Acronis True
+        Image\n  - Adobe Acrobat Reader\n  - Adobe Acrobat and Reader\n  - Adobe Animate\n
+        \ - Adobe Bridge\n  - Adobe Campaign\n  - Adobe Character Animator\n  - Adobe
+        Commerce\n  - Adobe Dimension\n  - Adobe Experience Manager\n  - Adobe FrameMaker\n
+        \ - Adobe Illustrator\n  - Adobe InCopy\n  - Adobe InDesign\n  - Adobe Lightroom\n
+        \ - Adobe Media Encoder\n  - Adobe Photoshop\n  - Adobe Premiere Elements\n
+        \ - Adobe RoboHelp\n  - Advanced SystemCare Ultimate\n  - Advantech\n  - AeroCMS\n
+        \ - Afian FileRun\n  - AirWave\n  - Ajenti\n  - AnchorCMS\n  - AntSword\n
+        \ - Anuko Time Tracker\n  - Apache Geode\n  - Apache NiFi\n  - Apache OpenMeetings\n
+        \ - Apache ShenYu\n  - Apache Syncope\n  - Apache Wicket\n  - Apartment Visitor
+        Management System\n  - Apexis\n  - AppFormix\n  - ArcGIS Server\n  - Arista
+        EOS\n  - ArsenoL\n  - Artica Web Proxy\n  - Aruba (ClearPass|EdgeConnect|Networks)\n
+        \ - ArubaOS\n  - Atlassian Bamboo\n  - Atlassian Confluence\n  - Atlassian
+        Crucible\n  - Atlassian Fisheye\n  - Atlassian JIRA\n  - Aurea Jive\n  - Automation
+        License Manager\n  - Automotive Shop Management System\n  - Avaya\n  - Avira\n
+        \ - Avolve Software ProjectDox\n  - AxxonSoft\n  - AyaCMS\n  - BEESCMS\n  -
+        BMC Medical\n  - BMC Remedy AR System\n  - BMC Remedy Action Request\n  -
+        Backdrop CMS\n  - Badminton Center Management\n  - Bagecms\n  - Barco Control
+        Room Management\n  - BaserCMS\n  - Bento4\n  - Best Student Result Management
+        System\n  - BigBlueButton\n  - BigTree CMS\n  - Billing System Project\n  -
+        Bitcoin Core\n  - Bitdefender Antivirus\n  - Bitdefender Engines\n  - BlackBerry
+        QNX Software Development Platform\n  - BlackBerry UEM Management Console\n
+        \ - BlackCat CMS\n  - Bludit\n  - BlueSpice\n  - Bookme Control Panel\n  -
+        Bravo Tejari\n  - Brocade Fabric OS\n  - Brocade Fibre\n  - Brocade SANnav\n
+        \ - BtiTracker\n  - CCN-lite\n  - CMS Made Simple\n  - CMSuno\n  - CODESYS\n
+        \ - CSZCMS\n  - CactusVPN\n  - Call for Papers\n  - Campcodes Advanced Online
+        Voting System\n  - Canteen Management System\n  - Car Rental Management\n
+        \ - Carbon Black\n  - Carel pCOWeb\n  - Centum CS\n  - Chamilo LMS\n  - Chaoji
+        CMS\n  - ChatBot App with Suggestion\n  - ChemCMS\n  - Cisco\n  - Citrix NetScaler\n
+        \ - Clansphere CMS\n  - Classcms\n  - Claymore Dual Miner\n  - Clinic's Patient
+        Management System\n  - CloudMe\n  - CloudVision Portal\n  - Clustered Data
+        ONTAP\n  - CoDeSys Runtime\n  - Codoforum\n  - College Management System\n
+        \ - Combodo iTop\n  - Complete Online Job Search\n  - Composr CMS\n  - Contiki-NG\n
+        \ - Converse\\.js\n  - CoverCMS\n  - Cozy\n  - Craft CMS\n  - CraftCMS\n  -
+        Creditwest Bank CMS\n  - Cybozu Garoon\n  - D-LINK DIR.*\n  - D-LINK.*(DIR|COVR|DAP).*\n
+        \ - D-LINK.*(DIR|COVR|DAP|DSL|DCS).*\n  - DIAEnergie\n  - DIR.*[\\n]*.*dlink.com.*\n
+        \ - Dataiku DSS\n  - DedeCMS\n  - Dell (Client )?BIOS\n  - Dell (Hybrid Client|GeoDrive)\n
+        \ - Dell Container Storage\n  - Dell EMC\n  - Dell NetWorker\n  - Dell PowerScale\n
+        \ - Dell SonicWALL Scrutinizer\n  - Dell Storage Manager\n  - Dell Wyse Management
+        Suite\n  - Delta Electronics\n  - Delta Industrial Automation\n  - Desigo\n
+        \ - Digital Guardian Managment Console\n  - DiliCMS\n  - DiligentCMS\n  -
+        Discuz\n  - Disk Savvy Enterprise\n  - DocuTrac QuicDoc\n  - Dolibarr\n  -
+        DolphinPHP\n  - DomainMOD\n  - Doufoxcms\n  - DrayTek\n  - Dreamer CMS\n  -
+        EGavilan Media\n  - EMC Data Protection Advisor\n  - EPIC MyChart\n  - ESPCMS\n
+        \ - EasyCMS\n  - Eaton's\n  - Edimax\n  - Emlog Pro\n  - Enalean Tuleap\n
+        \ - Enhancesoft osTicket\n  - Epson Airprint\n  - Eshtery CMS\n  - EspoCRM\n
+        \ - Expense Management System\n  - Explzh\n  - Exponent CMS\n  - Exponent-CMS\n
+        \ - EyouCMS\n  - F-Secure Atlant\n  - F5 BIG-IP\n  - FATEK FvDesigner\n  -
+        FUDforum\n  - FUEL-CMS\n  - FactoryTalk\n  - Fast Food Ordering System\n  -
+        FastAdmin\n  - FastCMS\n  - FeMiner.*wms\n  - Feehi CMS\n  - FeehiCMS\n  -
+        FeiFeiCMS\n  - FiberHome\n  - FlatCore-CMS\n  - Flexense DiskBoss\n  - Flexense
+        DiskPulse\n  - Flexense DiskSavvy\n  - Flexense DiskSorter\n  - Flexense DupScout\n
+        \ - Flexense SyncBreeze\n  - Flexense VX Search\n  - Food Ordering Management
+        System\n  - ForgeRock\n  - FortiADC|FortiMail\n  - FortiAnalyzer\n  - FortiClient\n
+        \ - FortiNAC\n  - FortiOS\n  - FortiSOAR\n  - Fortinet\n  - Foxit .*PDF reader\n
+        \ - Frog CMS\n  - Fuji Electric\n  - FusionCompute\n  - FusionSphere OpenStack\n
+        \ - GE D60\n  - GPAC\n  - GSKit\n  - GXCMS\n  - Galileo CMS\n  - Gallagher
+        Command Centre\n  - Garage Management System\n  - Geist WatchDog Console\n
+        \ - Gemini-Net\n  - GeniXCMS\n  - GetSimple CMS\n  - GetSimpleCMS\n  - GilaCMS\n
+        \ - Gleez CMS\n  - Grandstream\n  - GreenCMS\n  - Gxlcms\n  - Gym Management
+        System\n  - H3C (Magic|H200|GR[0-9-]+|B5 Mini)\n  - HCL (iNotes|Commerce|Workload
+        Automation|Digital Experience)\n  - HP Security\n  - HPE Aruba AirWave Glass\n
+        \ - HPE Aruba ClearPass Policy Manager\n  - HPE Business Process Monitor\n
+        \ - HPE Cloud Optimizer\n  - HPE Data Protector\n  - HPE Diagnostics\n  -
+        HPE Helion Eucalyptus\n  - HPE IceWall Federation Agent\n  - HPE Insight Control\n
+        \ - HPE Integrated Lights-Out\n  - HPE Intelligent Management Center\n  -
+        HPE LoadRunner\n  - HPE Matrix Operating Environment\n  - HPE Network Automation\n
+        \ - HPE Network Node Manager\n  - HPE NonStop Server\n  - HPE NonStop Software
+        Essentials\n  - HPE OfficeConnect Network Switches\n  - HPE OpenCall Media
+        Platform\n  - HPE Operations Bridge Analytics\n  - HPE Operations Orchestration
+        Community\n  - HPE Pay Per Use\n  - HPE Project and Portfolio Management\n
+        \ - HPE SiteScope\n  - HPE Smart Storage Administrator\n  - HPE StoreVirtual\n
+        \ - HPE Systems Insight Manager\n  - HPE UCMDB\n  - HPE Version Control Repository
+        Manager\n  - HPE Vertica Analytics\n  - HPE iMC PLAT\n  - HashiCorp Terraform\n
+        \ - Helmet Store Showroom\n  - Hewlett Packard Enterprise Intelligent Management
+        Center\n  - Hewlett Packard Enterprise Moonshot Provisioning Manager\n  -
+        Hirschmann.*[\\n]*.*belden\n  - Honeywell\n  - HongCMS\n  - Horizon Client
+        for Windows\n  - Hospital Management System\n  - Hotel Management System\n
+        \ - HotelDruid\n  - Human Resource Management System\n  - I, Librarian\n  -
+        I-librarian\n  - IBM AIX\n  - IBM API Connect\n  - IBM App Connect Enterprise\n
+        \ - IBM AppScan\n  - IBM Aspera\n  - IBM Aspera Web Application\n  - IBM BigFix\n
+        \ - IBM Business Automation Content Analyzer\n  - IBM Business Automation
+        Workflow\n  - IBM Business Process Manager\n  - IBM CICS\n  - IBM Campaign\n
+        \ - IBM Capacity Management Analytics\n  - IBM Cloud Pak\n  - IBM CloudPak\n
+        \ - IBM Cognos\n  - IBM Connections\n  - IBM Content Manager\n  - IBM Content
+        Navigator\n  - IBM Curam\n  - IBM Daeja ViewONE\n  - IBM Data Risk Manager\n
+        \ - IBM DataPower Gateway\n  - IBM Db2\n  - IBM Db2U\n  - IBM Domino\n  -
+        IBM Doors\n  - IBM Emptoris\n  - IBM Endpoint Manager\n  - IBM Engineering
+        Lifecycle Optimization\n  - IBM Event Streams\n  - IBM Financial Transaction
+        Manager\n  - IBM Flex System\n  - IBM Forms Experience Builder\n  - IBM Forms
+        Server\n  - IBM InfoSphere\n  - IBM Jazz\n  - IBM Jazz Foundation\n  - IBM
+        Jazz Reporting Service\n  - IBM MQ\n  - IBM MQ Appliance\n  - IBM Maximo\n
+        \ - IBM Notes\n  - IBM Planning Analytics\n  - IBM Power Hardware Management
+        Console\n  - IBM Publishing Engine\n  - IBM QRadar\n  - IBM RSA DM\n  - IBM
+        Rational\n  - IBM Rhapsody\n  - IBM Robotic\n  - IBM Sametime\n  - IBM Secure
+        External Authentication Server\n  - IBM Security Access Manager\n  - IBM Security
+        Guardium\n  - IBM Security Identity Governance and Intelligence\n  - IBM Security
+        Key Lifecycle Manager\n  - IBM Security QRadar\n  - IBM Security Secret Server\n
+        \ - IBM Security SiteProtector\n  - IBM Security Trusteer Pinpoint Detect\n
+        \ - IBM Security Verify Access\n  - IBM Security Verify Governance\n  - IBM
+        Security Verify Information Queue\n  - IBM SiteProtector Appliance\n  - IBM
+        Spectrum\n  - IBM Spectrum Protect Plus\n  - IBM Spectrum Scale\n  - IBM Sterling
+        B2B Integrator\n  - IBM Sterling Connect:Direct\n  - IBM Sterling File Gateway\n
+        \ - IBM Sterling Partner Engagement Manager\n  - IBM Sterling Secure Proxy\n
+        \ - IBM TRIRIGA\n  - IBM Tealeaf\n  - IBM Tivoli\n  - IBM UrbanCode Deploy\n
+        \ - IBM Watson\n  - IBM WebSphere\n  - IBM XIV Storage\n  - IBM i\n  - IBM
+        i2 iBase\n  - INTELBRAS\n  - IOBit Malware Fighter\n  - ImageWorsener\n  -
+        Imagely NextGEN Gallery\n  - InHand Networks\n  - Ingredients Stock Management
+        System\n  - InspIRCd\n  - Insurance Management System\n  - Intel (R) LED Manager
+        for NUC\n  - Intel Server Boards\n  - Intel(R) Graphics Drivers\n  - Intel(R)
+        PAC with Arria(R)\n  - Intel(R) Server Boards\n  - Intelbras TELEFONE IP\n
+        \ - InventoryManagementSystem\n  - Invision Power Board\n  - IonizeCMS\n  -
+        Ipswitch WhatsUp Gold\n  - Ivanti Endpoint Security\n  - JEXTN\n  - JFrog
+        Artifactory\n  - JT2Go\n  - Jeecg-boot\n  - JerryScript\n  - Jiangmin Antivirus\n
+        \ - Jirafeau\n  - Jizhicms\n  - Joomla!\n  - Joyent SmartOS\n  - Judging Management
+        System\n  - JupyterHub OAuthenticator\n  - Kaspersky Secure Mail\n  - Kentico\n
+        \ - Kingsoft Internet Security\n  - KiteCMS\n  - Kiwi TCMS\n  - Kliqqi CMS\n
+        \ - LAquis SCADA\n  - LJCMS\n  - Library Management System\n  - LibreNMS\n
+        \ - Liferay Portal\n  - LogicalDoc\n  - Loway QueueMetrics\n  - M-Files Server\n
+        \ - MB CONNECT LINE\n  - MDaemon\n  - MKCMS\n  - MOXA NPort\n  - MP Form Mail\n
+        \ - MTS Simple Booking\n  - MZ Automation\n  - Magnolia CMS\n  - Mahara\n
+        \ - Mailbutler Shimo\n  - MalwareFox AntiMalware\n  - Malwarebytes Anti-Malware\n
+        \ - ManageEngine OpManager\n  - ManageEngine Service Desk Plus\n  - March
+        Hare WINCVS\n  - McAfee Network Security Management\n  - McAfee VirusScan
+        Enterprise\n  - Merchandise Online Store\n  - MetInfo\n  - Micro Focus ArcSight\n
+        \ - Micro Focus ArcSight Management Center\n  - Micro Focus Operations Bridge\n
+        \ - Micro Focus Project\n  - Micro Focus UCMDB\n  - Micro Focus Universal
+        CMDB\n  - Micro Focus ZENworks\n  - Micropoint proactive\n  - Microsoft\n
+        \ - Microweber\n  - MikroTik's RouterOS\n  - Mikrotik RouterOs\n  - Ming-Soft/MCMS\n
+        \ - MiniCMS\n  - Mitel ST\n  - Mitsubishi E-Designer\n  - Mitsubishi Electric\n
+        \ - Mobotix\n  - Money Transfer Management System\n  - MonstaFTP\n  - Monstra
+        CMS\n  - Moxa OnCell\n  - NETGEAR\n  - NVIDIA GeForce NOW\n  - Navarino Infinity\n
+        \ - NetEx HyperIP\n  - NetIQ Access Manager\n  - NetIQ Identity Manager\n
+        \ - NetIQ Identity Reporting\n  - NetIQ iManager\n  - Nginx NJS\n  - Niagara\n
+        \ - Nokia\n  - NoneCms\n  - NordVPN\n  - Nortek Linear\n  - Novel-Plus\n  -
+        NukeViet CMS\n  - OPTILINK OP\n  - OSIsoft PI\n  - OTCMS\n  - OXID eShop\n
+        \ - October CMS\n  - Octopus Deploy\n  - Omron CX-One\n  - Omron CX-Supervisor\n
+        \ - Online Car Wash Booking System\n  - Online Diagnostic Lab Management System\n
+        \ - Online Examination System\n  - Online Fire Reporting System\n  - Online
+        Food Ordering System\n  - Online Leave Management System\n  - Online Ordering
+        System\n  - Online Pet Shop We App\n  - Online Railway Reservation System\n
+        \ - Online Sports Complex Booking System\n  - Online Student Rate System\n
+        \ - Online Tours & Travels Management System\n  - Open Source SACCO Management
+        System\n  - Open-AudIT Professional\n  - OpenBMC\n  - OpenEMR\n  - OpenHarmony\n
+        \ - OpenLiteSpeed\n  - OpenMRS\n  - OpenScape Deployment Service\n  - Opencast\n
+        \ - Ozeki NG SMS Gateway\n  - PAN-OS\n  - PHP Scripts Mall\n  - PHPGurukul\n
+        \ - PHPJabbers Class Scheduling System\n  - POSCMS\n  - Paessler PRTG Network
+        Monitor\n  - Pagekit CMS\n  - Pandora FMS\n  - Parallels Remote Application
+        Server\n  - PayPal\n  - PbootCMS\n  - Pega Platform\n  - Pegasystems Pega
+        Platform\n  - Pharmacy Management System\n  - Philips Intellispace Portal\n
+        \ - PicturesPro Photo Cart\n  - Piwigo\n  - Pixar OpenUSD\n  - Plixer Scrutinizer\n
+        \ - Plone CMS\n  - Pluck\n  - PowerCMS\n  - PrestaShop\n  - PrivateVPN\n  -
+        Project-Pier\n  - Promise Technology\n  - PublicCMS\n  - Pulse Connect Secure\n
+        \ - Pulse Secure Desktop Client\n  - PureVPN\n  - PyroCMS\n  - QNAP QTS\n
+        \ - Quest NetVault\n  - QuickTime\n  - RPCMS\n  - RUGGEDCOM\n  - Rapid Software
+        LLC Rapid SCADA\n  - Red Discord Bot\n  - Rescue Dispatch Management\n  -
+        Restaurant POS System\n  - Robustel R1510\n  - Rocket.Chat\n  - Rockwell Automation\n
+        \ - RosarioSIS\n  - Ruckus Networks\n  - Rukovoditel\n  - SAP 3D Visual Enterprise
+        Viewer\n  - SAP Adaptive Server Enterprise\n  - SAP BASIS\n  - SAP Banking
+        Services\n  - SAP Business Objects Business Intelligence Platform\n  - SAP
+        Commerce versions\n  - SAP Data Hub\n  - SAP ERP\n  - SAP Fiori Launchpad\n
+        \ - SAP Marketing\n  - SAP NetWeaver\n  - SEMCMS\n  - SICAM\n  - SIMATIC.*(PCS|CP)\n
+        \ - Sagemcom\n  - Sandoba CP:Shop\n  - Sanitization Management System\n  -
+        Saperion Web Client\n  - Schneider Electric\n  - School Activity Updates with
+        SMS Notification\n  - SeaCms\n  - Seagate Media Server\n  - Secomea (GateManager|SiteManager)\n
+        \ - SeedDMS\n  - Shimmie\n  - Shirne CMS\n  - ShopXO\n  - Shopwind\n  - Silverstripe\n
+        \ - Simple Bus Ticket Booking System\n  - Simple Client Management System\n
+        \ - Simple Cold Storage Management System\n  - Simple Customer Relationship
+        Management\n  - Simple E-Learning System\n  - Simple Image Gallery System\n
+        \ - Simple Inventory System\n  - Simple Online Book Store System\n  - Simple
+        Online Public Access Catalog\n  - Simple Task Scheduling System\n  - Sinsiu
+        Sinsiu Enterprise Website System\n  - SmartVista\n  - SnapCreek Duplicator\n
+        \ - SolarView Compact\n  - Solutions Atlantic Regulatory Reporting System\n
+        \ - SonicWall SMA100\n  - Sophos Endpoint Protection\n  - Sophos Firewall\n
+        \ - SourceCodester\n  - SpamTitan\n  - SpiderControl MicroBrowser\n  - Square
+        9 GlobalForms\n  - Stock Management System\n  - Stormshield Network Security\n
+        \ - Student Clearance System\n  - Student Information System\n  - Subrion
+        CMS\n  - SugarCRM\n  - Sumatra PDF\n  - Symantec\n  - Synacor Zimbra\n  -
+        Synology DiskStation Manager\n  - Synology Photo\n  - Synology Router Manager\n
+        \ - Synology Surveillance Station\n  - SysAid Help Desk\n  - Sysax Multi Server\n
+        \ - TIBCO DataSynapse GridServer Manager\n  - TOTOLINK\n  - TP-Link.*(TL|AX10v1|Tapo)\n
+        \ - TRENDNet\n  - Taocms\n  - Telegram Desktop\n  - Tenda AC15\n  - Tenda
+        AC9\n  - Tenda( |_.*)\n  - Textpattern CMS\n  - Train Scheduler App\n  - TreasuryXpress\n
+        \ - Trend Micro\n  - TuziCMS\n  - Twonky Server\n  - UCMS\n  - UJCMS\n  -
+        Ubiquiti Networks EdgeOS\n  - Unisphere for PowerMax\n  - Unisys ClearPath\n
+        \ - Unisys Stealth SVG\n  - United Planet Intrexx Professional\n  - Unitrends
+        Backup\n  - Untis WebUntis\n  - Userscape HelpSpot\n  - VIDEOJET.*[\\n]*.*psirt\n
+        \ - VMware ESXi and vCenter Server\n  - VMware Fusion\n  - VMware Workstation\n
+        \ - Vehicle Booking System\n  - Verint Workforce Optimization\n  - Veritas
+        NetBackup\n  - Verizon 5G Home\n  - Vesta Control Panel\n  - Victor CMS\n
+        \ - VirtueMart\n  - WBCE CMS\n  - WECON LeviStudioU\n  - WPS Office\n  - WSO2
+        Enterprise Integrator\n  - WTCMS\n  - WUZHI CMS\n  - WatchDog Anti-Malware\n
+        \ - Wavlink\n  - Web Based Quiz System\n  - WebDynpro Java\n  - Weblication
+        CMS\n  - Wedding Management System\n  - Wedding Planner\n  - Weeny Audio Cutter\n
+        \ - Wellcms\n  - Western Bridge Cobub Razor\n  - Western Digital My Cloud\n
+        \ - Winmail\n  - Wireless IP Camera 360\n  - WoWonder\n  - WonderCMS\n  -
+        WordPress theme\n  - WordPress.*plugin\n  - Wowza Streaming\n  - XYHCMS\n
+        \ - Xiaomi.*phones\n  - Xiuno BBS\n  - XunRuiCMS\n  - Yab Quarx\n  - Yahoo!\n
+        \ - Yxcms\n  - YxtCMF\n  - YzmCMS\n  - Z-BlogPHP\n  - Zenario CMS\n  - Zikula
+        Application Framework\n  - Zoho ManageEngine\n  - ZoneAlarm\n  - ZoneMinder\n
+        \ - Zoo Management System\n  - Zulip Desktop\n  - Zyxel\n  - baijiacms\n  -
+        bootstrap-table\n  - chatwoot\n  - cmseasy\n  - comforte SWAP\n  - concretecms\n
+        \ - dotCMS\n  - drawio\n  - eDNA Enterprise Data Historian\n  - ebCMS\n  -
+        ednareporting\\.asmx\n  - elitecms\n  - emoncms\n  - enhavo CMS\n  - htmly\n
+        \ - https://example.com/oufu/ofcms/\n  - https://example.com/cesanta/mjs/\n
+        \ - https://example.com/kabirkhyrul/HMS/\n  - https://example.com/vapor/vapor/\n
+        \ - https://example.com/wp-plugins\n  - https://example.com/support/\n  -
+        https://example.com/\n  - https://example.com/\n  - iDashboards\n  - iPayPal\n
+        \ - iRedMail\n  - iScripts SupportDesk\n  - iScripts UberforX\n  - iScripts
+        eSwap\n  - iTunes\n  - iota All-In-One Security Kit\n  - ismartgate PRO\n
+        \ - joyplus-cms\n  - lyadmin\n  - madlib-object-utils\n  - mySCADA myPRO|Measuresoft
+        ScadaPro\n  - open5gs\n  - perfex crm\n  - phpjs\n  - pimcore\n  - plugin
+        <= [0-9\\.]+ at WordPress\n  - plugins.*wordpress\n  - portfolioCMS\n  - prime-jwt\n
+        \ - publify\n  - puppyCMS\n  - rap2hpoutre Laravel Log Viewer\n  - rdiffweb\n
+        \ - siteserver (CMS|SSCMS)\n  - swftools\n  - totaljs\n  - trudesk\n  - usememos/memos\n
+        \ - vBulletin\n  - win32k\\.sys\n  - wityCMS\n  - wuzhicms\n  - yetiforcecrm\n
+        \ - zzcms\n\nblocklist_special_cases:\n  - iOS\n"
+    headers:
+      Cache-Control:
+      - max-age=60, public, must-revalidate, stale-while-revalidate=60, stale-if-error=300,
+        s-maxage=60
+      Connection:
+      - keep-alive
+      Content-Disposition:
+      - inline
+      Content-Type:
+      - text/plain; charset=utf-8
+      Date:
+      - Mon, 09 Dec 2024 11:42:00 GMT
+      Etag:
+      - W/"48e0ae6cbf8bab278ff58f985d5de3d2"
+      Permissions-Policy:
+      - interest-cohort=()
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=63072000
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      - Accept
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Gitlab-Meta:
+      - '{"correlation_id":"01JENKKV3Q34SGF6BFJEYNY246","version":"1"}'
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Request-Id:
+      - 01JENKKV3Q34SGF6BFJEYNY246
+      X-Runtime:
+      - '0.074996'
+      X-Ua-Compatible:
+      - IE=edge
+      X-Xss-Protection:
+      - 1; mode=block
+      content-length:
+      - '17708'
     status:
       code: 200
       message: OK
