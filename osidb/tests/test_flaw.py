@@ -750,10 +750,10 @@ class TestFlawValidators:
         flaw.save()
 
         if should_alert:
-            assert flaw.alerts.count() == 1
-            assert flaw.alerts.first().name == "rh_nist_cvss_score_diff"
+            assert flaw.valid_alerts.count() == 1
+            assert flaw.valid_alerts.first().name == "rh_nist_cvss_score_diff"
         else:
-            assert not flaw.alerts.exists()
+            assert not flaw.valid_alerts.exists()
 
     @pytest.mark.enable_signals
     @pytest.mark.parametrize(
@@ -847,10 +847,10 @@ class TestFlawValidators:
         flaw.save()
 
         if should_alert:
-            assert flaw.alerts.count() == 1
-            assert flaw.alerts.first().name == "rh_nist_cvss_severity_diff"
+            assert flaw.valid_alerts.count() == 1
+            assert flaw.valid_alerts.first().name == "rh_nist_cvss_severity_diff"
         else:
-            assert not flaw.alerts.exists()
+            assert not flaw.valid_alerts.exists()
 
     @pytest.mark.parametrize(
         "name,business_unit,is_rh_product",
@@ -993,17 +993,21 @@ class TestFlawValidators:
         # there may be an extra alert if the difference between the RH and NIST
         # CVSSv3 score is >= 1.0, regardless of whether a test should fail or not
         if should_alert:
-            assert flaw.alerts.filter(name="request_nist_cvss_validation").exists()
+            assert flaw.valid_alerts.filter(
+                name="request_nist_cvss_validation"
+            ).exists()
             assert (
-                flaw.alerts.count() == 1
-                if not flaw.alerts.filter(name="rh_nist_cvss_score_diff").exists()
+                flaw.valid_alerts.count() == 1
+                if not flaw.valid_alerts.filter(name="rh_nist_cvss_score_diff").exists()
                 else 2
             )
         else:
-            assert not flaw.alerts.filter(name="request_nist_cvss_validation").exists()
+            assert not flaw.valid_alerts.filter(
+                name="request_nist_cvss_validation"
+            ).exists()
             assert (
-                flaw.alerts.count() == 0
-                if not flaw.alerts.filter(name="rh_nist_cvss_score_diff").exists()
+                flaw.valid_alerts.count() == 0
+                if not flaw.valid_alerts.filter(name="rh_nist_cvss_score_diff").exists()
                 else 1
             )
 
@@ -1094,10 +1098,10 @@ class TestFlawValidators:
         flaw.save()
 
         if should_alert:
-            assert flaw.alerts.count() == 1
-            assert flaw.alerts.filter(name=alert).exists()
+            assert flaw.valid_alerts.count() == 1
+            assert flaw.valid_alerts.filter(name=alert).exists()
         else:
-            assert not flaw.alerts.exists()
+            assert not flaw.valid_alerts.exists()
 
     @pytest.mark.parametrize(
         "requires_cve_description,cve_description,should_raise",
@@ -1218,7 +1222,7 @@ class TestFlawValidators:
         flaw = FlawFactory(embargoed=True)
         flaw.source = FlawSource.INTERNET
         flaw.save(raise_validation_error=False)
-        assert flaw.alerts.filter(name="_validate_embargoed_source").exists()
+        assert flaw.valid_alerts.filter(name="_validate_embargoed_source").exists()
 
     @pytest.mark.parametrize(
         "source",
@@ -1237,7 +1241,7 @@ class TestFlawValidators:
         assert Flaw.objects.count() == 0
         flaw = FlawFactory(embargoed=True, source=source)
         assert Flaw.objects.count() == 1
-        assert flaw.alerts.filter(name="embargoed_source_public").exists()
+        assert flaw.valid_alerts.filter(name="embargoed_source_public").exists()
 
     @pytest.mark.parametrize(
         "bz_id,ps_module,should_alert",
@@ -1254,9 +1258,9 @@ class TestFlawValidators:
         flaw = FlawFactory(meta_attr={"bz_id": bz_id})
         affect = AffectFactory(flaw=flaw, ps_module=ps_module)
         if should_alert:
-            assert affect.alerts.filter(name="old_flaw_affect_ps_module").exists()
+            assert affect.valid_alerts.filter(name="old_flaw_affect_ps_module").exists()
         else:
-            assert not affect.alerts.exists()
+            assert not affect.valid_alerts.exists()
 
     @pytest.mark.parametrize(
         "bz_id,ps_module,should_raise",
@@ -1362,10 +1366,10 @@ class TestFlawValidators:
         flaw.save()
 
         if should_alert:
-            assert flaw.alerts.count() == 1
-            assert flaw.alerts.filter(name="cvss3_missing").exists()
+            assert flaw.valid_alerts.count() == 1
+            assert flaw.valid_alerts.filter(name="cvss3_missing").exists()
         else:
-            assert not flaw.alerts.exists()
+            assert not flaw.valid_alerts.exists()
 
     @pytest.mark.parametrize(
         "state,should_raise",
@@ -1554,11 +1558,11 @@ class TestFlawValidators:
         flaw.save()
 
         if should_alert:
-            assert flaw.alerts.count() == len(alerts)
+            assert flaw.valid_alerts.count() == len(alerts)
             for alert in alerts:
-                assert flaw.alerts.filter(name=alert).exists()
+                assert flaw.valid_alerts.filter(name=alert).exists()
         else:
-            assert not flaw.alerts.exists()
+            assert not flaw.valid_alerts.exists()
 
     @pytest.mark.parametrize(
         "statement,cve_description,requires_cve_description,should_alert,alerts",
@@ -1650,11 +1654,11 @@ class TestFlawValidators:
         flaw.save()
 
         if should_alert:
-            assert flaw.alerts.count() == len(alerts)
+            assert flaw.valid_alerts.count() == len(alerts)
             for alert in alerts:
-                assert flaw.alerts.filter(name=alert).exists()
+                assert flaw.valid_alerts.filter(name=alert).exists()
         else:
-            assert not flaw.alerts.exists()
+            assert not flaw.valid_alerts.exists()
 
     @freeze_time(tzdatetime(2021, 11, 23))
     def test_validate_embargoing_public_flaw(self):
@@ -1779,7 +1783,7 @@ class TestFlawValidators:
         # an alert is raised
         flaw3 = FlawFactory(workflow_state=WorkflowModel.WorkflowState.NEW)
         assert flaw3.save() is None
-        assert flaw3.alerts.filter(name="_validate_flaw_without_affect").exists()
+        assert flaw3.valid_alerts.filter(name="_validate_flaw_without_affect").exists()
 
     def test_no_component(self):
         """
@@ -1832,7 +1836,7 @@ class TestFlawValidators:
         flaw.save()
 
         assert should_raise == bool(
-            flaw.alerts.filter(name="unsupported_impact_change").exists()
+            flaw.valid_alerts.filter(name="unsupported_impact_change").exists()
         )
 
     @pytest.mark.parametrize(
@@ -1917,7 +1921,7 @@ class TestFlawValidators:
         flaw.save()
 
         assert should_raise == bool(
-            flaw.alerts.filter(name="unsupported_impact_change").exists()
+            flaw.valid_alerts.filter(name="unsupported_impact_change").exists()
         )
 
     @pytest.mark.parametrize(
@@ -1954,7 +1958,7 @@ class TestFlawValidators:
         affect = AffectFactory(ps_module="test-module", ps_component=ps_component)
         if alerts:
             assert set(alerts).issubset(
-                affect.alerts.values_list("name", flat=True).distinct()
+                affect.valid_alerts.values_list("name", flat=True).distinct()
             )
 
     @pytest.mark.parametrize(
@@ -2025,7 +2029,9 @@ class TestFlawValidators:
         )
         affect.save(raise_validation_error=False)
         # Initially there shouldn't be any alerts
-        assert not affect.alerts.filter(name="flaw_historical_affect_status").exists()
+        assert not affect.valid_alerts.filter(
+            name="flaw_historical_affect_status"
+        ).exists()
 
         affect.affectedness = affectedness_new
         affect.resolution = resolution_new
@@ -2040,9 +2046,11 @@ class TestFlawValidators:
             assert affect.save() is None
 
         if should_alert:
-            assert affect.alerts.filter(name="flaw_historical_affect_status").exists()
+            assert affect.valid_alerts.filter(
+                name="flaw_historical_affect_status"
+            ).exists()
         else:
-            assert not affect.alerts.filter(
+            assert not affect.valid_alerts.filter(
                 name="flaw_historical_affect_status"
             ).exists()
 
@@ -2383,10 +2391,10 @@ class TestFlawValidators:
         AffectFactory(flaw=flaw1, ps_component=special_consideration_package.name)
         flaw1.save()
 
-        assert not flaw1.alerts.filter(
+        assert not flaw1.valid_alerts.filter(
             name="special_consideration_flaw_missing_cve_description"
         ).exists()
-        assert not flaw1.alerts.filter(
+        assert not flaw1.valid_alerts.filter(
             name="special_consideration_flaw_missing_statement"
         ).exists()
 
@@ -2395,10 +2403,10 @@ class TestFlawValidators:
         flaw1.statement = ""
         flaw1.save()
 
-        assert flaw1.alerts.filter(
+        assert flaw1.valid_alerts.filter(
             name="special_consideration_flaw_missing_cve_description"
         ).exists()
-        assert flaw1.alerts.filter(
+        assert flaw1.valid_alerts.filter(
             name="special_consideration_flaw_missing_statement"
         ).exists()
 
@@ -2406,10 +2414,10 @@ class TestFlawValidators:
         flaw2 = FlawFactory(statement="", cve_description="", impact=Impact.LOW)
         AffectFactory(flaw=flaw2, ps_component=special_consideration_package.name)
 
-        assert flaw2.alerts.filter(
+        assert flaw2.valid_alerts.filter(
             name="special_consideration_flaw_missing_cve_description"
         ).exists()
-        assert flaw2.alerts.filter(
+        assert flaw2.valid_alerts.filter(
             name="special_consideration_flaw_missing_statement"
         ).exists()
 
@@ -2420,11 +2428,11 @@ class TestFlawValidators:
         Test that flaw with private source without acknowledgments raises alert
         """
         flaw1 = FlawFactory(source=private_source, embargoed=True)
-        assert flaw1.alerts.filter(name="private_source_no_ack").exists()
+        assert flaw1.valid_alerts.filter(name="private_source_no_ack").exists()
         flaw2 = FlawFactory(source=both_source, embargoed=True)
-        assert flaw2.alerts.filter(name="private_source_no_ack").exists()
+        assert flaw2.valid_alerts.filter(name="private_source_no_ack").exists()
         flaw3 = FlawFactory(source=public_source, embargoed=False)
-        assert not flaw3.alerts.filter(name="private_source_no_ack").exists()
+        assert not flaw3.valid_alerts.filter(name="private_source_no_ack").exists()
 
     def test_validate_allowed_source(self):
         """
@@ -2515,7 +2523,7 @@ class TestFlawValidators:
         assert FlawAcknowledgment.objects.count() == 0
         flaw_ack = FlawAcknowledgmentFactory(flaw=flaw)
         assert FlawAcknowledgment.objects.count() == 1
-        assert flaw_ack.alerts.filter(name="public_source_no_ack").exists()
+        assert flaw_ack.valid_alerts.filter(name="public_source_no_ack").exists()
 
     @pytest.mark.parametrize(
         "is_same_product_name, should_raise",
@@ -2557,7 +2565,7 @@ class TestFlawValidators:
         affect = AffectFactory(ps_module="test-ps-module", ps_component=ps_component)
 
         assert should_raise == bool(
-            affect.alerts.filter(name="flaw_affects_unknown_component").exists()
+            affect.valid_alerts.filter(name="flaw_affects_unknown_component").exists()
         )
 
     def test_dry_run_validations(self, private_source, public_source):
@@ -2567,18 +2575,18 @@ class TestFlawValidators:
         # regular save should create alerts
         flaw1 = FlawFactory.build(source=private_source, embargoed=False)
         flaw1.save()
-        assert flaw1.alerts.filter(name="private_source_no_ack").exists()
+        assert flaw1.valid_alerts.filter(name="private_source_no_ack").exists()
 
         # updates with no_alerts should not modify alert table
         flaw1.source = public_source
         flaw1.save(no_alerts=True)
-        assert flaw1.alerts.filter(name="private_source_no_ack").exists()
+        assert flaw1.valid_alerts.filter(name="private_source_no_ack").exists()
 
         # alert fixed
         flaw1.save()
-        assert not flaw1.alerts.filter(name="private_source_no_ack").exists()
+        assert not flaw1.valid_alerts.filter(name="private_source_no_ack").exists()
 
         # flaw creation without alerts
         flaw2 = FlawFactory.build(source=private_source, embargoed=False)
         flaw2.save(no_alerts=True)
-        assert not flaw2.alerts.filter(name="private_source_no_ack").exists()
+        assert not flaw2.valid_alerts.filter(name="private_source_no_ack").exists()
