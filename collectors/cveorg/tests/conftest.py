@@ -4,6 +4,7 @@ import pytest
 from django.utils import timezone
 
 from collectors.cveorg.collectors import CVEorgCollector
+from collectors.cveorg.models import Keyword
 
 
 @pytest.fixture(autouse=True)
@@ -14,6 +15,20 @@ def enable_db_access_for_all_tests(db):
 @pytest.fixture(autouse=True)
 def auto_enable_sync(enable_jira_task_sync, enable_bz_sync) -> None:
     pass
+
+
+@pytest.fixture()
+def mock_keywords(monkeypatch) -> None:
+    """
+    Set testing keywords to mock the ones from the ps-constants repository.
+    """
+    Keyword(keyword="kernel", type=Keyword.Type.ALLOWLIST).save()
+    Keyword(keyword=r"(?:\W|^)\.NET\b", type=Keyword.Type.ALLOWLIST_SPECIAL_CASE).save()
+    Keyword(keyword=".*plugin.*for WordPress", type=Keyword.Type.BLOCKLIST).save()
+    Keyword(keyword="Cisco", type=Keyword.Type.BLOCKLIST).save()
+    Keyword(keyword="IBM Tivoli", type=Keyword.Type.BLOCKLIST).save()
+    Keyword(keyword="iTunes", type=Keyword.Type.BLOCKLIST).save()
+    Keyword(keyword="iOS", type=Keyword.Type.BLOCKLIST_SPECIAL_CASE).save()
 
 
 @pytest.fixture()
