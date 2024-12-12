@@ -651,6 +651,8 @@ class Alert(ACLMixin):
 
     objects = AlertManager()
 
+    created_dt = models.DateTimeField(blank=True, default=timezone.now)
+
     def _validate_acl_identical_to_parent(self, **kwargs):
         if (
             self.acl_read != self.content_object.acl_read
@@ -686,6 +688,15 @@ class AlertMixin(ValidateMixin):
     """
 
     alerts = GenericRelation(Alert)
+
+    last_validated_dt = models.DateTimeField(blank=True, default=timezone.now)
+
+    @property
+    def valid_alerts(self):
+        """
+        Get all alerts that are valid
+        """
+        return self.alerts.filter(created_dt__gte=self.last_validated_dt)
 
     def alert(
         self,
@@ -761,6 +772,7 @@ class AlertMixin(ValidateMixin):
                     resolution_steps=resolution_steps,
                     acl_read=acl_read,
                     acl_write=acl_write,
+                    created_dt=timezone.now(),
                 ).save()
         except IntegrityError:
             # alerts of the same name, object_id and age have the same meaning
@@ -784,10 +796,6 @@ class AlertMixin(ValidateMixin):
         # standard validations
         # exclude meta attributes
         self.full_clean(exclude=["meta_attr"])
-
-        # clean all alerts before a new validation
-        if not dry_run:
-            self.alerts.all().delete()
 
         # custom validations
         for validation_name in [
@@ -813,9 +821,14 @@ class AlertMixin(ValidateMixin):
         """
         Save with validate call parametrized by raise_validation_error
         """
+
+        dry_run = kwargs.pop("no_alerts", False)
+        if not dry_run:
+            self.last_validated_dt = timezone.now()
+
         self.validate(
             raise_validation_error=kwargs.pop("raise_validation_error", True),
-            dry_run=kwargs.pop("no_alerts", False),
+            dry_run=dry_run,
         )
         # here we have to skip ValidateMixin level save as otherwise
         # it would run validate again and without proper arguments

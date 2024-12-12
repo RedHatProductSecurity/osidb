@@ -104,8 +104,8 @@ class TestModelDefinitions:
 
         # validate() is called inside save()
         m.save()
-        assert m.alerts.count() == 1
-        alert = m.alerts.first()
+        assert m.valid_alerts.count() == 1
+        alert = m.valid_alerts.first()
         assert alert.name == "new_alert"
         assert alert.alert_type == Alert.AlertType.WARNING
         assert alert.description == "This is a new alert."
