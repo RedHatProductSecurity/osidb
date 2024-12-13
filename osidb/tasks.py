@@ -34,6 +34,10 @@ def stale_alert_cleanup():
     for content_type in content_types:
         model_class = content_type.model_class()
 
+        if not model_class:
+            logger.error(f"Model class not found for content type {content_type}")
+            continue
+
         subquery = Subquery(
             model_class.objects.filter(
                 pk=Cast(OuterRef("object_id"), output_field=model_class._meta.pk)
