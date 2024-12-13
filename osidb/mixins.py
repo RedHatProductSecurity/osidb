@@ -541,17 +541,8 @@ class ACLMixin(models.Model):
             model_audit = apps.get_model(db, model_name).objects.filter(
                 pgh_id=ref.pgh_id
             )
-            with pgtrigger.ignore(
-                "osidb.FlawAudit:append_only",
-                "osidb.SnippetAudit:append_only",
-                "osidb.AffectAudit:append_only",
-                "osidb.AffectCVSSAudit:append_only",
-                "osidb.TrackerAudit:append_only",
-                "osidb.FlawAcknowledgmentAudit:append_only",
-                "osidb.FlawCommentAudit:append_only",
-                "osidb.FlawCVSSAudit:append_only",
-                "osidb.FlawReferenceAudit:append_only",
-            ):
+
+            with pgtrigger.ignore(f"{db}.{model_name}:append_only"):
                 model_audit.update(
                     acl_read=list(self.acls_public_read),
                     acl_write=list(self.acls_public_write),
