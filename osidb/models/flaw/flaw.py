@@ -16,7 +16,6 @@ from psqlextra.fields import HStoreField
 from apps.bbsync.constants import SYNC_FLAWS_TO_BZ, SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY
 from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.taskman.constants import (
-    JIRA_TASKMAN_AUTO_SYNC_FLAW,
     SYNC_REQUIRED_FIELDS,
     TRANSITION_REQUIRED_FIELDS,
 )
@@ -1037,9 +1036,6 @@ class Flaw(
         based on the task existence it is either created or updated and/or transitioned
         old pre-OSIDB flaws without tasks are ignored unless force_creation is set
         """
-        if not JIRA_TASKMAN_AUTO_SYNC_FLAW or not jira_token:
-            return
-
         if not self.task_key:
             # old pre-OSIDB flaws without tasks are ignored by default
             if force_creation or not self.meta_attr.get("bz_id"):
