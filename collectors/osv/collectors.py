@@ -15,8 +15,9 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from apps.taskman.constants import JIRA_AUTH_TOKEN
-from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_START_DATE
+from collectors.constants import SNIPPET_CREATION_ENABLED
 from collectors.framework.models import Collector
+from collectors.osv.constants import SNIPPET_CREATION_START_DATE
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
 from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet

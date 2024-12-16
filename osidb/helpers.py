@@ -98,10 +98,10 @@ def get_env(
     return value
 
 
-def get_env_date(key: str) -> Union[datetime, None]:
+def get_env_date(key: str, default: str) -> Union[datetime, None]:
     """get a date environment variable of the ISO format (YYYY-MM-DD)"""
-    if value := getenv(key):
-        return make_aware(datetime.fromisoformat(value))
+    value = getenv(key, default)
+    return make_aware(datetime.fromisoformat(value))
 
 
 def get_unique_meta_attr_keys(model: Type[models.Model]) -> List[str]:
