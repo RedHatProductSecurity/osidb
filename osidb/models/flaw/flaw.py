@@ -39,6 +39,7 @@ from osidb.sync_manager import (
     BZSyncManager,
     FlawDownloadManager,
     JiraTaskDownloadManager,
+    JiraTaskSyncManager,
 )
 from osidb.validators import no_future_date, validate_cve_id, validate_cwe_id
 
@@ -1037,19 +1038,38 @@ class Flaw(
         based on the task existence it is either created or updated and/or transitioned
         old pre-OSIDB flaws without tasks are ignored unless force_creation is set
         """
+        update_task = False
+        transition_task = False
+
         if not self.task_key:
             # old pre-OSIDB flaws without tasks are ignored by default
             if force_creation or not self.meta_attr.get("bz_id"):
-                self._create_or_update_task(jira_token)
+                update_task = True
 
         elif diff is not None:
             if any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS):
-                self._create_or_update_task(jira_token)
+                update_task = True
 
             if any(field in diff.keys() for field in TRANSITION_REQUIRED_FIELDS):
+                transition_task = True
+
+        if not update_task and not transition_task:
+            return
+
+        # switch of sync/async processing
+        if JIRA_TASKMAN_ASYNCHRONOUS_SYNC:
+            JiraTaskSyncManager.check_for_reschedules()
+            # TODO parameters will vanish if the sync manager task run fails and is rescheduled
+            JiraTaskSyncManager.schedule(str(self.uuid), update_task, transition_task)
+        else:
+
+            if update_task:
+                self._create_or_update_task(jira_token)
+
+            if transition_task:
                 self._transition_task(jira_token)
 
-    def _create_or_update_task(self, jira_token):
+    def _create_or_update_task(self, jira_token=None):
         """
         create or update the Jira task of this flaw based on its existence
         """
@@ -1076,7 +1096,7 @@ class Flaw(
                 task_updated_dt=self.task_updated_dt
             )
 
-    def _transition_task(self, jira_token):
+    def _transition_task(self, jira_token=None):
         """
         transition the Jira task of this flaw
         """
@@ -1102,6 +1122,9 @@ class Flaw(
     )
     task_download_manager = models.ForeignKey(
         JiraTaskDownloadManager, null=True, blank=True, on_delete=models.CASCADE
+    )
+    task_sync_manager = models.ForeignKey(
+        JiraTaskSyncManager, null=True, blank=True, on_delete=models.CASCADE
     )
     bzsync_manager = models.ForeignKey(
         BZSyncManager, null=True, blank=True, on_delete=models.CASCADE
