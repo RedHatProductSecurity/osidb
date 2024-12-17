@@ -42,5 +42,6 @@ from .flaw.cvss import FlawCVSS
 from .flaw.flaw import Flaw
 from .flaw.label import FlawLabel
 from .flaw.reference import FlawReference
+from .flaw.label import FlawLabel
 from .package_versions import Package, PackageVer
 from .tracker import Tracker
