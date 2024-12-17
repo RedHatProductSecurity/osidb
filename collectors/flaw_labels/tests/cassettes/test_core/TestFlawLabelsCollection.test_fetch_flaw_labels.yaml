@@ -1,0 +1,210 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.32.3
+    method: GET
+    uri: https://example.com/prodsec/psirt/osim-flaw-labeling/-/raw/main/mapping/flaw_label_mapping.yaml
+  response:
+    body:
+      string: "context_based_labels:\n  crypto:\n    ps_components: []\n    ps_components_exclude:
+        []\n    ps_modules: []\n    ps_modules_exclude: []\n  golang:\n    ps_components:
+        []\n    ps_components_exclude: []\n    ps_modules: []\n    ps_modules_exclude:
+        []\n  javascript:\n    ps_components: []\n    ps_components_exclude: []\n
+        \   ps_modules: []\n    ps_modules_exclude: []\nproduct_family_labels:\n  ansible:\n
+        \   ps_components: []\n    ps_components_exclude: []\n    ps_modules:\n    -
+        ansible_engine-2\n    - ansible_tower-3\n    - ansible_automation_platform-1\n
+        \   - ansible_automation_platform-2\n    ps_modules_exclude: []\n  cloud:\n
+        \   ps_components: []\n    ps_components_exclude:\n    - kernel\n    - kernel-rt\n
+        \   ps_modules:\n    - devtools-compilers\n    - devtools-eclipse\n    - gitops-1\n
+        \   - ocp-tools-4\n    - source-to-image-1\n    - ols-1\n    - cnv-1\n    -
+        cnv-2\n    - cnv-4\n    - openshift-hosted-osd3\n    - openshift-hosted-osd4\n
+        \   - openshift-hosted-oso-starter4\n    - openshift-hosted-oso-pro3\n    -
+        openshift-hosted-aro3\n    - openshift-hosted-aro4\n    - openshift-hosted-osio3\n
+        \   - maistra-0\n    - ossm-0\n    - ossm-1\n    - ossm-2.0\n    - ossm-2.1\n
+        \   - ossm-2\n    - jaeger-operator-1\n    - quay-3\n    - quay-2\n    - rhcam-1\n
+        \   - mtc-1\n    - rhacs-1\n    - rhacs-3\n    - rhacs-4\n    - rhosc-1\n
+        \   - rhocca-1\n    - rosa-cli-1\n    - ocm-cli-1\n    - mta-5\n    - mta-6\n
+        \   - mta-7\n    - mtr-1\n    - mtv-2\n    - distributed-tracing-2\n    -
+        distributed-tracing-3\n    - mirror-registry-1\n    - oadp-1\n    - osso-1\n
+        \   - kdo-5\n    - rodoo-1\n    - node-maintenance\n    - node-healthcheck\n
+        \   - self-node-remediation\n    - fence-agents-remediation\n    - machine-deletion-remediation\n
+        \   - custom-metrics-autoscaler-2\n    - kernel-module-management-1\n    -
+        kernel-module-management-2\n    - dynamic-accelerator-slicer\n    - cert-manager-1\n
+        \   - openshift-data-science\n    - openshift-ai\n    - network-observability-1\n
+        \   - lvms-operator-4\n    - nbde-tang-server-0\n    - nbde-tang-server-1\n
+        \   - cluster-observability-operator-0\n    - cluster-observability-operator-1\n
+        \   - power-monitoring\n    - cli-manager-1\n    - multiarch-tuning-operator-1\n
+        \   - bpfman-operator-0\n    - openshift-logging-6\n    - wmco\n    - openstack-3\n
+        \   - openstack-4\n    - openstack-5\n    - openstack-6\n    - openstack-7\n
+        \   - openstack-8\n    - openstack-9\n    - openstack-10\n    - openstack-11\n
+        \   - openstack-12\n    - openstack-13\n    - openstack-14\n    - openstack-15\n
+        \   - openstack-16\n    - openstack-16.1\n    - openstack-16.2\n    - openstack-17.0\n
+        \   - openstack-17.1\n    - openstack-18.0\n    - openstack-foreman\n    -
+        openstack-6-installer\n    - openstack-7-director\n    - openstack-8-director\n
+        \   - openstack-9-director\n    - openstack-7-optools\n    - openstack-8-optools\n
+        \   - openstack-9-optools\n    - openstack-10-optools\n    - openstack-11-optools\n
+        \   - openstack-12-optools\n    - openstack-13-optools\n    - openstack-14-optools\n
+        \   - rhoscts\n    - fdp-el7\n    - fdp-el7-ovs\n    - fdp-el8-ovs\n    -
+        fdp-el9\n    - stf-1.2\n    - stf-1.3\n    - stf-1.4\n    - stf-1.5\n    -
+        ceph-1.1\n    - ceph-1.2\n    - ceph-1.3\n    - ceph-2\n    - ceph-3\n    -
+        ceph-4\n    - ceph-5\n    - ceph-6\n    - ceph-7\n    - ceph-8\n    - openshift-container-storage-4\n
+        \   - openshift-data-foundation-4\n    - openshift-logging-5\n    ps_modules_exclude:
+        []\n  community:\n    ps_components: []\n    ps_components_exclude: []\n    ps_modules:\n
+        \   - fedora-12\n    - fedora-13\n    - fedora-14\n    - fedora-15\n    -
+        fedora-16\n    - fedora-17\n    - fedora-18\n    - fedora-19\n    - fedora-20\n
+        \   - fedora-21\n    - fedora-22\n    - fedora-23\n    - fedora-24\n    -
+        fedora-25\n    - fedora-26\n    - fedora-27\n    - fedora-28\n    - fedora-29\n
+        \   - fedora-30\n    - fedora-31\n    - fedora-32\n    - fedora-33\n    -
+        fedora-34\n    - fedora-35\n    - fedora-36\n    - fedora-37\n    - fedora-38\n
+        \   - fedora-39\n    - fedora-40\n    - fedora-41\n    - fedora-all\n    -
+        fedora-rawhide\n    - epel-5\n    - epel-6\n    - epel-7\n    - epel-8\n    -
+        epel-9\n    - epel-all\n    - openstack-rdo\n    - upstream\n    ps_modules_exclude:
+        []\n  devel-tools:\n    ps_components: []\n    ps_components_exclude: []\n
+        \   ps_modules:\n    - jbds-8\n    - jbds-9\n    - jbds-10\n    - jbds-11\n
+        \   - codeready_studio-12\n    - codeready_ws-1\n    - codeready_ws-2\n    -
+        rhos_devspaces-3\n    - devworkspace_operator-0\n    - pipelines-1\n    -
+        web-terminal-1\n    - rhpib-1\n    - rhdh-1\n    - openshift-builds-1\n    -
+        rhtap-1\n    - rhtpa-1\n    - rhtas-1\n    - openshift-local-2\n    ps_modules_exclude:
+        []\n  kernel:\n    ps_components:\n    - kernel\n    - kernel-rt\n    ps_components_exclude:
+        []\n    ps_modules: []\n    ps_modules_exclude: []\n  management:\n    ps_components:
+        []\n    ps_components_exclude: []\n    ps_modules:\n    - certificate_system_8\n
+        \   - certificate_system_9\n    - certificate_system_10\n    - cfme-5\n    -
+        cfme-6\n    - cost-management\n    - directory_server_8\n    - directory_server_9\n
+        \   - directory_server_10\n    - directory_server_11\n    - directory_server_12\n
+        \   - directory_server_13\n    - insights-runtimes-1\n    - mrg-1\n    - mrg-2\n
+        \   - mrg-m-3\n    - qci-1\n    - rhacm-1\n    - rhacm-2\n    - rhui-3\n    -
+        rhui-4\n    - rhn_satellite_5\n    - rhn_satellite_6\n    - rhev-m-2\n    -
+        rhev-m-3\n    - rhev-m-4\n    - sam-1\n    - red_hat_discovery-1\n    - mce\n
+        \   ps_modules_exclude: []\n  middleware:\n    ps_components: []\n    ps_components_exclude:
+        []\n    ps_modules:\n    - eap-4\n    - eap-5\n    - eap-6\n    - eap-7\n
+        \   - eap-cd\n    - eap-xp\n    - eap-8\n    - fuse-6\n    - fuse-7\n    -
+        fis-2\n    - brms-5\n    - brms-6\n    - bpms-6\n    - jpp-6\n    - amq-6\n
+        \   - amq-7\n    - amq-st\n    - amq-cl-2\n    - amq-cl\n    - amq-ic-1\n
+        \   - amq-ic-2\n    - amq-on\n    - fsw-6\n    - jon-2\n    - jon-3\n    -
+        jbews-1\n    - jbews-2\n    - jbews-3\n    - jws-3\n    - jws-5\n    - jws-6\n
+        \   - epp-4\n    - epp-5\n    - jdv-6\n    - jdg-6\n    - jdg-7\n    - jdg-8\n
+        \   - soap-4\n    - soap-5\n    - rhdm-7\n    - rhpam-7\n    - rhsso-7\n    -
+        rhbk\n    - jbcs-1\n    - springboot-1\n    - springboot-2\n    - swarm-7\n
+        \   - vertx-3\n    - vertx-4\n    - rhoar-nodejs-8\n    - rhoar-nodejs-10\n
+        \   - thorntail-2\n    - quarkus-1\n    - 3amp-2\n    - wfk-1\n    - wfk-2\n
+        \   - serverless-1\n    - rhint-dv-1\n    - rhint-debezium-1\n    - rhint-debezium-2\n
+        \   - rhint-serv-1\n    - rhint-serv-2\n    - rhint-operator-1\n    - rhint-camel-k-1\n
+        \   - rhint-camel-quarkus-1\n    - rhint-camel-quarkus-2\n    - rhboac-camel-quarkus-3\n
+        \   - rhint-camel-spring-boot-3\n    - rhint-camel-spring-boot-4\n    - rhboac-hawtio-4\n
+        \   - openjdk-1.8\n    - openjdk-11\n    - openjdk-17\n    - openjdk-21\n
+        \   - rhbq-1\n    - quarkus-2\n    - quarkus-3\n    - quarkus-mandrel-23\n
+        \   - cryostat-2\n    - cryostat-3\n    - rhapi-1\n    - rhsi-1\n    - rhsi-1.5\n
+        \   - rhbop-8\n    - rhcl-1\n    ps_modules_exclude: []\n  openshift:\n    ps_components:
+        []\n    ps_components_exclude:\n    - kernel\n    - kernel-rt\n    ps_modules:\n
+        \   - openshift-enterprise-1\n    - openshift-enterprise-2\n    - openshift-enterprise-3\n
+        \   - openshift-enterprise-3.0\n    - openshift-enterprise-3.1\n    - openshift-enterprise-3.2\n
+        \   - openshift-enterprise-3.3\n    - openshift-enterprise-3.4\n    - openshift-enterprise-3.5\n
+        \   - openshift-enterprise-3.6\n    - openshift-enterprise-3.7\n    - openshift-enterprise-3.8\n
+        \   - openshift-enterprise-3.9\n    - openshift-enterprise-3.10\n    - openshift-enterprise-3.11\n
+        \   - openshift-4\n    - rhai-1\n    ps_modules_exclude: []\n  other:\n    ps_components:
+        []\n    ps_components_exclude: []\n    ps_modules: []\n    ps_modules_exclude:
+        []\n  platforms:\n    ps_components: []\n    ps_components_exclude: []\n    ps_modules:\n
+        \   - dts-3\n    - dts-4\n    - dts-6\n    - dts-7\n    - dts-8\n    - dts-9\n
+        \   - dts-10\n    - dts-11\n    - dts-12\n    - dts-13\n    - rhelsa-7\n    -
+        atomic-7\n    - rhel-av-8\n    - rhivos-1\n    - rhel-ai\n    - rhes-2\n    -
+        rhes-3\n    - rhscon-2\n    ps_modules_exclude: []\n  rhel:\n    ps_components:
+        []\n    ps_components_exclude:\n    - kernel\n    - kernel-rt\n    ps_modules:\n
+        \   - rhel-4\n    - rhel-5\n    - rhel-6\n    - rhel-7\n    - rhel-alt-7\n
+        \   - rhel-8\n    - rhel-br-8\n    - rhel-9\n    - rhel-br-9\n    - rhel-10\n
+        \   - rhel-br-10\n    ps_modules_exclude: []\n  services:\n    ps_components:
+        []\n    ps_components_exclude:\n    - kernel\n    - kernel-rt\n    ps_modules:\n
+        \   - services-ansible-automation-analytics\n    - services-ansible-automation-hub\n
+        \   - services-automation-service-catalog\n    - services-ansible-on-clouds\n
+        \   - services-ansible-on-aws\n    - services-ansible-on-gcp\n    - services-ansible-wisdom\n
+        \   - services-ansible-saas\n    - services-rhacm\n    - services-cost-management\n
+        \   - services-fifi\n    - services-openbridge\n    - services-image-builder\n
+        \   - services-management-platform\n    - services-migration-analytics\n    -
+        services-notifications\n    - services-package-evolution\n    - services-sources\n
+        \   - services-subscription-central\n    - services-subscription-watch\n    -
+        services-topological-inventory\n    - services-edge-fleet-management\n    -
+        services-insights-for-runtimes\n    - services-ros-for-openshift\n    - rhc-worker-script\n
+        \   - services-eventing\n    - services-content-sources\n    - services-provisioning\n
+        \   - services-assisted-installer\n    - services-odf\n    - services-rhoc\n
+        \   - services-openshift-cluster-manager\n    - services-hosted-control-planes\n
+        \   - rhcs-terraform-provider-1\n    - services-openshift-cluster-manager-account-manager\n
+        \   - services-openshift-cluster-manager-clusters-service\n    - services-openshift-cluster-manager-managed-services\n
+        \   - services-openshift-cluster-manager-fleet-manager\n    - services-openshift-cluster-manager-service-log\n
+        \   - services-openshift-cluster-manager-portal\n    - services-advisor\n
+        \   - services-compliance\n    - services-drift\n    - services-patch\n    -
+        services-policies\n    - services-resource-optimization\n    - services-vulnerability-engine\n
+        \   - services-malware-detection\n    - services-vulnerability-for-ocp\n    -
+        services-yuptoo\n    - services-floorist\n    - services-insights-conversions-experience\n
+        \   - services-insights-essentials\n    - services-inventory\n    - services-remediations\n
+        \   - services-insights-rhc-manager\n    - services-api-management\n    -
+        services-managed-kafka\n    - services-rhods\n    - rhmi-all\n    - rhmi-v2\n
+        \   - services-service-registry\n    - services-openshift-connectors\n    -
+        services-openshift-smart-events\n    - managed-services\n    - quay-io-3\n
+        \   - services-ccx\n    - services-developer-sandboxes\n    - services-rhcert\n
+        \   - services-rhui-v3-aws\n    - services-database-as-a-service\n    - services-ciam\n
+        \   - services-quarkus-registry\n    - services-quarkus-code\n    - services-hac\n
+        \   - services-has\n    - services-gitops\n    - services-rhacs\n    - services-nvidia-gpu-add-on\n
+        \   - services-appstudio-spi\n    - services-openshift-data-federation\n    -
+        services-pipeline\n    - openshift-1\n    - openshift-online-2\n    - openshift-online-3\n
+        \   - openshift-online-4\n    ps_modules_exclude: []\n  special-handling:\n
+        \   ps_components:\n    - firefox\n    - thunderbird\n    - openjdk\n    -
+        mysql\n    - mariadb\n    - chromium\n    ps_components_exclude: []\n    ps_modules:
+        []\n    ps_modules_exclude: []\n"
+    headers:
+      Cache-Control:
+      - max-age=60, public, must-revalidate, stale-while-revalidate=60, stale-if-error=300,
+        s-maxage=60
+      Connection:
+      - keep-alive
+      Content-Disposition:
+      - inline
+      Content-Type:
+      - text/plain; charset=utf-8
+      Date:
+      - Tue, 17 Dec 2024 11:49:21 GMT
+      Etag:
+      - W/"2e83e262c451a5a17a2e95fabc8b15bf"
+      Permissions-Policy:
+      - interest-cohort=()
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=63072000
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      - Accept
+      X-Content-Type-Options:
+      - nosniff
+      X-Download-Options:
+      - noopen
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Gitlab-Meta:
+      - '{"correlation_id":"01JFA771GGNTETWVKEC60YP1AE","version":"1"}'
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-Request-Id:
+      - 01JFA771GGNTETWVKEC60YP1AE
+      X-Runtime:
+      - '0.083151'
+      X-Ua-Compatible:
+      - IE=edge
+      X-Xss-Protection:
+      - 1; mode=block
+      content-length:
+      - '11042'
+    status:
+      code: 200
+      message: OK
+version: 1
