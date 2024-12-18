@@ -2,6 +2,9 @@ import uuid
 from functools import cached_property
 from itertools import chain
 
+import pghistory
+import pgtrigger
+from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -532,7 +535,18 @@ class ACLMixin(models.Model):
 
         # unembargo
         self.set_public()
+        refs = pghistory.models.Events.objects.references(self).all()
+        for ref in refs:
+            db, model_name = ref.pgh_model.split(".")
+            model_audit = apps.get_model(db, model_name).objects.filter(
+                pgh_id=ref.pgh_id
+            )
 
+            with pgtrigger.ignore(f"{db}.{model_name}:append_only"):
+                model_audit.update(
+                    acl_read=list(self.acls_public_read),
+                    acl_write=list(self.acls_public_write),
+                )
         kwargs = {}
         if issubclass(type(self), AlertMixin):
             # suppress the validation errors as we expect that during
