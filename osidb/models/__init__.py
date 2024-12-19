@@ -17,6 +17,7 @@ __all__ = (
     "Flaw",
     "FlawAcknowledgment",
     "FlawComment",
+    "FlawCollaborator",
     "FlawCVSS",
     "FlawLabel",
     "FlawReference",
@@ -40,8 +41,7 @@ from .flaw.acknowledgment import FlawAcknowledgment
 from .flaw.comment import FlawComment
 from .flaw.cvss import FlawCVSS
 from .flaw.flaw import Flaw
-from .flaw.label import FlawLabel
+from .flaw.label import FlawCollaborator, FlawLabel
 from .flaw.reference import FlawReference
-from .flaw.label import FlawLabel
 from .package_versions import Package, PackageVer
 from .tracker import Tracker
