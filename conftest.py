@@ -262,10 +262,8 @@ def enable_jira_task_sync(monkeypatch) -> None:
     """
     import apps.taskman.mixins as mixins
     import apps.taskman.service as service
-    import osidb.models.flaw.flaw as flaw_module
     import osidb.serializer as serializer
 
-    monkeypatch.setattr(flaw_module, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
     monkeypatch.setattr(mixins, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
     monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
     monkeypatch.setattr(service, "JIRA_STORY_ISSUE_TYPE_ID", "17")
