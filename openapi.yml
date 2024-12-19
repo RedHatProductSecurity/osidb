@@ -7716,6 +7716,11 @@ components:
           items:
             $ref: '#/components/schemas/FlawCVSS'
           readOnly: true
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawCollaborator'
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -8059,6 +8064,19 @@ components:
       - updated_dt
       - uuid
       - vector
+    FlawCollaborator:
+      type: object
+      description: FlawCollaborator serializer
+      properties:
+        label:
+          type: string
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        contributor:
+          type: string
+          maxLength: 255
+      required:
+      - label
     FlawComment:
       type: object
       description: FlawComment serializer for use by flaw_comments endpoint
@@ -8348,6 +8366,11 @@ components:
           items:
             $ref: '#/components/schemas/FlawCVSS'
           readOnly: true
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawCollaborator'
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -9140,6 +9163,13 @@ components:
       - XCHAT
       - XEN
       - XPDF
+      type: string
+    StateEnum:
+      enum:
+      - NEW
+      - REQ
+      - SKIP
+      - DONE
       type: string
     SupportedProducts:
       type: object
