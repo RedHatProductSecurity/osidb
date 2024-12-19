@@ -32,8 +32,10 @@ from osidb.models import (
     Erratum,
     Flaw,
     FlawAcknowledgment,
+    FlawCollaborator,
     FlawComment,
     FlawCVSS,
+    FlawLabel,
     FlawReference,
     Impact,
     Package,
@@ -1659,6 +1661,16 @@ class FlawCVSSPutSerializer(FlawCVSSSerializer):
     pass
 
 
+class FlawCollaboratorSerializer(AlertMixinSerializer):
+    """FlawCollaborator serializer"""
+
+    class Meta:
+        """filter fields"""
+
+        model = FlawCollaborator
+        fields = ["label", "state", "contributor"]
+
+
 class FlawSerializer(
     ACLMixinSerializer,
     BugzillaSyncMixinSerializer,
@@ -1700,6 +1712,7 @@ class FlawSerializer(
         "source",
         "statement",
         "task_owner",
+        "labels",
     )
 
     cve_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
@@ -1710,6 +1723,8 @@ class FlawSerializer(
     references = FlawReferenceSerializer(many=True, read_only=True)
     cvss_scores = FlawCVSSSerializer(many=True, read_only=True)
     package_versions = PackageSerializer(many=True, read_only=True)
+
+    labels = FlawCollaboratorSerializer(many=True, required=False, allow_null=True)
 
     meta_attr = serializers.SerializerMethodField()
 
@@ -1784,6 +1799,7 @@ class FlawSerializer(
                 "acknowledgments",
                 "references",
                 "cvss_scores",
+                "labels",
             ]
             + ACLMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
@@ -1833,6 +1849,8 @@ class FlawSerializer(
         # store the old flaw for the later comparison
         old_flaw = Flaw.objects.get(uuid=new_flaw.uuid)
 
+        # store labels for later update
+        labels = validated_data.pop("labels", None)
         #####################
         # 2) update actions #
         #####################
@@ -1873,11 +1891,46 @@ class FlawSerializer(
         # update trackers if needed
         self.update_trackers(old_flaw, new_flaw)
 
+        # update labels if needed
+        self.update_labels(new_flaw, labels)
+
         #####################
         # 4) return updated #
         #####################
 
         return new_flaw
+
+    def update_labels(self, new_flaw, labels):
+        """
+        update the related labels if needed
+        """
+        if labels is None:
+            return
+
+        def get_label(**label):
+            """
+            get the label instance by name
+            """
+            try:
+                return FlawCollaborator.objects.get(flaw=new_flaw, **label)
+            except FlawCollaborator.DoesNotExist:
+                return FlawCollaborator(flaw=new_flaw, **label)
+
+        # Remove labels that are not in the request
+        new_flaw.labels.filter(
+            label__type=FlawLabel.FlawLabelType.CONTEXT_BASED
+        ).exclude(label__in=[label["label"] for label in labels]).delete()
+
+        for label_raw in labels:
+            label = get_label(**label_raw)
+
+            # Only context-based labels can be updated manually
+            if label.label.type != FlawLabel.FlawLabelType.CONTEXT_BASED:
+                raise serializers.ValidationError(
+                    {"label": f"Label '{label.label}' is not context-based."}
+                )
+
+            label.save()
 
     def update_trackers(self, old_flaw, new_flaw):
         """
