@@ -545,6 +545,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         "package_versions__alerts",
         "references",
         "references__alerts",
+        "labels",
     ).all()
     serializer_class = FlawSerializer
     filter_backends = (DjangoFilterBackend,)
