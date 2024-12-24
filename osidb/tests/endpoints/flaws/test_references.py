@@ -32,6 +32,7 @@ class TestEndpointsFlawsReferences:
             flawreference_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == status.HTTP_201_CREATED
         reference_uuid = response.data["uuid"]
@@ -72,6 +73,7 @@ class TestEndpointsFlawsReferences:
             {**updated_data},
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.data["url"] == "https://httpd.apache.org/link456"
