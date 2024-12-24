@@ -1600,6 +1600,7 @@ class FlawReferenceSerializer(
     ACLMixinSerializer,
     AlertMixinSerializer,
     IncludeExcludeFieldsMixin,
+    JiraAPIKeyMixin,
     TrackingMixinSerializer,
 ):
     """FlawReference serializer"""
@@ -1614,6 +1615,36 @@ class FlawReferenceSerializer(
             + AlertMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
         )
+
+    def create(self, validated_data):
+        """Handles reference creation and sync with Jira trackers if needed."""
+        new_ref = super().create(validated_data)
+        self.update_trackers(None, new_ref)
+        return new_ref
+
+    def update(self, instance, validated_data):
+        """Handles reference update and sync with Jira trackers if needed."""
+        old_ref = FlawReference.objects.get(uuid=instance.uuid)
+        new_ref = super().update(instance, validated_data)
+        self.update_trackers(old_ref, new_ref)
+        return new_ref
+
+    def update_trackers(self, old_ref, new_ref):
+        """
+        Updates the related Jira trackers passing the references as links if needed.
+        """
+        if old_ref is not None and not differ(old_ref, new_ref, ["url", "description"]):
+            return
+
+        for affect in new_ref.flaw.affects.all():
+            if affect.is_community:
+                continue
+
+            for tracker in affect.trackers.all():
+                if not tracker.is_closed and tracker.type == Tracker.TrackerType.JIRA:
+                    tracker.sync_reference(
+                        jira_token=self.get_jira_token(), reference=new_ref
+                    )
 
 
 @extend_schema_serializer(exclude_fields=["updated_dt", "flaw"])

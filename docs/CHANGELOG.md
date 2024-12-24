@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduce new field "labels" in Flaw API (OSIDB-3803)
 ### Changed
 - Use keywords from ps-constants in CVEorg collector (OSIDB-3694)
+- External references are synced to Jira trackers (OSIDB-3733)
 
 ## [4.6.1] - 2024-12-06
 ### Fixed
