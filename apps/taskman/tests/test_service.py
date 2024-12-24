@@ -102,3 +102,22 @@ class TestTaskmanService(object):
             response1, "https://www.redhat.com", "Red Hat Webpage"
         )
         assert response2.status_code == 201
+
+    @pytest.mark.vcr
+    def test_update_link(self, jira_token, monkeypatch):
+        """
+        Test that service is able to update remote links in Jira issues.
+        """
+        url = "https://www.redhat.com"
+        flaw = FlawFactory(embargoed=False, uuid="c581c407-5bc3-4a84-83ce-e3688e8fe87c")
+        AffectFactory(flaw=flaw)
+        taskman = JiraTaskmanQuerier(token=jira_token)
+
+        issue_key = taskman.create_or_update_task(flaw=flaw)
+        assert issue_key == "OSIM-16568"
+
+        response = taskman.add_link(issue_key, url, "Red Hat Webpage")
+
+        link_id = response.data["id"]
+        response = taskman.update_link(issue_key, link_id, url, "Red Hat Homepage")
+        assert response.status_code == 204
