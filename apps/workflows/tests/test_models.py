@@ -638,6 +638,50 @@ class TestWorkflow:
         bypass_flaw.cwe_id = "CWE-1"
         assert_state_equals(workflow.classify(bypass_flaw), state_new)
 
+    @pytest.mark.parametrize(
+        "requirements,not_met_requirements",
+        [
+            (["has comment_zero"], ["has comment_zero"]),
+            (["has comment_zero", "has title"], ["has comment_zero", "has title"]),
+            (
+                [
+                    {
+                        "condition": "OR",
+                        "requirements": ["has comment_zero", "has title"],
+                    }
+                ],
+                ["has comment_zero OR has title"],
+            ),
+        ],
+    )
+    def test_validate_classification(self, requirements, not_met_requirements):
+        """test that the classification validation works as expected"""
+        state_first = {
+            "name": "First",
+            "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
+        }
+        state_second = {
+            "name": "Second",
+            "requirements": requirements,
+            "jira_state": "To Do",
+            "jira_resolution": None,
+        }
+
+        workflow = Workflow(
+            {
+                "name": "test workflow",
+                "description": "a two step workflow to test validation",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_first, state_second],
+            }
+        )
+        flaw = Flaw()
+        assert_state_equals(workflow.classify(flaw), state_first)
+        assert not_met_requirements == workflow.validate_classification(flaw, "Second")
+
 
 class TestWorkflowFramework:
     def test_classify_priority(self):
