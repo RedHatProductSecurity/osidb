@@ -71,6 +71,10 @@ class Condition:
     def accepts(self, instance):
         return self(instance)
 
+    @property
+    def name(self):
+        return f" {self.condition} ".join(check.name for check in self.checks)
+
 
 class State:
     """
