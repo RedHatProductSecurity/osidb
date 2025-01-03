@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta
 from typing import List, Optional, Tuple
 
@@ -81,6 +82,11 @@ class JiraQuerier(JiraConnector):
     """
     Jira query handler
     """
+
+    def __init__(self, jira_token=None):
+        super().__init__()
+        if jira_token is not None:
+            self._jira_token = jira_token
 
     ###########
     # HELPERS #
@@ -205,9 +211,9 @@ class JiraQuerier(JiraConnector):
             return Response(data=response_content, status=e.status_code)
 
     def add_link(self, issue_key, url, title) -> Response:
-        """Add a remote link to a task."""
+        """Add a remote link to a Jira issue."""
         try:
-            data = {"url": url, "title": title}
+            data = {"url": url, "title": title if title else url}
             link = self.jira_conn.add_simple_link(issue_key, data)
             return Response(data=link.raw, status=201)
         except JIRAError as e:
@@ -215,6 +221,58 @@ class JiraQuerier(JiraConnector):
             logger.error(
                 (
                     f"Jira error when creating external link. Status code {e.status_code}, "
+                    f"Jira response {response_content}",
+                )
+            )
+            return Response(data=response_content, status=e.status_code)
+
+    def update_link(self, issue_key, link_id, url, title) -> Response:
+        """Update a remote link to a Jira issue by its internal ID."""
+        try:
+            data = {"object": {"url": url, "title": title if title else url}}
+            # There is no method to update a link in the Jira library with its internal ID,
+            # only with global ID which we do not have
+            link_url = (
+                f"{self.jira_conn._get_url('issue')}/{issue_key}/remotelink/{link_id}"
+            )
+            response = self.jira_conn._session.put(link_url, json.dumps(data))
+            return Response(status=response.status_code)
+        except JIRAError as e:
+            response_content = safe_get_response_content(e.response)
+            logger.error(
+                (
+                    f"Jira error when updating external link. Status code {e.status_code}, "
+                    f"Jira response {response_content}",
+                )
+            )
+            return Response(data=response_content, status=e.status_code)
+
+    def sync_link(self, issue_key, url, title):
+        """
+        If the link exists in the issue, it will update the title if needed.
+        If the link does not exist, it will create it.
+        Sync is done only one way (OSIDB to Jira), so if a link is deleted or modified in Jira,
+        nothing will change back in OSIDB.
+        """
+        try:
+            links = self.jira_conn.remote_links(issue_key)
+            for link in links:
+                if url == link.object.url:
+                    if title != link.object.title:
+                        self.update_link(
+                            issue_key=issue_key,
+                            link_id=link.id,
+                            url=url,
+                            title=title,
+                        )
+                    return
+            # Link not found, create it
+            self.add_link(issue_key=issue_key, url=url, title=title)
+        except JIRAError as e:
+            response_content = safe_get_response_content(e.response)
+            logger.error(
+                (
+                    f"Jira error when syncing external link. Status code {e.status_code}, "
                     f"Jira response {response_content}",
                 )
             )
