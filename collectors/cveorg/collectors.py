@@ -14,7 +14,7 @@ from django.utils.dateparse import parse_datetime
 from apps.taskman.constants import JIRA_AUTH_TOKEN
 from collectors.cmd import Cmd
 from collectors.constants import SNIPPET_CREATION_ENABLED
-from collectors.cveorg.constants import CELERY_PVC_PATH
+from collectors.cveorg.constants import CELERY_PVC_PATH, CVEORG_START_DATE
 from collectors.cveorg.keywords import should_create_snippet
 from collectors.framework.models import Collector
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
@@ -34,11 +34,7 @@ class CVEorgCollector(Collector):
 
     # When the start date is set to None, all snippets are collected
     # When set to a datetime object, only snippets created after that date are collected
-    # TODO: The change to a specific date is temporary because NVD and CVEorg need to use a different start date
-    #       This will be unified again once the flaw creation in NVD gets disabled
-    snippet_creation_start_date = timezone.datetime(
-        2024, 10, 1, tzinfo=timezone.get_current_timezone()
-    )
+    snippet_creation_start_date = CVEORG_START_DATE
 
     BEGINNING = timezone.datetime(2024, 10, 1, tzinfo=timezone.get_current_timezone())
 
