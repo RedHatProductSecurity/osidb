@@ -679,6 +679,96 @@ class JiraTaskDownloadManager(SyncManager):
         return result
 
 
+class JiraTaskSyncManager(SyncManager):
+    """
+    Sync manager class for OSIDB => Jira Task synchronization.
+    """
+
+    @staticmethod
+    @app.task(name="sync_manager.jira_task_sync", bind=True)
+    def sync_task(self, flaw_id):
+        """
+        perform the sync of the task of the given flaw to Jira
+
+        the task may not be existing yet when performing the first
+        sync therefore we use the flaw UUID as the identifier
+        """
+        from osidb.models import Flaw
+
+        JiraTaskSyncManager.started(flaw_id, self)
+
+        set_user_acls(settings.ALL_GROUPS)
+
+        try:
+            flaw = Flaw.objects.get(uuid=flaw_id)
+            flaw._create_or_update_task()
+
+        except Exception as e:
+            JiraTaskSyncManager.failed(flaw_id, e)
+        else:
+            JiraTaskSyncManager.finished(flaw_id)
+
+    def update_synced_links(self):
+        from osidb.models import Flaw
+
+        Flaw.objects.filter(uuid=self.sync_id).update(bzsync_manager=self)
+
+    def __str__(self):
+        from osidb.models import Flaw
+
+        result = super().__str__()
+        flaws = Flaw.objects.filter(uuid=self.sync_id)
+        cves = [f.cve_id or f.uuid for f in flaws]
+        result += f"Flaws: {cves}\n"
+
+        return result
+
+
+class JiraTaskTransitionManager(SyncManager):
+    """
+    Transition manager class for OSIDB => Jira Task state synchronization.
+    """
+
+    @staticmethod
+    @app.task(name="sync_manager.jira_task_transition", bind=True)
+    def sync_task(self, flaw_id):
+        """
+        perform the sync of the task state of the given flaw to Jira
+
+        the task must exist or otherwise the operation fails
+        the flaw UUID is ensured so it is used as the identifier
+        """
+        from osidb.models import Flaw
+
+        JiraTaskTransitionManager.started(flaw_id, self)
+
+        set_user_acls(settings.ALL_GROUPS)
+
+        try:
+            flaw = Flaw.objects.get(uuid=flaw_id)
+            flaw._transition_task()
+
+        except Exception as e:
+            JiraTaskTransitionManager.failed(flaw_id, e)
+        else:
+            JiraTaskTransitionManager.finished(flaw_id)
+
+    def update_synced_links(self):
+        from osidb.models import Flaw
+
+        Flaw.objects.filter(uuid=self.sync_id).update(bzsync_manager=self)
+
+    def __str__(self):
+        from osidb.models import Flaw
+
+        result = super().__str__()
+        flaws = Flaw.objects.filter(uuid=self.sync_id)
+        cves = [f.cve_id or f.uuid for f in flaws]
+        result += f"Flaws: {cves}\n"
+
+        return result
+
+
 class JiraTrackerDownloadManager(SyncManager):
     """
     Sync manager class for Jira => OSIDB Tracker synchronization.

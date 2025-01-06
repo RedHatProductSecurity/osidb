@@ -38,6 +38,8 @@ from osidb.sync_manager import (
     BZSyncManager,
     FlawDownloadManager,
     JiraTaskDownloadManager,
+    JiraTaskSyncManager,
+    JiraTaskTransitionManager,
 )
 from osidb.validators import no_future_date, validate_cve_id, validate_cwe_id
 
@@ -1048,7 +1050,7 @@ class Flaw(
             if any(field in diff.keys() for field in TRANSITION_REQUIRED_FIELDS):
                 self._transition_task(jira_token)
 
-    def _create_or_update_task(self, jira_token):
+    def _create_or_update_task(self, jira_token=None):
         """
         create or update the Jira task of this flaw based on its existence
         """
@@ -1075,7 +1077,7 @@ class Flaw(
                 task_updated_dt=self.task_updated_dt
             )
 
-    def _transition_task(self, jira_token):
+    def _transition_task(self, jira_token=None):
         """
         transition the Jira task of this flaw
         """
@@ -1101,6 +1103,12 @@ class Flaw(
     )
     task_download_manager = models.ForeignKey(
         JiraTaskDownloadManager, null=True, blank=True, on_delete=models.CASCADE
+    )
+    task_sync_manager = models.ForeignKey(
+        JiraTaskSyncManager, null=True, blank=True, on_delete=models.CASCADE
+    )
+    task_transition_manager = models.ForeignKey(
+        JiraTaskTransitionManager, null=True, blank=True, on_delete=models.CASCADE
     )
     bzsync_manager = models.ForeignKey(
         BZSyncManager, null=True, blank=True, on_delete=models.CASCADE
