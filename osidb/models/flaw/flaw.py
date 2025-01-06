@@ -16,6 +16,7 @@ from psqlextra.fields import HStoreField
 from apps.bbsync.constants import SYNC_FLAWS_TO_BZ, SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY
 from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.taskman.constants import (
+    JIRA_TASKMAN_ASYNCHRONOUS_SYNC,
     SYNC_REQUIRED_FIELDS,
     TRANSITION_REQUIRED_FIELDS,
 )
@@ -1038,16 +1039,39 @@ class Flaw(
         based on the task existence it is either created or updated and/or transitioned
         old pre-OSIDB flaws without tasks are ignored unless force_creation is set
         """
+        update_task = False
+        transition_task = False
+
         if not self.task_key:
             # old pre-OSIDB flaws without tasks are ignored by default
             if force_creation or not self.meta_attr.get("bz_id"):
-                self._create_or_update_task(jira_token)
+                update_task = True
 
         elif diff is not None:
             if any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS):
-                self._create_or_update_task(jira_token)
+                update_task = True
 
             if any(field in diff.keys() for field in TRANSITION_REQUIRED_FIELDS):
+                transition_task = True
+
+        if not update_task and not transition_task:
+            return
+
+        # switch of sync/async processing
+        if JIRA_TASKMAN_ASYNCHRONOUS_SYNC:
+            if update_task:
+                JiraTaskSyncManager.check_for_reschedules()
+                JiraTaskSyncManager.schedule(str(self.uuid))
+
+            if transition_task:
+                JiraTaskTransitionManager.check_for_reschedules()
+                JiraTaskTransitionManager.schedule(str(self.uuid))
+
+        else:
+            if update_task:
+                self._create_or_update_task(jira_token)
+
+            if transition_task:
                 self._transition_task(jira_token)
 
     def _create_or_update_task(self, jira_token=None):

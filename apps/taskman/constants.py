@@ -11,6 +11,9 @@ HTTPS_TASKMAN_PROXY = get_env("HTTPS_TASKMAN_PROXY")
 JIRA_TASKMAN_AUTO_SYNC_FLAW = get_env(
     "JIRA_TASKMAN_AUTO_SYNC_FLAW", default="0", is_bool=True
 )
+JIRA_TASKMAN_ASYNCHRONOUS_SYNC = get_env(
+    "JIRA_TASKMAN_ASYNCHRONOUS_SYNC", default="False", is_bool=True
+)
 
 SYNC_REQUIRED_FIELDS = [
     "cve_id",
