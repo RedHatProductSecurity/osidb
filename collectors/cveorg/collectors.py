@@ -200,7 +200,7 @@ class CVEorgCollector(Collector):
                         if new_flaw:
                             sleep(1)
                     except Exception as exc:
-                        message = f"Failed to save snippet and flaw for {content['cve_id']}. Error: {exc}."
+                        message = f"Failed to save snippet and flaw for {content['cve_id']}. Error: {exc}"
                         logger.error(message)
                         raise CVEorgCollectorException(message) from exc
 
