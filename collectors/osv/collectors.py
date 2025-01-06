@@ -293,7 +293,7 @@ class OSVCollector(Collector):
                     score = self.CVSS_TO_CVSSLIB[cvss["type"]](vector).base_score
                 except Exception as exc:
                     logger.error(f"Failed to proces CVSS for {cvss}. Error: {exc}.")
-                    # TODO: Ignore invalid CVSS from OSV until the data issue gets fixed
+                    # TODO: Recheck invalid CVSS once SyncManager gets implemented
                     continue
                 cvss_data.append(
                     {
