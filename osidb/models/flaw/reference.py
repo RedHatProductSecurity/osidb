@@ -104,6 +104,18 @@ class FlawReference(AlertMixin, ACLMixin, TrackingMixin):
             GinIndex(fields=["acl_read"]),
         ]
 
+    def sync_to_trackers(self, jira_token):
+        """Sync this reference as links in the related Jira trackers."""
+        from osidb.models.tracker import Tracker
+
+        for affect in self.flaw.affects.all():
+            if affect.is_community:
+                continue
+
+            for tracker in affect.trackers.all():
+                if not tracker.is_closed and tracker.type == Tracker.TrackerType.JIRA:
+                    tracker.sync_reference(jira_token=jira_token, reference=self)
+
     def _validate_article_link(self, **kwargs):
         """
         Checks that an article link begins with https://access.redhat.com/.

@@ -179,7 +179,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             # no save or fetch to prevent collisions
             # only schedule an asynchronous sync
             BZTrackerDownloadManager.schedule(tracker_instance.external_system_id)
-            # at the end delete the temporary empty tacker
+            # at the end delete the temporary empty tracker
             Tracker.objects.filter(external_system_id="").delete()
 
         # check Jira conditions are met
@@ -210,7 +210,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             # no save or fetch to prevent collisions
             # only schedule an asynchronous sync
             JiraTrackerDownloadManager.schedule(tracker_instance.external_system_id)
-            # at the end delete the temporary empty tacker
+            # at the end delete the temporary empty tracker
             Tracker.objects.filter(external_system_id="").delete()
 
         # regular save otherwise
@@ -237,6 +237,22 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 else:
                     # Other IntegrityError, reraise the exception
                     raise e
+
+    def sync_reference(self, jira_token, reference):
+        """Syncs the reference as a Jira link if needed"""
+        from collectors.jiraffe.core import JiraQuerier
+
+        if (
+            not SYNC_TO_JIRA
+            or jira_token is None
+            or self.type != self.TrackerType.JIRA
+            or self.external_system_id is None
+        ):
+            return
+
+        JiraQuerier(jira_token).sync_link(
+            self.external_system_id, reference.url, reference.description
+        )
 
     def _validate_tracker_affect(self, **kwargs):
         """

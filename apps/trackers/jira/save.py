@@ -71,7 +71,6 @@ class TrackerJiraSaver(JiraQuerier):
                 issue_key=issue.key,
                 body=comment,
             )
-        # Add references only on tracker creation
         for reference in tracker.references:
             self.add_link(
                 issue_key=issue.key,

@@ -962,10 +962,10 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/search?fields=issuekey&fields=issuetype&jql=labels+%3D+%22SecurityTracking%22+AND+type+in+%28Bug%2CVulnerability%29+AND+updated+%3E%3D+%222024-09-30+14%3A00%22+AND+updated+%3C%3D+%222024-10-01+00%3A01%22&startAt=0&validateQuery=True
+    uri: https://example.com/rest/api/2/search?fields=issuekey&fields=issuetype&jql=labels+%3D+%22SecurityTracking%22+AND+type+in+%28Bug%2CVulnerability%29+AND+updated+%3E%3D+%222024-09-30+14%3A00%22+AND+updated+%3C%3D+%222024-10-01+00%3A01%22&startAt=0&validateQuery=True&maxResults=100
   response:
     body:
-      string: '{"expand": "schema,names", "startAt": 0, "maxResults": 50, "total":
+      string: '{"expand": "schema,names", "startAt": 0, "maxResults": 100, "total":
         3, "issues": [{"expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
         "id": "16288546", "self": "https://example.com/rest/api/2/issue/16288546",
         "key": "RHEL-58856", "fields": {"issuetype": {"self": "https://example.com/rest/api/2/issuetype/12207",

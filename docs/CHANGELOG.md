@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Use keywords from ps-constants in CVEorg collector (OSIDB-3694)
+- External references are synced to Jira trackers (OSIDB-3733)
 
 ### Fixed
 - Fix workflow validation with conditional requirements (OSIDB-3524)
