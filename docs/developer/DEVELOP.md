@@ -90,7 +90,8 @@ OSIDB_CORS_ALLOW_HEADERS='["bugzilla-api-key", "jira-api-key"]'
 
 # To enable snippets creation in collectors (when date is not set, all snippets are created)
 SNIPPET_CREATION=1
-SNIPPET_CREATION_START="2024-01-01"
+CVEORG_START_DATE="2024-10-01"
+OSV_START_DATE="2024-07-01"
 
 # Collector switches: set to 0 to turn each collector off, or 1 to turn it on (default)
 FLAW_COLLECTOR_ENABLED=1

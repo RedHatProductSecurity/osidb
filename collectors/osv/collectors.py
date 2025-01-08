@@ -15,8 +15,9 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from apps.taskman.constants import JIRA_AUTH_TOKEN
-from collectors.constants import SNIPPET_CREATION_ENABLED, SNIPPET_CREATION_START_DATE
+from collectors.constants import SNIPPET_CREATION_ENABLED
 from collectors.framework.models import Collector
+from collectors.osv.constants import OSV_START_DATE
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
 from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
@@ -35,7 +36,7 @@ class OSVCollector(Collector):
 
     # When the start date is set to None, all snippets are collected
     # When set to a datetime object, only snippets created after that date are collected
-    snippet_creation_start_date = SNIPPET_CREATION_START_DATE
+    snippet_creation_start_date = OSV_START_DATE
 
     SUPPORTED_OSV_ECOSYSTEMS = (
         "Bitnami",  # General purpose Vulnerability Database: https://github.com/bitnami/vulndb
@@ -293,7 +294,7 @@ class OSVCollector(Collector):
                     score = self.CVSS_TO_CVSSLIB[cvss["type"]](vector).base_score
                 except Exception as exc:
                     logger.error(f"Failed to proces CVSS for {cvss}. Error: {exc}.")
-                    # TODO: Ignore invalid CVSS from OSV until the data issue gets fixed
+                    # TODO: Recheck invalid CVSS once SyncManager gets implemented
                     continue
                 cvss_data.append(
                     {
