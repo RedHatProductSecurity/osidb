@@ -7,8 +7,28 @@ from django.db.models.functions import Cast
 from config.celery import app
 from osidb.core import set_user_acls
 from osidb.mixins import Alert
+from osidb.sync_manager import (
+    BZSyncManager,
+    JiraTaskSyncManager,
+    JiraTaskTransitionManager,
+)
 
 logger = get_task_logger(__name__)
+
+
+@app.task
+def check_for_non_periodic_reschedules():
+    """
+    some sync managers perform async jobs based on non-periodic
+    tasks like user requests so the accompanied reschedule
+    is not guaranteed to be triggered with any period and
+    therefore we check for reschedules periodically here
+    """
+    set_user_acls(settings.ALL_GROUPS)
+
+    BZSyncManager.check_for_reschedules()
+    JiraTaskSyncManager.check_for_reschedules()
+    JiraTaskTransitionManager.check_for_reschedules()
 
 
 @app.task
