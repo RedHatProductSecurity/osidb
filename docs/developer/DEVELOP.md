@@ -273,6 +273,15 @@ It's possible to perform local development outside of containers, in the venv th
 
 See `make help` for a short summary of these _make targets_.
 
+## Logging
+
+### Podman Logs
+
+You can use podman's logging subcommand along with the `--follow` (`-f`) flag to get a better idea of what is going on in the container. This is especially helpful with the container running Django/WSGI.
+
+```sh
+$ podman logs -f osidb-service
+```
 
 ## Updating dev env
 
@@ -349,7 +358,7 @@ Situations where combining `compose-down` and `build` is useful:
     - If you don't care about database contents, run `make db-drop` and try again.
     - If `make db-drop` doesn't fix it, run `make compose-down; make build`. It seems there's something that makes the database corrupted from the start.
     - If that doesn't fix it, do `make clean; make dev-env; make start-local`, but this probably won't fix it anyway.
-    - For more involved debugging, use `podman logs osidb-service`, `podman logs osidg-data`, and inside `podman exec -it osidb-service bash` follow https://stackoverflow.com/a/55929118 to uncover a more specific Django error message.
+    - For more involved debugging, use `podman logs osidb-service`, `podman logs osidb-data`, and inside `podman exec -it osidb-service bash` follow https://stackoverflow.com/a/55929118 to uncover a more specific Django error message.
   - If `django.db.utils.OperationalError: could not translate host name "osidb-data" to address: Name or service not known`, osidb-service can't find the hostname `osidb-data`, either because the container osidb-data is not running, or because there's a podman network issue that breaks container-to-container communication.
     - If `podman exec -it osidb-data pg_isready || echo error` returns an error, try to get the `osidb-data` container up and running first (see previous debugging steps).
     - If osidb-data is running correctly, it's possible this is an instance of the bug https://bugzilla.redhat.com/show_bug.cgi?id=1980157 (but actually who knows, I [jsvoboda] don't know enough about this :-( ).

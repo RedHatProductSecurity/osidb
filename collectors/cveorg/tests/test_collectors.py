@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 from django.utils.timezone import datetime, make_aware
+from freezegun import freeze_time
 from jira.exceptions import JIRAError
 
 from apps.taskman.service import JiraTaskmanQuerier
@@ -14,6 +15,7 @@ pytestmark = pytest.mark.integration
 
 class TestCVEorgCollector:
     @pytest.mark.vcr
+    @freeze_time(datetime(2025, 1, 1))
     def test_collect_cveorg_records(self, mock_keywords, mock_repo):
         """
         Test that snippets and flaws are created correctly.
