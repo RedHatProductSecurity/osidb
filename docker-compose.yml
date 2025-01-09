@@ -112,7 +112,7 @@ services:
       #   retries: 3
 
     osidb-data:
-      image: docker.io/library/postgres:13
+      image: mirror.gcr.io/library/postgres:13
       shm_size: 1gb  # Needed for more consecutive connections
       hostname: osidb-data
       container_name: osidb-data
@@ -240,7 +240,7 @@ services:
     redis:
       container_name: redis
       hostname: redis
-      image: docker.io/library/redis:6
+      image: mirror.gcr.io/library/redis:6
       ports:
         - "6379"
 

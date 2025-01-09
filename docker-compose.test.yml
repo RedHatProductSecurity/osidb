@@ -4,7 +4,7 @@ services:
 
     testldap:
       container_name: testldap
-      image: docker.io/bitnami/openldap:2.5
+      image: mirror.gcr.io/bitnami/openldap:2.5
       ports:
         - '1389:1389'
         - '1636:1636'
@@ -45,7 +45,7 @@ services:
 
     locust:
       container_name: locust
-      image: docker.io/locustio/locust:2.20.1
+      image: mirror.gcr.io/locustio/locust:2.20.1
       ports:
         - '9000:8089'
       volumes:
