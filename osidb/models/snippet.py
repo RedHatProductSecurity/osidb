@@ -136,10 +136,13 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         self.flaw = flaw
         self.save()
 
-        # keep the save to Jira and BZ separate because BZ can be done asynchronously
-        # (BZ token is passed directly, but Jira token is in kwargs)
-        flaw.save(raise_validation_error=False, *args, **kwargs)
-        flaw.save(bz_api_key=BZ_API_KEY, raise_validation_error=False, *args)
+        flaw.save(
+            bz_api_key=BZ_API_KEY,
+            raise_validation_error=False,
+            auto_timestamps=False,
+            *args,
+            **kwargs,
+        )
 
         return Flaw.objects.get(uuid=flaw.uuid)
 
