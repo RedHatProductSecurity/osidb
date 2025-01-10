@@ -918,9 +918,6 @@ class TestBBSyncSaveIntegration:
 
 
 class TestFlawDraftBBSyncIntegration:
-    @freeze_time(
-        timezone.datetime(2020, 12, 12)
-    )  # freeze against top of the second crossing
     @pytest.mark.vcr
     @pytest.mark.enable_signals
     @pytest.mark.parametrize(
