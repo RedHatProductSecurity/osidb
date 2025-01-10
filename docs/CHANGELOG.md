@@ -4,11 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Changed
+- Removed `last_validated_dt` from exposed JSON Flaw History data (OSIDB-3814)
+
+## [4.6.5] - 2025-01-10
+### Changed
+- Revert pull request #875 from OSIDB-3814
+
 ## [4.6.4] - 2025-01-10
 ### Changed
 - Moved docker-compose images from docker.io to mirror.gcr.io (OSIDB-3653)
 - Removed `last_validated_dt` from exposed JSON Flaw History data (OSIDB-3814)
-- Fix workflow mid-air collisions (OSIDB-3842)
 
 ## [4.6.3] - 2025-01-09
 ### Fixed
