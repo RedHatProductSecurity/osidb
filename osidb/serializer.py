@@ -602,6 +602,12 @@ class HistoricalEventSerializer(serializers.ModelSerializer):
             "pgh_diff",
         ]
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if representation["pgh_diff"]:
+            representation["pgh_diff"].pop("last_validated_dt")
+        return representation
+
 
 class HistoryMixinSerializer(serializers.ModelSerializer):
 
