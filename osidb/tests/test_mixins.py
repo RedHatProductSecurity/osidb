@@ -618,7 +618,6 @@ class TestBugzillaJiraMixinIntegration:
         assert issue["fields"]["status"]["name"] == "Closed"
         assert issue["fields"]["resolution"]["name"] == "Won't Do"
 
-    @freeze_time(tzdatetime(2022, 12, 12))  # freeze against top of the second crossing
     @pytest.mark.vcr
     @pytest.mark.enable_signals
     def test_api_changes(
