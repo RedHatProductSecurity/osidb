@@ -604,7 +604,10 @@ class HistoricalEventSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        if representation["pgh_diff"]:
+        if (
+            isinstance(representation["pgh_diff"], dict)
+            and "last_validated_dt" in representation["pgh_diff"]
+        ):
             representation["pgh_diff"].pop("last_validated_dt")
         return representation
 
