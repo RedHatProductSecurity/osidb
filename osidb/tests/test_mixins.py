@@ -562,10 +562,6 @@ class TestBugzillaJiraMixinIntegration:
         workflow_framework.register_workflow(workflow_main)
         workflow_framework.register_workflow(workflow_reject)
 
-    # Freezing time because the test sometimes takes long enough to span
-    # the change between seconds, failing at flaw.reject with 1 second
-    # updated_dt offset.
-    @freeze_time(tzdatetime(2024, 8, 1))
     @pytest.mark.vcr
     def test_manual_changes(
         self,
@@ -605,6 +601,7 @@ class TestBugzillaJiraMixinIntegration:
         flaw = Flaw.objects.get(uuid=flaw.uuid)
 
         flaw.promote(jira_token=jira_token, bz_api_key=bugzilla_token)
+        flaw.refresh_from_db()  # need to refresh after update
         assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
 
         jtq = JiraTaskmanQuerier(jira_token)
