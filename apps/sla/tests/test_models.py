@@ -100,6 +100,11 @@ class TestSLA:
 
             assert sla.add_days == expected
 
+        def test_null(self):
+            """Test parsing a null SLA"""
+            sla = SLA.create_from_description(None)
+            assert sla is None
+
     class TestStart:
         """
         test SLA start determination

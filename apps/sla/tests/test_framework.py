@@ -228,6 +228,25 @@ sla:
             assert policy.sla.duration_type == expected_type
             assert policy.sla.ending == expected_ending
 
+        def test_null_sla(self):
+            """
+            Test that a policy with a null SLA is correctly loaded from the definition
+            """
+            sla_file = """
+---
+name: Null SLA
+description: Null SLA
+conditions:
+  affect:
+    - aggregated impact is low
+sla: null
+"""
+            load_sla_policies(sla_file)
+
+            assert SLAPolicy.objects.count() == 1
+            policy = SLAPolicy.objects.first()
+            assert policy.sla is None
+
     class TestClassify:
         """
         test that a model instance is properly
