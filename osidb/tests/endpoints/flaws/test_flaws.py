@@ -1776,19 +1776,45 @@ class TestEndpointsFlaws:
             assert response.status_code == 200
             body = response.json()
             assert body["count"] == 1
-            flaw = body["results"][0]
+            flaw_json = body["results"][0]
 
-            assert "history" in flaw
-            assert len(flaw["history"]) == 1
-            flaw1_history1 = flaw["history"][0]
+            assert "history" in flaw_json
+            assert len(flaw_json["history"]) == 1
+            flaw1_history1 = flaw_json["history"][0]
 
             assert flaw1_history1["pgh_label"] == "insert"
             assert flaw1_history1["pgh_context"] == {"source": "testcase"}
 
-            assert len(flaw["affects"]) == 10
+            assert len(flaw_json["affects"]) == 10
 
-            affect1 = flaw["affects"][0]
+            affect1 = flaw_json["affects"][0]
             assert len(affect1["history"]) == 1
+
+            flaw.title = "Modified Title"
+            flaw.save()
+
+            response = auth_client().get(
+                f"{test_api_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
+            )
+
+            body = response.json()
+            flaw_json = body["results"][0]
+            assert len(flaw_json["history"]) == 2
+            assert flaw_json["history"][1]["pgh_diff"]
+            assert "last_validated_dt" not in flaw_json["history"][1]["pgh_diff"]
+
+    def test_flaw_history_no_history(self, auth_client, test_api_uri):
+        with pghistory.context(disable=True):
+            flaw = FlawFactory()
+            flaw.save()
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
+        )
+
+        body = response.json()
+        flaw_json = body["results"][0]
+        assert "pgh_diff" not in flaw_json["history"]
 
     def test_create_flaw_label(self, auth_client, test_api_uri):
 

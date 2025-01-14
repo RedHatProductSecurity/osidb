@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Changed
-- Removed `last_validated_dt` from exposed JSON Flaw History data (OSIDB-3814)
+- Removed `last_validated_dt` from exposed JSON Flaw History data (OSIDB-3814), handled edge-case that would cause failure (OSIDB-3858)
 
 ## [4.6.5] - 2025-01-10
 ### Changed
