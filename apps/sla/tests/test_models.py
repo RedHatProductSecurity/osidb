@@ -866,6 +866,58 @@ class TestSLAPolicy:
                 )
             )
 
+        @pytest.mark.parametrize(
+            "operator,component,accepted",
+            [
+                ("in", "kpatch", True),
+                ("in", "coffee", False),
+                ("not in", "kpatch", False),
+                ("not in", "coffee", True),
+            ],
+        )
+        def test_in_condition(self, operator, component, accepted):
+            """
+            Test that the 'in' and 'not in' operators in an SLA condition works as expected
+            """
+            policy_desc = {
+                "name": "SLA in/not in operator",
+                "description": "Test for the in/not in operator",
+                "conditions": {
+                    "affect": [
+                        {f"PS component {operator}": ["kpatch", "kmatch", "kcatch"]}
+                    ],
+                },
+                "sla": {
+                    "duration": 3,
+                    "start": "reported date",
+                    "type": "calendar days",
+                },
+            }
+            policy = SLAPolicy.create_from_description(policy_desc)
+
+            flaw = FlawFactory()
+            ps_module = PsModuleFactory()
+            affect = AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_module=ps_module.name,
+                impact=Impact.MODERATE,
+                ps_component=component,
+            )
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+            tracker = TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.embargoed,
+                ps_update_stream=ps_update_stream.name,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+            )
+
+            assert (
+                policy.accepts(SLAContext(flaw=flaw, affect=affect, tracker=tracker))
+                == accepted
+            )
+
     class TestContext:
         """
         test SLAPolicy context determination

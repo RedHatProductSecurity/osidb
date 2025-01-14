@@ -64,6 +64,11 @@ class CheckParser:
             (check implementation doc text, check implementation)
             or None if no corresponding implementation
         """
+        if isinstance(check_desc, dict):
+            return self._parse_dict(check_desc)
+        return self._parse_string(check_desc)
+
+    def _parse_string(self, check_desc):
         check_desc = check_desc.replace(" ", "_")
         # enable more human-readable negation
         if check_desc.startswith("is_not_"):
@@ -78,6 +83,7 @@ class CheckParser:
             # because of the limitations of the naive syntax parsing
             self.desc2not_equals,
             self.desc2equals,
+            self.desc2in,
         ]:
             result = func(check_desc)
             if result is not None:
@@ -85,6 +91,23 @@ class CheckParser:
 
         raise WorkflowDefinitionError(
             f"Unknown or incorrect check definition: {check_desc}"
+        )
+
+    def _parse_dict(self, check_desc):
+        # dict will contain a statement and a list of values, more complex
+        # types are not supported
+        statement, values = next(iter(check_desc.items()))
+        statement = statement.replace(" ", "_")
+        for func in [
+            self.desc2not_in,
+            self.desc2in,
+        ]:
+            result = func(statement, values)
+            if result is not None:
+                return result
+
+        raise WorkflowDefinitionError(
+            f"Unknown or incorrect check definition: {statement} {', '.join(values)}"
         )
 
     def desc2property(self, check_desc):
@@ -181,6 +204,30 @@ class CheckParser:
 
             result = self.desc2equals(check_desc)
 
+            if result is not None:
+                doc, func = result
+                return (
+                    f"negative of: {doc}",
+                    lambda instance: not func(instance),
+                )
+
+    def desc2in(self, statement, values):
+        if statement.count("_in") == 1:
+            attr = self.sanitize_attribute(statement[:-3])
+
+            if hasattr(self.model, attr):
+                doc = f"check that {self.model.__name__} attribute {attr} is in [{', '.join(values)}]"
+
+                def check_inclusion(instance):
+                    field = getattr(instance, attr)
+                    return (field if not callable(field) else field()) in values
+
+                return (doc, check_inclusion)
+
+    def desc2not_in(self, statement, values):
+        if statement.count("_not_in") == 1:
+            statement = statement.replace("_not_in", "_in")
+            result = self.desc2in(statement, values)
             if result is not None:
                 doc, func = result
                 return (

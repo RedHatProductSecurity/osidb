@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Add SLA exclusion policies (OSIDB-3711)
+- Implement 'in' operator in SLA conditions (OSIDB-3711)
 
 ### Changed
 - Removed `last_validated_dt` from exposed JSON Flaw History data (OSIDB-3814)
