@@ -228,6 +228,25 @@ sla:
             assert policy.sla.duration_type == expected_type
             assert policy.sla.ending == expected_ending
 
+        def test_null_sla(self):
+            """
+            Test that a policy with a null SLA is correctly loaded from the definition
+            """
+            sla_file = """
+---
+name: Null SLA
+description: Null SLA
+conditions:
+  affect:
+    - aggregated impact is low
+sla: null
+"""
+            load_sla_policies(sla_file)
+
+            assert SLAPolicy.objects.count() == 1
+            policy = SLAPolicy.objects.first()
+            assert policy.sla is None
+
     class TestClassify:
         """
         test that a model instance is properly
@@ -458,3 +477,78 @@ sla:
                 assert sla_context.end == flaw.created_dt + timedelta(days=5)
             else:
                 assert not sla_context.sla
+
+        @pytest.mark.parametrize(
+            "component,excluded",
+            [
+                ("kpatch", True),
+                ("glibc", False),
+            ],
+        )
+        def test_exclusion(self, component, excluded):
+            """
+            Test that an exclusion policy placed as the first one using the 'in' condition
+            works for not applying SLA when these conditions are met
+            """
+            sla_file = """
+---
+name: Excluded components
+description: Components which do not need SLA
+conditions:
+  affect:
+    - PS component in:
+      - kpatch
+      - kudos
+      - kratos
+sla: null
+---
+name: Low
+description: SLA policy applied to low impact
+conditions:
+  affect:
+    - aggregated impact is low
+sla:
+  duration: 5
+  start: reported date
+  type: calendar days
+---
+name: Major Incident
+description: only for very serious cases
+conditions:
+  flaw:
+    - major incident state is approved
+sla:
+  duration: 2
+  start: reported date
+  type: calendar days
+"""
+            flaw = FlawFactory(
+                embargoed=False,
+                impact=Impact.LOW,
+                major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            )
+            ps_module = PsModuleFactory(name="rhel-8")
+            affect = AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_module=ps_module.name,
+                ps_component=component,
+                impact=Impact.LOW,
+            )
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+            tracker = TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.embargoed,
+                ps_update_stream=ps_update_stream.name,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+            )
+
+            load_sla_policies(sla_file)
+            sla_context = sla_classify(tracker)
+            if excluded:
+                assert not sla_context.sla
+            else:
+                assert sla_context.sla
+                assert sla_context.start == flaw.reported_dt
+                assert sla_context.end == flaw.created_dt + timedelta(days=5)

@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Add SLA exclusion policies (OSIDB-3711)
+- Implement 'in' operator in SLA conditions (OSIDB-3711)
+
 ### Changed
 - Removed `last_validated_dt` from exposed JSON Flaw History data (OSIDB-3814), handled edge-case that would cause failure (OSIDB-3858)
 

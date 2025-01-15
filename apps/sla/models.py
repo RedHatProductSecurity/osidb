@@ -79,6 +79,9 @@ class SLA(models.Model):
 
             return type_desc, ending
 
+        if sla_desc is None:
+            return None
+
         duration = int(sla_desc["duration"])
         sla_type, ending = parse_type(sla_desc["type"])
 
@@ -168,6 +171,9 @@ class SLAContext(dict):
 
         # empty initial SLA
         self.sla = None
+        # this flag determines if this should take priority over other
+        # SLAs as it's used to exclude certain trackers from SLA
+        self.is_exclusion = False
 
     def __eq__(self, other):
         """
@@ -180,9 +186,16 @@ class SLAContext(dict):
 
     def __lt__(self, other):
         """
-        empty SLA context is greater
+        empty SLA context is greater,
+        exclusion SLA is smaller,
         otherwise compare the end dates
         """
+        # Exclusion takes priority
+        if self.is_exclusion:
+            return True
+        if other.is_exclusion:
+            return False
+        # SLAs that didn't match but are not exclusion SLAs
         if self.sla is None:
             return False
         if other.sla is None:
@@ -237,7 +250,9 @@ class SLAPolicy(models.Model):
 
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
-    sla = models.ForeignKey(SLA, on_delete=models.CASCADE, related_name="policies")
+    sla = models.ForeignKey(
+        SLA, on_delete=models.CASCADE, null=True, related_name="policies"
+    )
     condition_descriptions = models.JSONField(default=dict)
     order = models.IntegerField(unique=True)
 
@@ -251,7 +266,8 @@ class SLAPolicy(models.Model):
         name = policy_desc["name"]
         description = policy_desc["description"]
         sla = SLA.create_from_description(policy_desc["sla"])
-        sla.save()
+        if sla is not None:
+            sla.save()
 
         if order is None:
             # Order is implied by the number of already existing SLA policies
@@ -328,6 +344,9 @@ class SLAPolicy(models.Model):
         # assign SLA policies
         for context in sla_contexts:
             context.sla = self.sla
+            if self.sla is None:
+                # Exclusion SLA is defined as null in the policy
+                context.is_exclusion = True
 
         # return the context resulting
         # in the earliest deadline
