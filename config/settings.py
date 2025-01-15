@@ -167,11 +167,16 @@ CELERY_TASK_ROUTES = (
     ],
 )
 CELERY_BEAT_SCHEDULE = {
+    "check_for_non_periodic_reschedules": {
+        "task": "osidb.tasks.check_for_non_periodic_reschedules",
+        # Run every ten minutes
+        "schedule": crontab(minute="*/10"),
+    },
     "stale_alert_cleanup": {
         "task": "osidb.tasks.stale_alert_cleanup",
         # Run every hour
         "schedule": crontab(minute=0),
-    }
+    },
 }
 
 # There are multiple possible memory leaks in Celery. To work around these issues it is

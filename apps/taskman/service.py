@@ -21,11 +21,7 @@ from .constants import (
     JIRA_TASKMAN_PROJECT_KEY,
     JIRA_TASKMAN_URL,
 )
-from .exceptions import (
-    JiraTaskErrorException,
-    MissingJiraTokenException,
-    TaskWritePermissionsException,
-)
+from .exceptions import JiraTaskErrorException, TaskWritePermissionsException
 
 logger = logging.getLogger(__name__)
 
@@ -80,14 +76,12 @@ class JiraTaskmanQuerier(JiraQuerier):
 
         Keyword arguments:
         token -- user token used in every request to Jira
+                 the service one is used if not provided
         """
         super().__init__()
-        if not token:
-            raise MissingJiraTokenException(
-                "User's Jira Token is required to perform this action."
-            )
         self._jira_server = JIRA_TASKMAN_URL
-        self._jira_token = token
+        if token:
+            self._jira_token = token
 
     def _check_token(self) -> None:
         """

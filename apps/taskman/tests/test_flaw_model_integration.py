@@ -7,6 +7,7 @@ from rest_framework.response import Response
 
 from apps.taskman.exceptions import TaskWritePermissionsException
 from apps.taskman.service import JiraTaskmanQuerier
+from apps.workflows.workflow import WorkflowModel
 from osidb.models import Flaw, FlawSource, Impact
 from osidb.tests.factories import AffectFactory, FlawFactory
 
@@ -328,3 +329,76 @@ class TestFlawModelIntegration(object):
         ):
             # Valid token for a project without permissions; should raise custom exception
             flaw.save(jira_token=jira_token)
+
+    def test_tasksync_conditions(
+        self, acl_read, acl_write, enable_jira_task_sync, monkeypatch
+    ):
+        """
+        test that tasksync conditional branching leands where it is supposed to
+        """
+        create_or_update_performed = False
+
+        def mock_create_or_update_task(self, jira_token=None):
+            nonlocal create_or_update_performed
+            create_or_update_performed = True
+
+        monkeypatch.setattr(Flaw, "_create_or_update_task", mock_create_or_update_task)
+
+        transition_performed = False
+
+        def mock_transition_task(self, jira_token=None):
+            nonlocal transition_performed
+            transition_performed = True
+
+        monkeypatch.setattr(Flaw, "_transition_task", mock_transition_task)
+
+        flaw = FlawFactory.build(bz_id=None, task_key=None)
+        assert flaw.save(jira_token="SECRET") is None  # nosec
+        # task creation on flaw creation
+        assert create_or_update_performed
+        assert not transition_performed
+
+        # provide IDs
+        flaw.bz_id = "12345"
+        flaw.task_key = "TASK-123"
+
+        create_or_update_performed = False
+        transition_performed = False
+
+        flaw.cve_id = flaw.cve_id + "0"
+        assert flaw.save(jira_token="SECRET") is None  # nosec
+        # task update on significant flaw change
+        assert create_or_update_performed
+        assert not transition_performed
+
+        create_or_update_performed = False
+        transition_performed = False
+
+        flaw.title = flaw.title + "ing"
+        assert flaw.save(jira_token="SECRET") is None  # nosec
+        # no task update on insignificant change
+        assert not create_or_update_performed
+        assert not transition_performed
+
+        create_or_update_performed = False
+        transition_performed = False
+
+        flaw.workflow_state = WorkflowModel.WorkflowState.NEW
+        assert flaw.save(jira_token="SECRET") is None  # nosec
+        # task state transition on workflow state change
+        assert not create_or_update_performed
+        assert transition_performed
+
+        create_or_update_performed = False
+        transition_performed = False
+
+        flaw.cve_id = flaw.cve_id + "0"
+        flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
+        assert (
+            flaw.save(jira_token="SECRET", raise_validation_error=False)  # nosec
+            is None
+        )
+        # both task update and state transition on significant
+        # flaw change and workflow state change at once
+        assert create_or_update_performed
+        assert transition_performed
