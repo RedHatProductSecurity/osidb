@@ -17,11 +17,13 @@ from .api_views import (
     FlawCommentView,
     FlawCVSSView,
     FlawIntrospectionView,
+    FlawLabelView,
     FlawPackageVersionView,
     FlawReferenceView,
     FlawSuggestionsView,
     FlawView,
     JiraStageForwarderView,
+    LabelView,
     ManifestView,
     StatusView,
     TrackerView,
@@ -53,6 +55,12 @@ router.register(
     FlawReferenceView,
     basename="flawreferences",
 )
+router.register(
+    r"flaws/(?P<flaw_id>[^/.]+)/labels",
+    FlawLabelView,
+    basename="flawlabels",
+)
+router.register("labels", LabelView)
 router.register(r"affects", AffectView)
 router.register(
     r"affects/(?P<affect_id>[^/.]+)/cvss_scores", AffectCVSSView, basename="affectcvss"

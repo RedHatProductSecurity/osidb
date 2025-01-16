@@ -13,10 +13,8 @@ from osidb.filters import FlawFilter
 from osidb.models import (
     Affect,
     Flaw,
-    FlawCollaborator,
     FlawComment,
     FlawCVSS,
-    FlawLabel,
     FlawReference,
     FlawSource,
     Impact,
@@ -1815,64 +1813,3 @@ class TestEndpointsFlaws:
         body = response.json()
         flaw_json = body["results"][0]
         assert "pgh_diff" not in flaw_json["history"]
-
-    def test_create_flaw_label(self, auth_client, test_api_uri):
-
-        FlawLabel.objects.create(
-            name="test_context", type=FlawLabel.FlawLabelType.CONTEXT_BASED
-        )
-        FlawLabel.objects.create(
-            name="test_product", type=FlawLabel.FlawLabelType.PRODUCT_FAMILY
-        )
-        flaw = FlawFactory(embargoed=False)
-
-        def update_flaw(labels):
-            return auth_client().put(
-                f"{test_api_uri}/flaws/{flaw.uuid}",
-                {
-                    "uuid": flaw.uuid,
-                    "cve_id": flaw.cve_id,
-                    "title": flaw.title,
-                    "comment_zero": flaw.comment_zero,
-                    "impact": flaw.impact,
-                    "source": flaw.source,
-                    "embargoed": False,
-                    "updated_dt": flaw.updated_dt,
-                    "labels": labels,
-                },
-                format="json",
-                HTTP_BUGZILLA_API_KEY="SECRET",
-                HTTP_JIRA_API_KEY="SECRET",
-            )
-
-        response = update_flaw(
-            [{"label": "test_context", "state": "NEW", "contributor": ""}]
-        )
-        assert response.status_code == 200
-        body = response.json()
-        assert body["labels"][0]["label"] == "test_context"
-
-        label = FlawCollaborator.objects.first()
-        assert label.label.name == "test_context"
-        assert label.label.type == FlawLabel.FlawLabelType.CONTEXT_BASED
-        assert label.state == FlawCollaborator.FlawCollaboratorState.NEW
-        assert label.contributor == ""
-
-        flaw = Flaw.objects.get(uuid=flaw.uuid)
-        response = update_flaw(
-            [{"label": "test_product", "state": "NEW", "contributor": ""}]
-        )
-        assert response.status_code == 400
-        body = response.json()
-        assert body["label"] == "Label 'test_product' is not context-based."
-
-        flaw = Flaw.objects.get(uuid=flaw.uuid)
-        response = update_flaw(
-            [
-                {"label": "test_context", "state": "NEW", "contributor": ""},
-                {"label": "test_context", "state": "NEW", "contributor": "updated"},
-            ]
-        )
-        assert response.status_code == 400
-        body = response.json()
-        assert body["label"] == ["Label 'test_context' already exists."]
