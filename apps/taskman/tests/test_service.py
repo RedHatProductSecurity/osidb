@@ -7,6 +7,7 @@ instance for generating new cassettes.
 
 import pytest
 
+from apps.taskman.constants import JIRA_SUMMARY_MAX_LENGTH
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.workflow import WorkflowModel
 from osidb.models import Flaw
@@ -120,3 +121,22 @@ class TestTaskmanService(object):
         link_id = response.data["id"]
         response = taskman.update_link(issue_key, link_id, url, "Red Hat Homepage")
         assert response.status_code == 204
+
+    def test_long_summary(self, jira_token):
+        """
+        Test that the summary in a Jira task is trimmed when the flaw's cve_id
+        and title exceed the maximum allowed length of 255 characters.
+        """
+        flaw = FlawFactory(
+            cve_id="CVE-2024-7142",
+            title="On Arista CloudVision Appliance (CVA) affected releases running on appliances that support "
+            "hardware disk encryption (DCA-350E-CV only), the disk encryption might not be successfully "
+            "performed. This results in the disks remaining unsecured and data on them",
+        )
+        AffectFactory(flaw=flaw)
+        assert len(flaw.cve_id) + len(flaw.title) > JIRA_SUMMARY_MAX_LENGTH
+
+        taskman = JiraTaskmanQuerier(token=jira_token)
+        issue_data = taskman._generate_task_data(flaw)
+        assert len(issue_data["fields"]["summary"]) == JIRA_SUMMARY_MAX_LENGTH
+        assert issue_data["fields"]["summary"].endswith("...")

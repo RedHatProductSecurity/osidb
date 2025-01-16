@@ -17,6 +17,7 @@ from osidb.models import Flaw, Impact, PsProduct
 
 from .constants import (
     JIRA_STORY_ISSUE_TYPE_ID,
+    JIRA_SUMMARY_MAX_LENGTH,
     JIRA_TASKMAN_PROJECT_ID,
     JIRA_TASKMAN_PROJECT_KEY,
     JIRA_TASKMAN_URL,
@@ -209,6 +210,10 @@ class JiraTaskmanQuerier(JiraQuerier):
             summary = flaw.title
         else:
             summary = f"{flaw.cve_id} {flaw.title}"
+
+        if len(summary) > JIRA_SUMMARY_MAX_LENGTH:
+            # Trim the maximum summary length by 3 to account for the triple dots
+            summary = f"{summary[:JIRA_SUMMARY_MAX_LENGTH-3]}..."
 
         data = {
             "fields": {
