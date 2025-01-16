@@ -2,13 +2,23 @@ import logging
 
 from bugzilla import Bugzilla
 from django.contrib.auth.models import User
-from django.db.models.signals import m2m_changed, post_save, pre_save
+from django.db.models.signals import m2m_changed, post_delete, post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from jira import JIRA
 
+from apps.workflows.workflow import WorkflowModel
 from osidb.helpers import get_env
-from osidb.models import Affect, AffectCVSS, Flaw, FlawCVSS, Impact, Profile, Tracker
+from osidb.models import (
+    Affect,
+    AffectCVSS,
+    Flaw,
+    FlawCollaborator,
+    FlawCVSS,
+    Impact,
+    Profile,
+    Tracker,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +111,32 @@ def update_flaw_fields(sender, instance, **kwargs):
 @receiver(post_save, sender=Affect)
 def update_local_updated_dt_affect(sender, instance, **kwargs):
     instance.flaw.save(auto_timestamps=False, raise_validation_error=False)
+
+
+@receiver(post_save, sender=Affect)
+def create_flaw_labels(sender, instance, **kwargs):
+    if instance.flaw.workflow_state == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT:
+        if instance._state.adding:
+            FlawCollaborator.objects.create_from_affect(instance)
+        else:
+            FlawCollaborator.objects.mark_irrelevant(instance.flaw)
+
+
+@receiver(post_delete, sender=Affect)
+def delete_flaw_labels(sender, instance, **kwargs):
+    if instance.flaw.workflow_state == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT:
+        FlawCollaborator.objects.mark_irrelevant(instance.flaw)
+
+
+@receiver(pre_save, sender=Flaw)
+def create_labels_on_promote(sender, instance, **kwargs):
+    if (
+        not instance._state.adding
+        and instance.workflow_state == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        and Flaw.objects.get(pk=instance.pk).workflow_state
+        != WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+    ):
+        FlawCollaborator.objects.create_from_flaw(instance)
 
 
 @receiver(post_save, sender=Tracker)
