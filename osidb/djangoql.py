@@ -9,6 +9,7 @@ from osidb.models import (
     Affect,
     Flaw,
     FlawAcknowledgment,
+    FlawCollaborator,
     FlawCVSS,
     FlawReference,
     Package,
@@ -32,6 +33,7 @@ class FlawQLSchema(DjangoQLSchema):
         Affect,
         Flaw,
         FlawAcknowledgment,
+        FlawCollaborator,
         FlawCVSS,
         FlawReference,
         Package,
@@ -50,6 +52,7 @@ class FlawQLSchema(DjangoQLSchema):
             "source",
             "workflow_state",
         ],
+        FlawCollaborator: ["contributor", "label"],
         FlawCVSS: ["issuer", "version"],
         FlawReference: ["type"],
         Tracker: ["resolution", "status", "type"],
@@ -62,6 +65,8 @@ class FlawQLSchema(DjangoQLSchema):
             exclude += ["snippets", "local_updated_dt"]
             fields.remove("components")
             fields += [FlawComponentField(), FlawEmbargoedField()]
+        elif model == FlawCollaborator:
+            exclude += ["created_dt", "updated_dt", "uuid"]
         return set(fields) - set(exclude)
 
 
