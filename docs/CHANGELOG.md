@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement 'in' operator in SLA conditions (OSIDB-3711)
 - Enable async Jira task sync and transition (OSIDB-3693)
 - Add collaboration labels on flaw promotion (OSIDB-3804)
+- Add basic end-to-end tests for Flaws, Affects and Trackers (OSIDB-3495)
 
 ### Changed
 - Removed `last_validated_dt` from exposed JSON Flaw History data (OSIDB-3814), handled edge-case that would cause failure (OSIDB-3858)

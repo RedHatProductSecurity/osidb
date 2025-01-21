@@ -304,7 +304,9 @@ def set_invalid_tokens(is_recording_vcr, monkeypatch):
 
 
 @pytest.fixture(autouse=True)  # Automatically use in tests.
-def set_recording_environments(is_recording_vcr, monkeypatch):
+def set_recording_environments(
+    is_recording_vcr, bugzilla_token, jira_token, monkeypatch
+):
     """
     automatically use local environments variables when writing VCRs cassettes
     """
