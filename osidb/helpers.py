@@ -101,6 +101,11 @@ def get_env(
 def get_env_date(key: str, default: str) -> Union[datetime, None]:
     """get a date environment variable of the ISO format (YYYY-MM-DD)"""
     value = getenv(key, default)
+    # consider empty string as empty value
+    # as setting the value to non-existing env variable
+    # in compose.yml results in an empty string
+    if value == "":
+        value = default
     return make_aware(datetime.fromisoformat(value))
 
 
