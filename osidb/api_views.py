@@ -11,7 +11,7 @@ import pghistory
 import pkg_resources
 import requests
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djangoql.serializers import SuggestionsAPISerializer
@@ -25,10 +25,15 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet, ViewSet, ViewSetMixin
+from rest_framework.viewsets import (
+    ModelViewSet,
+    ReadOnlyModelViewSet,
+    ViewSet,
+    ViewSetMixin,
+)
 
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
-from osidb.models import Affect, AffectCVSS, Flaw, Tracker
+from osidb.models import Affect, AffectCVSS, Flaw, FlawLabel, Tracker
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import (
@@ -58,11 +63,14 @@ from .serializer import (
     FlawAcknowledgmentPostSerializer,
     FlawAcknowledgmentPutSerializer,
     FlawAcknowledgmentSerializer,
+    FlawCollaboratorPostSerializer,
+    FlawCollaboratorSerializer,
     FlawCommentPostSerializer,
     FlawCommentSerializer,
     FlawCVSSPostSerializer,
     FlawCVSSPutSerializer,
     FlawCVSSSerializer,
+    FlawLabelSerializer,
     FlawPackageVersionPostSerializer,
     FlawPackageVersionPutSerializer,
     FlawPackageVersionSerializer,
@@ -1162,6 +1170,41 @@ class AlertView(RudimentaryUserPathLoggingMixin, ModelViewSet):
     http_method_names = get_valid_http_methods(
         ModelViewSet, excluded=["patch", "post", "put", "delete"]
     )
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+@extend_schema_view(
+    create=extend_schema(
+        request=FlawCollaboratorPostSerializer,
+    ),
+    update=extend_schema(
+        request=FlawCollaboratorPostSerializer,
+    ),
+)
+class FlawLabelView(
+    RudimentaryUserPathLoggingMixin,
+    SubFlawViewGetMixin,
+    ModelViewSet,
+):
+    serializer_class = FlawCollaboratorSerializer
+    http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.type == FlawLabel.FlawLabelType.PRODUCT_FAMILY:
+            raise PermissionDenied(
+                {"label": "Product family labels cannot be deleted."}
+            )
+        return super().destroy(request, *args, **kwargs)
+
+
+class LabelView(
+    RudimentaryUserPathLoggingMixin,
+    ReadOnlyModelViewSet,
+):
+    queryset = FlawLabel.objects.all()
+    serializer_class = FlawLabelSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 

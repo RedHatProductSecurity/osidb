@@ -1693,14 +1693,55 @@ class FlawCVSSPutSerializer(FlawCVSSSerializer):
     pass
 
 
-class FlawCollaboratorSerializer(AlertMixinSerializer):
+class FlawLabelSerializer(serializers.ModelSerializer):
+    """FlawLabel serializer"""
+
+    class Meta:
+        """filter fields"""
+
+        model = FlawLabel
+        fields = ["name", "type"]
+
+
+class FlawCollaboratorSerializer(TrackingMixinSerializer):
     """FlawCollaborator serializer"""
+
+    flaw = serializers.UUIDField(write_only=True, source="flaw_id")
 
     class Meta:
         """filter fields"""
 
         model = FlawCollaborator
-        fields = ["label", "state", "contributor"]
+        fields = ["uuid", "flaw", "label", "state", "contributor", "relevant", "type"]
+
+    def create(self, validated_data):
+        label = FlawLabel.objects.get(name=validated_data.get("label"))
+        if label.type != FlawLabel.FlawLabelType.CONTEXT_BASED:
+            raise serializers.ValidationError(
+                {
+                    "label": f"Only context-based labels can be manually added to flaws. '{label.name}' is a product-based label."
+                }
+            )
+
+        validated_data["type"] = label.type
+        validated_data["relevant"] = True
+
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if validated_data.get("label") != instance.label:
+            raise serializers.ValidationError(
+                {"label": "Label name cannot be changed."}
+            )
+
+        return super().update(instance, validated_data)
+
+
+@extend_schema_serializer(exclude_fields=["flaw", "relevant", "type"])
+class FlawCollaboratorPostSerializer(FlawCollaboratorSerializer):
+    # Extra serializer for POST request as there is no last update
+    # timestamp but we need to make the field mandatory otherwise.
+    pass
 
 
 class FlawSerializer(
@@ -1756,7 +1797,7 @@ class FlawSerializer(
     cvss_scores = FlawCVSSSerializer(many=True, read_only=True)
     package_versions = PackageSerializer(many=True, read_only=True)
 
-    labels = FlawCollaboratorSerializer(many=True, required=False, allow_null=True)
+    labels = FlawCollaboratorSerializer(many=True, required=False, read_only=True)
 
     meta_attr = serializers.SerializerMethodField()
 
@@ -1881,8 +1922,6 @@ class FlawSerializer(
         # store the old flaw for the later comparison
         old_flaw = Flaw.objects.get(uuid=new_flaw.uuid)
 
-        # store labels for later update
-        labels = validated_data.pop("labels", None)
         #####################
         # 2) update actions #
         #####################
@@ -1923,46 +1962,11 @@ class FlawSerializer(
         # update trackers if needed
         self.update_trackers(old_flaw, new_flaw)
 
-        # update labels if needed
-        self.update_labels(new_flaw, labels)
-
         #####################
         # 4) return updated #
         #####################
 
         return new_flaw
-
-    def update_labels(self, new_flaw, labels):
-        """
-        update the related labels if needed
-        """
-        if labels is None:
-            return
-
-        def get_label(**label):
-            """
-            get the label instance by name
-            """
-            try:
-                return FlawCollaborator.objects.get(flaw=new_flaw, **label)
-            except FlawCollaborator.DoesNotExist:
-                return FlawCollaborator(flaw=new_flaw, **label)
-
-        # Remove labels that are not in the request
-        new_flaw.labels.filter(
-            label__type=FlawLabel.FlawLabelType.CONTEXT_BASED
-        ).exclude(label__in=[label["label"] for label in labels]).delete()
-
-        for label_raw in labels:
-            label = get_label(**label_raw)
-
-            # Only context-based labels can be updated manually
-            if label.label.type != FlawLabel.FlawLabelType.CONTEXT_BASED:
-                raise serializers.ValidationError(
-                    {"label": f"Label '{label.label}' is not context-based."}
-                )
-
-            label.save()
 
     def update_trackers(self, old_flaw, new_flaw):
         """
