@@ -243,7 +243,7 @@ def enable_bz_sync(monkeypatch) -> None:
 @pytest.fixture
 def enable_bz_async_sync(enable_bz_sync, monkeypatch) -> None:
     """
-    enable asynchonous synchronization of flaws to Bugzilla
+    enable asynchronous synchronization of flaws to Bugzilla
     enable the sync of trackers to Bugzilla
     """
     import apps.bbsync.constants as bbsync_constants
@@ -268,6 +268,17 @@ def enable_jira_task_sync(monkeypatch) -> None:
     monkeypatch.setattr(serializer, "JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
     monkeypatch.setattr(service, "JIRA_STORY_ISSUE_TYPE_ID", "17")
     monkeypatch.setattr(service, "JIRA_TASKMAN_PROJECT_ID", "12337520")
+
+
+@pytest.fixture
+def enable_jira_task_async_sync(enable_jira_task_sync, monkeypatch) -> None:
+    """
+    enable asynchronous synchronization of tasks to Jira
+    enable the sync of tasks to Jira
+    """
+    from osidb.models.flaw import flaw
+
+    monkeypatch.setattr(flaw, "JIRA_TASKMAN_ASYNCHRONOUS_SYNC", True)
 
 
 @pytest.fixture
