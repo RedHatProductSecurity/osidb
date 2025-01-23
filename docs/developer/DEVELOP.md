@@ -41,6 +41,8 @@ JIRA_TASKMAN_PROJECT_KEY="OSIM"
 # passing a Jira token and a task will be created / updated in your
 # JIRA_TASKMAN_URL Jira instance for JIRA_TASKMAN_PROJECT_KEY project
 JIRA_TASKMAN_AUTO_SYNC_FLAW=1
+# If true, the task management will be performed asynchronously
+JIRA_TASKMAN_ASYNCHRONOUS_SYNC=1
 
 # Export the default local postgresql password
 OSIDB_DB_PASSWORD=passw0rd
