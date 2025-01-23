@@ -820,7 +820,7 @@ class TestFlawValidators:
         ],
     )
     def test_validate_rh_nist_cvss_severity_diff(
-        self, nist_cvss, rh_cvss, should_alert
+        self, rh_cvss, nist_cvss, should_alert
     ):
         """
         Tests that the NIST and RH CVSSv3 score are not of a different severity.
