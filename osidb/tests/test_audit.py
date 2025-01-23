@@ -6,7 +6,7 @@ import pytest
 from django.db import transaction
 
 from osidb.core import set_user_acls
-from osidb.models import Affect, Flaw, FlawSource, Impact, Tracker
+from osidb.models import Affect, Flaw, FlawCVSS, FlawSource, Impact, Tracker
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,
@@ -182,7 +182,7 @@ class TestAuditFlaw:
         assert flaw_com.acl_read == embargoed_read_groups
         assert flaw_com.acl_write == embargoed_write_groups
 
-        flaw_cvss = FlawCVSSFactory(flaw=flaw)
+        flaw_cvss = FlawCVSSFactory(flaw=flaw, version=FlawCVSS.CVSSVersion.VERSION4)
         assert flaw_cvss.acl_read == embargoed_read_groups
         assert flaw_cvss.acl_write == embargoed_write_groups
 

@@ -1,7 +1,7 @@
 import pytest
 from rest_framework import status
 
-from osidb.models import FlawCVSS
+from osidb.models import FlawCVSS, Impact
 from osidb.tests.factories import AffectFactory, FlawCVSSFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
@@ -17,7 +17,7 @@ class TestEndpointsFlawsCVSSScores:
         """
         Test the creation of FlawCVSS records via a REST API POST request.
         """
-        flaw = FlawFactory()
+        flaw = FlawFactory(impact=Impact.LOW)
         cvss_data = {
             "issuer": FlawCVSS.CVSSIssuer.REDHAT,
             "cvss_version": FlawCVSS.CVSSVersion.VERSION3,
@@ -55,7 +55,12 @@ class TestEndpointsFlawsCVSSScores:
         Test the update of FlawCVSS records via a REST API PUT request.
         """
         flaw = FlawFactory()
-        cvss = FlawCVSSFactory(flaw=flaw, issuer=FlawCVSS.CVSSIssuer.REDHAT, comment="")
+        cvss = FlawCVSSFactory(
+            flaw=flaw,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION2,
+            comment="",
+        )
 
         response = auth_client().get(
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores/{cvss.uuid}"
@@ -83,7 +88,7 @@ class TestEndpointsFlawsCVSSScores:
         """
         flaw = FlawFactory()
         AffectFactory(flaw=flaw)
-        cvss = FlawCVSSFactory(flaw=flaw)
+        cvss = FlawCVSSFactory(flaw=flaw, issuer=FlawCVSS.CVSSIssuer.NIST)
 
         url = f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores/{cvss.uuid}"
         response = auth_client().get(url)

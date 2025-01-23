@@ -261,7 +261,7 @@ class TestNVDCollector:
         """
         test that NIST CVSS validation flag is correctly adjusted when NVD CVSSv3 is removed
         """
-        flaw = FlawFactory()
+        flaw = FlawFactory(impact=Impact.LOW)
         FlawCVSSFactory(
             flaw=flaw,
             issuer=FlawCVSS.CVSSIssuer.REDHAT,

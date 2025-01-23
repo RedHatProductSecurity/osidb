@@ -4,7 +4,7 @@ from django.db import transaction
 from django.db.utils import ProgrammingError
 
 from osidb.core import set_user_acls
-from osidb.models import CVSS, Flaw
+from osidb.models import CVSS, Flaw, Impact
 from osidb.tests.factories import FlawCVSSFactory, FlawFactory
 
 pytestmark = pytest.mark.enable_rls
@@ -80,10 +80,13 @@ class TestRLS:
         """
         set_user_acls(settings.ALL_GROUPS)
         f1 = FlawFactory(title="foo", embargoed=False)
-        f2 = FlawFactory(title="bar", embargoed=True)
+        f2 = FlawFactory(title="bar", embargoed=True, impact=Impact.MODERATE)
         # Avoid issuing alerts for f2 so that the error is not due to the RLS in the alert table
         FlawCVSSFactory(
-            flaw=f2, version=CVSS.CVSSVersion.VERSION3, issuer=CVSS.CVSSIssuer.REDHAT
+            flaw=f2,
+            version=CVSS.CVSSVersion.VERSION3,
+            issuer=CVSS.CVSSIssuer.REDHAT,
+            vector="CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
         )
 
         set_user_acls(settings.PUBLIC_READ_GROUPS + [settings.PUBLIC_WRITE_GROUP])

@@ -111,7 +111,7 @@ class TestEndpointsFlaws:
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["cvss_scores"]) == 0
 
-        FlawCVSSFactory(flaw=flaw)
+        FlawCVSSFactory(flaw=flaw, issuer=FlawCVSS.CVSSIssuer.NIST)
 
         response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == status.HTTP_200_OK
@@ -327,18 +327,27 @@ class TestEndpointsFlaws:
         body = response.json()
         assert body["count"] == 0
 
-        flaw = FlawFactory()
+        flaw = FlawFactory(impact=Impact.LOW)
 
         response = auth_client().get(f"{test_api_uri}/flaws?{filter_name}__isempty=1")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
 
-        FlawCVSSFactory(
-            flaw=flaw,
-            issuer=issuer,
-            version=version,
-        )
+        # RH CVSSv3 needs to match with flaw impact
+        if filter_name == "cvss3_rh":
+            FlawCVSSFactory(
+                flaw=flaw,
+                issuer=issuer,
+                version=version,
+                vector="CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+            )
+        else:
+            FlawCVSSFactory(
+                flaw=flaw,
+                issuer=issuer,
+                version=version,
+            )
         response = auth_client().get(f"{test_api_uri}/flaws?{filter_name}__isempty=1")
         assert response.status_code == 200
         body = response.json()

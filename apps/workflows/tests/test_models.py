@@ -3,7 +3,15 @@ import pytest
 from apps.workflows.exceptions import LastStateException, MissingRequirementsException
 from apps.workflows.models import Check, Condition, State, Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
-from osidb.models import Affect, Flaw, FlawReference, FlawSource, Impact, Tracker
+from osidb.models import (
+    Affect,
+    Flaw,
+    FlawCVSS,
+    FlawReference,
+    FlawSource,
+    Impact,
+    Tracker,
+)
 from osidb.tests.factories import (
     AffectFactory,
     FlawCVSSFactory,
@@ -33,7 +41,12 @@ class TestCheck:
         "field,factory",
         [
             ("affects", lambda flaw: AffectFactory(flaw=flaw)),
-            ("cvss_scores", lambda flaw: FlawCVSSFactory(flaw=flaw)),
+            (
+                "cvss_scores",
+                lambda flaw: FlawCVSSFactory(
+                    flaw=flaw, issuer=FlawCVSS.CVSSIssuer.NIST
+                ),
+            ),
             ("package_versions", lambda flaw: PackageFactory(flaw=flaw)),
         ],
     )

@@ -97,6 +97,7 @@ class TestFlaw:
             flaw=vuln_1,
             version=FlawCVSS.CVSSVersion.VERSION3,
             issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            vector="CVSS:3.1/AV:A/AC:H/PR:L/UI:R/S:C/C:L/I:L/A:H",
         )
         all_cvss_scores = vuln_1.cvss_scores.all()
         assert len(all_cvss_scores) == 2
@@ -729,6 +730,7 @@ class TestFlawValidators:
         Tests that the difference between the RH and NIST CVSSv3 score is not >= 1.0.
         """
         flaw = FlawFactory(
+            impact=Impact.MODERATE,
             # fields below are set to avoid any alerts
             embargoed=False,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
@@ -757,7 +759,7 @@ class TestFlawValidators:
 
     @pytest.mark.enable_signals
     @pytest.mark.parametrize(
-        "rh_cvss,nist_cvss,should_alert",
+        "rh_cvss,nist_cvss,impact,should_alert",
         [
             # Note: not possible to test None vs Low since the lowest possible
             # CVSS score of low severity is 1.6 which violates the RH vs NIST
@@ -766,24 +768,28 @@ class TestFlawValidators:
             (
                 "CVSS:3.1/AV:A/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:L",  # score 3.8
                 "CVSS:3.1/AV:L/AC:L/PR:H/UI:R/S:U/C:L/I:L/A:L",  # score 4.0
+                Impact.MODERATE,
                 True,
             ),
             # Medium vs Low
             (
                 "CVSS:3.1/AV:L/AC:L/PR:H/UI:R/S:U/C:L/I:L/A:L",  # score 4.0
                 "CVSS:3.1/AV:N/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:L",  # score 3.9
+                Impact.MODERATE,
                 True,
             ),
             # Medium vs High
             (
                 "CVSS:3.1/AV:P/AC:H/PR:L/UI:R/S:C/C:H/I:H/A:H",  # score 6.9
                 "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:H/I:L/A:H",  # score 7.6
+                Impact.MODERATE,
                 True,
             ),
             # High vs Critical
             (
                 "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H",  # score 8.8
                 "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:H",  # score 9.4
+                Impact.MODERATE,
                 True,
             ),
             # everything below is without alerts
@@ -791,41 +797,47 @@ class TestFlawValidators:
             (
                 "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N",  # score 0.0
                 "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N",  # score 0.0
+                Impact.NOVALUE,
                 False,
             ),
             # Low vs Low (right boundary)
             (
                 "CVSS:3.1/AV:N/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:L",  # score 3.9
                 "CVSS:3.1/AV:P/AC:H/PR:H/UI:R/S:U/C:N/I:N/A:H",  # score 3.8
+                Impact.MODERATE,
                 False,
             ),
             # Medium vs Medium (left boundary)
             (
                 "CVSS:3.1/AV:L/AC:L/PR:H/UI:R/S:U/C:L/I:L/A:L",  # score 4.0
                 "CVSS:3.1/AV:P/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:H",  # score 4.9
+                Impact.MODERATE,
                 False,
             ),
             # High vs High
             (
                 "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:H/I:L/A:H",  # score 7.6
                 "CVSS:3.1/AV:N/AC:H/PR:H/UI:R/S:C/C:L/I:H/A:H",  # score 7.5
+                Impact.MODERATE,
                 False,
             ),
             # High vs Critical
             (
                 "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:H",  # score 9.4
                 "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:H/A:H",  # score 10.0
+                Impact.MODERATE,
                 False,
             ),
         ],
     )
     def test_validate_rh_nist_cvss_severity_diff(
-        self, rh_cvss, nist_cvss, should_alert
+        self, rh_cvss, nist_cvss, impact, should_alert
     ):
         """
         Tests that the NIST and RH CVSSv3 score are not of a different severity.
         """
         flaw = FlawFactory(
+            impact=impact,
             # fields below are set to avoid any alerts
             embargoed=False,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
@@ -960,6 +972,7 @@ class TestFlawValidators:
         Tests whether RH should send a request to NIST on flaw CVSS rescore.
         """
         flaw = FlawFactory.build(
+            impact=Impact.LOW,
             nist_cvss_validation=rescore,
             # fields below are set to avoid any alerts
             embargoed=False,
@@ -1030,6 +1043,7 @@ class TestFlawValidators:
         scores need to be present.
         """
         flaw = FlawFactory.build(
+            impact=Impact.LOW,
             nist_cvss_validation=rescore,
             # fields below are set to avoid any alerts
             embargoed=False,
@@ -1048,6 +1062,7 @@ class TestFlawValidators:
                 flaw=flaw,
                 version=FlawCVSS.CVSSVersion.VERSION3,
                 issuer=FlawCVSS.CVSSIssuer.REDHAT,
+                vector="CVSS:3.1/AV:A/AC:H/PR:L/UI:R/S:C/C:L/I:L/A:H",
             )
         AffectFactory(flaw=flaw)
 
@@ -1057,6 +1072,49 @@ class TestFlawValidators:
                 "NIST CVSSv3 and RH CVSSv3 scores assigned."
             )
             with pytest.raises(ValidationError, match=error_msg):
+                flaw.save()
+        else:
+            assert flaw.save() is None
+
+    @pytest.mark.enable_signals
+    @pytest.mark.parametrize(
+        "impact,vector,should_raise",
+        [
+            # score 7.2
+            (Impact.LOW, "CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H", None),
+            # score 0.0
+            (Impact.NOVALUE, "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N", None),
+            # score 0.0
+            (
+                Impact.LOW,
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N",
+                "Flaw impact must not be set if RH CVSSv3 score is zero.",
+            ),
+            # score 7.2
+            (
+                Impact.NOVALUE,
+                "CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
+                "Flaw impact must be set if RH CVSSv3 score is not zero.",
+            ),
+        ],
+    )
+    def test_validate_rh_cvss3_and_impact(self, impact, vector, should_raise):
+        """
+        Test that flaw's RH CVSSv3 score and impact comply with the following:
+        * RH CVSSv3 score is not zero and flaw impact is set
+        * RH CVSSv3 score is zero and flaw impact is not set
+        If not, an alert is raised.
+        """
+        cvss = FlawCVSSFactory(
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            vector=vector,
+        )
+        flaw = cvss.flaw
+        flaw.impact = impact
+
+        if should_raise:
+            with pytest.raises(ValidationError, match=should_raise):
                 flaw.save()
         else:
             assert flaw.save() is None
@@ -1093,6 +1151,7 @@ class TestFlawValidators:
             flaw=flaw,
             version=FlawCVSS.CVSSVersion.VERSION3,
             issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            vector="CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
         )
         AffectFactory(flaw=flaw)
         flaw.save()
@@ -1350,6 +1409,7 @@ class TestFlawValidators:
         Tests that an alert is raised when the CVSSv3 string is not present.
         """
         flaw = FlawFactory(
+            impact=Impact.LOW,
             # fields below are set to avoid any alerts
             embargoed=False,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
@@ -1552,6 +1612,7 @@ class TestFlawValidators:
             flaw=flaw,
             version=FlawCVSS.CVSSVersion.VERSION3,
             issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            vector="CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
         )
         FlawReferenceFactory(flaw=flaw, type=article[0], url=article[1])
         AffectFactory(flaw=flaw)
@@ -1646,6 +1707,7 @@ class TestFlawValidators:
             flaw=flaw,
             version=FlawCVSS.CVSSVersion.VERSION3,
             issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            vector="CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
         )
         AffectFactory(flaw=flaw)
         flaw.save()

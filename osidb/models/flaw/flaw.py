@@ -456,9 +456,11 @@ class Flaw(
                 **kwargs,
             )
 
-    def _validate_empty_impact_and_cvss_score(self, **kwargs):
+    def _validate_rh_cvss3_and_impact(self, **kwargs):
         """
-        Checks that if impact is None, CVSSv3 score must be zero.
+        Validate that flaw's RH CVSSv3 score and impact comply with the following:
+        * RH CVSSv3 score is not zero and flaw impact is set
+        * RH CVSSv3 score is zero and flaw impact is not set
         """
         from .cvss import FlawCVSS
 
@@ -466,10 +468,15 @@ class Flaw(
             version=FlawCVSS.CVSSVersion.VERSION3, issuer=FlawCVSS.CVSSIssuer.REDHAT
         ).first()
 
-        if not self.impact and rh_cvss3 and rh_cvss3.score != Decimal("0.0"):
-            raise ValidationError(
-                {"impact": ["Impact is set to None but CVSSv3 score is not zero."]}
-            )
+        if rh_cvss3:
+            if rh_cvss3.cvss_object.base_score == Decimal("0.0") and self.impact:
+                raise ValidationError(
+                    "Flaw impact must not be set if RH CVSSv3 score is zero."
+                )
+            if rh_cvss3.cvss_object.base_score != Decimal("0.0") and not self.impact:
+                raise ValidationError(
+                    "Flaw impact must be set if RH CVSSv3 score is not zero."
+                )
 
     def _validate_cve_description_and_requires_cve_description(self, **kwargs):
         """
