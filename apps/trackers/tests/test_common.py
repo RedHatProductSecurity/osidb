@@ -5,8 +5,12 @@ from datetime import datetime, timezone
 
 import pytest
 
+from apps.sla.tests.test_framework import load_sla_policies
+from apps.trackers.bugzilla.query import TrackerBugzillaQueryBuilder
 from apps.trackers.common import TrackerQueryBuilder
-from osidb.models import Affect, Flaw, Tracker
+from apps.trackers.jira.query import TrackerJiraQueryBuilder
+from apps.trackers.models import JiraProjectFields
+from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -680,3 +684,140 @@ class TestTrackerQueryBuilderDescription:
         assert "preliminary notification" not in tqb.description
         assert "triage" not in tqb.description
         assert "Triage" not in tqb.description
+
+
+class TestTrackerQueryBuilderSLA:
+    """
+    TrackerQueryBuilder deadline/duedate and related stuff test cases
+    """
+
+    @pytest.mark.parametrize(
+        "impact,under_sla",
+        [
+            (Impact.LOW, False),
+            (Impact.MODERATE, False),
+            (Impact.IMPORTANT, True),
+            (Impact.CRITICAL, True),
+        ],
+    )
+    def test_explicit_duedate(
+        self,
+        clean_policies,
+        setup_vulnerability_issue_type_fields,
+        impact,
+        under_sla,
+    ):
+        """
+        test that every tracker gets a deadline/duedate
+        even if the value was empty because of no SLA
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            impact=impact,
+            reported_dt=datetime(2020, 1, 1, tzinfo=timezone.utc),
+            source="REDHAT",
+        )
+
+        # Bugzilla tracker context
+        ps_module1 = PsModuleFactory(
+            bts_key="BZPROJECT",
+            bts_name="bugzilla",
+        )
+        affect1 = AffectFactory(
+            flaw=flaw,
+            impact=Impact.NOVALUE,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module1.name,
+        )
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module1)
+        tracker1 = TrackerFactory(
+            affects=[affect1],
+            embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream1.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+
+        # Jira tracker context
+        ps_module2 = PsModuleFactory(
+            bts_key="FOOPROJECT",
+            bts_name="jboss",
+            private_trackers_allowed=False,
+        )
+        affect2 = AffectFactory(
+            flaw=flaw,
+            impact=Impact.NOVALUE,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module2.name,
+        )
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
+        tracker2 = TrackerFactory(
+            affects=[affect2],
+            embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream2.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        JiraProjectFields(
+            project_key="FOOPROJECT",
+            field_id="customfield_123",
+            field_name="CVE Severity",
+            allowed_values=[
+                "Critical",
+                "Important",
+                "Moderate",
+                "Low",
+            ],
+        ).save()
+        target_start_id = "customfield_12313941"
+        JiraProjectFields(
+            project_key=ps_module2.bts_key,
+            field_id=target_start_id,
+            field_name="Target start",
+        ).save()
+
+        # simplified impact policies effective today
+        sla_file = """
+---
+name: Critical
+description: SLA policy applied to critical impact
+conditions:
+  affect:
+    - aggregated impact is critical
+sla:
+  duration: 7
+  start:
+    latest:
+      flaw:
+        - unembargo date
+  type: calendar days
+---
+name: Important
+description: SLA policy applied to important impact
+conditions:
+  affect:
+    - aggregated impact is important
+sla:
+  duration: 21
+  start:
+    latest:
+      flaw:
+        - unembargo date
+  type: calendar days
+"""
+
+        load_sla_policies(sla_file)
+
+        # check that the SLA fields are always in the query
+        # but has a non-empty value only when SLA is applied
+
+        query = TrackerBugzillaQueryBuilder(tracker1).query
+        assert "deadline" in query
+        assert bool(query["deadline"]) is under_sla
+
+        query = TrackerJiraQueryBuilder(tracker2).query
+        assert "duedate" in query["fields"]
+        assert bool(query["fields"]["duedate"]) is under_sla
+        assert target_start_id in query["fields"]
+        assert bool(query["fields"][target_start_id]) is under_sla
