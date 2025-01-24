@@ -5,9 +5,10 @@ from datetime import datetime, timezone
 
 import pytest
 
-from osidb.models import Affect, Tracker
+from osidb.models import Affect, Flaw, FlawCVSS, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
+    FlawCVSSFactory,
     FlawFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
@@ -45,3 +46,28 @@ class TestTrackerFactory:
         )
         assert tracker.created_dt == datetime(2000, 10, 10, tzinfo=timezone.utc)
         assert tracker.updated_dt == datetime(2000, 10, 10, tzinfo=timezone.utc)
+
+
+class TestFlawCVSSFactory:
+    @pytest.mark.parametrize(
+        "vector,impact",
+        [
+            # 7.2
+            ("CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H", Impact.MODERATE),
+            # 0.0
+            ("CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N", Impact.NOVALUE),
+        ],
+    )
+    def test_rh_cvss3_and_impact(self, vector, impact):
+        """
+        Test that flaw and its impact are correctly created from RH CVSSv3 score
+        """
+        FlawCVSSFactory(
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            vector=vector,
+        )
+
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.impact == impact

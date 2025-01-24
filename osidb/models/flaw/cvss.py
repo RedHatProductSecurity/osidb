@@ -51,8 +51,21 @@ class FlawCVSS(CVSS):
             GinIndex(fields=["acl_read"]),
         ]
 
-    def _validate_empty_impact_and_cvss_score(self, **kwargs):
-        if not self.flaw.impact and self.cvss_object.base_score != Decimal("0.0"):
-            raise ValidationError(
-                {"cvss_score": ["CVSS score must be 0.0 for flaws with no impact"]}
-            )
+    def _validate_rh_cvss3_and_impact(self, **kwargs):
+        """
+        Validate that flaw's RH CVSSv3 score and impact comply with the following:
+        * RH CVSSv3 score is not zero and flaw impact is set
+        * RH CVSSv3 score is zero and flaw impact is not set
+        """
+        if (
+            self.issuer == self.CVSSIssuer.REDHAT
+            and self.version == self.CVSSVersion.VERSION3
+        ):
+            if self.flaw.impact and self.cvss_object.base_score == Decimal("0.0"):
+                raise ValidationError(
+                    "RH CVSSv3 score must not be zero if flaw impact is set."
+                )
+            if not self.flaw.impact and self.cvss_object.base_score != Decimal("0.0"):
+                raise ValidationError(
+                    "RH CVSSv3 score must be zero if flaw impact is not set."
+                )

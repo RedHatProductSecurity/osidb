@@ -2,7 +2,7 @@ import pytest
 from cvss import CVSS3
 from django.core.exceptions import ValidationError
 
-from osidb.models import CVSS
+from osidb.models import CVSS, FlawCVSS, Impact
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,
@@ -21,7 +21,9 @@ class TestCVSS:
         flaw_cvss2 = FlawCVSSFactory(
             flaw=flaw, version=CVSS.CVSSVersion.VERSION2, issuer=CVSS.CVSSIssuer.REDHAT
         )
-        flaw_cvss3 = FlawCVSSFactory(flaw=flaw, version=CVSS.CVSSVersion.VERSION3)
+        flaw_cvss3 = FlawCVSSFactory(
+            flaw=flaw, version=CVSS.CVSSVersion.VERSION3, issuer=CVSS.CVSSIssuer.NIST
+        )
 
         affect_cvss2 = AffectCVSSFactory(
             affect=affect, version=CVSS.CVSSVersion.VERSION2
@@ -81,6 +83,7 @@ class TestCVSS:
                 flaw=flaw,
                 version=CVSS.CVSSVersion.VERSION3,
                 vector=cvss3_vector,
+                issuer=CVSS.CVSSIssuer.CVEORG,
             )
 
     @pytest.mark.parametrize(
@@ -93,7 +96,11 @@ class TestCVSS:
     )
     def test_validate_cvss2_string(self, cvss2_vector):
         with pytest.raises(ValidationError, match="Invalid CVSS"):
-            FlawCVSSFactory(version=CVSS.CVSSVersion.VERSION2, vector=cvss2_vector)
+            FlawCVSSFactory(
+                version=CVSS.CVSSVersion.VERSION2,
+                vector=cvss2_vector,
+                issuer=CVSS.CVSSIssuer.CVEORG,
+            )
 
     @pytest.mark.enable_signals
     def test_cvss3_recalculation(self):
@@ -126,3 +133,46 @@ class TestCVSS:
     def test_str_representation(self):
         cvss = FlawCVSSFactory()
         assert str(cvss) == f"{cvss.score}/{cvss.vector}"
+
+    @pytest.mark.enable_signals
+    @pytest.mark.parametrize(
+        "impact,vector,should_raise",
+        [
+            # score 7.2
+            (Impact.LOW, "CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H", None),
+            # score 0.0
+            (Impact.NOVALUE, "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N", None),
+            # score 0.0
+            (
+                Impact.LOW,
+                "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N",
+                "RH CVSSv3 score must not be zero if flaw impact is set.",
+            ),
+            # score 7.2
+            (
+                Impact.NOVALUE,
+                "CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
+                "RH CVSSv3 score must be zero if flaw impact is not set.",
+            ),
+        ],
+    )
+    def test_validate_rh_cvss3_and_impact(self, impact, vector, should_raise):
+        """
+        Test that flaw's RH CVSSv3 score and impact comply with the following:
+        * RH CVSSv3 score is not zero and flaw impact is set
+        * RH CVSSv3 score is zero and flaw impact is not set
+        If not, an alert is raised.
+        """
+        flaw = FlawFactory(impact=impact)
+        cvss = FlawCVSSFactory.build(
+            flaw=flaw,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            vector=vector,
+        )
+
+        if should_raise:
+            with pytest.raises(ValidationError, match=should_raise):
+                cvss.save()
+        else:
+            assert cvss.save() is None

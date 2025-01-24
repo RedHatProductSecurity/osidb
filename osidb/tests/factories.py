@@ -1,8 +1,10 @@
 import uuid
+from decimal import Decimal
 from random import choice
 
 import factory
 import factory.fuzzy
+from cvss import CVSS2, CVSS3, CVSS4
 from cvss.constants2 import METRICS_VALUE_NAMES as CVSS2_METRICS_VALUE_NAMES
 from cvss.constants3 import METRICS_VALUE_NAMES as CVSS3_METRICS_VALUE_NAMES
 from cvss.constants4 import METRICS_VALUE_NAMES as CVSS4_METRICS_VALUE_NAMES
@@ -784,7 +786,35 @@ class FlawCVSSFactory(CVSSFactory):
         model = FlawCVSS
         django_get_or_create = ("flaw", "issuer", "version")
 
-    flaw = factory.SubFactory(FlawFactory)
+    class Params:
+        CVSS_TO_CVSSLIB = {
+            FlawCVSS.CVSSVersion.VERSION2: CVSS2,
+            FlawCVSS.CVSSVersion.VERSION3: CVSS3,
+            FlawCVSS.CVSSVersion.VERSION4: CVSS4,
+        }
+
+        # if RH CVSSv3 score is not zero, flaw impact must not be NOVALUE
+        is_rh_cvss3_non_zero = factory.LazyAttribute(
+            lambda f: f.issuer == FlawCVSS.CVSSIssuer.REDHAT
+            and f.version == FlawCVSS.CVSSVersion.VERSION3
+            and f.CVSS_TO_CVSSLIB[f.version](f.vector).base_score != Decimal("0.0")
+        )
+
+        # if RH CVSSv3 score is zero, flaw impact must be NOVALUE
+        is_rh_cvss3_zero = factory.LazyAttribute(
+            lambda f: f.issuer == FlawCVSS.CVSSIssuer.REDHAT
+            and f.version == FlawCVSS.CVSSVersion.VERSION3
+            and f.CVSS_TO_CVSSLIB[f.version](f.vector).base_score == Decimal("0.0")
+        )
+
+    flaw = factory.SubFactory(
+        FlawFactory,
+        impact=factory.LazyAttribute(
+            lambda f: Impact.MODERATE
+            if f.factory_parent.is_rh_cvss3_non_zero
+            else (Impact.NOVALUE if f.factory_parent.is_rh_cvss3_zero else Impact.LOW)
+        ),
+    )
 
     # let us inherit the parent flaw ACLs if not specified
     acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)

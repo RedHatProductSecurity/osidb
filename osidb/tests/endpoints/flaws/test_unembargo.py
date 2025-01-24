@@ -93,7 +93,7 @@ class TestEndpointsFlawsUnembargo:
         FlawAcknowledgmentFactory(flaw=flaw, affiliation="Corp2")
         FlawCommentFactory(flaw=flaw)
         FlawCommentFactory(flaw=flaw)
-        FlawCVSSFactory(flaw=flaw)
+        FlawCVSSFactory(flaw=flaw, version=FlawCVSS.CVSSVersion.VERSION4)
         FlawReferenceFactory(flaw=flaw)
         PackageFactory(flaw=flaw)
         ps_module = PsModuleFactory()

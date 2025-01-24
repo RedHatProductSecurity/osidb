@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Removed `last_validated_dt` from exposed JSON Flaw History data (OSIDB-3814), handled edge-case that would cause failure (OSIDB-3858)
 - Trim Jira task summary if flaw's `cve_id` and `title` are too long (OSIDB-3847)
+- Validate that a flaw has an impact set and RH CVSSv3 score is non-zero,
+  or it does not have an impact set and RH CVSSv3 score is zero (OSIDB-3738)
 
 ## [4.6.5] - 2025-01-10
 ### Changed

@@ -1825,12 +1825,18 @@ class TestTrackerJiraQueryBuilder:
         if flaw_cvss_present:
             assert flaw.cvss_scores.all().count() == 0
             flawcvss = []
-            flawcvss.append(FlawCVSSFactory(flaw=flaw))
+            flawcvss.append(FlawCVSSFactory(flaw=flaw, issuer=FlawCVSS.CVSSIssuer.NIST))
             assert flaw.cvss_scores.all().count() == 1
             if multiscore:
-                flawcvss.append(FlawCVSSFactory(flaw=flaw))
-                flawcvss.append(FlawCVSSFactory(flaw=flaw))
-                flawcvss.append(FlawCVSSFactory(flaw=flaw))
+                flawcvss.append(
+                    FlawCVSSFactory(flaw=flaw, issuer=FlawCVSS.CVSSIssuer.CVEORG)
+                )
+                flawcvss.append(
+                    FlawCVSSFactory(flaw=flaw, issuer=FlawCVSS.CVSSIssuer.CVEORG)
+                )
+                flawcvss.append(
+                    FlawCVSSFactory(flaw=flaw, issuer=FlawCVSS.CVSSIssuer.CVEORG)
+                )
 
         if aff_cvss_present:
             assert affect.cvss_scores.all().count() == 0
@@ -2367,7 +2373,11 @@ class TestTrackerJiraQueryBuilder:
             source="REDHAT",
             cwe_id="CWE-1",
         )
-        flwcvss = FlawCVSSFactory(flaw=flaw, issuer=FlawCVSS.CVSSIssuer.REDHAT)
+        flwcvss = FlawCVSSFactory(
+            flaw=flaw,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION2,
+        )
         affect = AffectFactory(
             flaw=flaw,
             ps_module="foo-module",
@@ -2386,7 +2396,11 @@ class TestTrackerJiraQueryBuilder:
             cwe_id="CWE-2",
             created_dt=datetime(2024, 10, 1, tzinfo=timezone.utc),
         )
-        flwcvss2 = FlawCVSSFactory(flaw=flaw2, issuer=FlawCVSS.CVSSIssuer.REDHAT)
+        flwcvss2 = FlawCVSSFactory(
+            flaw=flaw2,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION2,
+        )
         affect2 = AffectFactory(
             flaw=flaw2,
             ps_module="foo-module",
@@ -2407,7 +2421,11 @@ class TestTrackerJiraQueryBuilder:
             cwe_id="CWE-3",
             created_dt=datetime(2024, 9, 1, tzinfo=timezone.utc),
         )
-        flwcvss3 = FlawCVSSFactory(flaw=flaw3, issuer=FlawCVSS.CVSSIssuer.REDHAT)
+        flwcvss3 = FlawCVSSFactory(
+            flaw=flaw3,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION2,
+        )
         affect3 = AffectFactory(
             flaw=flaw3,
             ps_module="foo-module",
@@ -2426,7 +2444,11 @@ class TestTrackerJiraQueryBuilder:
             cwe_id="CWE-4",
             created_dt=datetime(2024, 10, 2, tzinfo=timezone.utc),
         )
-        flwcvss4 = FlawCVSSFactory(flaw=flaw4, issuer=FlawCVSS.CVSSIssuer.REDHAT)
+        flwcvss4 = FlawCVSSFactory(
+            flaw=flaw4,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION2,
+        )
         affect4 = AffectFactory(
             flaw=flaw4,
             ps_module="foo-module",
