@@ -31,6 +31,9 @@ from apps.trackers.jira.query import (
     TrackerJiraQueryBuilder,
 )
 from apps.trackers.models import JiraProjectFields
+from apps.trackers.tests.conftest import (
+    jira_vulnissuetype_fields_setup_without_severity_versions,
+)
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from osidb.models import (
     CVSS,
@@ -1151,71 +1154,6 @@ def validate_minimum_key_value(minimum: Dict[str, Any], evaluated: Dict[str, Any
                 assert v in evaluated[key]
         else:
             assert minimum[key] == evaluated[key]
-
-
-def jira_vulnissuetype_fields_setup_without_severity_versions():
-    # CVE Severity field and Affects Versions field not set up here so that tests can customize it
-    JiraProjectFields(
-        project_key="FOOPROJECT",
-        field_id="customfield_12324746",
-        field_name="Source",
-        # Severely pruned for the test
-        allowed_values=["Red Hat", "Upstream"],
-    ).save()
-
-    JiraProjectFields(
-        project_key="FOOPROJECT",
-        field_id="customfield_12324749",
-        field_name="CVE ID",
-        allowed_values=[],
-    ).save()
-
-    JiraProjectFields(
-        project_key="FOOPROJECT",
-        field_id="customfield_12324748",
-        field_name="CVSS Score",
-        allowed_values=[],
-    ).save()
-
-    JiraProjectFields(
-        project_key="FOOPROJECT",
-        field_id="customfield_12324747",
-        field_name="CWE ID",
-        allowed_values=[],
-    ).save()
-
-    JiraProjectFields(
-        project_key="FOOPROJECT",
-        field_id="customfield_12324752",
-        field_name="Downstream Component Name",
-        allowed_values=[],
-    ).save()
-
-    JiraProjectFields(
-        project_key="FOOPROJECT",
-        field_id="customfield_12324751",
-        field_name="Upstream Affected Component",
-        allowed_values=[],
-    ).save()
-
-    JiraProjectFields(
-        project_key="FOOPROJECT",
-        field_id="customfield_12324750",
-        field_name="Embargo Status",
-        allowed_values=["True", "False"],
-    ).save()
-
-    JiraProjectFields(
-        project_key="FOOPROJECT",
-        field_id="customfield_12324753",
-        field_name="Special Handling",
-        allowed_values=[
-            "0-day",
-            "Major Incident",
-            "Minor Incident",
-            "KEV (active exploit case)",
-        ],
-    ).save()
 
 
 class TestTrackerJiraQueryBuilder:
