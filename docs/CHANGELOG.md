@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate that a flaw has an impact set and RH CVSSv3 score is non-zero,
   or it does not have an impact set and RH CVSSv3 score is zero (OSIDB-3738)
 
+### Fixed
+- Set emtpy SLA dates explicitly (OSIDB-3943)
+
 ## [4.6.5] - 2025-01-10
 ### Changed
 - Revert pull request #875 from OSIDB-3814

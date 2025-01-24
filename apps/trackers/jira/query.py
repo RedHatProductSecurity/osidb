@@ -387,19 +387,26 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
             # the entire logic of the code for this to work.
             self.tracker.created_dt = make_aware(datetime.now())
 
+        # check that Target start field is present
+        # and eventually get its custom field ID
+        target_start = JiraProjectFields.objects.filter(
+            project_key=self.ps_module.bts_key, field_name="Target start"
+        )
+
         sla_context = sla_classify(self.tracker)
         # the tracker may or may not be under SLA
         if sla_context.sla is not None:
             self._query["fields"]["duedate"] = sla_context.end.isoformat()
-            # check that Target start field is present
-            # and eventually get its custom field ID
-            target_start = JiraProjectFields.objects.filter(
-                project_key=self.ps_module.bts_key, field_name="Target start"
-            )
             if target_start.exists():
                 self._query["fields"][
                     target_start.first().field_id
                 ] = sla_context.start.isoformat()
+        else:
+            # explicitly set the empty dates so they are cleared
+            # out in case of falling out of SLA later on update
+            self._query["fields"]["duedate"] = None
+            if target_start.exists():
+                self._query["fields"][target_start.first().field_id] = None
 
     def generate_summary(self):
         """
