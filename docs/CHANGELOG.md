@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [4.7.0] - 2025-01-28
 ### Added
 - Add SLA exclusion policies (OSIDB-3711)
 - Implement 'in' operator in SLA conditions (OSIDB-3711)
