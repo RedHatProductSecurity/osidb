@@ -2,6 +2,7 @@ import pytest
 
 from apps.sla.framework import SLAPolicy
 from apps.trackers.constants import TRACKERS_API_VERSION
+from apps.trackers.models import JiraProjectFields
 
 
 @pytest.fixture(autouse=True)
@@ -61,3 +62,73 @@ def clean_policies():
     SLAPolicy.objects.all().delete()
     yield  # run test here
     SLAPolicy.objects.all().delete()
+
+
+def jira_vulnissuetype_fields_setup_without_severity_versions():
+    # CVE Severity field and Affects Versions field not set up here so that tests can customize it
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324746",
+        field_name="Source",
+        # Severely pruned for the test
+        allowed_values=["Red Hat", "Upstream"],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324749",
+        field_name="CVE ID",
+        allowed_values=[],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324748",
+        field_name="CVSS Score",
+        allowed_values=[],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324747",
+        field_name="CWE ID",
+        allowed_values=[],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324752",
+        field_name="Downstream Component Name",
+        allowed_values=[],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324751",
+        field_name="Upstream Affected Component",
+        allowed_values=[],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324750",
+        field_name="Embargo Status",
+        allowed_values=["True", "False"],
+    ).save()
+
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12324753",
+        field_name="Special Handling",
+        allowed_values=[
+            "0-day",
+            "Major Incident",
+            "Minor Incident",
+            "KEV (active exploit case)",
+        ],
+    ).save()
+
+
+@pytest.fixture()
+def setup_vulnerability_issue_type_fields() -> None:
+    jira_vulnissuetype_fields_setup_without_severity_versions()

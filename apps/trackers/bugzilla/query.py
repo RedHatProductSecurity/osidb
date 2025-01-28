@@ -200,8 +200,9 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         """
         sla_context = sla_classify(self.tracker)
         # the tracker may or may not be under SLA
-        if sla_context.sla is not None:
-            self._query["deadline"] = sla_context.end.strftime(DATE_FMT)
+        self._query["deadline"] = (
+            sla_context.end.strftime(DATE_FMT) if sla_context.sla is not None else None
+        )
 
     def generate_description(self):
         """
