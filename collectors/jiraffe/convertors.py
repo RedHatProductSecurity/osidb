@@ -147,9 +147,31 @@ class JiraTaskSaver:
         self.flaw = flaw
 
     def save(self):
-        self.flaw.save(
-            auto_timestamps=False,
-            raise_validation_error=False,
+        # only update the fields which are supposed
+        # to be potentially influenced by the collector
+        task_attributes = [
+            "team_id",
+            "task_key",
+            "task_updated_dt",
+            # the ACLs are not really directly fetched but can
+            # get modified due to state or resolution changes
+            "acl_read",
+            "acl_write",
+            # workflow name and state are mapped
+            # from Jira state and resolution
+            "workflow_name",
+            "workflow_state",
+        ]
+        kwargs = {}
+        # set only existing values
+        for attribute in task_attributes:
+            value = getattr(self.flaw, attribute)
+            if value is not None:
+                kwargs[attribute] = value
+
+        Flaw.objects.filter(uuid=self.flaw.uuid).update(
+            auto_timestamps=False,  # we do not want to touch updated_dt
+            **kwargs,
         )
 
 

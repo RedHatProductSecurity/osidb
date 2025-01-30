@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Fixed
 - Filter out empty events from history API resutls (OSIDB-3942)
+- Make Jira task collector to write only necessary attributes to prevent mid-air collisions (OSIDB-3636)
 
 ## [4.7.0] - 2025-01-28
 ### Added

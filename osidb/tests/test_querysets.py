@@ -51,13 +51,44 @@ class TestCustomQuerySet:
             (FlawCVSS, FlawCVSSFactory, {"version": FlawCVSS.CVSSVersion.VERSION3}),
         ],
     )
-    def test_no_inject_updated_dt(self, model, factory, fields):
+    def test_no_inject_updated_dt_if_present(self, model, factory, fields):
         """Test that updated_dt field is not injected into the queryset if present"""
         model_instance = factory()
 
         with freeze_time(tzdatetime(2024, 11, 8, 12, 0, 0)):
             update_count = model.objects.filter(uuid=model_instance.uuid).update(
                 **fields, updated_dt=tzdatetime(2024, 11, 9, 13, 0, 0)
+            )
+
+        model_instance.refresh_from_db()
+
+        assert update_count == 1
+        assert (
+            getattr(model_instance, list(fields.keys())[0]) == list(fields.values())[0]
+        )
+        assert model_instance.updated_dt == tzdatetime(2024, 11, 9, 13, 0, 0)
+
+    @pytest.mark.parametrize(
+        "model, factory, fields",
+        [
+            (
+                Affect,
+                AffectFactory,
+                {"affectedness": Affect.AffectAffectedness.NOTAFFECTED},
+            ),
+            (Flaw, FlawFactory, {"title": "new title"}),
+        ],
+    )
+    def test_no_inject_updated_dt_if_turned_off(self, model, factory, fields):
+        """
+        Test that updated_dt field is not injected into the queryset
+        if the auto-timestamps are explicitly turned off by argument
+        """
+        model_instance = factory(updated_dt=tzdatetime(2024, 11, 9, 13, 0, 0))
+
+        with freeze_time(tzdatetime(2024, 11, 8, 12, 0, 0)):
+            update_count = model.objects.filter(uuid=model_instance.uuid).update(
+                **fields, auto_timestamps=False
             )
 
         model_instance.refresh_from_db()
