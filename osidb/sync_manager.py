@@ -711,7 +711,7 @@ class JiraTaskSyncManager(SyncManager):
     def update_synced_links(self):
         from osidb.models import Flaw
 
-        Flaw.objects.filter(uuid=self.sync_id).update(bzsync_manager=self)
+        Flaw.objects.filter(uuid=self.sync_id).update(task_sync_manager=self)
 
     def __str__(self):
         from osidb.models import Flaw
@@ -756,7 +756,7 @@ class JiraTaskTransitionManager(SyncManager):
     def update_synced_links(self):
         from osidb.models import Flaw
 
-        Flaw.objects.filter(uuid=self.sync_id).update(bzsync_manager=self)
+        Flaw.objects.filter(uuid=self.sync_id).update(task_transition_manager=self)
 
     def __str__(self):
         from osidb.models import Flaw
