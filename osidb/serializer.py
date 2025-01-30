@@ -638,7 +638,13 @@ class HistoryMixinSerializer(serializers.ModelSerializer):
         serializer = HistoricalEventSerializer(
             instance=history, many=True, read_only=True
         )
-        return serializer.data
+        return [
+            event
+            for event in serializer.data
+            # filter out update events with empty diff as they originally
+            # contained only non-user-relevant changes filtered out already
+            if event["pgh_label"] != "update" or event["pgh_diff"]
+        ]
 
     class Meta:
         """filter fields"""

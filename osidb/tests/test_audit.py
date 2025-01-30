@@ -224,3 +224,50 @@ class TestAuditFlaw:
             assert pghistory.models.Events.objects.tracks(affect_cvss).count() == 0
         with transaction.atomic():
             assert pghistory.models.Events.objects.tracks(snippet).count() == 0
+
+    def test_audit_api_cleansing(self, auth_client, test_api_uri):
+        """
+        test that purely internal attributes does not pollute the audit API
+        responses and that the resulting empty records are not propagated
+        """
+        flaw = FlawFactory(embargoed=False)
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws/{flaw.uuid}?include_history=true"
+        )
+        assert response.status_code == 200
+        original_body = response.json()
+        assert "history" in original_body
+        history = original_body["history"]
+        assert len(history) == 1
+        assert history[0]["pgh_label"] == "insert"
+
+        # user-relevant change
+        flaw.title = flaw.title + "test"
+        flaw.save()
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws/{flaw.uuid}?include_history=true"
+        )
+        assert response.status_code == 200
+        original_body = response.json()
+        assert "history" in original_body
+        history = original_body["history"]
+        assert len(history) == 2
+        assert history[0]["pgh_label"] == "insert"
+        assert history[1]["pgh_label"] == "update"
+        assert len(history[1]["pgh_diff"].keys()) == 1
+        assert "title" in history[1]["pgh_diff"].keys()
+
+        # non-user-relevant change
+        # only last_validated_dt
+        flaw.save()
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws/{flaw.uuid}?include_history=true"
+        )
+        assert response.status_code == 200
+        original_body = response.json()
+        assert "history" in original_body
+        history = original_body["history"]
+        assert len(history) == 2  # no new record should be user-visible
