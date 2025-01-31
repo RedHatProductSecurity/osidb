@@ -256,6 +256,18 @@ def enable_bz_async_sync(enable_bz_sync, monkeypatch) -> None:
 
 
 @pytest.fixture
+def enable_bz_tracker_sync(monkeypatch) -> None:
+    """
+    enable the sync of trackers to Bugzilla
+    """
+    import apps.bbsync.mixins as mixins
+    import osidb.models.tracker as tracker
+
+    monkeypatch.setattr(mixins, "SYNC_TO_BZ", True)
+    monkeypatch.setattr(tracker, "SYNC_TRACKERS_TO_BZ", True)
+
+
+@pytest.fixture
 def enable_jira_task_sync(monkeypatch) -> None:
     """
     enable the sync of tasks to Jira

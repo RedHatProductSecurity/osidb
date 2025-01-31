@@ -160,13 +160,27 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if raise_validation_error:
             self.validate(dry_run=kwargs.get("no_alerts", False))
 
+        # TODO the following condition can be removed when we fully leave Buzilla
+        #
+        # there may still exist open trackers in Bugzilla at the time when the
+        # project their supposed to belong to migrated to Jira already which
+        # breaks the integration and as it is not simple to address but only
+        # temporary we agreed on a workaround of skiping the tracker sync
+        skip_sync = False
+        if affect := self.affects.first():
+            if ps_module := PsModule.objects.filter(name=affect.ps_module).first():
+                # tracker type and BTS mismatch
+                if self.TYPE2BTS[self.type] != ps_module.bts_name:
+                    skip_sync = True
+
         # the validations were already run
         kwargs["raise_validation_error"] = False
         kwargs["no_alerts"] = True
 
         # check Bugzilla conditions are met
         if (
-            SYNC_TRACKERS_TO_BZ
+            not skip_sync
+            and SYNC_TRACKERS_TO_BZ
             and bz_api_key is not None
             and self.type == self.TrackerType.BUGZILLA
         ):
@@ -184,7 +198,8 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
         # check Jira conditions are met
         elif (
-            SYNC_TO_JIRA
+            not skip_sync
+            and SYNC_TO_JIRA
             and jira_token is not None
             and self.type == self.TrackerType.JIRA
         ):

@@ -4,7 +4,9 @@ from unittest.mock import patch
 import pytest
 from rest_framework import status
 
-from osidb.models import Affect, Tracker
+from apps.bbsync.save import BugzillaSaver
+from osidb.models import Affect, Impact, Tracker
+from osidb.sync_manager import BZTrackerDownloadManager
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -226,3 +228,73 @@ class TestEndpointsFlawsUpdateTrackers:
             )
             assert response.status_code == status.HTTP_200_OK
             assert mock_save.called == (triggered or triggered_2)
+
+    def test_skip_non_migrated_trackers(
+        self,
+        auth_client,
+        enable_bz_tracker_sync,
+        monkeypatch,
+        test_api_uri,
+    ):
+        """
+        test that a Bugzilla tracker which product was migrated
+        to Jira project is skipped during a tracker sync
+        """
+        flaw = FlawFactory(impact="IMPORTANT")
+        ps_module1 = PsModuleFactory(bts_name="bugzilla")
+        affect1 = AffectFactory(
+            flaw=flaw,
+            impact=Impact.NOVALUE,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module1.name,
+        )
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module1)
+        tracker1 = TrackerFactory(
+            affects=[affect1],
+            embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream1.name,
+            status="NEW",
+            type=Tracker.BTS2TYPE[ps_module1.bts_name],
+        )
+        ps_module2 = PsModuleFactory(bts_name="jboss")
+        affect2 = AffectFactory(
+            flaw=flaw,
+            impact=Impact.NOVALUE,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module2.name,
+        )
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
+        tracker2 = TrackerFactory.build(
+            embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream2.name,
+            status="NEW",
+            type="BUGZILLA",  # tracker typy and BTS mismatch
+        )
+        tracker2.save(raise_validation_error=False)
+        tracker2.affects.add(affect2)
+
+        flaw_data = {
+            "comment_zero": flaw.comment_zero,
+            "embargoed": flaw.embargoed,
+            "impact": "MODERATE",  # tracker update trigger
+            "title": flaw.title,
+            "updated_dt": flaw.updated_dt,
+        }
+
+        monkeypatch.setattr(BZTrackerDownloadManager, "schedule", lambda x: None)
+        # enable autospec to get self as part of the method call args
+        with patch.object(BugzillaSaver, "save", autospec=True) as mock_save:
+            response = auth_client().put(
+                f"{test_api_uri}/flaws/{flaw.uuid}",
+                flaw_data,
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+            assert response.status_code == status.HTTP_200_OK
+            assert (
+                mock_save.call_count == 1
+            )  # no mismatched trackers attempted to be saved
+            assert tracker1.uuid == mock_save.call_args_list[0][0][0].tracker.uuid

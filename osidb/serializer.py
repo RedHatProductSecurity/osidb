@@ -2045,7 +2045,7 @@ class FlawSerializer(
                     # If the non-components attributes are unchanged, a tracker update is
                     # necessary only for Vulnerability issuetype Jira trackers because only
                     # those contain components. And this tracker is not Vuln. issuetype.
-                    return
+                    continue
 
                 # perform the tracker update
                 # could be done async eventually
