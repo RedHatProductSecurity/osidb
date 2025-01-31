@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [4.7.1] - 2025-01-30
 ### Fixed
 - Filter out empty events from history API resutls (OSIDB-3942)
 - Make Jira task collector to write only necessary attributes to prevent mid-air collisions (OSIDB-3636)
