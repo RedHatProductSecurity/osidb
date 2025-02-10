@@ -479,7 +479,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     @property
     def fix_state(self):
         """
-        Inheritied from SDEngine, see abe12e30a509824629d05e91ce23c5d987e8ad36/sdengine/models.py#L1165
+        Inherited from SDEngine, see abe12e30a509824629d05e91ce23c5d987e8ad36/sdengine/models.py#L1165
         Trackers can be Bugzilla or Jira Issues. Because Jira Projects can configure anything they want as various statuses and
         resolutions, it's hard to sensibly map tracker status to a finite set of display values.
         We'll do the best we can from data gathered by SDEngine up to 2021-12-14, but these will change in the
@@ -494,13 +494,14 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if self.status in ("won't fix", "obsolete"):
             return Affect.AffectFix.WONTFIX
         if self.status in ("done", "resolved", "closed"):
-            if self.resolution in ("won't do", "won't fix", "wontfix", "obsolete"):
+            if self.resolution in ("won't do", "won't fix", "wontfix"):
                 return Affect.AffectFix.WONTFIX
             # Added rejected to code inherited from SDEngine because samples such as MGDSTRM-4153
             elif self.resolution in (
                 "notabug",
                 "not a bug",
                 "rejected",
+                "obsolete",
             ):
                 return Affect.AffectFix.NOTAFFECTED
             elif self.resolution in ("eol", "out of date"):
