@@ -175,16 +175,11 @@ class Affect(
     def save(self, *args, **kwargs):
         if self.purl and not self.ps_component:
             try:
+                # try to parse the PS component from the PURL but do not raise any
+                # error on failure as that will be done as part of the validations
                 self.ps_component = PackageURL.from_string(self.purl).name
             except ValueError:
                 pass
-
-        # TODO: if ps_component is still missing, we must catch an error now
-        #  because the error message in AlertMixin's standard validations is
-        #  not helpful and changing the order of validations is not possible now
-        #  (this should be removed once custom validations run before standard validations)
-        if not self.ps_component:
-            self._validate_purl_and_ps_component()
 
         super().save(*args, **kwargs)
 
