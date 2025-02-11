@@ -7332,6 +7332,10 @@ components:
         purl:
           type: string
           nullable: true
+        not_affected_justification:
+          oneOf:
+          - $ref: '#/components/schemas/NotAffectedJustificationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7421,6 +7425,10 @@ components:
         purl:
           type: string
           nullable: true
+        not_affected_justification:
+          oneOf:
+          - $ref: '#/components/schemas/NotAffectedJustificationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7652,6 +7660,10 @@ components:
         purl:
           type: string
           nullable: true
+        not_affected_justification:
+          oneOf:
+          - $ref: '#/components/schemas/NotAffectedJustificationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -8985,6 +8997,14 @@ components:
       - REQUESTED
       - APPROVED
       - REJECTED
+      type: string
+    NotAffectedJustificationEnum:
+      enum:
+      - Component not present
+      - Inline mitigations already exist
+      - Vulnerable code cannot be controlled by adversary
+      - Vulnerable code not in execute path
+      - Vulnerable code not present
       type: string
     Package:
       type: object

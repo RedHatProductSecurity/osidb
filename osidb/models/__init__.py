@@ -23,6 +23,7 @@ __all__ = (
     "FlawReference",
     "FlawSource",
     "Impact",
+    "NotAffectedJustification",
     "Package",
     "PackageVer",
     "Profile",
@@ -35,7 +36,7 @@ __all__ = (
     "Tracker",
 )
 
-from .affect import Affect, AffectCVSS
+from .affect import Affect, AffectCVSS, NotAffectedJustification
 from .erratum import Erratum
 from .flaw.acknowledgment import FlawAcknowledgment
 from .flaw.comment import FlawComment

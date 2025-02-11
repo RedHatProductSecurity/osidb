@@ -600,6 +600,26 @@ class TestFlaw:
             affect = AffectFactory()
         assert affect.ps_product == ps_product_name
 
+    @pytest.mark.enable_signals
+    def test_not_affected_justification_auto_remove(self):
+        """
+        Test that the not affected justification of an affect is automatically removed when
+        the affectedness is set to anything other than NOT_AFFECTED.
+        """
+        flaw = FlawFactory(embargoed=False)
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            ps_component="component",
+            affectedness=Affect.AffectAffectedness.NOTAFFECTED,
+        )
+        assert affect.not_affected_justification
+        affect.affectedness = Affect.AffectAffectedness.AFFECTED
+        affect.resolution = Affect.AffectResolution.DELEGATED
+        affect.save()
+        assert not affect.not_affected_justification
+
     def test_cve_id_nullified(self):
         """Test an empty string CVE is converted into a null value."""
         f = FlawFactory()
@@ -2652,3 +2672,20 @@ class TestFlawValidators:
         flaw2 = FlawFactory.build(source=private_source, embargoed=False)
         flaw2.save(no_alerts=True)
         assert not flaw2.valid_alerts.filter(name="private_source_no_ack").exists()
+
+    def test_validate_not_affected_justification(self):
+        """
+        Test that an affect with affectedness set to NOTAFFECTED and an empty justification
+        raises a validation error.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+        )
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        with pytest.raises(ValidationError):
+            AffectFactory(
+                flaw=flaw,
+                ps_module=ps_module.name,
+                affectedness=Affect.AffectAffectedness.NOTAFFECTED,
+                not_affected_justification="",
+            )

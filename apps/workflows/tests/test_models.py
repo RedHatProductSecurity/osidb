@@ -10,6 +10,7 @@ from osidb.models import (
     FlawReference,
     FlawSource,
     Impact,
+    NotAffectedJustification,
     Tracker,
 )
 from osidb.tests.factories import (
@@ -834,6 +835,9 @@ class TestWorkflowFramework:
 
         affect.resolution = Affect.AffectResolution.NOVALUE
         affect.affectedness = Affect.AffectAffectedness.NOTAFFECTED
+        affect.not_affected_justification = (
+            NotAffectedJustification.INLINE_MITIGATIONS_ALREADY_EXIST
+        )
         affect.save()
         classified_workflow, classified_state = workflow_framework.classify(flaw)
         assert_workflow_equals(classified_workflow, workflow_reject)

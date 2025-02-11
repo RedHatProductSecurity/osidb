@@ -174,6 +174,16 @@ def update_last_impact_increase_dt_affect(sender, instance, **kwargs):
             )
 
 
+@receiver(pre_save, sender=Affect)
+def remove_not_affected_justification(sender, instance, **kwargs):
+    """
+    Remove the not affected justification if the affect has an affectedness different
+    to NOT_AFFECTED.
+    """
+    if instance.affectedness != Affect.AffectAffectedness.NOTAFFECTED:
+        instance.not_affected_justification = ""
+
+
 @receiver(pre_save, sender=Flaw)
 def update_last_impact_increase_dt_flaw(sender, instance, **kwargs):
     if not instance._state.adding and Impact(instance.impact) > Impact(

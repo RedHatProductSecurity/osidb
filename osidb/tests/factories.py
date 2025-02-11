@@ -25,6 +25,7 @@ from osidb.models import (
     FlawReference,
     FlawSource,
     Impact,
+    NotAffectedJustification,
     Package,
     PackageVer,
     PsContact,
@@ -189,42 +190,48 @@ class FlawFactory(BaseFactory):
         ),
     )
     acl_read = factory.LazyAttribute(
-        lambda o: [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}"
-            )
-            for group in settings.PUBLIC_READ_GROUPS
-        ]
-        if o.embargoed is False
-        else [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_READ_GROUP}",
-            )
-        ]
+        lambda o: (
+            [
+                uuid.uuid5(
+                    uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}"
+                )
+                for group in settings.PUBLIC_READ_GROUPS
+            ]
+            if o.embargoed is False
+            else [
+                uuid.uuid5(
+                    uuid.NAMESPACE_URL,
+                    f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_READ_GROUP}",
+                )
+            ]
+        )
     )
     acl_write = factory.LazyAttribute(
-        lambda o: [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                f"https://osidb.prod.redhat.com/ns/acls#{settings.PUBLIC_WRITE_GROUP}",
-            )
-        ]
-        if o.embargoed is False
-        else [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_WRITE_GROUP}",
-            )
-        ]
+        lambda o: (
+            [
+                uuid.uuid5(
+                    uuid.NAMESPACE_URL,
+                    f"https://osidb.prod.redhat.com/ns/acls#{settings.PUBLIC_WRITE_GROUP}",
+                )
+            ]
+            if o.embargoed is False
+            else [
+                uuid.uuid5(
+                    uuid.NAMESPACE_URL,
+                    f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_WRITE_GROUP}",
+                )
+            ]
+        )
     )
     # valid flaw is expected to have certain meta attributes present
     meta_attr = factory.LazyAttribute(
         lambda c: {
             "bz_id": getattr(c, "bz_id", "12345"),
-            "last_change_time": c.updated_dt
-            if isinstance(c.updated_dt, str)
-            else c.updated_dt.strftime(DATETIME_FMT),
+            "last_change_time": (
+                c.updated_dt
+                if isinstance(c.updated_dt, str)
+                else c.updated_dt.strftime(DATETIME_FMT)
+            ),
             "test": "1",
         }
     )
@@ -258,32 +265,6 @@ class FlawFactory(BaseFactory):
         flaw.embargoed = embargoed
         return flaw
 
-    # @factory.post_generation
-    # def affects(self, create, extracted, **kwargs):
-    #     # https://factoryboy.readthedocs.io/en/latest/recipes.html#simple-many-to-many-relationship
-    #     if not create:
-    #         # Simple build, do nothing.
-    #         return
-    #
-    #     if extracted:
-    #         if isinstance(extracted, int):
-    #             # A number of affects to create was passed in
-    #             cve_id = kwargs.pop("cve_id", self.cve_id)
-    #             for affect in AffectFactory.create_batch(
-    #                 size=extracted, cve_id=cve_id, **kwargs
-    #             ):
-    #                 self.affects.add(affect)
-    #         else:
-    #             # A list of affects were passed in, use them
-    #             for affect in extracted:
-    #                 self.affects.add(affect)
-    #     else:
-    #         # Nothing was passed, create random number of affects
-    #         for affect in AffectFactory.create_batch(
-    #             size=randint(0, 5), cve_id=self.cve_id
-    #         ):
-    #             self.affects.add(affect)
-
 
 class AffectFactory(BaseFactory):
     class Meta:
@@ -300,13 +281,22 @@ class AffectFactory(BaseFactory):
     resolution = factory.LazyAttribute(
         lambda a: AFFECTEDNESS_VALID_RESOLUTIONS[a.affectedness][0]
     )
+    not_affected_justification = factory.LazyAttribute(
+        lambda a: (
+            choice(list([val for val in NotAffectedJustification.values if val != ""]))
+            if a.affectedness == Affect.AffectAffectedness.NOTAFFECTED
+            else ""
+        )
+    )
     ps_module = factory.sequence(lambda n: f"ps-module-{n}")
     ps_component = factory.sequence(lambda n: f"ps-component-{n}")
     impact = factory.Faker(
         "random_element",
-        elements=filter(lambda i: i != "LOW", list(Impact))
-        if resolution == "DEFER"
-        else list(Impact),
+        elements=(
+            filter(lambda i: i != "LOW", list(Impact))
+            if resolution == "DEFER"
+            else list(Impact)
+        ),
     )
 
     created_dt = factory.Faker("date_time", tzinfo=UTC)
@@ -496,9 +486,11 @@ class SnippetFactory(factory.django.DjangoModelFactory):
             lambda f: f.cve_id if f.source == Snippet.Source.NVD else "GHSA-0001"
         )
         url = factory.LazyAttribute(
-            lambda f: f"https://nvd.nist.gov/vuln/detail/{f.ext_id}"
-            if f.source == Snippet.Source.NVD
-            else f"https://osv.dev/vulnerability/{f.ext_id}"
+            lambda f: (
+                f"https://nvd.nist.gov/vuln/detail/{f.ext_id}"
+                if f.source == Snippet.Source.NVD
+                else f"https://osv.dev/vulnerability/{f.ext_id}"
+            )
         )
 
     source = factory.Faker(
@@ -506,9 +498,11 @@ class SnippetFactory(factory.django.DjangoModelFactory):
     )
 
     external_id = factory.LazyAttribute(
-        lambda f: f.ext_id
-        if f.source == Snippet.Source.NVD or f.cve_id is None
-        else f"{f.ext_id}/{f.cve_id}"
+        lambda f: (
+            f.ext_id
+            if f.source == Snippet.Source.NVD or f.cve_id is None
+            else f"{f.ext_id}/{f.cve_id}"
+        )
     )
 
     @factory.lazy_attribute
@@ -561,34 +555,38 @@ class TrackerFactory(BaseFactory):
 
     embargoed = factory.Faker("random_element", elements=[False, True])
     acl_read = factory.LazyAttribute(
-        lambda o: [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}"
-            )
-            for group in settings.PUBLIC_READ_GROUPS
-        ]
-        if o.embargoed is False
-        else [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_READ_GROUP}",
-            )
-        ]
+        lambda o: (
+            [
+                uuid.uuid5(
+                    uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}"
+                )
+                for group in settings.PUBLIC_READ_GROUPS
+            ]
+            if o.embargoed is False
+            else [
+                uuid.uuid5(
+                    uuid.NAMESPACE_URL,
+                    f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_READ_GROUP}",
+                )
+            ]
+        )
     )
     acl_write = factory.LazyAttribute(
-        lambda o: [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                f"https://osidb.prod.redhat.com/ns/acls#{settings.PUBLIC_WRITE_GROUP}",
-            )
-        ]
-        if o.embargoed is False
-        else [
-            uuid.uuid5(
-                uuid.NAMESPACE_URL,
-                f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_WRITE_GROUP}",
-            )
-        ]
+        lambda o: (
+            [
+                uuid.uuid5(
+                    uuid.NAMESPACE_URL,
+                    f"https://osidb.prod.redhat.com/ns/acls#{settings.PUBLIC_WRITE_GROUP}",
+                )
+            ]
+            if o.embargoed is False
+            else [
+                uuid.uuid5(
+                    uuid.NAMESPACE_URL,
+                    f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_WRITE_GROUP}",
+                )
+            ]
+        )
     )
 
     meta_attr = {"test": "1"}
@@ -810,9 +808,13 @@ class FlawCVSSFactory(CVSSFactory):
     flaw = factory.SubFactory(
         FlawFactory,
         impact=factory.LazyAttribute(
-            lambda f: Impact.MODERATE
-            if f.factory_parent.is_rh_cvss3_non_zero
-            else (Impact.NOVALUE if f.factory_parent.is_rh_cvss3_zero else Impact.LOW)
+            lambda f: (
+                Impact.MODERATE
+                if f.factory_parent.is_rh_cvss3_non_zero
+                else (
+                    Impact.NOVALUE if f.factory_parent.is_rh_cvss3_zero else Impact.LOW
+                )
+            )
         ),
     )
 
