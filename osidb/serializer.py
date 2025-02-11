@@ -635,6 +635,27 @@ class HistoryMixinSerializer(serializers.ModelSerializer):
     def get_history(self, obj):
         """history events serializer getter"""
         history = pghistory.models.Events.objects.tracks(obj)
+        obj_id = (
+            self.context["request"].parser_context["kwargs"].get("id")
+            if "request" in self.context
+            else None
+        )
+
+        if obj_id:
+            print("FLAW ID FOUND!!!!", self.__class__.__name__)
+            for item in history:
+                if (
+                    item.pgh_context is not None
+                    and "user" in item.pgh_context
+                    and isinstance(item.pgh_context["user"], int)
+                ):
+                    user_id = item.pgh_context["user"]
+                    user = User.objects.get(id=user_id)
+                    item.pgh_context["user"] = (
+                        user.email or user.username or user.id or user
+                    )
+                    # item.save()
+                    # obj.object.update(pgh_context_id=item.pgh_context_id, pgh_context=item.pgh_context)
         serializer = HistoricalEventSerializer(
             instance=history, many=True, read_only=True
         )
