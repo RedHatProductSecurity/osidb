@@ -288,24 +288,49 @@ class TestNVDCollector:
         assert flaw.nist_cvss_validation == new_flag
 
     @pytest.mark.vcr
-    @pytest.mark.enable_signals
-    @pytest.mark.parametrize("impact", [Impact.NOVALUE, Impact.MODERATE])
     @pytest.mark.default_cassette("TestNVDCollector.test_cvss4.yaml")
-    def test_cvss_and_impact(self, impact):
+    def test_cvss_and_impact(self):
         """
-        Test that flaw impact is set if CVSS was changed, and the impact was originally empty.
+        Test that the RH CVSS3 and impact validation is not triggered
+        and NIST CVSS scores are updated correctly.
         """
         cve_id = "CVE-2024-7450"
-        FlawFactory(cve_id=cve_id, impact=impact)
+
+        # intentionally create a flaw whose RH CVSS3 and impact do not comply with the validation
+        flaw = FlawFactory(cve_id=cve_id, impact=Impact.NOVALUE)
+        rh_cvss = FlawCVSSFactory.build(
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            vector="CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",  # 5.5
+            flaw=flaw,
+        )
+        rh_cvss.save(raise_validation_error=False)
+
+        # create original NIST CVSS
+        nist_cvss3 = FlawCVSSFactory(
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            issuer=FlawCVSS.CVSSIssuer.NIST,
+            vector="CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H",
+            flaw=flaw,
+        )
+        FlawCVSSFactory(
+            version=FlawCVSS.CVSSVersion.VERSION2,
+            issuer=FlawCVSS.CVSSIssuer.NIST,
+            vector="AV:N/AC:M/Au:N/C:P/I:P/A:P",
+            flaw=flaw,
+        )
 
         nvdc = NVDCollector()
+        # create NIST CVSS4, update NIST CVSS3, remove NIST CVSS2
         nvdc.collect(cve_id)
 
         flaw = Flaw.objects.get(cve_id=cve_id)
-        assert flaw.cvss_scores.count() == 2
-        if not impact:
-            # impact was set
-            assert flaw.impact == Impact.IMPORTANT
-        else:
-            # original impact
-            assert flaw.impact == Impact.MODERATE
+        nist_cvss = flaw.cvss_scores.filter(issuer=FlawCVSS.CVSSIssuer.NIST)
+
+        assert nist_cvss.count() == 2
+        assert nist_cvss.filter(version=FlawCVSS.CVSSVersion.VERSION4).count() == 1
+        assert nist_cvss.filter(version=FlawCVSS.CVSSVersion.VERSION3).count() == 1
+        assert (
+            nist_cvss.filter(version=FlawCVSS.CVSSVersion.VERSION3).first().vector
+            != nist_cvss3.vector
+        )
