@@ -68,7 +68,7 @@ class NVDQuerier:
         def get_cvss_metric(data: CVE, version: str) -> Union[dict, None]:
             """
             Return CVSS metric from `data` for the given `version`.
-            `version` can be of 3 values: cvssMetricV2, cvssMetricV30, cvssMetricV31.
+            `version` can be of 4 values: cvssMetricV2, cvssMetricV30, cvssMetricV31, cvssMetricV40.
             """
             # depending on the data, "metrics" and "version" might not be present
             if "metrics" in data and version in data.metrics:
