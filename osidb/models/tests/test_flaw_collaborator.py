@@ -112,3 +112,22 @@ class TestFlawCollaborator:
 
         # This should not raise an error
         collaborator.save()
+
+    def test_create_from_flaw(self):
+        flaw = FlawFactory(
+            embargoed=False,
+            workflow_state=WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
+        )
+        FlawLabel.objects.create(
+            name="test_module_label",
+            type=FlawLabel.FlawLabelType.PRODUCT_FAMILY,
+            ps_modules=["test_module"],
+        )
+
+        # This should not raise an error
+        FlawCollaborator.objects.create_from_flaw(flaw)
+        assert FlawCollaborator.objects.count() == 0
+
+        AffectFactory(flaw=flaw, ps_module="test_module", ps_component="test_component")
+        FlawCollaborator.objects.create_from_flaw(flaw)
+        assert FlawCollaborator.objects.count() == 1

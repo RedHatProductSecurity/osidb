@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fix CVSS data parsing in NVD collector (OSIDB-4003)
+- Handle delete of last affect when updating flaw collaborators (OSIDB-3986)
 
 ### Removed
 - Remove flaw impact adjustment from NVD collector (OSIDB-3678)

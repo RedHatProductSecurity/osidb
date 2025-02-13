@@ -96,13 +96,14 @@ class FlawCollaboratorManager(TrackingMixinManager):
     def create_from_flaw(flaw: Flaw):
         """Add new labels to the flaw based on the flaw"""
 
-        [ps_modules, ps_components] = list(
-            zip(
-                *Affect.objects.filter(flaw=flaw).values_list(
-                    "ps_module", "ps_component"
-                )
-            )
+        ps_values = Affect.objects.filter(flaw=flaw).values_list(
+            "ps_module", "ps_component"
         )
+
+        if not ps_values:
+            return []
+
+        [ps_modules, ps_components] = list(zip(*ps_values))
         labels = FlawLabel.objects.get_filtered(ps_modules, ps_components)
 
         for label in labels:
