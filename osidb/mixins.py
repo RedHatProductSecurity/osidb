@@ -116,7 +116,9 @@ class NullStrFieldsMixin(models.Model):
     # mixin as we would not allow the null values for the Char/Text fields anymore
     def clean(self):
         super().clean()
+        self.convert_to_python()
 
+    def convert_to_python(self):
         str_based_fields = [
             field
             for field in self._meta.get_fields()
@@ -792,24 +794,57 @@ class AlertMixin(ValidateMixin):
             # alerts of the same name, object_id and age have the same meaning
             pass
 
+    def convert_to_python(self, exclude=None):
+        """
+        run mass to_python conversion without any validations which is necessary to be able
+        to run custom validations before the standard ones as they convert on top of validating
+
+        for more details on why is this needed and how it was created see
+        https://github.com/django/django/blob/stable/4.2.x/django/db/models/base.py#L1457
+        https://github.com/django/django/blob/stable/4.2.x/django/db/models/base.py#L1504
+        """
+        # parent conversions first
+        # in case it is available
+        if hasattr(super(), "convert_to_python"):
+            super().convert_to_python()
+
+        if exclude is None:
+            exclude = set()
+
+        for f in self._meta.fields:
+            if f.name in exclude:
+                continue
+
+            # ValidationError may be raised here
+            setattr(self, f.attname, f.to_python(getattr(self, f.attname)))
+
     def validate(self, raise_validation_error=True, dry_run=False):
         """
-        Run standard Django validations first, potentially raising ValidationError.
-        These ensure minimal necessary data quality and thus cannot be suppressed.
+        Run custom validations first and then standard Django validations as the
+        custom ones offer more specific errors. This may raise ValidationError.
 
-        Then custom validations are run, either raising ValidationError exceptions
-        for error level invalidities or storing the alerts for warning level ones.
+        Custom validations either raise ValidationError exceptions for error level
+        invalidities or store the alerts for warning level ones.
 
         For error level invalidities the default behavior may be changed by setting
         raise_validation_error option to false, resulting in suppressing all the
-        exceptions and instead storing them as error level alerts.
+        exceptions and instead storing them as error level alerts. The standard
+        validations ensure minimal necessary data quality and cannot be suppressed.
 
         When dry_run is true no changes in alert table will be made, this option
         does not prevent validations from raising errors.
         """
-        # standard validations
-        # exclude meta attributes
-        self.full_clean(exclude=["meta_attr"])
+        # convert the field values without validating
+        self.convert_to_python(exclude=["meta_attr"])
+        # but perform the full validation for the array fields
+        # as the conversion does not behave the same way here
+        self.full_clean(
+            exclude=[
+                f.name
+                for f in self._meta.fields
+                if not isinstance(f, fields.ArrayField)
+            ]
+        )
 
         # custom validations
         for validation_name in [
@@ -830,6 +865,14 @@ class AlertMixin(ValidateMixin):
                         alert_type=Alert.AlertType.ERROR,
                         **(e.params or {}),
                     )
+
+        # standard validations
+        # exclude meta attributes
+        self.full_clean(
+            exclude=["meta_attr"]
+            # array fields were already validated before
+            + [f.name for f in self._meta.fields if isinstance(f, fields.ArrayField)]
+        )
 
     def save(self, *args, **kwargs):
         """
