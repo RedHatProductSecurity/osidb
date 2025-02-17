@@ -10,10 +10,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add not affected justification field to trackers (OSIDB-3808)
 - Add delegated not affected justification field to affect (OSIDB-3810)
 - Add resolved_dt to affect model (OSIDB-4058)
+- Map user name or email to flaw audit history entries (OSIDB-3464)
 
 ### Changed
 - Remove time information when validating embargoed flaws (OSIDB-3862)
 - The "Obsolete" tracker resolution is now treated as "Not affected" to allow its use for erroneously filed trackers
+
+### Fixed
+- Fix CVSS data parsing in NVD collector (OSIDB-4003)
+- Handle delete of last affect when updating flaw collaborators (OSIDB-3986)
+- Propagate Jira errors to the user (OSIDB-3939)
+
+### Removed
+- Remove flaw impact adjustment from NVD collector (OSIDB-3678)
+
+## [4.7.2] - 2025-01-31
+### Changed
+- Skip non-migrated Bugzilla tracker sync (OSIDB-3966)
+
+## [4.7.1] - 2025-01-30
+### Fixed
+- Filter out empty events from history API resutls (OSIDB-3942)
+- Make Jira task collector to write only necessary attributes to prevent mid-air collisions (OSIDB-3636)
+
+
+## [4.7.0] - 2025-01-28
+### Added
+- Add SLA exclusion policies (OSIDB-3711)
+- Implement 'in' operator in SLA conditions (OSIDB-3711)
+- Enable async Jira task sync and transition (OSIDB-3693)
+- Add collaboration labels on flaw promotion (OSIDB-3804)
+- Add basic end-to-end tests for Flaws, Affects and Trackers (OSIDB-3495)
+- Allow searching by flaw labels (OSIDB-3816)
+
+### Changed
+- Removed `last_validated_dt` from exposed JSON Flaw History data (OSIDB-3814), handled edge-case that would cause failure (OSIDB-3858)
+- Trim Jira task summary if flaw's `cve_id` and `title` are too long (OSIDB-3847)
+- Validate that a flaw has an impact set and RH CVSSv3 score is non-zero,
+  or it does not have an impact set and RH CVSSv3 score is zero (OSIDB-3738)
 
 ### Fixed
 - Fix CVSS data parsing in NVD collector (OSIDB-4003)
