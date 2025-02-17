@@ -33,6 +33,17 @@ from .ps_update_stream import PsUpdateStream
 logger = logging.getLogger(__name__)
 
 
+class NotAffectedJustification(models.TextChoices):
+    """Valid choices for not affected justifications in affects and trackers."""
+
+    NOVALUE = ""
+    COMPONENT_NOT_PRESENT = "Component not present"
+    INLINE_MITIGATIONS_ALREADY_EXIST = "Inline mitigations already exist"
+    VULN_CODE_CANNOT_BE_CONTROLLED = "Vulnerable code cannot be controlled by adversary"
+    VULN_CODE_NOT_IN_EXECUTE_PATH = "Vulnerable code not in execute path"
+    VULN_CODE_NOT_PRESENT = "Vulnerable code not present"
+
+
 class AffectManager(ACLMixinManager, TrackingMixinManager):
     """affect manager"""
 
@@ -142,6 +153,10 @@ class Affect(
     purl = models.TextField(blank=True)
 
     impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
+
+    not_affected_justification = models.CharField(
+        choices=NotAffectedJustification.choices, max_length=100, blank=True
+    )
 
     # non operational meta data
     meta_attr = HStoreField(default=dict)
@@ -510,6 +525,21 @@ class Affect(
                     "that does not match the one included in purl: "
                     f"ps_component: {self.ps_component}, purl: {self.purl}."
                 )
+
+    def _validate_not_affected_justification(self, **kwargs):
+        """
+        The not affected justification field becomes mandatory if the affectedness is NOTAFFECTED
+        and there are no trackers to compute the justification from.
+        If the affectedness is set at a different value than NOTAFFECTED, then the justification should
+        be empty.
+        """
+        if (
+            self.affectedness == Affect.AffectAffectedness.NOTAFFECTED
+            and not self.not_affected_justification
+        ):
+            raise ValidationError(
+                f"Affect ({self.uuid}) is set as NOTAFFECTED but the 'not affected justification' is empty."
+            )
 
     @property
     def aggregated_impact(self):
