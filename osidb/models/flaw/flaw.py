@@ -569,7 +569,7 @@ class Flaw(
         if (
             self.is_embargoed
             and self.unembargo_dt is not None
-            and self.unembargo_dt < timezone.now()
+            and self.unembargo_dt.date() < timezone.now().date()
         ):
             raise ValidationError(
                 "Flaw still embargoed but unembargo date is in the past."

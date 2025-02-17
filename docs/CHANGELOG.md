@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add not affected justification field to affects (OSIDB-380)
 
+### Changed
+- Remove time information when validating embargoed flaws (OSIDB-3862)
+
 ### Fixed
 - Fix CVSS data parsing in NVD collector (OSIDB-4003)
 
