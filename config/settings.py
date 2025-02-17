@@ -83,7 +83,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "osidb.middleware.OsidbHistoryMiddleware",  # adds request user to audit history context
+    "pghistory.middleware.HistoryMiddleware",  # adds request user to audit history context
     "django.middleware.gzip.GZipMiddleware",
     "osidb.middleware.PgCommon",
 ]
