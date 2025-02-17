@@ -56,8 +56,9 @@ class WSGIRequestWithHook(WSGIRequest):
     """
 
     def __setattr__(self, attr, value):
-        _value = get_userstr(value) if attr == "user" else value
-        return super().__setattr__(attr, _value)
+        if attr == "user":
+            pghistory.context(user=get_userstr(value))
+        return super().__setattr__(attr, value)
 
 
 class OsidbHistoryMiddleware:
