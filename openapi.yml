@@ -9000,11 +9000,11 @@ components:
       type: string
     NotAffectedJustificationEnum:
       enum:
-      - Component not present
-      - Inline mitigations already exist
-      - Vulnerable code cannot be controlled by adversary
-      - Vulnerable code not in execute path
-      - Vulnerable code not present
+      - Component not Present
+      - Inline Mitigations already Exist
+      - Vulnerable Code cannot be Controlled by Adversary
+      - Vulnerable Code not in Execute Path
+      - Vulnerable Code not Present
       type: string
     Package:
       type: object

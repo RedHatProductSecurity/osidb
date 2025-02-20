@@ -37,11 +37,11 @@ class NotAffectedJustification(models.TextChoices):
     """Valid choices for not affected justifications in affects and trackers."""
 
     NOVALUE = ""
-    COMPONENT_NOT_PRESENT = "Component not present"
-    INLINE_MITIGATIONS_ALREADY_EXIST = "Inline mitigations already exist"
-    VULN_CODE_CANNOT_BE_CONTROLLED = "Vulnerable code cannot be controlled by adversary"
-    VULN_CODE_NOT_IN_EXECUTE_PATH = "Vulnerable code not in execute path"
-    VULN_CODE_NOT_PRESENT = "Vulnerable code not present"
+    COMPONENT_NOT_PRESENT = "Component not Present"
+    INLINE_MITIGATIONS_ALREADY_EXIST = "Inline Mitigations already Exist"
+    VULN_CODE_CANNOT_BE_CONTROLLED = "Vulnerable Code cannot be Controlled by Adversary"
+    VULN_CODE_NOT_IN_EXECUTE_PATH = "Vulnerable Code not in Execute Path"
+    VULN_CODE_NOT_PRESENT = "Vulnerable Code not Present"
 
 
 class AffectManager(ACLMixinManager, TrackingMixinManager):
