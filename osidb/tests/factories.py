@@ -552,6 +552,13 @@ class TrackerFactory(BaseFactory):
     status = factory.Faker("word")
     resolution = factory.Faker("word")
     ps_update_stream = factory.LazyFunction(lambda: PsUpdateStreamFactory().name)
+    not_affected_justification = factory.LazyAttribute(
+        lambda t: (
+            choice(list([val for val in NotAffectedJustification.values if val != ""]))
+            if t.resolution == "Not a Bug"
+            else ""
+        )
+    )
 
     embargoed = factory.Faker("random_element", elements=[False, True])
     acl_read = factory.LazyAttribute(

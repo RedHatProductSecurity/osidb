@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
+from apps.taskman.service import TaskResolution
 from osidb.models import Affect, Tracker
 from osidb.tests.factories import (
     AffectFactory,
@@ -398,4 +399,29 @@ class TestTrackerValidators:
                 affects=[affect],
                 ps_update_stream=ps_update_stream.name,
                 type=tracker_type,
+            )
+
+    def test_validate_not_affected_justification(self):
+        """
+        Test that a Jira tracker closed as "Not a Bug" and no justification raises
+        a validation error.
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+        )
+
+        with pytest.raises(
+            ValidationError,
+        ):
+            TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.embargoed,
+                type=Tracker.TrackerType.JIRA,
+                ps_update_stream=ps_update_stream.name,
+                resolution=TaskResolution.NOT_A_BUG,
+                not_affected_justification="",
             )

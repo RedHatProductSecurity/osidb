@@ -9650,6 +9650,11 @@ components:
         resolution:
           type: string
           readOnly: true
+        not_affected_justification:
+          readOnly: true
+          oneOf:
+          - $ref: '#/components/schemas/NotAffectedJustificationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         type:
           allOf:
           - $ref: '#/components/schemas/TrackerType'
@@ -9689,6 +9694,7 @@ components:
       - embargoed
       - errata
       - external_system_id
+      - not_affected_justification
       - resolution
       - status
       - type
@@ -9717,6 +9723,11 @@ components:
         resolution:
           type: string
           readOnly: true
+        not_affected_justification:
+          readOnly: true
+          oneOf:
+          - $ref: '#/components/schemas/NotAffectedJustificationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         type:
           allOf:
           - $ref: '#/components/schemas/TrackerType'
@@ -9755,6 +9766,7 @@ components:
       - created_dt
       - embargoed
       - errata
+      - not_affected_justification
       - ps_update_stream
       - resolution
       - status

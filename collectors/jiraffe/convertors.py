@@ -289,6 +289,7 @@ class TrackerConvertor:
             external_system_id=self.tracker_data["external_system_id"],
             status=self.tracker_data["status"],
             resolution=self.tracker_data["resolution"],
+            not_affected_justification=self.tracker_data["not_affected_justification"],
             ps_update_stream=self.tracker_data["ps_update_stream"],
             meta_attr=self.tracker_data,
             acl_read=self.acl_read,
@@ -384,6 +385,9 @@ class JiraTrackerConvertor(TrackerConvertor):
             "ps_update_stream": ps_update_stream,
             "status": self.get_field_attr(self._raw, "status", "name"),
             "resolution": self.get_field_attr(self._raw, "resolution", "name"),
+            "not_affected_justification": self.get_field_attr(
+                self._raw, "customfield_12326140", "value"
+            ),
             "created_dt": created_dt,
             "updated_dt": updated_dt,
         }
