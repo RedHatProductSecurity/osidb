@@ -595,6 +595,35 @@ class Affect(
         return Affect.AffectFix.AFFECTED
 
     @property
+    def delegated_not_affected_justification(self):
+        """
+        Delegated not affected justification based on the not affected justifications of
+        related Jira trackers.
+
+        If all the trackers related to an affect are closed as 'Not a Bug' and their justifications
+        are equal, then pick that value. If they are all closed as 'Not a Bug' but the
+        justifications differ, pick 'Component not Present' even if no justification has that
+        value.
+        If any tracker has a resolution different to 'Not a Bug', then the delegated justification
+        becomes empty.
+        """
+        from apps.taskman.service import TaskResolution
+        from osidb.models.tracker import Tracker
+
+        trackers = self.trackers.filter(type=Tracker.TrackerType.JIRA)
+        if (
+            not trackers
+            or trackers.exclude(resolution=TaskResolution.NOT_A_BUG).exists()
+        ):
+            return NotAffectedJustification.NOVALUE
+
+        justifications = [tracker.not_affected_justification for tracker in trackers]
+        if len(set(justifications)) == 1:
+            return justifications[0]
+
+        return NotAffectedJustification.COMPONENT_NOT_PRESENT
+
+    @property
     def is_community(self) -> bool:
         """
         check and return whether the given affect is community one

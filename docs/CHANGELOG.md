@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add not affected justification field to affects (OSIDB-3809)
 - Add not affected justification field to trackers (OSIDB-3808)
+- Add delegated not affected justification field to affect (OSIDB-3810)
 
 ### Changed
 - Remove time information when validating embargoed flaws (OSIDB-3862)

@@ -7336,6 +7336,9 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        delegated_not_affected_justification:
+          type: string
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7359,6 +7362,7 @@ components:
       - alerts
       - created_dt
       - cvss_scores
+      - delegated_not_affected_justification
       - delegated_resolution
       - embargoed
       - flaw
@@ -7429,6 +7433,9 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        delegated_not_affected_justification:
+          type: string
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7452,6 +7459,7 @@ components:
       - alerts
       - created_dt
       - cvss_scores
+      - delegated_not_affected_justification
       - delegated_resolution
       - embargoed
       - flaw
@@ -7664,6 +7672,9 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        delegated_not_affected_justification:
+          type: string
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7682,6 +7693,7 @@ components:
       - alerts
       - created_dt
       - cvss_scores
+      - delegated_not_affected_justification
       - delegated_resolution
       - embargoed
       - flaw

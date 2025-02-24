@@ -1147,6 +1147,7 @@ class AffectSerializer(
                 "cvss_scores",
                 "purl",
                 "not_affected_justification",
+                "delegated_not_affected_justification",
             ]
             + ACLMixinSerializer.Meta.fields
             + AlertMixinSerializer.Meta.fields

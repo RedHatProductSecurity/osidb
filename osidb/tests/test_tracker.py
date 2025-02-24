@@ -227,6 +227,66 @@ class TestTracker:
             tracker2.external_system_id = "TEST-1"
             tracker2.save()
 
+    @pytest.mark.parametrize(
+        "resolution1,resolution2,justification1,justification2,expected_justification",
+        [
+            (
+                "Not a Bug",
+                "Not a Bug",
+                "Inline Mitigations already Exist",
+                "Inline Mitigations already Exist",
+                "Inline Mitigations already Exist",
+            ),
+            (
+                "Not a Bug",
+                "Not a Bug",
+                "Inline Mitigations already Exist",
+                "Vulnerable Code not Present",
+                "Component not Present",
+            ),
+            ("Not a Bug", "Done", "Inline Mitigations already Exist", "", ""),
+        ],
+    )
+    def test_delegated_not_affected_justifications(
+        self,
+        resolution1,
+        resolution2,
+        justification1,
+        justification2,
+        expected_justification,
+    ):
+        """
+        Test that the delegated not affected justification for affects based on its trackers is
+        correctly computed.
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        stream1 = PsUpdateStreamFactory(ps_module=ps_module)
+        stream2 = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.embargoed,
+            ps_update_stream=stream1.name,
+            type=Tracker.TrackerType.JIRA,
+            resolution=resolution1,
+            not_affected_justification=justification1,
+        )
+        TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.embargoed,
+            ps_update_stream=stream2.name,
+            type=Tracker.TrackerType.JIRA,
+            resolution=resolution2,
+            not_affected_justification=justification2,
+        )
+        assert affect.delegated_not_affected_justification == expected_justification
+
 
 class TestTrackerValidators:
     def test_validate_good(self):
