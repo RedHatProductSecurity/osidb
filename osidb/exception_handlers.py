@@ -48,7 +48,7 @@ def exception_handler(exc, context):
     if isinstance(exc, JIRAError):
         set_rollback()
         logger.exception(exc)
-        data = {"detail": exc.text}
+        data = {"detail": parse_jira_error(exc)}
         return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     if isinstance(exc, OperationalError):
@@ -88,3 +88,15 @@ def exception_handler(exc, context):
         exc = DRFValidationError(as_serializer_error(exc))
 
     return drf_exception_handler(exc, context)
+
+
+def parse_jira_error(exc: JIRAError):
+    if exc.text:
+        return exc.text
+    if getattr(exc, "response", None) is None:
+        return "unknown Jira error"
+
+    response = exc.response.json()
+    return response.get(
+        "errors", {"error": "unknown jira error", "status": exc.response.status_code}
+    )
