@@ -184,6 +184,7 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
             "ps_update_stream": ps_update_stream,
             "status": self._raw["status"],
             "resolution": self._raw["resolution"],
+            "not_affected_justification": None,
             "created_dt": created_dt.replace(tzinfo=timezone.get_current_timezone()),
             "updated_dt": updated_dt.replace(tzinfo=timezone.get_current_timezone()),
             "blocks": json.dumps(self._raw["blocks"]),

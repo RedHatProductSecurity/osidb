@@ -20,7 +20,7 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
-from osidb.models.affect import Affect
+from osidb.models.affect import Affect, NotAffectedJustification
 from osidb.sync_manager import (
     BZTrackerDownloadManager,
     BZTrackerLinkManager,
@@ -115,6 +115,10 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     affects = models.ManyToManyField(Affect, related_name="trackers", blank=True)
 
     last_impact_increase_dt = models.DateTimeField(null=True, blank=True)
+
+    not_affected_justification = models.CharField(
+        choices=NotAffectedJustification.choices, max_length=100, blank=True
+    )
 
     class Meta:
         """define meta"""
@@ -441,6 +445,21 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                         "If the tracker is not expected to be a duplicate, please contact the Vulnerability Tooling team for further assistance."
                     },
                 )
+
+    def _validate_not_affected_justification(self, **kwargs):
+        """
+        The not affected justification field becomes mandatory if the tracker is closed as "Not a Bug".
+        """
+        from apps.taskman.service import TaskResolution
+
+        if (
+            self.resolution == TaskResolution.NOT_A_BUG
+            and not self.not_affected_justification
+        ):
+            raise ValidationError(
+                f"Tracker ({self.external_system_id if self.external_system_id else self.uuid}) is "
+                "closed as 'Not a Bug' but the 'not affected justification' is empty."
+            )
 
     def can_unembargo(self):
         """

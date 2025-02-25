@@ -680,6 +680,7 @@ class TrackerSerializer(
         "ps_module",
         "ps_update_stream",
         "resolution",
+        "not_affected_justification",
         "status",
     )
     errata = serializers.SerializerMethodField()
@@ -720,6 +721,7 @@ class TrackerSerializer(
                 "ps_update_stream",
                 "status",
                 "resolution",
+                "not_affected_justification",
                 "type",
                 "uuid",
             ]
@@ -733,6 +735,7 @@ class TrackerSerializer(
             "status",
             "type",
             "resolution",
+            "not_affected_justification",
         ]
 
     def create(self, validated_data):
@@ -1144,6 +1147,7 @@ class AffectSerializer(
                 "cvss_scores",
                 "purl",
                 "not_affected_justification",
+                "delegated_not_affected_justification",
             ]
             + ACLMixinSerializer.Meta.fields
             + AlertMixinSerializer.Meta.fields

@@ -290,3 +290,19 @@ class TestJiraTrackerConvertor:
         )
         assert tracker.affects.count() == 1
         assert tracker.affects.first() == affect
+
+    @pytest.mark.vcr
+    def test_convert_not_affected_justification(self, monkeypatch):
+        """
+        Test that a tracker closed as Not a Bug as a VEX justification field which
+        translates to a valid 'not affected justification'.
+        """
+        tracker_data = JiraQuerier().get_issue("RHEL-59004")
+        tracker_convertor = JiraTrackerConvertor(tracker_data)
+        tracker = tracker_convertor._gen_tracker_object()
+
+        assert tracker.type == Tracker.TrackerType.JIRA
+        assert tracker.external_system_id == "RHEL-59004"
+        assert tracker.status == "Closed"
+        assert tracker.resolution == "Not a Bug"
+        assert tracker.not_affected_justification == "Inline Mitigations already Exist"

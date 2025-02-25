@@ -7336,6 +7336,9 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        delegated_not_affected_justification:
+          type: string
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7359,6 +7362,7 @@ components:
       - alerts
       - created_dt
       - cvss_scores
+      - delegated_not_affected_justification
       - delegated_resolution
       - embargoed
       - flaw
@@ -7429,6 +7433,9 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        delegated_not_affected_justification:
+          type: string
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7452,6 +7459,7 @@ components:
       - alerts
       - created_dt
       - cvss_scores
+      - delegated_not_affected_justification
       - delegated_resolution
       - embargoed
       - flaw
@@ -7664,6 +7672,9 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        delegated_not_affected_justification:
+          type: string
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7682,6 +7693,7 @@ components:
       - alerts
       - created_dt
       - cvss_scores
+      - delegated_not_affected_justification
       - delegated_resolution
       - embargoed
       - flaw
@@ -9000,11 +9012,11 @@ components:
       type: string
     NotAffectedJustificationEnum:
       enum:
-      - Component not present
-      - Inline mitigations already exist
-      - Vulnerable code cannot be controlled by adversary
-      - Vulnerable code not in execute path
-      - Vulnerable code not present
+      - Component not Present
+      - Inline Mitigations already Exist
+      - Vulnerable Code cannot be Controlled by Adversary
+      - Vulnerable Code not in Execute Path
+      - Vulnerable Code not Present
       type: string
     Package:
       type: object
@@ -9650,6 +9662,11 @@ components:
         resolution:
           type: string
           readOnly: true
+        not_affected_justification:
+          readOnly: true
+          oneOf:
+          - $ref: '#/components/schemas/NotAffectedJustificationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         type:
           allOf:
           - $ref: '#/components/schemas/TrackerType'
@@ -9689,6 +9706,7 @@ components:
       - embargoed
       - errata
       - external_system_id
+      - not_affected_justification
       - resolution
       - status
       - type
@@ -9717,6 +9735,11 @@ components:
         resolution:
           type: string
           readOnly: true
+        not_affected_justification:
+          readOnly: true
+          oneOf:
+          - $ref: '#/components/schemas/NotAffectedJustificationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         type:
           allOf:
           - $ref: '#/components/schemas/TrackerType'
@@ -9755,6 +9778,7 @@ components:
       - created_dt
       - embargoed
       - errata
+      - not_affected_justification
       - ps_update_stream
       - resolution
       - status
