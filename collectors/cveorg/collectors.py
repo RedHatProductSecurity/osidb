@@ -2,6 +2,7 @@ import json
 import os
 import re
 from decimal import Decimal
+from glob import iglob
 from time import sleep
 from typing import Union
 
@@ -149,6 +150,60 @@ class CVEorgCollector(Collector):
             raise CVEorgCollectorException(msg)
 
         return result.stdout, period_end
+
+    def get_cve_file_path(self, cve: str) -> str:
+        """
+        Fetch the CVE file path from the cvelistV5 repository for a given `cve`.
+        """
+        file_path = [
+            f
+            for f in iglob(f"{self.REPO_PATH}/cves/**", recursive=True)
+            if os.path.isfile(f) and f"{cve}.json" in f
+        ]
+        if len(file_path) != 1:
+            msg = f"Expected to find one file for {cve} but found: {', '.join(file_path) or 'none'}"
+            raise CVEorgCollectorException(msg)
+
+        return file_path[0]
+
+    def collect_cve(self, cve: str) -> str:
+        """
+        Collect vulnerability data for a given `cve` from the cvelistV5 repository and store it in OSIDB.
+        This method is intended for a manual collector run via the `create_cveorg_flaw` command.
+        """
+        # Set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
+        # Celery workers should be able to read/write any information in order to fulfill their jobs
+        set_user_acls(settings.ALL_GROUPS)
+
+        self.clone_repo()
+        self.update_repo()
+        file_path = self.get_cve_file_path(cve)
+
+        with open(file_path) as file:
+            file_content = json.load(file)
+
+        if file_content["cveMetadata"]["state"] != "PUBLISHED":
+            return f"Cannot create '{cve}' because it was rejected by CVE Program."
+
+        try:
+            content = self.extract_content(file_content)
+        except Exception as exc:
+            msg = f"Failed to parse data from the {file_path} file: {exc}"
+            raise CVEorgCollectorException(msg) from exc
+
+        try:
+            with transaction.atomic():
+                _, new_flaw = self.save_snippet_and_flaw(content)
+        except Exception as exc:
+            message = (
+                f"Failed to save snippet and flaw for {content['cve_id']}. Error: {exc}"
+            )
+            raise CVEorgCollectorException(message) from exc
+
+        if new_flaw:
+            return f"Flaw for {cve} was created successfully."
+        else:
+            return f"Flaw for {cve} was not created because it already exist."
 
     def collect(self) -> str:
         """
