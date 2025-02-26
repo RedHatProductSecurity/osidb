@@ -2,6 +2,7 @@ import json
 import os
 import re
 from decimal import Decimal
+from glob import iglob
 from time import sleep
 from typing import Union
 
@@ -14,7 +15,11 @@ from django.utils.dateparse import parse_datetime
 from apps.taskman.constants import JIRA_AUTH_TOKEN
 from collectors.cmd import Cmd
 from collectors.constants import SNIPPET_CREATION_ENABLED
-from collectors.cveorg.constants import CELERY_PVC_PATH, CVEORG_START_DATE
+from collectors.cveorg.constants import (
+    CELERY_PVC_PATH,
+    CVEORG_START_DATE,
+    KEYWORDS_CHECK_ENABLED,
+)
 from collectors.cveorg.keywords import should_create_snippet
 from collectors.framework.models import Collector
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
@@ -29,12 +34,16 @@ class CVEorgCollectorException(Exception):
 
 
 class CVEorgCollector(Collector):
-    # Snippet creation is disabled for now
-    snippet_creation_enabled = None
+    # Controls whether the collector is enabled, default to True
+    snippet_creation_enabled = SNIPPET_CREATION_ENABLED
 
-    # When the start date is set to None, all snippets are collected
-    # When set to a datetime object, only snippets created after that date are collected
+    # Restricts the snippet and flaw creation by published date, default to "2024-10-01"
+    # If set to a string date, CVEs older than that date will be ignored; if set to None, the restriction is disabled
     snippet_creation_start_date = CVEORG_START_DATE
+
+    # Restricts the snippet and flaw creation by keywords, default to True
+    # If set to True, CVEs not complying with keywords will be ignored; if set to False, the restriction is disabled
+    keywords_check_enabled = KEYWORDS_CHECK_ENABLED
 
     BEGINNING = timezone.datetime(2024, 10, 1, tzinfo=timezone.get_current_timezone())
 
@@ -53,12 +62,6 @@ class CVEorgCollector(Collector):
         "cvssV3_1": FlawCVSS.CVSSVersion.VERSION3,
         "cvssV4_0": FlawCVSS.CVSSVersion.VERSION4,
     }
-
-    def __init__(self) -> None:
-        super().__init__()
-
-        if self.snippet_creation_enabled is None:
-            self.snippet_creation_enabled = SNIPPET_CREATION_ENABLED
 
     # Notes for Cmd.run(...) in clone_repo(), update_repo(), get_repo_changes() methods:
     # - shell=False is used to run the command directly, so that Bash injection is not possible.
@@ -148,6 +151,60 @@ class CVEorgCollector(Collector):
 
         return result.stdout, period_end
 
+    def get_cve_file_path(self, cve: str) -> str:
+        """
+        Fetch the CVE file path from the cvelistV5 repository for a given `cve`.
+        """
+        file_path = [
+            f
+            for f in iglob(f"{self.REPO_PATH}/cves/**", recursive=True)
+            if os.path.isfile(f) and f"{cve}.json" in f
+        ]
+        if len(file_path) != 1:
+            msg = f"Expected to find one file for {cve} but found: {', '.join(file_path) or 'none'}"
+            raise CVEorgCollectorException(msg)
+
+        return file_path[0]
+
+    def collect_cve(self, cve: str) -> str:
+        """
+        Collect vulnerability data for a given `cve` from the cvelistV5 repository and store it in OSIDB.
+        This method is intended for a manual collector run via the `create_cveorg_flaw` command.
+        """
+        # Set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
+        # Celery workers should be able to read/write any information in order to fulfill their jobs
+        set_user_acls(settings.ALL_GROUPS)
+
+        self.clone_repo()
+        self.update_repo()
+        file_path = self.get_cve_file_path(cve)
+
+        with open(file_path) as file:
+            file_content = json.load(file)
+
+        if file_content["cveMetadata"]["state"] != "PUBLISHED":
+            return f"Cannot create '{cve}' because it was rejected by CVE Program."
+
+        try:
+            content = self.extract_content(file_content)
+        except Exception as exc:
+            msg = f"Failed to parse data from the {file_path} file: {exc}"
+            raise CVEorgCollectorException(msg) from exc
+
+        try:
+            with transaction.atomic():
+                _, new_flaw = self.save_snippet_and_flaw(content)
+        except Exception as exc:
+            message = (
+                f"Failed to save snippet and flaw for {content['cve_id']}. Error: {exc}"
+            )
+            raise CVEorgCollectorException(message) from exc
+
+        if new_flaw:
+            return f"Flaw for {cve} was created successfully."
+        else:
+            return f"Flaw for {cve} was not created because it already exist."
+
     def collect(self) -> str:
         """
         Collect vulnerability data from the cvelistV5 repository and store them in OSIDB.
@@ -177,28 +234,28 @@ class CVEorgCollector(Collector):
         for file_path in file_paths:
             with open(file_path) as file:
                 file_content = json.load(file)
-                if file_content["cveMetadata"]["state"] == "PUBLISHED":
-                    try:
-                        content = self.extract_content(file_content)
-                    except Exception as exc:
-                        msg = f"Failed to parse data from the {file_path} file: {exc}"
-                        logger.error(msg)
-                        continue
 
-                    try:
-                        with transaction.atomic():
-                            new_snippet, new_flaw = self.save_snippet_and_flaw(content)
-                            if new_snippet:
-                                new_snippets.append(content["cve_id"])
-                            if new_flaw:
-                                new_flaws.append(content["cve_id"])
-                        # introduce a small delay after each transaction to not hit the Jira rate limit
+            if file_content["cveMetadata"]["state"] == "PUBLISHED":
+                try:
+                    content = self.extract_content(file_content)
+                except Exception as exc:
+                    msg = f"Failed to parse data from the {file_path} file: {exc}"
+                    logger.error(msg)
+                    continue
+                try:
+                    with transaction.atomic():
+                        new_snippet, new_flaw = self.save_snippet_and_flaw(content)
+                        if new_snippet:
+                            new_snippets.append(content["cve_id"])
                         if new_flaw:
-                            sleep(1)
-                    except Exception as exc:
-                        message = f"Failed to save snippet and flaw for {content['cve_id']}. Error: {exc}"
-                        logger.error(message)
-                        raise CVEorgCollectorException(message) from exc
+                            new_flaws.append(content["cve_id"])
+                    # introduce a small delay after each transaction to not hit the Jira rate limit
+                    if new_flaw:
+                        sleep(1)
+                except Exception as exc:
+                    message = f"Failed to save snippet and flaw for {content['cve_id']}. Error: {exc}"
+                    logger.error(message)
+                    raise CVEorgCollectorException(message) from exc
 
         updated_until = period_end
         self.store(complete=True, updated_until_dt=updated_until)
@@ -213,35 +270,33 @@ class CVEorgCollector(Collector):
     def save_snippet_and_flaw(self, content: dict) -> tuple[bool, bool]:
         """
         Create and save snippet with flaw from normalized `content` if they do not already exist.
-        The creation is restricted by the published date and allowed keywords.
+        The creation may be restricted by the published date and checked keywords.
         """
-        snippet_created = False
-        flaw_created = False
+        if self.snippet_creation_start_date:
+            # If unembargo_dt is missing, a flaw is always historical
+            if not content["unembargo_dt"] or (
+                self.snippet_creation_start_date
+                > parse_datetime(content["unembargo_dt"])
+            ):
+                return False, False
 
-        # If unembargo_dt is missing, a flaw is always historical
-        if not content["unembargo_dt"]:
-            return False, False
-
-        if self.snippet_creation_start_date and (
-            self.snippet_creation_start_date > parse_datetime(content["unembargo_dt"])
-        ):
-            return False, False
-
-        if not should_create_snippet(content["comment_zero"]) or (
-            not should_create_snippet(content["title"])
-            and content["title"] != "From CVEorg collector"
-        ):
-            return False, False
+        if self.keywords_check_enabled:
+            if not should_create_snippet(content["comment_zero"]) or (
+                not should_create_snippet(content["title"])
+                and content["title"] != "From CVEorg collector"
+            ):
+                return False, False
 
         snippet, snippet_created = Snippet.objects.get_or_create(
             source=Snippet.Source.CVEORG,
             external_id=content["cve_id"],
             defaults={"content": content},
         )
-        if snippet_created:
-            flaw_created = bool(
-                snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN)
-            )
+        flaw_created = (
+            bool(snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN))
+            if snippet_created
+            else False
+        )
 
         return snippet_created, flaw_created
 

@@ -70,7 +70,7 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
 
         Returns a flaw if it was newly created, None otherwise.
         """
-        # unlike NVD, OSV may not always have a cve_id, so we have to check external_id as well
+        # unlike CVEorg, OSV may not always have a cve_id, so we have to check external_id as well
         cve_id = self.content["cve_id"]
         external_id = self.external_id
         created_flaw = None

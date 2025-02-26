@@ -94,6 +94,10 @@ OSIDB_CORS_ALLOW_HEADERS='["bugzilla-api-key", "jira-api-key"]'
 SNIPPET_CREATION=1
 CVEORG_START_DATE="2024-10-01"
 OSV_START_DATE="2024-07-01"
+# To set the path where the cvelistV5 repo should be stored
+CELERY_PVC_PATH="/home/output-files/"
+# To enable keywords check in the CVEorg collector
+KEYWORDS_CHECK_ENABLED=1
 
 # Collector switches: set to 0 to turn each collector off, or 1 to turn it on (default)
 FLAW_COLLECTOR_ENABLED=1

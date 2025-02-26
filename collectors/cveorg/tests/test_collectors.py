@@ -77,6 +77,31 @@ class TestCVEorgCollector:
         assert not Flaw.objects.filter(cve_id="CVE-2024-0203")  # not passing keywords
         assert not Flaw.objects.filter(cve_id="CVE-2024-1087")  # rejected flaw
 
+    @pytest.mark.vcr
+    @pytest.mark.default_cassette(
+        "TestCVEorgCollector.test_collect_cveorg_records.yaml"
+    )
+    def test_collect_cveorg_record(self, mock_keywords, mock_repo):
+        """
+        Test that snippet and flaw for a given cve are created correctly.
+        """
+        cve_id = "CVE-2024-0181"
+
+        cc = CVEorgCollector()
+        cc.snippet_creation_enabled = True
+        cc.snippet_creation_start_date = None
+        result = cc.collect_cve(cve_id)
+
+        assert Snippet.objects.count() == 1
+        assert Flaw.objects.count() == 1
+
+        flaw = Flaw.objects.get(cve_id=cve_id)
+        snippet = Snippet.objects.get(external_id=cve_id)
+        assert flaw
+        assert snippet
+        assert snippet.flaw == flaw
+        assert result == f"Flaw for {cve_id} was created successfully."
+
 
 class TestCVEorgCollectorException:
 
@@ -153,6 +178,36 @@ class TestCVEorgCollectorException:
 
         with pytest.raises(CVEorgCollectorException):
             cc.collect()
+
+        assert Snippet.objects.all().count() == 0
+        assert Flaw.objects.all().count() == 0
+
+    def test_fail_get_cve_file_path(self, monkeypatch):
+        """
+        Test that flaw and snippet are not created if the cvelistV5 repository
+        does not contain exactly one file path for a given cve.
+        """
+
+        def clone_repo(self):
+            return
+
+        def update_repo(self):
+            return
+
+        def get_cve_file_path(self, cve="CVE-2024-0181"):
+            raise CVEorgCollectorException
+
+        monkeypatch.setattr(CVEorgCollector, "REPO_PATH", self.repo_path)
+        monkeypatch.setattr(CVEorgCollector, "clone_repo", clone_repo)
+        monkeypatch.setattr(CVEorgCollector, "update_repo", update_repo)
+        monkeypatch.setattr(CVEorgCollector, "get_cve_file_path", get_cve_file_path)
+
+        cc = CVEorgCollector()
+        cc.snippet_creation_enabled = True
+        cc.snippet_creation_start_date = None
+
+        with pytest.raises(CVEorgCollectorException):
+            cc.collect_cve("CVE-2024-0181")
 
         assert Snippet.objects.all().count() == 0
         assert Flaw.objects.all().count() == 0
