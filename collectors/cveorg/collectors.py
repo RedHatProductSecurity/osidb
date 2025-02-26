@@ -177,28 +177,28 @@ class CVEorgCollector(Collector):
         for file_path in file_paths:
             with open(file_path) as file:
                 file_content = json.load(file)
-                if file_content["cveMetadata"]["state"] == "PUBLISHED":
-                    try:
-                        content = self.extract_content(file_content)
-                    except Exception as exc:
-                        msg = f"Failed to parse data from the {file_path} file: {exc}"
-                        logger.error(msg)
-                        continue
 
-                    try:
-                        with transaction.atomic():
-                            new_snippet, new_flaw = self.save_snippet_and_flaw(content)
-                            if new_snippet:
-                                new_snippets.append(content["cve_id"])
-                            if new_flaw:
-                                new_flaws.append(content["cve_id"])
-                        # introduce a small delay after each transaction to not hit the Jira rate limit
+            if file_content["cveMetadata"]["state"] == "PUBLISHED":
+                try:
+                    content = self.extract_content(file_content)
+                except Exception as exc:
+                    msg = f"Failed to parse data from the {file_path} file: {exc}"
+                    logger.error(msg)
+                    continue
+                try:
+                    with transaction.atomic():
+                        new_snippet, new_flaw = self.save_snippet_and_flaw(content)
+                        if new_snippet:
+                            new_snippets.append(content["cve_id"])
                         if new_flaw:
-                            sleep(1)
-                    except Exception as exc:
-                        message = f"Failed to save snippet and flaw for {content['cve_id']}. Error: {exc}"
-                        logger.error(message)
-                        raise CVEorgCollectorException(message) from exc
+                            new_flaws.append(content["cve_id"])
+                    # introduce a small delay after each transaction to not hit the Jira rate limit
+                    if new_flaw:
+                        sleep(1)
+                except Exception as exc:
+                    message = f"Failed to save snippet and flaw for {content['cve_id']}. Error: {exc}"
+                    logger.error(message)
+                    raise CVEorgCollectorException(message) from exc
 
         updated_until = period_end
         self.store(complete=True, updated_until_dt=updated_until)
