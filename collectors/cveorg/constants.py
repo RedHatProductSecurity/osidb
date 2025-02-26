@@ -8,3 +8,5 @@ CVEORG_COLLECTOR_ENABLED = get_env(
 CVEORG_START_DATE = get_env_date("CVEORG_START_DATE", default="2024-10-01")
 
 CELERY_PVC_PATH = get_env("CELERY_PVC_PATH", default="/opt/app-root/output-files")
+
+KEYWORDS_CHECK_ENABLED = get_env("KEYWORDS_CHECK_ENABLED", default="True", is_bool=True)

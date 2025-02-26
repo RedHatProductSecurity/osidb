@@ -14,7 +14,11 @@ from django.utils.dateparse import parse_datetime
 from apps.taskman.constants import JIRA_AUTH_TOKEN
 from collectors.cmd import Cmd
 from collectors.constants import SNIPPET_CREATION_ENABLED
-from collectors.cveorg.constants import CELERY_PVC_PATH, CVEORG_START_DATE
+from collectors.cveorg.constants import (
+    CELERY_PVC_PATH,
+    CVEORG_START_DATE,
+    KEYWORDS_CHECK_ENABLED,
+)
 from collectors.cveorg.keywords import should_create_snippet
 from collectors.framework.models import Collector
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
@@ -35,6 +39,10 @@ class CVEorgCollector(Collector):
     # Restricts the snippet and flaw creation by published date, default to "2024-10-01"
     # If set to a string date, CVEs older than that date will be ignored; if set to None, the restriction is disabled
     snippet_creation_start_date = CVEORG_START_DATE
+
+    # Restricts the snippet and flaw creation by keywords, default to True
+    # If set to True, CVEs not complying with keywords will be ignored; if set to False, the restriction is disabled
+    keywords_check_enabled = KEYWORDS_CHECK_ENABLED
 
     BEGINNING = timezone.datetime(2024, 10, 1, tzinfo=timezone.get_current_timezone())
 
@@ -217,11 +225,12 @@ class CVEorgCollector(Collector):
             ):
                 return False, False
 
-        if not should_create_snippet(content["comment_zero"]) or (
-            not should_create_snippet(content["title"])
-            and content["title"] != "From CVEorg collector"
-        ):
-            return False, False
+        if self.keywords_check_enabled:
+            if not should_create_snippet(content["comment_zero"]) or (
+                not should_create_snippet(content["title"])
+                and content["title"] != "From CVEorg collector"
+            ):
+                return False, False
 
         snippet, snippet_created = Snippet.objects.get_or_create(
             source=Snippet.Source.CVEORG,
