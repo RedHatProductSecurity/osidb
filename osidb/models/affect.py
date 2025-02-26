@@ -5,6 +5,7 @@ import pghistory
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from packageurl import PackageURL
 from psqlextra.fields import HStoreField
@@ -197,6 +198,19 @@ class Affect(
                 self.ps_component = PackageURL.from_string(self.purl).name
             except ValueError:
                 pass
+
+        if self.is_resolved:
+            if self._state.adding:
+                # new affect created resolved
+                self.resolved_dt = timezone.now().replace(microsecond=0)
+            else:
+                old_affect = Affect.objects.get(uuid=self.uuid)
+                if not old_affect.is_resolved:
+                    # affect changed from unresolved to resolved
+                    self.resolved_dt = timezone.now().replace(microsecond=0)
+        else:
+            # Not resolved affects should never have resolved_dt
+            self.resolved_dt = None
 
         super().save(*args, **kwargs)
 
@@ -645,6 +659,18 @@ class Affect(
         )
 
     @property
+    def is_resolved(self) -> bool:
+        """
+        check and return whether the given affect is considered resolved
+        and should have a resolution date
+        """
+        return (
+            self.affectedness not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS
+            or self.resolution
+            not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS[self.affectedness]
+        )
+
+    @property
     def is_rhscl(self) -> bool:
         """
         check and return whether the given affect is RHSCL one
@@ -724,6 +750,13 @@ class AffectCVSS(CVSS):
         # AffectCVSS needs to be synced through affect
         self.affect.save(*args, **kwargs)
 
+
+# List of all states an Affect is considered open/not resolved
+AFFECTEDNESS_UNRESOLVED_RESOLUTIONS = {
+    Affect.AffectAffectedness.NEW: [
+        Affect.AffectResolution.NOVALUE,
+    ],
+}
 
 AFFECTEDNESS_VALID_RESOLUTIONS = {
     Affect.AffectAffectedness.NEW: [

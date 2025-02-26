@@ -293,6 +293,122 @@ class TestEndpointsAffects:
         assert "history" in body
         assert len(body["history"]) == 1
 
+    def test_affect_resolved_dt(
+        self,
+        auth_client,
+        test_api_uri,
+    ):
+        """
+        test the resolved_dt behavior on REST API
+        """
+        flaw = FlawFactory()
+        # check unresolved creation
+        affect_data = {
+            "flaw": str(flaw.uuid),
+            "affectedness": Affect.AffectAffectedness.NEW,
+            "resolution": Affect.AffectResolution.NOVALUE,
+            "ps_module": "rhacm-2",
+            "ps_component": "curl",
+            "embargoed": flaw.is_embargoed,
+        }
+        response = auth_client().post(
+            f"{test_api_uri}/affects",
+            affect_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == 201
+        body = response.json()
+        created_uuid_unresolved = body["uuid"]
+
+        response = auth_client().get(
+            f"{test_api_uri}/affects/{created_uuid_unresolved}"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert not body["resolved_dt"]
+
+        # check resolved creation
+        affect_data["affectedness"] = Affect.AffectAffectedness.AFFECTED
+        affect_data["resolution"] = Affect.AffectResolution.DELEGATED
+        affect_data["ps_component"] = "kernel"
+
+        response = auth_client().post(
+            f"{test_api_uri}/affects",
+            affect_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == 201
+        body = response.json()
+        created_uuid_resolved = body["uuid"]
+
+        response = auth_client().get(f"{test_api_uri}/affects/{created_uuid_resolved}")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["resolved_dt"]
+
+        # check unresolved update
+        response = auth_client().get(
+            f"{test_api_uri}/affects/{created_uuid_unresolved}"
+        )
+        assert response.status_code == 200
+        original_body = response.json()
+
+        response = auth_client().put(
+            f"{test_api_uri}/affects/{created_uuid_unresolved}",
+            {
+                **original_body,
+                "affectedness": Affect.AffectAffectedness.AFFECTED,
+                "resolution": Affect.AffectResolution.DELEGATED,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["resolved_dt"]
+
+        # check rsolved update
+        response = auth_client().get(f"{test_api_uri}/affects/{created_uuid_resolved}")
+        assert response.status_code == 200
+        original_body = response.json()
+        old_resolved_dt = original_body["resolved_dt"]
+
+        response = auth_client().put(
+            f"{test_api_uri}/affects/{created_uuid_resolved}",
+            {
+                **original_body,
+                "affectedness": Affect.AffectAffectedness.AFFECTED,
+                "resolution": Affect.AffectResolution.WONTFIX,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["resolved_dt"]
+        assert body["resolved_dt"] == old_resolved_dt
+
+        response = auth_client().put(
+            f"{test_api_uri}/affects/{created_uuid_resolved}",
+            {
+                **original_body,
+                "affectedness": Affect.AffectAffectedness.NEW,
+                "resolution": Affect.AffectResolution.NOVALUE,
+                "updated_dt": body["updated_dt"],
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert not body["resolved_dt"]
+        assert body["resolved_dt"] != old_resolved_dt
+
 
 class TestEndpointsAffectsBulk:
     """
@@ -363,6 +479,7 @@ class TestEndpointsAffectsBulk:
             del tmp_aff["uuid"]
             del tmp_aff["created_dt"]
             del tmp_aff["updated_dt"]
+            del tmp_aff["resolved_dt"]
             del tmp_aff["alerts"]
             tmp_aff["ps_module"] = f"psmodule{i}"
             bulk_request[i] = tmp_aff
@@ -389,6 +506,7 @@ class TestEndpointsAffectsBulk:
             del received_aff["uuid"]
             del received_aff["created_dt"]
             del received_aff["updated_dt"]
+            del received_aff["resolved_dt"]
             del received_aff["alerts"]
             # For shorter debugging output
             assert sorted(received_aff.keys()) == sorted(requested_aff.keys())
