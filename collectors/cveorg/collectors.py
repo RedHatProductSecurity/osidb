@@ -207,19 +207,15 @@ class CVEorgCollector(Collector):
     def save_snippet_and_flaw(self, content: dict) -> tuple[bool, bool]:
         """
         Create and save snippet with flaw from normalized `content` if they do not already exist.
-        The creation is restricted by the published date and allowed keywords.
+        The creation may be restricted by the published date and checked keywords.
         """
-        snippet_created = False
-        flaw_created = False
-
-        # If unembargo_dt is missing, a flaw is always historical
-        if not content["unembargo_dt"]:
-            return False, False
-
-        if self.snippet_creation_start_date and (
-            self.snippet_creation_start_date > parse_datetime(content["unembargo_dt"])
-        ):
-            return False, False
+        if self.snippet_creation_start_date:
+            # If unembargo_dt is missing, a flaw is always historical
+            if not content["unembargo_dt"] or (
+                self.snippet_creation_start_date
+                > parse_datetime(content["unembargo_dt"])
+            ):
+                return False, False
 
         if not should_create_snippet(content["comment_zero"]) or (
             not should_create_snippet(content["title"])
@@ -232,10 +228,11 @@ class CVEorgCollector(Collector):
             external_id=content["cve_id"],
             defaults={"content": content},
         )
-        if snippet_created:
-            flaw_created = bool(
-                snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN)
-            )
+        flaw_created = (
+            bool(snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN))
+            if snippet_created
+            else False
+        )
 
         return snippet_created, flaw_created
 
