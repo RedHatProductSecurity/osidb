@@ -29,11 +29,11 @@ class CVEorgCollectorException(Exception):
 
 
 class CVEorgCollector(Collector):
-    # Snippet creation is disabled for now
-    snippet_creation_enabled = None
+    # Controls whether the collector is enabled, default to True
+    snippet_creation_enabled = SNIPPET_CREATION_ENABLED
 
-    # When the start date is set to None, all snippets are collected
-    # When set to a datetime object, only snippets created after that date are collected
+    # Restricts the snippet and flaw creation by published date, default to "2024-10-01"
+    # If set to a string date, CVEs older than that date will be ignored; if set to None, the restriction is disabled
     snippet_creation_start_date = CVEORG_START_DATE
 
     BEGINNING = timezone.datetime(2024, 10, 1, tzinfo=timezone.get_current_timezone())
@@ -53,12 +53,6 @@ class CVEorgCollector(Collector):
         "cvssV3_1": FlawCVSS.CVSSVersion.VERSION3,
         "cvssV4_0": FlawCVSS.CVSSVersion.VERSION4,
     }
-
-    def __init__(self) -> None:
-        super().__init__()
-
-        if self.snippet_creation_enabled is None:
-            self.snippet_creation_enabled = SNIPPET_CREATION_ENABLED
 
     # Notes for Cmd.run(...) in clone_repo(), update_repo(), get_repo_changes() methods:
     # - shell=False is used to run the command directly, so that Bash injection is not possible.
