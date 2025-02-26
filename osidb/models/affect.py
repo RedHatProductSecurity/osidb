@@ -158,6 +158,8 @@ class Affect(
         choices=NotAffectedJustification.choices, max_length=100, blank=True
     )
 
+    resolved_dt = models.DateTimeField(null=True, blank=True)
+
     # non operational meta data
     meta_attr = HStoreField(default=dict)
 

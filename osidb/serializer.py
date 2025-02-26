@@ -1103,6 +1103,7 @@ class AffectSerializer(
         max_length=255, allow_blank=True, allow_null=True, required=False
     )
     purl = serializers.CharField(allow_blank=True, allow_null=True, required=False)
+    resolved_dt = serializers.DateTimeField(read_only=True)
 
     @extend_schema_field(
         {
@@ -1148,6 +1149,7 @@ class AffectSerializer(
                 "purl",
                 "not_affected_justification",
                 "delegated_not_affected_justification",
+                "resolved_dt",
             ]
             + ACLMixinSerializer.Meta.fields
             + AlertMixinSerializer.Meta.fields
