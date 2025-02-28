@@ -2,7 +2,6 @@ import json
 import os
 import re
 from decimal import Decimal
-from glob import iglob
 from time import sleep
 from typing import Union
 
@@ -154,18 +153,18 @@ class CVEorgCollector(Collector):
 
     def get_cve_file_path(self, cve: str) -> str:
         """
-        Fetch the CVE file path from the cvelistV5 repository for a given `cve`.
+        Retrieve the CVE file path from the cvelistV5 repository for a given `cve`.
         """
-        file_path = [
-            f
-            for f in iglob(f"{self.REPO_PATH}/cves/**", recursive=True)
-            if os.path.isfile(f) and f"{cve}.json" in f
-        ]
-        if len(file_path) != 1:
-            msg = f"Expected to find one file for {cve} but found: {', '.join(file_path) or 'none'}"
+        # Create a path where the CVE file should be stored
+        # E. g. CVE-2024-35339 is stored as "<repo_path>/cves/2024/35xxx/CVE-2024-35339.json"
+        _, year, number = cve.split("-")
+        file_path = f"{self.REPO_PATH}/cves/{year}/{number[:-3]}xxx/{cve}.json"
+
+        if not os.path.isfile(file_path):
+            msg = f"Did not find a file for '{cve}' in the cvelistV5 repository."
             raise CVEorgCollectorException(msg)
 
-        return file_path[0]
+        return file_path
 
     def collect_cve(self, cve: str) -> str:
         """
