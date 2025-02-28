@@ -7339,6 +7339,10 @@ components:
         delegated_not_affected_justification:
           type: string
           readOnly: true
+        resolved_dt:
+          type: string
+          format: date-time
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7368,6 +7372,7 @@ components:
       - flaw
       - ps_module
       - ps_product
+      - resolved_dt
       - trackers
       - updated_dt
       - uuid
@@ -7436,6 +7441,10 @@ components:
         delegated_not_affected_justification:
           type: string
           readOnly: true
+        resolved_dt:
+          type: string
+          format: date-time
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7465,6 +7474,7 @@ components:
       - flaw
       - ps_module
       - ps_product
+      - resolved_dt
       - trackers
       - updated_dt
       - uuid
@@ -7675,6 +7685,10 @@ components:
         delegated_not_affected_justification:
           type: string
           readOnly: true
+        resolved_dt:
+          type: string
+          format: date-time
+          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7699,6 +7713,7 @@ components:
       - flaw
       - ps_module
       - ps_product
+      - resolved_dt
       - trackers
       - uuid
     AffectReportData:
