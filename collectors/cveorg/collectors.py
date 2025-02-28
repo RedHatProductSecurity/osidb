@@ -25,6 +25,7 @@ from collectors.framework.models import Collector
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
 from osidb.models import FlawCVSS, FlawReference, Snippet
+from osidb.validators import CVE_RE_STR
 
 logger = get_task_logger(__name__)
 
@@ -171,6 +172,10 @@ class CVEorgCollector(Collector):
         Collect vulnerability data for a given `cve` from the cvelistV5 repository and store it in OSIDB.
         This method is intended for a manual collector run via the `create_cveorg_flaw` command.
         """
+        if not re.match(CVE_RE_STR, cve):
+            msg = f"Provided '{cve}' is not a valid CVE string."
+            raise CVEorgCollectorException(msg)
+
         # Set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
         # Celery workers should be able to read/write any information in order to fulfill their jobs
         set_user_acls(settings.ALL_GROUPS)
