@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [4.8.0] - 2025-03-03
 ### Added
 - Add not affected justification field to affects (OSIDB-3809)
 - Add not affected justification field to trackers (OSIDB-3808)
