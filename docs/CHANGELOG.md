@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add not affected justification field to trackers (OSIDB-3808)
 - Add delegated not affected justification field to affect (OSIDB-3810)
 - Add resolved_dt to affect model (OSIDB-4058)
+- Map user name or email to flaw audit history entries (OSIDB-3464)
+
 
 ### Changed
 - Remove time information when validating embargoed flaws (OSIDB-3862)
