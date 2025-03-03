@@ -144,6 +144,35 @@ class TestJiraTaskCollector:
         assert flaw.workflow_state == "TRIAGE"
         assert last_update < flaw.task_updated_dt
 
+    @pytest.mark.parametrize(
+        "updated_until_dt,current_dt,expected_period_end",
+        [
+            (
+                datetime(2025, 3, 3, tzinfo=timezone.utc),
+                datetime(2025, 3, 14, tzinfo=timezone.utc),
+                datetime(2025, 3, 13, tzinfo=timezone.utc),
+            ),
+            (
+                datetime(2025, 3, 3, 12, 30, tzinfo=timezone.utc),
+                datetime(2025, 3, 3, 12, 32, tzinfo=timezone.utc),
+                datetime(2025, 3, 3, 12, 31, tzinfo=timezone.utc),
+            ),
+        ],
+    )
+    def test_get_batch_end_period(
+        self, updated_until_dt, current_dt, expected_period_end, monkeypatch
+    ):
+        # we don't care about collector actually fetching the data batch
+        monkeypatch.setattr(
+            JiraTaskmanQuerier, "get_task_period", lambda *args, **kwargs: None
+        )
+
+        collector = JiraTaskCollector()
+        collector.metadata.updated_until_dt = updated_until_dt
+        with freeze_time(current_dt):
+            _, period_end = collector.get_batch()
+            assert period_end == expected_period_end
+
 
 class TestJiraTrackerCollector:
     """

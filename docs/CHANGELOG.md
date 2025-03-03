@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Remove time information when validating embargoed flaws (OSIDB-3862)
 - The "Obsolete" tracker resolution is now treated as "Not affected" to allow its use for erroneously filed trackers
+- Shift Jira Task collector batch window 1 minute in the past (OSIDB-4068)
 
 ### Fixed
 - Fix CVSS data parsing in NVD collector (OSIDB-4003)
