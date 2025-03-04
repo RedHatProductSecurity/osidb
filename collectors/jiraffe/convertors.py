@@ -295,6 +295,7 @@ class TrackerConvertor:
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             resolved_dt=self.tracker_data["resolved_dt"],
+            special_handling=self.tracker_data["special_handling"],
             raise_validation_error=False,  # do not raise exceptions here
         )
         # eventual save inside create_tracker would
@@ -346,6 +347,18 @@ class JiraTrackerConvertor(TrackerConvertor):
 
         return None
 
+    def get_array_field_attr(self, issue, field, attr):
+        """
+        Field value getter helper for arrays.
+
+        In some cases a Jira field contains an array of field values.
+        This method unpacks every value in the array.
+        """
+        if hasattr(issue.fields, field):
+            field = getattr(issue.fields, field)
+            if isinstance(field, list):
+                return [getattr(f, attr) for f in field if hasattr(f, attr)]
+
     def _normalize(self) -> dict:
         """
         raw data normalization
@@ -394,6 +407,10 @@ class JiraTrackerConvertor(TrackerConvertor):
             "not_affected_justification": self.get_field_attr(
                 self._raw, "customfield_12326140", "value"
             ),
+            "special_handling": self.get_array_field_attr(
+                self._raw, "customfield_12324753", "value"
+            )
+            or [],
             "resolved_dt": resolved_dt,
             "created_dt": created_dt,
             "updated_dt": updated_dt,

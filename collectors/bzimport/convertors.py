@@ -196,6 +196,7 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
             "groups": json.dumps(self._raw["groups"]),
             "whiteboard": self._raw["whiteboard"],
             "resolved_dt": resolved_dt,
+            "special_handling": [],
         }
 
 
