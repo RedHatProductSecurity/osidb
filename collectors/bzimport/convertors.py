@@ -175,6 +175,11 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
         updated_dt = datetime.strptime(
             self._raw["last_change_time"], "%Y-%m-%dT%H:%M:%Sz"
         )
+        resolved_dt = None
+        if self._raw["cf_last_closed"]:
+            resolved_dt = datetime.strptime(
+                self._raw["cf_last_closed"], "%Y-%m-%dT%H:%M:%Sz"
+            ).replace(tzinfo=timezone.get_current_timezone())
         return {
             "external_system_id": self._raw["id"],
             "owner": self._raw["assigned_to"],
@@ -190,6 +195,7 @@ class BugzillaTrackerConvertor(BugzillaGroupsConvertorMixin, TrackerConvertor):
             "blocks": json.dumps(self._raw["blocks"]),
             "groups": json.dumps(self._raw["groups"]),
             "whiteboard": self._raw["whiteboard"],
+            "resolved_dt": resolved_dt,
         }
 
 

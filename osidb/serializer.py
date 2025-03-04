@@ -682,6 +682,7 @@ class TrackerSerializer(
         "resolution",
         "not_affected_justification",
         "status",
+        "resolved_dt",
     )
     errata = serializers.SerializerMethodField()
     meta_attr = serializers.SerializerMethodField()
@@ -724,6 +725,7 @@ class TrackerSerializer(
                 "not_affected_justification",
                 "type",
                 "uuid",
+                "resolved_dt",
             ]
             + ACLMixinSerializer.Meta.fields
             + AlertMixinSerializer.Meta.fields
@@ -736,6 +738,7 @@ class TrackerSerializer(
             "type",
             "resolution",
             "not_affected_justification",
+            "resolved_dt",
         ]
 
     def create(self, validated_data):

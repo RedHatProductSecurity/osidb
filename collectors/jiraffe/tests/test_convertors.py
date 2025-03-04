@@ -47,6 +47,9 @@ class TestJiraTrackerConvertor:
         # make sure the tracker is set public if non-embargoed
         # which is the case here with Red Hat Employee security level
         assert not tracker.is_embargoed
+        assert tracker.resolved_dt == datetime.datetime(
+            2014, 9, 10, 1, 43, 37, tzinfo=datetime.timezone.utc
+        )
 
     @pytest.mark.vcr
     @pytest.mark.parametrize(
