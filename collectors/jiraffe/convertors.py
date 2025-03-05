@@ -294,6 +294,7 @@ class TrackerConvertor:
             meta_attr=self.tracker_data,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
+            resolved_dt=self.tracker_data["resolved_dt"],
             raise_validation_error=False,  # do not raise exceptions here
         )
         # eventual save inside create_tracker would
@@ -369,6 +370,11 @@ class JiraTrackerConvertor(TrackerConvertor):
             else self._raw.fields.created
         )
         updated_dt = datetime.strptime(updated_dt, "%Y-%m-%dT%H:%M:%S.%f%z")
+        resolved_dt = None
+        if self._raw.fields.resolutiondate:
+            resolved_dt = datetime.strptime(
+                self._raw.fields.resolutiondate, "%Y-%m-%dT%H:%M:%S.%f%z"
+            )
 
         return {
             "jira_issuetype": self.get_field_attr(self._raw, "issuetype", "name"),
@@ -388,6 +394,7 @@ class JiraTrackerConvertor(TrackerConvertor):
             "not_affected_justification": self.get_field_attr(
                 self._raw, "customfield_12326140", "value"
             ),
+            "resolved_dt": resolved_dt,
             "created_dt": created_dt,
             "updated_dt": updated_dt,
         }

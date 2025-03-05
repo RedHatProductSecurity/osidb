@@ -115,6 +115,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     affects = models.ManyToManyField(Affect, related_name="trackers", blank=True)
 
     last_impact_increase_dt = models.DateTimeField(null=True, blank=True)
+    resolved_dt = models.DateTimeField(null=True, blank=True)
 
     not_affected_justification = models.CharField(
         choices=NotAffectedJustification.choices, max_length=100, blank=True

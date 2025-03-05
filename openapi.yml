@@ -9690,6 +9690,11 @@ components:
           type: string
           format: uuid
           readOnly: true
+        resolved_dt:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -9723,6 +9728,7 @@ components:
       - external_system_id
       - not_affected_justification
       - resolution
+      - resolved_dt
       - status
       - type
       - updated_dt
@@ -9763,6 +9769,11 @@ components:
           type: string
           format: uuid
           readOnly: true
+        resolved_dt:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -9796,6 +9807,7 @@ components:
       - not_affected_justification
       - ps_update_stream
       - resolution
+      - resolved_dt
       - status
       - type
       - updated_dt
