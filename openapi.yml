@@ -9596,6 +9596,13 @@ components:
       - XEN
       - XPDF
       type: string
+    SpecialHandlingEnum:
+      enum:
+      - Major Incident
+      - KEV (active exploit case)
+      - compliance-priority
+      - contract-priority
+      type: string
     StateEnum:
       enum:
       - NEW
@@ -9690,6 +9697,11 @@ components:
           type: string
           format: uuid
           readOnly: true
+        special_handling:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpecialHandlingEnum'
+          readOnly: true
         resolved_dt:
           type: string
           format: date-time
@@ -9729,6 +9741,7 @@ components:
       - not_affected_justification
       - resolution
       - resolved_dt
+      - special_handling
       - status
       - type
       - updated_dt
@@ -9769,6 +9782,11 @@ components:
           type: string
           format: uuid
           readOnly: true
+        special_handling:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpecialHandlingEnum'
+          readOnly: true
         resolved_dt:
           type: string
           format: date-time
@@ -9808,6 +9826,7 @@ components:
       - ps_update_stream
       - resolution
       - resolved_dt
+      - special_handling
       - status
       - type
       - updated_dt

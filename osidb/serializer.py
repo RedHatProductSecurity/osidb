@@ -725,6 +725,7 @@ class TrackerSerializer(
                 "not_affected_justification",
                 "type",
                 "uuid",
+                "special_handling",
                 "resolved_dt",
             ]
             + ACLMixinSerializer.Meta.fields
@@ -738,6 +739,7 @@ class TrackerSerializer(
             "type",
             "resolution",
             "not_affected_justification",
+            "special_handling",
             "resolved_dt",
         ]
 

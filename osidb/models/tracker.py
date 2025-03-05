@@ -2,6 +2,7 @@ import logging
 import uuid
 
 import pghistory
+from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
@@ -83,6 +84,14 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         JIRA = "JIRA"
         BUGZILLA = "BUGZILLA"
 
+    class SpecialHandling(models.TextChoices):
+        """Allowed special handling values from the corresponding Jira field."""
+
+        MAJOR_INCIDENT = "Major Incident"
+        KEV = "KEV (active exploit case)"
+        COMPLIANCE_PRIORITY = "compliance-priority"
+        CONTRACT_PRIORITY = "contract-priority"
+
     # mapping to product definitions BTS naming
     TYPE2BTS = {
         TrackerType.BUGZILLA: "bugzilla",
@@ -119,6 +128,11 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
     not_affected_justification = models.CharField(
         choices=NotAffectedJustification.choices, max_length=100, blank=True
+    )
+    special_handling = fields.ArrayField(
+        models.CharField(choices=SpecialHandling.choices, max_length=100),
+        blank=True,
+        default=list,
     )
 
     class Meta:

@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Extend tracker model with resolved date (OSIDB-4064)
+- Extend tracker model with special handling (OSIDB-4065)
 
 ## [4.8.0] - 2025-03-03
 ### Added

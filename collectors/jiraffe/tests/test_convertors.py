@@ -50,6 +50,7 @@ class TestJiraTrackerConvertor:
         assert tracker.resolved_dt == datetime.datetime(
             2014, 9, 10, 1, 43, 37, tzinfo=datetime.timezone.utc
         )
+        assert tracker.special_handling == []
 
     @pytest.mark.vcr
     @pytest.mark.parametrize(
@@ -295,7 +296,7 @@ class TestJiraTrackerConvertor:
         assert tracker.affects.first() == affect
 
     @pytest.mark.vcr
-    def test_convert_not_affected_justification(self, monkeypatch):
+    def test_convert_not_affected_justification(self):
         """
         Test that a tracker closed as Not a Bug as a VEX justification field which
         translates to a valid 'not affected justification'.
@@ -309,3 +310,21 @@ class TestJiraTrackerConvertor:
         assert tracker.status == "Closed"
         assert tracker.resolution == "Not a Bug"
         assert tracker.not_affected_justification == "Inline Mitigations already Exist"
+
+    @pytest.mark.vcr
+    def test_convert_special_handling(self):
+        """
+        Test that a tracker with special handling fields gets them correctly
+        as an array of values.
+        """
+        tracker_data = JiraQuerier().get_issue("RHEL-60033")
+        tracker_convertor = JiraTrackerConvertor(tracker_data)
+        tracker = tracker_convertor._gen_tracker_object()
+
+        assert tracker.type == Tracker.TrackerType.JIRA
+        assert tracker.external_system_id == "RHEL-60033"
+        assert tracker.special_handling == [
+            "Major Incident",
+            "KEV (active exploit case)",
+            "compliance-priority",
+        ]
