@@ -852,7 +852,7 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
     def generate_downstream_component(self):
         field_name = "Downstream Component Name"
         _, field_id = self.field_check_and_get_values_and_id(field_name)
-        self._query["fields"][field_id] = self.most_important_affect.ps_component
+        self._query["fields"][field_id] = self.most_important_affect.purl or self.most_important_affect.ps_component
 
     def generate_upstream_component(self):
         # TODO: Every time the components change in the flaw, the trackers must be updated as well.
