@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Affect resolved_dt marked correctly as nullable in API schema
 
+### Changed
+- Update user ids on history Audit models to user emails or usernames (OSIDB-3988)
+
 ## [4.8.0] - 2025-03-03
 ### Added
 - Add not affected justification field to affects (OSIDB-3809)
