@@ -295,6 +295,7 @@ SPECTACULAR_SETTINGS = {
         "TrackerType": "osidb.models.Tracker.TrackerType",
     },
     "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
+    "COMPONENT_SPLIT_REQUEST": True,
 }
 
 # Execute once a day by default
