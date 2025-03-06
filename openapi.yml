@@ -7343,6 +7343,7 @@ components:
           type: string
           format: date-time
           readOnly: true
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7445,6 +7446,7 @@ components:
           type: string
           format: date-time
           readOnly: true
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -7689,6 +7691,7 @@ components:
           type: string
           format: date-time
           readOnly: true
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as

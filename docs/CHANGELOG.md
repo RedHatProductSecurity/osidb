@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Extend tracker model with resolved date (OSIDB-4064)
 - Extend tracker model with special handling (OSIDB-4065)
 
+### Fixed
+- Affect resolved_dt marked correctly as nullable in API schema
+
 ## [4.8.0] - 2025-03-03
 ### Added
 - Add not affected justification field to affects (OSIDB-3809)
@@ -16,7 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add delegated not affected justification field to affect (OSIDB-3810)
 - Add resolved_dt to affect model (OSIDB-4058)
 - Map user name or email to flaw audit history entries (OSIDB-3464)
-
 
 ### Changed
 - Remove time information when validating embargoed flaws (OSIDB-3862)

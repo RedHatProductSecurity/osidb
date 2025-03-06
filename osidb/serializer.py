@@ -1108,7 +1108,7 @@ class AffectSerializer(
         max_length=255, allow_blank=True, allow_null=True, required=False
     )
     purl = serializers.CharField(allow_blank=True, allow_null=True, required=False)
-    resolved_dt = serializers.DateTimeField(read_only=True)
+    resolved_dt = serializers.DateTimeField(read_only=True, allow_null=True)
 
     @extend_schema_field(
         {
