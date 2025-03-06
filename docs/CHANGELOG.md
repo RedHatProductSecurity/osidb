@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Affect resolved_dt marked correctly as nullable in API schema
+- Prefix PURL-derived ps_components with path in some cases (OSIDB-4071)
 
 ## [4.8.0] - 2025-03-03
 ### Added

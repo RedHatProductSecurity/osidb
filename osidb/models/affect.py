@@ -190,12 +190,31 @@ class Affect(
     def __str__(self):
         return str(self.uuid)
 
+    def ps_component_from_purl(self, should_raise=False):
+        try:
+            # try to parse the PS component from the PURL but do not raise any
+            # error on failure as that will be done as part of the validations
+            purl = PackageURL.from_string(self.purl)
+            if purl.type == "oci":
+                try:
+                    prefix = purl.qualifiers["repository_url"].split("/")[1]
+                    return f"{prefix}/{purl.name}"
+                except (KeyError, IndexError):
+                    raise ValueError("Invalid repository_url in OCI PURL")
+            else:
+                return purl.name
+        except ValueError:
+            if should_raise:
+                raise
+            else:
+                pass
+
     def save(self, *args, **kwargs):
         if self.purl and not self.ps_component:
             try:
-                # try to parse the PS component from the PURL but do not raise any
-                # error on failure as that will be done as part of the validations
-                self.ps_component = PackageURL.from_string(self.purl).name
+                maybe_ps_component = self.ps_component_from_purl()
+                if maybe_ps_component:
+                    self.ps_component = maybe_ps_component
             except ValueError:
                 pass
 
@@ -528,7 +547,7 @@ class Affect(
 
         if self.purl:
             try:
-                ps_component_from_purl = PackageURL.from_string(self.purl).name
+                ps_component_from_purl = self.ps_component_from_purl(True)
             except ValueError as exc:
                 raise ValidationError(
                     f"Affect ({self.uuid}) for {self.ps_module} has "
