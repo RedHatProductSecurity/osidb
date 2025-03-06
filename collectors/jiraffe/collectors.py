@@ -60,10 +60,16 @@ class JiraTaskCollector(Collector):
         get next batch of Jira tasks plus period_end timestamp
         """
         period_start = self.metadata.updated_until_dt or self.BEGINNING
+        now = timezone.now()
         period_end = min(
-            timezone.now()
-            - timezone.timedelta(minutes=self.BATCH_PERIOD_END_SHIFT_MINUTES),
+            now
+            - timezone.timedelta(
+                minutes=self.BATCH_PERIOD_END_SHIFT_MINUTES, seconds=5
+            ),
             period_start + timezone.timedelta(days=self.BATCH_PERIOD_DAYS),
+        )
+        logger.info(
+            f"Period end: {period_end}, now: {now}, period_start: {period_start}",
         )
 
         # query for tasks in the period and return them together with the timestamp

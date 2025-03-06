@@ -74,6 +74,15 @@ class SyncManager(models.Model):
         cls.objects.filter(sync_id=sync_id).update(last_scheduled_dt=timezone.now())
 
         def schedule_task():
+
+            from osidb.models import Flaw
+
+            # flaw = Flaw.objects.filter(uuid=sync_id).first()
+            # if flaw:
+            #     logger.info(
+            #         f"Task {flaw.task_key} has workflow state {flaw.workflow_state}"
+            #     )
+            #     logger.info(f"Task {flaw.task_key} has owner {flaw.owner}")
             try:
                 cls.sync_task.apply_async(args=[sync_id, *args], kwargs=kwargs)
             except AttributeError:
