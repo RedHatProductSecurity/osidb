@@ -145,6 +145,7 @@ class RejectSerializer(serializers.Serializer):
 class WorkflowModelSerializer(serializers.ModelSerializer):
 
     classification = serializers.SerializerMethodField()
+    task_key = serializers.CharField(read_only=True, allow_null=True)
 
     class Meta:
         model = WorkflowModel
