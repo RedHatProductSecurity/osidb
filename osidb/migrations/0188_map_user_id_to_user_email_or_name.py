@@ -30,7 +30,7 @@ def forwards_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("osidb", "0185_add_affect_resolved_dt"),
+        ("osidb", "0187_add_tracker_special_handling"),
     ]
 
     operations = [
