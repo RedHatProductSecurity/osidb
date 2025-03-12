@@ -44,13 +44,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TokenObtainPair'
+              $ref: '#/components/schemas/TokenObtainPairRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/TokenObtainPair'
+              $ref: '#/components/schemas/TokenObtainPairRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/TokenObtainPair'
+              $ref: '#/components/schemas/TokenObtainPairRequest'
         required: true
       responses:
         '200':
@@ -83,13 +83,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TokenRefresh'
+              $ref: '#/components/schemas/TokenRefreshRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/TokenRefresh'
+              $ref: '#/components/schemas/TokenRefreshRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/TokenRefresh'
+              $ref: '#/components/schemas/TokenRefreshRequest'
         required: true
       responses:
         '200':
@@ -122,32 +122,30 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TokenVerify'
+              $ref: '#/components/schemas/TokenVerifyRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/TokenVerify'
+              $ref: '#/components/schemas/TokenVerifyRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/TokenVerify'
+              $ref: '#/components/schemas/TokenVerifyRequest'
         required: true
       responses:
         '200':
           content:
             application/json:
               schema:
-                allOf:
-                - $ref: '#/components/schemas/TokenVerify'
-                - type: object
-                  properties:
-                    dt:
-                      type: string
-                      format: date-time
-                    env:
-                      type: string
-                    revision:
-                      type: string
-                    version:
-                      type: string
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
           description: ''
   /collectors/:
     get:
@@ -1470,13 +1468,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AffectPost'
+              $ref: '#/components/schemas/AffectPostRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/AffectPost'
+              $ref: '#/components/schemas/AffectPostRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/AffectPost'
+              $ref: '#/components/schemas/AffectPostRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -1695,13 +1693,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AffectCVSSPost'
+              $ref: '#/components/schemas/AffectCVSSPostRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/AffectCVSSPost'
+              $ref: '#/components/schemas/AffectCVSSPostRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/AffectCVSSPost'
+              $ref: '#/components/schemas/AffectCVSSPostRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -1807,13 +1805,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AffectCVSSPut'
+              $ref: '#/components/schemas/AffectCVSSPutRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/AffectCVSSPut'
+              $ref: '#/components/schemas/AffectCVSSPutRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/AffectCVSSPut'
+              $ref: '#/components/schemas/AffectCVSSPutRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -1971,13 +1969,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Affect'
+              $ref: '#/components/schemas/AffectRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Affect'
+              $ref: '#/components/schemas/AffectRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Affect'
+              $ref: '#/components/schemas/AffectRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -2057,17 +2055,17 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/AffectPost'
+                $ref: '#/components/schemas/AffectPostRequest'
           application/x-www-form-urlencoded:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/AffectPost'
+                $ref: '#/components/schemas/AffectPostRequest'
           multipart/form-data:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/AffectPost'
+                $ref: '#/components/schemas/AffectPostRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -2114,17 +2112,17 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/AffectBulkPut'
+                $ref: '#/components/schemas/AffectBulkPutRequest'
           application/x-www-form-urlencoded:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/AffectBulkPut'
+                $ref: '#/components/schemas/AffectBulkPutRequest'
           multipart/form-data:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/AffectBulkPut'
+                $ref: '#/components/schemas/AffectBulkPutRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -2440,13 +2438,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Audit'
+              $ref: '#/components/schemas/AuditRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Audit'
+              $ref: '#/components/schemas/AuditRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Audit'
+              $ref: '#/components/schemas/AuditRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -3748,13 +3746,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawPost'
+              $ref: '#/components/schemas/FlawPostRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawPost'
+              $ref: '#/components/schemas/FlawPostRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawPost'
+              $ref: '#/components/schemas/FlawPostRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -3959,13 +3957,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawAcknowledgmentPost'
+              $ref: '#/components/schemas/FlawAcknowledgmentPostRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawAcknowledgmentPost'
+              $ref: '#/components/schemas/FlawAcknowledgmentPostRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawAcknowledgmentPost'
+              $ref: '#/components/schemas/FlawAcknowledgmentPostRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -4071,13 +4069,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawAcknowledgmentPut'
+              $ref: '#/components/schemas/FlawAcknowledgmentPutRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawAcknowledgmentPut'
+              $ref: '#/components/schemas/FlawAcknowledgmentPutRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawAcknowledgmentPut'
+              $ref: '#/components/schemas/FlawAcknowledgmentPutRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -4254,13 +4252,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawCommentPost'
+              $ref: '#/components/schemas/FlawCommentPostRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawCommentPost'
+              $ref: '#/components/schemas/FlawCommentPostRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawCommentPost'
+              $ref: '#/components/schemas/FlawCommentPostRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -4542,13 +4540,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawCVSSPost'
+              $ref: '#/components/schemas/FlawCVSSPostRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawCVSSPost'
+              $ref: '#/components/schemas/FlawCVSSPostRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawCVSSPost'
+              $ref: '#/components/schemas/FlawCVSSPostRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -4654,13 +4652,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawCVSSPut'
+              $ref: '#/components/schemas/FlawCVSSPutRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawCVSSPut'
+              $ref: '#/components/schemas/FlawCVSSPutRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawCVSSPut'
+              $ref: '#/components/schemas/FlawCVSSPutRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -4786,13 +4784,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawCollaboratorPost'
+              $ref: '#/components/schemas/FlawCollaboratorPostRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawCollaboratorPost'
+              $ref: '#/components/schemas/FlawCollaboratorPostRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawCollaboratorPost'
+              $ref: '#/components/schemas/FlawCollaboratorPostRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -4874,13 +4872,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawCollaboratorPost'
+              $ref: '#/components/schemas/FlawCollaboratorPostRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawCollaboratorPost'
+              $ref: '#/components/schemas/FlawCollaboratorPostRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawCollaboratorPost'
+              $ref: '#/components/schemas/FlawCollaboratorPostRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -5116,13 +5114,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawPackageVersionPost'
+              $ref: '#/components/schemas/FlawPackageVersionPostRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawPackageVersionPost'
+              $ref: '#/components/schemas/FlawPackageVersionPostRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawPackageVersionPost'
+              $ref: '#/components/schemas/FlawPackageVersionPostRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -5228,13 +5226,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawPackageVersionPut'
+              $ref: '#/components/schemas/FlawPackageVersionPutRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawPackageVersionPut'
+              $ref: '#/components/schemas/FlawPackageVersionPutRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawPackageVersionPut'
+              $ref: '#/components/schemas/FlawPackageVersionPutRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -5533,13 +5531,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawReferencePost'
+              $ref: '#/components/schemas/FlawReferencePostRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawReferencePost'
+              $ref: '#/components/schemas/FlawReferencePostRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawReferencePost'
+              $ref: '#/components/schemas/FlawReferencePostRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -5645,13 +5643,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawReferencePut'
+              $ref: '#/components/schemas/FlawReferencePutRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawReferencePut'
+              $ref: '#/components/schemas/FlawReferencePutRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawReferencePut'
+              $ref: '#/components/schemas/FlawReferencePutRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -5747,13 +5745,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Reject'
+              $ref: '#/components/schemas/RejectRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Reject'
+              $ref: '#/components/schemas/RejectRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Reject'
+              $ref: '#/components/schemas/RejectRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -5888,13 +5886,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Flaw'
+              $ref: '#/components/schemas/FlawRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Flaw'
+              $ref: '#/components/schemas/FlawRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Flaw'
+              $ref: '#/components/schemas/FlawRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -6863,13 +6861,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TrackerPost'
+              $ref: '#/components/schemas/TrackerPostRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/TrackerPost'
+              $ref: '#/components/schemas/TrackerPostRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/TrackerPost'
+              $ref: '#/components/schemas/TrackerPostRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -6985,13 +6983,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Tracker'
+              $ref: '#/components/schemas/TrackerRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Tracker'
+              $ref: '#/components/schemas/TrackerRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Tracker'
+              $ref: '#/components/schemas/TrackerRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -7092,13 +7090,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawUUIDList'
+              $ref: '#/components/schemas/FlawUUIDListRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawUUIDList'
+              $ref: '#/components/schemas/FlawUUIDListRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawUUIDList'
+              $ref: '#/components/schemas/FlawUUIDListRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -7386,7 +7384,7 @@ components:
             $ref: '#/components/schemas/Affect'
       required:
       - results
-    AffectBulkPut:
+    AffectBulkPutRequest:
       type: object
       description: Affect serializer
       properties:
@@ -7407,10 +7405,8 @@ components:
           - $ref: '#/components/schemas/BlankEnum'
         ps_module:
           type: string
+          minLength: 1
           maxLength: 100
-        ps_product:
-          type: string
-          readOnly: true
         ps_component:
           type: string
           nullable: true
@@ -7419,19 +7415,6 @@ components:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
           - $ref: '#/components/schemas/BlankEnum'
-        trackers:
-          type: array
-          items:
-            $ref: '#/components/schemas/Tracker'
-          readOnly: true
-        delegated_resolution:
-          type: string
-          readOnly: true
-        cvss_scores:
-          type: array
-          items:
-            $ref: '#/components/schemas/AffectCVSS'
-          readOnly: true
         purl:
           type: string
           nullable: true
@@ -7439,45 +7422,20 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
-        delegated_not_affected_justification:
-          type: string
-          readOnly: true
-        resolved_dt:
-          type: string
-          format: date-time
-          readOnly: true
-          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
         updated_dt:
           type: string
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
-      - alerts
-      - created_dt
-      - cvss_scores
-      - delegated_not_affected_justification
-      - delegated_resolution
       - embargoed
       - flaw
       - ps_module
-      - ps_product
-      - resolved_dt
-      - trackers
       - updated_dt
       - uuid
     AffectCVSS:
@@ -7534,7 +7492,7 @@ components:
       - updated_dt
       - uuid
       - vector
-    AffectCVSSPost:
+    AffectCVSSPostRequest:
       type: object
       description: AffectCVSS serializer
       properties:
@@ -7545,41 +7503,21 @@ components:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
           $ref: '#/components/schemas/IssuerEnum'
-        score:
-          type: number
-          format: double
-          readOnly: true
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         vector:
           type: string
+          minLength: 1
           maxLength: 200
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
       required:
-      - alerts
-      - created_dt
       - cvss_version
       - embargoed
       - issuer
-      - score
-      - uuid
       - vector
-    AffectCVSSPut:
+    AffectCVSSPutRequest:
       type: object
       description: AffectCVSS serializer
       properties:
@@ -7590,54 +7528,64 @@ components:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
           $ref: '#/components/schemas/IssuerEnum'
-        score:
-          type: number
-          format: double
-          readOnly: true
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         vector:
           type: string
+          minLength: 1
           maxLength: 200
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
         updated_dt:
           type: string
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
-      - alerts
-      - created_dt
       - cvss_version
       - embargoed
       - issuer
-      - score
       - updated_dt
-      - uuid
       - vector
-    AffectPost:
+    AffectCVSSRequest:
+      type: object
+      description: AffectCVSS serializer
+      properties:
+        affect:
+          type: string
+          format: uuid
+        comment:
+          type: string
+          nullable: true
+        cvss_version:
+          $ref: '#/components/schemas/CvssVersionEnum'
+        issuer:
+          $ref: '#/components/schemas/IssuerEnum'
+        vector:
+          type: string
+          minLength: 1
+          maxLength: 200
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - cvss_version
+      - embargoed
+      - issuer
+      - updated_dt
+      - vector
+    AffectPostRequest:
       type: object
       description: Affect serializer
       properties:
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         flaw:
           type: string
           format: uuid
@@ -7652,10 +7600,8 @@ components:
           - $ref: '#/components/schemas/BlankEnum'
         ps_module:
           type: string
+          minLength: 1
           maxLength: 100
-        ps_product:
-          type: string
-          readOnly: true
         ps_component:
           type: string
           nullable: true
@@ -7664,19 +7610,6 @@ components:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
           - $ref: '#/components/schemas/BlankEnum'
-        trackers:
-          type: array
-          items:
-            $ref: '#/components/schemas/Tracker'
-          readOnly: true
-        delegated_resolution:
-          type: string
-          readOnly: true
-        cvss_scores:
-          type: array
-          items:
-            $ref: '#/components/schemas/AffectCVSS'
-          readOnly: true
         purl:
           type: string
           nullable: true
@@ -7684,41 +7617,15 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
-        delegated_not_affected_justification:
-          type: string
-          readOnly: true
-        resolved_dt:
-          type: string
-          format: date-time
-          readOnly: true
-          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
       required:
-      - alerts
-      - created_dt
-      - cvss_scores
-      - delegated_not_affected_justification
-      - delegated_resolution
       - embargoed
       - flaw
       - ps_module
-      - ps_product
-      - resolved_dt
-      - trackers
-      - uuid
     AffectReportData:
       type: object
       properties:
@@ -7743,6 +7650,56 @@ components:
       required:
       - ps_component
       - ps_module
+    AffectRequest:
+      type: object
+      description: Affect serializer
+      properties:
+        flaw:
+          type: string
+          format: uuid
+          nullable: true
+        affectedness:
+          oneOf:
+          - $ref: '#/components/schemas/AffectednessEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        resolution:
+          oneOf:
+          - $ref: '#/components/schemas/ResolutionEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        ps_module:
+          type: string
+          minLength: 1
+          maxLength: 100
+        ps_component:
+          type: string
+          nullable: true
+          maxLength: 255
+        impact:
+          oneOf:
+          - $ref: '#/components/schemas/ImpactEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        purl:
+          type: string
+          nullable: true
+        not_affected_justification:
+          oneOf:
+          - $ref: '#/components/schemas/NotAffectedJustificationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - embargoed
+      - flaw
+      - ps_module
+      - updated_dt
     AffectednessEnum:
       enum:
       - NEW
@@ -7822,6 +7779,37 @@ components:
       - pgh_label
       - pgh_obj_model
       - pgh_slug
+    AuditRequest:
+      type: object
+      properties:
+        pgh_slug:
+          type: string
+          minLength: 1
+          description: The unique identifier across all event tables.
+        pgh_obj_model:
+          type: string
+          minLength: 1
+          description: The object model.
+          maxLength: 64
+        pgh_obj_id:
+          type: string
+          nullable: true
+          minLength: 1
+          description: The primary key of the object.
+        pgh_label:
+          type: string
+          minLength: 1
+          description: The event label.
+        pgh_context:
+          nullable: true
+          description: The context associated with the event.
+        pgh_diff:
+          description: The diff between the previous event of the same label.
+      required:
+      - pgh_diff
+      - pgh_label
+      - pgh_obj_model
+      - pgh_slug
     BlankEnum:
       enum:
       - ''
@@ -7868,6 +7856,34 @@ components:
       - text
       - updated_dt
       - uuid
+    CommentRequest:
+      type: object
+      description: FlawComment serializer for use by FlawSerializer
+      properties:
+        text:
+          type: string
+          minLength: 1
+        external_system_id:
+          type: string
+          maxLength: 100
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+        creator:
+          type: string
+          maxLength: 100
+        is_private:
+          type: boolean
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - text
+      - updated_dt
     CvssVersionEnum:
       enum:
       - V2
@@ -8165,74 +8181,47 @@ components:
       - name
       - updated_dt
       - uuid
-    FlawAcknowledgmentPost:
+    FlawAcknowledgmentPostRequest:
       type: object
       description: FlawAcknowledgment serializer
       properties:
         name:
           type: string
+          minLength: 1
           maxLength: 255
         affiliation:
           type: string
           maxLength: 255
         from_upstream:
           type: boolean
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
       required:
       - affiliation
-      - alerts
-      - created_dt
       - embargoed
       - from_upstream
       - name
-      - uuid
-    FlawAcknowledgmentPut:
+    FlawAcknowledgmentPutRequest:
       type: object
       description: FlawAcknowledgment serializer
       properties:
         name:
           type: string
+          minLength: 1
           maxLength: 255
         affiliation:
           type: string
           maxLength: 255
         from_upstream:
           type: boolean
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
         updated_dt:
           type: string
           format: date-time
@@ -8240,13 +8229,43 @@ components:
             it is used to detect mit-air collisions.
       required:
       - affiliation
-      - alerts
-      - created_dt
       - embargoed
       - from_upstream
       - name
       - updated_dt
-      - uuid
+    FlawAcknowledgmentRequest:
+      type: object
+      description: FlawAcknowledgment serializer
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        affiliation:
+          type: string
+          maxLength: 255
+        from_upstream:
+          type: boolean
+        flaw:
+          type: string
+          format: uuid
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - affiliation
+      - embargoed
+      - flaw
+      - from_upstream
+      - name
+      - updated_dt
     FlawCVSS:
       type: object
       description: FlawCVSS serializer
@@ -8301,7 +8320,7 @@ components:
       - updated_dt
       - uuid
       - vector
-    FlawCVSSPost:
+    FlawCVSSPostRequest:
       type: object
       description: FlawCVSS serializer
       properties:
@@ -8312,41 +8331,21 @@ components:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
           $ref: '#/components/schemas/IssuerEnum'
-        score:
-          type: number
-          format: double
-          readOnly: true
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         vector:
           type: string
+          minLength: 1
           maxLength: 200
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
       required:
-      - alerts
-      - created_dt
       - cvss_version
       - embargoed
       - issuer
-      - score
-      - uuid
       - vector
-    FlawCVSSPut:
+    FlawCVSSPutRequest:
       type: object
       description: FlawCVSS serializer
       properties:
@@ -8357,45 +8356,59 @@ components:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
           $ref: '#/components/schemas/IssuerEnum'
-        score:
-          type: number
-          format: double
-          readOnly: true
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         vector:
           type: string
+          minLength: 1
           maxLength: 200
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
         updated_dt:
           type: string
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
-      - alerts
-      - created_dt
       - cvss_version
       - embargoed
       - issuer
-      - score
       - updated_dt
-      - uuid
+      - vector
+    FlawCVSSRequest:
+      type: object
+      description: FlawCVSS serializer
+      properties:
+        flaw:
+          type: string
+          format: uuid
+        comment:
+          type: string
+          nullable: true
+        cvss_version:
+          $ref: '#/components/schemas/CvssVersionEnum'
+        issuer:
+          $ref: '#/components/schemas/IssuerEnum'
+        vector:
+          type: string
+          minLength: 1
+          maxLength: 200
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - cvss_version
+      - embargoed
+      - issuer
+      - updated_dt
       - vector
     FlawCollaborator:
       type: object
@@ -8405,10 +8418,6 @@ components:
           type: string
           format: uuid
           readOnly: true
-        flaw:
-          type: string
-          format: uuid
-          writeOnly: true
         label:
           type: string
           maxLength: 255
@@ -8423,20 +8432,16 @@ components:
           type: string
           readOnly: true
       required:
-      - flaw
       - label
       - type
       - uuid
-    FlawCollaboratorPost:
+    FlawCollaboratorPostRequest:
       type: object
       description: FlawCollaborator serializer
       properties:
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         label:
           type: string
+          minLength: 1
           maxLength: 255
         state:
           $ref: '#/components/schemas/StateEnum'
@@ -8445,7 +8450,28 @@ components:
           maxLength: 255
       required:
       - label
-      - uuid
+    FlawCollaboratorRequest:
+      type: object
+      description: FlawCollaborator serializer
+      properties:
+        flaw:
+          type: string
+          format: uuid
+          writeOnly: true
+        label:
+          type: string
+          minLength: 1
+          maxLength: 255
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        contributor:
+          type: string
+          maxLength: 255
+        relevant:
+          type: boolean
+      required:
+      - flaw
+      - label
     FlawComment:
       type: object
       description: FlawComment serializer for use by flaw_comments endpoint
@@ -8498,41 +8524,26 @@ components:
       - text
       - updated_dt
       - uuid
-    FlawCommentPost:
+    FlawCommentPostRequest:
       type: object
       description: FlawComment serializer for use by flaw_comments endpoint
       properties:
         text:
           type: string
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
+          minLength: 1
         creator:
           type: string
           maxLength: 100
         is_private:
           type: boolean
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
       required:
-      - alerts
-      - created_dt
       - embargoed
       - text
-      - uuid
     FlawLabel:
       type: object
       description: FlawLabel serializer
@@ -8586,80 +8597,58 @@ components:
       - updated_dt
       - uuid
       - versions
-    FlawPackageVersionPost:
+    FlawPackageVersionPostRequest:
       type: object
       description: Package model serializer
       properties:
         package:
           type: string
+          minLength: 1
           maxLength: 2048
         versions:
           type: array
           items:
-            $ref: '#/components/schemas/FlawVersion'
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
+            $ref: '#/components/schemas/FlawVersionRequest'
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
       required:
-      - created_dt
       - embargoed
       - package
-      - uuid
       - versions
-    FlawPackageVersionPut:
+    FlawPackageVersionPutRequest:
       type: object
       description: Package model serializer
       properties:
         package:
           type: string
+          minLength: 1
           maxLength: 2048
         versions:
           type: array
           items:
-            $ref: '#/components/schemas/FlawVersion'
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
+            $ref: '#/components/schemas/FlawVersionRequest'
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
         updated_dt:
           type: string
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
-      - created_dt
       - embargoed
       - package
       - updated_dt
-      - uuid
       - versions
-    FlawPost:
+    FlawPostRequest:
       type: object
       description: serialize flaw model
       properties:
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         cve_id:
           type: string
           nullable: true
@@ -8674,13 +8663,10 @@ components:
             maxLength: 100
         title:
           type: string
-        trackers:
-          type: array
-          items:
-            type: string
-          readOnly: true
+          minLength: 1
         comment_zero:
           type: string
+          minLength: 1
         cve_description:
           type: string
         requires_cve_description:
@@ -8718,101 +8704,24 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NistCvssValidationEnum'
           - $ref: '#/components/schemas/BlankEnum'
-        affects:
-          type: array
-          items:
-            $ref: '#/components/schemas/Affect'
-          readOnly: true
-        comments:
-          type: array
-          items:
-            $ref: '#/components/schemas/Comment'
-          readOnly: true
-        package_versions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Package'
-          readOnly: true
-        acknowledgments:
-          type: array
-          items:
-            $ref: '#/components/schemas/FlawAcknowledgment'
-          readOnly: true
-        references:
-          type: array
-          items:
-            $ref: '#/components/schemas/FlawReference'
-          readOnly: true
-        cvss_scores:
-          type: array
-          items:
-            $ref: '#/components/schemas/FlawCVSS'
-          readOnly: true
-        labels:
-          type: array
-          items:
-            $ref: '#/components/schemas/FlawCollaborator'
-          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
-        classification:
-          type: object
-          properties:
-            workflow:
-              type: string
-            state:
-              type: string
-              enum:
-              - ''
-              - NEW
-              - TRIAGE
-              - PRE_SECONDARY_ASSESSMENT
-              - SECONDARY_ASSESSMENT
-              - DONE
-              - REJECTED
-          readOnly: true
         group_key:
           type: string
           maxLength: 60
         owner:
           type: string
           maxLength: 60
-        task_key:
-          type: string
-          readOnly: true
-          nullable: true
         team_id:
           type: string
           maxLength: 8
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
       required:
-      - acknowledgments
-      - affects
-      - alerts
-      - classification
       - comment_zero
-      - comments
-      - created_dt
-      - cvss_scores
       - embargoed
-      - labels
-      - package_versions
-      - references
-      - task_key
       - title
-      - trackers
-      - uuid
     FlawReference:
       type: object
       description: FlawReference serializer
@@ -8859,7 +8768,7 @@ components:
       - updated_dt
       - url
       - uuid
-    FlawReferencePost:
+    FlawReferencePostRequest:
       type: object
       description: FlawReference serializer
       properties:
@@ -8870,32 +8779,17 @@ components:
         url:
           type: string
           format: uri
+          minLength: 1
           maxLength: 2048
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
       required:
-      - alerts
-      - created_dt
       - embargoed
       - url
-      - uuid
-    FlawReferencePut:
+    FlawReferencePutRequest:
       type: object
       description: FlawReference serializer
       properties:
@@ -8906,37 +8800,53 @@ components:
         url:
           type: string
           format: uri
+          minLength: 1
           maxLength: 2048
-        uuid:
-          type: string
-          format: uuid
-          readOnly: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        alerts:
-          type: array
-          items:
-            $ref: '#/components/schemas/Alert'
-          readOnly: true
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
         updated_dt:
           type: string
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
-      - alerts
-      - created_dt
       - embargoed
       - updated_dt
       - url
-      - uuid
+    FlawReferenceRequest:
+      type: object
+      description: FlawReference serializer
+      properties:
+        description:
+          type: string
+        flaw:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/FlawReferenceType'
+        url:
+          type: string
+          format: uri
+          minLength: 1
+          maxLength: 2048
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - embargoed
+      - flaw
+      - updated_dt
+      - url
     FlawReferenceType:
       enum:
       - ARTICLE
@@ -8955,7 +8865,90 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AffectReportData'
-    FlawUUIDList:
+    FlawRequest:
+      type: object
+      description: serialize flaw model
+      properties:
+        cve_id:
+          type: string
+          nullable: true
+        impact:
+          oneOf:
+          - $ref: '#/components/schemas/ImpactEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        components:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+        title:
+          type: string
+          minLength: 1
+        comment_zero:
+          type: string
+          minLength: 1
+        cve_description:
+          type: string
+        requires_cve_description:
+          oneOf:
+          - $ref: '#/components/schemas/RequiresCveDescriptionEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        statement:
+          type: string
+        cwe_id:
+          type: string
+          maxLength: 255
+        unembargo_dt:
+          type: string
+          format: date-time
+          nullable: true
+        source:
+          oneOf:
+          - $ref: '#/components/schemas/SourceBe0Enum'
+          - $ref: '#/components/schemas/BlankEnum'
+        reported_dt:
+          type: string
+          format: date-time
+          nullable: true
+        mitigation:
+          type: string
+        major_incident_state:
+          oneOf:
+          - $ref: '#/components/schemas/MajorIncidentStateEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        major_incident_start_dt:
+          type: string
+          format: date-time
+          nullable: true
+        nist_cvss_validation:
+          oneOf:
+          - $ref: '#/components/schemas/NistCvssValidationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        group_key:
+          type: string
+          maxLength: 60
+        owner:
+          type: string
+          maxLength: 60
+        team_id:
+          type: string
+          maxLength: 8
+      required:
+      - comment_zero
+      - embargoed
+      - title
+      - updated_dt
+    FlawUUIDListRequest:
       type: object
       properties:
         flaw_uuids:
@@ -8971,6 +8964,16 @@ components:
       properties:
         version:
           type: string
+          maxLength: 1024
+      required:
+      - version
+    FlawVersionRequest:
+      type: object
+      description: PackageVer serializer used by FlawPackageVersionSerializer.
+      properties:
+        version:
+          type: string
+          minLength: 1
           maxLength: 1024
       required:
       - version
@@ -9061,6 +9064,22 @@ components:
       - alerts
       - package
       - versions
+    PackageRequest:
+      type: object
+      description: package_versions (Package model) serializer for read-only use in
+        FlawSerializer.
+      properties:
+        package:
+          type: string
+          minLength: 1
+          maxLength: 2048
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackageVerRequest'
+      required:
+      - package
+      - versions
     PackageVer:
       type: object
       description: |-
@@ -9077,6 +9096,18 @@ components:
           deprecated: true
       required:
       - status
+      - version
+    PackageVerRequest:
+      type: object
+      description: |-
+        PackageVer model serializer for read-only use in FlawSerializer via
+        PackageVerSerializer.
+      properties:
+        version:
+          type: string
+          minLength: 1
+          maxLength: 1024
+      required:
       - version
     PaginatedAffectCVSSList:
       type: object
@@ -9488,12 +9519,13 @@ components:
       - eus
       - ps_update_stream
       - selected
-    Reject:
+    RejectRequest:
       type: object
       description: Task rejection serializer
       properties:
         reason:
           type: string
+          minLength: 1
       required:
       - reason
     RequiresCveDescriptionEnum:
@@ -9628,12 +9660,6 @@ components:
     TokenObtainPair:
       type: object
       properties:
-        username:
-          type: string
-          writeOnly: true
-        password:
-          type: string
-          writeOnly: true
         access:
           type: string
           readOnly: true
@@ -9642,8 +9668,20 @@ components:
           readOnly: true
       required:
       - access
-      - password
       - refresh
+    TokenObtainPairRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - password
       - username
     TokenRefresh:
       type: object
@@ -9651,18 +9689,24 @@ components:
         access:
           type: string
           readOnly: true
+      required:
+      - access
+    TokenRefreshRequest:
+      type: object
+      properties:
         refresh:
           type: string
           writeOnly: true
+          minLength: 1
       required:
-      - access
       - refresh
-    TokenVerify:
+    TokenVerifyRequest:
       type: object
       properties:
         token:
           type: string
           writeOnly: true
+          minLength: 1
       required:
       - token
     Tracker:
@@ -9733,12 +9777,6 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
-        sync_to_bz:
-          type: boolean
-          writeOnly: true
-          description: Setting sync_to_bz to false disables flaw sync with Bugzilla
-            after this operation. Use only as part of bulk actions and trigger a flaw
-            bugzilla sync afterwards. Does nothing if BZ is disabled.
       required:
       - alerts
       - created_dt
@@ -9818,12 +9856,6 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
-        sync_to_bz:
-          type: boolean
-          writeOnly: true
-          description: Setting sync_to_bz to false disables flaw sync with Bugzilla
-            after this operation. Use only as part of bulk actions and trigger a flaw
-            bugzilla sync afterwards. Does nothing if BZ is disabled.
       required:
       - alerts
       - created_dt
@@ -9838,6 +9870,39 @@ components:
       - type
       - updated_dt
       - uuid
+    TrackerPostRequest:
+      type: object
+      description: Tracker serializer
+      properties:
+        affects:
+          type: array
+          items:
+            type: string
+            format: uuid
+        ps_update_stream:
+          type: string
+          minLength: 1
+          maxLength: 100
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        sync_to_bz:
+          type: boolean
+          writeOnly: true
+          description: Setting sync_to_bz to false disables flaw sync with Bugzilla
+            after this operation. Use only as part of bulk actions and trigger a flaw
+            bugzilla sync afterwards. Does nothing if BZ is disabled.
+      required:
+      - embargoed
+      - ps_update_stream
+      - updated_dt
     TrackerReportData:
       type: object
       properties:
@@ -9855,6 +9920,37 @@ components:
       required:
       - external_system_id
       - type
+    TrackerRequest:
+      type: object
+      description: Tracker serializer
+      properties:
+        affects:
+          type: array
+          items:
+            type: string
+            format: uuid
+        ps_update_stream:
+          type: string
+          maxLength: 100
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        sync_to_bz:
+          type: boolean
+          writeOnly: true
+          description: Setting sync_to_bz to false disables flaw sync with Bugzilla
+            after this operation. Use only as part of bulk actions and trigger a flaw
+            bugzilla sync afterwards. Does nothing if BZ is disabled.
+      required:
+      - embargoed
+      - updated_dt
     TrackerSuggestion:
       type: object
       properties:

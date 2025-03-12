@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Fixed
+- Make task_key read-only (OSIDB-4080)
+- Split Requests/Responses in API schema
 
 ## [4.9.1] - 2025-03-10
 ### Fixed
@@ -17,7 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Affect resolved_dt marked correctly as nullable in API schema
-- Make task_key read-only (OSIDB-4080)
 
 ## [4.8.0] - 2025-03-03
 ### Added
