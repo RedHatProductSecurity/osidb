@@ -14,7 +14,7 @@ jobs:
       # it much simpler to transition from GitLab to GitHub as we use the
       # same image and dependencies / setup as before, it should probably
       # be revisited in the not-so-distant future
-      image: quay.io/fedora/fedora:latest
+      image: quay.io/fedora/fedora:40
       credentials:
         username: ${{ secrets.QUAY_REGISTRY_USERNAME }}
         password: ${{ secrets.QUAY_REGISTRY_TOKEN }}
