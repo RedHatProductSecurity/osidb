@@ -72,6 +72,7 @@ jobs:
           openssl-devel
           postgresql-contrib
           postgresql-devel
+          postgresql-server-devel
           python-srpm-macros
           python3-devel
           python3-pycodestyle
