@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make task_key read-only (OSIDB-4080)
 - Split Requests/Responses in API schema
 
+### Changed
+- Migrate user ids on history Audit models to user emails or usernames (OSIDB-3988)
+
 ## [4.9.1] - 2025-03-10
 ### Fixed
 - Prefix PURL-derived ps_components with path in some cases (OSIDB-4071)
