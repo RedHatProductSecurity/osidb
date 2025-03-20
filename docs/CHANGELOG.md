@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Make task_key read-only (OSIDB-4080)
 - Split Requests/Responses in API schema
+- Flaw Jira Tasks changes are now fetched based on history to
+  avoid Flaw data reset (OSIDB-4015)
 
 ### Changed
 - Migrate user ids on history Audit models to user emails or usernames (OSIDB-3988)
