@@ -78,7 +78,7 @@ class JiraTaskCollector(Collector):
 
         # single-task sync
         if task_id is not None:
-            task_data = self.jira_querier.get_issue(task_id)
+            task_data = self.jira_querier.get_issue(task_id, expand="changelog")
             flaw = JiraTaskConvertor(task_data).flaw
             if flaw:
                 self.save(flaw)

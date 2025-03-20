@@ -653,7 +653,7 @@ class JiraTaskDownloadManager(SyncManager):
         set_user_acls(settings.ALL_GROUPS)
 
         try:
-            task_data = JiraQuerier().get_issue(task_id)
+            task_data = JiraQuerier().get_issue(task_id, expand="changelog")
             flaw = JiraTaskConvertor(task_data).flaw
             if flaw:
                 flaw.save()
