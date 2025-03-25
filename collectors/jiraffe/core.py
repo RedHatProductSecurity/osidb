@@ -178,12 +178,12 @@ class JiraQuerier(JiraConnector):
     # SINGLE ISSUE QUERIES #
     ########################
 
-    def get_issue(self, jira_id: str) -> Issue:
+    def get_issue(self, jira_id: str, expand: str = "") -> Issue:
         """
         get Jira issue specified by Jira ID
         """
         try:
-            return self.jira_conn.issue(jira_id)
+            return self.jira_conn.issue(jira_id, expand=expand)
         except JIRAError as e:
             if "Issue Does Not Exist" in str(e):
                 # restricted access cannot be distinguished

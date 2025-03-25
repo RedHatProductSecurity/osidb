@@ -85,6 +85,40 @@ class TestJiraTaskCollector:
         assert flaw.workflow_state == "TRIAGE"
 
     @pytest.mark.vcr
+    def test_update_only_changed_fields(self, enable_jira_task_sync, jira_token):
+        collector = JiraTaskCollector()
+
+        # remove randomness for VCR usage
+        uuid = "fb145b06-82a7-4851-a429-541288633d16"
+        flaw = FlawFactory(uuid=uuid, embargoed=False, impact=Impact.IMPORTANT)
+        AffectFactory(flaw=flaw)
+
+        # download related task
+        collector.collect("OSIM-22679")
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "NEW"
+
+        # change relevant fields but do not forward this change to Jira
+        new_values = {
+            "workflow_state": "REJECTED",
+            "workflow_name": "REJECTED",
+            "owner": "skynet",
+            "group_key": "SKYNET_ROBOTS",
+            "team_id": "ROBOTS",
+        }
+        for field, value in new_values.items():
+            setattr(flaw, field, value)
+        flaw.save()
+
+        # download the task again
+        collector.collect("OSIM-22679")
+        flaw.refresh_from_db()
+
+        # ensure changes OSIDB are not overwritten from Jira
+        for field, value in new_values.items():
+            assert getattr(flaw, field) == value
+
+    @pytest.mark.vcr
     def test_link_on_cve(self):
         # some random UUID
         flaw = FlawFactory(cve_id="CVE-2024-34703")
@@ -124,7 +158,7 @@ class TestJiraTaskCollector:
         assert issue.fields.status.name == "New"
 
         # 4 - freeze the issue in time to simulate long queries being outdated
-        def mock_get_issue(self, jira_id: str):
+        def mock_get_issue(self, jira_id: str, expand: str):
             return issue
 
         monkeypatch.setattr(JiraQuerier, "get_issue", mock_get_issue)
@@ -143,35 +177,6 @@ class TestJiraTaskCollector:
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         assert flaw.workflow_state == "TRIAGE"
         assert last_update < flaw.task_updated_dt
-
-    @pytest.mark.parametrize(
-        "updated_until_dt,current_dt,expected_period_end",
-        [
-            (
-                datetime(2025, 3, 3, tzinfo=timezone.utc),
-                datetime(2025, 3, 14, tzinfo=timezone.utc),
-                datetime(2025, 3, 13, tzinfo=timezone.utc),
-            ),
-            (
-                datetime(2025, 3, 3, 12, 30, tzinfo=timezone.utc),
-                datetime(2025, 3, 3, 12, 32, tzinfo=timezone.utc),
-                datetime(2025, 3, 3, 12, 31, tzinfo=timezone.utc),
-            ),
-        ],
-    )
-    def test_get_batch_end_period(
-        self, updated_until_dt, current_dt, expected_period_end, monkeypatch
-    ):
-        # we don't care about collector actually fetching the data batch
-        monkeypatch.setattr(
-            JiraTaskmanQuerier, "get_task_period", lambda *args, **kwargs: None
-        )
-
-        collector = JiraTaskCollector()
-        collector.metadata.updated_until_dt = updated_until_dt
-        with freeze_time(current_dt):
-            _, period_end = collector.get_batch()
-            assert period_end == expected_period_end
 
 
 class TestJiraTrackerCollector:

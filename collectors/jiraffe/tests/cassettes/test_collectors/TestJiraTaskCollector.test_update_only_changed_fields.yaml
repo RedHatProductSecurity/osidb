@@ -1,0 +1,378 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*/*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.32.3
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://example.com/rest/api/2/issue/OSIM-22679?expand=changelog
+  response:
+    body:
+      string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+        "id": "16792907", "self": "https://example.com/rest/api/2/issue/16792907",
+        "key": "OSIM-22679", "fields": {"customfield_12326046": null, "customfield_12324540":
+        "0.0", "fixVersions": [], "resolution": null, "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@547a8f66[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@64529be9[overall=PullRequestOverallBean{stateCount=0,
+        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7b05fe3e[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@bf8af64[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@59a92cbe[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@8b8fb[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@54a852ca[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@1ae544b4[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@a39578a[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@4f33f956[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@599bdc78[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@696bf31b[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
+        "customfield_12315950": null, "customfield_12310940": null, "lastViewed":
+        "2025-03-20T15:26:22.490+0000", "customfield_12325242": [], "customfield_12325241":
+        null, "customfield_12325243": null, "customfield_12313140": null, "priority":
+        {"self": "https://example.com/rest/api/2/priority/3", "iconUrl": "https://example.com/images/icons/priorities/major.svg",
+        "name": "Major", "id": "3"}, "labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
+        "impact:IMPORTANT"], "aggregatetimeoriginalestimate": null, "timeestimate":
+        null, "versions": [], "issuelinks": [], "customfield_12325240": null, "assignee":
+        null, "customfield_12313942": null, "customfield_12313941": null, "status":
+        {"self": "https://example.com/rest/api/2/status/10016", "description": "Initial
+        creation status. Implies nothing yet and should be very short lived; also
+        can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
+        "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
+        [], "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
+        null, "customfield_12320842": null, "customfield_12310243": null, "aggregatetimeestimate":
+        null, "customfield_12317313": null, "creator": {"self": "https://example.com/rest/api/2/user?username=jfrejlac",
+        "name": "jfrejlac", "key": "jfrejlac", "emailAddress": "jfrejlac+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=jfrejlac&avatarId=33124",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=jfrejlac&avatarId=33124",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=jfrejlac&avatarId=33124",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=jfrejlac&avatarId=33124"},
+        "displayName": "Jakub Frejlach", "active": true, "timeZone": "GMT"}, "customfield_12325342":
+        null, "customfield_12325343": null, "subtasks": [], "customfield_12321140":
+        null, "customfield_12325340": null, "customfield_12325341": null, "customfield_12320850":
+        null, "reporter": {"self": "https://example.com/rest/api/2/user?username=jfrejlac",
+        "name": "jfrejlac", "key": "jfrejlac", "emailAddress": "jfrejlac+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=jfrejlac&avatarId=33124",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=jfrejlac&avatarId=33124",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=jfrejlac&avatarId=33124",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=jfrejlac&avatarId=33124"},
+        "displayName": "Jakub Frejlach", "active": true, "timeZone": "GMT"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12315542": null, "customfield_12313240":
+        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
+        "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-22679/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
+        0, "maxResults": 20, "total": 0, "worklogs": []}, "archivedby": null, "issuetype":
+        {"self": "https://example.com/rest/api/2/issuetype/17", "id": "17", "description":
+        "Created by Jira Software - do not edit or delete. Issue type for a user story.",
+        "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
+        null, "timespent": null, "customfield_12320940": null, "project": {"self":
+        "https://example.com/rest/api/2/project/12337520", "id": "12337520", "key":
+        "OSIM", "name": "Open Security Issue Manager", "projectTypeKey": "software",
+        "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
+        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
+        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
+        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
+        "aggregatetimespent": null, "customfield_12310220": null, "resolutiondate":
+        null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
+        null, "customfield_12316841": null, "customfield_12319040": null, "watches":
+        {"self": "https://example.com/rest/api/2/issue/OSIM-22679/watchers", "watchCount":
+        1, "isWatching": true}, "customfield_12325840": null, "customfield_12325441":
+        null, "customfield_12325442": null, "created": "2025-03-20T13:53:20.602+0000",
+        "customfield_12321240": null, "customfield_12325440": null, "customfield_12320947":
+        [{"self": "https://example.com/rest/api/2/customFieldOption/27714", "value":
+        "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
+        "False", "id": "27705", "disabled": false}, "updated": "2025-03-20T14:40:14.177+0000",
+        "customfield_12316142": null, "timeoriginalestimate": null, "description":
+        "Comment zero for CVE-2020-10000", "timetracking": {}, "attachment": [], "customfield_12316542":
+        {"self": "https://example.com/rest/api/2/customFieldOption/14655", "value":
+        "False", "id": "14655", "disabled": false}, "customfield_12316543": {"self":
+        "https://example.com/rest/api/2/customFieldOption/14657", "value": "False",
+        "id": "14657", "disabled": false}, "customfield_12316544": "None", "customfield_12310840":
+        "9223372036854775807", "summary": "CVE-2020-10000 kernel: some description",
+        "customfield_12323640": null, "customfield_12323642": null, "customfield_12323641":
+        null, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
+        null, "customfield_12323645": null, "environment": null, "customfield_12315740":
+        null, "customfield_12313441": "", "customfield_12313440": "0.0", "duedate":
+        null, "customfield_12311140": null, "comment": {"comments": [], "maxResults":
+        0, "total": 0, "startAt": 0}, "customfield_12310213": null, "customfield_12311940":
+        "1|i0otyv:"}, "changelog": {"startAt": 0, "maxResults": 3, "total": 3, "histories":
+        [{"id": "62669283", "author": {"self": "https://example.com/rest/api/2/user?username=jfrejlac",
+        "name": "jfrejlac", "key": "jfrejlac", "emailAddress": "jfrejlac+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=jfrejlac&avatarId=33124",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=jfrejlac&avatarId=33124",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=jfrejlac&avatarId=33124",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=jfrejlac&avatarId=33124"},
+        "displayName": "Jakub Frejlach", "active": true, "timeZone": "GMT"}, "created":
+        "2025-03-20T13:53:30.946+0000", "items": [{"field": "labels", "fieldtype":
+        "jira", "from": null, "fromString": "CVE-2020-10000 flawuuid:fb145b06-82a7-4851-a429-541288633d16
+        impact:IMPORTANT major_incident", "to": null, "toString": "flawuuid:fb145b06-82a7-4851-a429-541288633d16
+        impact:IMPORTANT"}]}, {"id": "62669284", "author": {"self": "https://example.com/rest/api/2/user?username=jfrejlac",
+        "name": "jfrejlac", "key": "jfrejlac", "emailAddress": "jfrejlac+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=jfrejlac&avatarId=33124",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=jfrejlac&avatarId=33124",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=jfrejlac&avatarId=33124",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=jfrejlac&avatarId=33124"},
+        "displayName": "Jakub Frejlach", "active": true, "timeZone": "GMT"}, "created":
+        "2025-03-20T13:53:38.322+0000", "items": [{"field": "status", "fieldtype":
+        "jira", "from": "10016", "fromString": "New", "to": "15021", "toString": "Refinement"}]},
+        {"id": "62669374", "author": {"self": "https://example.com/rest/api/2/user?username=jfrejlac",
+        "name": "jfrejlac", "key": "jfrejlac", "emailAddress": "jfrejlac+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=jfrejlac&avatarId=33124",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=jfrejlac&avatarId=33124",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=jfrejlac&avatarId=33124",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=jfrejlac&avatarId=33124"},
+        "displayName": "Jakub Frejlach", "active": true, "timeZone": "GMT"}, "created":
+        "2025-03-20T14:40:14.178+0000", "items": [{"field": "status", "fieldtype":
+        "jira", "from": "15021", "fromString": "Refinement", "to": "10016", "toString":
+        "New"}]}]}}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Thu, 20 Mar 2025 15:46:24 GMT
+      Expires:
+      - Thu, 20 Mar 2025 15:46:24 GMT
+      Pragma:
+      - no-cache
+      Retry-After:
+      - '0'
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-RateLimit-Limit:
+      - '2'
+      X-RateLimit-Remaining:
+      - '1'
+      content-length:
+      - '11725'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-dc-stg-mpp-0
+      x-arequestid:
+      - 946x383275x1
+      x-asessionid:
+      - d35wxj
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-ratelimit-fillrate:
+      - '2'
+      x-ratelimit-interval-seconds:
+      - '1'
+      x-rh-edge-cache-status:
+      - NotCacheable from child
+      x-rh-edge-reference-id:
+      - 0.6797f648.1742485583.d479ae5
+      x-rh-edge-request-id:
+      - d479ae5
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*/*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.32.3
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://example.com/rest/api/2/issue/OSIM-22679?expand=changelog
+  response:
+    body:
+      string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+        "id": "16792907", "self": "https://example.com/rest/api/2/issue/16792907",
+        "key": "OSIM-22679", "fields": {"customfield_12326046": null, "customfield_12324540":
+        "0.0", "fixVersions": [], "resolution": null, "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@3af4e808[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@4e2a661d[overall=PullRequestOverallBean{stateCount=0,
+        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@5a751e99[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@47728144[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@21dccf0f[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@6f14bec[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@74821c7d[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@2729db08[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@60cacc55[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@6ce8458b[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@86dcd9f[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@61f5a601[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
+        "customfield_12315950": null, "customfield_12310940": null, "lastViewed":
+        "2025-03-20T15:26:22.490+0000", "customfield_12325242": [], "customfield_12325241":
+        null, "customfield_12325243": null, "customfield_12313140": null, "priority":
+        {"self": "https://example.com/rest/api/2/priority/3", "iconUrl": "https://example.com/images/icons/priorities/major.svg",
+        "name": "Major", "id": "3"}, "labels": ["flawuuid:fb145b06-82a7-4851-a429-541288633d16",
+        "impact:IMPORTANT"], "aggregatetimeoriginalestimate": null, "timeestimate":
+        null, "versions": [], "issuelinks": [], "customfield_12325240": null, "assignee":
+        null, "customfield_12313942": null, "customfield_12313941": null, "status":
+        {"self": "https://example.com/rest/api/2/status/10016", "description": "Initial
+        creation status. Implies nothing yet and should be very short lived; also
+        can be a Bugzilla status.", "iconUrl": "https://example.com/images/icons/statuses/generic.png",
+        "name": "New", "id": "10016", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
+        "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
+        [], "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
+        null, "customfield_12320842": null, "customfield_12310243": null, "aggregatetimeestimate":
+        null, "customfield_12317313": null, "creator": {"self": "https://example.com/rest/api/2/user?username=jfrejlac",
+        "name": "jfrejlac", "key": "jfrejlac", "emailAddress": "jfrejlac+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=jfrejlac&avatarId=33124",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=jfrejlac&avatarId=33124",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=jfrejlac&avatarId=33124",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=jfrejlac&avatarId=33124"},
+        "displayName": "Jakub Frejlach", "active": true, "timeZone": "GMT"}, "customfield_12325342":
+        null, "customfield_12325343": null, "subtasks": [], "customfield_12321140":
+        null, "customfield_12325340": null, "customfield_12325341": null, "customfield_12320850":
+        null, "reporter": {"self": "https://example.com/rest/api/2/user?username=jfrejlac",
+        "name": "jfrejlac", "key": "jfrejlac", "emailAddress": "jfrejlac+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=jfrejlac&avatarId=33124",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=jfrejlac&avatarId=33124",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=jfrejlac&avatarId=33124",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=jfrejlac&avatarId=33124"},
+        "displayName": "Jakub Frejlach", "active": true, "timeZone": "GMT"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12315542": null, "customfield_12313240":
+        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
+        "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-22679/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
+        0, "maxResults": 20, "total": 0, "worklogs": []}, "archivedby": null, "issuetype":
+        {"self": "https://example.com/rest/api/2/issuetype/17", "id": "17", "description":
+        "Created by Jira Software - do not edit or delete. Issue type for a user story.",
+        "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
+        null, "timespent": null, "customfield_12320940": null, "project": {"self":
+        "https://example.com/rest/api/2/project/12337520", "id": "12337520", "key":
+        "OSIM", "name": "Open Security Issue Manager", "projectTypeKey": "software",
+        "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
+        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
+        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
+        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
+        "aggregatetimespent": null, "customfield_12310220": null, "resolutiondate":
+        null, "workratio": -1, "customfield_12316840": null, "customfield_12317379":
+        null, "customfield_12316841": null, "customfield_12319040": null, "watches":
+        {"self": "https://example.com/rest/api/2/issue/OSIM-22679/watchers", "watchCount":
+        1, "isWatching": true}, "customfield_12325840": null, "customfield_12325441":
+        null, "customfield_12325442": null, "created": "2025-03-20T13:53:20.602+0000",
+        "customfield_12321240": null, "customfield_12325440": null, "customfield_12320947":
+        [{"self": "https://example.com/rest/api/2/customFieldOption/27714", "value":
+        "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
+        "False", "id": "27705", "disabled": false}, "updated": "2025-03-20T14:40:14.177+0000",
+        "customfield_12316142": null, "timeoriginalestimate": null, "description":
+        "Comment zero for CVE-2020-10000", "timetracking": {}, "attachment": [], "customfield_12316542":
+        {"self": "https://example.com/rest/api/2/customFieldOption/14655", "value":
+        "False", "id": "14655", "disabled": false}, "customfield_12316543": {"self":
+        "https://example.com/rest/api/2/customFieldOption/14657", "value": "False",
+        "id": "14657", "disabled": false}, "customfield_12316544": "None", "customfield_12310840":
+        "9223372036854775807", "summary": "CVE-2020-10000 kernel: some description",
+        "customfield_12323640": null, "customfield_12323642": null, "customfield_12323641":
+        null, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
+        null, "customfield_12323645": null, "environment": null, "customfield_12315740":
+        null, "customfield_12313441": "", "customfield_12313440": "0.0", "duedate":
+        null, "customfield_12311140": null, "comment": {"comments": [], "maxResults":
+        0, "total": 0, "startAt": 0}, "customfield_12310213": null, "customfield_12311940":
+        "1|i0otyv:"}, "changelog": {"startAt": 0, "maxResults": 3, "total": 3, "histories":
+        [{"id": "62669283", "author": {"self": "https://example.com/rest/api/2/user?username=jfrejlac",
+        "name": "jfrejlac", "key": "jfrejlac", "emailAddress": "jfrejlac+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=jfrejlac&avatarId=33124",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=jfrejlac&avatarId=33124",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=jfrejlac&avatarId=33124",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=jfrejlac&avatarId=33124"},
+        "displayName": "Jakub Frejlach", "active": true, "timeZone": "GMT"}, "created":
+        "2025-03-20T13:53:30.946+0000", "items": [{"field": "labels", "fieldtype":
+        "jira", "from": null, "fromString": "CVE-2020-10000 flawuuid:fb145b06-82a7-4851-a429-541288633d16
+        impact:IMPORTANT major_incident", "to": null, "toString": "flawuuid:fb145b06-82a7-4851-a429-541288633d16
+        impact:IMPORTANT"}]}, {"id": "62669284", "author": {"self": "https://example.com/rest/api/2/user?username=jfrejlac",
+        "name": "jfrejlac", "key": "jfrejlac", "emailAddress": "jfrejlac+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=jfrejlac&avatarId=33124",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=jfrejlac&avatarId=33124",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=jfrejlac&avatarId=33124",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=jfrejlac&avatarId=33124"},
+        "displayName": "Jakub Frejlach", "active": true, "timeZone": "GMT"}, "created":
+        "2025-03-20T13:53:38.322+0000", "items": [{"field": "status", "fieldtype":
+        "jira", "from": "10016", "fromString": "New", "to": "15021", "toString": "Refinement"}]},
+        {"id": "62669374", "author": {"self": "https://example.com/rest/api/2/user?username=jfrejlac",
+        "name": "jfrejlac", "key": "jfrejlac", "emailAddress": "jfrejlac+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=jfrejlac&avatarId=33124",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=jfrejlac&avatarId=33124",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=jfrejlac&avatarId=33124",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=jfrejlac&avatarId=33124"},
+        "displayName": "Jakub Frejlach", "active": true, "timeZone": "GMT"}, "created":
+        "2025-03-20T14:40:14.178+0000", "items": [{"field": "status", "fieldtype":
+        "jira", "from": "15021", "fromString": "Refinement", "to": "10016", "toString":
+        "New"}]}]}}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Thu, 20 Mar 2025 15:46:24 GMT
+      Expires:
+      - Thu, 20 Mar 2025 15:46:24 GMT
+      Pragma:
+      - no-cache
+      Retry-After:
+      - '0'
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-RateLimit-Limit:
+      - '2'
+      X-RateLimit-Remaining:
+      - '1'
+      content-length:
+      - '11728'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-dc-stg-mpp-0
+      x-arequestid:
+      - 946x383276x1
+      x-asessionid:
+      - 866y6d
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-ratelimit-fillrate:
+      - '2'
+      x-ratelimit-interval-seconds:
+      - '1'
+      x-rh-edge-cache-status:
+      - NotCacheable from child
+      x-rh-edge-reference-id:
+      - 0.6797f648.1742485584.d479dab
+      x-rh-edge-request-id:
+      - d479dab
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1

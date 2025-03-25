@@ -20,6 +20,7 @@ from ..utils import (
     tracker_parse_update_stream_component,
     tracker_summary2module_component,
 )
+from .constants import JIRA_DT_FULL_FMT, TASK_CHANGELOG_FIELD_MAPPING
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,11 @@ class JiraTaskConvertor:
         task_data,
     ):
         self._raw = task_data
+        self.histories = getattr(
+            getattr(task_data, "changelog", None),
+            "histories",
+            [],
+        )
         # important that this is last as it might require other fields on self
         self.task_data = self._normalize()
         # set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
@@ -70,7 +76,7 @@ class JiraTaskConvertor:
             "team_id": self.get_field_attr(self._raw, "customfield_12313240", "id"),
             "group_key": self.get_field_attr(self._raw, "customfield_12311140"),
             "task_updated_dt": datetime.strptime(
-                self.get_field_attr(self._raw, "updated"), "%Y-%m-%dT%H:%M:%S.%f%z"
+                self.get_field_attr(self._raw, "updated"), JIRA_DT_FULL_FMT
             ),
         }
 
@@ -111,6 +117,19 @@ class JiraTaskConvertor:
                 f"Ignoring task ({self.task_data['external_system_id']}) without label containing flaw uuid."
             )
             return None
+
+        changed_fields = set()
+        for record in self.histories[::-1]:
+            record_dt = datetime.strptime(record.created, JIRA_DT_FULL_FMT)
+            if not flaw.task_updated_dt or record_dt > flaw.task_updated_dt:
+                for item in record.items:
+                    record_changed_fields = TASK_CHANGELOG_FIELD_MAPPING.get(item.field)
+                    if record_changed_fields:
+                        changed_fields.update(record_changed_fields)
+            else:
+                # no more new changes in history
+                break
+
         # Avoid updating timestamp of flaws without real changes
         has_changes = (
             flaw
@@ -120,23 +139,30 @@ class JiraTaskConvertor:
                 or flaw.task_updated_dt <= self.task_data["task_updated_dt"]
             )
             and (
-                flaw.team_id != self.task_data["team_id"]
-                or flaw.owner != self.task_data["owner"]
-                or flaw.task_key != self.task_data["external_system_id"]
-                or flaw.group_key != self.task_data["group_key"]
-                or flaw.workflow_name != self.task_data["workflow_name"]
-                or flaw.workflow_state != self.task_data["workflow_state"]
+                flaw.task_key != self.task_data["external_system_id"] or changed_fields
             )
         )
 
         if has_changes:
-            flaw.team_id = self.task_data["team_id"]
-            flaw.owner = self.task_data["owner"]
             flaw.task_key = self.task_data["external_system_id"]
-            flaw.group_key = self.task_data["group_key"]
-            flaw.workflow_name = self.task_data["workflow_name"]
-            flaw.workflow_state = self.task_data["workflow_state"]
-            flaw.task_updated_dt = self.task_data["task_updated_dt"]
+
+            # NOTE: for some unexplainable reason, history record created timestamp
+            #       can actually be later in the future (by milliseconds) than Jira issue updated
+            #       timestamp, and thus we need to set the task_updated_dt to higher of
+            #       those values since it would later in the next download fetch changes
+            #       which were already downloaded and stored.
+            if self.histories:
+                latest_record_dt = datetime.strptime(
+                    self.histories[-1].created, JIRA_DT_FULL_FMT
+                )
+                flaw.task_updated_dt = max(
+                    latest_record_dt, self.task_data["task_updated_dt"]
+                )
+            else:
+                flaw.task_updated_dt = self.task_data["task_updated_dt"]
+
+            for field in changed_fields:
+                setattr(flaw, field, self.task_data[field])
             flaw.adjust_acls(save=False)
             return JiraTaskSaver(flaw)
         return None
@@ -374,19 +400,17 @@ class JiraTrackerConvertor(TrackerConvertor):
         self.ps_component = ps_component
         self.ps_update_stream = ps_update_stream
 
-        created_dt = datetime.strptime(
-            self._raw.fields.created, "%Y-%m-%dT%H:%M:%S.%f%z"
-        )
+        created_dt = datetime.strptime(self._raw.fields.created, JIRA_DT_FULL_FMT)
         updated_dt = (
             self._raw.fields.updated
             if self._raw.fields.updated
             else self._raw.fields.created
         )
-        updated_dt = datetime.strptime(updated_dt, "%Y-%m-%dT%H:%M:%S.%f%z")
+        updated_dt = datetime.strptime(updated_dt, JIRA_DT_FULL_FMT)
         resolved_dt = None
         if self._raw.fields.resolutiondate:
             resolved_dt = datetime.strptime(
-                self._raw.fields.resolutiondate, "%Y-%m-%dT%H:%M:%S.%f%z"
+                self._raw.fields.resolutiondate, JIRA_DT_FULL_FMT
             )
 
         return {

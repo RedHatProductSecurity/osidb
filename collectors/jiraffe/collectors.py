@@ -40,7 +40,6 @@ class JiraTaskCollector(Collector):
     # Jira API does not seem to have either issues returning large number of results
     # or any restrictions on the maximum query period so we can be quite greedy
     BATCH_PERIOD_DAYS = 10
-    BATCH_PERIOD_END_SHIFT_MINUTES = 1
 
     def __init__(self):
         super().__init__()
@@ -60,11 +59,7 @@ class JiraTaskCollector(Collector):
         get next batch of Jira tasks plus period_end timestamp
         """
         period_start = self.metadata.updated_until_dt or self.BEGINNING
-        period_end = min(
-            timezone.now()
-            - timezone.timedelta(minutes=self.BATCH_PERIOD_END_SHIFT_MINUTES),
-            period_start + timezone.timedelta(days=self.BATCH_PERIOD_DAYS),
-        )
+        period_end = period_start + timezone.timedelta(days=self.BATCH_PERIOD_DAYS)
 
         # query for tasks in the period and return them together with the timestamp
         return (
@@ -83,7 +78,7 @@ class JiraTaskCollector(Collector):
 
         # single-task sync
         if task_id is not None:
-            task_data = self.jira_querier.get_issue(task_id)
+            task_data = self.jira_querier.get_issue(task_id, expand="changelog")
             flaw = JiraTaskConvertor(task_data).flaw
             if flaw:
                 self.save(flaw)
