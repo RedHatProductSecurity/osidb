@@ -1,7 +1,9 @@
 """
 tracker common functionality test cases
 """
+
 from datetime import datetime, timezone
+from unittest.mock import patch
 
 import pytest
 
@@ -654,9 +656,40 @@ class TestTrackerQueryBuilderDescription:
                 "'rhkernel-team-list' mailing list for review and acks."
             ) in tqb.description
 
-        assert tqb.description.endswith(
+        assert (
             "Reproducers, if any, will remain confidential and never be made public, unless done so by the security team."
+            in tqb.description
         )
+
+    @pytest.mark.parametrize("form_url", [None, "https://example.form.com"])
+    def test_feedback_form(self, form_url):
+        """
+        test that tracker feedback form is included in the description if the env variable is set
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        with patch("apps.trackers.common.TRACKER_FEEDBACK_FORM_URL", form_url):
+            tqb = TrackerQueryBuilder()
+            tqb.instance = tracker
+
+            if form_url is not None:
+                assert form_url in tqb.description
+            else:
+                assert "feedback form" not in tqb.description
 
     def test_triage(self):
         """

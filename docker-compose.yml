@@ -100,6 +100,7 @@ services:
         FLAW_LABELS_URL: ${FLAW_LABELS_URL}
         SNIPPET_CREATION: ${SNIPPET_CREATION}
         TRACKERS_SYNC_TO_JIRA: ${TRACKERS_SYNC_TO_JIRA}
+        TRACKER_FEEDBACK_FORM_URL: ${TRACKER_FEEDBACK_FORM_URL}
       command: ./scripts/setup-osidb-service.sh
       volumes:
         - ${PWD}:/opt/app-root/src:z
