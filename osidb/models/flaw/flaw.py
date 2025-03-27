@@ -1090,23 +1090,16 @@ class Flaw(
 
         jtq = JiraTaskmanQuerier(token=jira_token)
 
-        # timestamp at or before the change
-        self.task_updated_dt = timezone.now()
-
         # creation
         if not self.task_key:
             self.task_key = jtq.create_or_update_task(self)
             self.workflow_state = WorkflowModel.WorkflowState.NEW
             Flaw.objects.filter(uuid=self.uuid).update(
                 task_key=self.task_key,
-                task_updated_dt=self.task_updated_dt,
                 workflow_state=self.workflow_state,
             )
         else:
             jtq.create_or_update_task(self)
-            Flaw.objects.filter(uuid=self.uuid).update(
-                task_updated_dt=self.task_updated_dt
-            )
 
     def _transition_task(self, jira_token=None):
         """
@@ -1117,14 +1110,12 @@ class Flaw(
 
         jtq = JiraTaskmanQuerier(token=jira_token)
 
-        self.task_updated_dt = timezone.now()  # timestamp at or before the change
         jtq.transition_task(self)
         # workflow transition may result in ACL change
         self.adjust_acls(save=False)
         Flaw.objects.filter(uuid=self.uuid).update(
             acl_read=self.acl_read,
             acl_write=self.acl_write,
-            task_updated_dt=self.task_updated_dt,
             workflow_name=self.workflow_name,
             workflow_state=self.workflow_state,
         )

@@ -153,8 +153,6 @@ class TestJiraTaskCollector:
 
         # 3 - get the current Jira task and make sure db is in-sync
         issue = jtq.jira_conn.issue(flaw.task_key)
-        last_update = datetime.strptime(issue.fields.updated, "%Y-%m-%dT%H:%M:%S.%f%z")
-        assert last_update == flaw.task_updated_dt
         assert issue.fields.status.name == "New"
 
         # 4 - freeze the issue in time to simulate long queries being outdated
@@ -168,7 +166,6 @@ class TestJiraTaskCollector:
         # provide a fake diff just to pretend that the workflow state has changed
         flaw.tasksync(diff={"workflow_state": None}, jira_token=jira_token)
         flaw = Flaw.objects.get(uuid=flaw.uuid)
-        assert last_update < flaw.task_updated_dt
         assert flaw.workflow_state == "TRIAGE"
 
         # 6 - make sure collector does not change flaw if it is holding outdated issue
@@ -176,7 +173,6 @@ class TestJiraTaskCollector:
         collector.collect(flaw.task_key)
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         assert flaw.workflow_state == "TRIAGE"
-        assert last_update < flaw.task_updated_dt
 
 
 class TestJiraTrackerCollector:
