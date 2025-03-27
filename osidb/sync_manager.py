@@ -79,13 +79,20 @@ class SyncManager(models.Model):
         Schedule sync_task to Celery queue.
 
         :param sync_id: Unique ID for synchronized data object.
+        :param schedule_options: Dictionary of options to pass to apply_async
         """
+
+        if schedule_options is None:
+            schedule_options = {}
+
         cls.objects.get_or_create(sync_id=sync_id)
         cls.objects.filter(sync_id=sync_id).update(last_scheduled_dt=timezone.now())
 
         def schedule_task():
             try:
-                cls.sync_task.apply_async(args=[sync_id, *args], kwargs=kwargs)
+                cls.sync_task.apply_async(
+                    args=[sync_id, *args], kwargs=kwargs, **schedule_options
+                )
             except AttributeError:
                 raise NotImplementedError(
                     "Sync task not implemented or not implemented as Celery task."
@@ -676,9 +683,12 @@ class JiraTaskDownloadManager(SyncManager):
         from collectors.jiraffe.convertors import JiraTaskConvertor
         from collectors.jiraffe.core import JiraQuerier
 
-        JiraTaskDownloadManager.started(task_id, self)
-
         set_user_acls(settings.ALL_GROUPS)
+        JiraTaskDownloadManager.started(
+            task_id,
+            self,
+            related_managers=[JiraTaskSyncManager, JiraTaskTransitionManager],
+        )
 
         try:
             task_data = JiraQuerier().get_issue(task_id, expand="changelog")
@@ -689,6 +699,42 @@ class JiraTaskDownloadManager(SyncManager):
             JiraTaskDownloadManager.failed(task_id, e)
         else:
             JiraTaskDownloadManager.finished(task_id)
+
+    @classmethod
+    def check_conflicting_sync_managers(
+        cls, sync_id, celery_task, related_managers: list[Type[SyncManager]]
+    ):
+        from osidb.models import Flaw
+
+        set_user_acls(settings.ALL_GROUPS)
+        countdown = 60  # 1 minute
+        existing_flaw = Flaw.objects.filter(task_key=sync_id).first()
+
+        if existing_flaw:
+            for sync_manager_type in related_managers:
+                conflicting_sync_manager = sync_manager_type.objects.filter(
+                    sync_id=existing_flaw.uuid
+                ).first()
+
+                if conflicting_sync_manager:
+                    conflicting_pending_sync = (
+                        conflicting_sync_manager.last_scheduled_dt is not None
+                        and (
+                            conflicting_sync_manager.last_finished_dt is None
+                            or conflicting_sync_manager.last_finished_dt
+                            < conflicting_sync_manager.last_scheduled_dt
+                        )
+                    )
+
+                    if conflicting_pending_sync:
+                        logger.info(
+                            f"{cls.__name__} {sync_id}: Conflicting sync managers found "
+                            f"({conflicting_sync_manager.__class__.__name__}), postponed for "
+                            f"{countdown} seconds."
+                        )
+                        cls.schedule(sync_id, schedule_options={"countdown": countdown})
+                        manager = cls.objects.get(sync_id=sync_id)
+                        manager.revoke_sync_task(celery_task)
 
     def update_synced_links(self):
         from osidb.models import Flaw
