@@ -10,6 +10,7 @@ JIRA_EMBARGO_SECURITY_LEVEL_NAME = get_env(
 JIRA_INTERNAL_SECURITY_LEVEL_NAME = get_env(
     "JIRA_INTERNAL_SECURITY_LEVEL_NAME", default="Red Hat Employee"
 )
+TRACKER_FEEDBACK_FORM_URL = get_env("TRACKER_FEEDBACK_FORM_URL")
 
 # Translate fields as defined in product definitions to the actual Jira field
 PS_ADDITIONAL_FIELD_TO_JIRA = {

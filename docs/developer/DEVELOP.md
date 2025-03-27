@@ -110,6 +110,9 @@ JIRA_METADATA_COLLECTOR_ENABLED=1
 CVEORG_COLLECTOR_ENABLED=1
 NVD_COLLECTOR_ENABLED=1
 OSV_COLLECTOR_ENABLED=1
+
+# If set, it will append the tracker accuracy feedback form at the end of the description when creating Jira trackers
+TRACKER_FEEDBACK_FORM_URL="https://foo.bar"
 ```
 
 The `.env` file is loaded automatically by podman-compose. It is also loaded as environment variables in a few Makefile targets (run `grep -rF '.env ' mk/` to see which ones).

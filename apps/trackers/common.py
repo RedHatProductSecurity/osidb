@@ -1,12 +1,14 @@
 """
 common tracker functionality shared between BTSs
 """
+
 from functools import cached_property
 from urllib.parse import urljoin
 
 from apps.bbsync.constants import MAX_SUMMARY_LENGTH, MULTIPLE_DESCRIPTIONS_SUBSTITUTION
 from apps.bbsync.query import summary_shorten
 from apps.trackers.constants import KERNEL_PACKAGES, VIRTUALIZATION_PACKAGES
+from apps.trackers.jira.constants import TRACKER_FEEDBACK_FORM_URL
 from collectors.bzimport.constants import BZ_URL
 from osidb.helpers import cve_id_comparator
 from osidb.models import Flaw, PsModule, PsUpdateStream, Tracker
@@ -197,7 +199,11 @@ class TrackerQueryBuilder:
         if self.ps_component in KERNEL_PACKAGES:
             description_parts.extend(TrackerQueryBuilder._description_kernel())
 
-        # 5) join the parts by empty lines
+        # 5) Tracker feedback form for Jira
+        if self.tracker.type == Tracker.TrackerType.JIRA:
+            description_parts.extend(self._description_feedback_form())
+
+        # 6) join the parts by empty lines
         return "\n\n".join(description_parts)
 
     def _description_bugzilla_footer(self):
@@ -352,3 +358,11 @@ class TrackerQueryBuilder:
             "Reproducers, if any, will remain confidential and never be made public, "
             "unless done so by the security team."
         ]
+
+    def _description_feedback_form(self):
+        """
+        generate tracker feedback form text
+        """
+        if TRACKER_FEEDBACK_FORM_URL is None:
+            return []
+        return [f"Tracker accuracy feedback form: {TRACKER_FEEDBACK_FORM_URL}"]
