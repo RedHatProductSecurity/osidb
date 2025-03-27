@@ -330,7 +330,7 @@ class TestEndpointsAffects:
 
         # check resolved creation
         affect_data["affectedness"] = Affect.AffectAffectedness.AFFECTED
-        affect_data["resolution"] = Affect.AffectResolution.DELEGATED
+        affect_data["resolution"] = Affect.AffectResolution.WONTFIX
         affect_data["ps_component"] = "kernel"
 
         response = auth_client().post(
@@ -360,7 +360,7 @@ class TestEndpointsAffects:
             {
                 **original_body,
                 "affectedness": Affect.AffectAffectedness.AFFECTED,
-                "resolution": Affect.AffectResolution.DELEGATED,
+                "resolution": Affect.AffectResolution.OOSS,
             },
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",

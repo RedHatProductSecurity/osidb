@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Postpone Jira task download when there are sync or transition managers pending (OSIDB-4136)
+- Consider affect in AFFECTED/DELEGATED state as not resolved (OSIDB-4137)
 
 ## [4.10.0] - 2025-03-25
 ### Fixed

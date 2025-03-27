@@ -775,6 +775,9 @@ AFFECTEDNESS_UNRESOLVED_RESOLUTIONS = {
     Affect.AffectAffectedness.NEW: [
         Affect.AffectResolution.NOVALUE,
     ],
+    Affect.AffectAffectedness.AFFECTED: [
+        Affect.AffectResolution.DELEGATED,
+    ],
 }
 
 AFFECTEDNESS_VALID_RESOLUTIONS = {
