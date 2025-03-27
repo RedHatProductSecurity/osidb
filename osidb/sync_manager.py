@@ -1,5 +1,6 @@
 import json
 from datetime import timedelta
+from typing import Optional, Type
 
 from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
@@ -64,7 +65,16 @@ class SyncManager(models.Model):
         raise NotImplementedError("Update synced links not implemented.")
 
     @classmethod
-    def schedule(cls, sync_id, *args, **kwargs):
+    def check_conflicting_sync_managers(
+        cls, sync_id, celery_task, related_managers: list[Type["SyncManager"]]
+    ):
+        """
+        Override this method to check for conflicting sync managers.
+        """
+        raise NotImplementedError("Conflicting sync managers check not implemented.")
+
+    @classmethod
+    def schedule(cls, sync_id, *args, schedule_options=None, **kwargs):
         """
         Schedule sync_task to Celery queue.
 
@@ -87,13 +97,31 @@ class SyncManager(models.Model):
         transaction.on_commit(schedule_task)
 
     @classmethod
-    def started(cls, sync_id, celery_task):
+    def started(
+        cls,
+        sync_id,
+        celery_task,
+        related_managers: Optional[list[Type["SyncManager"]]] = None,
+    ):
         """
         This method has to be called at the beginning of the sync_task.
 
         :param sync_id: Unique ID for synchronized data object.
         :param celery_task: Associated Celery task.
+        :param related_managers: Optional related managers which should be checked for conflicts
         """
+
+        if related_managers is None:
+            related_managers = []
+
+        try:
+            cls.check_conflicting_sync_managers(sync_id, celery_task, related_managers)
+        except NotImplementedError:
+            logger.info(
+                f"{cls.__name__} {sync_id}: "
+                "Conflicting sync managers check not implemented"
+            )
+
         manager = cls.objects.get(sync_id=sync_id)
 
         # Check if task should really run, maybe it was scheduled more times
