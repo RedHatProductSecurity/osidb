@@ -87,6 +87,8 @@ class SyncManager(models.Model):
 
         cls.objects.get_or_create(sync_id=sync_id)
         cls.objects.filter(sync_id=sync_id).update(last_scheduled_dt=timezone.now())
+        manager = cls.objects.get(sync_id=sync_id)
+        manager.update_synced_links()
 
         def schedule_task():
             try:
