@@ -1137,6 +1137,12 @@ paths:
           may be separated by commas. Dot notation can be used to filter on related
           model fields. Example: `include_fields=field,related_model_field.field`'
       - in: query
+        name: include_history
+        schema:
+          type: boolean
+        description: 'Indicates whether the response should include the model''s change
+          history. Set to ''true'' to include historical changes. Default: false.'
+      - in: query
         name: include_meta_attr
         schema:
           type: array
@@ -1898,6 +1904,12 @@ paths:
         description: 'Include only specified fields in the response. Multiple values
           may be separated by commas. Dot notation can be used to filter on related
           model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: include_history
+        schema:
+          type: boolean
+        description: 'Indicates whether the response should include the model''s change
+          history. Set to ''true'' to include historical changes. Default: false.'
       - in: query
         name: include_meta_attr
         schema:
@@ -3119,6 +3131,12 @@ paths:
         description: 'Include only specified fields in the response. Multiple values
           may be separated by commas. Dot notation can be used to filter on related
           model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: include_history
+        schema:
+          type: boolean
+        description: 'Indicates whether the response should include the model''s change
+          history. Set to ''true'' to include historical changes. Default: false.'
       - in: query
         name: include_meta_attr
         schema:
@@ -5801,6 +5819,12 @@ paths:
         description: 'Include only specified fields in the response. Multiple values
           may be separated by commas. Dot notation can be used to filter on related
           model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: include_history
+        schema:
+          type: boolean
+        description: 'Indicates whether the response should include the model''s change
+          history. Set to ''true'' to include historical changes. Default: false.'
       - in: query
         name: include_meta_attr
         schema:
