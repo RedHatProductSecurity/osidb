@@ -321,6 +321,18 @@ exclude_fields_param = OpenApiParameter(
     ),
 )
 
+include_history_param = OpenApiParameter(
+    "include_history",
+    type=bool,
+    required=False,
+    location=OpenApiParameter.QUERY,
+    description=(
+        "Indicates whether the response should include the "
+        "model's change history. Set to 'true' to include "
+        "historical changes. Default: false."
+    ),
+)
+
 include_meta_attr = OpenApiParameter(
     "include_meta_attr",
     type={"type": "array", "items": {"type": "string"}},
@@ -434,6 +446,21 @@ def include_exclude_fields_extend_schema_view(
     )(cls)
 
 
+def include_history_extend_schema_view(
+    cls: Type[ViewSetMixin],
+) -> Type[ViewSetMixin]:
+    """
+    Decorator which adds `include_history` query parameter description
+    into the schema for `list` and `retrieve` methods
+    """
+    return (
+        extend_schema_view(
+            list=extend_schema(parameters=[include_history_param]),
+            retrieve=extend_schema(parameters=[include_history_param]),
+        )
+    )(cls)
+
+
 def query_extend_schema_view(
     cls: Type[ViewSetMixin],
 ) -> Type[ViewSetMixin]:
@@ -476,6 +503,7 @@ class FlawIntrospectionView(RudimentaryUserPathLoggingMixin, APIView):
 @query_extend_schema_view
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
+@include_history_extend_schema_view
 @bz_api_key_extend_schema_view
 @jira_api_key_extend_schema_view
 @extend_schema_view(
@@ -825,6 +853,7 @@ class FlawPackageVersionView(
 
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
+@include_history_extend_schema_view
 @bz_api_key_extend_schema_view
 @jira_api_key_extend_schema_view
 @extend_schema_view(
