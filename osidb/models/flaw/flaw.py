@@ -1000,6 +1000,8 @@ class Flaw(
         # switch of sync/async processing
         if SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY and not force_synchronous_sync:
             # Process the bzsync asynchronously
+            # TODO: disable temporarily
+            return
             BZSyncManager.check_for_reschedules()
             BZSyncManager.schedule(str(self.uuid))
         else:
