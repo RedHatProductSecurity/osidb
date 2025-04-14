@@ -724,6 +724,8 @@ class JiraTaskDownloadManager(SyncManager):
     @staticmethod
     @app.task(name="sync_manager.jira_task_download", bind=True)
     def sync_task(self, task_id):
+        # TODO: disable temporarily
+        return
         from collectors.jiraffe.convertors import JiraTaskConvertor
         from collectors.jiraffe.core import JiraQuerier
 
