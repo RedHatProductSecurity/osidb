@@ -8,10 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add feedback form to tracker description (OSIDB-4095)
 
+### Changed
+- Adjust ACLs upon workflow advancement in OSIDB and do not wait for Jira sync (OSIDB-4136)
+
 ### Fixed
 - Postpone Jira task download when there are sync or transition managers pending (OSIDB-4136)
 - Consider affect in AFFECTED/DELEGATED state as not resolved (OSIDB-4137)
 - Fix missing include_history field on Affect and Flaw API documentation (OSIDB-3960)
+- Remove redundant Flaw workflow update (OSIDB-4136)
 
 ## [4.10.0] - 2025-03-25
 ### Fixed
