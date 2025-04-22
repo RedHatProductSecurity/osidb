@@ -81,7 +81,6 @@ jobs:
           python3-pytest-cov
           python3.9
           python36
-          python38
           redhat-rpm-config
           rpm-build
           rpmlint
