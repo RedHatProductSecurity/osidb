@@ -1071,6 +1071,13 @@ class Flaw(
                 JiraTaskSyncManager.schedule(str(self.uuid))
 
             if transition_task:
+                # workflow transition may result in ACL change
+                self.adjust_acls(save=False)
+                Flaw.objects.filter(uuid=self.uuid).update(
+                    acl_read=self.acl_read,
+                    acl_write=self.acl_write,
+                )
+
                 JiraTaskTransitionManager.check_for_reschedules()
                 JiraTaskTransitionManager.schedule(str(self.uuid))
 
@@ -1079,6 +1086,13 @@ class Flaw(
                 self._create_or_update_task(jira_token)
 
             if transition_task:
+                # workflow transition may result in ACL change
+                self.adjust_acls(save=False)
+                Flaw.objects.filter(uuid=self.uuid).update(
+                    acl_read=self.acl_read,
+                    acl_write=self.acl_write,
+                )
+
                 self._transition_task(jira_token)
 
     def _create_or_update_task(self, jira_token=None):
@@ -1111,14 +1125,6 @@ class Flaw(
         jtq = JiraTaskmanQuerier(token=jira_token)
 
         jtq.transition_task(self)
-        # workflow transition may result in ACL change
-        self.adjust_acls(save=False)
-        Flaw.objects.filter(uuid=self.uuid).update(
-            acl_read=self.acl_read,
-            acl_write=self.acl_write,
-            workflow_name=self.workflow_name,
-            workflow_state=self.workflow_state,
-        )
 
     download_manager = models.ForeignKey(
         FlawDownloadManager, null=True, blank=True, on_delete=models.CASCADE

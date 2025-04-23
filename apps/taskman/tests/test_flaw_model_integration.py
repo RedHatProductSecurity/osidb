@@ -402,3 +402,23 @@ class TestFlawModelIntegration(object):
         # flaw change and workflow state change at once
         assert create_or_update_performed
         assert transition_performed
+
+    def test_workflow_transition_not_overwriting(self, monkeypatch):
+        """ """
+
+        def mock_transition_task(self, flaw: Flaw, check_token: bool = True):
+            # simulate Flaw being updated in some other process instead
+            Flaw.objects.filter(uuid=flaw.uuid).update(
+                workflow_state="PRE_SECONDARY_ASSESSMENT"
+            )
+
+        monkeypatch.setattr(JiraTaskmanQuerier, "transition_task", mock_transition_task)
+
+        flaw = FlawFactory(workflow_state="TRIAGE")
+        flaw._transition_task()
+        # check that workflow state is the same as the transition began with
+        assert flaw.workflow_state == "TRIAGE"
+
+        flaw.refresh_from_db()
+        # check that the change to the workflow state by other process wasn't overwritten
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
