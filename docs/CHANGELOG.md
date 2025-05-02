@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add CISA CVSSIssuer type (OSIDB-4203)
 - Ignore modification of non-Red Hat issued CVSS scores through API
 
+### Fixed
+- Prevent running multiple Jira transition managers at the same time (OSIDB-4175) 
+
 ## [4.10.1] - 2025-04-30
 ### Added
 - Add feedback form to tracker description (OSIDB-4095)
