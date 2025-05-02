@@ -31,10 +31,23 @@ class SyncManager(models.Model):
          result should be the same in the end).
     """
 
+    class SyncManagerMode:
+        """
+        SyncManager modes:
+        - DEFAULT: No special handling.
+        - EXCLUSIVE: Only one task can run at a time. If a task is already running,
+          the new task will be scheduled with a countdown
+        """
+
+        DEFAULT = 0
+        EXCLUSIVE = 1
+
     MAX_CONSECUTIVE_FAILURES = 5
     MAX_SCHEDULE_DELAY = timedelta(hours=24)
     MAX_RUN_LENGTH = timedelta(hours=1)
     FAIL_RESCHEDULE_DELAY = timedelta(minutes=5)
+    MODE = SyncManagerMode.DEFAULT
+    COUNTDOWN = 60  # Default countdown for exclusive mode
 
     sync_id = models.CharField(max_length=100, unique=True)
     last_scheduled_dt = models.DateTimeField(blank=True, null=True)
@@ -47,6 +60,7 @@ class SyncManager(models.Model):
     last_rescheduled_dt = models.DateTimeField(blank=True, null=True)
     last_rescheduled_reason = models.TextField(blank=True, null=True)  # noqa: DJ01
     last_consecutive_reschedules = models.IntegerField(default=0)
+    planned_start_dt = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         abstract = True
@@ -85,8 +99,31 @@ class SyncManager(models.Model):
         if schedule_options is None:
             schedule_options = {}
 
-        cls.objects.get_or_create(sync_id=sync_id)
-        cls.objects.filter(sync_id=sync_id).update(last_scheduled_dt=timezone.now())
+        now = timezone.now()
+        created = cls.objects.get_or_create(sync_id=sync_id)[1]
+        cls.objects.filter(sync_id=sync_id).update(last_scheduled_dt=now)
+
+        if not created and cls.MODE == cls.SyncManagerMode.EXCLUSIVE:
+            # If the task is already scheduled, skip
+            if cls.is_scheduled(sync_id):
+                logger.info(
+                    f"{cls.__name__} {sync_id}: Task already scheduled, skipping"
+                )
+                return
+
+            # If the task is already in progress, schedule it with a countdown
+            if cls.is_in_progress(sync_id):
+                logger.info(
+                    f"{cls.__name__} {sync_id}: Task already in progress"
+                    f", postponing for {cls.COUNTDOWN} seconds"
+                )
+                if "countdown" not in schedule_options:
+                    schedule_options["countdown"] = cls.COUNTDOWN
+
+        if "countdown" in schedule_options:
+            now += timedelta(seconds=schedule_options["countdown"])
+
+        cls.objects.filter(sync_id=sync_id).update(planned_start_dt=now)
 
         # Create model linkage if possible to make checking for conflicting
         # sync managers possible
@@ -328,11 +365,58 @@ class SyncManager(models.Model):
                 )
                 continue
 
+    @classmethod
+    def is_in_progress(cls, sync_id):
+        """
+        Check if there is a task running for this sync manager. Task is considered running
+        if it has started and not finished yet or failed.
+        """
+
+        manager = cls.objects.get(sync_id=sync_id)
+
+        # This function is called before "last_started_dt" is set and
+        # a failed task has does not have "last_finished_dt" set
+        #
+        # 1) If "last_started_dt" is None, we assume that the task is NOT running.
+        # 2) If "last_started_dt" is not None, "last_failed_dt" is None, and "last_finished_dt" is None,
+        #    the task has started and is currently IN PROGRESS
+        # 3) If "last_started_dt" is not None, "last_failed_dt" is not None (and > last_started_dt),
+        #    and "last_finished_dt" is None, the previous run FAILED
+        # 4) If "last_started_dt" is not None and "last_finished_dt" is not None (and > last_started_dt),
+        #    the task has COMPLETED successfully
+
+        return (
+            # must have started
+            manager.last_started_dt is not None
+            and
+            # must NOT have failed since that start
+            not (
+                manager.last_failed_dt is not None
+                and manager.last_failed_dt > manager.last_started_dt
+            )
+            and
+            # and either not finished (-> running) or explicitly in-progress
+            manager.last_finished_dt is None
+        )
+
+    @classmethod
+    def is_scheduled(cls, sync_id):
+        """
+        Check if there's a task already scheduled to run in the future
+        """
+        manager = cls.objects.get(sync_id=sync_id)
+
+        return manager and (
+            manager.planned_start_dt is not None
+            and manager.planned_start_dt > timezone.now()
+        )
+
     def __str__(self):
         self.refresh_from_db()
         result = ""
         result += f"Sync ID: {self.sync_id}\n"
         result += f"Scheduled: {self.last_scheduled_dt}\n"
+        result += f"Planned start: {self.planned_start_dt}\n"
         result += f"Started: {self.last_started_dt}\n"
         result += f"Finished: {self.last_finished_dt}\n"
         result += f"Failed: {self.last_failed_dt}\n"
@@ -807,6 +891,8 @@ class JiraTaskTransitionManager(SyncManager):
     """
     Transition manager class for OSIDB => Jira Task state synchronization.
     """
+
+    MODE = SyncManager.SyncManagerMode.EXCLUSIVE
 
     @staticmethod
     @app.task(name="sync_manager.jira_task_transition", bind=True)
