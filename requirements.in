@@ -39,6 +39,5 @@ redis[hiredis]
 requests
 requests_cache
 requests_gssapi
-# workaround as rhubarb is not on std PyPI and registrations seem to be closed
-rhubarb @ https://github.com/RedHatProductSecurity/rhubarb/releases/download/0.1.0/rhubarb-0.1.0-py3-none-any.whl
+rhubarb
 djangoql
