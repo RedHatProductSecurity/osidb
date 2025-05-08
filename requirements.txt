@@ -100,9 +100,9 @@ defusedxml==0.7.1 \
     # via
     #   djangorestframework-xml
     #   jira
-django==4.2.20 \
-    --hash=sha256:213381b6e4405f5c8703fffc29cd719efdf189dec60c67c04f76272b3dc845b9 \
-    --hash=sha256:92bac5b4432a64532abb73b2ac27203f485e40225d2640a7fbef2b62b876e789
+django==4.2.21 \
+    --hash=sha256:1d658c7bf5d31c7d0cac1cab58bc1f822df89255080fec81909256c30e6180b3 \
+    --hash=sha256:b54ac28d6aa964fc7c2f7335138a54d78980232011e0cd2231d04eed393dcb0d
     # via
     #   -r requirements.in
     #   django-auth-ldap
@@ -329,7 +329,7 @@ gssapi==1.7.2 \
     --hash=sha256:fcde5311a574c2ac314dddaf9608310bd7a4eae3b361ab6374c552428534b51b \
     --hash=sha256:fe5e95c88fd737117374223683e319b0d80024f7d176822f14a12be0663cc3d7
     # via requests-gssapi
-gunicorn[gevent, setproctitle]==23.0.0 \
+gunicorn[gevent,setproctitle]==23.0.0 \
     --hash=sha256:ec400d38950de4dfd418cff8328b2c8faed0edb0d517d3394e457c317908ca4d \
     --hash=sha256:f014447a0101dc57e294f6c18ca6b40227a4c90e9bdb586042628030cba004ec
     # via -r requirements.in
@@ -759,12 +759,6 @@ setproctitle==1.3.2 \
     --hash=sha256:fed18e44711c5af4b681c2b3b18f85e6f0f1b2370a28854c645d636d5305ccd8 \
     --hash=sha256:ffc61a388a5834a97953d6444a2888c24a05f2e333f9ed49f977a87bb1ad4761
     # via gunicorn
-setuptools==65.5.1 \
-    --hash=sha256:d0b9a8433464d5800cbe05094acf5c6d52a91bfac9b52bcfc4d41382be5d5d31 \
-    --hash=sha256:e197a19aa8ec9722928f2206f8de752def0e4c9fc6953527360d1c36d94ddb2f
-    # via
-    #   zope-event
-    #   zope-interface
 six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
