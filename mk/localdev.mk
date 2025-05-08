@@ -19,7 +19,7 @@ start-local-gunicorn: check-venv generate_local_pg_tls_cert compose-up start_gun
 .PHONY : start-local-psql
 start-local-psql: check-reg check-venv generate_local_pg_tls_cert
 	@echo ">starting osidb-data"
-	@$(podmancompose) -f docker-compose.yml start osidb-data
+	@$(podman) compose -f docker-compose.yml start osidb-data
 	@while ! $(podman) exec -it osidb-data bash -c "( pg_isready >/dev/null 2>&1 )" ; do echo ">waiting for osidb-data" ; sleep 2 ; done
 
 
@@ -30,7 +30,7 @@ start-local-psql: check-reg check-venv generate_local_pg_tls_cert
 .PHONY : stop-local
 stop-local:
 	@echo ">stopping local env without deleting containers"
-	$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml stop || $(podmancompose) -f docker-compose.yml -f docker-compose.test.yml stop testrunner testldap flower redis celery_beat celery osidb-service osidb-data
+	$(podman) compose -f docker-compose.yml -f docker-compose.test.yml stop || $(podman) compose -f docker-compose.yml -f docker-compose.test.yml stop testrunner testldap flower redis celery_beat celery osidb-service osidb-data
 
 
 
@@ -108,9 +108,9 @@ kill_django:
 #***********************************
 .PHONY : compose-down
 compose-down:
-	@echo ">$(podmancompose) down - stopping and deleting containers and volumes, but not deleting images"
+	@echo ">$(podman) compose down - stopping and deleting containers and volumes, but not deleting images"
 	@echo -n "Are you really sure? [y/N] " && read ans && [ $${ans:-N} = y ]
-	$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml down -v
+	$(podman) compose -f docker-compose.yml -f docker-compose.test.yml down -v
 
 
 #***********************************
@@ -181,7 +181,7 @@ update-secrets: check-venv-active
 .PHONY : compose-up
 compose-up:
 	@echo ">compose up"
-	@$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml up -d
+	@$(podman) compose -f docker-compose.yml -f docker-compose.test.yml up -d
 	@while ! $(podman) exec -it osidb-service bash -c '( { curl -f http://127.0.0.1:8000/osidb/healthy >/dev/null 2>&1 || exit 1 ; } )' ; do echo ">waiting for osidb-service" ; sleep 2 ; done
 	@sleep 2
 	@echo ">compose is up"

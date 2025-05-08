@@ -68,7 +68,7 @@ db-restore: stop-local start-local-psql
 .PHONY : db-drop
 db-drop:
 	@echo -n "This will delete data in the database. It will delete the osidb_pg-data volume. As a side effect, it will also remove all osidb containers. Are you sure? [y/N]" && read ans && [ $${ans:-N} = y ]
-	$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml down
+	$(podman) compose -f docker-compose.yml -f docker-compose.test.yml down
 	podman volume rm osidb_pg-data -f
 
 

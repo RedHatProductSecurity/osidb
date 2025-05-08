@@ -3,3 +3,4 @@ attic
 adrs
 docs
 venv
+etc/pg/local-server.*
