@@ -790,6 +790,7 @@ paths:
         schema:
           type: string
           enum:
+          - CISA
           - CVEORG
           - NIST
           - OSV
@@ -1584,6 +1585,7 @@ paths:
         schema:
           type: string
           enum:
+          - CISA
           - CVEORG
           - NIST
           - OSV
@@ -3033,6 +3035,7 @@ paths:
         schema:
           type: string
           enum:
+          - CISA
           - CVEORG
           - NIST
           - OSV
@@ -4443,6 +4446,7 @@ paths:
         schema:
           type: string
           enum:
+          - CISA
           - CVEORG
           - NIST
           - OSV
@@ -9014,6 +9018,7 @@ components:
       - RH
       - NIST
       - OSV
+      - CISA
       type: string
     MajorIncidentStateEnum:
       enum:
