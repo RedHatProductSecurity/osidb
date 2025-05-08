@@ -41,15 +41,15 @@ version: '3'
 # # container must be started 2 times for it to actually start.
 # WORKAROUND_A={ echo ">Met with a possible podman bug. Workaround for osidb-data. See NOTE 2 in Makefile." ; sleep 2 ; $(podman) start osidb-data || true ; sleep 10 ; $(podman) start osidb-data || true ; }
 # WORKAROUND_B={ echo ">Met with a possible podman bug. Workaround for osidb-service. See NOTE 2 in Makefile." ; sleep 2 ; $(podman) start osidb-data osidb-service || true ; sleep 10 ; $(podman) start osidb-data osidb-service || true ; }
-# WORKAROUND_C={ echo ">Met with a possible podman bug. Workaround. See NOTE 2 in Makefile." ; sleep 2 ; $(podman) start osidb-data osidb-service || true ; sleep 10 ; $(podman) start osidb-data osidb-service || true ; $(podmancompose) -f docker-compose.yml -f docker-compose.test.yml up -d ; }
+# WORKAROUND_C={ echo ">Met with a possible podman bug. Workaround. See NOTE 2 in Makefile." ; sleep 2 ; $(podman) start osidb-data osidb-service || true ; sleep 10 ; $(podman) start osidb-data osidb-service || true ; $(podman) compose -f docker-compose.yml -f docker-compose.test.yml up -d ; }
 # compose-up:
 # 	@echo ">compose up"
-# 	@$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml up -d osidb-data redis || $(WORKAROUND_A) || true
+# 	@$(podman) compose -f docker-compose.yml -f docker-compose.test.yml up -d osidb-data redis || $(WORKAROUND_A) || true
 # 	@cnt=1; until { $(podman) healthcheck run osidb-data >/dev/null 2>&1 ; } ; do ((cnt++)); echo ">waiting for osidb-data" ; sleep 2 ; if (( cnt > 30 )) ; then echo ">Container osidb-data seems stuck. Let's restart it. Sorry, IDK why that sometimes happens. It seems to happen less if 'make stop-local' is run first." ; $(podman) restart osidb-data || true ; sleep 10 ; $(podman) start osidb-data || true ; cnt=1 ; fi ; done
-# 	@$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml up -d osidb-service testldap || $(WORKAROUND_B) || true
+# 	@$(podman) compose -f docker-compose.yml -f docker-compose.test.yml up -d osidb-service testldap || $(WORKAROUND_B) || true
 # 	@cnt=1; until { $(podman) healthcheck run osidb-service >/dev/null 2>&1 ; } ; do ((cnt++)); echo ">waiting for osidb-service" ; sleep 2 ; if (( cnt > 30 )) ; then echo ">Container osidb-service seems stuck. Let's restart it. Sorry, IDK why that sometimes happens. It seems to happen less if 'make stop-local' is run first." ; $(podman) restart osidb-service || true ; sleep 10 ; $(podman) start osidb-service || true ; cnt=1 ; fi ; done
-# 	@$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml up -d celery celery_beat flower
-# 	@$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml up -d || $(WORKAROUND_C)
+# 	@$(podman) compose -f docker-compose.yml -f docker-compose.test.yml up -d celery celery_beat flower
+# 	@$(podman) compose -f docker-compose.yml -f docker-compose.test.yml up -d || $(WORKAROUND_C)
 # [END COMPOSE UP SHOWCASE]
 
 
