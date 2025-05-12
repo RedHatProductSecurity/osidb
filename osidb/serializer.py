@@ -1027,6 +1027,9 @@ class AbstractCVSSSerializer(
     cvss_version = serializers.ChoiceField(choices=CVSS.CVSSVersion, source="version")
     score = serializers.FloatField(read_only=True)
     comment = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    issuer = serializers.ChoiceField(
+        choices=CVSS.CVSSIssuer, default=CVSS.CVSSIssuer.REDHAT
+    )
 
     class Meta:
         abstract = True

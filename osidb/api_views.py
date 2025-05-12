@@ -4,7 +4,7 @@ implement osidb rest api views
 
 import logging
 from datetime import datetime
-from typing import Type
+from typing import Any, Type
 from urllib.parse import urljoin
 
 import pghistory
@@ -34,6 +34,7 @@ from rest_framework.viewsets import (
 
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
 from osidb.models import Affect, AffectCVSS, Flaw, FlawLabel, Tracker
+from osidb.models.flaw.cvss import FlawCVSS
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import (
@@ -742,6 +743,29 @@ class FlawCVSSView(
     permission_classes = [IsAuthenticatedOrReadOnly]
     filterset_class = FlawCVSSFilter
 
+    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        request.data.pop("issuer", None)
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        request.data.pop("issuer", None)
+        cvss: FlawCVSS = self.get_object()
+        if cvss.issuer == FlawCVSS.CVSSIssuer.REDHAT:
+            return super().update(request, *args, **kwargs)
+        return Response(FlawCVSSSerializer(cvss).data)
+
+    @extend_schema(
+        responses={
+            200: {},
+        },
+        parameters=[bz_api_key_param],
+    )
+    def destroy(self, request, *args, **kwargs):
+        cvss: FlawCVSS = self.get_object()
+        if cvss.issuer == FlawCVSS.CVSSIssuer.REDHAT:
+            return super().destroy(request, *args, **kwargs)
+        return Response(status=HTTP_200_OK)
+
 
 @extend_schema(
     responses={
@@ -1102,6 +1126,17 @@ class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
             kwargs["data"] = data
         return super().get_serializer(*args, **kwargs)
 
+    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        request.data.pop("issuer", None)
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        request.data.pop("issuer", None)
+        cvss: AffectCVSS = self.get_object()
+        if cvss.issuer == AffectCVSS.CVSSIssuer.REDHAT:
+            return super().update(request, *args, **kwargs)
+        return Response(AffectCVSSPutSerializer(cvss).data)
+
     @extend_schema(
         responses={
             200: {},
@@ -1116,10 +1151,11 @@ class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         if not bz_api_key:
             raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
 
-        instance = self.get_object()
-        affect = instance.affect
-        instance.delete()
-        affect.save(bz_api_key=bz_api_key)
+        instance: AffectCVSS = self.get_object()
+        if instance.issuer == AffectCVSS.CVSSIssuer.REDHAT:
+            affect = instance.affect
+            instance.delete()
+            affect.save(bz_api_key=bz_api_key)
         return Response(status=HTTP_200_OK)
 
 

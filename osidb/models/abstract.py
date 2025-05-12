@@ -88,6 +88,7 @@ class CVSS(AlertMixin, ACLMixin, NullStrFieldsMixin, TrackingMixin):
         REDHAT = "RH", "Red Hat"
         NIST = "NIST", "NIST"
         OSV = "OSV", "OSV"
+        CISA = "CISA", "CISA"
 
     CVSS_HANDLES = {
         CVSSVersion.VERSION2: CVSS2,
