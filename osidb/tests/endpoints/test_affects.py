@@ -170,6 +170,42 @@ class TestEndpointsAffects:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["uuid"] == cvss_uuid
 
+    @pytest.mark.enable_signals
+    def test_affectcvss_create_non_rh(self, auth_client, test_api_uri):
+        flaw = FlawFactory()
+        affect = AffectFactory(flaw=flaw)
+        cvss_data = {
+            "issuer": AffectCVSS.CVSSIssuer.NIST,
+            "cvss_version": AffectCVSS.CVSSVersion.VERSION3,
+            "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+            "embargoed": flaw.embargoed,
+        }
+
+        # Tests "POST" on affects/{uuid}/cvss_scores
+        response = auth_client().post(
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores",
+            data=cvss_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        cvss_uuid = response.data["uuid"]
+
+        # Tests "GET" on affects/{uuid}/cvss_scores
+        response = auth_client().get(
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == 1
+
+        # Tests "GET" on affects/{uuid}/cvss_scores/{uuid}
+        response = auth_client().get(
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss_uuid}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["uuid"] == cvss_uuid
+        assert response.data["issuer"] == AffectCVSS.CVSSIssuer.REDHAT
+
     @pytest.mark.parametrize(
         "skip_value,request_provided_value,resulting_value",
         [
@@ -249,12 +285,38 @@ class TestEndpointsAffects:
         assert response.data["comment"] == "text"
 
     @pytest.mark.enable_signals
+    def test_affectcvss_update_non_rh(self, auth_client, test_api_uri):
+        affect = AffectFactory()
+        cvss = AffectCVSSFactory(
+            affect=affect, issuer=AffectCVSS.CVSSIssuer.NIST, comment=""
+        )
+
+        response = auth_client().get(
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["comment"] == ""
+
+        updated_data = response.json().copy()
+        updated_data["comment"] = "text"
+
+        # Tests "PUT" on affects/{uuid}/cvss_scores/{uuid}
+        response = auth_client().put(
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}",
+            data=updated_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["comment"] == ""
+
+    @pytest.mark.enable_signals
     def test_affectcvss_delete(self, auth_client, test_api_uri):
         """
         Test the deletion of AffectCVSS records via a REST API DELETE request.
         """
         affect = AffectFactory()
-        cvss = AffectCVSSFactory(affect=affect)
+        cvss = AffectCVSSFactory(affect=affect, issuer=AffectCVSS.CVSSIssuer.REDHAT)
 
         url = f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}"
         response = auth_client().get(url)
@@ -264,6 +326,20 @@ class TestEndpointsAffects:
         response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
         assert response.status_code == status.HTTP_200_OK
         assert AffectCVSS.objects.count() == 0
+
+    @pytest.mark.enable_signals
+    def test_affectcvss_delete_non_rh(self, auth_client, test_api_uri):
+        affect = AffectFactory()
+        cvss = AffectCVSSFactory(affect=affect, issuer=AffectCVSS.CVSSIssuer.CVEORG)
+
+        url = f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}"
+        response = auth_client().get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        # Tests "DELETE" on affects/{uuid}/cvss_scores/{uuid}
+        response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
+        assert response.status_code == status.HTTP_200_OK
+        assert AffectCVSS.objects.count() == 1
 
     def test_affect_history(self, auth_client, test_api_uri):
         """ """

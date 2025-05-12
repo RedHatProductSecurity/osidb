@@ -7479,7 +7479,9 @@ components:
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
-          $ref: '#/components/schemas/IssuerEnum'
+          allOf:
+          - $ref: '#/components/schemas/IssuerEnum'
+          default: RH
         score:
           type: number
           format: double
@@ -7515,7 +7517,6 @@ components:
       - created_dt
       - cvss_version
       - embargoed
-      - issuer
       - score
       - updated_dt
       - uuid
@@ -7530,7 +7531,9 @@ components:
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
-          $ref: '#/components/schemas/IssuerEnum'
+          allOf:
+          - $ref: '#/components/schemas/IssuerEnum'
+          default: RH
         vector:
           type: string
           minLength: 1
@@ -7543,7 +7546,6 @@ components:
       required:
       - cvss_version
       - embargoed
-      - issuer
       - vector
     AffectCVSSPutRequest:
       type: object
@@ -7555,7 +7557,9 @@ components:
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
-          $ref: '#/components/schemas/IssuerEnum'
+          allOf:
+          - $ref: '#/components/schemas/IssuerEnum'
+          default: RH
         vector:
           type: string
           minLength: 1
@@ -7573,7 +7577,6 @@ components:
       required:
       - cvss_version
       - embargoed
-      - issuer
       - updated_dt
       - vector
     AffectCVSSRequest:
@@ -7589,7 +7592,9 @@ components:
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
-          $ref: '#/components/schemas/IssuerEnum'
+          allOf:
+          - $ref: '#/components/schemas/IssuerEnum'
+          default: RH
         vector:
           type: string
           minLength: 1
@@ -7607,7 +7612,6 @@ components:
       required:
       - cvss_version
       - embargoed
-      - issuer
       - updated_dt
       - vector
     AffectPostRequest:
@@ -8307,7 +8311,9 @@ components:
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
-          $ref: '#/components/schemas/IssuerEnum'
+          allOf:
+          - $ref: '#/components/schemas/IssuerEnum'
+          default: RH
         score:
           type: number
           format: double
@@ -8343,7 +8349,6 @@ components:
       - created_dt
       - cvss_version
       - embargoed
-      - issuer
       - score
       - updated_dt
       - uuid
@@ -8358,7 +8363,9 @@ components:
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
-          $ref: '#/components/schemas/IssuerEnum'
+          allOf:
+          - $ref: '#/components/schemas/IssuerEnum'
+          default: RH
         vector:
           type: string
           minLength: 1
@@ -8371,7 +8378,6 @@ components:
       required:
       - cvss_version
       - embargoed
-      - issuer
       - vector
     FlawCVSSPutRequest:
       type: object
@@ -8383,7 +8389,9 @@ components:
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
-          $ref: '#/components/schemas/IssuerEnum'
+          allOf:
+          - $ref: '#/components/schemas/IssuerEnum'
+          default: RH
         vector:
           type: string
           minLength: 1
@@ -8401,7 +8409,6 @@ components:
       required:
       - cvss_version
       - embargoed
-      - issuer
       - updated_dt
       - vector
     FlawCVSSRequest:
@@ -8417,7 +8424,9 @@ components:
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
-          $ref: '#/components/schemas/IssuerEnum'
+          allOf:
+          - $ref: '#/components/schemas/IssuerEnum'
+          default: RH
         vector:
           type: string
           minLength: 1
@@ -8435,7 +8444,6 @@ components:
       required:
       - cvss_version
       - embargoed
-      - issuer
       - updated_dt
       - vector
     FlawCollaborator:
