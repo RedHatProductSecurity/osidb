@@ -748,6 +748,7 @@ class FlawCVSSView(
         return super().create(request, *args, **kwargs)
 
     def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        request.data.pop("issuer", None)
         cvss: FlawCVSS = self.get_object()
         if cvss.issuer == FlawCVSS.CVSSIssuer.REDHAT:
             return super().update(request, *args, **kwargs)
@@ -1130,6 +1131,7 @@ class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         return super().create(request, *args, **kwargs)
 
     def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        request.data.pop("issuer", None)
         cvss: AffectCVSS = self.get_object()
         if cvss.issuer == AffectCVSS.CVSSIssuer.REDHAT:
             return super().update(request, *args, **kwargs)

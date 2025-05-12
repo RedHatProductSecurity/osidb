@@ -311,6 +311,34 @@ class TestEndpointsAffects:
         assert response.data["comment"] == ""
 
     @pytest.mark.enable_signals
+    def test_affectcvss_update_issuer(self, auth_client, test_api_uri):
+        affect = AffectFactory()
+        cvss = AffectCVSSFactory(
+            affect=affect,
+            issuer=AffectCVSS.CVSSIssuer.REDHAT,
+            comment="",
+        )
+
+        response = auth_client().get(
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["issuer"] == AffectCVSS.CVSSIssuer.REDHAT
+
+        updated_data = response.json().copy()
+        updated_data["issuer"] = AffectCVSS.CVSSIssuer.CVEORG
+
+        # Tests "PUT" on affects/{uuid}/cvss_scores/{uuid}
+        response = auth_client().put(
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}",
+            data=updated_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["issuer"] == AffectCVSS.CVSSIssuer.REDHAT
+
+    @pytest.mark.enable_signals
     def test_affectcvss_delete(self, auth_client, test_api_uri):
         """
         Test the deletion of AffectCVSS records via a REST API DELETE request.

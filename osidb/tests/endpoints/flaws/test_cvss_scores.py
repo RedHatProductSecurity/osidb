@@ -82,6 +82,35 @@ class TestEndpointsFlawsCVSSScores:
         assert response.data["comment"] == "text"
 
     @pytest.mark.enable_signals
+    def test_flawcvss_update_issuer(self, auth_client, test_api_uri):
+        flaw = FlawFactory()
+        cvss = FlawCVSSFactory(
+            flaw=flaw,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION2,
+            comment="",
+        )
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores/{cvss.uuid}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["issuer"] == FlawCVSS.CVSSIssuer.REDHAT
+
+        updated_data = response.json().copy()
+        updated_data["issuer"] = FlawCVSS.CVSSIssuer.NIST
+
+        # Tests "PUT" on flaws/{uuid}/cvss_scores/{uuid}
+        response = auth_client().put(
+            f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores/{cvss.uuid}",
+            data=updated_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["issuer"] == FlawCVSS.CVSSIssuer.REDHAT
+
+    @pytest.mark.enable_signals
     def test_flawcvss_delete(self, auth_client, test_api_uri):
         """
         Test the deletion of FlawCVSS records via a REST API DELETE request.
