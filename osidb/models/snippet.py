@@ -77,7 +77,7 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
 
         if cve_id and (f := Flaw.objects.filter(cve_id=cve_id)):
             flaw = f.first()
-        elif f := Flaw.objects.filter(meta_attr__external_ids__contains=external_id):
+        elif f := Flaw.objects.filter(meta_attr__external_ids__exact=external_id):
             flaw = f.first()
         else:
             flaw = self._create_flaw(*args, **kwargs)
