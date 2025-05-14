@@ -7,6 +7,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db import models, transaction
 from django.utils import timezone
+from rhubarb.tasks import LockableTaskWithArgs
 
 from config.celery import app
 from osidb.core import set_user_acls
@@ -31,10 +32,23 @@ class SyncManager(models.Model):
          result should be the same in the end).
     """
 
+    class SyncManagerMode:
+        """
+        SyncManager modes:
+        - DEFAULT: No special handling.
+        - EXCLUSIVE: Only one task can run at a time. If a task is already running,
+          the new task will be scheduled with a countdown
+        """
+
+        DEFAULT = 0
+        EXCLUSIVE = 1
+
     MAX_CONSECUTIVE_FAILURES = 5
     MAX_SCHEDULE_DELAY = timedelta(hours=24)
     MAX_RUN_LENGTH = timedelta(hours=1)
     FAIL_RESCHEDULE_DELAY = timedelta(minutes=5)
+    MODE = SyncManagerMode.DEFAULT
+    COUNTDOWN = 60  # Default countdown for exclusive mode
 
     sync_id = models.CharField(max_length=100, unique=True)
     last_scheduled_dt = models.DateTimeField(blank=True, null=True)
@@ -85,8 +99,24 @@ class SyncManager(models.Model):
         if schedule_options is None:
             schedule_options = {}
 
-        cls.objects.get_or_create(sync_id=sync_id)
+        created = cls.objects.get_or_create(sync_id=sync_id)[1]
         cls.objects.filter(sync_id=sync_id).update(last_scheduled_dt=timezone.now())
+
+        if not created and cls.MODE == cls.SyncManagerMode.EXCLUSIVE:
+            # Check if the task needs to be rescheduled
+            if not cls.is_scheduled(sync_id):
+                logger.info(
+                    f"{cls.__name__} {sync_id}: Task already in progress"
+                    f", postponing for {schedule_options.get('countdown', cls.COUNTDOWN)} seconds"
+                )
+                if "countdown" not in schedule_options:
+                    schedule_options["countdown"] = cls.COUNTDOWN
+                cls.reschedule(
+                    sync_id,
+                    "Task already in progress",
+                    schedule_options=schedule_options,
+                )
+                return
 
         # Create model linkage if possible to make checking for conflicting
         # sync managers possible
@@ -210,14 +240,14 @@ class SyncManager(models.Model):
         raise Ignore
 
     @classmethod
-    def reschedule(cls, sync_id, reason):
+    def reschedule(cls, sync_id, reason, schedule_options={}):
         """
         Schedule sync_task to Celery queue again for a reason.
 
         :param sync_id: Unique ID for synchronized data object.
         :param reason: Description for a reason why the sync_task was re-scheduled.
+        :param schedule_options: Dictionary of options to pass to apply_async
         """
-        cls.schedule(sync_id)
 
         manager = cls.objects.get(sync_id=sync_id)
         updated_last_consecutive_reschedules = manager.last_consecutive_reschedules + 1
@@ -227,6 +257,7 @@ class SyncManager(models.Model):
             last_rescheduled_reason=reason,
             last_consecutive_reschedules=updated_last_consecutive_reschedules,
         )
+        cls.schedule(sync_id, schedule_options=schedule_options)
         logger.info(f"{cls.__name__} {sync_id}: Sync re-scheduled ({reason})")
 
     @classmethod
@@ -327,6 +358,65 @@ class SyncManager(models.Model):
                     f"Failed {sync_manager.last_consecutive_failures} times",
                 )
                 continue
+
+    @classmethod
+    def is_in_progress(cls, sync_id):
+        """
+        Return True if the task is still considered in-progress:
+        1) It has a start timestamp,
+        2) It has not finished or failed since that start, and
+        3) It hasn’t exceeded MAX_RUN_LENGTH (to catch crashed/hung tasks).
+        """
+        now = timezone.now()
+        manager = cls.objects.get(sync_id=sync_id)
+
+        # 1) Must have started
+        if manager.last_started_dt is None:
+            return False
+
+        # 2) Must not have finished or failed since that start
+        if (
+            manager.last_failed_dt is not None
+            and manager.last_failed_dt > manager.last_started_dt
+        ) or (
+            manager.last_finished_dt is not None
+            and manager.last_finished_dt > manager.last_started_dt
+        ):
+            return False
+
+        # 3) Must be within the allowed run length window
+        if now - manager.last_started_dt > cls.MAX_RUN_LENGTH:
+            # Timed out: assume crash/hang and treat as not running
+            return False
+
+        return True
+
+    @classmethod
+    def is_scheduled(cls, sync_id):
+        """
+        Returns True if there is a scheduled-but-not-yet-started run, in either:
+
+        1) A running task that was deferred (rescheduled), or
+        2) An idle task that has a fresh schedule after its last completion.
+        """
+
+        manager = cls.objects.get(sync_id=sync_id)
+
+        if cls.is_in_progress(sync_id):
+            # During a run, last_rescheduled_dt is set when we defer for retry.
+            # But it persists across runs, so only count it if it’s
+            # newer than the current start (i.e. a fresh defer).
+            return (
+                manager.last_rescheduled_dt is not None
+                and manager.last_rescheduled_dt > manager.last_started_dt
+            )
+
+        # Not running: use last_scheduled_dt, but only if it was set
+        # after the most recent finish (or at all if never run).
+        return manager.last_scheduled_dt is not None and (
+            manager.last_finished_dt is None
+            or manager.last_scheduled_dt > manager.last_finished_dt
+        )
 
     def __str__(self):
         self.refresh_from_db()
@@ -808,8 +898,15 @@ class JiraTaskTransitionManager(SyncManager):
     Transition manager class for OSIDB => Jira Task state synchronization.
     """
 
+    MODE = SyncManager.SyncManagerMode.EXCLUSIVE
+
     @staticmethod
-    @app.task(name="sync_manager.jira_task_transition", bind=True)
+    @app.task(
+        base=LockableTaskWithArgs,
+        name="sync_manager.jira_task_transition",
+        bind=True,
+        lock_ttl=60,
+    )
     def sync_task(self, flaw_id):
         """
         perform the sync of the task state of the given flaw to Jira
