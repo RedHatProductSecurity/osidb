@@ -11,15 +11,17 @@ import sys
 import warnings
 from distutils.util import strtobool
 from os import getenv
-from typing import Any, List, Type, Union
+from typing import Any, Callable, List, Type, Union
 
 from celery._state import get_current_task
+from django.conf import settings
 from django.db import models
 from django.utils.timezone import datetime, make_aware
 from django_deprecate_fields import DeprecatedField, logger
 from requests.exceptions import JSONDecodeError
 from requests.models import Response
 
+from osidb.core import set_user_acls
 from osidb.validators import CVE_RE_STR, restrict_regex
 
 from .exceptions import OSIDBException
@@ -285,3 +287,28 @@ class JSONSocketHandler(logging.handlers.SocketHandler):
 
         result = context.wrap_socket(result, server_hostname=self.address[0])
         return result
+
+
+def bypass_rls(f: Callable) -> Callable:
+    """
+    Bypass Row-Level Security checks in the database.
+
+    When a callable is decorated with this helper, the ACLs will be set to
+    ALL_GROUPS, effectively bypassing Row-Level Security / Authorization.
+
+    Be aware of the implications of bypassing RLS, namely that any actions
+    that depend on a user's permissions will not work correctly if executed
+    within the lifetime of the callable that this decorator wraps.
+
+    Should be used with system-driven processes mostly:
+        * Migrations
+        * Collectors & Scheduled tasks
+        * Non user-driven processes
+    """
+
+    def wrapped(*args, **kwargs):
+        set_user_acls(settings.ALL_GROUPS)
+        f(*args, **kwargs)
+        set_user_acls([])
+
+    return wrapped
