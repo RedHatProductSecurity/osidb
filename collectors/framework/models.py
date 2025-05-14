@@ -181,7 +181,7 @@ class CollectorMetadata(NullStrFieldsMixin):
     @property
     def crontab_params(self) -> Optional[Dict[str, str]]:
         if self.crontab:
-            params = re.search(r"<crontab: (.*) \(m/h/d/dM/MY\)>", self.crontab).group(
+            params = re.search(r"<crontab: (.*) \(m/h/dM/MY/d\)>", self.crontab).group(
                 1
             )
             return {
