@@ -22,7 +22,7 @@ logger = get_task_logger(__name__)
 # cve,epss,percentile
 COLUMN_CVE = 0
 COLUMN_EPSS = 1
-EPSS_URL = "https://epss.cyentia.com/epss_scores-current.csv.gz"
+EPSS_URL = "https://epss.empiricalsecurity.com/epss_scores-current.csv.gz"
 CHUNK_SIZE = 1000
 
 
