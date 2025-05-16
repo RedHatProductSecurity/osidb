@@ -1,9 +1,10 @@
 import json
 import os
 import re
+from collections import defaultdict
 from decimal import Decimal
 from time import sleep
-from typing import Union
+from typing import Any, Union
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -16,6 +17,7 @@ from collectors.cmd import Cmd
 from collectors.constants import SNIPPET_CREATION_ENABLED
 from collectors.cveorg.constants import (
     CELERY_PVC_PATH,
+    CISA_ORG_ID,
     CVEORG_START_DATE,
     KEYWORDS_CHECK_ENABLED,
 )
@@ -23,7 +25,7 @@ from collectors.cveorg.keywords import should_create_snippet
 from collectors.framework.models import Collector
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
-from osidb.models import FlawCVSS, FlawReference, Snippet
+from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
 from osidb.validators import CVE_RE_STR
 
 logger = get_task_logger(__name__)
@@ -253,6 +255,9 @@ class CVEorgCollector(Collector):
                             new_snippets.append(content["cve_id"])
                         if new_flaw:
                             new_flaws.append(content["cve_id"])
+                        self.upsert_cvss_scores(
+                            content["cve_id"], content["cvss_scores"]
+                        )
                     # introduce a small delay after each transaction to not hit the Jira rate limit
                     if new_flaw:
                         sleep(1)
@@ -270,6 +275,27 @@ class CVEorgCollector(Collector):
         )
         logger.info("CVEorg sync was successful.")
         return msg
+
+    def upsert_cvss_scores(
+        self, cve_id: str, cvss_scores: list[dict[str, Any]]
+    ) -> None:
+        if not cve_id:
+            return
+        try:
+            flaw = Flaw.objects.get(cve_id=cve_id)
+        except Flaw.DoesNotExist:
+            return
+        for score in cvss_scores:
+            FlawCVSS.objects.update_or_create(
+                flaw=flaw,
+                issuer=score["issuer"],
+                version=score["version"],
+                defaults={
+                    "vector": score["vector"],
+                    "acl_read": flaw.acl_read,
+                    "acl_write": flaw.acl_write,
+                },
+            )
 
     def save_snippet_and_flaw(self, content: dict) -> tuple[bool, bool]:
         """
@@ -318,41 +344,43 @@ class CVEorgCollector(Collector):
             ][0]
 
         def get_cvss_and_impact(data: dict) -> tuple[list, str]:
+            # Keep only data we are interested in (provider, version, vector, score)
+            cvss_scores = defaultdict(dict)
+            containers = [data["containers"]["cna"]] + data["containers"].get("adp", [])
+            for adp in containers:
+                provider = adp["providerMetadata"]["orgId"]
+                metrics = adp.get("metrics", [])
+                for metric in metrics:
+                    for k, v in metric.items():
+                        if k in self.CVSS_TO_FLAWCVSS:
+                            cvss_scores[provider][k] = (
+                                v["baseScore"],
+                                v["vectorString"],
+                            )
 
-            # Collect all metrics from CNA and ADP containers
-            all_metrics = data["containers"]["cna"].get("metrics", [])
-            for a in data["containers"].get("adp", []):
-                all_metrics.extend(a.get("metrics", []))
-
-            # Keep only data we are interested in (version, vector, score)
-            cvss_pairs = dict()
-            for cvss in all_metrics:
-                for version, metrics in cvss.items():
-                    if version in self.CVSS_TO_FLAWCVSS and version not in cvss_pairs:
-                        cvss_pairs[version] = [
-                            metrics["baseScore"],
-                            metrics["vectorString"],
-                        ]
-
-            # Only one CVSS v3 can be stored
-            if bool(cvss_pairs.get("cvssV3_0") and cvss_pairs.get("cvssV3_1")):
-                cvss_pairs.pop("cvssV3_0")
+            # Only one CVSS v3 can be stored per provider
+            for provider, scores in cvss_scores.items():
+                if bool(scores.get("cvssV3_0") and scores.get("cvssV3_1")):
+                    cvss_scores[provider].pop("cvssV3_0")
 
             # Create resulted CVSS and get the highest score for Impact calculation
             cvss_data = []
             highest_score = Decimal("0.0")
-            for version, values in cvss_pairs.items():
-                score, vector = values
-                cvss_data.append(
-                    {
-                        "issuer": FlawCVSS.CVSSIssuer.CVEORG,
-                        "version": self.CVSS_TO_FLAWCVSS[version],
-                        "vector": vector,
-                        # Actual score is generated automatically when FlawCVSS is saved
-                    }
-                )
-                if score > highest_score:
-                    highest_score = score
+            for provider, scores in cvss_scores.items():
+                for version, values in scores.items():
+                    score, vector = values
+                    cvss_data.append(
+                        {
+                            "issuer": FlawCVSS.CVSSIssuer.CISA
+                            if provider == CISA_ORG_ID
+                            else FlawCVSS.CVSSIssuer.CVEORG,
+                            "version": self.CVSS_TO_FLAWCVSS[version],
+                            "vector": vector,
+                            # Actual score is generated automatically when FlawCVSS is saved
+                        }
+                    )
+                    if score > highest_score:
+                        highest_score = score
 
             # Create resulted Impact
             highest_impact = convert_cvss_score_to_impact(highest_score)

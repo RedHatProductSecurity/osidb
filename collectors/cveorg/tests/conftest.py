@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -12,9 +13,16 @@ def enable_db_access_for_all_tests(db):
     pass
 
 
-@pytest.fixture(autouse=True)
-def auto_enable_sync(enable_jira_task_sync, enable_bz_sync) -> None:
+@pytest.fixture
+def _enable_sync(enable_jira_task_sync, enable_bz_sync):
     pass
+
+
+@pytest.fixture(autouse=True)
+def auto_enable_sync(request):
+    # only activate this autouse fixture for integration tests
+    if request.node.get_closest_marker("integration"):
+        request.getfixturevalue("_enable_sync")
 
 
 @pytest.fixture()
@@ -31,12 +39,16 @@ def mock_keywords(monkeypatch) -> None:
     Keyword(keyword="iOS", type=Keyword.Type.BLOCKLIST_SPECIAL_CASE).save()
 
 
+@pytest.fixture
+def repo_path():
+    return f"{Path(__file__).resolve().parent}/cvelistV5"
+
+
 @pytest.fixture()
-def mock_repo(monkeypatch) -> None:
+def mock_repo(monkeypatch, repo_path) -> None:
     """
     Set testing data and variables to mock the cvelistV5 repository.
     """
-    repo_path = f"{Path(__file__).resolve().parent}/cvelistV5"
     cve_path = r"CVE-(?:1999|2\d{3})-(?!0{4})(?:0\d{3}|[1-9]\d{3,}).json$"
 
     def clone_repo(self):
@@ -61,3 +73,15 @@ def mock_repo(monkeypatch) -> None:
     monkeypatch.setattr(CVEorgCollector, "update_repo", update_repo)
     monkeypatch.setattr(CVEorgCollector, "get_repo_changes", get_repo_changes)
     monkeypatch.setattr(CVEorgCollector, "get_cve_file_path", get_cve_file_path)
+
+
+@pytest.fixture
+def cna_cvss_content(repo_path):
+    with open(f"{repo_path}/CVE-2024-0203.json", "r") as f:
+        return json.load(f)
+
+
+@pytest.fixture
+def cisa_cvss_content(repo_path):
+    with open(f"{repo_path}/CVE-2025-22871.json", "r") as f:
+        return json.load(f)
