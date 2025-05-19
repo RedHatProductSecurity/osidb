@@ -5,6 +5,7 @@ import json
 import logging
 from datetime import datetime
 from functools import cached_property
+from typing import Optional
 
 from django.utils.timezone import make_aware
 
@@ -27,6 +28,7 @@ from apps.trackers.models import JiraProjectFields
 from collectors.jiraffe.constants import JIRA_BZ_ID_LABEL_RE
 from osidb.cc import JiraAffectCCBuilder
 from osidb.models import Affect, AffectCVSS, Flaw, FlawCVSS, FlawSource, Impact
+from osidb.models.abstract import CVSS
 from osidb.validators import CVE_RE_STR
 
 from .constants import (
@@ -689,11 +691,11 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         return most_important_affect
 
     @cached_property
-    def most_important_cvss(self):
+    def most_important_cvss(self) -> Optional[CVSS]:
         """
-        Returns a RH-issued CVSS.
+        Returns a RH/NIST/CISA-issued CVSS.
         For explanation see docstring of most_important_affect.
-        If the most important affect doesn't have a related RH CVSS score,
+        If the most important affect doesn't have a related CVSS score,
         then no other affect's/flaw's CVSS score is selected even for multi-flaw
         trackers, so that the set of CVE/CVSS/CWE/Source is consistent.
         """
@@ -707,11 +709,25 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
                 .first()
             )
 
-        return (
+        rh_cvss = (
             affect.flaw.cvss_scores.filter(issuer=FlawCVSS.CVSSIssuer.REDHAT)
             .order_by("-version")
             .first()
         )
+        ext_cvss = (
+            affect.flaw.cvss_scores.filter(
+                issuer__in=[FlawCVSS.CVSSIssuer.NIST, FlawCVSS.CVSSIssuer.CISA],
+                score__gte=7.0,
+            )
+            .order_by("-version")
+            .first()
+        )
+
+        if rh_cvss and rh_cvss.score >= 7.0:
+            return rh_cvss
+        elif ext_cvss:
+            return ext_cvss
+        return rh_cvss
 
     @cached_property
     def most_important_cve(self):

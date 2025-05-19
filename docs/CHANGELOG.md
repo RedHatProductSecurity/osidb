@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Adjust cve.org collector to correctly label CISA-ADP CVSS scores as CISA (OSIDB-4204)
+- Adjust JIRA tracker generator to include NIST/CISA CVSS scores when RH ones
+  don't meet Moderate and CVSS score >= 7.0 criteria (OSIDB-4199)
 
 ### Fixed
 - Prevent running multiple Jira transition managers at the same time (OSIDB-4175) 
