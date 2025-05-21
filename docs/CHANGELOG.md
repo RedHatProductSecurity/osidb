@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add CISA CVSSIssuer type (OSIDB-4203)
 - Ignore modification of non-Red Hat issued CVSS scores through API
+- Add experimental v2 API for cvss scores (OSIDB-4212)
 
 ### Changed
 - Adjust cve.org collector to correctly label CISA-ADP CVSS scores as CISA (OSIDB-4204)

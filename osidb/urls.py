@@ -15,6 +15,7 @@ from .api_views import (
     AuditView,
     FlawAcknowledgmentView,
     FlawCommentView,
+    FlawCVSSV2View,
     FlawCVSSView,
     FlawIntrospectionView,
     FlawLabelView,
@@ -30,7 +31,7 @@ from .api_views import (
     healthy,
     whoami,
 )
-from .constants import OSIDB_API_VERSION
+from .constants import OSIDB_API_VERSION, OSIDB_API_VERSION_NEXT
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r"flaws", FlawView)
@@ -69,6 +70,11 @@ router.register(r"trackers", TrackerView)
 router.register(r"alerts", AlertView)
 router.register(r"audit", AuditView)
 
+vnext_router = routers.DefaultRouter(trailing_slash=False)
+vnext_router.register(
+    r"flaws/(?P<flaw_id>[^/.]+)/cvss-scores", FlawCVSSV2View, basename="flawcvssv2"
+)
+
 urlpatterns = [
     path("healthy", healthy),
     path("whoami", whoami),
@@ -90,6 +96,7 @@ urlpatterns = [
         f"api/{OSIDB_API_VERSION}/schema/swagger-ui/",
         SpectacularSwaggerView.as_view(url_name="schema"),
     ),
+    path(f"api/{OSIDB_API_VERSION_NEXT}/", include(vnext_router.urls)),
 ]
 
 urlpatterns.append(

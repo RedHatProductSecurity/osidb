@@ -7040,6 +7040,374 @@ paths:
                     version:
                       type: string
           description: ''
+  /osidb/api/v2beta/flaws/{flaw_id}/cvss-scores:
+    get:
+      operationId: osidb_api_v2beta_flaws_cvss_scores_list
+      parameters:
+      - in: query
+        name: comment
+        schema:
+          type: string
+      - in: query
+        name: created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: cvss_version
+        schema:
+          type: string
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: query
+        name: issuer
+        schema:
+          type: string
+          enum:
+          - CISA
+          - CVEORG
+          - NIST
+          - OSV
+          - RH
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: score
+        schema:
+          type: number
+          format: float
+      - in: query
+        name: updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: vector
+        schema:
+          type: string
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedFlawCVSSV2List'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: osidb_api_v2beta_flaws_cvss_scores_create
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawCVSSV2PostRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawCVSSV2PostRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawCVSSV2PostRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawCVSSV2'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v2beta/flaws/{flaw_id}/cvss-scores/{id}:
+    get:
+      operationId: osidb_api_v2beta_flaws_cvss_scores_retrieve
+      parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawCVSSV2'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: osidb_api_v2beta_flaws_cvss_scores_update
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawCVSSV2PutRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawCVSSV2PutRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawCVSSV2PutRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawCVSSV2'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    delete:
+      operationId: osidb_api_v2beta_flaws_cvss_scores_destroy
+      description: Destroy the instance and proxy the delete to Bugzilla
+      parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+        required: true
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
   /osidb/healthy:
     get:
       operationId: osidb_healthy_retrieve
@@ -8446,6 +8814,112 @@ components:
       - embargoed
       - updated_dt
       - vector
+    FlawCVSSV2:
+      type: object
+      description: Abstract serializer for FlawCVSS and AffectCVSS serializer
+      properties:
+        flaw:
+          type: string
+          format: uuid
+        comment:
+          type: string
+          nullable: true
+        cvss_version:
+          $ref: '#/components/schemas/CvssVersionEnum'
+        issuer:
+          allOf:
+          - $ref: '#/components/schemas/IssuerEnum'
+          readOnly: true
+        score:
+          type: number
+          format: double
+          readOnly: true
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        vector:
+          type: string
+          maxLength: 200
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - alerts
+      - created_dt
+      - cvss_version
+      - embargoed
+      - issuer
+      - score
+      - updated_dt
+      - uuid
+      - vector
+    FlawCVSSV2PostRequest:
+      type: object
+      description: Abstract serializer for FlawCVSS and AffectCVSS serializer
+      properties:
+        comment:
+          type: string
+          nullable: true
+        cvss_version:
+          $ref: '#/components/schemas/CvssVersionEnum'
+        vector:
+          type: string
+          minLength: 1
+          maxLength: 200
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+      required:
+      - cvss_version
+      - embargoed
+      - vector
+    FlawCVSSV2PutRequest:
+      type: object
+      description: Abstract serializer for FlawCVSS and AffectCVSS serializer
+      properties:
+        comment:
+          type: string
+          nullable: true
+        cvss_version:
+          $ref: '#/components/schemas/CvssVersionEnum'
+        vector:
+          type: string
+          minLength: 1
+          maxLength: 200
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - cvss_version
+      - embargoed
+      - updated_dt
+      - vector
     FlawCollaborator:
       type: object
       description: FlawCollaborator serializer
@@ -9330,6 +9804,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FlawCVSS'
+    PaginatedFlawCVSSV2List:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawCVSSV2'
     PaginatedFlawCollaboratorList:
       type: object
       required:
