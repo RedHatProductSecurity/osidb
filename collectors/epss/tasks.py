@@ -15,6 +15,7 @@ from django.utils import timezone
 from apps.exploits.helpers import set_exploit_collector_acls, update_objects_with_flaws
 from apps.exploits.models import EPSS
 from collectors.framework.models import collector
+from osidb.helpers import get_env
 
 logger = get_task_logger(__name__)
 
@@ -22,7 +23,9 @@ logger = get_task_logger(__name__)
 # cve,epss,percentile
 COLUMN_CVE = 0
 COLUMN_EPSS = 1
-EPSS_URL = "https://epss.cyentia.com/epss_scores-current.csv.gz"
+EPSS_URL = get_env(
+    "EPSS_URL", "https://epss.empiricalsecurity.com/epss_scores-current.csv.gz"
+)
 CHUNK_SIZE = 1000
 
 
