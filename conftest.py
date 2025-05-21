@@ -175,6 +175,11 @@ def test_api_uri(test_scheme_host, api_version):
 
 
 @pytest.fixture
+def test_api_v2_uri(test_scheme_host):
+    return f"{test_scheme_host}/api/v2beta"
+
+
+@pytest.fixture
 def auth_client(ldap_test_username, ldap_test_password):
     def clientify(as_user=ldap_test_username):
         client = TokenClient()
