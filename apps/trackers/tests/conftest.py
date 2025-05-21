@@ -3,6 +3,15 @@ import pytest
 from apps.sla.framework import SLAPolicy
 from apps.trackers.constants import TRACKERS_API_VERSION
 from apps.trackers.models import JiraProjectFields
+from apps.trackers.tests.factories import JiraProjectFieldsFactory
+from osidb.models import Affect, Flaw, Impact, PsModule, PsUpdateStream, Tracker
+from osidb.tests.factories import (
+    AffectFactory,
+    FlawFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
+    TrackerFactory,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -132,3 +141,69 @@ def jira_vulnissuetype_fields_setup_without_severity_versions():
 @pytest.fixture()
 def setup_vulnerability_issue_type_fields() -> None:
     jira_vulnissuetype_fields_setup_without_severity_versions()
+
+
+@pytest.fixture
+def flaw_dummy():
+    return FlawFactory(
+        embargoed=False,
+        bz_id="123",
+        cve_id="CVE-2999-1000",
+        impact=Impact.MODERATE,
+        major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        title="some description",
+        source="REDHAT",
+        cwe_id="CWE-1",
+    )
+
+
+@pytest.fixture
+def affect_dummy(flaw_dummy: Flaw):
+    return AffectFactory(
+        flaw=flaw_dummy,
+        ps_module="foo-module",
+        ps_component="foo-component",
+        affectedness=Affect.AffectAffectedness.AFFECTED,
+        impact=Impact.MODERATE,
+    )
+
+
+@pytest.fixture
+def ps_module_dummy_jira():
+    return PsModuleFactory(name="foo-module", bts_name="jboss", bts_key="FOOPROJECT")
+
+
+@pytest.fixture
+def ps_update_stream_dummy(ps_module_dummy_jira: PsModule):
+    return PsUpdateStreamFactory(
+        ps_module=ps_module_dummy_jira, name="bar-1.2.3", version="1.2.3"
+    )
+
+
+@pytest.fixture
+def tracker_dummy(
+    flaw_dummy: Flaw, affect_dummy: Affect, ps_update_stream_dummy: PsUpdateStream
+):
+    return TrackerFactory(
+        affects=[affect_dummy],
+        type=Tracker.TrackerType.JIRA,
+        ps_update_stream=ps_update_stream_dummy.name,
+        embargoed=flaw_dummy.is_embargoed,
+    )
+
+
+@pytest.fixture
+def jira_project_fields_security(ps_module_dummy_jira: PsModule):
+    JiraProjectFieldsFactory(
+        project_key=ps_module_dummy_jira.bts_key,
+        field_id="security",
+        field_name="Security Level",
+        allowed_values=[
+            "Embargoed Security Issue",
+            "Red Hat Employee",
+            "Red Hat Engineering Authorized",
+            "Red Hat Partner",
+            "Restricted",
+            "Team",
+        ],
+    )

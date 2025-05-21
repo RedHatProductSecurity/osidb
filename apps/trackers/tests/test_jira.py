@@ -2491,6 +2491,84 @@ class TestTrackerJiraQueryBuilder:
         query_builder.generate()
         validate_minimum_key_value(minimum=expected1, evaluated=query_builder._query)
 
+    @pytest.mark.enable_signals
+    @pytest.mark.parametrize(
+        "issuer",
+        [CVSS.CVSSIssuer.NIST, CVSS.CVSSIssuer.CISA],
+    )
+    def test_generate_cvss_non_rh_mod7(
+        self,
+        flaw_dummy: Flaw,
+        tracker_dummy: Tracker,
+        jira_project_fields_security,
+        issuer: CVSS.CVSSIssuer,
+    ):
+        """
+        Test that the CVSS field gets populated with a NIST/CISA CVSS score
+        if available and greater than 7.0.
+        """
+        rh_cvss_vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"
+        non_rh_cvss_vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+
+        FlawCVSSFactory(
+            flaw=flaw_dummy,
+            issuer=CVSS.CVSSIssuer.REDHAT,
+            version=CVSS.CVSSVersion.VERSION3,
+            vector=rh_cvss_vector,
+        )
+        FlawCVSSFactory(
+            flaw=flaw_dummy,
+            issuer=issuer,
+            version=CVSS.CVSSVersion.VERSION3,
+            vector=non_rh_cvss_vector,
+        )
+
+        query_builder = TrackerJiraQueryBuilder(tracker_dummy)
+        query_builder.generate()
+        non_rh_cvss = FlawCVSS.objects.filter(flaw=flaw_dummy, issuer=issuer).first()
+        assert non_rh_cvss
+        assert (
+            query_builder._query["fields"]["customfield_12324748"]
+            == f"""{non_rh_cvss.score} {non_rh_cvss.vector}"""
+        )
+
+    @pytest.mark.enable_signals
+    def test_generate_cvss_non_rh_mod7_lt_rh(
+        self,
+        flaw_dummy: Flaw,
+        tracker_dummy: Tracker,
+        jira_project_fields_security,
+    ):
+        """
+        Test that the CVSS field gets populated with the RH CVSS score if
+        different issuers report a score >= 7.0.
+        """
+        rh_cvss_vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+        non_rh_cvss_vector = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:N"
+
+        FlawCVSSFactory(
+            flaw=flaw_dummy,
+            issuer=CVSS.CVSSIssuer.REDHAT,
+            version=CVSS.CVSSVersion.VERSION3,
+            vector=rh_cvss_vector,
+        )
+        FlawCVSSFactory(
+            flaw=flaw_dummy,
+            issuer=CVSS.CVSSIssuer.NIST,
+            version=CVSS.CVSSVersion.VERSION3,
+            vector=non_rh_cvss_vector,
+        )
+        query_builder = TrackerJiraQueryBuilder(tracker_dummy)
+        query_builder.generate()
+        rh_cvss = FlawCVSS.objects.filter(
+            flaw=flaw_dummy, issuer=CVSS.CVSSIssuer.REDHAT
+        ).first()
+        assert rh_cvss
+        assert (
+            query_builder._query["fields"]["customfield_12324748"]
+            == f"""{rh_cvss.score} {rh_cvss.vector}"""
+        )
+
 
 class TestOldTrackerJiraQueryBuilderSla:
     """
