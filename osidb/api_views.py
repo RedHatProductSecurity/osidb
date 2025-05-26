@@ -71,6 +71,9 @@ from .serializer import (
     FlawCVSSPostSerializer,
     FlawCVSSPutSerializer,
     FlawCVSSSerializer,
+    FlawCVSSV2PostSerializer,
+    FlawCVSSV2PutSerializer,
+    FlawCVSSV2Serializer,
     FlawLabelSerializer,
     FlawPackageVersionPostSerializer,
     FlawPackageVersionPutSerializer,
@@ -765,6 +768,42 @@ class FlawCVSSView(
         if cvss.issuer == FlawCVSS.CVSSIssuer.REDHAT:
             return super().destroy(request, *args, **kwargs)
         return Response(status=HTTP_200_OK)
+
+
+@include_exclude_fields_extend_schema_view
+@extend_schema_view(
+    create=extend_schema(
+        request=FlawCVSSV2PostSerializer,
+    ),
+    update=extend_schema(
+        request=FlawCVSSV2PutSerializer,
+    ),
+    destroy=extend_schema(
+        parameters=[bz_api_key_param],
+    ),
+)
+class FlawCVSSV2View(
+    RudimentaryUserPathLoggingMixin,
+    SubFlawViewGetMixin,
+    SubFlawViewDestroyMixin,
+    ModelViewSet,
+):
+    serializer_class = FlawCVSSV2Serializer
+    http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filterset_class = FlawCVSSFilter
+
+    def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        cvss: FlawCVSS = self.get_object()
+        if cvss.issuer != FlawCVSS.CVSSIssuer.REDHAT:
+            raise ValidationError({"issuer": "Only Red Hat CVSS scores can be edited"})
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        cvss: FlawCVSS = self.get_object()
+        if cvss.issuer != FlawCVSS.CVSSIssuer.REDHAT:
+            raise ValidationError({"issuer": "Only Red Hat CVSS scores can be edited"})
+        return super().destroy(request, *args, **kwargs)
 
 
 @extend_schema(

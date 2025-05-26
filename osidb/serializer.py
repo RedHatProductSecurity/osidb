@@ -1714,6 +1714,28 @@ class FlawCVSSPutSerializer(FlawCVSSSerializer):
     pass
 
 
+class FlawCVSSV2Serializer(AbstractCVSSSerializer):
+    issuer = serializers.ChoiceField(choices=CVSS.CVSSIssuer, read_only=True)
+
+    def create(self, validated_data: dict) -> FlawCVSS:
+        validated_data["issuer"] = FlawCVSS.CVSSIssuer.REDHAT
+        return super().create(validated_data)
+
+    class Meta:
+        model = FlawCVSS
+        fields = ["flaw"] + AbstractCVSSSerializer.Meta.fields
+
+
+@extend_schema_serializer(exclude_fields=["flaw", "updated_dt"])
+class FlawCVSSV2PostSerializer(FlawCVSSV2Serializer):
+    ...
+
+
+@extend_schema_serializer(exclude_fields=["flaw"])
+class FlawCVSSV2PutSerializer(FlawCVSSV2Serializer):
+    ...
+
+
 class FlawLabelSerializer(serializers.ModelSerializer):
     """FlawLabel serializer"""
 

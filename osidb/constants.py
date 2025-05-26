@@ -10,6 +10,7 @@ from datetime import timedelta, timezone
 from decimal import Decimal
 
 OSIDB_API_VERSION: str = "v1"
+OSIDB_API_VERSION_NEXT: str = "v2beta"
 
 # include meta_attr column on all queries (useful for debugging)
 OSIDB_VIEW_META_ATTR = False
