@@ -22,15 +22,19 @@ def upgrade(apps: Apps, schema_editor: BaseDatabaseSchemaEditor):
         return
 
     collector = CVEorgCollector()
+    # clone repo to assert that it at least exists, but do not update it --
+    # if there's another update process running at the same time there's a risk
+    # that the repository will be left in a unclean state and result in any
+    # further runs to fail, instead assume that it was updated by a previous
+    # celery job
     collector.clone_repo()
-    collector.update_repo()
 
-    for cve_id in (Flaw.objects
-            .exclude(cve_id__isnull=True)
-            .exclude(cve_id__exact="")
-            .values_list("cve_id", flat=True)
-            .iterator()
-        ):
+    for cve_id in (
+        Flaw.objects.exclude(cve_id__isnull=True)
+        .exclude(cve_id__exact="")
+        .values_list("cve_id", flat=True)
+        .iterator()
+    ):
         try:
             fp = collector.get_cve_file_path(cve_id)
         except CVEorgCollectorException as exc:
@@ -62,7 +66,7 @@ def downgrade(apps: Apps, schema_editor: BaseDatabaseSchemaEditor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0190_alter_affectcvss_issuer_alter_affectcvssaudit_issuer_and_more'),
+        ("osidb", "0190_alter_affectcvss_issuer_alter_affectcvssaudit_issuer_and_more"),
     ]
 
     operations = [

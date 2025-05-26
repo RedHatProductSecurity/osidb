@@ -32,3 +32,5 @@ tests/htmlcov
 *.db.gz
 osidb_data_backup_dump*
 .DS_Store
+# pyright local configuration file
+pyrightconfig.json
