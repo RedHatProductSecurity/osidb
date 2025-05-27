@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Prevent running multiple Jira transition managers at the same time (OSIDB-4175) 
+- Properly parse modular components in Jira queries (OSIDB-4224)
 
 ## [4.10.1] - 2025-04-30
 ### Added
