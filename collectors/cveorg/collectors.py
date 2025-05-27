@@ -95,6 +95,10 @@ class CVEorgCollector(Collector):
     def update_repo(self) -> None:
         """
         Update the already existing cvelistV5 repository.
+
+        Warning: Do not use this method unless strictly necessary and you know
+        it won't run while another update is running in parallel (e.g. via
+        celery), otherwise this can lead to any further updates failing.
         """
         logger.info("Updating the cvelistV5 repository...")
 
@@ -371,9 +375,11 @@ class CVEorgCollector(Collector):
                     score, vector = values
                     cvss_data.append(
                         {
-                            "issuer": FlawCVSS.CVSSIssuer.CISA
-                            if provider == CISA_ORG_ID
-                            else FlawCVSS.CVSSIssuer.CVEORG,
+                            "issuer": (
+                                FlawCVSS.CVSSIssuer.CISA
+                                if provider == CISA_ORG_ID
+                                else FlawCVSS.CVSSIssuer.CVEORG
+                            ),
                             "version": self.CVSS_TO_FLAWCVSS[version],
                             "vector": vector,
                             # Actual score is generated automatically when FlawCVSS is saved
