@@ -75,3 +75,31 @@ def response_metadata_postprocess_hook(result, generator, **kwargs):
                     del response["description"]
                     response["description"] = ""
     return result
+
+
+def _enum_to_extensible_enum(element):
+    """
+    Given an element with `enum` keyword, replace it with `x-extensible-enum`.
+    """
+    if isinstance(element, dict):
+        if "enum" in element and isinstance(element["enum"], list):
+            element["x-extensible-enum"] = element.pop("enum")
+        for key in element.keys():
+            _enum_to_extensible_enum(element[key])
+    elif isinstance(element, list):
+        for item in element:
+            _enum_to_extensible_enum(item)
+
+
+def enum_to_extensible_enum_postprocess_hook(result, generator, **kwargs):
+    """
+    drf-spectacular postprocessing hook for changing `enum` to `x-extensible-enum`.
+
+    `x-extensible-enum` is a relatively well-known proprietary extension of
+    the OpenAPI schema used by the Zalando API Guidelines (#112), we use it to
+    tell clients that any enums in OSIDB should be treated as a continuously list
+    of growing values and that any additions are **not** considered a breaking
+    change.
+    """
+    _enum_to_extensible_enum(result)
+    return result
