@@ -289,6 +289,7 @@ SPECTACULAR_SETTINGS = {
     "POSTPROCESSING_HOOKS": [
         "drf_spectacular.hooks.postprocess_schema_enums",
         "osidb.hooks.response_metadata_postprocess_hook",
+        "osidb.hooks.enum_to_extensible_enum_postprocess_hook",
     ],
     "ENUM_NAME_OVERRIDES": {
         "FlawReferenceType": "osidb.models.flaw.reference.FlawReference.FlawReferenceType",
