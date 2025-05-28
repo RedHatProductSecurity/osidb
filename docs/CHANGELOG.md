@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Fixed
+- Properly parse modular components in Jira queries (OSIDB-4224)
+
 ## [4.11.0] - 2025-05-27
 ### Added
 - Add CISA CVSSIssuer type (OSIDB-4203)
@@ -17,7 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Prevent running multiple Jira transition managers at the same time (OSIDB-4175) 
-- Properly parse modular components in Jira queries (OSIDB-4224)
 
 ## [4.10.1] - 2025-04-30
 ### Added
