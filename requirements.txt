@@ -111,6 +111,7 @@ django==4.2.21 \
     #   django-deprecate-fields
     #   django-extensions
     #   django-filter
+    #   django-kaminarimon
     #   django-model-utils
     #   django-pghistory
     #   django-pgtrigger
@@ -145,6 +146,10 @@ django-filter==21.1 \
     --hash=sha256:632a251fa8f1aadb4b8cceff932bb52fe2f826dd7dfe7f3eac40e5c463d6836e \
     --hash=sha256:f4a6737a30104c98d2e2a5fb93043f36dd7978e0c7ddc92f5998e85433ea5063
     # via -r requirements.in
+django-kaminarimon==0.2.1 \
+    --hash=sha256:9a10f1bb61af6b6a89427b881950e68beb78e607ecc2ff94f48b796b47034912 \
+    --hash=sha256:a4c48d8c6d632cf656cf88b3026f2d0c27fc5fdc7744246f2d137cf06a4e13ee
+    # via -r requirements.in
 django-model-utils==5.0.0 \
     --hash=sha256:041cdd6230d2fbf6cd943e1969318bce762272077f4ecd333ab2263924b4e5eb \
     --hash=sha256:fec78e6c323d565a221f7c4edc703f4567d7bb1caeafe1acd16a80c5ff82056b
@@ -172,6 +177,7 @@ djangorestframework==3.15.2 \
     --hash=sha256:36fe88cd2d6c6bec23dca9804bab2ba5517a8bb9d8f47ebc68981b56840107ad
     # via
     #   -r requirements.in
+    #   django-kaminarimon
     #   djangorestframework-csv
     #   djangorestframework-simplejwt
     #   drf-spectacular
@@ -182,7 +188,9 @@ djangorestframework-csv==3.0.2 \
 djangorestframework-simplejwt==5.3.1 \
     --hash=sha256:381bc966aa46913905629d472cd72ad45faa265509764e20ffd440164c88d220 \
     --hash=sha256:6c4bd37537440bc439564ebf7d6085e74c5411485197073f508ebdfa34bc9fae
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   django-kaminarimon
 djangorestframework-xml==2.0.0 \
     --hash=sha256:35f6c811d0ab8c8466b26db234e16a2ed32d76381715257aebf4c7be2c202ca1 \
     --hash=sha256:975955fbb0d49ac44a90bdeb33b7923d95b79884d283f983e116c80a936ef4d0
@@ -190,7 +198,9 @@ djangorestframework-xml==2.0.0 \
 drf-spectacular==0.27.2 \
     --hash=sha256:a199492f2163c4101055075ebdbb037d59c6e0030692fc83a1a8c0fc65929981 \
     --hash=sha256:b1c04bf8b2fbbeaf6f59414b4ea448c8787aba4d32f76055c3b13335cf7ec37b
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   django-kaminarimon
 enforce==0.3.4 \
     --hash=sha256:cdb7720e25d0bd7ad2aaf2311197d5a28d4d2afe73ecc2f74b5d28faee3f68f2
     # via django-postgres-extra
@@ -409,7 +419,9 @@ kerberos==1.3.1 \
     --hash=sha256:2e03c6a9d201d4aab5f899bfb8150de15335955bfce8ca43bfe9a41d7aae54dc \
     --hash=sha256:98a695c072efef535cb2b5f98e474d00671588859a94ec96c2c1508a113ff3aa \
     --hash=sha256:cdd046142a4e0060f96a00eb13d82a5d9ebc0f2d7934393ed559bac773460a2c
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   django-kaminarimon
 kombu==5.5.3 \
     --hash=sha256:021a0e11fcfcd9b0260ef1fb64088c0e92beb976eb59c1dfca7ddd4ad4562ea2 \
     --hash=sha256:5b0dbceb4edee50aa464f59469d34b97864be09111338cfb224a10b6a163909b
@@ -598,6 +610,7 @@ python-ldap==3.4.0 \
     # via
     #   -r requirements.in
     #   django-auth-ldap
+    #   django-kaminarimon
 pytz==2021.3 \
     --hash=sha256:3672058bc3453457b622aab7a1c3bfd5ab0bdae451512f6cf25f64ed37f5b87c \
     --hash=sha256:acad2d8b20a1af07d4e4c9d2e9285c5ed9104354062f275f3fcd88dcef4f1326

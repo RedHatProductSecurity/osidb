@@ -113,10 +113,10 @@ CELERY_BROKER_USE_SSL = CELERY_REDIS_BACKEND_USE_SSL = CELERY_RHUBARB_BACKEND_KW
 
 # Kerberos + LDAP Auth
 INSTALLED_APPS += [
-    "krb5_auth",
+    "kaminarimon",
 ]
 AUTHENTICATION_BACKENDS += [
-    "krb5_auth.backend.LDAPRemoteUser",
+    "kaminarimon.backend.LDAPRemoteUser",
     # TODO: remove and replace by krb auth for admin interface
     "django_auth_ldap.backend.LDAPBackend",
 ]

@@ -11,6 +11,7 @@ django-db
 django-deprecate-fields
 django-extensions
 django-filter
+django-kaminarimon
 django-model-utils
 django-pghistory
 django-polymorphic

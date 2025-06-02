@@ -19,6 +19,7 @@ from djangoql.views import SuggestionsAPIView
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from packageurl import PackageURL
+from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
@@ -31,6 +32,7 @@ from rest_framework.viewsets import (
     ViewSet,
     ViewSetMixin,
 )
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
 from osidb.models import Affect, AffectCVSS, Flaw, FlawLabel, Tracker
@@ -1427,3 +1429,42 @@ class AuditView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         ModelViewSet, excluded=["delete", "post", "update"]
     )
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+# NOTE: Purpose of this custom class is for Kerberos authenticated
+# GET method to be able to appear in the OpenAPI schema.
+# We use Kerberos only for stage/production instances and the
+# local instances are using the POST method with credentials.
+# However this way only the POST method shows in the OpenAPI schema
+# which is stored in the repository. Using this custom class we
+# are able to show Kerberos auth GET method as well. Of course
+# since Kerberos auth is not possible on local instance, endpoint
+# will return 405 METHOD NOT ALLOWED code with the warning message
+# stating that the Kerberos is not enabled and you should use the
+# POST method with the credentials instead.
+class OsidbTokenObtainPairView(TokenObtainPairView):
+    @extend_schema(
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "refresh": {"type": "string"},
+                    "access": {"type": "string"},
+                },
+            }
+        },
+        description=(
+            "Takes a kerberos ticket and returns an access and refresh JWT pair."
+        ),
+        auth=[{"KerberosAuthentication": []}],
+    )
+    def get(self, request, *args, **kwargs):
+        return Response(
+            data={
+                "detail": (
+                    "Kerberos authentication is not enabled. "
+                    "Use POST method with credentials instead."
+                )
+            },
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )

@@ -72,11 +72,33 @@ paths:
                       type: string
           description: ''
   /auth/token/refresh:
+    get:
+      operationId: auth_token_refresh_retrieve
+      tags:
+      - auth
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access:
+                    type: string
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
     post:
       operationId: auth_token_refresh_create
-      description: |-
-        Takes a refresh type JSON web token and returns an access type JSON web
-        token if the refresh token is valid.
+      description: Takes a refresh type JSON web token and returns an access type
+        JSON web token if the refresh token is valid.
       tags:
       - auth
       requestBody:
