@@ -240,7 +240,7 @@ class SyncManager(models.Model):
         raise Ignore
 
     @classmethod
-    def reschedule(cls, sync_id, reason, schedule_options={}):
+    def reschedule(cls, sync_id, reason, *args, **kwargs):
         """
         Schedule sync_task to Celery queue again for a reason.
 
@@ -257,7 +257,7 @@ class SyncManager(models.Model):
             last_rescheduled_reason=reason,
             last_consecutive_reschedules=updated_last_consecutive_reschedules,
         )
-        cls.schedule(sync_id, schedule_options=schedule_options)
+        cls.schedule(sync_id, *args, **kwargs)
         logger.info(f"{cls.__name__} {sync_id}: Sync re-scheduled ({reason})")
 
     @classmethod

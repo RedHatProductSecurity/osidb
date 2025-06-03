@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Fixed
 - Properly parse modular components in Jira queries (OSIDB-4224)
+- Properly handle schedule_options parameter in SyncManager (OSIDB-4260)
 
 ## [4.11.0] - 2025-05-27
 ### Added
