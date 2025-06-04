@@ -283,7 +283,7 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "4.11.0",
     "SWAGGER_UI_SETTINGS": {"supportedSubmitMethods": []},
     "SERVE_AUTHENTICATION": [
-        "krb5_auth.auth.KerberosAuthentication",
+        "kaminarimon.auth.KerberosAuthentication",
         "osidb.auth.OsidbTokenAuthentication",
     ],
     "POSTPROCESSING_HOOKS": [

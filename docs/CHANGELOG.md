@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Properly parse modular components in Jira queries (OSIDB-4224)
 - Properly handle schedule_options parameter in SyncManager (OSIDB-4260)
 
+### Changed
+- Swap out local krb5_auth for django-kaminarimon (OSIDB-4243)
+
 ## [4.11.0] - 2025-05-27
 ### Added
 - Add CISA CVSSIssuer type (OSIDB-4203)
