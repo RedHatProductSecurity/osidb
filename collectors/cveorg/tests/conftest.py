@@ -85,3 +85,9 @@ def cna_cvss_content(repo_path):
 def cisa_cvss_content(repo_path):
     with open(f"{repo_path}/CVE-2025-22871.json", "r") as f:
         return json.load(f)
+
+
+@pytest.fixture
+def no_descriptions_content(repo_path):
+    with open(f"{repo_path}/CVE-2025-37902.json", "r") as f:
+        return json.load(f)

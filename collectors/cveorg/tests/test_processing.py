@@ -82,3 +82,11 @@ class TestCVEorgProcessing:
         collector.upsert_cvss_scores("", [{"foo": "bar"}])
 
         assert FlawCVSS.objects.count() == 0
+
+    def test_get_comment_zero_missing(self, no_descriptions_content):
+        collector = CVEorgCollector()
+        collector.keywords_check_enabled = False
+
+        assert (
+            collector.extract_content(no_descriptions_content)["comment_zero"] == "N/A"
+        )
