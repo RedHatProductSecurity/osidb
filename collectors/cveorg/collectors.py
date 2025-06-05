@@ -341,11 +341,10 @@ class CVEorgCollector(Collector):
         """
 
         def get_comment_zero(data: dict) -> str:
-            return [
-                d["value"]
-                for d in data["containers"]["cna"]["descriptions"]
-                if re.match(self.EN_LANG, d["lang"])
-            ][0]
+            for description in data["containers"]["cna"].get("descriptions", []):
+                if re.match(self.EN_LANG, description["lang"]):
+                    return description["value"]
+            return "N/A"
 
         def get_cvss_and_impact(data: dict) -> tuple[list, str]:
             # Keep only data we are interested in (provider, version, vector, score)
@@ -422,7 +421,7 @@ class CVEorgCollector(Collector):
             ]
 
             # Collect all references from CNA and ADP containers
-            all_references = data["containers"]["cna"]["references"]
+            all_references = data["containers"]["cna"].get("references", [])
             for a in data["containers"].get("adp", []):
                 all_references.extend(a.get("references", []))
 
