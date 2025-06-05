@@ -1,11 +1,13 @@
 import uuid
 from datetime import datetime, timezone
+from unittest.mock import MagicMock
 
 import pytest
 from django.conf import settings
 
 from osidb.core import generate_acls
 from osidb.helpers import get_env
+from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import FlawSource
 
 
@@ -119,3 +121,27 @@ def private_source():
 @pytest.fixture
 def both_source():
     return FlawSource.GENTOO
+
+
+@pytest.fixture
+def fake_integration_settings():
+    return IntegrationSettings(vault_addr="foo", role_id="bar", secret_id="baz")
+
+
+@pytest.fixture
+def fake_integration_repo(fake_integration_settings):
+    return IntegrationRepository(fake_integration_settings)
+
+
+@pytest.fixture
+def mock_hvac_client_instance():
+    """Creates a MagicMock instance for hvac.Client."""
+    return MagicMock()
+
+
+@pytest.fixture(autouse=True)
+def patch_hvac_client(monkeypatch, mock_hvac_client_instance):
+    """Patches hvac.Client in vault_integration module to return our mock instance."""
+    MockHvacClientClass = MagicMock(return_value=mock_hvac_client_instance)
+    monkeypatch.setattr("osidb.integrations.hvac.Client", MockHvacClientClass)
+    return MockHvacClientClass

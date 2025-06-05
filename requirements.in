@@ -23,6 +23,7 @@ djangorestframework-xml
 drf-spectacular
 flower
 gunicorn[gevent,setproctitle]
+hvac
 inflection
 jira
 jsonschema
@@ -32,6 +33,7 @@ nvdlib
 packageurl-python
 psycogreen
 psycopg2
+pydantic-settings
 pyjwt==2.4.0
 python-bugzilla
 python-ldap>=3.4.0
