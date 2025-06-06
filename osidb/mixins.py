@@ -209,6 +209,8 @@ class ACLMixin(models.Model):
 
     @property
     def is_embargoed(self):
+        if hasattr(self, "embargoed") and self.embargoed is not None:
+            return self.embargoed
         return self.acl_read == ACLMixin.get_embargoed_acl()
 
     @property
