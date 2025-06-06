@@ -656,7 +656,6 @@ class Affect(
         becomes empty.
         """
         from apps.taskman.service import TaskResolution
-        from osidb.models.tracker import Tracker
 
         trackers = self.jira_trackers
         if (

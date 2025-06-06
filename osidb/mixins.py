@@ -621,6 +621,9 @@ class ACLMixin(models.Model):
 class AlertManager(ACLMixinManager):
     """Alert manager"""
 
+    def get_queryset(self):
+        return super().get_queryset().select_related("content_type")
+
     @staticmethod
     def create_alert(name, object_id, content_type, **extra_fields):
         """
