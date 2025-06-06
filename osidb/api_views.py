@@ -4,20 +4,27 @@ implement osidb rest api views
 
 import logging
 from datetime import datetime
-from typing import Any, Type
+from typing import Any, Type, cast
 from urllib.parse import urljoin
 
 import pghistory
 import pkg_resources
 import requests
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djangoql.serializers import SuggestionsAPISerializer
 from djangoql.views import SuggestionsAPIView
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiRequest,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from packageurl import PackageURL
 from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
@@ -35,6 +42,7 @@ from rest_framework.viewsets import (
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
+from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import Affect, AffectCVSS, Flaw, FlawLabel, Tracker
 from osidb.models.flaw.cvss import FlawCVSS
 
@@ -85,6 +93,7 @@ from .serializer import (
     FlawReferencePutSerializer,
     FlawReferenceSerializer,
     FlawSerializer,
+    IntegrationTokenSerializer,
     TrackerPostSerializer,
     TrackerSerializer,
     UserSerializer,
@@ -808,33 +817,35 @@ class FlawCVSSV2View(
         return super().destroy(request, *args, **kwargs)
 
 
-@extend_schema(
-    responses={
-        200: {
-            "type": "object",
-            "properties": {
-                "username": {"type": "string"},
-                "email": {"type": "string"},
-                "groups": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                },
-                "profile": {
-                    "type": "object",
-                    "properties": {
-                        "bz_user_id": {"type": "string"},
-                        "jira_user_id": {"type": "string"},
-                    },
-                },
-            },
-        }
-    }
-)
+@extend_schema(responses={200: OpenApiResponse(response=UserSerializer)})
 @api_view(["GET"])
 @permission_classes((IsAuthenticatedOrReadOnly,))
 def whoami(request: Request) -> Response:
     """View that provides information about the currently logged-in user"""
     return Response(UserSerializer(request.user).data)
+
+
+@extend_schema(
+    request=OpenApiRequest(request=IntegrationTokenSerializer),
+    responses={200: {}},
+)
+@api_view(["PATCH"])
+def set_integration_tokens(request: Request) -> Response:
+    """
+    Set third-party integration tokens for the current user.
+    """
+    serializer = IntegrationTokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    validated_data = serializer.validated_data
+    integration_settings = IntegrationSettings()
+    integration_repo = IntegrationRepository(integration_settings)
+
+    current_user = cast(User, request.user)
+    if jira_token := validated_data.get("jira"):
+        integration_repo.upsert_jira_token(current_user.username, jira_token)
+    if bz_token := validated_data.get("bugzilla"):
+        integration_repo.upsert_bz_token(current_user.username, bz_token)
+    return Response(status=HTTP_200_OK)
 
 
 @include_exclude_fields_extend_schema_view

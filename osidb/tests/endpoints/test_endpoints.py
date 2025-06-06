@@ -10,6 +10,7 @@ from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 from rest_framework.test import APIClient
 
+from config import get_env
 from osidb.core import generate_acls, set_user_acls
 from osidb.helpers import ensure_list
 from osidb.models import Affect, Flaw, Impact
@@ -57,6 +58,56 @@ class TestEndpoints(object):
         assert res["email"] == "monke@banana.com"
         assert "data-prodsec" in res["groups"]
         assert res["profile"] is None
+
+    @pytest.mark.parametrize("third_party", ["jira", "bugzilla"])
+    def test_set_integration_tokens(
+        self,
+        auth_client,
+        root_url,
+        mock_hvac_client_instance,
+        third_party,
+        set_hvac_test_env_vars,
+    ):
+        auth_client().patch(f"{root_url}/osidb/integrations", data={third_party: "foo"})
+        mock_hvac_client_instance.secrets.kv.v2.patch.assert_called_once_with(
+            path=f"/osidb-integrations/{get_env()}/{third_party}",
+            secret={"testuser": "foo"},
+            mount_point="apps",
+        )
+
+    def test_set_both_integration_tokens(
+        self,
+        auth_client,
+        root_url,
+        mock_hvac_client_instance,
+        set_hvac_test_env_vars,
+    ):
+        auth_client().patch(
+            f"{root_url}/osidb/integrations", data={"jira": "foo", "bugzilla": "bar"}
+        )
+        mock_hvac_client_instance.secrets.kv.v2.patch.assert_any_call(
+            path=f"/osidb-integrations/{get_env()}/jira",
+            secret={"testuser": "foo"},
+            mount_point="apps",
+        )
+        mock_hvac_client_instance.secrets.kv.v2.patch.assert_any_call(
+            path=f"/osidb-integrations/{get_env()}/bugzilla",
+            secret={"testuser": "bar"},
+            mount_point="apps",
+        )
+
+    def test_set_no_integration_tokens(
+        self,
+        auth_client,
+        root_url,
+        set_hvac_test_env_vars,
+    ):
+        r = auth_client().patch(f"{root_url}/osidb/integrations", data={})
+        assert r.status_code == 400
+        assert (
+            r.json()["non_field_errors"][0]
+            == "At least one third-party integration token must be provided"
+        )
 
 
 class TestEndpointsACLs:

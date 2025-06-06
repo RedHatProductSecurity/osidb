@@ -2179,3 +2179,15 @@ class FlawCommentPostSerializer(FlawCommentSerializer):
     # in create().
     # This class is just for schema generation, not for actual execution.
     pass
+
+
+class IntegrationTokenSerializer(serializers.Serializer):
+    jira = serializers.CharField(required=False, write_only=True)
+    bugzilla = serializers.CharField(required=False, write_only=True)
+
+    def validate(self, attrs: dict) -> dict:
+        if "jira" not in attrs and "bugzilla" not in attrs:
+            raise serializers.ValidationError(
+                "At least one third-party integration token must be provided"
+            )
+        return attrs

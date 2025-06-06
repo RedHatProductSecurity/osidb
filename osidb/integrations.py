@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 import hvac
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from config import get_env
@@ -13,9 +14,9 @@ _logger = logging.getLogger(__name__)
 class IntegrationSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="OSIDB_")
 
-    vault_addr: str
-    role_id: str
-    secret_id: str
+    vault_addr: str = Field(default=...)
+    role_id: str = Field(default=...)
+    secret_id: str = Field(default=...)
 
 
 class IntegrationRepository:

@@ -101,6 +101,9 @@ services:
         SNIPPET_CREATION: ${SNIPPET_CREATION}
         TRACKERS_SYNC_TO_JIRA: ${TRACKERS_SYNC_TO_JIRA}
         TRACKER_FEEDBACK_FORM_URL: ${TRACKER_FEEDBACK_FORM_URL}
+        OSIDB_VAULT_ADDR: ${OSIDB_VAULT_ADDR} 
+        OSIDB_ROLE_ID: ${OSIDB_ROLE_ID}
+        OSIDB_SECRET_ID: ${OSIDB_SECRET_ID}
       command: ./scripts/setup-osidb-service.sh
       volumes:
         - ${PWD}:/opt/app-root/src:z

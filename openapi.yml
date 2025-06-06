@@ -7456,6 +7456,42 @@ paths:
                   version:
                     type: string
           description: ''
+  /osidb/integrations:
+    patch:
+      operationId: osidb_integrations_partial_update
+      description: Set third-party integration tokens for the current user.
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedIntegrationTokenRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedIntegrationTokenRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedIntegrationTokenRequest'
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
   /osidb/whoami:
     get:
       operationId: osidb_whoami_retrieve
@@ -7470,32 +7506,19 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  email:
-                    type: string
-                  env:
-                    type: string
-                  groups:
-                    type: array
-                    items:
+                allOf:
+                - $ref: '#/components/schemas/User'
+                - type: object
+                  properties:
+                    dt:
                       type: string
-                  profile:
-                    type: object
-                    properties:
-                      bz_user_id:
-                        type: string
-                      jira_user_id:
-                        type: string
-                  revision:
-                    type: string
-                  username:
-                    type: string
-                  version:
-                    type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
           description: ''
   /trackers/api/v1/file:
     post:
@@ -10056,6 +10079,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Tracker'
+    PatchedIntegrationTokenRequest:
+      type: object
+      properties:
+        jira:
+          type: string
+          writeOnly: true
+          minLength: 1
+        bugzilla:
+          type: string
+          writeOnly: true
+          minLength: 1
+    Profile:
+      type: object
+      properties:
+        bz_user_id:
+          type: string
+          maxLength: 100
+        jira_user_id:
+          type: string
+          maxLength: 100
     PsStreamSelection:
       type: object
       properties:
@@ -10526,6 +10569,32 @@ components:
       - JIRA
       - BUGZILLA
       type: string
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        groups:
+          type: array
+          items:
+            type: string
+        profile:
+          allOf:
+          - $ref: '#/components/schemas/Profile'
+          readOnly: true
+      required:
+      - groups
+      - profile
+      - username
   securitySchemes:
     KerberosAuthentication:
       type: http
