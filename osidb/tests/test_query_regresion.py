@@ -79,7 +79,7 @@ class TestQuerySetRegression:
                 resolution=Affect.AffectResolution.DELEGATED,
             )
 
-        with numQueriesCloseTo(202):  # initial value -> 303
+        with numQueriesCloseTo(3):  # initial value -> 303
             response = auth_client().get(
                 f"{test_api_uri}/flaws?include_fields=cve_id,uuid,impact,source,created_dt,updated_dt,classification,title,unembargo_dt,embargoed,owner,labels"
             )

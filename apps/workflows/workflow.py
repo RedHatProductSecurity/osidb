@@ -145,6 +145,31 @@ class WorkflowFramework:
         )
 
 
+class WorkflowModelManager(models.Manager):
+    """
+    WorkflowModel manager
+
+    this manager is used to provide the workflow classification
+    and to adjust the workflow state automatically
+    """
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                classification=models.Func(
+                    models.Value("workflow"),
+                    models.F("workflow_name"),
+                    models.Value("state"),
+                    models.F("workflow_state"),
+                    function="jsonb_build_object",
+                    output_field=models.JSONField(),
+                )
+            )
+        )
+
+
 class WorkflowModel(models.Model):
     """workflow model base class"""
 
@@ -183,16 +208,7 @@ class WorkflowModel(models.Model):
             "state": state.name,
         }
 
-    @property
-    def classification(self):
-        """stored workflow classification"""
-        return {
-            "workflow": self.workflow_name,
-            "state": self.workflow_state,
-        }
-
-    @classification.setter
-    def classification(self, classification):
+    def set_classification(self, classification):
         """
         setter for stored workflow classification
 
@@ -281,6 +297,7 @@ class WorkflowModel(models.Model):
         )
 
         self.workflow_state = state_obj.name
+        self.classification["state"] = state_obj.name
 
         if save:
             self.save(
