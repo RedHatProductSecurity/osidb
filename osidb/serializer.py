@@ -12,7 +12,7 @@ import pghistory
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import BadRequest
-from django.db.models import Max
+from django.db.models import Max, Prefetch
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
@@ -1132,7 +1132,13 @@ class AffectSerializer(
         }
 
         serializer = TrackerSerializer(
-            instance=obj.trackers.all(), many=True, read_only=True, context=context
+            instance=obj.trackers.prefetch_related(
+                "errata",
+                "affects",
+            ),
+            many=True,
+            read_only=True,
+            context=context,
         )
         return serializer.data
 
@@ -1856,7 +1862,22 @@ class FlawSerializer(
     @extend_schema_field(AffectSerializer(many=True))
     def get_affects(self, obj):
         """affects serializer getter"""
-        affects = obj.affects.all()
+        affects = obj.affects.prefetch_related(
+            "trackers",
+            "cvss_scores",
+            Prefetch(
+                "trackers",
+                queryset=Tracker.objects.filter(type=Tracker.TrackerType.JIRA),
+                to_attr="jira_trackers",
+            ),
+            Prefetch(
+                "trackers",
+                queryset=Tracker.objects.exclude(
+                    resolution__iregex=r"(duplicate|migrated)"
+                ),
+                to_attr="non_duplicate_trackers",
+            ),
+        )
 
         context = {
             "include_fields": self._next_level_include_fields.get("affects", []),
