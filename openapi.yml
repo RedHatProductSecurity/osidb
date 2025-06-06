@@ -220,7 +220,7 @@ paths:
                       properties:
                         data:
                           type: string
-                          enum:
+                          x-extensible-enum:
                           - EMPTY
                           - PARTIAL
                           - COMPLETE
@@ -241,7 +241,7 @@ paths:
                             type: string
                         state:
                           type: string
-                          enum:
+                          x-extensible-enum:
                           - PENDING
                           - BLOCKED
                           - READY
@@ -714,7 +714,7 @@ paths:
         name: affectedness
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - AFFECTED
           - NEW
@@ -811,7 +811,7 @@ paths:
         name: cvss_scores__issuer
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - CISA
           - CVEORG
           - NIST
@@ -949,7 +949,7 @@ paths:
         name: flaw__impact
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - CRITICAL
           - IMPORTANT
@@ -999,7 +999,7 @@ paths:
         name: flaw__source
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - ADOBE
           - APPLE
@@ -1144,7 +1144,7 @@ paths:
         name: impact
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - CRITICAL
           - IMPORTANT
@@ -1195,7 +1195,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
+            x-extensible-enum:
             - -affectedness
             - -created_dt
             - -cvss_scores__comment
@@ -1287,7 +1287,7 @@ paths:
         name: resolution
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - DEFER
           - DELEGATED
@@ -1359,7 +1359,7 @@ paths:
         name: trackers__type
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - BUGZILLA
           - JIRA
       - in: query
@@ -1606,7 +1606,7 @@ paths:
         name: issuer
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - CISA
           - CVEORG
           - NIST
@@ -2221,7 +2221,7 @@ paths:
         name: alert_type
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ERROR
           - WARNING
       - in: query
@@ -2264,7 +2264,7 @@ paths:
         name: parent_model
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - affect
           - affectcvss
           - flaw
@@ -2608,7 +2608,7 @@ paths:
         name: affects__affectedness
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - AFFECTED
           - NEW
@@ -2661,7 +2661,7 @@ paths:
         name: affects__impact
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - CRITICAL
           - IMPORTANT
@@ -2679,7 +2679,7 @@ paths:
         name: affects__resolution
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - DEFER
           - DELEGATED
@@ -2799,7 +2799,7 @@ paths:
         name: affects__trackers__type
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - BUGZILLA
           - JIRA
       - in: query
@@ -3056,7 +3056,7 @@ paths:
         name: cvss_scores__issuer
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - CISA
           - CVEORG
           - NIST
@@ -3141,7 +3141,7 @@ paths:
         name: impact
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - CRITICAL
           - IMPORTANT
@@ -3224,7 +3224,7 @@ paths:
         name: major_incident_state
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - APPROVED
           - CISA_APPROVED
@@ -3241,7 +3241,7 @@ paths:
         name: nist_cvss_validation
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - APPROVED
           - REJECTED
@@ -3258,7 +3258,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
+            x-extensible-enum:
             - -acknowledgments__affiliation
             - -acknowledgments__created_dt
             - -acknowledgments__from_upstream
@@ -3448,7 +3448,7 @@ paths:
         name: references__type
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ARTICLE
           - EXTERNAL
           - SOURCE
@@ -3546,7 +3546,7 @@ paths:
         name: requires_cve_description
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - APPROVED
           - REJECTED
@@ -3559,7 +3559,7 @@ paths:
         name: source
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - ADOBE
           - APPLE
@@ -3731,7 +3731,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
+            x-extensible-enum:
             - ''
             - DONE
             - NEW
@@ -4467,7 +4467,7 @@ paths:
         name: issuer
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - CISA
           - CVEORG
           - NIST
@@ -5476,7 +5476,7 @@ paths:
         name: type
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ARTICLE
           - EXTERNAL
           - SOURCE
@@ -6079,14 +6079,14 @@ paths:
         name: format
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - json
           - yaml
       - in: query
         name: lang
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - af
           - ar
           - ar-dz
@@ -6262,7 +6262,7 @@ paths:
         name: affects__affectedness
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - AFFECTED
           - NEW
@@ -6376,7 +6376,7 @@ paths:
         name: affects__flaw__impact
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - CRITICAL
           - IMPORTANT
@@ -6426,7 +6426,7 @@ paths:
         name: affects__flaw__source
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - ADOBE
           - APPLE
@@ -6571,7 +6571,7 @@ paths:
         name: affects__impact
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - CRITICAL
           - IMPORTANT
@@ -6589,7 +6589,7 @@ paths:
         name: affects__resolution
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - ''
           - DEFER
           - DELEGATED
@@ -6738,7 +6738,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
+            x-extensible-enum:
             - -affects__affectedness
             - -affects__created_dt
             - -affects__embargoed
@@ -6818,7 +6818,7 @@ paths:
         name: type
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - BUGZILLA
           - JIRA
       - in: query
@@ -7142,7 +7142,7 @@ paths:
         name: issuer
         schema:
           type: string
-          enum:
+          x-extensible-enum:
           - CISA
           - CVEORG
           - NIST
@@ -8123,11 +8123,11 @@ components:
       - ps_module
       - updated_dt
     AffectednessEnum:
-      enum:
+      type: string
+      x-extensible-enum:
       - NEW
       - AFFECTED
       - NOTAFFECTED
-      type: string
     Alert:
       type: object
       description: Alerts indicate some inconsistency in a linked flaw, affect, tracker
@@ -8160,10 +8160,10 @@ components:
       - parent_uuid
       - uuid
     AlertTypeEnum:
-      enum:
+      type: string
+      x-extensible-enum:
       - WARNING
       - ERROR
-      type: string
     Audit:
       type: object
       properties:
@@ -8233,7 +8233,7 @@ components:
       - pgh_obj_model
       - pgh_slug
     BlankEnum:
-      enum:
+      x-extensible-enum:
       - ''
     Comment:
       type: object
@@ -8307,11 +8307,11 @@ components:
       - text
       - updated_dt
     CvssVersionEnum:
-      enum:
+      type: string
+      x-extensible-enum:
       - V2
       - V3
       - V4
-      type: string
     EPSS:
       type: object
       properties:
@@ -8383,11 +8383,11 @@ components:
       - maturity_preliminary
       - source
     ExploitOnlyReportDataSourceEnum:
-      enum:
+      type: string
+      x-extensible-enum:
       - CISA
       - Metasploit
       - Exploit-DB
-      type: string
     Flaw:
       type: object
       description: serialize flaw model
@@ -8510,7 +8510,7 @@ components:
               type: string
             state:
               type: string
-              enum:
+              x-extensible-enum:
               - ''
               - NEW
               - TRIAGE
@@ -9380,12 +9380,12 @@ components:
       - updated_dt
       - url
     FlawReferenceType:
-      enum:
+      type: string
+      x-extensible-enum:
       - ARTICLE
       - EXTERNAL
       - SOURCE
       - UPSTREAM
-      type: string
     FlawReportData:
       type: object
       properties:
@@ -9510,22 +9510,23 @@ components:
       required:
       - version
     ImpactEnum:
-      enum:
+      type: string
+      x-extensible-enum:
       - LOW
       - MODERATE
       - IMPORTANT
       - CRITICAL
-      type: string
     IssuerEnum:
-      enum:
+      type: string
+      x-extensible-enum:
       - CVEORG
       - RH
       - NIST
       - OSV
       - CISA
-      type: string
     MajorIncidentStateEnum:
-      enum:
+      type: string
+      x-extensible-enum:
       - REQUESTED
       - REJECTED
       - APPROVED
@@ -9533,14 +9534,13 @@ components:
       - MINOR
       - ZERO_DAY
       - INVALID
-      type: string
     MaturityPreliminaryEnum:
-      enum:
+      type: integer
+      x-extensible-enum:
       - 0
       - 1
       - 2
       - 3
-      type: integer
     ModuleComponent:
       type: object
       properties:
@@ -9563,19 +9563,19 @@ components:
       - selected
       - streams
     NistCvssValidationEnum:
-      enum:
+      type: string
+      x-extensible-enum:
       - REQUESTED
       - APPROVED
       - REJECTED
-      type: string
     NotAffectedJustificationEnum:
-      enum:
+      type: string
+      x-extensible-enum:
       - Component not Present
       - Inline Mitigations already Exist
       - Vulnerable Code cannot be Controlled by Adversary
       - Vulnerable Code not in Execute Path
       - Vulnerable Code not Present
-      type: string
     Package:
       type: object
       description: package_versions (Package model) serializer for read-only use in
@@ -10085,22 +10085,23 @@ components:
       required:
       - reason
     RequiresCveDescriptionEnum:
-      enum:
+      type: string
+      x-extensible-enum:
       - REQUESTED
       - APPROVED
       - REJECTED
-      type: string
     ResolutionEnum:
-      enum:
+      type: string
+      x-extensible-enum:
       - FIX
       - DEFER
       - WONTFIX
       - OOSS
       - DELEGATED
       - WONTREPORT
-      type: string
     SourceBe0Enum:
-      enum:
+      type: string
+      x-extensible-enum:
       - ADOBE
       - APPLE
       - ASF
@@ -10190,21 +10191,20 @@ components:
       - XCHAT
       - XEN
       - XPDF
-      type: string
     SpecialHandlingEnum:
-      enum:
+      type: string
+      x-extensible-enum:
       - Major Incident
       - KEV (active exploit case)
       - compliance-priority
       - contract-priority
-      type: string
     StateEnum:
-      enum:
+      type: string
+      x-extensible-enum:
       - NEW
       - REQ
       - SKIP
       - DONE
-      type: string
     SupportedProducts:
       type: object
       properties:
@@ -10522,10 +10522,10 @@ components:
       - modules_components
       - not_applicable
     TrackerType:
-      enum:
+      type: string
+      x-extensible-enum:
       - JIRA
       - BUGZILLA
-      type: string
   securitySchemes:
     KerberosAuthentication:
       type: http
