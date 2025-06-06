@@ -114,6 +114,21 @@ class TestQuerySetRegression:
             response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
+    def test_flaw_with_history(self, auth_client, test_api_uri):
+        flaw = FlawFactory()
+        AffectFactory.create_batch(
+            100,
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+
+        with numQueriesCloseTo(219):  # initial value -> 319
+            response = auth_client().get(
+                f"{test_api_uri}/flaws/{flaw.uuid}?include_history=true"
+            )
+            assert response.status_code == 200
+
     @pytest.mark.parametrize(
         "affect_count, tracker_count, expected_queries",
         [

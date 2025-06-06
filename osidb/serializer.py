@@ -1081,7 +1081,6 @@ class AffectSerializer(
     IncludeExcludeFieldsMixin,
     IncludeMetaAttrMixin,
     JiraAPIKeyMixin,
-    HistoryMixinSerializer,
 ):
     """Affect serializer"""
 
@@ -1168,7 +1167,6 @@ class AffectSerializer(
             + ACLMixinSerializer.Meta.fields
             + AlertMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
-            + HistoryMixinSerializer.Meta.fields
         )
 
     def update(self, new_affect, validated_data):
