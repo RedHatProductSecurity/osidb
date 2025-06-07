@@ -209,6 +209,8 @@ class ACLMixin(models.Model):
 
     @property
     def is_embargoed(self):
+        if hasattr(self, "embargoed") and self.embargoed is not None:
+            return self.embargoed
         return self.acl_read == ACLMixin.get_embargoed_acl()
 
     @property
@@ -618,6 +620,9 @@ class ACLMixin(models.Model):
 
 class AlertManager(ACLMixinManager):
     """Alert manager"""
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("content_type")
 
     @staticmethod
     def create_alert(name, object_id, content_type, **extra_fields):

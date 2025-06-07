@@ -48,6 +48,19 @@ class NotAffectedJustification(models.TextChoices):
 class AffectManager(ACLMixinManager, TrackingMixinManager):
     """affect manager"""
 
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                ps_product_name=models.Subquery(
+                    PsModule.objects.filter(name=models.OuterRef("ps_module")).values(
+                        "ps_product__name"
+                    )
+                ),
+            )
+        )
+
     @staticmethod
     def create_affect(flaw, ps_module, ps_component, **extra_fields):
         """return a new affect or update an existing affect without saving"""
@@ -597,7 +610,7 @@ class Affect(
             return None
 
         # exclude the trackers closed as duplicate or migrated from Bugzilla
-        trackers = self.trackers.exclude(resolution__iregex=r"(duplicate|migrated)")
+        trackers = self.no_duplicated_trackers
         if not trackers:
             return Affect.AffectFix.AFFECTED
 
@@ -643,9 +656,8 @@ class Affect(
         becomes empty.
         """
         from apps.taskman.service import TaskResolution
-        from osidb.models.tracker import Tracker
 
-        trackers = self.trackers.filter(type=Tracker.TrackerType.JIRA)
+        trackers = self.jira_trackers
         if (
             not trackers
             or trackers.exclude(resolution=TaskResolution.NOT_A_BUG).exists()
@@ -707,10 +719,7 @@ class Affect(
 
     @property
     def ps_product(self):
-        ps_module = PsModule.objects.filter(name=self.ps_module).first()
-        if not ps_module:
-            return None
-        return ps_module.ps_product.name
+        return self.ps_product_name
 
     def bzsync(self, *args, **kwargs):
         """
