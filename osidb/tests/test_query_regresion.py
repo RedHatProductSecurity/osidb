@@ -117,9 +117,9 @@ class TestQuerySetRegression:
     @pytest.mark.parametrize(
         "affect_count, expected_queries",
         [
-            (1, 19),  # initial value -> 19
-            (10, 64),  # initial value -> 64
-            (100, 514),  # initial value -> 514
+            (1, 15),  # initial value -> 19
+            (10, 24),  # initial value -> 64
+            (100, 114),  # initial value -> 514
         ],
     )
     def test_flaw_with_affects_history(
