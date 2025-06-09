@@ -2181,7 +2181,12 @@ class FlawCommentPostSerializer(FlawCommentSerializer):
     pass
 
 
-class IntegrationTokenSerializer(serializers.Serializer):
+class IntegrationTokenGetSerializer(serializers.Serializer):
+    jira = serializers.CharField(allow_null=True)
+    bugzilla = serializers.CharField(allow_null=True)
+
+
+class IntegrationTokenPatchSerializer(serializers.Serializer):
     jira = serializers.CharField(required=False, write_only=True)
     bugzilla = serializers.CharField(required=False, write_only=True)
 

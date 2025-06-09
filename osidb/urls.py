@@ -30,7 +30,7 @@ from .api_views import (
     StatusView,
     TrackerView,
     healthy,
-    set_integration_tokens,
+    integration_tokens,
     whoami,
 )
 from .constants import OSIDB_API_VERSION, OSIDB_API_VERSION_NEXT
@@ -80,7 +80,7 @@ vnext_router.register(
 urlpatterns = [
     path("healthy", healthy),
     path("whoami", whoami),
-    path("integrations", set_integration_tokens),
+    path("integrations", integration_tokens),
     re_path(
         rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/promote$",
         promote.as_view(),

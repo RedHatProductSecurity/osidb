@@ -109,6 +109,40 @@ class TestEndpoints(object):
             == "At least one third-party integration token must be provided"
         )
 
+    @pytest.mark.parametrize(
+        "mocked,expected",
+        [
+            ({"jira": "foo"}, {"jira": "foo", "bugzilla": None}),
+            ({"bugzilla": "bar"}, {"jira": None, "bugzilla": "bar"}),
+            ({"jira": "foo", "bugzilla": "bar"}, {"jira": "foo", "bugzilla": "bar"}),
+            ({}, {"jira": None, "bugzilla": None}),
+        ],
+    )
+    def test_get_integration_tokens(
+        self,
+        auth_client,
+        root_url,
+        set_hvac_test_env_vars,
+        mock_hvac_client_instance,
+        mocked,
+        expected,
+    ):
+        def read_secret_version_mocked(*args, **kwargs):
+            if "jira" in str(kwargs.get("path")):
+                _d = {"testuser": mocked.get("jira")}
+            else:
+                _d = {"testuser": mocked.get("bugzilla")}
+            return {"data": {"data": _d}}
+
+        mock_hvac_client_instance.secrets.kv.v2.read_secret_version.side_effect = (
+            read_secret_version_mocked
+        )
+        r = auth_client().get(f"{root_url}/osidb/integrations")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["jira"] == expected["jira"]
+        assert body["bugzilla"] == expected["bugzilla"]
+
 
 class TestEndpointsACLs:
     """

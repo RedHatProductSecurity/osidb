@@ -31,7 +31,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK
+from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT
 from rest_framework.views import APIView
 from rest_framework.viewsets import (
     ModelViewSet,
@@ -93,7 +93,8 @@ from .serializer import (
     FlawReferencePutSerializer,
     FlawReferenceSerializer,
     FlawSerializer,
-    IntegrationTokenSerializer,
+    IntegrationTokenGetSerializer,
+    IntegrationTokenPatchSerializer,
     TrackerPostSerializer,
     TrackerSerializer,
     UserSerializer,
@@ -826,26 +827,42 @@ def whoami(request: Request) -> Response:
 
 
 @extend_schema(
-    request=OpenApiRequest(request=IntegrationTokenSerializer),
-    responses={200: {}},
+    methods=["GET"],
+    responses={200: OpenApiResponse(response=IntegrationTokenGetSerializer)},
 )
-@api_view(["PATCH"])
-def set_integration_tokens(request: Request) -> Response:
+@extend_schema(
+    methods=["PATCH"],
+    request=OpenApiRequest(request=IntegrationTokenPatchSerializer),
+    responses={204: {}},
+)
+@api_view(["GET", "PATCH"])
+def integration_tokens(request: Request) -> Response:
     """
     Set third-party integration tokens for the current user.
     """
-    serializer = IntegrationTokenSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    validated_data = serializer.validated_data
     integration_settings = IntegrationSettings()
     integration_repo = IntegrationRepository(integration_settings)
-
     current_user = cast(User, request.user)
-    if jira_token := validated_data.get("jira"):
-        integration_repo.upsert_jira_token(current_user.username, jira_token)
-    if bz_token := validated_data.get("bugzilla"):
-        integration_repo.upsert_bz_token(current_user.username, bz_token)
-    return Response(status=HTTP_200_OK)
+
+    if request.method == "GET":
+        data = {
+            "jira": integration_repo.read_jira_token(current_user.username),
+            "bugzilla": integration_repo.read_bz_token(current_user.username),
+        }
+        serializer = IntegrationTokenGetSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        response = Response(data=serializer.validated_data, status=HTTP_200_OK)
+    else:
+        serializer = IntegrationTokenPatchSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+
+        if jira_token := validated_data.get("jira"):
+            integration_repo.upsert_jira_token(current_user.username, jira_token)
+        if bz_token := validated_data.get("bugzilla"):
+            integration_repo.upsert_bz_token(current_user.username, bz_token)
+        response = Response(status=HTTP_204_NO_CONTENT)
+    return response
 
 
 @include_exclude_fields_extend_schema_view
