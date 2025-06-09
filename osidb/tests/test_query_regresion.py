@@ -73,10 +73,16 @@ class TestQuerySetRegression:
         """
         for _ in range(100):
             flaw = FlawFactory()
-            AffectFactory.create(flaw=flaw, affectedness=Affect.AffectAffectedness.AFFECTED, resolution=Affect.AffectResolution.DELEGATED)
+            AffectFactory.create(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+            )
 
-        with numQueriesCloseTo(303): # initial value -> 303
-            response = auth_client().get(f"{test_api_uri}/flaws?include_fields=cve_id,uuid,impact,source,created_dt,updated_dt,classification,title,unembargo_dt,embargoed,owner,labels")
+        with numQueriesCloseTo(103):  # initial value -> 303
+            response = auth_client().get(
+                f"{test_api_uri}/flaws?include_fields=cve_id,uuid,impact,source,created_dt,updated_dt,classification,title,unembargo_dt,embargoed,owner,labels"
+            )
             assert response.status_code == 200
 
     def test_empty_flaw(self, auth_client, test_api_uri):

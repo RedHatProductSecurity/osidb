@@ -496,7 +496,7 @@ class TestFlawDraft:
         assert body["classification"]["workflow"] == "DEFAULT"
         assert body["classification"]["state"] == WorkflowModel.WorkflowState.TRIAGE
 
-        flaw.refresh_from_db()
+        flaw = Flaw.objects.get(pk=flaw.pk)
         assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.TRIAGE
         assert flaw.task_key == "OSIM-123"
@@ -532,7 +532,7 @@ class TestFlawDraft:
             == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
         )
 
-        flaw.refresh_from_db()
+        flaw = Flaw.objects.get(pk=flaw.pk)
         assert flaw.classification["workflow"] == "DEFAULT"
         assert (
             flaw.classification["state"]
@@ -601,7 +601,7 @@ class TestFlawDraft:
         assert body["classification"]["workflow"] == "REJECTED"
         assert body["classification"]["state"] == WorkflowModel.WorkflowState.REJECTED
 
-        flaw.refresh_from_db()
+        flaw = Flaw.objects.get(pk=flaw.pk)
         assert flaw.classification["workflow"] == "REJECTED"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.REJECTED
         # check that a flaw still has internal ACLs
