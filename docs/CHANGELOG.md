@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Swap out local krb5_auth for django-kaminarimon (OSIDB-4243)
+- Improve overall performance of multiple API endpoints (OSIDB-4226)
 
 ## [4.11.0] - 2025-05-27
 ### Added
