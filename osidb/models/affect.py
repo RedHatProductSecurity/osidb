@@ -48,6 +48,19 @@ class NotAffectedJustification(models.TextChoices):
 class AffectManager(ACLMixinManager, TrackingMixinManager):
     """affect manager"""
 
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                ps_product_name=models.Subquery(
+                    PsModule.objects.filter(name=models.OuterRef("ps_module")).values(
+                        "ps_product__name"
+                    )
+                )
+            )
+        )
+
     @staticmethod
     def create_affect(flaw, ps_module, ps_component, **extra_fields):
         """return a new affect or update an existing affect without saving"""
@@ -707,6 +720,9 @@ class Affect(
 
     @property
     def ps_product(self):
+        if hasattr(self, "ps_product_name"):
+            # If the queryset was annotated with ps_product_name, use it
+            return self.ps_product_name
         ps_module = PsModule.objects.filter(name=self.ps_module).first()
         if not ps_module:
             return None
