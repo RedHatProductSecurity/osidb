@@ -1,4 +1,5 @@
 import logging
+import re
 import uuid
 
 import pghistory
@@ -52,6 +53,9 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
         return (
             super()
             .get_queryset()
+            .prefetch_related(
+                "trackers",
+            )
             .annotate(
                 ps_product_name=models.Subquery(
                     PsModule.objects.filter(name=models.OuterRef("ps_module")).values(
@@ -610,7 +614,12 @@ class Affect(
             return None
 
         # exclude the trackers closed as duplicate or migrated from Bugzilla
-        trackers = self.trackers.exclude(resolution__iregex=r"(duplicate|migrated)")
+        trackers_regex = re.compile(r"(duplicate|migrated)", re.IGNORECASE)
+        trackers = [
+            tracker
+            for tracker in self.trackers.all()
+            if not trackers_regex.match(tracker.resolution)
+        ]
         if not trackers:
             return Affect.AffectFix.AFFECTED
 
@@ -658,10 +667,15 @@ class Affect(
         from apps.taskman.service import TaskResolution
         from osidb.models.tracker import Tracker
 
-        trackers = self.trackers.filter(type=Tracker.TrackerType.JIRA)
-        if (
-            not trackers
-            or trackers.exclude(resolution=TaskResolution.NOT_A_BUG).exists()
+        trackers = [
+            tracker
+            for tracker in self.trackers.all()
+            if tracker.type == Tracker.TrackerType.JIRA
+        ]
+        if not trackers or any(
+            tracker
+            for tracker in trackers
+            if tracker.resolution != TaskResolution.NOT_A_BUG
         ):
             return NotAffectedJustification.NOVALUE
 

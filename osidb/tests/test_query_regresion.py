@@ -63,7 +63,7 @@ class TestQuerySetRegression:
                 resolution=Affect.AffectResolution.DELEGATED,
             )
 
-        with numQueriesCloseTo(413):  # initial value -> 512
+        with numQueriesCloseTo(213):  # initial value -> 512
             response = auth_client().get(f"{test_api_uri}/flaws")
             assert response.status_code == 200
 
@@ -94,9 +94,9 @@ class TestQuerySetRegression:
     @pytest.mark.parametrize(
         "affect_count, expected_queries",
         [
-            (1, 16),  # initial value -> 16
-            (10, 43),  # initial value -> 52
-            (100, 313),  # initial value -> 412
+            (1, 14),  # initial value -> 16
+            (10, 23),  # initial value -> 52
+            (100, 113),  # initial value -> 412
         ],
     )
     def test_flaw_with_affects(
@@ -143,8 +143,8 @@ class TestQuerySetRegression:
         "affect_count, tracker_count, expected_queries",
         [
             (1, 1, 21),  # initial value -> 21
-            (10, 2, 73),  # initial value -> 89
-            (100, 3, 674),  # initial value -> 866
+            (10, 2, 47),  # initial value -> 89
+            (100, 3, 417),  # initial value -> 866
         ],
     )
     def test_flaw_with_affects_trackers(
@@ -178,6 +178,6 @@ class TestQuerySetRegression:
                 resolution=Affect.AffectResolution.DELEGATED,
             )
 
-        with numQueriesCloseTo(305):  # initial value -> 405
+        with numQueriesCloseTo(105):  # initial value -> 405
             response = auth_client().get(f"{test_api_uri}/affects")
             assert response.status_code == 200
