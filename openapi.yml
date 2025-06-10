@@ -7457,6 +7457,32 @@ paths:
                     type: string
           description: ''
   /osidb/integrations:
+    get:
+      operationId: osidb_integrations_retrieve
+      description: Set third-party integration tokens for the current user.
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/IntegrationTokenGet'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
     patch:
       operationId: osidb_integrations_partial_update
       description: Set third-party integration tokens for the current user.
@@ -7466,17 +7492,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedIntegrationTokenRequest'
+              $ref: '#/components/schemas/PatchedIntegrationTokenPatchRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedIntegrationTokenRequest'
+              $ref: '#/components/schemas/PatchedIntegrationTokenPatchRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedIntegrationTokenRequest'
+              $ref: '#/components/schemas/PatchedIntegrationTokenPatchRequest'
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '200':
+        '204':
           content:
             application/json:
               schema:
@@ -9539,6 +9565,18 @@ components:
       - IMPORTANT
       - CRITICAL
       type: string
+    IntegrationTokenGet:
+      type: object
+      properties:
+        jira:
+          type: string
+          nullable: true
+        bugzilla:
+          type: string
+          nullable: true
+      required:
+      - bugzilla
+      - jira
     IssuerEnum:
       enum:
       - CVEORG
@@ -10079,7 +10117,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Tracker'
-    PatchedIntegrationTokenRequest:
+    PatchedIntegrationTokenPatchRequest:
       type: object
       properties:
         jira:
