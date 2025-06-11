@@ -145,6 +145,25 @@ class WorkflowFramework:
         )
 
 
+class WorkflowModelManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                workflow_classification=models.Func(
+                    models.Value("workflow"),
+                    models.F("workflow_name"),
+                    models.Value("state"),
+                    models.F("workflow_state"),
+                    function="jsonb_build_object",
+                    output_field=models.JSONField(),
+                )
+            )
+            .all()
+        )
+
+
 class WorkflowModel(models.Model):
     """workflow model base class"""
 
@@ -186,10 +205,14 @@ class WorkflowModel(models.Model):
     @property
     def classification(self):
         """stored workflow classification"""
-        return {
-            "workflow": self.workflow_name,
-            "state": self.workflow_state,
-        }
+        return getattr(
+            self,
+            "workflow_classification",
+            {
+                "workflow": self.workflow_name,
+                "state": self.workflow_state,
+            },
+        )
 
     @classification.setter
     def classification(self, classification):
@@ -207,6 +230,10 @@ class WorkflowModel(models.Model):
 
         self.workflow_name = workflow if isinstance(workflow, str) else workflow.name
         self.workflow_state = state if isinstance(state, str) else state.name
+        self.workflow_classification = {
+            "workflow": self.workflow_name,
+            "state": self.workflow_state,
+        }
 
     def adjust_classification(self, save=True):
         """
@@ -280,8 +307,7 @@ class WorkflowModel(models.Model):
             self, self.workflow_name, state_obj.name
         )
 
-        self.workflow_state = state_obj.name
-
+        self.classification = (self.workflow_name, state_obj.name)
         if save:
             self.save(
                 jira_token=jira_token,
@@ -302,9 +328,7 @@ class WorkflowModel(models.Model):
             self, reject_workflow, WorkflowModel.WorkflowState.REJECTED
         )
 
-        self.workflow_name = reject_workflow
-        self.workflow_state = WorkflowModel.WorkflowState.REJECTED
-
+        self.classification = (reject_workflow, WorkflowModel.WorkflowState.REJECTED)
         if save:
             self.save(
                 jira_token=jira_token,

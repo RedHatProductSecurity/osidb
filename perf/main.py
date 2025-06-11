@@ -54,3 +54,20 @@ class GriffonUser(HttpUser):
         self.client.get(
             "/osidb/api/v1/flaws?affects__affectedness=AFFECTED&affects__ps_module=cost-management&affects__resolution=FIX&include_fields=cve_id,title,resolution,impact,affects&limit=50"
         )
+
+
+class OSIMUser(HttpUser):
+    wait_time = between(1, 3)
+    weight = 4
+
+    @task(1)
+    def get_flaws(self):
+        self.client.get(
+            "/osidb/api/v1/flaws?include_fields=cve_id,uuid,impact,source,created_dt,updated_dt,classification,title,unembargo_dt,embargoed,owner,labels&limit=100&offset=0&order=-created_dt"
+        )
+
+    @task(2)
+    def get_related_flaws(self):
+        self.client.get(
+            "/osidb/api/v1/flaws?include_fields=cve_id,uuid,affects,created_dt,updated_dt&affects__ps_module=rhel-7&affects__ps_component=kernel&order=-created_dt&limit=10"
+        )
