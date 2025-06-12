@@ -1,5 +1,5 @@
 """
-    serialize flaw model
+serialize flaw model
 """
 
 import logging
@@ -47,7 +47,7 @@ from osidb.models import (
 
 from .core import generate_acls
 from .exceptions import DataInconsistencyException
-from .helpers import differ, ensure_list
+from .helpers import differ, ensure_list, get_bugzilla_api_key, get_jira_api_key
 from .mixins import ACLMixin, Alert, AlertMixin, TrackingMixin
 
 logger = logging.getLogger(__name__)
@@ -499,12 +499,7 @@ class BugzillaAPIKeyMixin:
     """
 
     def get_bz_api_key(self):
-        bz_api_key = self.context["request"].META.get("HTTP_BUGZILLA_API_KEY")
-        if not bz_api_key:
-            raise serializers.ValidationError(
-                {"Bugzilla-Api-Key": "This HTTP header is required."}
-            )
-        return bz_api_key
+        return get_bugzilla_api_key(self.context["request"])
 
 
 class JiraAPIKeyMixin:
@@ -513,12 +508,7 @@ class JiraAPIKeyMixin:
     """
 
     def get_jira_token(self):
-        jira_token = self.context["request"].META.get("HTTP_JIRA_API_KEY")
-        if not jira_token:
-            raise serializers.ValidationError(
-                {"Jira-Api-Key": "This HTTP header is required."}
-            )
-        return jira_token
+        return get_jira_api_key(self.context["request"])
 
 
 class AlertSerializer(serializers.ModelSerializer):

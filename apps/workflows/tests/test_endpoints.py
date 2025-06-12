@@ -228,6 +228,7 @@ class TestEndpoints(object):
         monkeypatch,
         auth_client,
         test_api_uri_osidb,
+        set_hvac_test_env_vars,
     ):
         """test flaw state promotion after data change"""
 
@@ -336,6 +337,7 @@ class TestEndpoints(object):
         monkeypatch,
         auth_client,
         test_api_uri_osidb,
+        set_hvac_test_env_vars,
     ):
         """test flaw state promotion after data change"""
 
@@ -434,6 +436,7 @@ class TestFlawDraft:
         auth_client,
         test_api_uri_osidb,
         jira_token,
+        set_hvac_test_env_vars,
     ):
         """
         test that ACLs are set to public when promoting a flaw draft
@@ -559,6 +562,7 @@ class TestFlawDraft:
         auth_client,
         test_api_uri_osidb,
         jira_token,
+        set_hvac_test_env_vars,
     ):
         """
         test that ACLs are still set to internal when rejecting a flaw draft

@@ -42,6 +42,7 @@ from rest_framework.viewsets import (
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
+from osidb.helpers import get_bugzilla_api_key
 from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import Affect, AffectCVSS, Flaw, FlawLabel, Tracker
 from osidb.models.flaw.cvss import FlawCVSS
@@ -376,7 +377,7 @@ flaw_id = OpenApiParameter(
 
 bz_api_key_param = OpenApiParameter(
     name="Bugzilla-Api-Key",
-    required=True,
+    required=False,
     type=str,
     location=OpenApiParameter.HEADER,
     description="User generated api key for Bugzilla authentication.",
@@ -384,7 +385,7 @@ bz_api_key_param = OpenApiParameter(
 
 jira_api_key_param = OpenApiParameter(
     name="Jira-Api-Key",
-    required=True,
+    required=False,
     type=str,
     location=OpenApiParameter.HEADER,
     description="User generated api key for Jira authentication.",
@@ -640,9 +641,7 @@ class SubFlawViewDestroyMixin:
         """
         Destroy the instance and proxy the delete to Bugzilla
         """
-        bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
-        if not bz_api_key:
-            raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
+        bz_api_key = get_bugzilla_api_key(request)
         instance = self.get_object()
         flaw = instance.flaw
         instance.delete()
@@ -982,15 +981,7 @@ class AffectView(
         Bulk update endpoint. Expects a list of dict Affect objects.
         """
 
-        bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
-        if not bz_api_key:
-            raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
-
-        if not request.META.get("HTTP_JIRA_API_KEY"):
-            # Needed by AffectSerializer.update_trackers(), better explicit than implicit
-            # because update_trackers executes with its own check only in specific circumstances.
-            raise ValidationError({"Jira-Api-Key": "This HTTP header is required."})
-
+        bz_api_key = get_bugzilla_api_key(request)
         # TODO sometime: Some of these actions probably belong to another layer, perhaps serializer.
 
         queryset = self.filter_queryset(self.get_queryset())
@@ -1053,9 +1044,7 @@ class AffectView(
         Bulk create endpoint. Expects a list of dict Affect objects.
         """
 
-        bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
-        if not bz_api_key:
-            raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
+        bz_api_key = get_bugzilla_api_key(request)
 
         # TODO sometime: Some of these actions probably belong to another layer, perhaps serializer.
 
@@ -1109,9 +1098,7 @@ class AffectView(
         Bulk delete endpoint. Expects a list of Affect uuids.
         """
 
-        bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
-        if not bz_api_key:
-            raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
+        bz_api_key = get_bugzilla_api_key(request)
 
         flaws = set()
         uuids = set()
@@ -1216,9 +1203,7 @@ class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         """
         Destroy the instance and proxy the delete to Bugzilla.
         """
-        bz_api_key = request.META.get("HTTP_BUGZILLA_API_KEY")
-        if not bz_api_key:
-            raise ValidationError({"Bugzilla-Api-Key": "This HTTP header is required."})
+        bz_api_key = get_bugzilla_api_key(request)
 
         instance: AffectCVSS = self.get_object()
         if instance.issuer == AffectCVSS.CVSSIssuer.REDHAT:

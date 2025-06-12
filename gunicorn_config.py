@@ -1,4 +1,4 @@
-from config import get_env
+from osidb.helpers import get_execution_env
 
 bind = "0.0.0.0:8000"
 worker_class = "gthread"
@@ -16,7 +16,7 @@ forwarded_allow_ips = "*"
 # exist in deployment environments, setting to shm filesystem avoids this
 worker_tmp_dir = "/dev/shm"
 
-if get_env() in ["stage", "prod", "ci"]:
+if get_execution_env() in ["stage", "prod", "ci"]:
     preload_app = True
     graceful_timeout = 800  # if a restart must happen then let it be graceful
     keepalive = 60  # specifically this should be a value larger then nginx setting

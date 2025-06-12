@@ -1484,13 +1484,11 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: header
         name: Jira-Api-Key
         schema:
           type: string
         description: User generated api key for Jira authentication.
-        required: true
       tags:
       - osidb
       requestBody:
@@ -1710,7 +1708,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: affect_id
         schema:
@@ -1817,7 +1814,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: affect_id
         schema:
@@ -1873,7 +1869,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: affect_id
         schema:
@@ -1985,13 +1980,11 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: header
         name: Jira-Api-Key
         schema:
           type: string
         description: User generated api key for Jira authentication.
-        required: true
       - in: path
         name: uuid
         schema:
@@ -2043,7 +2036,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: uuid
         schema:
@@ -2082,7 +2074,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       tags:
       - osidb
       requestBody:
@@ -2133,13 +2124,11 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: header
         name: Jira-Api-Key
         schema:
           type: string
         description: User generated api key for Jira authentication.
-        required: true
       tags:
       - osidb
       requestBody:
@@ -2190,7 +2179,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       tags:
       - osidb
       security:
@@ -3776,13 +3764,11 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: header
         name: Jira-Api-Key
         schema:
           type: string
         description: User generated api key for Jira authentication.
-        required: true
       tags:
       - osidb
       requestBody:
@@ -3987,7 +3973,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -4094,7 +4079,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -4150,7 +4134,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -4281,7 +4264,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -4571,7 +4553,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -4678,7 +4659,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -4734,7 +4714,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -5145,7 +5124,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -5252,7 +5230,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -5308,7 +5285,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -5562,7 +5538,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -5669,7 +5644,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -5725,7 +5699,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -5910,13 +5883,11 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: header
         name: Jira-Api-Key
         schema:
           type: string
         description: User generated api key for Jira authentication.
-        required: true
       - in: query
         name: create_jira_task
         schema:
@@ -6898,13 +6869,11 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: header
         name: Jira-Api-Key
         schema:
           type: string
         description: User generated api key for Jira authentication.
-        required: true
       tags:
       - osidb
       requestBody:
@@ -7013,13 +6982,11 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: header
         name: Jira-Api-Key
         schema:
           type: string
         description: User generated api key for Jira authentication.
-        required: true
       - in: path
         name: uuid
         schema:
@@ -7397,7 +7364,6 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:

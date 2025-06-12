@@ -11,7 +11,7 @@ import sys
 import warnings
 from distutils.util import strtobool
 from os import getenv
-from typing import Any, Callable, List, Type, Union
+from typing import Any, Callable, List, Type, Union, cast
 
 from celery._state import get_current_task
 from django.conf import settings
@@ -20,6 +20,8 @@ from django.utils.timezone import datetime, make_aware
 from django_deprecate_fields import DeprecatedField, logger
 from requests.exceptions import JSONDecodeError
 from requests.models import Response
+from rest_framework.exceptions import ValidationError
+from rest_framework.request import Request
 
 from osidb.core import set_user_acls
 from osidb.validators import CVE_RE_STR, restrict_regex
@@ -312,3 +314,70 @@ def bypass_rls(f: Callable) -> Callable:
         set_user_acls([])
 
     return wrapped
+
+
+def get_execution_env() -> str:
+    """
+    Returns the current execution environment for the running Django app.
+
+    e.g. local, stage, prod, ci
+    """
+    return getenv("DJANGO_SETTINGS_MODULE", "").split("_")[-1]
+
+
+def get_bugzilla_api_key(request: Request) -> str:
+    """
+    Checks that a user-provided Bugzilla API token exists and returns it.
+
+    The token can either be provided through the Bugzilla-Api-Key HTTP header
+    on each request or it can be retrieved from the integrations store if the
+    user has previously stored it using PATCH /osidb/integrations.
+    """
+    from django.contrib.auth.models import User
+
+    from osidb.integrations import IntegrationRepository, IntegrationSettings
+
+    # explicitly passed-through token takes precedence
+    if not (bz_api_key := request.META.get("HTTP_BUGZILLA_API_KEY")):
+        integration_settings = IntegrationSettings()
+        integration_repo = IntegrationRepository(integration_settings)
+        user = cast(User, request.user)
+        bz_api_key = integration_repo.read_bz_token(user.username)
+
+    if not bz_api_key:
+        raise ValidationError(
+            {
+                "Bugzilla-Api-Key": "This HTTP header is required or token must be stored via /osidb/integrations"
+            }
+        )
+
+    return bz_api_key
+
+
+def get_jira_api_key(request: Request) -> str:
+    """
+    Checks that a user-provided JIRA API token exists and returns it.
+
+    The token can either be provided through the Jira-Api-Key HTTP header
+    on each request or it can be retrieved from the integrations store if the
+    user has previously stored it using PATCH /osidb/integrations.
+    """
+    from django.contrib.auth.models import User
+
+    from osidb.integrations import IntegrationRepository, IntegrationSettings
+
+    # explicitly passed-through token takes precedence
+    if not (jira_api_key := request.META.get("HTTP_JIRA_API_KEY")):
+        integration_settings = IntegrationSettings()
+        integration_repo = IntegrationRepository(integration_settings)
+        user = cast(User, request.user)
+        jira_api_key = integration_repo.read_jira_token(user.username)
+
+    if not jira_api_key:
+        raise ValidationError(
+            {
+                "Jira-Api-Key": "This HTTP header is required or token must be stored via /osidb/integrations"
+            }
+        )
+
+    return jira_api_key

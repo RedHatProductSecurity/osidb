@@ -5,7 +5,7 @@ Workflows API endpoints
 import logging
 
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework import serializers, status
+from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,6 +13,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.taskman.service import JiraTaskmanQuerier
 from osidb.api_views import RudimentaryUserPathLoggingMixin, get_valid_http_methods
+from osidb.helpers import get_bugzilla_api_key, get_jira_api_key
 
 from .exceptions import WorkflowsException
 from .helpers import get_flaw_or_404, str2bool
@@ -114,12 +115,8 @@ class promote(RudimentaryUserPathLoggingMixin, APIView):
         logger.info(f"promoting flaw {flaw_id} workflow classification")
         flaw = get_flaw_or_404(flaw_id)
         try:
-            jira_token = request.META.get("HTTP_JIRA_API_KEY")
-            bz_token = request.META.get("HTTP_BUGZILLA_API_KEY")
-            if not jira_token:
-                raise serializers.ValidationError(
-                    {"Jira-Api-Key": "This HTTP header is required."}
-                )
+            jira_token = get_jira_api_key(request)
+            bz_token = get_bugzilla_api_key(request)
             flaw.promote(jira_token=jira_token, bz_api_key=bz_token)
             return Response(
                 {
@@ -167,12 +164,8 @@ class reject(RudimentaryUserPathLoggingMixin, APIView):
         logger.info(f"rejecting flaw {flaw_id} workflow classification")
         flaw = get_flaw_or_404(flaw_id)
         try:
-            jira_token = request.META.get("HTTP_JIRA_API_KEY")
-            bz_token = request.META.get("HTTP_BUGZILLA_API_KEY")
-            if not jira_token:
-                raise serializers.ValidationError(
-                    {"Jira-Api-Key": "This HTTP header is required."}
-                )
+            jira_token = get_jira_api_key(request)
+            bz_token = get_bugzilla_api_key(request)
             flaw.reject(jira_token=jira_token, bz_api_key=bz_token)
             JiraTaskmanQuerier(token=jira_token).create_comment(
                 issue_key=flaw.task_key,

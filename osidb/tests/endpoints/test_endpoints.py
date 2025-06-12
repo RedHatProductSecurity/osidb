@@ -10,9 +10,8 @@ from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 from rest_framework.test import APIClient
 
-from config import get_env
 from osidb.core import generate_acls, set_user_acls
-from osidb.helpers import ensure_list
+from osidb.helpers import ensure_list, get_execution_env
 from osidb.models import Affect, Flaw, Impact
 from osidb.pagination import HardLimitOffsetPagination
 from osidb.tests.factories import AffectFactory, FlawFactory
@@ -70,7 +69,7 @@ class TestEndpoints(object):
     ):
         auth_client().patch(f"{root_url}/osidb/integrations", data={third_party: "foo"})
         mock_hvac_client_instance.secrets.kv.v2.patch.assert_called_once_with(
-            path=f"/osidb-integrations/{get_env()}/{third_party}",
+            path=f"/osidb-integrations/{get_execution_env()}/{third_party}",
             secret={"testuser": "foo"},
             mount_point="apps",
         )
@@ -86,12 +85,12 @@ class TestEndpoints(object):
             f"{root_url}/osidb/integrations", data={"jira": "foo", "bugzilla": "bar"}
         )
         mock_hvac_client_instance.secrets.kv.v2.patch.assert_any_call(
-            path=f"/osidb-integrations/{get_env()}/jira",
+            path=f"/osidb-integrations/{get_execution_env()}/jira",
             secret={"testuser": "foo"},
             mount_point="apps",
         )
         mock_hvac_client_instance.secrets.kv.v2.patch.assert_any_call(
-            path=f"/osidb-integrations/{get_env()}/bugzilla",
+            path=f"/osidb-integrations/{get_execution_env()}/bugzilla",
             secret={"testuser": "bar"},
             mount_point="apps",
         )
@@ -568,10 +567,19 @@ class TestEndpointsBZAPIKey:
     Bugzilla API key specific tests
     """
 
-    def test_flaw_create_no_bz_api_key(self, auth_client, test_api_uri):
+    def test_flaw_create_no_bz_api_key(
+        self,
+        auth_client,
+        test_api_uri,
+        set_hvac_test_env_vars,
+        mock_hvac_client_instance,
+    ):
         """
         test that creating a Flaw is rejected when no Bugzilla API key is provided
         """
+        mock_hvac_client_instance.secrets.kv.v2.read_secret_version.return_value = {
+            "data": {"data": {}}
+        }
         flaw_data = {
             "title": "Foo",
             "comment_zero": "test",
@@ -591,14 +599,23 @@ class TestEndpointsBZAPIKey:
             HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 400
-        assert '"Bugzilla-Api-Key":"This HTTP header is required."' in str(
+        assert '"Bugzilla-Api-Key":"This HTTP header is required' in str(
             response.content
         )
 
-    def test_flaw_update_no_bz_api_key(self, auth_client, test_api_uri):
+    def test_flaw_update_no_bz_api_key(
+        self,
+        auth_client,
+        test_api_uri,
+        set_hvac_test_env_vars,
+        mock_hvac_client_instance,
+    ):
         """
         test that updating a Flaw is rejected when no Bugzilla API key is provided
         """
+        mock_hvac_client_instance.secrets.kv.v2.read_secret_version.return_value = {
+            "data": {"data": {}}
+        }
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
         response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
@@ -615,7 +632,7 @@ class TestEndpointsBZAPIKey:
             format="json",
         )
         assert response.status_code == 400
-        assert '"Bugzilla-Api-Key":"This HTTP header is required."' in str(
+        assert '"Bugzilla-Api-Key":"This HTTP header is required' in str(
             response.content
         )
 

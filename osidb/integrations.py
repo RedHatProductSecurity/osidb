@@ -6,7 +6,7 @@ import hvac
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from config import get_env
+from osidb.helpers import get_execution_env
 
 _logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class IntegrationSettings(BaseSettings):
 
 
 class IntegrationRepository:
-    BASE_PATH = Path("/osidb-integrations") / Path(get_env())
+    BASE_PATH = Path("/osidb-integrations") / Path(get_execution_env())
     BASE_MOUNTPOINT = "apps"
 
     def __init__(self, settings: IntegrationSettings):
