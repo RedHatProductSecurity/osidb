@@ -1,3 +1,6 @@
+import os
+from unittest.mock import MagicMock
+
 import pytest
 
 from apps.workflows.constants import WORKFLOWS_API_VERSION
@@ -82,3 +85,24 @@ def clean_workflows():
     workflow_framework._workflows = []
     yield  # run test here
     workflow_framework._workflows = []
+
+
+@pytest.fixture
+def mock_hvac_client_instance():
+    """Creates a MagicMock instance for hvac.Client."""
+    return MagicMock()
+
+
+@pytest.fixture(autouse=True)
+def patch_hvac_client(monkeypatch, mock_hvac_client_instance):
+    """Patches hvac.Client in vault_integration module to return our mock instance."""
+    MockHvacClientClass = MagicMock(return_value=mock_hvac_client_instance)
+    monkeypatch.setattr("osidb.integrations.hvac.Client", MockHvacClientClass)
+    return MockHvacClientClass
+
+
+@pytest.fixture
+def set_hvac_test_env_vars():
+    os.environ["OSIDB_VAULT_ADDR"] = "https://fake-vault:8200/"
+    os.environ["OSIDB_ROLE_ID"] = "fake-role"
+    os.environ["OSIDB_SECRET_ID"] = "fake-secret"
