@@ -11,7 +11,7 @@
 .PHONY: clean
 clean:
 	@echo -n "osidb: 'make clean' will force stop running osidb containers, REMOVE OSIDB_PG-DATA VOLUME, delete venv, remove .tox cache, pycache, pg keys, etc ... Are you really sure? [y/N] " && read ans && [ $${ans:-N} = y ]
-	$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml down
+	$(podman) compose -f docker-compose.yml -f docker-compose.test.yml down
 	$(podman) volume rm osidb_pg-data || true
 	$(podman) image rm localhost/osidb-service --force || true
 	rm -rf .tox
@@ -117,11 +117,11 @@ dev-rpm-install:
 .PHONY: build
 build:
 	@echo ">building docker images and deleting existing containers"
-	$(podmancompose) -f docker-compose.yml -f docker-compose.test.yml down
-	$(podmancompose) -f docker-compose.yml build
-	$(podmancompose) -f docker-compose.yml pull
-	$(podmancompose) -f docker-compose.test.yml build
-	$(podmancompose) -f docker-compose.test.yml pull
+	$(podman) compose -f docker-compose.yml -f docker-compose.test.yml down
+	$(podman) compose -f docker-compose.yml build
+	$(podman) compose -f docker-compose.yml pull
+	$(podman) compose -f docker-compose.test.yml build
+	$(podman) compose -f docker-compose.test.yml pull
 
 
 #***********************************
