@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Workaround for parsing modular components from PURLs (OSIDB-4292)
+
 ### Fixed
 - Properly parse modular components in Jira queries (OSIDB-4224)
 - Properly handle schedule_options parameter in SyncManager (OSIDB-4260)

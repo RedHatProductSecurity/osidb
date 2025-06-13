@@ -80,3 +80,33 @@ class TestAffect:
         affect.save()
         assert affect.is_resolved == is_resolved_2
         assert affect.resolved_dt or not is_resolved_2
+
+    @pytest.mark.parametrize(
+        "purl,ps_component",
+        [
+            ("pkg:rpm/redhat/php@7.2?arch=src&rpmmod=php:7.2", "php:7.2/php"),
+            ("pkg:rpm/redhat/squid@4?arch=src&rpmmod=squid:4", "squid:4/squid"),
+            (
+                "pkg:rpm/redhat/gstreamer1-plugins-good@flatpak?arch=src&rpmmod=libreoffice:flatpak",
+                "libreoffice:flatpak/gstreamer1-plugins-good",
+            ),
+            ("pkg:rpm/redhat/redis@6?arch=src&rpmmod=redis:6", "redis:6/redis"),
+            (
+                "pkg:rpm/redhat/ghostscript@flatpak?arch=src&rpmmod=gimp:flatpak",
+                "gimp:flatpak/ghostscript",
+            ),
+            ("pkg:rpm/redhat/idm@DL1?arch=src&rpmmod=idm:DL1", "idm:DL1/idm"),
+            (
+                "pkg:rpm/redhat/nginx@1.14.1-9.module+el8.0.0+4108+cba21616?arch=x86_64&rpmmod=mainstream",
+                "mainstream/nginx",
+            ),
+            (
+                "pkg:oci/example-component?repository_url=registry.example.io/namespace/example-component",
+                "namespace/example-component",
+            ),
+        ],
+    )
+    def test_ps_component_from_purl(self, purl, ps_component):
+        affect = AffectFactory(purl=purl, ps_component=None)
+
+        assert affect.ps_component == ps_component
