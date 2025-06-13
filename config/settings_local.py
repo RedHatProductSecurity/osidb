@@ -7,18 +7,39 @@ from .settings import *
 SECRET_KEY = get_random_secret_key()  # pragma: allowlist secret
 
 # Minimal group for read access of public flaws in OSIDB
-PUBLIC_READ_GROUPS = ["data-prodsec"]
-# Minimal group for write access of public flaws in OSIDB
-PUBLIC_WRITE_GROUP = "data-prodsec-write"
-# Minimal group for read access of embargoed flaws in OSIDB
-EMBARGO_READ_GROUP = "data-topsecret"
-# Minimal group for write access of embargoed flaws in OSIDB
-EMBARGO_WRITE_GROUP = "data-topsecret-write"
-# Minimal group for read access of internal flaws in OSIDB
-INTERNAL_READ_GROUP = "data-internal-read"
-# Minimal group for write access of internal flaws in OSIDB
-INTERNAL_WRITE_GROUP = "data-internal-write"
+# PUBLIC_READ_GROUPS = ["data-prodsec"]
+# # Minimal group for write access of public flaws in OSIDB
+# PUBLIC_WRITE_GROUP = "data-prodsec-write"
+# # Minimal group for read access of embargoed flaws in OSIDB
+# EMBARGO_READ_GROUP = "data-topsecret"
+# # Minimal group for write access of embargoed flaws in OSIDB
+# EMBARGO_WRITE_GROUP = "data-topsecret-write"
+# # Minimal group for read access of internal flaws in OSIDB
+# INTERNAL_READ_GROUP = "data-internal-read"
+# # Minimal group for write access of internal flaws in OSIDB
+# INTERNAL_WRITE_GROUP = "data-internal-write"
 
+# # Contains all non-admin groups
+# ALL_GROUPS = [
+#     *PUBLIC_READ_GROUPS,
+#     PUBLIC_WRITE_GROUP,
+#     EMBARGO_READ_GROUP,
+#     EMBARGO_WRITE_GROUP,
+#     INTERNAL_READ_GROUP,
+#     INTERNAL_WRITE_GROUP,
+# ]
+
+PUBLIC_READ_GROUPS = ["osidb-stage-public-read", "red-hat-product-security"]
+# Minimal group for write access of public flaws in OSIDB
+PUBLIC_WRITE_GROUP = "osidb-stage-public-write"
+# Minimal group for read access of embargoed flaws in OSIDB
+EMBARGO_READ_GROUP = "osidb-stage-embargo-read"
+# Minimal group for write access of embargoed flaws in OSIDB
+EMBARGO_WRITE_GROUP = "osidb-stage-embargo-write"
+# Minimal group for read access of internal flaws in OSIDB
+INTERNAL_READ_GROUP = "osidb-stage-internal-read"
+# Minimal group for write access of internal flaws in OSIDB
+INTERNAL_WRITE_GROUP = "osidb-stage-internal-write"
 # Contains all non-admin groups
 ALL_GROUPS = [
     *PUBLIC_READ_GROUPS,
