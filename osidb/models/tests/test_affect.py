@@ -80,3 +80,18 @@ class TestAffect:
         affect.save()
         assert affect.is_resolved == is_resolved_2
         assert affect.resolved_dt or not is_resolved_2
+
+    @pytest.mark.parametrize(
+        "purl,ps_component",
+        [
+            (
+                "pkg:rpm/redhat/nginx@1.14.1-9.module+el8.0.0+4108+cba21616?arch=x86_64&rpmmod=mainstream",
+                "mainstream/nginx",
+            )
+        ],
+    )
+    def test_purls(self, purl, ps_component):
+        affect = AffectFactory(purl=purl, ps_component=None)
+
+        # affect.save()
+        assert affect.ps_component == ps_component
