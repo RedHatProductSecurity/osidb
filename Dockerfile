@@ -1,4 +1,4 @@
-FROM registry.redhat.io/ubi9/ubi:9.6
+FROM registry.access.redhat.com/ubi9/ubi:9.6
 
 LABEL summary="OSIDB" \
       maintainer="Product Security DevOps <prodsec-dev@redhat.com>"
