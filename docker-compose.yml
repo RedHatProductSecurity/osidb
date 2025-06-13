@@ -62,7 +62,7 @@ services:
         args:
           RH_CERT_URL: ${RH_CERT_URL}
           PYPI_MIRROR: ${PIP_INDEX_URL}
-      image: osidb-service
+      image: localhost/osidb-service
       stdin_open: true
       tty: true
       ports:
@@ -147,7 +147,7 @@ services:
           -c config_file=/etc/postgresql/postgresql.conf
 
     celery:
-      image: osidb-service
+      image: localhost/osidb-service
       command: ./scripts/run-celery.sh
       deploy:
         mode: replicated
@@ -193,7 +193,7 @@ services:
     celery_beat:
       container_name: celery_beat
       hostname: celery_beat
-      image: osidb-service
+      image: localhost/osidb-service
       command: ./scripts/run-celery-beat.sh
       volumes:
         - ${PWD}:/opt/app-root/src:z
@@ -232,7 +232,7 @@ services:
     flower:
       container_name: flower
       hostname: flower
-      image: osidb-service
+      image: localhost/osidb-service
       command: ./scripts/run-flower.sh
       ports:
         - "5555:5555"
