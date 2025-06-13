@@ -99,6 +99,20 @@ class EmptyCvssFilter(BooleanFilter):
         return method(query).distinct()
 
 
+class NullForeignKeyFilter(BooleanFilter):
+    """Filter for null foreign key fields"""
+
+    def filter(self, queryset, value):
+        if value in EMPTY_VALUES:
+            return queryset
+
+        exclude = self.exclude ^ (value is False)
+        method = queryset.exclude if exclude else queryset.filter
+        query = Q(**{f"{self.field_name}__isnull": True})
+
+        return method(query)
+
+
 class DistinctFilterSet(FilterSet):
     """
     Custom FilterSet which enforces the distinct for field names that starts
@@ -539,10 +553,14 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
     embargoed = BooleanFilter(field_name="embargoed")
     trackers__embargoed = BooleanFilter(field_name="trackers__embargoed")
     flaw__embargoed = BooleanFilter(field_name="flaw__embargoed")
+    flaw__workflow_state = ChoiceInFilter(
+        field_name="flaw__workflow_state", choices=WorkflowModel.WorkflowState.choices
+    )
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
     flaw__components = CharInFilter(
         field_name="flaw__components", lookup_expr="contains"
     )
+    trackers__isempty = NullForeignKeyFilter(field_name="trackers")
 
     class Meta:
         model = Affect
