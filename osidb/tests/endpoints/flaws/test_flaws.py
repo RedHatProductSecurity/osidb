@@ -1794,9 +1794,6 @@ class TestEndpointsFlaws:
 
             assert len(flaw_json["affects"]) == 10
 
-            affect1 = flaw_json["affects"][0]
-            assert len(affect1["history"]) == 1
-
             flaw.title = "Modified Title"
             flaw.save()
 

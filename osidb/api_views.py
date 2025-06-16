@@ -580,24 +580,15 @@ class FlawIntrospectionView(RudimentaryUserPathLoggingMixin, APIView):
 class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
     queryset = Flaw.objects.prefetch_related(
         "acknowledgments",
-        "acknowledgments__alerts",
         "affects",
-        "affects__alerts",
         "affects__cvss_scores",
-        "affects__cvss_scores__alerts",
         "affects__trackers",
         "affects__trackers__errata",
         "affects__trackers__affects",
-        "affects__trackers__alerts",
-        "alerts",
         "comments",
-        "comments__alerts",
         "cvss_scores",
-        "cvss_scores__alerts",
         "package_versions",
-        "package_versions__alerts",
         "references",
-        "references__alerts",
         "labels",
     ).all()
     serializer_class = FlawSerializer

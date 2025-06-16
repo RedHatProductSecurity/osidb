@@ -21,7 +21,7 @@ from apps.taskman.constants import (
     TRANSITION_REQUIRED_FIELDS,
 )
 from apps.taskman.mixins import JiraTaskSyncMixin
-from apps.workflows.workflow import WorkflowModel
+from apps.workflows.workflow import WorkflowModel, WorkflowModelManager
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 from osidb.constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
 from osidb.mixins import (
@@ -47,7 +47,7 @@ from osidb.validators import no_future_date, validate_cve_id, validate_cwe_id
 logger = logging.getLogger(__name__)
 
 
-class FlawManager(ACLMixinManager, TrackingMixinManager):
+class FlawManager(ACLMixinManager, TrackingMixinManager, WorkflowModelManager):
     """flaw manager"""
 
     @staticmethod
