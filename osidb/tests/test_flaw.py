@@ -23,7 +23,9 @@ from osidb.models import (
     Impact,
     Tracker,
 )
+from osidb.models.flaw.label import FlawCollaborator, FlawLabel
 from osidb.tests.factories import (
+    AffectCVSSFactory,
     AffectFactory,
     FlawAcknowledgmentFactory,
     FlawCommentFactory,
@@ -577,6 +579,64 @@ class TestFlaw:
         # it should not fail and update the timestamp correctly
         a.trackers.remove(t)
         assert Flaw.objects.first().local_updated_dt > og_local_updated_dt
+
+    @pytest.mark.enable_signals
+    def test_local_updated_dt_flaw_reference(self):
+        with freeze_time(tzdatetime(1998, 2, 25, 13, 27, 0)):
+            f = FlawFactory(embargoed=False)
+        og_local_updated_dt = f.local_updated_dt
+        FlawReferenceFactory(flaw=f)
+        assert Flaw.objects.get(pk=f.uuid).local_updated_dt > og_local_updated_dt
+
+    @pytest.mark.enable_signals
+    def test_local_updated_dt_flaw_acknowledgement(self):
+        with freeze_time(tzdatetime(1998, 2, 25, 13, 27, 0)):
+            f = FlawFactory(embargoed=False, source=FlawSource.REDHAT)
+        og_local_updated_dt = f.local_updated_dt
+        FlawAcknowledgmentFactory(flaw=f)
+        assert Flaw.objects.get(pk=f.uuid).local_updated_dt > og_local_updated_dt
+
+    @pytest.mark.enable_signals
+    def test_local_updated_dt_flaw_comment(self):
+        with freeze_time(tzdatetime(1998, 2, 25, 13, 27, 0)):
+            f = FlawFactory(embargoed=False)
+        og_local_updated_dt = f.local_updated_dt
+        FlawCommentFactory(flaw=f)
+        assert Flaw.objects.get(pk=f.uuid).local_updated_dt > og_local_updated_dt
+
+    @pytest.mark.enable_signals
+    def test_local_updated_dt_flaw_collaborator(self):
+        with freeze_time(tzdatetime(1998, 2, 25, 13, 27, 0)):
+            f = FlawFactory(embargoed=False)
+            _ = AffectFactory(flaw=f)
+            f.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+            f.save()
+        og_local_updated_dt = f.local_updated_dt
+        FlawCollaborator.objects.create(
+            label="test_context",
+            flaw=f,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+        assert FlawCollaborator.objects.count()
+        assert Flaw.objects.get(pk=f.uuid).local_updated_dt > og_local_updated_dt
+
+    @pytest.mark.enable_signals
+    def test_local_updated_dt_flaw_cvss(self):
+        with freeze_time(tzdatetime(1998, 2, 25, 13, 27, 0)):
+            f = FlawFactory(embargoed=False)
+        og_local_updated_dt = f.local_updated_dt
+        FlawCVSSFactory(flaw=f)
+        assert Flaw.objects.get(pk=f.uuid).local_updated_dt > og_local_updated_dt
+
+    @pytest.mark.enable_signals
+    def test_local_updated_dt_affect_cvss(self):
+        with freeze_time(tzdatetime(1998, 2, 25, 13, 27, 0)):
+            f = FlawFactory(embargoed=False)
+            a = AffectFactory(flaw=f)
+        og_local_updated_dt = f.local_updated_dt
+        AffectCVSSFactory(affect=a)
+        assert Flaw.objects.get(pk=f.uuid).local_updated_dt > og_local_updated_dt
 
     @pytest.mark.parametrize(
         "ps_module_name,ps_product_name",
