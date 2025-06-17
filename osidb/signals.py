@@ -19,6 +19,9 @@ from osidb.models import (
     Profile,
     Tracker,
 )
+from osidb.models.flaw.acknowledgment import FlawAcknowledgment
+from osidb.models.flaw.comment import FlawComment
+from osidb.models.flaw.reference import FlawReference
 
 logger = logging.getLogger(__name__)
 
@@ -109,8 +112,37 @@ def update_flaw_fields(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Affect)
-def update_local_updated_dt_affect(sender, instance, **kwargs):
+@receiver(post_save, sender=FlawReference)
+@receiver(post_save, sender=FlawAcknowledgment)
+@receiver(post_save, sender=FlawComment)
+@receiver(post_save, sender=FlawCollaborator)
+@receiver(post_save, sender=FlawCVSS)
+def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
     instance.flaw.save(auto_timestamps=False, raise_validation_error=False)
+
+
+@receiver(post_save, sender=Tracker)
+@receiver(m2m_changed, sender=Tracker.affects.through)
+def update_local_updated_dt_tracker(sender, instance, **kwargs):
+    flaws = set()
+    # /!\ in the case of an m2m_changed signal, instance can be either a
+    # Tracker or an Affect object, see Django docs on m2m_changed signal
+    if isinstance(instance, Affect):
+        flaws.add(instance.flaw)
+    else:
+        for affect in instance.affects.all():
+            flaws.add(affect.flaw)
+    for flaw in list(flaws):
+        flaw.save(
+            auto_timestamps=False,
+            no_alerts=True,  # recreating alerts from nested entities can cause deadlocks
+            raise_validation_error=False,
+        )
+
+
+@receiver(post_save, sender=AffectCVSS)
+def updated_local_updated_dt_affectcvss(sender, instance, **kwargs):
+    instance.affect.flaw.save(auto_timestamps=False, raise_validation_error=False)
 
 
 @receiver(post_save, sender=Affect)
@@ -137,25 +169,6 @@ def create_labels_on_promote(sender, instance, **kwargs):
         != WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
     ):
         FlawCollaborator.objects.create_from_flaw(instance)
-
-
-@receiver(post_save, sender=Tracker)
-@receiver(m2m_changed, sender=Tracker.affects.through)
-def update_local_updated_dt_tracker(sender, instance, **kwargs):
-    flaws = set()
-    # /!\ in the case of an m2m_changed signal, instance can be either a
-    # Tracker or an Affect object, see Django docs on m2m_changed signal
-    if isinstance(instance, Affect):
-        flaws.add(instance.flaw)
-    else:
-        for affect in instance.affects.all():
-            flaws.add(affect.flaw)
-    for flaw in list(flaws):
-        flaw.save(
-            auto_timestamps=False,
-            no_alerts=True,  # recreating alerts from nested entities can cause deadlocks
-            raise_validation_error=False,
-        )
 
 
 @receiver(pre_save, sender=Affect)

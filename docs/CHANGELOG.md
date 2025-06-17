@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Properly parse modular components in Jira queries (OSIDB-4224)
 - Properly handle schedule_options parameter in SyncManager (OSIDB-4260)
+- Take into account flaw-related model updates in changed_{after,before}
+  filters (OSIDB-4284)
 
 ### Changed
 - Swap out local krb5_auth for django-kaminarimon (OSIDB-4243)
