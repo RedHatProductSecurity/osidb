@@ -63,6 +63,7 @@ services:
           RH_CERT_URL: ${RH_CERT_URL}
           PYPI_MIRROR: ${PIP_INDEX_URL}
       image: localhost/osidb-service
+      pull_policy: never
       stdin_open: true
       tty: true
       ports:
@@ -148,6 +149,7 @@ services:
 
     celery:
       image: localhost/osidb-service
+      pull_policy: never
       command: ./scripts/run-celery.sh
       deploy:
         mode: replicated
@@ -194,6 +196,7 @@ services:
       container_name: celery_beat
       hostname: celery_beat
       image: localhost/osidb-service
+      pull_policy: never
       command: ./scripts/run-celery-beat.sh
       volumes:
         - ${PWD}:/opt/app-root/src:z
@@ -233,6 +236,7 @@ services:
       container_name: flower
       hostname: flower
       image: localhost/osidb-service
+      pull_policy: never
       command: ./scripts/run-flower.sh
       ports:
         - "5555:5555"
