@@ -158,11 +158,7 @@ class TestSnippet:
             cve_id=undesired_cve_id,
             meta_attr={"external_ids": json.dumps([undesired_cve_id])},
         )
-        FlawFactory(
-            cve_id=desired_cve_id,
-            meta_attr={"external_ids": json.dumps([desired_cve_id])},
-        )
-        snippet = SnippetFactory(source="NVD", cve_id=None, external_id=desired_cve_id)
+        snippet = SnippetFactory(source="NVD", cve_id=desired_cve_id)
         snippet.convert_snippet_to_flaw()
         flaw_from_snippet = snippet.flaw
         assert flaw_from_snippet.cve_id != undesired_cve_id
