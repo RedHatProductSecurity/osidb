@@ -1034,6 +1034,7 @@ class AbstractCVSSSerializer(
 
 class AffectCVSSSerializer(
     AbstractCVSSSerializer,
+    JiraAPIKeyMixin,
 ):
     """AffectCVSS serializer"""
 
@@ -1046,6 +1047,23 @@ class AffectCVSSSerializer(
 
         model = AffectCVSS
         fields = ["affect"] + AbstractCVSSSerializer.Meta.fields
+
+    def update(self, instance, validated_data):
+        """Handles CVSS update and sync with Jira trackers if needed."""
+        old_cvss = AffectCVSS.objects.get(uuid=instance.uuid)
+        new_cvss = super().update(instance, validated_data)
+        self.update_trackers(old_cvss, new_cvss)
+        return new_cvss
+
+    def update_trackers(self, old_cvss, new_cvss):
+        """
+        Updates the related Jira trackers if needed.
+        """
+        if old_cvss is not None and not differ(
+            old_cvss, new_cvss, ["score", "vector", "issuer"]
+        ):
+            return
+        new_cvss.sync_to_trackers(jira_token=self.get_jira_token())
 
 
 @extend_schema_serializer(exclude_fields=["affect", "updated_dt"])
@@ -1673,6 +1691,7 @@ class FlawReferencePutSerializer(FlawReferenceSerializer):
 
 class FlawCVSSSerializer(
     AbstractCVSSSerializer,
+    JiraAPIKeyMixin,
 ):
     """FlawCVSS serializer"""
 
@@ -1685,6 +1704,24 @@ class FlawCVSSSerializer(
 
         model = FlawCVSS
         fields = ["flaw"] + AbstractCVSSSerializer.Meta.fields
+
+    def update(self, instance, validated_data):
+        """Handles CVSS update and sync with Jira trackers if needed."""
+        old_cvss = FlawCVSS.objects.get(uuid=instance.uuid)
+        new_cvss = super().update(instance, validated_data)
+        self.update_trackers(old_cvss, new_cvss)
+        return new_cvss
+
+    def update_trackers(self, old_cvss, new_cvss):
+        """
+        Updates the related Jira trackers if needed.
+        """
+        if old_cvss is not None and not differ(
+            old_cvss, new_cvss, ["score", "vector", "issuer"]
+        ):
+            return
+
+        new_cvss.sync_to_trackers(jira_token=self.get_jira_token())
 
 
 @extend_schema_serializer(exclude_fields=["updated_dt", "flaw"])

@@ -69,3 +69,16 @@ class FlawCVSS(CVSS):
                 raise ValidationError(
                     "RH CVSSv3 score must be zero if flaw impact is not set."
                 )
+
+    def sync_to_trackers(self, jira_token):
+        """Sync this CVSS in the related Jira trackers."""
+        from osidb.models.tracker import Tracker
+
+        for affect in self.flaw.affects.all():
+            if affect.is_community:
+                continue
+
+            for tracker in affect.trackers.all():
+                if not tracker.is_closed and tracker.type == Tracker.TrackerType.JIRA:
+                    # default save already sync with Jira when needed
+                    tracker.save(jira_token=jira_token)

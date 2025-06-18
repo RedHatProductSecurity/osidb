@@ -1,8 +1,14 @@
 import pytest
 from rest_framework import status
 
-from osidb.models import FlawCVSS, Impact
-from osidb.tests.factories import AffectFactory, FlawCVSSFactory, FlawFactory
+from apps.trackers.save import TrackerJiraSaver
+from osidb.models import Affect, AffectCVSS, FlawCVSS, Impact, PsUpdateStream, Tracker
+from osidb.tests.factories import (
+    AffectFactory,
+    FlawCVSSFactory,
+    FlawFactory,
+    TrackerFactory,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -313,3 +319,73 @@ class TestEndpointsFlawsCVSSScores:
         assert response.status_code == status.HTTP_200_OK
         # Same as above, should be a no-op
         assert FlawCVSS.objects.count() == 1
+
+    @pytest.mark.enable_signals
+    def test_flawcvss_update_tracker(
+        self,
+        monkeypatch,
+        enable_jira_tracker_sync,
+        setup_sample_external_resources,
+        auth_client,
+        test_api_uri,
+    ):
+        """Test that changes in FlawCVSS API triggers a sync with Jira trackers related"""
+        save_performed = False
+
+        def mock_save(self):
+            nonlocal save_performed
+            save_performed = True
+            return self.tracker
+
+        monkeypatch.setattr(TrackerJiraSaver, "save", mock_save)
+
+        ps_update_stream = (
+            PsUpdateStream.objects.filter(active_to_ps_module__bts_name="jboss")
+            .order_by("name")
+            .first()
+        )
+        ps_module = ps_update_stream.active_to_ps_module
+        ps_component = setup_sample_external_resources["jboss_components"][0]
+
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            ps_module=ps_module.name,
+            ps_component=ps_component,
+        )
+        TrackerFactory(
+            affects=[affect],
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=ps_update_stream.name,
+        )
+        cvss = FlawCVSSFactory(
+            flaw=flaw,
+            issuer=AffectCVSS.CVSSIssuer.REDHAT,
+            comment="",
+            vector="CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+            version=AffectCVSS.CVSSVersion.VERSION3,
+        )
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores/{cvss.uuid}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["issuer"] == AffectCVSS.CVSSIssuer.REDHAT
+        assert response.data["score"] == 8.1
+
+        updated_data = response.json().copy()
+        updated_data["vector"] = "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"
+
+        # Tests "PUT" on flaws/{uuid}/cvss_scores/{uuid}
+        response = auth_client().put(
+            f"{test_api_uri}/flaws/{str(flaw.uuid)}/cvss_scores/{cvss.uuid}",
+            data=updated_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["issuer"] == AffectCVSS.CVSSIssuer.REDHAT
+        assert response.data["score"] == 7.8
+        assert save_performed
