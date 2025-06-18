@@ -218,6 +218,8 @@ class Affect(
                     return f"{prefix}/{purl.name}"
                 except (KeyError, IndexError):
                     raise ValueError("Invalid repository_url in OCI PURL")
+            elif "rpmmod" in purl.qualifiers:
+                return f"{purl.qualifiers['rpmmod']}/{purl.name}"
             else:
                 return purl.name
         except ValueError:
