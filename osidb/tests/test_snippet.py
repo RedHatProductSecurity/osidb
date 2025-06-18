@@ -150,3 +150,16 @@ class TestSnippet:
             assert snippet.content["cve_id"] == flaw.cve_id
         elif identifier == "external_id":
             assert flaw.meta_attr == {"external_ids": json.dumps([ext_id])}
+
+    def test_flaw_linking(self):
+        desired_cve_id = "CVE-2024-1234"
+        undesired_cve_id = "CVE-2024-12340"
+        FlawFactory(
+            cve_id=undesired_cve_id,
+            meta_attr={"external_ids": json.dumps([undesired_cve_id])},
+        )
+        snippet = SnippetFactory(source="NVD", cve_id=desired_cve_id)
+        snippet.convert_snippet_to_flaw()
+        flaw_from_snippet = snippet.flaw
+        assert flaw_from_snippet.cve_id != undesired_cve_id
+        assert flaw_from_snippet.cve_id == desired_cve_id
