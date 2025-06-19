@@ -28,7 +28,8 @@ services:
         args:
           RH_CERT_URL: ${RH_CERT_URL}
           PYPI_MIRROR: ${PIP_INDEX_URL}
-      image: testrunner
+      image: localhost/testrunner
+      pull_policy: never
       stdin_open: true
       tty: true
       depends_on: ["osidb-data"]

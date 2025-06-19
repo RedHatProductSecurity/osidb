@@ -4,7 +4,6 @@
 python3=`which python3`
 tox=`which tox`
 podman=`which podman`
-podmancompose=`which podman-compose | head -n 1`
 oc=`which oc`
 ap=`which ansible-playbook`
 ocptoken=`oc whoami -t`
