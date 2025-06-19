@@ -621,6 +621,24 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
     order = OrderingFilter(fields=order_fields)
 
 
+class AffectV2Filter(AffectFilter):
+    """
+    Extends the AffectFilter to include ps_update_stream which is necessary for affects v2.
+    """
+
+    class Meta(AffectFilter.Meta):
+        fields = AffectFilter.Meta.fields.copy()
+        fields["ps_update_stream"] = ["exact"]
+
+    order_fields = [
+        "cvss_scores__cvss_version",
+        "embargoed",
+        "flaw__embargoed",
+        "trackers__embargoed",
+    ] + list(Meta.fields.keys())
+    order = OrderingFilter(fields=order_fields)
+
+
 class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
 
     DISTINCT_FIELDS_PREFIXES = ("affects__",)

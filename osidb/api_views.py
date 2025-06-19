@@ -51,6 +51,7 @@ from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import (
     AffectCVSSFilter,
     AffectFilter,
+    AffectV2Filter,
     AlertFilter,
     FlawAcknowledgmentFilter,
     FlawCommentFilter,
@@ -70,6 +71,10 @@ from .serializer import (
     AffectCVSSSerializer,
     AffectPostSerializer,
     AffectSerializer,
+    AffectV2BulkPostPutResponseSerializer,
+    AffectV2BulkPutSerializer,
+    AffectV2PostSerializer,
+    AffectV2Serializer,
     AlertSerializer,
     AuditSerializer,
     FlawAcknowledgmentPostSerializer,
@@ -94,10 +99,14 @@ from .serializer import (
     FlawReferencePutSerializer,
     FlawReferenceSerializer,
     FlawSerializer,
+    FlawV2PostSerializer,
+    FlawV2Serializer,
     IntegrationTokenGetSerializer,
     IntegrationTokenPatchSerializer,
     TrackerPostSerializer,
     TrackerSerializer,
+    TrackerV2PostSerializer,
+    TrackerV2Serializer,
     UserSerializer,
 )
 from .validators import CVE_RE_STR
@@ -621,6 +630,78 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         return response
 
 
+@query_extend_schema_view
+@include_meta_attr_extend_schema_view
+@include_exclude_fields_extend_schema_view
+@include_history_extend_schema_view
+@bz_api_key_extend_schema_view
+@jira_api_key_extend_schema_view
+@extend_schema_view(
+    list=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "tracker_ids",
+                type={"type": "array", "items": {"type": "string"}},
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "Filter only Flaws which are related to specified Trackers (through "
+                    "Affects). Multiple tracker IDs may be separated by commas. Also only "
+                    "Affects that have the specified Trackers related will be shown."
+                ),
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        responses=FlawV2Serializer,  # Use FlawV2Serializer for retrieve response
+        parameters=[
+            OpenApiParameter(
+                "tracker_ids",
+                type={"type": "array", "items": {"type": "string"}},
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "Filter only Flaws which are related to specified Trackers (through "
+                    "Affects). Multiple tracker IDs may be separated by commas. Also only "
+                    "Affects that have the specified Trackers related will be shown."
+                ),
+            ),
+            id_param,
+        ],
+    ),
+    create=extend_schema(
+        request=FlawV2PostSerializer,  # Use FlawV2PostSerializer for create request
+    ),
+    # destroy is excluded as per FlawView
+    update=extend_schema(
+        responses=FlawV2Serializer,  # Use FlawV2Serializer for update response
+        parameters=[
+            id_param,
+            OpenApiParameter(
+                "create_jira_task",
+                type={"type": "boolean"},
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "If set to true, it will trigger the creation of a Jira task if "
+                    "the flaw doesn't already have one associated."
+                ),
+            ),
+        ],
+    ),
+)
+class FlawV2View(FlawView):
+    """
+    API view for flaws using v2 serializers (for affects v2)
+    Inherits most behavior from FlawView.
+    """
+
+    serializer_class = FlawV2Serializer
+    # queryset and filterset_class are inherited from FlawView
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return FlawV2PostSerializer
+        return self.serializer_class
+
+
 class SubFlawViewDestroyMixin:
     @extend_schema(
         responses={
@@ -955,11 +1036,16 @@ class AffectView(
         "trackers__errata",
         "trackers__affects",
         "trackers__alerts",
-    ).all()
+    )
     serializer_class = AffectSerializer
     filterset_class = AffectFilter
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        return super().get_queryset().filter(affect_v1__isnull=True)
+
+    # TODO: Modify update/create to also act on the relevant v2 affects
 
     @extend_schema(
         request=AffectBulkPutSerializer(many=True),
@@ -1202,6 +1288,203 @@ class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
             instance.delete()
             affect.save(bz_api_key=bz_api_key)
         return Response(status=HTTP_200_OK)
+
+
+@include_meta_attr_extend_schema_view
+@include_exclude_fields_extend_schema_view
+@include_history_extend_schema_view
+@bz_api_key_extend_schema_view
+@jira_api_key_extend_schema_view
+@extend_schema_view(
+    create=extend_schema(
+        request=AffectV2PostSerializer,
+    ),
+)
+class AffectV2View(
+    RudimentaryUserPathLoggingMixin, SubFlawViewDestroyMixin, ModelViewSet
+):
+    queryset = Affect.objects.prefetch_related(
+        "alerts",
+        "cvss_scores",
+        "cvss_scores__alerts",
+        "trackers",
+        "trackers__errata",
+        "trackers__affects",
+        "trackers__alerts",
+    )
+    serializer_class = AffectV2Serializer
+    filterset_class = AffectV2Filter
+    http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        return super().get_queryset().filter(affect_v1__isnull=False)
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return AffectV2PostSerializer
+        return self.serializer_class
+
+    @extend_schema(
+        request=AffectV2BulkPutSerializer(many=True),
+        responses=AffectV2BulkPostPutResponseSerializer,
+        parameters=[bz_api_key_param, jira_api_key_param],
+    )
+    @action(methods=["PUT"], detail=False, url_path="bulk")
+    def bulk_put(self, request, *args, **kwargs):
+        """
+        Bulk update endpoint. Expects a list of dict Affect objects.
+        """
+        bz_api_key = get_bugzilla_api_key(request)
+        queryset = self.filter_queryset(self.get_queryset())
+
+        flaws = set()
+        uuids = set()
+        validated_serializers = []
+        for datum in request.data:
+            try:
+                uuid_val = datum["uuid"]
+            except KeyError:
+                raise ValidationError({"uuid": "This field is required."})
+
+            if uuid_val in uuids:
+                raise ValidationError(
+                    {"uuid": "Multiple objects with the same uuid provided."}
+                )
+            uuids.add(uuid_val)
+
+            try:
+                flaw_uuid = datum["flaw"]
+            except KeyError:
+                raise ValidationError({"flaw": "This field is required."})
+            flaws.add(flaw_uuid)
+
+            instance = get_object_or_404(queryset, uuid=uuid_val)
+            serializer = self.get_serializer(instance, data=datum)
+            serializer.is_valid(raise_exception=True)
+            validated_serializers.append(serializer)
+
+        if len(flaws) > 1:
+            raise ValidationError(
+                {"flaw": "Provided affects belong to multiple flaws."}
+            )
+
+        ret = []
+        for serializer in validated_serializers:
+            serializer.save(skip_bz_sync=True)
+            ret.append(serializer.data)
+
+        flaw = Flaw.objects.get(uuid=next(iter(flaws)))
+        flaw.save(bz_api_key=bz_api_key)
+
+        return Response({"results": ret})
+
+    @extend_schema(
+        request=AffectV2PostSerializer(many=True),
+        responses=AffectV2BulkPostPutResponseSerializer,
+        parameters=[bz_api_key_param],
+    )
+    @bulk_put.mapping.post
+    def bulk_post(self, request, *args, **kwargs):
+        """
+        Bulk create endpoint. Expects a list of dict Affect objects.
+        """
+        bz_api_key = get_bugzilla_api_key(request)
+
+        flaws = set()
+        validated_serializers = []
+        for datum in request.data:
+            try:
+                flaw_uuid = datum["flaw"]
+            except KeyError:
+                raise ValidationError({"flaw": "This field is required."})
+            flaws.add(flaw_uuid)
+
+            serializer = self.get_serializer(data=datum)
+            serializer.is_valid(raise_exception=True)
+            validated_serializers.append(serializer)
+
+        if len(flaws) > 1:
+            raise ValidationError(
+                {"flaw": "Provided affects belong to multiple flaws."}
+            )
+
+        ret = []
+        for serializer in validated_serializers:
+            serializer.save(skip_bz_sync=True)
+            ret.append(serializer.data)
+
+        flaw = Flaw.objects.get(uuid=next(iter(flaws)))
+        flaw.save(bz_api_key=bz_api_key)
+
+        return Response({"results": ret})
+
+    @extend_schema(
+        methods=["DELETE"],
+        responses={
+            200: {},
+        },
+        request={"type": "array", "items": {"type": "string"}},
+        parameters=[bz_api_key_param],
+    )
+    @bulk_put.mapping.delete
+    def bulk_delete(self, request, *args, **kwargs):
+        """
+        Bulk delete endpoint. Expects a list of Affect uuids.
+        """
+        # This method is a copy of AffectView.bulk_delete
+        bz_api_key = get_bugzilla_api_key(request)
+
+        flaws = set()
+        uuids = set()
+        for uuid_val in request.data:
+            if uuid_val in uuids:
+                raise ValidationError(
+                    {"uuid": "Multiple objects with the same uuid provided."}
+                )
+            uuids.add(uuid_val)
+
+            try:
+                affect_obj = Affect.objects.get(uuid=uuid_val)
+            except Affect.DoesNotExist:
+                raise ValidationError({"uuid": "Affect matching query does not exist."})
+
+            flaw_obj = affect_obj.flaw
+            flaws.add(flaw_obj.uuid)
+            if len(flaws) > 1:
+                raise ValidationError(
+                    {
+                        "uuid": "Affect object UUIDs belonging to multiple Flaws provided."
+                    }
+                )
+
+            affect_obj.delete()
+        flaw = Flaw.objects.get(uuid=next(iter(flaws)))
+        flaw.save(bz_api_key=bz_api_key)
+
+        return Response(status=HTTP_200_OK)
+
+
+@include_meta_attr_extend_schema_view
+@include_exclude_fields_extend_schema_view
+@bz_api_key_extend_schema_view
+@jira_api_key_extend_schema_view
+@extend_schema_view(
+    create=extend_schema(
+        request=TrackerV2PostSerializer,
+    ),
+)
+class TrackerV2View(RudimentaryUserPathLoggingMixin, ModelViewSet):
+    queryset = Tracker.objects.prefetch_related("alerts", "errata", "affects").all()
+    serializer_class = TrackerV2Serializer
+    filterset_class = TrackerFilter
+    http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return TrackerV2PostSerializer
+        return self.serializer_class
 
 
 @include_meta_attr_extend_schema_view
