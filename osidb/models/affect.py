@@ -66,12 +66,12 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
         )
 
     @staticmethod
-    def create_affect(flaw, ps_module, ps_component, **extra_fields):
+    def create_affect(flaw, ps_update_stream, ps_component, **extra_fields):
         """return a new affect or update an existing affect without saving"""
 
         try:
             affect = Affect.objects.get(
-                flaw=flaw, ps_module=ps_module, ps_component=ps_component
+                flaw=flaw, ps_update_stream=ps_update_stream, ps_component=ps_component
             )
             for attr, value in extra_fields.items():
                 setattr(affect, attr, value)
@@ -79,7 +79,7 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
         except ObjectDoesNotExist:
             return Affect(
                 flaw=flaw,
-                ps_module=ps_module,
+                ps_update_stream=ps_update_stream,
                 ps_component=ps_component,
                 **extra_fields,
             )
@@ -91,7 +91,7 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
 
         fields_to_search = (
             "ps_component",
-            "ps_module",
+            "ps_update_stream",
             "resolution",
             "affectedness",
             "type",
@@ -161,7 +161,10 @@ class Affect(
         blank=True,
     )
 
-    ps_module = models.CharField(max_length=100)
+    ps_update_stream = models.CharField(max_length=100)
+    # In affects v2 we keep the ps_module but computed when the ps_update_stream is changed,
+    # this denormalizes the data and prevents performance issues when the ps_module is needed
+    ps_module = models.CharField(max_length=100, blank=True, null=True)
 
     # the length 255 does not have any special meaning in Postgres
     # but it is the maximum SFM2 value so let us just keep parity for now
@@ -186,17 +189,29 @@ class Affect(
         Flaw, null=True, on_delete=models.CASCADE, related_name="affects"
     )
 
+    # For affects v2, links to the source affect v1 it is expanded from. This is used to
+    # maintain compatibility with the v1 API until it is fully deleted.
+    # v1 affects will have this set to None, this way we can differentiate between v1
+    # and v2 affects
+    affect_v1 = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="affects_v2",
+    )
+
     class Meta:
         """define meta"""
 
-        unique_together = ("flaw", "ps_module", "ps_component")
+        unique_together = ("flaw", "ps_update_stream", "ps_component")
         ordering = (
             "created_dt",
             "uuid",
         )
         verbose_name = "Affect"
         indexes = TrackingMixin.Meta.indexes + [
-            models.Index(fields=["flaw", "ps_module"]),
+            models.Index(fields=["flaw", "ps_update_stream"]),
             models.Index(fields=["flaw", "ps_component"]),
             GinIndex(fields=["acl_read"]),
         ]
@@ -247,6 +262,14 @@ class Affect(
         else:
             # Not resolved affects should never have resolved_dt
             self.resolved_dt = None
+
+        ps_update_stream = PsUpdateStream.objects.filter(
+            name=self.ps_update_stream
+        ).first()
+        if ps_update_stream:
+            self.ps_module = ps_update_stream.ps_module.name
+        else:
+            self.ps_module = None
 
         super().save(*args, **kwargs)
 
@@ -350,7 +373,7 @@ class Affect(
                 or self.resolution != old_affect.resolution
             ):
                 raise ValidationError(
-                    f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has an invalid "
+                    f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} has an invalid "
                     f"affectedness/resolution combination: {self.resolution} is not a valid resolution "
                     f"for {self.affectedness}."
                 )
@@ -359,7 +382,7 @@ class Affect(
             # impact, throw an alert
             self.alert(
                 "flaw_historical_affect_status",
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has a "
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} has a "
                 "historical affectedness/resolution combination which is not valid anymore: "
                 f"{self.resolution} is not a valid resolution for {self.affectedness}.",
                 **kwargs,
@@ -376,7 +399,7 @@ class Affect(
             not in AFFECTEDNESS_HISTORICAL_VALID_RESOLUTIONS[self.affectedness]
         ):
             raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has an invalid "
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} has an invalid "
                 f"affectedness/resolution combination: {self.resolution} is not a valid resolution "
                 f"for {self.affectedness}."
             )
@@ -392,7 +415,7 @@ class Affect(
             ).exists()  # see tracker.is_closed
         ):
             raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as "
                 "NOTAFFECTED but has open tracker(s).",
             )
 
@@ -407,7 +430,7 @@ class Affect(
             ).exists()  # see tracker.is_closed
         ):
             raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as "
                 "OOSS but has open tracker(s).",
             )
 
@@ -422,7 +445,7 @@ class Affect(
             ).exists()  # see tracker.is_closed
         ):
             raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as "
                 "WONTFIX but has open tracker(s).",
             )
 
@@ -435,7 +458,7 @@ class Affect(
             and self.trackers.exclude(status__iexact="CLOSED").exists()
         ):
             raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} cannot have "
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} cannot have "
                 "resolution DEFER with open tracker(s).",
             )
 
@@ -508,7 +531,7 @@ class Affect(
                 or ps_module.ps_product.short_name not in SERVICES_PRODUCTS
             ):
                 raise ValidationError(
-                    f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as WONTREPORT, "
+                    f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as WONTREPORT, "
                     f"which can only be used for service products."
                 )
 
@@ -522,7 +545,7 @@ class Affect(
             and self.impact not in [Impact.LOW, Impact.MODERATE]
         ):
             raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has impact {self.impact} "
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} has impact {self.impact} "
                 f"and is marked as WONTREPORT, which can only be used with low or moderate impact."
             )
 
@@ -559,7 +582,7 @@ class Affect(
         """
         if not self.purl and not self.ps_component:
             raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module} must have either purl or ps_component."
+                f"Affect ({self.uuid}) for {self.ps_update_stream} must have either purl or ps_component."
             )
 
         if self.purl:
@@ -567,13 +590,13 @@ class Affect(
                 ps_component_from_purl = self.ps_component_from_purl(True)
             except ValueError as exc:
                 raise ValidationError(
-                    f"Affect ({self.uuid}) for {self.ps_module} has "
+                    f"Affect ({self.uuid}) for {self.ps_update_stream} has "
                     f"an invalid purl '{self.purl}': {exc}."
                 )
 
             if self.ps_component and self.ps_component != ps_component_from_purl:
                 raise ValidationError(
-                    f"Affect ({self.uuid}) for {self.ps_module} has a ps_component "
+                    f"Affect ({self.uuid}) for {self.ps_update_stream} has a ps_component "
                     "that does not match the one included in purl: "
                     f"ps_component: {self.ps_component}, purl: {self.purl}."
                 )

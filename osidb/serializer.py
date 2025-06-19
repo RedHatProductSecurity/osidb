@@ -644,7 +644,7 @@ class HistoryMixinSerializer(serializers.ModelSerializer):
         fields = ["history"]
 
 
-class TrackerSerializer(
+class TrackerV2Serializer(
     ACLMixinSerializer,
     AlertMixinSerializer,
     BugzillaAPIKeyMixin,
@@ -676,6 +676,14 @@ class TrackerSerializer(
     )
     errata = serializers.SerializerMethodField()
     meta_attr = serializers.SerializerMethodField()
+    affects = serializers.SerializerMethodField()
+
+    def get_affects(self, obj):
+        # For v2 flaw API, only show v2 affects
+        affects_v1 = obj.affects.filter(affect_v1__isnull=False).values_list(
+            "uuid", flat=True
+        )
+        return list(affects_v1)
 
     @extend_schema_field(ErratumSerializer(many=True))
     def get_errata(self, obj):
@@ -881,6 +889,27 @@ class TrackerSerializer(
         #####################
 
         return tracker
+
+
+@extend_schema_serializer(exclude_fields=["external_system_id"])
+class TrackerV2PostSerializer(TrackerV2Serializer):
+    # extra serializer for POST request to exclude
+    # not yet existing but otherwise mandatory fields
+    # and make the PS update stream a mandatory field
+    ps_update_stream = serializers.CharField(max_length=100, required=True)
+
+
+class TrackerSerializer(TrackerV2Serializer):
+    """Tracker serializer for the old affects."""
+
+    affects = serializers.SerializerMethodField()
+
+    def get_affects(self, obj):
+        # For v1 flaw API, only show v1 affects
+        affects_v1 = obj.affects.filter(affect_v1__isnull=True).values_list(
+            "uuid", flat=True
+        )
+        return list(affects_v1)
 
 
 @extend_schema_serializer(exclude_fields=["external_system_id"])
@@ -1265,6 +1294,56 @@ class AffectBulkPutSerializer(AffectSerializer):
 class AffectBulkPostPutResponseSerializer(serializers.ModelSerializer):
     # Extra serializer for drf-spectacular to describe format of bulk POST & PUT response.
     results = AffectSerializer(many=True)
+
+    class Meta:
+        model = Affect
+        fields = ["results"]
+
+
+class AffectV2Serializer(AffectSerializer):
+    """Serializer for affect v2 which includes ps_update_stream"""
+
+    META_ATTR_KEYS = (
+        "affectedness",
+        "component",
+        "impact",
+        "module_name",
+        "module_stream",
+        "ps_component",
+        "ps_update_stream",
+        "ps_product",
+        "resolution",
+    )
+
+    class Meta:
+        model = Affect
+        fields = AffectSerializer.Meta.fields + [
+            "ps_update_stream",
+        ]
+
+
+@extend_schema_serializer(exclude_fields=["updated_dt"])
+class AffectV2PostSerializer(AffectV2Serializer):
+    pass
+
+
+@extend_schema_serializer()
+class AffectV2BulkPutSerializer(AffectV2Serializer):
+    # extra serializer for a single instance within a bulk PUT request
+    # as it needs UUID to be a part of each Affect's object.
+    META_ATTR_KEYS = tuple(AffectV2Serializer.META_ATTR_KEYS + ("uuid",))
+    uuid = serializers.UUIDField(
+        required=True,
+    )
+
+    class Meta:
+        model = Affect
+        fields = AffectV2Serializer.Meta.fields + ["uuid"]
+
+
+class AffectV2BulkPostPutResponseSerializer(serializers.ModelSerializer):
+    # Extra serializer for drf-spectacular to describe format of bulk POST & PUT response.
+    results = AffectV2Serializer(many=True)
 
     class Meta:
         model = Affect
@@ -1844,7 +1923,8 @@ class FlawSerializer(
     @extend_schema_field(AffectSerializer(many=True))
     def get_affects(self, obj):
         """affects serializer getter"""
-        affects = obj.affects.all()
+        # For v1 flaw API, only show v1 affects
+        affects = obj.affects.filter(affect_v1__isnull=True)
 
         context = {
             "include_fields": self._next_level_include_fields.get("affects", []),
@@ -1854,7 +1934,6 @@ class FlawSerializer(
 
         request = self.context.get("request")
         if request:
-
             # Filter only affects with trackers corresponding to specified IDs
             tracker_ids = request.query_params.get("tracker_ids")
             if tracker_ids:
@@ -2085,10 +2164,50 @@ class FlawSerializer(
                 )
 
 
+class FlawV2Serializer(FlawSerializer):
+    """Flaw serializer for v2 API, using affects v2."""
+
+    @extend_schema_field(AffectV2Serializer(many=True))
+    def get_affects(self, obj):
+        # For v2 flaw API, show only v2 affects
+        affects = obj.affects.filter(affect_v1__isnull=False)
+
+        context = {
+            "include_fields": self._next_level_include_fields.get("affects", []),
+            "exclude_fields": self._next_level_exclude_fields.get("affects", []),
+            "include_meta_attr": self._next_level_include_meta_attr.get("affects", []),
+        }
+
+        request = self.context.get("request")
+        if request:
+            # Filter only affects with trackers corresponding to specified IDs
+            tracker_ids = request.query_params.get("tracker_ids")
+            if tracker_ids:
+                affects = affects.filter(
+                    trackers__external_system_id__in=tracker_ids.split(",")
+                )
+
+            # If we have requested history on Flaw, then apply it to affects as well
+            include_history = request.query_params.get("include_history")
+            if include_history:
+                context["include_history"] = include_history
+
+        serializer = AffectV2Serializer(
+            instance=affects, many=True, read_only=True, context=context
+        )
+        return serializer.data
+
+
 @extend_schema_serializer(exclude_fields=["updated_dt"])
 class FlawPostSerializer(FlawSerializer):
     # extra serializer for POST request as there is no last update
     # timestamp but we need to make the field mandatory otherwise
+    pass
+
+
+@extend_schema_serializer(exclude_fields=["updated_dt"])
+class FlawV2PostSerializer(FlawV2Serializer):
+    # extra serializer for POST request for V2 flaws
     pass
 
 

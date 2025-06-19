@@ -11,6 +11,7 @@ from osidb.helpers import get_execution_env
 
 from .api_views import (
     AffectCVSSView,
+    AffectV2View,
     AffectView,
     AlertView,
     AuditView,
@@ -23,11 +24,13 @@ from .api_views import (
     FlawPackageVersionView,
     FlawReferenceView,
     FlawSuggestionsView,
+    FlawV2View,
     FlawView,
     JiraStageForwarderView,
     LabelView,
     ManifestView,
     StatusView,
+    TrackerV2View,
     TrackerView,
     healthy,
     integration_tokens,
@@ -76,6 +79,11 @@ vnext_router = routers.DefaultRouter(trailing_slash=False)
 vnext_router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/cvss-scores", FlawCVSSV2View, basename="flawcvssv2"
 )
+# Views adapted for affects v2
+vnext_router.register(r"flaws", FlawV2View)
+vnext_router.register(r"affects", AffectV2View, basename="affectsv2")
+vnext_router.register(r"trackers", TrackerV2View)
+
 
 urlpatterns = [
     path("healthy", healthy),
