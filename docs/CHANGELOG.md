@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
-- Trigger Jira tracker syunc when Red Hat's CVSS change (OSIDB-4186)
+- Trigger Jira tracker sync when Red Hat's CVSS change (OSIDB-4186)
 
 ### Fixed
 - Properly handle scheduled tasks collision in Jira Downloader (OSIDB-3846)
