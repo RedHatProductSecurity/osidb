@@ -413,9 +413,17 @@ class SyncManager(models.Model):
 
         # Not running: use last_scheduled_dt, but only if it was set
         # after the most recent finish (or at all if never run).
-        return manager.last_scheduled_dt is not None and (
-            manager.last_finished_dt is None
-            or manager.last_scheduled_dt > manager.last_finished_dt
+        return (
+            manager.last_scheduled_dt is not None
+            and (
+                manager.last_finished_dt is None
+                or manager.last_scheduled_dt > manager.last_finished_dt
+            )
+            or (
+                manager.last_rescheduled_dt is not None
+                and manager.last_consecutive_reschedules > 0
+                and manager.permanently_failed is False
+            )
         )
 
     def __str__(self):
@@ -812,14 +820,9 @@ class JiraTaskDownloadManager(SyncManager):
                 ).first()
 
                 if conflicting_sync_manager:
-                    conflicting_pending_sync = (
-                        conflicting_sync_manager.last_scheduled_dt is not None
-                        and (
-                            conflicting_sync_manager.last_finished_dt is None
-                            or conflicting_sync_manager.last_finished_dt
-                            < conflicting_sync_manager.last_scheduled_dt
-                        )
-                    )
+                    conflicting_pending_sync = conflicting_sync_manager.is_in_progress(
+                        existing_flaw.uuid
+                    ) or conflicting_sync_manager.is_scheduled(existing_flaw.uuid)
 
                     if conflicting_pending_sync:
                         logger.info(
