@@ -66,7 +66,11 @@ class TestCVEorgProcessing:
         collector.upsert_cvss_scores(content["cve_id"], original_cvss_scores)
         cvss: Optional[FlawCVSS] = FlawCVSS.objects.first()
         assert flaw.cvss_scores.count() == 1
-        assert cvss and cvss.vector == original_cvss_scores[0]["vector"]
+        assert (
+            cvss
+            and cvss.vector == original_cvss_scores[0]["vector"]
+            and cvss.score == 9.1
+        )
 
         # finally we update the existing CVSS score
         original_cvss_scores[0][
@@ -75,7 +79,11 @@ class TestCVEorgProcessing:
         collector.upsert_cvss_scores(content["cve_id"], original_cvss_scores)
         cvss: Optional[FlawCVSS] = FlawCVSS.objects.first()
         assert flaw.cvss_scores.count() == 1
-        assert cvss and cvss.vector == "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+        assert (
+            cvss
+            and cvss.vector == "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+            and cvss.score == 9.8
+        )
 
     def test_upsert_cvss_scores_no_cve_id(self):
         collector = CVEorgCollector()
