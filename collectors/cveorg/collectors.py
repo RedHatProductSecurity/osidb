@@ -26,6 +26,7 @@ from collectors.framework.models import Collector
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
 from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
+from osidb.models.abstract import CVSS
 from osidb.validators import CVE_RE_STR
 
 logger = get_task_logger(__name__)
@@ -290,12 +291,14 @@ class CVEorgCollector(Collector):
         except Flaw.DoesNotExist:
             return
         for score in cvss_scores:
+            cvss_obj = CVSS.CVSS_HANDLES[score["version"]](score["vector"])
             FlawCVSS.objects.update_or_create(
                 flaw=flaw,
                 issuer=score["issuer"],
                 version=score["version"],
                 defaults={
                     "vector": score["vector"],
+                    "score": float(cvss_obj.base_score),
                     "acl_read": flaw.acl_read,
                     "acl_write": flaw.acl_write,
                 },

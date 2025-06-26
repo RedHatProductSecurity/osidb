@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Properly handle scheduled tasks collision in Jira Downloader (OSIDB-3846)
 
+### Fixed
+- CVE.org and CISA CVSS correctly recalculate and persist the numeric
+  score on update (OSIDB-4326)
+
 ## [4.12.0] - 2025-06-18
 ### Added
 - Workaround for parsing modular components from PURLs (OSIDB-4292)
