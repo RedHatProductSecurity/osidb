@@ -470,12 +470,16 @@ class Flaw(
 
         if rh_cvss3:
             if rh_cvss3.cvss_object.base_score == Decimal("0.0") and self.impact:
-                raise ValidationError(
-                    "Flaw impact must not be set if RH CVSSv3 score is zero."
+                self.alert(
+                    "set_impact_with_zero_CVSSv3_score",
+                    "Flaw impact must not be set if RH CVSSv3 score is zero.",
+                    **kwargs,
                 )
             if rh_cvss3.cvss_object.base_score != Decimal("0.0") and not self.impact:
-                raise ValidationError(
-                    "Flaw impact must be set if RH CVSSv3 score is not zero."
+                self.alert(
+                    "unset_impact_with_nonzero_CVSSv3_score",
+                    "Flaw impact must be set if RH CVSSv3 score is not zero.",
+                    **kwargs,
                 )
 
     def _validate_cve_description_and_requires_cve_description(self, **kwargs):

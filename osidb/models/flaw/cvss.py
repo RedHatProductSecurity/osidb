@@ -1,8 +1,6 @@
-from decimal import Decimal
-
 import pghistory
 from django.contrib.postgres.indexes import GinIndex
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
 from osidb.mixins import ACLMixinManager, TrackingMixin, TrackingMixinManager
@@ -50,25 +48,6 @@ class FlawCVSS(CVSS):
         indexes = TrackingMixin.Meta.indexes + [
             GinIndex(fields=["acl_read"]),
         ]
-
-    def _validate_rh_cvss3_and_impact(self, **kwargs):
-        """
-        Validate that flaw's RH CVSSv3 score and impact comply with the following:
-        * RH CVSSv3 score is not zero and flaw impact is set
-        * RH CVSSv3 score is zero and flaw impact is not set
-        """
-        if (
-            self.issuer == self.CVSSIssuer.REDHAT
-            and self.version == self.CVSSVersion.VERSION3
-        ):
-            if self.flaw.impact and self.cvss_object.base_score == Decimal("0.0"):
-                raise ValidationError(
-                    "RH CVSSv3 score must not be zero if flaw impact is set."
-                )
-            if not self.flaw.impact and self.cvss_object.base_score != Decimal("0.0"):
-                raise ValidationError(
-                    "RH CVSSv3 score must be zero if flaw impact is not set."
-                )
 
     def sync_to_trackers(self, jira_token):
         """Sync this CVSS in the related Jira trackers."""
