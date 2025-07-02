@@ -1,6 +1,8 @@
 """
 Jira specific tracker constants
 """
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from osidb.helpers import get_env
 
 JIRA_SERVER = get_env("JIRA_URL", default="https://issues.redhat.com")
@@ -19,3 +21,11 @@ PS_ADDITIONAL_FIELD_TO_JIRA = {
     "target_release": "customfield_12311240",
     "target_version": "customfield_12319940",
 }
+
+
+class TrackersAppSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="OSIDB_TRACKERS_")
+
+    # whether PURLs should be used for the downstream component field when
+    # creating JIRA engineering trackers
+    prefer_purls: bool = True
