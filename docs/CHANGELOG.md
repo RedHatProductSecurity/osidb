@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CVE.org and CISA CVSS correctly recalculate and persist the numeric
   score on update (OSIDB-4326)
 
+### Changed
+- Provide PURLs for Middleware engineering trackers when available (OSIDB-3704)
+
 ## [4.12.0] - 2025-06-18
 ### Added
 - Workaround for parsing modular components from PURLs (OSIDB-4292)
