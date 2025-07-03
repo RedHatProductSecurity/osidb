@@ -51,13 +51,14 @@ from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
 from osidb.core import set_user_acls
 from osidb.helpers import get_bugzilla_api_key
 from osidb.integrations import IntegrationRepository, IntegrationSettings
-from osidb.models import Affect, AffectCVSS, Flaw, FlawLabel, Tracker
+from osidb.models import Affect, AffectCVSS, AffectV1, Flaw, FlawLabel, Tracker
 from osidb.models.flaw.cvss import FlawCVSS
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import (
     AffectCVSSFilter,
     AffectFilter,
+    AffectV1Filter,
     AlertFilter,
     FlawAcknowledgmentFilter,
     FlawCommentFilter,
@@ -66,7 +67,9 @@ from .filters import (
     FlawPackageVersionFilter,
     FlawQLSchema,
     FlawReferenceFilter,
+    FlawV1Filter,
     TrackerFilter,
+    TrackerV1Filter,
 )
 from .mixins import Alert
 from .serializer import (
@@ -80,6 +83,7 @@ from .serializer import (
     AffectCVSSV2Serializer,
     AffectPostSerializer,
     AffectSerializer,
+    AffectV1Serializer,
     AlertSerializer,
     AuditSerializer,
     FlawAcknowledgmentPostSerializer,
@@ -104,10 +108,12 @@ from .serializer import (
     FlawReferencePutSerializer,
     FlawReferenceSerializer,
     FlawSerializer,
+    FlawV1Serializer,
     IntegrationTokenGetSerializer,
     IntegrationTokenPatchSerializer,
     TrackerPostSerializer,
     TrackerSerializer,
+    TrackerV1Serializer,
     UserSerializer,
 )
 from .validators import CVE_RE_STR
@@ -628,6 +634,23 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         }
         response["Location"] = f"/api/{OSIDB_API_VERSION}/flaws/{response.data['uuid']}"
         return response
+
+
+@include_meta_attr_extend_schema_view
+@include_exclude_fields_extend_schema_view
+class FlawV1View(FlawView):
+    """View for the flaw model adapted to affects v1"""
+
+    serializer_class = FlawV1Serializer
+    queryset = Flaw.objects.prefetch_related(
+        "acknowledgments",
+        "comments",
+        "cvss_scores",
+        "package_versions",
+        "references",
+        "labels",
+    ).all()
+    filterset_class = FlawV1Filter
 
 
 class SubFlawViewDestroyMixin:
@@ -1192,6 +1215,17 @@ class AffectView(
         return Response(status=HTTP_200_OK)
 
 
+@extend_schema(description="Read-only view for affects v1")
+@include_meta_attr_extend_schema_view
+@include_exclude_fields_extend_schema_view
+@include_history_extend_schema_view
+class AffectV1View(ReadOnlyModelViewSet):
+    queryset = AffectV1.objects.all()
+    serializer_class = AffectV1Serializer
+    filterset_class = AffectV1Filter
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
 @include_exclude_fields_extend_schema_view
 @extend_schema_view(
     create=extend_schema(
@@ -1203,7 +1237,7 @@ class AffectView(
         parameters=[bz_api_key_param],
     ),
 )
-class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
+class AffectCVSSView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
     serializer_class = AffectCVSSSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -1240,36 +1274,6 @@ class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
             data["affect"] = str(self.get_affect().uuid)
             kwargs["data"] = data
         return super().get_serializer(*args, **kwargs)
-
-    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        request.data.pop("issuer", None)
-        return super().create(request, *args, **kwargs)
-
-    def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        request.data.pop("issuer", None)
-        cvss: AffectCVSS = self.get_object()
-        if cvss.issuer == AffectCVSS.CVSSIssuer.REDHAT:
-            return super().update(request, *args, **kwargs)
-        return Response(AffectCVSSPutSerializer(cvss).data)
-
-    @extend_schema(
-        responses={
-            200: {},
-        },
-        parameters=[bz_api_key_param],
-    )
-    def destroy(self, request, *args, **kwargs):
-        """
-        Destroy the instance and proxy the delete to Bugzilla.
-        """
-        bz_api_key = get_bugzilla_api_key(request)
-
-        instance: AffectCVSS = self.get_object()
-        if instance.issuer == AffectCVSS.CVSSIssuer.REDHAT:
-            affect = instance.affect
-            instance.delete()
-            affect.save(bz_api_key=bz_api_key)
-        return Response(status=HTTP_200_OK)
 
 
 @include_exclude_fields_extend_schema_view
@@ -1345,6 +1349,16 @@ class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         if self.action == "create":
             return TrackerPostSerializer
         return self.serializer_class
+
+
+@include_meta_attr_extend_schema_view
+@include_exclude_fields_extend_schema_view
+class TrackerV1View(TrackerView):
+    """View for the tracker model adapted to affects v1"""
+
+    queryset = Tracker.objects.prefetch_related("alerts", "errata").all()
+    serializer_class = TrackerV1Serializer
+    filterset_class = TrackerV1Filter
 
 
 @include_exclude_fields_extend_schema_view

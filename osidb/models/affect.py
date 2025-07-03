@@ -787,12 +787,16 @@ class AffectV1(models.Model):
     """
 
     uuid = models.UUIDField(primary_key=True, editable=False)
-    affectedness = models.CharField(max_length=100)
-    resolution = models.CharField(max_length=100)
+    affectedness = models.CharField(
+        max_length=100, choices=Affect.AffectAffectedness.choices
+    )
+    resolution = models.CharField(
+        max_length=100, choices=Affect.AffectResolution.choices
+    )
     ps_module = models.CharField(max_length=100)
     ps_component = models.CharField(max_length=255)
     purl = models.TextField(blank=True)
-    impact = models.CharField(max_length=20, blank=True)
+    impact = models.CharField(max_length=20, blank=True, choices=Impact.choices)
     not_affected_justification = models.CharField(max_length=100, blank=True)
     resolved_dt = models.DateTimeField(null=True, blank=True)
     meta_attr = HStoreField(default=dict)
