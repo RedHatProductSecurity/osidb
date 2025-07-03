@@ -44,13 +44,14 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
 from osidb.helpers import get_bugzilla_api_key
 from osidb.integrations import IntegrationRepository, IntegrationSettings
-from osidb.models import Affect, AffectCVSS, Flaw, FlawLabel, Tracker
+from osidb.models import Affect, AffectCVSS, AffectV1, Flaw, FlawLabel, Tracker
 from osidb.models.flaw.cvss import FlawCVSS
 
 from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
 from .filters import (
     AffectCVSSFilter,
     AffectFilter,
+    AffectV1Filter,
     AlertFilter,
     FlawAcknowledgmentFilter,
     FlawCommentFilter,
@@ -59,7 +60,9 @@ from .filters import (
     FlawPackageVersionFilter,
     FlawQLSchema,
     FlawReferenceFilter,
+    FlawV1Filter,
     TrackerFilter,
+    TrackerV1Filter,
 )
 from .mixins import Alert
 from .serializer import (
@@ -73,6 +76,7 @@ from .serializer import (
     AffectCVSSV2Serializer,
     AffectPostSerializer,
     AffectSerializer,
+    AffectV1Serializer,
     AlertSerializer,
     AuditSerializer,
     FlawAcknowledgmentPostSerializer,
@@ -97,10 +101,12 @@ from .serializer import (
     FlawReferencePutSerializer,
     FlawReferenceSerializer,
     FlawSerializer,
+    FlawV1Serializer,
     IntegrationTokenGetSerializer,
     IntegrationTokenPatchSerializer,
     TrackerPostSerializer,
     TrackerSerializer,
+    TrackerV1Serializer,
     UserSerializer,
 )
 from .validators import CVE_RE_STR
@@ -624,6 +630,21 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         return response
 
 
+class FlawV1View(FlawView):
+    """View for the flaw model adapted to affects v1"""
+
+    serializer_class = FlawV1Serializer
+    queryset = Flaw.objects.prefetch_related(
+        "acknowledgments",
+        "comments",
+        "cvss_scores",
+        "package_versions",
+        "references",
+        "labels",
+    ).all()
+    filterset_class = FlawV1Filter
+
+
 class SubFlawViewDestroyMixin:
     @extend_schema(
         responses={
@@ -1127,6 +1148,14 @@ class AffectView(
         return Response(status=HTTP_200_OK)
 
 
+@extend_schema(description="Read-only view for affects v1")
+class AffectV1View(ReadOnlyModelViewSet):
+    queryset = AffectV1.objects.all()
+    serializer_class = AffectV1Serializer
+    filterset_class = AffectV1Filter
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
 @include_exclude_fields_extend_schema_view
 @extend_schema_view(
     create=extend_schema(
@@ -1138,7 +1167,7 @@ class AffectView(
         parameters=[bz_api_key_param],
     ),
 )
-class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
+class AffectCVSSView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
     serializer_class = AffectCVSSSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -1280,6 +1309,14 @@ class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         if self.action == "create":
             return TrackerPostSerializer
         return self.serializer_class
+
+
+class TrackerV1View(TrackerView):
+    """View for the tracker model adapted to affects v1"""
+
+    queryset = Tracker.objects.prefetch_related("alerts", "errata").all()
+    serializer_class = TrackerV1Serializer
+    filterset_class = TrackerV1Filter
 
 
 @include_exclude_fields_extend_schema_view

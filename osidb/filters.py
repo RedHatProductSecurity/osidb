@@ -1,6 +1,7 @@
 """
 Implement filters for OSIDB REST API results
 """
+
 from typing import Union
 
 from django.contrib.postgres.search import (
@@ -29,6 +30,8 @@ from apps.workflows.workflow import WorkflowModel
 from osidb.models import (
     Affect,
     AffectCVSS,
+    AffectV1,
+    Erratum,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
@@ -546,6 +549,301 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     # This would cause a circular import, so instead we define there + import here and set the property
 
 
+class FlawV1Filter(FlawFilter):
+    """
+    Filter for flaws adapted to affects v1
+    """
+
+    # Override filters that depended on the v1 affect
+    tracker_ids = CharInFilter(method="tracker_ids_filter", distinct=True)
+    affects__embargoed = BooleanFilter(method="affects_embargoed_filter")
+    affects__trackers__embargoed = BooleanFilter(
+        method="affects_trackers_embargoed_filter"
+    )
+
+    # Custom filters to match the current ones
+    affects__uuid = CharFilter(method="affect_direct_filter")
+    affects__affectedness = CharFilter(method="affect_direct_filter")
+    affects__resolution = CharFilter(method="affect_direct_filter")
+    affects__ps_module = CharFilter(method="affect_direct_filter")
+    affects__ps_component = CharFilter(method="affect_direct_filter")
+    affects__impact = CharFilter(method="affect_direct_filter")
+    affects__created_dt = DateTimeFilter(method="affect_datetime_filter")
+    affects__updated_dt = DateTimeFilter(method="affect_datetime_filter")
+
+    affects__trackers__uuid = CharFilter(method="affect_trackers_filter")
+    affects__trackers__type = CharFilter(method="affect_trackers_filter")
+    affects__trackers__external_system_id = CharFilter(method="affect_trackers_filter")
+    affects__trackers__status = CharFilter(method="affect_trackers_filter")
+    affects__trackers__resolution = CharFilter(method="affect_trackers_filter")
+    affects__trackers__ps_update_stream = CharFilter(method="affect_trackers_filter")
+    affects__trackers__created_dt = DateTimeFilter(
+        method="affect_trackers_datetime_filter"
+    )
+    affects__trackers__updated_dt = DateTimeFilter(
+        method="affect_trackers_datetime_filter"
+    )
+
+    affects__trackers__errata__advisory_name = CharFilter(
+        method="affect_trackers_errata_filter"
+    )
+    affects__trackers__errata__et_id = CharFilter(
+        method="affect_trackers_errata_filter"
+    )
+    affects__trackers__errata__shipped_dt = DateTimeFilter(
+        method="affect_trackers_errata_datetime_filter"
+    )
+
+    def _get_flaw_ids_by_affect(self, affect_filter):
+        return (
+            AffectV1.objects.filter(**affect_filter)
+            .values_list("flaw_id", flat=True)
+            .distinct()
+        )
+
+    def _get_flaw_ids_by_tracker(self, tracker_filter):
+        tracker_uuids = Tracker.objects.filter(**tracker_filter).values_list(
+            "uuid", flat=True
+        )
+        return (
+            AffectV1.objects.filter(all_tracker_ids__overlap=list(tracker_uuids))
+            .values_list("flaw_id", flat=True)
+            .distinct()
+        )
+
+    def _get_flaw_ids_by_errata(self, errata_filter):
+        tracker_uuids = (
+            Erratum.objects.filter(**errata_filter)
+            .values_list("trackers__uuid", flat=True)
+            .distinct()
+        )
+        return (
+            AffectV1.objects.filter(all_tracker_ids__overlap=list(tracker_uuids))
+            .values_list("flaw_id", flat=True)
+            .distinct()
+        )
+
+    def affect_direct_filter(self, queryset, name, value):
+        key = name.replace("affects__", "") + "__exact"
+        flaw_ids = self._get_flaw_ids_by_affect({key: value})
+        return queryset.filter(uuid__in=flaw_ids)
+
+    def affect_datetime_filter(self, queryset, name, value):
+        key = name.replace("affects__", "")
+        flaw_ids = self._get_flaw_ids_by_affect({key: value})
+        return queryset.filter(uuid__in=flaw_ids)
+
+    def affect_trackers_filter(self, queryset, name, value):
+        key = name.replace("affects__trackers__", "") + "__exact"
+        flaw_ids = self._get_flaw_ids_by_tracker({key: value})
+        return queryset.filter(uuid__in=flaw_ids)
+
+    def affect_trackers_datetime_filter(self, queryset, name, value):
+        key = name.replace("affects__trackers__", "")
+        flaw_ids = self._get_flaw_ids_by_tracker({key: value})
+        return queryset.filter(uuid__in=flaw_ids)
+
+    def affect_trackers_errata_filter(self, queryset, name, value):
+        key = name.replace("affects__trackers__errata__", "") + "__exact"
+        flaw_ids = self._get_flaw_ids_by_errata({key: value})
+        return queryset.filter(uuid__in=flaw_ids)
+
+    def affect_trackers_errata_datetime_filter(self, queryset, name, value):
+        key = name.replace("affects__trackers__errata__", "")
+        flaw_ids = self._get_flaw_ids_by_errata({key: value})
+        return queryset.filter(uuid__in=flaw_ids)
+
+    def tracker_ids_filter(self, queryset, name, value):
+        tracker_uuids = Tracker.objects.filter(
+            external_system_id__in=value
+        ).values_list("uuid", flat=True)
+
+        flaw_ids = (
+            AffectV1.objects.filter(all_tracker_ids__overlap=list(tracker_uuids))
+            .values_list("flaw_id", flat=True)
+            .distinct()
+        )
+
+        return queryset.filter(uuid__in=flaw_ids)
+
+    def affects_embargoed_filter(self, queryset, name, value):
+        flaw_ids = (
+            AffectV1.objects.filter(embargoed=value)
+            .values_list("flaw_id", flat=True)
+            .distinct()
+        )
+        return queryset.filter(uuid__in=flaw_ids)
+
+    def affects_trackers_embargoed_filter(self, queryset, name, value):
+        tracker_uuids = Tracker.objects.filter(embargoed=value).values_list(
+            "uuid", flat=True
+        )
+
+        flaw_ids = (
+            AffectV1.objects.filter(all_tracker_ids__overlap=list(tracker_uuids))
+            .values_list("flaw_id", flat=True)
+            .distinct()
+        )
+
+        return queryset.filter(uuid__in=flaw_ids)
+
+
+class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
+    """
+    Filter for flaws adapted to affects v1
+    """
+
+    DISTINCT_FIELDS_PREFIXES = ("flaw__", "affects__")
+
+    embargoed = BooleanFilter(field_name="embargoed")
+    flaw__embargoed = BooleanFilter(field_name="flaw__embargoed")
+    flaw__components = CharInFilter(
+        field_name="flaw__components", lookup_expr="contains"
+    )
+
+    # Custom method filters for trackers
+    trackers__uuid = CharFilter(method="tracker_uuid_filter")
+    trackers__type = CharFilter(method="tracker_type_filter")
+    trackers__external_system_id = CharFilter(method="tracker_external_id_filter")
+    trackers__status = CharFilter(method="tracker_status_filter")
+    trackers__resolution = CharFilter(method="tracker_resolution_filter")
+    trackers__ps_update_stream = CharFilter(method="tracker_ps_update_stream_filter")
+    trackers__created_dt = DateTimeFilter(method="tracker_datetime_filter")
+    trackers__updated_dt = DateTimeFilter(method="tracker_datetime_filter")
+    trackers__embargoed = BooleanFilter(method="tracker_embargoed_filter")
+
+    # Custom method filters for CVSS scores
+    cvss_scores__comment = CharFilter(method="cvss_comment_filter")
+    cvss_scores__created_dt = DateTimeFilter(method="cvss_datetime_filter")
+    cvss_scores__issuer = CharFilter(method="cvss_issuer_filter")
+    cvss_scores__score = CharFilter(method="cvss_score_filter")
+    cvss_scores__updated_dt = DateTimeFilter(method="cvss_datetime_filter")
+    cvss_scores__uuid = CharFilter(method="cvss_uuid_filter")
+    cvss_scores__vector = CharFilter(method="cvss_vector_filter")
+    cvss_scores__cvss_version = CharFilter(method="cvss_version_filter")
+
+    def _filter_by_tracker_attribute(self, queryset, filter_key, value):
+        """Helper method to find affects v1 from its trackers' fields"""
+        tracker_uuids = Tracker.objects.filter(**{filter_key: value}).values_list(
+            "uuid", flat=True
+        )
+
+        if not tracker_uuids.exists():
+            return queryset.none()
+
+        return queryset.filter(all_tracker_ids__overlap=list(tracker_uuids))
+
+    def _filter_by_cvss_attribute(self, queryset, filter_key, value):
+        """Helper method to find affects v1 from CVSS score fields"""
+        affect_ids = (
+            AffectCVSS.objects.filter(**{filter_key: value})
+            .values_list("affect_id", flat=True)
+            .distinct()
+        )
+        if not affect_ids:
+            return queryset.none()
+        return queryset.filter(id__in=affect_ids)
+
+    def tracker_uuid_filter(self, queryset, name, value):
+        return queryset.filter(all_tracker_ids__contains=[value])
+
+    def tracker_type_filter(self, queryset, name, value):
+        return self._filter_by_tracker_attribute(queryset, "type__exact", value)
+
+    def tracker_external_id_filter(self, queryset, name, value):
+        return self._filter_by_tracker_attribute(
+            queryset, "external_system_id__exact", value
+        )
+
+    def tracker_status_filter(self, queryset, name, value):
+        return self._filter_by_tracker_attribute(queryset, "status__exact", value)
+
+    def tracker_resolution_filter(self, queryset, name, value):
+        return self._filter_by_tracker_attribute(queryset, "resolution__exact", value)
+
+    def tracker_ps_update_stream_filter(self, queryset, name, value):
+        return self._filter_by_tracker_attribute(
+            queryset, "ps_update_stream__exact", value
+        )
+
+    def tracker_datetime_filter(self, queryset, name, value):
+        # Hack that parses the lookup query from the field name, e.g.,
+        # trackers__created_dt__gt -> created_dt__gt
+        filter_key = name.replace("trackers__", "", 1)
+        return self._filter_by_tracker_attribute(queryset, filter_key, value)
+
+    def cvss_comment_filter(self, queryset, name, value):
+        return self._filter_by_cvss_attribute(queryset, "comment__exact", value)
+
+    def cvss_issuer_filter(self, queryset, name, value):
+        return self._filter_by_cvss_attribute(queryset, "issuer__exact", value)
+
+    def cvss_score_filter(self, queryset, name, value):
+        return self._filter_by_cvss_attribute(queryset, "score__exact", value)
+
+    def cvss_uuid_filter(self, queryset, name, value):
+        return self._filter_by_cvss_attribute(queryset, "uuid__exact", value)
+
+    def cvss_vector_filter(self, queryset, name, value):
+        return self._filter_by_cvss_attribute(queryset, "vector__exact", value)
+
+    def cvss_version_filter(self, queryset, name, value):
+        return self._filter_by_cvss_attribute(queryset, "version__exact", value)
+
+    def cvss_datetime_filter(self, queryset, name, value):
+        # Hack that parses the lookup query from the field name, e.g.,
+        # cvss_scores__created_dt__gt -> created_dt__gt
+        filter_key = name.replace("cvss_scores__", "", 1)
+        return self._filter_by_cvss_attribute(queryset, filter_key, value)
+
+    class Meta:
+        model = AffectV1
+        fields = {
+            "uuid": ["exact"],
+            "affectedness": ["exact"],
+            "resolution": ["exact"],
+            "ps_module": ["exact"],
+            "ps_component": ["exact"],
+            "impact": ["exact"],
+            "created_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "updated_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            # Flaw fields
+            "flaw__uuid": ["exact"],
+            "flaw__cve_id": ["exact"],
+            "flaw__created_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "flaw__updated_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "flaw__impact": ["exact"],
+            "flaw__cwe_id": ["exact"],
+            "flaw__unembargo_dt": ["exact"],
+            "flaw__source": ["exact"],
+            "flaw__reported_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "flaw__components": ["exact"],
+        }
+
+    order_fields = [
+        "cvss_scores__cvss_version",
+        "embargoed",
+        "flaw__embargoed",
+        "trackers__embargoed",
+    ] + list(Meta.fields.keys())
+    order = OrderingFilter(fields=order_fields)
+
+
 class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
 
     DISTINCT_FIELDS_PREFIXES = ("flaw__", "affects__")
@@ -568,6 +866,7 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
             "uuid": ["exact"],
             "affectedness": ["exact"],
             "resolution": ["exact"],
+            "ps_update_stream": ["exact"],
             "ps_module": ["exact"],
             "ps_component": ["exact"],
             "impact": ["exact"],
@@ -710,6 +1009,84 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
         "affects__flaw__embargoed",
     ] + list(Meta.fields.keys())
     order = OrderingFilter(fields=order_fields)
+
+
+class TrackerV1Filter(TrackerFilter):
+    """
+    Filter for trackers adapted to affects v1
+    """
+
+    # Override filters that depended on the v1 affect
+    affects__embargoed = BooleanFilter(method="tracker_affects_embargoed_filter")
+    affects__flaw__embargoed = BooleanFilter(method="tracker_flaw_embargoed_filter")
+    affects__flaw__components = CharInFilter(method="tracker_flaw_components_filter")
+
+    # Custom filters to match the current ones
+    affects__uuid = CharFilter(method="affect_direct_filter")
+    affects__affectedness = CharFilter(method="affect_direct_filter")
+    affects__resolution = CharFilter(method="affect_direct_filter")
+    affects__ps_module = CharFilter(method="affect_direct_filter")
+    affects__ps_component = CharFilter(method="affect_direct_filter")
+    affects__impact = CharFilter(method="affect_direct_filter")
+    affects__created_dt = DateTimeFilter(method="affect_datetime_filter")
+    affects__updated_dt = DateTimeFilter(method="affect_datetime_filter")
+
+    affects__flaw__uuid = CharFilter(method="affect_flaw_filter")
+    affects__flaw__cve_id = CharFilter(method="affect_flaw_filter")
+    affects__flaw__impact = CharFilter(method="affect_flaw_filter")
+    affects__flaw__cwe_id = CharFilter(method="affect_flaw_filter")
+    affects__flaw__source = CharFilter(method="affect_flaw_filter")
+    affects__flaw__created_dt = DateTimeFilter(method="affect_flaw_datetime_filter")
+    affects__flaw__updated_dt = DateTimeFilter(method="affect_flaw_datetime_filter")
+    affects__flaw__reported_dt = DateTimeFilter(method="affect_flaw_datetime_filter")
+    affects__flaw__unembargo_dt = DateTimeFilter(method="affect_flaw_datetime_filter")
+
+    def _get_tracker_uuids_from_affect_v1_filter(self, affect_v1_filter):
+        """
+        Helper to get all tracker ids from affect v1 objects that match a given filter.
+        """
+        tracker_uuids = AffectV1.objects.filter(**affect_v1_filter).values_list(
+            "all_tracker_ids", flat=True
+        )
+        return {uuid for sublist in tracker_uuids if sublist for uuid in sublist}
+
+    def affect_direct_filter(self, queryset, name, value):
+        key = name.replace("affects__", "") + "__exact"
+        tracker_uuids = self._get_tracker_uuids_from_affect_v1_filter({key: value})
+        return queryset.filter(uuid__in=tracker_uuids)
+
+    def affect_datetime_filter(self, queryset, name, value):
+        key = name.replace("affects__", "")
+        tracker_uuids = self._get_tracker_uuids_from_affect_v1_filter({key: value})
+        return queryset.filter(uuid__in=tracker_uuids)
+
+    def affect_flaw_filter(self, queryset, name, value):
+        key = name.replace("affects__", "") + "__exact"
+        tracker_uuids = self._get_tracker_uuids_from_affect_v1_filter({key: value})
+        return queryset.filter(uuid__in=tracker_uuids)
+
+    def affect_flaw_datetime_filter(self, queryset, name, value):
+        key = name.replace("affects__", "")
+        tracker_uuids = self._get_tracker_uuids_from_affect_v1_filter({key: value})
+        return queryset.filter(uuid__in=tracker_uuids)
+
+    def tracker_affects_embargoed_filter(self, queryset, name, value):
+        tracker_uuids = self._get_tracker_uuids_from_affect_v1_filter(
+            {"embargoed": value}
+        )
+        return queryset.filter(uuid__in=tracker_uuids)
+
+    def tracker_flaw_embargoed_filter(self, queryset, name, value):
+        tracker_uuids = self._get_tracker_uuids_from_affect_v1_filter(
+            {"flaw__embargoed": value}
+        )
+        return queryset.filter(uuid__in=tracker_uuids)
+
+    def tracker_flaw_components_filter(self, queryset, name, value):
+        tracker_uuids = self._get_tracker_uuids_from_affect_v1_filter(
+            {"flaw__components__contains": value}
+        )
+        return queryset.filter(uuid__in=tracker_uuids)
 
 
 class FlawAcknowledgmentFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
