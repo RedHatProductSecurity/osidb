@@ -10244,6 +10244,9 @@ components:
       - KEV (active exploit case)
       - compliance-priority
       - contract-priority
+      - Minor Incident
+      - security-select
+      - support-exception
       type: string
     StateEnum:
       enum:

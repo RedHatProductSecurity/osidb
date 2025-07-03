@@ -91,6 +91,9 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         KEV = "KEV (active exploit case)"
         COMPLIANCE_PRIORITY = "compliance-priority"
         CONTRACT_PRIORITY = "contract-priority"
+        MINOR_INCIDENT = "Minor Incident"
+        SECURITY_SELECT = "security-select"
+        SUPPORT_EXCEPTION = "support-exception"
 
     # mapping to product definitions BTS naming
     TYPE2BTS = {
