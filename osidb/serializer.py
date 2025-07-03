@@ -29,6 +29,7 @@ from osidb.models import (
     CVSS,
     Affect,
     AffectCVSS,
+    AffectV1,
     Erratum,
     Flaw,
     FlawAcknowledgment,
@@ -1314,6 +1315,104 @@ class AffectBulkPostPutResponseSerializer(serializers.ModelSerializer):
         fields = ["results"]
 
 
+class AffectV1Serializer(
+    ACLMixinSerializer,
+    AlertMixinSerializer,
+    TrackingMixinSerializer,
+    IncludeExcludeFieldsMixin,
+    IncludeMetaAttrMixin,
+    HistoryMixinSerializer,
+):
+    """Read-only serializer for the AffectV1 database view."""
+
+    META_ATTR_KEYS = AffectSerializer.META_ATTR_KEYS
+
+    trackers = serializers.SerializerMethodField()
+    meta_attr = serializers.SerializerMethodField()
+    ps_product = serializers.CharField(read_only=True)
+    ps_component = serializers.CharField(read_only=True)
+    purl = serializers.CharField(read_only=True)
+    resolved_dt = serializers.DateTimeField(read_only=True, allow_null=True)
+    cvss_scores = serializers.SerializerMethodField()
+
+    @extend_schema_field(
+        {
+            "type": "object",
+            "properties": {key: {"type": "string"} for key in META_ATTR_KEYS},
+        }
+    )
+    def get_meta_attr(self, obj):
+        return super().get_meta_attr(obj)
+
+    @extend_schema_field(TrackerSerializer(many=True))
+    def get_trackers(self, obj):
+        context = {
+            "include_fields": self._next_level_include_fields.get("trackers", []),
+            "exclude_fields": self._next_level_exclude_fields.get("trackers", []),
+            "include_meta_attr": self._next_level_include_meta_attr.get("trackers", []),
+        }
+
+        serializer = TrackerV1Serializer(
+            instance=obj.trackers.all(), many=True, read_only=True, context=context
+        )
+        return serializer.data
+
+    def get_cvss_scores(self, obj):
+        """
+        Takes the JSON data from the view's cvss_scores field
+        and serializes it using the existing AffectCVSSSerializer.
+        """
+        if not obj.all_cvss_score_ids:
+            return []
+        cvss_objects = AffectCVSS.objects.filter(uuid__in=obj.all_cvss_score_ids)
+
+        return AffectCVSSSerializer(instance=cvss_objects, many=True).data
+
+    class Meta:
+        model = AffectV1
+        fields = (
+            [
+                "uuid",  # This is aliased as 'id' in the model but we can expose it as uuid
+                "flaw",
+                "affectedness",
+                "resolution",
+                "ps_module",
+                "ps_product",
+                "ps_component",
+                "impact",
+                "trackers",
+                "meta_attr",
+                "delegated_resolution",
+                "cvss_scores",
+                "purl",
+                "not_affected_justification",
+                "delegated_not_affected_justification",
+                "resolved_dt",
+            ]
+            + ACLMixinSerializer.Meta.fields
+            + AlertMixinSerializer.Meta.fields
+            + TrackingMixinSerializer.Meta.fields
+            + HistoryMixinSerializer.Meta.fields
+        )
+
+
+class TrackerV1Serializer(TrackerSerializer):
+    """Serializer for the tracker model adapted to affects v1"""
+
+    affects = serializers.SerializerMethodField()
+
+    @extend_schema_field(
+        {
+            "type": "array",
+            "items": {"type": "string", "format": "uuid"},
+        }
+    )
+    def get_affects(self, obj):
+        return AffectV1.objects.filter(
+            all_tracker_ids__contains=[obj.uuid]
+        ).values_list("uuid", flat=True)
+
+
 @extend_schema_serializer(deprecate_fields=["status"])
 class PackageVerSerializer(serializers.ModelSerializer):
     """
@@ -2149,6 +2248,42 @@ class FlawPostSerializer(FlawSerializer):
     # extra serializer for POST request as there is no last update
     # timestamp but we need to make the field mandatory otherwise
     pass
+
+
+class FlawV1Serializer(FlawSerializer):
+    """Serializer for the flaw model adapted to affects v1"""
+
+    @extend_schema_field(AffectV1Serializer(many=True))
+    def get_affects(self, obj):
+        # Query the AffectV1 read-only model instead of the original Affect model.
+        affects_v1 = AffectV1.objects.filter(flaw=obj)
+
+        context = {
+            "include_fields": self._next_level_include_fields.get("affects", []),
+            "exclude_fields": self._next_level_exclude_fields.get("affects", []),
+            "include_meta_attr": self._next_level_include_meta_attr.get("affects", []),
+        }
+
+        request = self.context.get("request")
+        if request:
+            # Filter only affects with trackers corresponding to specified IDs
+            tracker_ids_param = request.query_params.get("tracker_ids")
+            if tracker_ids_param:
+                tracker_uuids = Tracker.objects.filter(
+                    external_system_id__in=tracker_ids_param.split(",")
+                ).values_list("uuid", flat=True)
+                affects_v1 = affects_v1.filter(
+                    all_tracker_ids__overlap=list(tracker_uuids)
+                )
+
+            # If we have requested history on Flaw, then apply it to affects as well
+            if request.query_params.get("include_history"):
+                context["include_history"] = request.query_params.get("include_history")
+
+        serializer = AffectV1Serializer(
+            instance=affects_v1, many=True, read_only=True, context=context
+        )
+        return serializer.data
 
 
 class ProfileSerializer(serializers.ModelSerializer):
