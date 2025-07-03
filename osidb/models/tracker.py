@@ -304,16 +304,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not self.affects.exists():
             raise ValidationError("Tracker must be associated with an affect")
 
-    def _validate_tracker_ps_module(self, **kwargs):
-        """
-        check that the tracker is associated with a valid PS module
-        """
-        if not self.affects.exists():
-            return
-
-        if not PsModule.objects.filter(name=self.affects.first().ps_module):
-            raise ValidationError("Tracker must be associated with a valid PS module")
-
     def _validate_tracker_ps_update_stream(self, **kwargs):
         """
         check that the tracker is associated with a valid PS update stream
@@ -323,17 +313,21 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 "Tracker must be associated with a valid PS update stream"
             )
 
-    def _validate_tracker_ps_module_ps_update_stream(self, **kwargs):
+    def _validate_tracker_affect_ps_update_stream(self, **kwargs):
         """
-        check that the tracker is associated with a PS update stream corresponding to its PS module
+        check that the tracker is associated with a PS update stream corresponding to the
+        related affect's PS update stream
         """
         if not self.affects.exists():
             return
 
-        ps_module = PsModule.objects.filter(name=self.affects.first().ps_module).first()
-        # PS module is checked by a different validation
-        if not ps_module:
-            return
+        affect_ps_update_stream = PsUpdateStream.objects.filter(
+            name=self.affects.first().ps_update_stream
+        ).first()
+        if not affect_ps_update_stream:
+            raise ValidationError(
+                "Tracker must be associated to an affect with a valid PS update stream"
+            )
 
         ps_update_stream = PsUpdateStream.objects.filter(
             name=self.ps_update_stream
@@ -342,10 +336,10 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not ps_update_stream:
             return
 
-        if ps_update_stream not in ps_module.ps_update_streams.all():
+        if ps_update_stream.name != affect_ps_update_stream.name:
             raise ValidationError(
-                f"PS update stream {ps_update_stream.name} does "
-                f"not belong to PS module {ps_module.name}."
+                f"Tracker PS update stream {ps_update_stream.name} does not correspond "
+                f"to the related affect's PS update stream {affect_ps_update_stream.name}"
             )
 
     def _validate_tracker_flaw_accesses(self, **kwargs):
@@ -373,7 +367,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not self.is_closed and affect:
             raise ValidationError(
                 "The tracker is associated with a NOTAFFECTED affect: "
-                f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
+                f"{affect.ps_update_stream}/{affect.ps_component} ({affect.uuid})"
             )
 
     def _validate_ooss_open_tracker(self, **kwargs):
@@ -384,7 +378,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not self.is_closed and affect:
             raise ValidationError(
                 "The tracker is associated with an OOSS affect: "
-                f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
+                f"{affect.ps_update_stream}/{affect.ps_component} ({affect.uuid})"
             )
 
     def _validate_wontfix_open_tracker(self, **kwargs):
@@ -395,7 +389,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not self.is_closed and affect:
             raise ValidationError(
                 "The tracker is associated with a WONTFIX affect: "
-                f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
+                f"{affect.ps_update_stream}/{affect.ps_component} ({affect.uuid})"
             )
 
     def _validate_defer_open_tracker(self, **kwargs):
@@ -406,7 +400,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not self.is_closed and affect:
             raise ValidationError(
                 "The tracker is associated with a DEFER affect: "
-                f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
+                f"{affect.ps_update_stream}/{affect.ps_component} ({affect.uuid})"
             )
 
     def _validate_multi_flaw_tracker(self, **kwargs):
@@ -418,9 +412,9 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
         first_affect = self.affects.first()
         for affect in self.affects.exclude(uuid=first_affect.uuid):
-            if first_affect.ps_module != affect.ps_module:
+            if first_affect.ps_update_stream != affect.ps_update_stream:
                 raise ValidationError(
-                    "Tracker must be associated only with affects with the same PS module"
+                    "Tracker must be associated only with affects with the same PS update stream"
                 )
 
             if first_affect.ps_component != affect.ps_component:
@@ -455,7 +449,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 raise ValidationError(
                     f"Tracker with the update stream {self.ps_update_stream} ({self.external_system_id}) "
                     "is already associated with the affect "
-                    f"{affect.ps_module}/{affect.ps_component} ({affect.uuid}) "
+                    f"{affect.ps_update_stream}/{affect.ps_component} ({affect.uuid}) "
                     f"by the tracker(s) {', '.join([str(tracker.external_system_id) for tracker in trackers if tracker.uuid != self.uuid])}",
                     params={
                         "resolution_steps": "When manually cloning a tracker, please ensure that each affect has a unique update stream, "
