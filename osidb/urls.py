@@ -10,6 +10,7 @@ from apps.workflows.api import promote, reject
 from osidb.helpers import get_execution_env
 
 from .api_views import (
+    AffectCVSSV2View,
     AffectCVSSView,
     AffectView,
     AlertView,
@@ -75,6 +76,11 @@ router.register(r"audit", AuditView)
 vnext_router = routers.DefaultRouter(trailing_slash=False)
 vnext_router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/cvss-scores", FlawCVSSV2View, basename="flawcvssv2"
+)
+vnext_router.register(
+    r"affects/(?P<affect_id>[^/.]+)/cvss-scores",
+    AffectCVSSV2View,
+    basename="affectcvss",
 )
 
 urlpatterns = [

@@ -1036,3 +1036,108 @@ class TestEndpointsAffectsPurl:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert error in str(response.content)
+
+
+class TestEndpointsAffectsCVSSScoresV2:
+    """
+    Test that editing an AffectCVSS record through the v2 API
+    only works with the correct Issuer (REDHAT).
+    """
+
+    @pytest.mark.enable_signals
+    def test_affectcvss_create(self, auth_client, test_api_v2_uri):
+        flaw = FlawFactory(impact="LOW")
+        affect = AffectFactory(flaw=flaw)
+        cvss_data = {
+            "cvss_version": AffectCVSS.CVSSVersion.VERSION3,
+            "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+            "embargoed": flaw.embargoed,
+        }
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects/{str(affect.uuid)}/cvss-scores",
+            data=cvss_data,
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        # CVSS scores created through API should always be of type Red Hat
+        assert response.data["issuer"] == AffectCVSS.CVSSIssuer.REDHAT
+        assert AffectCVSS.objects.count() == 1
+
+    @pytest.mark.enable_signals
+    def test_affectcvss_rh_update(self, auth_client, test_api_v2_uri):
+        flaw = FlawFactory()
+        affect = AffectFactory(flaw=flaw)
+        cvss = AffectCVSSFactory(
+            affect=affect,
+            version=AffectCVSS.CVSSVersion.VERSION3,
+            vector="CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N",
+            issuer=AffectCVSS.CVSSIssuer.REDHAT,
+        )
+
+        cvss_data = {
+            "cvss_version": AffectCVSS.CVSSVersion.VERSION3,
+            "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+            "embargoed": flaw.embargoed,
+            "updated_dt": cvss.updated_dt,
+        }
+
+        response = auth_client().put(
+            f"{test_api_v2_uri}/affects/{str(affect.uuid)}/cvss-scores/{cvss.uuid}",
+            data=cvss_data,
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["vector"] == cvss_data["vector"]
+        assert cvss.vector != response.data["vector"]
+
+    @pytest.mark.enable_signals
+    def test_affectcvss_non_rh_update(self, auth_client, test_api_v2_uri):
+        flaw = FlawFactory()
+        affect = AffectFactory(flaw=flaw)
+        cvss = AffectCVSSFactory(
+            affect=affect,
+            version=AffectCVSS.CVSSVersion.VERSION3,
+            issuer=AffectCVSS.CVSSIssuer.NIST,
+            vector="CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N",
+        )
+
+        cvss_data = {
+            "cvss_version": AffectCVSS.CVSSVersion.VERSION3,
+            "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+            "embargoed": flaw.embargoed,
+            "updated_dt": cvss.updated_dt,
+        }
+
+        response = auth_client().put(
+            f"{test_api_v2_uri}/affects/{str(affect.uuid)}/cvss-scores/{cvss.uuid}",
+            data=cvss_data,
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "Only Red Hat CVSS scores can be edited" in response.json()["issuer"]
+        refreshed_cvss = AffectCVSS.objects.first()
+        assert refreshed_cvss and refreshed_cvss.vector == cvss.vector
+
+    @pytest.mark.enable_signals
+    def test_affectcvss_rh_delete(self, auth_client, test_api_v2_uri):
+        flaw = FlawFactory()
+        affect = AffectFactory(flaw=flaw)
+        cvss = AffectCVSSFactory(affect=affect, issuer=AffectCVSS.CVSSIssuer.REDHAT)
+
+        url = f"{test_api_v2_uri}/affects/{str(affect.uuid)}/cvss-scores/{cvss.uuid}"
+        response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="foo")
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert AffectCVSS.objects.count() == 0
+
+    @pytest.mark.enable_signals
+    def test_affectcvss_non_rh_delete(self, auth_client, test_api_v2_uri):
+        flaw = FlawFactory()
+        affect = AffectFactory(flaw=flaw)
+        cvss = AffectCVSSFactory(affect=affect, issuer=AffectCVSS.CVSSIssuer.NIST)
+
+        url = f"{test_api_v2_uri}/affects/{str(affect.uuid)}/cvss-scores/{cvss.uuid}"
+        response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="foo")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "Only Red Hat CVSS scores can be edited" in response.json()["issuer"]
+        assert AffectCVSS.objects.count() == 1

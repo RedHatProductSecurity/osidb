@@ -1081,6 +1081,28 @@ class AffectCVSSPutSerializer(AffectCVSSSerializer):
     pass
 
 
+class AffectCVSSV2Serializer(AbstractCVSSSerializer):
+    issuer = serializers.ChoiceField(choices=CVSS.CVSSIssuer, read_only=True)
+
+    def create(self, validated_data: dict) -> AffectCVSS:
+        validated_data["issuer"] = AffectCVSS.CVSSIssuer.REDHAT
+        return super().create(validated_data)
+
+    class Meta:
+        model = AffectCVSS
+        fields = ["affect"] + AbstractCVSSSerializer.Meta.fields
+
+
+@extend_schema_serializer(exclude_fields=["affect", "updated_dt"])
+class AffectCVSSV2PostSerializer(AffectCVSSV2Serializer):
+    ...
+
+
+@extend_schema_serializer(exclude_fields=["affect"])
+class AffectCVSSV2PutSerializer(AffectCVSSV2Serializer):
+    ...
+
+
 class AffectSerializer(
     ACLMixinSerializer,
     AlertMixinSerializer,
