@@ -68,6 +68,9 @@ from .serializer import (
     AffectCVSSPostSerializer,
     AffectCVSSPutSerializer,
     AffectCVSSSerializer,
+    AffectCVSSV2PostSerializer,
+    AffectCVSSV2PutSerializer,
+    AffectCVSSV2Serializer,
     AffectPostSerializer,
     AffectSerializer,
     AlertSerializer,
@@ -1202,6 +1205,59 @@ class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
             instance.delete()
             affect.save(bz_api_key=bz_api_key)
         return Response(status=HTTP_200_OK)
+
+
+@include_exclude_fields_extend_schema_view
+@extend_schema_view(
+    create=extend_schema(
+        request=AffectCVSSV2PostSerializer,
+    ),
+    update=extend_schema(
+        request=AffectCVSSV2PutSerializer,
+    ),
+    destroy=extend_schema(
+        parameters=[bz_api_key_param],
+    ),
+)
+class AffectCVSSV2View(RudimentaryUserPathLoggingMixin, ModelViewSet):
+    serializer_class = AffectCVSSV2Serializer
+    http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filterset_class = AffectCVSSFilter
+
+    def get_affect(self):
+        _id = self.kwargs["affect_id"]
+        obj = get_object_or_404(Affect, uuid=_id)
+        return obj
+
+    def get_queryset(self):
+        # This solves the issue described in the section "My get_queryset()
+        # depends on some attributes not available at schema generation time" in
+        # https://drf-spectacular.readthedocs.io/en/latest/faq.html
+        if getattr(self, "swagger_fake_view", False):
+            return AffectCVSS.objects.none()
+
+        affect = self.get_affect()
+        return AffectCVSS.objects.filter(affect=affect)
+
+    def get_serializer(self, *args, **kwargs):
+        if "data" in kwargs:
+            data = kwargs["data"].copy()
+            data["affect"] = str(self.get_affect().uuid)
+            kwargs["data"] = data
+        return super().get_serializer(*args, **kwargs)
+
+    def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        cvss: AffectCVSS = self.get_object()
+        if cvss.issuer != AffectCVSS.CVSSIssuer.REDHAT:
+            raise ValidationError({"issuer": "Only Red Hat CVSS scores can be edited"})
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        cvss: AffectCVSS = self.get_object()
+        if cvss.issuer != AffectCVSS.CVSSIssuer.REDHAT:
+            raise ValidationError({"issuer": "Only Red Hat CVSS scores can be edited"})
+        return super().destroy(request, *args, **kwargs)
 
 
 @include_meta_attr_extend_schema_view
