@@ -136,7 +136,7 @@ class TestCVSS:
 
     @pytest.mark.enable_signals
     @pytest.mark.parametrize(
-        "impact,vector,should_raise",
+        "impact,vector,should_alert",
         [
             # score 7.2
             (Impact.LOW, "CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H", None),
@@ -146,17 +146,17 @@ class TestCVSS:
             (
                 Impact.LOW,
                 "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N",
-                "RH CVSSv3 score must not be zero if flaw impact is set.",
+                "set_impact_with_zero_CVSSv3_score",
             ),
             # score 7.2
             (
                 Impact.NOVALUE,
                 "CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
-                "RH CVSSv3 score must be zero if flaw impact is not set.",
+                "unset_impact_with_nonzero_CVSSv3_score",
             ),
         ],
     )
-    def test_validate_rh_cvss3_and_impact(self, impact, vector, should_raise):
+    def test_validate_rh_cvss3_and_impact(self, impact, vector, should_alert):
         """
         Test that flaw's RH CVSSv3 score and impact comply with the following:
         * RH CVSSv3 score is not zero and flaw impact is set
@@ -171,8 +171,52 @@ class TestCVSS:
             vector=vector,
         )
 
-        if should_raise:
-            with pytest.raises(ValidationError, match=should_raise):
-                cvss.save()
+        cvss.save()
+        alerts = [
+            "set_impact_with_zero_CVSSv3_score",
+            "unset_impact_with_nonzero_CVSSv3_score",
+        ]
+
+        if should_alert:
+            assert flaw.valid_alerts.filter(name=should_alert).exists()
         else:
-            assert cvss.save() is None
+            assert not any(
+                [flaw.valid_alerts.filter(name=alert).exists() for alert in alerts]
+            )
+
+    @pytest.mark.enable_signals
+    @pytest.mark.parametrize(
+        "impact,vector,should_alert_after",
+        [
+            # score 0.0
+            (Impact.LOW, "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N", False),
+            # score 0.0
+            (Impact.NOVALUE, "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:N", True),
+        ],
+    )
+    def test_validate_rh_cvss3_and_impact_deadlock(
+        self, impact, vector, should_alert_after
+    ):
+        """
+        Test that the RH CVSSv3 score can be changed from zero score and unset flaw impact.
+        This is here to make sure that a deadlock does not occur when trying to leave from
+        an empty RH CVSSv3 score / impact state.
+        """
+
+        flaw = FlawFactory(impact=impact)
+        cvss = FlawCVSSFactory.build(
+            flaw=flaw,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            vector=vector,
+        )
+
+        assert cvss.save() is None
+        cvss.vector = "CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H"  # score 7.2
+        cvss.save()
+
+        alerted = flaw.valid_alerts.filter(
+            name="unset_impact_with_nonzero_CVSSv3_score"
+        ).exists()
+
+        assert alerted if should_alert_after else not alerted

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CVE.org and CISA CVSS correctly recalculate and persist the numeric
   score on update (OSIDB-4326)
 - Properly handle scheduled tasks collision in Jira Downloader (OSIDB-3846)
+- Swap from exceptions to alerts to resolve RH CVSS and flaw impact deadlock (OSIDB-4332)
 
 ## [4.12.0] - 2025-06-18
 ### Added
