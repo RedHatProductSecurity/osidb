@@ -691,6 +691,40 @@ class TestTrackerQueryBuilderDescription:
             else:
                 assert "feedback form" not in tqb.description
 
+    @pytest.mark.parametrize("info_url", [None, "https://example.doc.com"])
+    def test_vuln_mgmt_link(self, info_url):
+        """
+        test that the link to vunerability management documentation is included in the description
+        if the env variable is set
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        with patch("apps.trackers.common.VULN_MGMT_INFO_URL", info_url):
+            tqb = TrackerQueryBuilder()
+            tqb.instance = tracker
+
+            if info_url is not None:
+                assert info_url in tqb.description
+            else:
+                assert (
+                    "essential vulnerability management information"
+                    not in tqb.description
+                )
+
     def test_triage(self):
         """
         test triage tracker description generation

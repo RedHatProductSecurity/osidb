@@ -7,7 +7,11 @@ from urllib.parse import urljoin
 
 from apps.bbsync.constants import MAX_SUMMARY_LENGTH, MULTIPLE_DESCRIPTIONS_SUBSTITUTION
 from apps.bbsync.query import summary_shorten
-from apps.trackers.constants import KERNEL_PACKAGES, VIRTUALIZATION_PACKAGES
+from apps.trackers.constants import (
+    KERNEL_PACKAGES,
+    VIRTUALIZATION_PACKAGES,
+    VULN_MGMT_INFO_URL,
+)
 from apps.trackers.jira.constants import TRACKER_FEEDBACK_FORM_URL
 from collectors.bzimport.constants import BZ_URL
 from osidb.helpers import cve_id_comparator
@@ -199,11 +203,14 @@ class TrackerQueryBuilder:
         if self.ps_component in KERNEL_PACKAGES:
             description_parts.extend(TrackerQueryBuilder._description_kernel())
 
-        # 5) Tracker feedback form for Jira
+        # 5) Link to vulnerability management information
+        description_parts.extend(self._description_vuln_mgmt_info())
+
+        # 6) Tracker feedback form for Jira
         if self.tracker.type == Tracker.TrackerType.JIRA:
             description_parts.extend(self._description_feedback_form())
 
-        # 6) join the parts by empty lines
+        # 7) join the parts by empty lines
         return "\n\n".join(description_parts)
 
     def _description_bugzilla_footer(self):
@@ -366,3 +373,15 @@ class TrackerQueryBuilder:
         if TRACKER_FEEDBACK_FORM_URL is None:
             return []
         return [f"Tracker accuracy feedback form: {TRACKER_FEEDBACK_FORM_URL}"]
+
+    def _description_vuln_mgmt_info(self):
+        """
+        generate vulnerability management link and text
+        """
+        if VULN_MGMT_INFO_URL is None:
+            return []
+        return [
+            "The following link provides references to all essential vulnerability management information. "
+            "If something is wrong or missing, please contact a member of PSIRT.\n"
+            f"{VULN_MGMT_INFO_URL}"
+        ]
