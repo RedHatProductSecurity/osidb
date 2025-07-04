@@ -21,8 +21,12 @@ class PsProduct(models.Model):
     business_unit = models.CharField(max_length=50)
 
     @property
-    def is_community(self):
+    def is_community(self) -> bool:
         """
         is community boolean property
         """
         return self.business_unit == "Community"
+
+    @property
+    def is_middleware(self) -> bool:
+        return self.business_unit == "Core Middleware"
