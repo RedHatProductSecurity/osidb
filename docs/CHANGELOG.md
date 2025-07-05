@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Trigger Jira tracker sync when Red Hat's CVSS change (OSIDB-4186)
 - Extend `Special Handling` tracker values (OSIDB-4337)
 - Add vuln mgmt documentation link to tracker description (OSIDB-3835)
+- Filter affects based on flaw workflow state (OSIDB-3893)
+- Filter affects based on absence/presence of related trackers (OSIDB-3893)
 
 ### Fixed
 - CVE.org and CISA CVSS correctly recalculate and persist the numeric

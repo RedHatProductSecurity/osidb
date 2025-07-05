@@ -1141,6 +1141,25 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: flaw__workflow_state
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - DONE
+            - NEW
+            - PRE_SECONDARY_ASSESSMENT
+            - REJECTED
+            - SECONDARY_ASSESSMENT
+            - TRIAGE
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: impact
         schema:
           type: string
@@ -1343,6 +1362,10 @@ paths:
         name: trackers__external_system_id
         schema:
           type: string
+      - in: query
+        name: trackers__isempty
+        schema:
+          type: boolean
       - in: query
         name: trackers__ps_update_stream
         schema:
