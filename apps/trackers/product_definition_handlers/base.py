@@ -18,10 +18,23 @@ class ProductDefinitionRules:
             UnackedHandler(),
         ]
 
-    def file_tracker_offers(self, affect: Affect, impact: Impact, ps_module: PsModule):
+    def file_tracker_offers(
+        self,
+        affect: Affect,
+        impact: Impact,
+        ps_module: PsModule,
+        exclude_existing_trackers=False,
+    ):
         offers = {}
+
+        active_ps_update_streams = ps_module.active_ps_update_streams.all()
+        if exclude_existing_trackers:
+            active_ps_update_streams = active_ps_update_streams.exclude(
+                name__in=affect.trackers.values_list("ps_update_stream", flat=True)
+            )
+
         # generate the initial offer without any pre-selection
-        for stream in ps_module.active_ps_update_streams.all():
+        for stream in active_ps_update_streams:
             offers[stream.name] = {
                 "ps_update_stream": stream.name,
                 "selected": False,

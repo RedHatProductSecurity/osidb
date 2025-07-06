@@ -7906,6 +7906,13 @@ paths:
       operationId: trackers_api_v1_file_create
       description: Given a list of flaws, generates a list of suggested trackers to
         file.
+      parameters:
+      - in: query
+        name: exclude_existing_trackers
+        schema:
+          type: boolean
+        description: Filter to only show trackers that don't already exist for the
+          given flaws
       tags:
       - trackers
       requestBody:
