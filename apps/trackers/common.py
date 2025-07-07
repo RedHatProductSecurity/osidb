@@ -3,7 +3,6 @@ common tracker functionality shared between BTSs
 """
 
 from functools import cached_property
-from urllib.parse import urljoin
 
 from apps.bbsync.constants import MAX_SUMMARY_LENGTH, MULTIPLE_DESCRIPTIONS_SUBSTITUTION
 from apps.bbsync.query import summary_shorten
@@ -13,7 +12,6 @@ from apps.trackers.constants import (
     VULN_MGMT_INFO_URL,
 )
 from apps.trackers.jira.constants import TRACKER_FEEDBACK_FORM_URL
-from collectors.bzimport.constants import BZ_URL
 from osidb.helpers import cve_id_comparator
 from osidb.models import Flaw, PsModule, PsUpdateStream, Tracker
 
@@ -249,13 +247,7 @@ class TrackerQueryBuilder:
         """
         description_parts = []
 
-        header = ""
-
-        header += (
-            f"{self.ps_module.name} tracking bug for {self.ps_component}: "
-            'see the bugs linked in the "Blocks" field of this bug '
-            "for full details of the security issue(s)."
-        )
+        header = f"{self.ps_module.name} tracking bug for {self.ps_component}."
         description_parts.append(header)
 
         description_parts.append(
@@ -264,31 +256,11 @@ class TrackerQueryBuilder:
         )
         return description_parts
 
-    # TODO this should be eventually replaced by the OSIM/OSIDB link
-    def _description_bugzilla_link(bz_id):
-        """
-        generate link to Bugzilla bug with the given ID
-        """
-        return urljoin(BZ_URL, f"show_bug.cgi?id={bz_id}")
-
     def _description_community(self):
         """
         generate community tracker description text
         """
         description_parts = []
-        description_parts.append(
-            "More information about this security flaw is available in the following bug:"
-            if len(self.flaws) == 1
-            else "More information about these security flaws is available in the following bugs:"
-        )
-        description_parts.append(
-            "\n".join(
-                [
-                    TrackerQueryBuilder._description_bugzilla_link(flaw.bz_id)
-                    for flaw in self.flaws
-                ]
-            )
-        )
         description_parts.append(
             "Disclaimer: Community trackers are created by Red Hat Product Security team on a "
             "best effort basis. Package maintainers are required to ascertain if the flaw indeed "
@@ -330,9 +302,7 @@ class TrackerQueryBuilder:
         )
 
         for flaw in self.flaws:
-            reference_url = TrackerQueryBuilder._description_bugzilla_link(flaw.bz_id)
-
-            description_parts.append(f"{flaw.title}\n{reference_url}")
+            description_parts.append(f"{flaw.title}")
             description_parts.append(flaw.comment_zero)
 
         description_parts.append("~~~")
