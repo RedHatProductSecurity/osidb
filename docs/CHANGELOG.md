@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Properly handle scheduled tasks collision in Jira Downloader (OSIDB-3846)
 - Swap from exceptions to alerts to resolve RH CVSS and flaw impact deadlock (OSIDB-4332)
 
+### Changed
+- Provide PURLs for Middleware engineering trackers when available (OSIDB-3704)
+
 ## [4.12.0] - 2025-06-18
 ### Added
 - Workaround for parsing modular components from PURLs (OSIDB-4292)

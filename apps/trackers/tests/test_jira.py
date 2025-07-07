@@ -22,6 +22,7 @@ from apps.trackers.exceptions import (
 from apps.trackers.jira.constants import (
     JIRA_EMBARGO_SECURITY_LEVEL_NAME,
     PS_ADDITIONAL_FIELD_TO_JIRA,
+    TrackersAppSettings,
 )
 from apps.trackers.jira.query import (
     JiraCVESeverity,
@@ -51,6 +52,7 @@ from osidb.tests.factories import (
     FlawCVSSFactory,
     FlawFactory,
     PsModuleFactory,
+    PsProductFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
 )
@@ -1299,6 +1301,99 @@ class TestTrackerJiraQueryBuilder:
             del expected1["fields"]["customfield_12324747"]
 
         query_builder = TrackerJiraQueryBuilder(tracker)
+        query_builder.generate()
+        validate_minimum_key_value(minimum=expected1, evaluated=query_builder._query)
+
+    @pytest.mark.parametrize("feature_enabled", (True, False))
+    @pytest.mark.parametrize(
+        "purl,downstream_component",
+        (
+            (
+                "pkg:rpm/redhat/jetty@9.0.3-8.el7?arch=src",
+                "pkg:rpm/redhat/jetty@9.0.3-8.el7?arch=src",
+            ),
+            (None, "jetty"),
+        ),
+    )
+    def test_generate_query_middleware(
+        self, purl, downstream_component, feature_enabled
+    ):
+        """
+        test that query has all fields correctly generated
+        """
+
+        flaw = FlawFactory(
+            embargoed=False,
+            bz_id="123",
+            cve_id="CVE-2999-1000",
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="some description",
+            source="REDHAT",
+        )
+        ps_product = PsProductFactory(business_unit="Core Middleware")
+        ps_module = PsModuleFactory(
+            name="foo-module",
+            bts_name="jboss",
+            bts_key="FOOPROJECT",
+            ps_product=ps_product,
+        )
+        stream = PsUpdateStreamFactory(
+            ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            ps_component="jetty",
+            purl=purl,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            external_system_id=None,
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=stream.name,
+            embargoed=flaw.is_embargoed,
+        )
+        JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_id="security",
+            field_name="Security Level",
+            allowed_values=[
+                "Embargoed Security Issue",
+                "Red Hat Employee",
+                "Red Hat Engineering Authorized",
+                "Red Hat Partner",
+                "Restricted",
+                "Team",
+            ],
+        )
+        expected1 = {
+            "fields": {
+                "project": {"key": "FOOPROJECT"},
+                "issuetype": {"name": "Vulnerability"},
+                "summary": "CVE-2999-1000 jetty: some description [bar-1.2.3]",
+                "labels": [
+                    "CVE-2999-1000",
+                    "pscomponent:jetty",
+                    "SecurityTracking",
+                    "Security",
+                ],
+                "versions": [
+                    {"name": "1.2.3"},
+                ],
+                # CVE ID
+                "customfield_12324749": "CVE-2999-1000",
+                # Downstream Component Name
+                "customfield_12324752": downstream_component
+                if feature_enabled
+                else "jetty",
+                # Upstream Affected Component
+                "customfield_12324751": "; ".join(sorted(flaw.components)),
+            }
+        }
+        query_builder = TrackerJiraQueryBuilder(
+            tracker, TrackersAppSettings(prefer_purls=feature_enabled)
+        )
         query_builder.generate()
         validate_minimum_key_value(minimum=expected1, evaluated=query_builder._query)
 
