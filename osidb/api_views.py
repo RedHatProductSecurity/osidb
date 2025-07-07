@@ -597,9 +597,9 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         "acknowledgments",
         "affects",
         "affects__cvss_scores",
-        "affects__trackers",
-        "affects__trackers__errata",
-        "affects__trackers__affects",
+        "affects__tracker",
+        "affects__tracker__errata",
+        "affects__tracker__affects",
         "comments",
         "cvss_scores",
         "package_versions",
@@ -1044,10 +1044,10 @@ class AffectView(
         "alerts",
         "cvss_scores",
         "cvss_scores__alerts",
-        "trackers",
-        "trackers__errata",
-        "trackers__affects",
-        "trackers__alerts",
+        "tracker",
+        "tracker__errata",
+        "tracker__affects",
+        "tracker__alerts",
     ).all()
     serializer_class = AffectSerializer
     filterset_class = AffectFilter

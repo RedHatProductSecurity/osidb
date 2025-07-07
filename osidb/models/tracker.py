@@ -127,9 +127,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     # non operational meta data
     meta_attr = HStoreField(default=dict)
 
-    # An Affect can have many trackers, and a tracker can track multiple flaw/affects
-    affects = models.ManyToManyField(Affect, related_name="trackers", blank=True)
-
     last_impact_increase_dt = models.DateTimeField(null=True, blank=True)
     resolved_dt = models.DateTimeField(null=True, blank=True)
 
@@ -211,10 +208,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             and bz_api_key is not None
             and self.type == self.TrackerType.BUGZILLA
         ):
-            # avoid creating tracker in duplicity
-            # from places where skips validations
-            if not self.external_system_id:
-                self._validate_tracker_duplicate()
             # sync to Bugzilla
             tracker_instance = TrackerSaver(self, bz_api_key=bz_api_key).save()
             # no save or fetch to prevent collisions
@@ -230,10 +223,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             and jira_token is not None
             and self.type == self.TrackerType.JIRA
         ):
-            # avoid creating tracker in duplicity
-            # from places where skips validations
-            if not self.external_system_id:
-                self._validate_tracker_duplicate()
             # sync to Jira
             actual_jira_issuetype = "Vulnerability"
             if JiraBugIssuetype.objects.filter(
@@ -350,7 +339,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
         if (
             not self.is_embargoed
-            and Flaw.objects.filter(affects__trackers=self, embargoed=True).exists()
+            and Flaw.objects.filter(affects__tracker=self, embargoed=True).exists()
         ):
             raise ValidationError(
                 "Tracker is public but is associated with an embargoed flaw."
@@ -438,26 +427,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             raise ValidationError(
                 f"Tracker type and BTS mismatch: {self.type} versus {ps_module.bts_name}"
             )
-
-    def _validate_tracker_duplicate(self, **kwargs):
-        """
-        validate that there is only one tracker with this update stream associated with each affect
-        """
-        for affect in self.affects.all():
-            trackers = affect.trackers.filter(ps_update_stream=self.ps_update_stream)
-            if trackers.count() > 1:
-                raise ValidationError(
-                    f"Tracker with the update stream {self.ps_update_stream} ({self.external_system_id}) "
-                    "is already associated with the affect "
-                    f"{affect.ps_update_stream}/{affect.ps_component} ({affect.uuid}) "
-                    f"by the tracker(s) {', '.join([str(tracker.external_system_id) for tracker in trackers if tracker.uuid != self.uuid])}",
-                    params={
-                        "resolution_steps": "When manually cloning a tracker, please ensure that each affect has a unique update stream, "
-                        "which can be identified in the tracker's title. "
-                        "If the tracker is a duplicate, remove the 'SecurityTracking' label from the tracker in the external system. "
-                        "If the tracker is not expected to be a duplicate, please contact the Vulnerability Tooling team for further assistance."
-                    },
-                )
 
     def _validate_not_affected_justification(self, **kwargs):
         """
@@ -580,7 +549,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         from osidb.models.flaw.flaw import Flaw
         from osidb.models.flaw.reference import FlawReference
 
-        flaws = Flaw.objects.filter(affects__trackers=self)
+        flaws = Flaw.objects.filter(affects__tracker=self)
         return FlawReference.objects.filter(flaw__in=flaws)
 
     bz_download_manager = models.ForeignKey(
