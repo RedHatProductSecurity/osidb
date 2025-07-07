@@ -349,7 +349,7 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
 
     bz_id = NumberFilter(field_name="meta_attr__bz_id", lookup_expr="exact")
     tracker_ids = CharInFilter(
-        field_name="affects__trackers__external_system_id",
+        field_name="affects__tracker__external_system_id",
         lookup_expr="in",
         distinct=True,
     )
@@ -369,8 +369,8 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
         field_name="workflow_state", choices=WorkflowModel.WorkflowState.choices
     )
     affects__embargoed = BooleanFilter(field_name="affects__embargoed")
-    affects__trackers__embargoed = BooleanFilter(
-        field_name="affects__trackers__embargoed"
+    affects__tracker__embargoed = BooleanFilter(
+        field_name="affects__tracker__embargoed"
     )
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
 
@@ -469,23 +469,23 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
             # Tracker fields
-            "affects__trackers__uuid": ["exact"],
-            "affects__trackers__type": ["exact"],
-            "affects__trackers__external_system_id": ["exact"],
-            "affects__trackers__status": ["exact"],
-            "affects__trackers__resolution": ["exact"],
-            "affects__trackers__ps_update_stream": ["exact"],
-            "affects__trackers__created_dt": ["exact"]
+            "affects__tracker__uuid": ["exact"],
+            "affects__tracker__type": ["exact"],
+            "affects__tracker__external_system_id": ["exact"],
+            "affects__tracker__status": ["exact"],
+            "affects__tracker__resolution": ["exact"],
+            "affects__tracker__ps_update_stream": ["exact"],
+            "affects__tracker__created_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
-            "affects__trackers__updated_dt": ["exact"]
+            "affects__tracker__updated_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
-            "affects__trackers__errata__advisory_name": ["exact"],
-            "affects__trackers__errata__et_id": ["exact"],
-            "affects__trackers__errata__shipped_dt": ["exact"]
+            "affects__tracker__errata__advisory_name": ["exact"],
+            "affects__tracker__errata__et_id": ["exact"],
+            "affects__tracker__errata__shipped_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
@@ -850,6 +850,7 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
 
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
     embargoed = BooleanFilter(field_name="embargoed")
+    tracker__embargoed = BooleanFilter(field_name="tracker__embargoed")
     flaw__embargoed = BooleanFilter(field_name="flaw__embargoed")
     flaw__workflow_state = ChoiceInFilter(
         field_name="flaw__workflow_state", choices=WorkflowModel.WorkflowState.choices
@@ -899,17 +900,17 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
             + DATE_LOOKUP_EXPRS,
             "flaw__components": ["exact"],
             # Tracker fields
-            "trackers__uuid": ["exact"],
-            "trackers__type": ["exact"],
-            "trackers__external_system_id": ["exact"],
-            "trackers__status": ["exact"],
-            "trackers__resolution": ["exact"],
-            "trackers__ps_update_stream": ["exact"],
-            "trackers__created_dt": ["exact"]
+            "tracker__uuid": ["exact"],
+            "tracker__type": ["exact"],
+            "tracker__external_system_id": ["exact"],
+            "tracker__status": ["exact"],
+            "tracker__resolution": ["exact"],
+            "tracker__ps_update_stream": ["exact"],
+            "tracker__created_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
-            "trackers__updated_dt": ["exact"]
+            "tracker__updated_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
@@ -933,7 +934,7 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
         "cvss_scores__cvss_version",
         "embargoed",
         "flaw__embargoed",
-        "trackers__embargoed",
+        "tracker__embargoed",
     ] + list(Meta.fields.keys())
     order = OrderingFilter(fields=order_fields)
 

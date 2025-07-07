@@ -122,11 +122,10 @@ def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Tracker)
-@receiver(m2m_changed, sender=Tracker.affects.through)
+@receiver(post_save, sender=Affect)
+@receiver(post_delete, sender=Affect)
 def update_local_updated_dt_tracker(sender, instance, **kwargs):
     flaws = set()
-    # /!\ in the case of an m2m_changed signal, instance can be either a
-    # Tracker or an Affect object, see Django docs on m2m_changed signal
     if isinstance(instance, Affect):
         flaws.add(instance.flaw)
     else:
@@ -176,13 +175,11 @@ def update_last_impact_increase_dt_affect(sender, instance, **kwargs):
     if not instance._state.adding and Impact(instance.impact) > Impact(
         Affect.objects.get(pk=instance.pk).impact
     ):
-        to_update = set()
-        for tracker in instance.trackers.all():
-            if Impact(instance.impact) > tracker.aggregated_impact:
-                to_update.add(tracker.uuid)
-
-        if to_update:
-            Tracker.objects.filter(uuid__in=to_update).update(
+        if (
+            instance.tracker is not None
+            and Impact(instance.impact) > instance.tracker.aggregated_impact
+        ):
+            Tracker.objects.filter(uuid=instance.tracker.uuid).update(
                 last_impact_increase_dt=timezone.now()
             )
 

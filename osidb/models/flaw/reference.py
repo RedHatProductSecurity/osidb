@@ -112,9 +112,13 @@ class FlawReference(AlertMixin, ACLMixin, TrackingMixin):
             if affect.is_community:
                 continue
 
-            for tracker in affect.trackers.all():
-                if not tracker.is_closed and tracker.type == Tracker.TrackerType.JIRA:
-                    tracker.sync_reference(jira_token=jira_token, reference=self)
+            tracker = affect.tracker
+            if (
+                tracker
+                and not tracker.is_closed
+                and tracker.type == Tracker.TrackerType.JIRA
+            ):
+                tracker.sync_reference(jira_token=jira_token, reference=self)
 
     def _validate_article_link(self, **kwargs):
         """
