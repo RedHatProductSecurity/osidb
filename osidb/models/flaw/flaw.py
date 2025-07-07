@@ -970,13 +970,13 @@ class Flaw(
         from osidb.models import Affect
 
         return all(
-            affect.trackers.exists()
+            affect.tracker is not None
             for affect in self.affects.filter(
                 affectedness=Affect.AffectAffectedness.NEW,
                 resolution=Affect.AffectResolution.NOVALUE,
             )
         ) and all(
-            affect.trackers.exists()
+            affect.tracker is not None
             for affect in self.affects.filter(
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
