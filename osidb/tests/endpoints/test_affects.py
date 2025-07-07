@@ -580,7 +580,7 @@ class TestEndpointsAffects:
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect_with_trackers = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
         )
         TrackerFactory(

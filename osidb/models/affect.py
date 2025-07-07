@@ -56,7 +56,7 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
             super()
             .get_queryset()
             .prefetch_related(
-                "trackers",
+                "tracker",
             )
             .annotate(
                 ps_product_name=models.Subquery(
@@ -169,6 +169,14 @@ class Affect(
     ps_update_stream = models.CharField(max_length=100)
     # ps_module is denormalized as it is still used extensively
     ps_module = models.CharField(max_length=100, blank=True)
+
+    tracker = models.ForeignKey(
+        "Tracker",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="affects",
+    )
 
     # the length 255 does not have any special meaning in Postgres
     # but it is the maximum SFM2 value so let us just keep parity for now
@@ -403,9 +411,8 @@ class Affect(
         """
         if (
             self.affectedness == Affect.AffectAffectedness.NOTAFFECTED
-            and self.trackers.exclude(
-                status__iexact="CLOSED"
-            ).exists()  # see tracker.is_closed
+            and self.tracker is not None
+            and self.tracker.status != "CLOSED"  # see tracker.is_closed
         ):
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as "
@@ -418,9 +425,8 @@ class Affect(
         """
         if (
             self.resolution == Affect.AffectResolution.OOSS
-            and self.trackers.exclude(
-                status__iexact="CLOSED"
-            ).exists()  # see tracker.is_closed
+            and self.tracker is not None
+            and self.tracker.status != "CLOSED"  # see tracker.is_closed
         ):
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as "
@@ -433,9 +439,8 @@ class Affect(
         """
         if (
             self.resolution == Affect.AffectResolution.WONTFIX
-            and self.trackers.exclude(
-                status__iexact="CLOSED"
-            ).exists()  # see tracker.is_closed
+            and self.tracker is not None
+            and self.tracker.status != "CLOSED"  # see tracker.is_closed
         ):
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as "
@@ -448,7 +453,8 @@ class Affect(
         """
         if (
             self.resolution == Affect.AffectResolution.DEFER
-            and self.trackers.exclude(status__iexact="CLOSED").exists()
+            and self.tracker is not None
+            and self.tracker.status != "CLOSED"  # see tracker.is_closed
         ):
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} cannot have "
@@ -633,7 +639,7 @@ class Affect(
 
     @property
     def delegated_resolution(self):
-        """affect delegated resolution based on resolutions of related trackers"""
+        """affect delegated resolution based on the resolution of its related tracker"""
         if not (
             self.affectedness == Affect.AffectAffectedness.AFFECTED
             and self.resolution == Affect.AffectResolution.DELEGATED
@@ -642,20 +648,10 @@ class Affect(
 
         # exclude the trackers closed as duplicate or migrated from Bugzilla
         trackers_regex = re.compile(r"(duplicate|migrated)", re.IGNORECASE)
-        trackers = [
-            tracker
-            for tracker in self.trackers.all()
-            if not trackers_regex.match(tracker.resolution)
-        ]
-        if not trackers:
+        if not self.tracker or trackers_regex.match(self.tracker.resolution):
             return Affect.AffectFix.AFFECTED
 
-        statuses = [tracker.fix_state for tracker in trackers]
-        # order is **very** important here, if there are multiple trackers
-        # the order of these statuses determines which tracker status takes
-        # precedence over all the rest, meaning that if one tracker is affected
-        # and another is not affected, the overall affect delegated_resolution
-        # will be affected and not notaffected.
+        tracker_status = self.tracker.fix_state
         for status in (
             Affect.AffectFix.AFFECTED,
             Affect.AffectFix.WONTFIX,
@@ -663,7 +659,7 @@ class Affect(
             Affect.AffectFix.DEFER,
             Affect.AffectFix.NOTAFFECTED,
         ):
-            if status in statuses:
+            if status == tracker_status:
                 if (
                     self.aggregated_impact == Impact.LOW
                     and status == Affect.AffectFix.WONTFIX
@@ -673,8 +669,8 @@ class Affect(
 
                 return status
 
-        # We don't know. Maybe none of the trackers have a valid resolution; default to "Affected".
-        logger.error("How did we get here??? %s, %s", trackers, statuses)
+        # We don't know. Maybe the tracker doesn't have a valid resolution; default to "Affected".
+        logger.error("How did we get here??? %s, %s", self.tracker, tracker_status)
 
         return Affect.AffectFix.AFFECTED
 
@@ -682,35 +678,16 @@ class Affect(
     def delegated_not_affected_justification(self):
         """
         Delegated not affected justification based on the not affected justifications of
-        related Jira trackers.
+        its related Jira trackers.
 
-        If all the trackers related to an affect are closed as 'Not a Bug' and their justifications
-        are equal, then pick that value. If they are all closed as 'Not a Bug' but the
-        justifications differ, pick 'Component not Present' even if no justification has that
-        value.
-        If any tracker has a resolution different to 'Not a Bug', then the delegated justification
-        becomes empty.
+        If the related tracker is closed as 'Not a Bug' then use its justification, otherwise
+        the delegated justification is empty.
         """
         from apps.taskman.service import TaskResolution
-        from osidb.models.tracker import Tracker
 
-        trackers = [
-            tracker
-            for tracker in self.trackers.all()
-            if tracker.type == Tracker.TrackerType.JIRA
-        ]
-        if not trackers or any(
-            tracker
-            for tracker in trackers
-            if tracker.resolution != TaskResolution.NOT_A_BUG
-        ):
+        if self.tracker is None or self.tracker.resolution != TaskResolution.NOT_A_BUG:
             return NotAffectedJustification.NOVALUE
-
-        justifications = [tracker.not_affected_justification for tracker in trackers]
-        if len(set(justifications)) == 1:
-            return justifications[0]
-
-        return NotAffectedJustification.COMPONENT_NOT_PRESENT
+        return self.tracker.not_affected_justification
 
     @property
     def is_community(self) -> bool:
@@ -1040,16 +1017,20 @@ class AffectCVSS(CVSS):
         self.affect.save(*args, **kwargs)
 
     def sync_to_trackers(self, jira_token):
-        """Sync this CVSS in the related Jira trackers."""
+        """Sync this CVSS in the related Jira tracker."""
         from osidb.models.tracker import Tracker
 
         if self.affect.is_community:
             return
 
-        for tracker in self.affect.trackers.all():
-            if not tracker.is_closed and tracker.type == Tracker.TrackerType.JIRA:
-                # default save already sync with Jira when needed
-                tracker.save(jira_token=jira_token)
+        tracker = self.affect.tracker
+        if (
+            tracker
+            and not tracker.is_closed
+            and tracker.type == Tracker.TrackerType.JIRA
+        ):
+            # default save already sync with Jira when needed
+            tracker.save(jira_token=jira_token)
 
 
 # List of all states an Affect is considered open/not resolved

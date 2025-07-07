@@ -536,19 +536,6 @@ class BZTrackerLinkManager(SyncManager):
     Tracker and Affects are updated.
     """
 
-    def __str__(self):
-        from osidb.models import Affect
-
-        result = super().__str__()
-
-        affects = Affect.objects.filter(trackers__external_system_id=self.sync_id)
-        affect_strings = [
-            f"{a.flaw.bz_id}|{a.ps_module}|{a.ps_component}" for a in affects
-        ]
-        result += f"Affects: {affect_strings}\n"
-
-        return result
-
     @staticmethod
     def link_tracker_with_affects(tracker_id):
         # Code adapted from collectors.bzimport.convertors.BugzillaTrackerConvertor.affects
@@ -672,6 +659,19 @@ class BZTrackerLinkManager(SyncManager):
         Tracker.objects.filter(external_system_id=self.sync_id).update(
             bz_link_manager=self
         )
+
+    def __str__(self):
+        from osidb.models import Affect
+
+        result = super().__str__()
+
+        affects = Affect.objects.filter(tracker__external_system_id=self.sync_id)
+        affect_strings = [
+            f"{a.flaw.bz_id}|{a.ps_update_stream}|{a.ps_component}" for a in affects
+        ]
+        result += f"Affects: {affect_strings}\n"
+
+        return result
 
 
 class BZSyncManager(SyncManager):
@@ -1132,3 +1132,16 @@ class JiraTrackerLinkManager(SyncManager):
         Tracker.objects.filter(external_system_id=self.sync_id).update(
             jira_link_manager=self
         )
+
+    def __str__(self):
+        from osidb.models import Affect
+
+        result = super().__str__()
+
+        affects = Affect.objects.filter(tracker__external_system_id=self.sync_id)
+        affect_strings = [
+            f"{a.flaw.bz_id}|{a.ps_update_stream}|{a.ps_component}" for a in affects
+        ]
+        result += f"Affects: {affect_strings}\n"
+
+        return result
