@@ -13,12 +13,13 @@ from apps.trackers.product_definition_handlers.major_incident_handler import (
 )
 from apps.trackers.product_definition_handlers.moderate_handler import ModerateHandler
 from apps.trackers.product_definition_handlers.unacked_handler import UnackedHandler
-from osidb.models import Affect, Flaw, Impact, PsUpdateStream
+from osidb.models import Affect, Flaw, Impact, PsUpdateStream, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
+    TrackerFactory,
 )
 
 pytestmark = pytest.mark.unit
@@ -620,6 +621,87 @@ class TestTrackerSuggestions:
 
         assert available_streams == expected_available_streams
         assert selected_streams == expected_selected_streams
+
+    @pytest.mark.parametrize(
+        "exclude_existing_trackers,expected_stream_1,expected_stream_2,expected_total",
+        [
+            (None, True, True, 2),  # default behaviour
+            (False, True, True, 2),  # explicit False
+            (True, False, True, 1),  # explicit True
+        ],
+    )
+    def test_trackers_file_offer_exclude_existing_trackers(
+        self,
+        auth_client,
+        test_app_api_uri,
+        exclude_existing_trackers,
+        expected_stream_1,
+        expected_stream_2,
+        expected_total,
+    ):
+        """
+        Test that existing trackers are correctly excluded when exclude_existing_trackers is provided
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            impact=Impact.MODERATE,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        ps_module = PsModuleFactory(name="test-module")
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+
+        # Create two update streams
+        stream1 = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            moderate_to_ps_module=ps_module,
+        )
+        stream2 = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            moderate_to_ps_module=ps_module,
+        )
+
+        # Create an existing tracker for stream1
+        TrackerFactory(
+            affects=[affect],
+            ps_update_stream=stream1.name,
+            embargoed=flaw.embargoed,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        headers = {"HTTP_JiraAuthentication": "SECRET"}
+
+        # Build URL with parameter if specified
+        url = f"{test_app_api_uri}/file"
+        if exclude_existing_trackers is not None:
+            url += (
+                f"?exclude_existing_trackers={str(exclude_existing_trackers).lower()}"
+            )
+
+        response = auth_client().post(
+            url,
+            data={"flaw_uuids": [flaw.uuid]},
+            format="json",
+            **headers,
+        )
+        res = response.json()
+
+        assert len(res["modules_components"]) == 1
+        available_streams = [
+            stream["ps_update_stream"]
+            for stream in res["modules_components"][0]["streams"]
+        ]
+
+        # Check expectations
+        assert len(available_streams) == expected_total
+        assert (stream1.name in available_streams) == expected_stream_1
+        assert (stream2.name in available_streams) == expected_stream_2
 
     class TestDefaultHandler:
         @pytest.mark.parametrize(

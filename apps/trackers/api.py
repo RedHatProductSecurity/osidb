@@ -1,5 +1,7 @@
+from distutils.util import strtobool
+
 from django.db.models import Q
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,6 +19,15 @@ class TrackerFileSuggestionView(RudimentaryUserPathLoggingMixin, APIView):
         request=FlawUUIDListSerializer,
         description="Given a list of flaws, generates a list of suggested trackers to file.",
         responses=TrackerSuggestionSerializer,
+        parameters=[
+            OpenApiParameter(
+                "exclude_existing_trackers",
+                type=bool,
+                required=False,
+                location=OpenApiParameter.QUERY,
+                description="Filter to only show trackers that don't already exist for the given flaws",
+            )
+        ],
     )
     def post(self, request, *args, **kwargs):
         """
@@ -30,6 +41,10 @@ class TrackerFileSuggestionView(RudimentaryUserPathLoggingMixin, APIView):
         This method will also considers specific rules from product definition
         (e.g. unacked streams rules)
         """
+
+        exclude_existing_trackers = bool(
+            strtobool(request.query_params.get("exclude_existing_trackers", "false"))
+        )
         serializer = FlawUUIDListSerializer(data=request.data)
 
         if not serializer.is_valid():
@@ -94,7 +109,10 @@ class TrackerFileSuggestionView(RudimentaryUserPathLoggingMixin, APIView):
                 continue
 
             offers = ProductDefinitionRules().file_tracker_offers(
-                affect, impact, ps_module
+                affect,
+                impact,
+                ps_module,
+                exclude_existing_trackers=exclude_existing_trackers,
             )
             targets[key] = {
                 "affect": affect,

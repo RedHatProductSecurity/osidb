@@ -556,6 +556,60 @@ class TestEndpointsAffects:
         assert not body["resolved_dt"]
         assert body["resolved_dt"] != old_resolved_dt
 
+    @pytest.mark.parametrize(
+        "filter_value,expected_with_trackers,expected_without_trackers",
+        [
+            (True, 0, 1),
+            (False, 1, 0),
+        ],
+    )
+    def test_trackers_isempty_filter(
+        self,
+        auth_client,
+        test_api_uri,
+        filter_value,
+        expected_with_trackers,
+        expected_without_trackers,
+    ):
+        """
+        test that trackers__isempty filter is working correctly
+        """
+        flaw = FlawFactory()
+
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect_with_trackers = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+        )
+        TrackerFactory(
+            affects=[affect_with_trackers],
+            ps_update_stream=ps_update_stream.name,
+            embargoed=flaw.embargoed,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        affect_without_trackers = AffectFactory(flaw=flaw)
+
+        response = auth_client().get(
+            f"{test_api_uri}/affects?trackers__isempty={str(filter_value).lower()}"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+
+        expected_total = expected_with_trackers + expected_without_trackers
+        assert body["count"] == expected_total
+
+        if expected_with_trackers > 0:
+            affect_uuids = [result["uuid"] for result in body["results"]]
+            assert str(affect_with_trackers.uuid) in affect_uuids
+
+        if expected_without_trackers > 0:
+            affect_uuids = [result["uuid"] for result in body["results"]]
+            assert str(affect_without_trackers.uuid) in affect_uuids
+
 
 class TestEndpointsAffectsBulk:
     """
