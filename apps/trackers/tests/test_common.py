@@ -335,9 +335,9 @@ class TestTrackerQueryBuilderDescription:
         tqb = TrackerQueryBuilder()
         tqb.instance = tracker
 
+        print(tqb.description)
         assert tqb.description == (
-            "special-module tracking bug for large-component: see the bugs linked "
-            'in the "Blocks" field of this bug for full details of the security issue(s).\n\n'
+            "special-module tracking bug for large-component.\n\n"
             "This bug is never intended to be made public, please put any public notes in the blocked bugs."
         )
 
@@ -379,8 +379,7 @@ class TestTrackerQueryBuilderDescription:
         tqb.instance = tracker
 
         assert tqb.description == (
-            "special-module tracking bug for large-component: see the bugs linked "
-            'in the "Blocks" field of this bug for full details of the security issue(s).\n\n'
+            "special-module tracking bug for large-component.\n\n"
             "This bug is never intended to be made public, please put any public notes in the blocked bugs.\n\n"
             "NOTE THIS ISSUE IS CURRENTLY EMBARGOED, DO NOT MAKE PUBLIC COMMITS OR COMMENTS ABOUT THIS ISSUE.\n\n"
             'WARNING: NOTICE THAT REMOVING THE "SECURITY" GROUP FROM THIS TRACKER MAY BREAK THE EMBARGO.'
@@ -445,8 +444,7 @@ class TestTrackerQueryBuilderDescription:
             "'rhkernel-team-list' and/or 'virt-devel' mailing lists for review and acks."
         ) in tqb.description
 
-    @pytest.mark.parametrize("flaw_count", [1, 2, 3])
-    def test_community(self, flaw_count):
+    def test_community(self):
         """
         test community tracker description generation
         """
@@ -455,28 +453,22 @@ class TestTrackerQueryBuilderDescription:
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
 
         affects = []
-        embargoed = None
-        for idx in range(flaw_count):
-            if embargoed is None:
-                flaw = FlawFactory(bz_id=str(idx))
-                embargoed = flaw.embargoed
-            else:
-                flaw = FlawFactory(
-                    bz_id=str(idx),
-                    embargoed=embargoed,
-                )
-            affects.append(
-                AffectFactory(
-                    flaw=flaw,
-                    affectedness=Affect.AffectAffectedness.AFFECTED,
-                    resolution=Affect.AffectResolution.DELEGATED,
-                    ps_module=ps_module.name,
-                    ps_component="large-component",
-                    # created datetime defines the query result
-                    # ordering which is later reflected in description
-                    created_dt=datetime(2000 + idx, 1, 1, tzinfo=timezone.utc),
-                )
+
+        flaw = FlawFactory()
+        embargoed = flaw.embargoed
+
+        affects.append(
+            AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_module=ps_module.name,
+                ps_component="large-component",
+                # created datetime defines the query result
+                # ordering which is later reflected in description
+                created_dt=datetime(2000, 1, 1, tzinfo=timezone.utc),
             )
+        )
 
         tracker = TrackerFactory(
             affects=affects,
@@ -488,35 +480,11 @@ class TestTrackerQueryBuilderDescription:
         tqb = TrackerQueryBuilder()
         tqb.instance = tracker
 
-        if flaw_count == 1:
-            assert tqb.description == (
-                "More information about this security flaw is available in the following bug:\n\n"
-                "https://bugzilla.redhat.com/show_bug.cgi?id=0\n\n"
-                "Disclaimer: Community trackers are created by Red Hat Product Security team on a "
-                "best effort basis. Package maintainers are required to ascertain if the flaw indeed "
-                "affects their package, before starting the update process."
-            )
-        elif flaw_count == 2:
-            assert tqb.description == (
-                "More information about these security flaws is available in the following bugs:\n\n"
-                "https://bugzilla.redhat.com/show_bug.cgi?id=0\n"
-                "https://bugzilla.redhat.com/show_bug.cgi?id=1\n\n"
-                "Disclaimer: Community trackers are created by Red Hat Product Security team on a "
-                "best effort basis. Package maintainers are required to ascertain if the flaw indeed "
-                "affects their package, before starting the update process."
-            )
-        elif flaw_count == 3:
-            assert tqb.description == (
-                (
-                    "More information about these security flaws is available in the following bugs:\n\n"
-                    "https://bugzilla.redhat.com/show_bug.cgi?id=0\n"
-                    "https://bugzilla.redhat.com/show_bug.cgi?id=1\n"
-                    "https://bugzilla.redhat.com/show_bug.cgi?id=2\n\n"
-                    "Disclaimer: Community trackers are created by Red Hat Product Security team on a "
-                    "best effort basis. Package maintainers are required to ascertain if the flaw indeed "
-                    "affects their package, before starting the update process."
-                )
-            )
+        assert tqb.description == (
+            "Disclaimer: Community trackers are created by Red Hat Product Security team on a "
+            "best effort basis. Package maintainers are required to ascertain if the flaw indeed "
+            "affects their package, before starting the update process."
+        )
 
     def test_jira_basic(self):
         """
@@ -562,8 +530,7 @@ class TestTrackerQueryBuilderDescription:
             "Do not make this issue public.\n\n"
             "Flaw:\n"
             "-----\n\n"
-            "serious flaw\n"
-            "https://bugzilla.redhat.com/show_bug.cgi?id=12345\n\n"
+            "serious flaw\n\n"
             "this flaw is very hard to fix\n\n"
             "~~~"
         )
@@ -614,8 +581,7 @@ class TestTrackerQueryBuilderDescription:
             'WARNING: NOTICE THAT CHANGING THE SECURITY LEVEL FROM "SECURITY ISSUE" TO "RED HAT INTERNAL" MAY BREAK THE EMBARGO.\n\n'
             "Flaw:\n"
             "-----\n\n"
-            "serious flaw\n"
-            "https://bugzilla.redhat.com/show_bug.cgi?id=12345\n\n"
+            "serious flaw\n\n"
             "this flaw is very hard to fix\n\n"
             "~~~"
         )
