@@ -32,13 +32,13 @@ class TestEndpointsFlawsUpdateTrackers:
         flaw = FlawFactory(impact="LOW")
         ps_product1 = PsProductFactory(business_unit="Corporate")
         ps_module1 = PsModuleFactory(ps_product=ps_product1)
+        ps_update_stream11 = PsUpdateStreamFactory(ps_module=ps_module1)
         affect1 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module1.name,
+            ps_update_stream=ps_update_stream11.name,
         )
-        ps_update_stream11 = PsUpdateStreamFactory(ps_module=ps_module1)
         tracker1 = TrackerFactory(
             affects=[affect1],
             embargoed=flaw.embargoed,
@@ -47,8 +47,14 @@ class TestEndpointsFlawsUpdateTrackers:
             type=Tracker.BTS2TYPE[ps_module1.bts_name],
         )
         ps_update_stream12 = PsUpdateStreamFactory(ps_module=ps_module1)
+        affect2 = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream12.name,
+        )
         TrackerFactory(
-            affects=[affect1],
+            affects=[affect2],
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream12.name,
             status="CLOSED",  # already resolved
@@ -57,15 +63,15 @@ class TestEndpointsFlawsUpdateTrackers:
         # one more community affect-tracker context
         ps_product2 = PsProductFactory(business_unit="Community")
         ps_module2 = PsModuleFactory(ps_product=ps_product2)
-        affect2 = AffectFactory(
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
+        affect3 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module2.name,
+            ps_update_stream=ps_update_stream2.name,
         )
-        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
         TrackerFactory(
-            affects=[affect2],
+            affects=[affect3],
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream2.name,
             status="NEW",
@@ -191,13 +197,13 @@ class TestEndpointsFlawsUpdateTrackers:
         flaw_create_dict.update(flaw_to_create_2)
         flaw = FlawFactory(**flaw_create_dict)
         ps_module = PsModuleFactory(bts_name=btsname)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect],
             embargoed=flaw.embargoed,
@@ -242,14 +248,14 @@ class TestEndpointsFlawsUpdateTrackers:
         """
         flaw = FlawFactory(impact="IMPORTANT")
         ps_module1 = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module1)
         affect1 = AffectFactory(
             flaw=flaw,
             impact=Impact.NOVALUE,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module1.name,
+            ps_update_stream=ps_update_stream1.name,
         )
-        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module1)
         tracker1 = TrackerFactory(
             affects=[affect1],
             embargoed=flaw.embargoed,
@@ -258,14 +264,14 @@ class TestEndpointsFlawsUpdateTrackers:
             type=Tracker.BTS2TYPE[ps_module1.bts_name],
         )
         ps_module2 = PsModuleFactory(bts_name="jboss")
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
         affect2 = AffectFactory(
             flaw=flaw,
             impact=Impact.NOVALUE,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module2.name,
+            ps_update_stream=ps_update_stream2.name,
         )
-        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
         tracker2 = TrackerFactory.build(
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream2.name,
