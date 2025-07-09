@@ -676,6 +676,7 @@ class TrackerSerializer(
     )
     errata = serializers.SerializerMethodField()
     meta_attr = serializers.SerializerMethodField()
+    cve_id = serializers.CharField(allow_blank=True, read_only=True)
 
     @extend_schema_field(ErratumSerializer(many=True))
     def get_errata(self, obj):
@@ -706,6 +707,7 @@ class TrackerSerializer(
         fields = (
             [
                 "affects",
+                "cve_id",
                 "errata",
                 "external_system_id",
                 "meta_attr",
@@ -1123,6 +1125,7 @@ class AffectSerializer(
     META_ATTR_KEYS = (
         "affectedness",
         "component",
+        "cve_id",
         "impact",
         "module_name",
         "module_stream",
@@ -1141,6 +1144,7 @@ class AffectSerializer(
     )
     purl = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     resolved_dt = serializers.DateTimeField(read_only=True, allow_null=True)
+    cve_id = serializers.CharField(allow_blank=True, read_only=True)
 
     @extend_schema_field(
         {
@@ -1176,6 +1180,7 @@ class AffectSerializer(
                 "affectedness",
                 "resolution",
                 "ps_module",
+                "cve_id",
                 "ps_product",
                 "ps_component",
                 "impact",

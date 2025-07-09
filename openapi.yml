@@ -760,6 +760,10 @@ paths:
           type: string
           format: date-time
       - in: query
+        name: cve_id
+        schema:
+          type: string
+      - in: query
         name: cvss_scores__comment
         schema:
           type: string
@@ -1217,6 +1221,7 @@ paths:
             enum:
             - -affectedness
             - -created_dt
+            - -cve_id
             - -cvss_scores__comment
             - -cvss_scores__created_dt
             - -cvss_scores__cvss_version
@@ -1254,6 +1259,7 @@ paths:
             - -uuid
             - affectedness
             - created_dt
+            - cve_id
             - cvss_scores__comment
             - cvss_scores__created_dt
             - cvss_scores__cvss_version
@@ -6677,6 +6683,10 @@ paths:
           type: string
           format: date-time
       - in: query
+        name: cve_id
+        schema:
+          type: string
+      - in: query
         name: embargoed
         schema:
           type: boolean
@@ -6754,6 +6764,7 @@ paths:
             - -affects__updated_dt
             - -affects__uuid
             - -created_dt
+            - -cve_id
             - -embargoed
             - -external_system_id
             - -ps_update_stream
@@ -6783,6 +6794,7 @@ paths:
             - affects__updated_dt
             - affects__uuid
             - created_dt
+            - cve_id
             - embargoed
             - external_system_id
             - ps_update_stream
@@ -8132,6 +8144,9 @@ components:
         ps_module:
           type: string
           maxLength: 100
+        cve_id:
+          type: string
+          readOnly: true
         ps_product:
           type: string
           readOnly: true
@@ -8193,6 +8208,7 @@ components:
       required:
       - alerts
       - created_dt
+      - cve_id
       - cvss_scores
       - delegated_not_affected_justification
       - delegated_resolution
@@ -10848,6 +10864,9 @@ components:
           items:
             type: string
             format: uuid
+        cve_id:
+          type: string
+          readOnly: true
         errata:
           type: array
           items:
@@ -10910,6 +10929,7 @@ components:
       required:
       - alerts
       - created_dt
+      - cve_id
       - embargoed
       - errata
       - external_system_id
@@ -10930,6 +10950,9 @@ components:
           items:
             type: string
             format: uuid
+        cve_id:
+          type: string
+          readOnly: true
         errata:
           type: array
           items:
@@ -10989,6 +11012,7 @@ components:
       required:
       - alerts
       - created_dt
+      - cve_id
       - embargoed
       - errata
       - not_affected_justification

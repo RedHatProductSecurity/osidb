@@ -5,6 +5,7 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from osidb.models import Affect, Flaw, Tracker
 from osidb.tests.factories import (
     AffectFactory,
+    FlawFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
@@ -249,3 +250,48 @@ class TestEndpointsTrackers:
         # this HTTP method is not allowed until we integrate
         # with the authoritative sources of the tracker data
         assert response.status_code == 405
+
+    @pytest.mark.enable_signals
+    def test_get_tracker_with_cve_id(self, auth_client, test_api_uri):
+        flaw = FlawFactory(cve_id="CVE-2025-1234")
+        ps_module = PsModuleFactory(bts_name="jboss")
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        response = auth_client().get(f"{test_api_uri}/trackers/{tracker.uuid}")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["cve_id"] == flaw.cve_id
+
+    @pytest.mark.enable_signals
+    def test_filter_tracker_by_cve_id(self, auth_client, test_api_uri):
+        flaw = FlawFactory(cve_id="CVE-2025-1234")
+        ps_module = PsModuleFactory(bts_name="jboss")
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        response = auth_client().get(f"{test_api_uri}/trackers?cve_id={flaw.cve_id}")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 1
+        assert response.data["results"][0]["cve_id"] == flaw.cve_id
