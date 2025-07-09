@@ -5,6 +5,7 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from osidb.models import Affect, Flaw, Tracker
 from osidb.tests.factories import (
     AffectFactory,
+    FlawFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
@@ -30,7 +31,7 @@ class TestEndpointsTrackers:
             flaw__embargoed=embargoed,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
 
         assert Tracker.objects.count() == 0
@@ -95,7 +96,7 @@ class TestEndpointsTrackers:
             affect = AffectFactory(
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
             )
 
             assert Tracker.objects.count() == 0
@@ -145,13 +146,13 @@ class TestEndpointsTrackers:
         Test the update of Tracker records via a REST API PUT request.
         """
         ps_module = PsModuleFactory(bts_name=bts_name)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw__embargoed=embargoed,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
@@ -180,20 +181,22 @@ class TestEndpointsTrackers:
         """
         Test the update of Tracker records via a REST API PUT request.
         """
+        flaw1 = FlawFactory(embargoed=embargoed)
+        flaw2 = FlawFactory(embargoed=embargoed)
         ps_module = PsModuleFactory(bts_name=bts_name)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect1 = AffectFactory(
-            flaw__embargoed=embargoed,
+            flaw=flaw1,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         affect2 = AffectFactory(
-            flaw__embargoed=embargoed,
+            flaw=flaw2,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect1],
             embargoed=affect1.flaw.embargoed,
@@ -229,12 +232,12 @@ class TestEndpointsTrackers:
         Test the deletion of Tracker records via a REST API DELETE request.
         """
         ps_module = PsModuleFactory(bts_name=bts_name)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
