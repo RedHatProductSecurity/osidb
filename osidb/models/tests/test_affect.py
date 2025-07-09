@@ -1,7 +1,7 @@
 import pytest
 
 from osidb.models import Affect, Impact
-from osidb.tests.factories import AffectFactory, FlawFactory, PsModuleFactory
+from osidb.tests.factories import AffectFactory, FlawFactory, PsUpdateStreamFactory
 
 
 class TestAffect:
@@ -57,7 +57,7 @@ class TestAffect:
         assert affect.is_resolved == is_resolved
         assert affect.resolved_dt or not is_resolved
 
-        ps_module = PsModuleFactory(name="test-module")
+        ps_update_stream = PsUpdateStreamFactory(name="test-stream")
 
         # Check creation behavior
         affect = Affect(
@@ -66,7 +66,7 @@ class TestAffect:
             affectedness=affectedness,
             resolution=resolution,
             ps_component="component-10",
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             acl_read=flaw.acl_read,
             acl_write=flaw.acl_write,
         )

@@ -38,13 +38,11 @@ from osidb.tests.factories import (
 pytestmark = pytest.mark.unit
 
 
-def is_meta_attr_correct(
-    meta_attr: Union[Set[str], None], expected_keys: Set[str]
-) -> bool:
+def is_meta_attr_correct(meta_attr: Union[dict, None], expected_keys: Set[str]) -> bool:
     """Helper function for meta attr correctness check"""
     if meta_attr is None and not expected_keys:
         return True
-    elif set(meta_attr.keys()) == expected_keys:
+    elif meta_attr is not None and set(meta_attr.keys()) == expected_keys:
         return True
     else:
         return False
@@ -358,12 +356,12 @@ class TestEndpointsFlaws:
     @pytest.mark.enable_signals
     def test_changed_after_from_tracker(self, auth_client, test_api_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=(affect,),
             embargoed=affect.flaw.embargoed,
@@ -438,12 +436,13 @@ class TestEndpointsFlaws:
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
-        assert body["results"][0]["uuid"] == str(affect.flaw.uuid)
+        assert body["results"][0]["uuid"] == str(affect1.flaw.uuid)
 
     @freeze_time(datetime(2021, 11, 23))
     @pytest.mark.enable_signals
     def test_changed_before_from_tracker(self, auth_client, test_api_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory(
             unembargo_dt=make_aware(datetime(2001, 11, 23)),
             embargoed=False,
@@ -451,12 +450,11 @@ class TestEndpointsFlaws:
         )
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=(affect,),
             embargoed=affect.flaw.embargoed,
@@ -527,6 +525,8 @@ class TestEndpointsFlaws:
     @pytest.mark.enable_signals
     def test_changed_before_from_multi_tracker(self, auth_client, test_api_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory(
             unembargo_dt=make_aware(datetime(2001, 11, 23)),
             embargoed=False,
@@ -534,30 +534,29 @@ class TestEndpointsFlaws:
         )
         affect1 = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream1.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
         )
         affect2 = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream2.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker1 = TrackerFactory(
             affects=(affect1,),
             embargoed=flaw.embargoed,
-            ps_update_stream=ps_update_stream.name,
+            ps_update_stream=ps_update_stream1.name,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
             type=Tracker.TrackerType.BUGZILLA,
         )
         tracker2 = TrackerFactory(
             affects=(affect2,),
             embargoed=flaw.embargoed,
-            ps_update_stream=ps_update_stream.name,
+            ps_update_stream=ps_update_stream2.name,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
             type=Tracker.TrackerType.BUGZILLA,
         )
@@ -586,7 +585,7 @@ class TestEndpointsFlaws:
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
-        assert body["results"][0]["uuid"] == str(tracker.affects.first().flaw.uuid)
+        assert body["results"][0]["uuid"] == str(tracker1.affects.first().flaw.uuid)
 
     def test_list_flaws_filter_by_components(self, auth_client, test_api_uri):
         """retrieve list of flaws from endpoint"""
@@ -697,7 +696,7 @@ class TestEndpointsFlaws:
         for _ in range(5):
             affect = AffectFactory(
                 flaw=flaw,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
             )
@@ -709,13 +708,18 @@ class TestEndpointsFlaws:
             )
 
         flaw_exclude_fields = ["resolution", "state", "uuid", "impact"]
-        affect_exclude_fields = ["ps_module", "ps_component", "type", "affectedness"]
+        affect_exclude_fields = [
+            "ps_update_stream",
+            "ps_component",
+            "type",
+            "affectedness",
+        ]
         tracker_exclude_fields = ["type", "external_system_id", "status", "resolution"]
 
         exclude_fields_param = ",".join(
             flaw_exclude_fields
             + [f"affects.{field}" for field in affect_exclude_fields]
-            + [f"affects.trackers.{field}" for field in tracker_exclude_fields]
+            + [f"affects.tracker.{field}" for field in tracker_exclude_fields]
         )
 
         response = auth_client().get(
@@ -732,9 +736,9 @@ class TestEndpointsFlaws:
             for field in affect_exclude_fields:
                 assert field not in affect
 
-            for tracker in affect["trackers"]:
+            if affect.get("tracker"):
                 for tracker_field in tracker_exclude_fields:
-                    assert tracker_field not in tracker
+                    assert tracker_field not in affect["tracker"]
 
     def test_list_flaws_include_fields(self, auth_client, test_api_uri):
         """retrieve list of flaws from endpoint"""
@@ -749,7 +753,7 @@ class TestEndpointsFlaws:
         for _ in range(5):
             affect = AffectFactory(
                 flaw=flaw,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
             )
@@ -761,13 +765,13 @@ class TestEndpointsFlaws:
             )
 
         flaw_include_fields = ["uuid", "impact"]
-        affect_include_fields = ["ps_module", "ps_component", "affectedness"]
+        affect_include_fields = ["ps_update_stream", "ps_component", "affectedness"]
         tracker_include_fields = ["type", "external_system_id", "status", "resolution"]
 
         include_fields_param = ",".join(
             flaw_include_fields
             + [f"affects.{field}" for field in affect_include_fields]
-            + [f"affects.trackers.{field}" for field in tracker_include_fields]
+            + [f"affects.tracker.{field}" for field in tracker_include_fields]
         )
 
         response = auth_client().get(
@@ -784,16 +788,16 @@ class TestEndpointsFlaws:
             assert field in body["results"][0]
 
         for affect in body["results"][0]["affects"]:
-            # length of the include fields plus 1 for "trackers" which will be present as well
+            # length of the include fields plus 1 for "tracker" which will be present as well
             assert len(affect) == len(affect_include_fields) + 1
 
             for field in affect_include_fields:
                 assert field in affect
 
-            for tracker in affect["trackers"]:
-                assert len(tracker) == len(tracker_include_fields)
+            if affect.get("tracker"):
+                assert len(affect["tracker"]) == len(tracker_include_fields)
                 for tracker_field in tracker_include_fields:
-                    assert tracker_field in tracker
+                    assert tracker_field in affect["tracker"]
 
     def test_list_flaws_nested_include_fields_only(self, auth_client, test_api_uri):
         """
@@ -811,7 +815,7 @@ class TestEndpointsFlaws:
         for _ in range(5):
             affect = AffectFactory(
                 flaw=flaw,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
             )
@@ -822,7 +826,7 @@ class TestEndpointsFlaws:
                 type=Tracker.TrackerType.BUGZILLA,
             )
 
-        affect_include_fields = ["ps_module", "ps_component", "affectedness"]
+        affect_include_fields = ["ps_update_stream", "ps_component", "affectedness"]
 
         include_fields_param = ",".join(
             [f"affects.{field}" for field in affect_include_fields]
@@ -860,7 +864,7 @@ class TestEndpointsFlaws:
         for _ in range(5):
             affect = AffectFactory(
                 flaw=flaw,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
             )
@@ -872,23 +876,23 @@ class TestEndpointsFlaws:
             )
 
         flaw_include_fields = ["uuid", "impact"]
-        affect_include_fields = ["ps_module", "ps_component", "affectedness"]
+        affect_include_fields = ["ps_update_stream", "ps_component", "affectedness"]
         tracker_include_fields = ["type", "external_system_id", "status", "resolution"]
 
         include_fields_param = ",".join(
             flaw_include_fields
             + [f"affects.{field}" for field in affect_include_fields]
-            + [f"affects.trackers.{field}" for field in tracker_include_fields]
+            + [f"affects.tracker.{field}" for field in tracker_include_fields]
         )
 
         flaw_exclude_fields = ["cve_id"]
-        affect_exclude_fields = ["ps_module", "ps_component"]
+        affect_exclude_fields = ["ps_update_stream", "ps_component"]
         tracker_exclude_fields = ["type", "external_system_id"]
 
         exclude_fields_param = ",".join(
             flaw_exclude_fields
             + [f"affects.{field}" for field in affect_exclude_fields]
-            + [f"affects.trackers.{field}" for field in tracker_exclude_fields]
+            + [f"affects.tracker.{field}" for field in tracker_exclude_fields]
         )
 
         response = auth_client().get(
@@ -905,16 +909,16 @@ class TestEndpointsFlaws:
             assert field in body["results"][0]
 
         for affect in body["results"][0]["affects"]:
-            # length of the include fields plus 1 for "trackers" which will be present as well
+            # length of the include fields plus 1 for "tracker" which will be present as well
             assert len(affect) == len(affect_include_fields) + 1
 
             for field in affect_include_fields:
                 assert field in affect
 
-            for tracker in affect["trackers"]:
-                assert len(tracker) == len(tracker_include_fields)
+            if affect.get("tracker"):
+                assert len(affect["tracker"]) == len(tracker_include_fields)
                 for tracker_field in tracker_include_fields:
-                    assert tracker_field in tracker
+                    assert tracker_field in affect["tracker"]
 
     def test_list_flaws_include_fields_relation(self, auth_client, test_api_uri):
         """
@@ -1024,7 +1028,7 @@ class TestEndpointsFlaws:
         [
             ("", {"flaw": set(), "affect": set(), "tracker": set()}),
             (
-                "include_meta_attr=test_key_1,affects.test_key_2,affects.trackers.test_key_3",
+                "include_meta_attr=test_key_1,affects.test_key_2,affects.tracker.test_key_3",
                 {
                     "flaw": {"test_key_1"},
                     "affect": {"test_key_2"},
@@ -1048,7 +1052,7 @@ class TestEndpointsFlaws:
                 },
             ),
             (
-                "include_meta_attr=*,affects.*,affects.trackers.*",
+                "include_meta_attr=*,affects.*,affects.tracker.*",
                 {
                     "flaw": {f"test_key_{i}" for i in range(5)},
                     "affect": {f"test_key_{i}" for i in range(5)},
@@ -1069,7 +1073,7 @@ class TestEndpointsFlaws:
             for _ in range(3):
                 affect = AffectFactory(
                     flaw=flaw,
-                    ps_module=ps_module.name,
+                    ps_update_stream=ps_update_stream.name,
                     meta_attr={f"test_key_{i}": "test" for i in range(5)},
                     affectedness=Affect.AffectAffectedness.AFFECTED,
                     resolution=Affect.AffectResolution.DELEGATED,
@@ -1095,9 +1099,9 @@ class TestEndpointsFlaws:
                     affect.get("meta_attr"), expected_keys["affect"]
                 )
 
-                for tracker in affect["trackers"]:
+                if affect.get("tracker"):
                     assert is_meta_attr_correct(
-                        tracker.get("meta_attr"), expected_keys["tracker"]
+                        affect["tracker"].get("meta_attr"), expected_keys["tracker"]
                     )
 
     @pytest.mark.parametrize(
@@ -1136,7 +1140,7 @@ class TestEndpointsFlaws:
         [
             ("", {"flaw": set(), "affect": set(), "tracker": set()}),
             (
-                "include_meta_attr=test_key_1,affects.test_key_2,affects.trackers.test_key_3",
+                "include_meta_attr=test_key_1,affects.test_key_2,affects.tracker.test_key_3",
                 {
                     "flaw": {"test_key_1"},
                     "affect": {"test_key_2"},
@@ -1160,7 +1164,7 @@ class TestEndpointsFlaws:
                 },
             ),
             (
-                "include_meta_attr=*,affects.*,affects.trackers.*",
+                "include_meta_attr=*,affects.*,affects.tracker.*",
                 {
                     "flaw": {f"test_key_{i}" for i in range(5)},
                     "affect": {f"test_key_{i}" for i in range(5)},
@@ -1180,7 +1184,7 @@ class TestEndpointsFlaws:
         for _ in range(3):
             affect = AffectFactory(
                 flaw=flaw,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 meta_attr={f"test_key_{i}": "test" for i in range(5)},
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
@@ -1206,9 +1210,9 @@ class TestEndpointsFlaws:
                 affect.get("meta_attr"), expected_keys["affect"]
             )
 
-            for tracker in affect["trackers"]:
+            if affect.get("tracker"):
                 assert is_meta_attr_correct(
-                    tracker.get("meta_attr"), expected_keys["tracker"]
+                    affect["tracker"].get("meta_attr"), expected_keys["tracker"]
                 )
 
     def test_flaw_including_package_versions(self, auth_client, test_api_uri):
@@ -1245,14 +1249,14 @@ class TestEndpointsFlaws:
 
     def test_flaw_including_delegated_resolution(self, auth_client, test_api_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
-        PsUpdateStreamFactory(
+        ps_update_stream = PsUpdateStreamFactory(
             name="rhel-7.0", active_to_ps_module=ps_module, ps_module=ps_module
         )
         flaw = FlawFactory()
         delegated_affect = AffectFactory(
             flaw=flaw,
             impact=Impact.MODERATE,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
@@ -1269,9 +1273,9 @@ class TestEndpointsFlaws:
         body = response.json()
         assert "affects" in body
         affect = body["affects"][0]
-        assert "trackers" in affect
+        assert "tracker" in affect
         assert affect["delegated_resolution"] == Affect.AffectFix.WONTFIX
-        assert affect["trackers"][0]["ps_update_stream"] == "rhel-7.0"
+        assert affect["tracker"]["ps_update_stream"] == "rhel-7.0"
 
     def test_get_flaw_with_token(
         self,
@@ -1700,12 +1704,13 @@ class TestEndpointsFlaws:
         FlawFactory()
 
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affects_with_trackers_to_fetch = [
             AffectFactory(
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
             )
             for _ in range(5)
         ]
@@ -1714,12 +1719,11 @@ class TestEndpointsFlaws:
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
             )
             for _ in range(5)
         ]
 
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         trackers_to_fetch = [
             TrackerFactory(
                 affects=[affects_with_trackers_to_fetch[idx]],
@@ -1753,10 +1757,8 @@ class TestEndpointsFlaws:
         fetched_tracker_ids = set()
         for affect in flaw["affects"]:
             fetched_affect_ids.add(affect["uuid"])
-
-            for tracker in affect["trackers"]:
-                fetched_tracker_ids.add(tracker["external_system_id"])
-
+            if affect["tracker"]:
+                fetched_tracker_ids.add(affect["tracker"]["external_system_id"])
         assert fetched_affect_ids == affect_ids
         assert fetched_tracker_ids == tracker_ids
 
@@ -1768,12 +1770,13 @@ class TestEndpointsFlaws:
             FlawFactory()
 
             ps_module = PsModuleFactory(bts_name="octopus")
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affects = [
                 AffectFactory(
                     flaw=flaw,
                     affectedness=Affect.AffectAffectedness.AFFECTED,
                     resolution=Affect.AffectResolution.DELEGATED,
-                    ps_module=ps_module.name,
+                    ps_update_stream=ps_update_stream.name,
                 )
                 for _ in range(5)
             ]
@@ -1783,7 +1786,7 @@ class TestEndpointsFlaws:
                     flaw=flaw,
                     affectedness=Affect.AffectAffectedness.AFFECTED,
                     resolution=Affect.AffectResolution.DELEGATED,
-                    ps_module=ps_module.name,
+                    ps_update_stream=ps_update_stream.name,
                 )
                 for _ in range(5)
             ]

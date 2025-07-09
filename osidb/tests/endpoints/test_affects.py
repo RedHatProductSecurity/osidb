@@ -3,8 +3,7 @@ from unittest.mock import patch
 import pytest
 from rest_framework import status
 
-from apps.trackers.save import TrackerJiraSaver
-from osidb.models import Affect, AffectCVSS, PsUpdateStream, Tracker
+from osidb.models import Affect, AffectCVSS, Tracker
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,
@@ -64,7 +63,7 @@ class TestEndpointsAffects:
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,
             "resolution": Affect.AffectResolution.NOVALUE,
-            "ps_module": "rhacm-2",
+            "ps_update_stream": "rhacm-2.11.z",
             "ps_component": "curl",
             "embargoed": affect_embargo,
         }
@@ -86,7 +85,7 @@ class TestEndpointsAffects:
             response = auth_client().get(f"{test_api_uri}/affects/{created_uuid}")
             assert response.status_code == 200
             body = response.json()
-            assert body["ps_module"] == "rhacm-2"
+            assert body["ps_update_stream"] == "rhacm-2.11.z"
 
     @pytest.mark.parametrize("embargoed", [False, True])
     def test_affect_update(self, auth_client, test_api_uri, embargoed):
@@ -103,7 +102,7 @@ class TestEndpointsAffects:
             f"{test_api_uri}/affects/{affect.uuid}",
             {
                 **original_body,
-                "ps_module": f"different {affect.ps_module}",
+                "ps_update_stream": f"different {affect.ps_update_stream}",
             },
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
@@ -111,7 +110,7 @@ class TestEndpointsAffects:
         )
         assert response.status_code == 200
         body = response.json()
-        assert original_body["ps_module"] != body["ps_module"]
+        assert original_body["ps_update_stream"] != body["ps_update_stream"]
 
     def test_affect_delete(self, auth_client, test_api_uri):
         """
@@ -370,7 +369,7 @@ class TestEndpointsAffects:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component=ps_component,
         )
         TrackerFactory(
@@ -454,7 +453,7 @@ class TestEndpointsAffects:
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,
             "resolution": Affect.AffectResolution.NOVALUE,
-            "ps_module": "rhacm-2",
+            "ps_update_stream": "rhacm-2.11.z",
             "ps_component": "curl",
             "embargoed": flaw.is_embargoed,
         }
@@ -656,7 +655,7 @@ class TestEndpointsAffectsBulk:
             orig_uuids.add(aff["uuid"])
             aff["affectedness"] = "AFFECTED"
             aff["resolution"] = "DELEGATED"
-            aff["ps_module"] = f"different {aff['ps_module']}"
+            aff["ps_update_stream"] = f"different {aff['ps_update_stream']}"
 
         response = auth_client().put(
             f"{test_api_uri}/affects/bulk",
@@ -672,7 +671,7 @@ class TestEndpointsAffectsBulk:
             new_uuids.add(returned_aff["uuid"])
             assert returned_aff["affectedness"] == "AFFECTED"
             assert returned_aff["resolution"] == "DELEGATED"
-            assert returned_aff["ps_module"].startswith("different ")
+            assert returned_aff["ps_update_stream"].startswith("different ")
         assert len(orig_uuids) == len(new_uuids)
         assert orig_uuids == new_uuids
         assert len(body["results"]) == len(request_affects)
@@ -703,7 +702,7 @@ class TestEndpointsAffectsBulk:
             del tmp_aff["updated_dt"]
             del tmp_aff["resolved_dt"]
             del tmp_aff["alerts"]
-            tmp_aff["ps_module"] = f"psmodule{i}"
+            tmp_aff["ps_update_stream"] = f"ps_update_stream{i}"
             bulk_request[i] = tmp_aff
             i += 1
 
@@ -722,7 +721,7 @@ class TestEndpointsAffectsBulk:
         assert Affect.objects.count() == 20
 
         for returned_aff in response.json()["results"]:
-            i = int(returned_aff["ps_module"][8:])
+            i = int(returned_aff["ps_update_stream"][16:])
             requested_aff = bulk_request[i]
             received_aff = dict(returned_aff)
             del received_aff["uuid"]
@@ -779,14 +778,14 @@ class TestEndpointsAffectsUpdateTrackers:
         flaw = FlawFactory(impact="LOW")
         ps_product1 = PsProductFactory(business_unit="Corporate")
         ps_module1 = PsModuleFactory(ps_product=ps_product1)
+        ps_update_stream11 = PsUpdateStreamFactory(ps_module=ps_module1)
         affect1 = AffectFactory(
             flaw=flaw,
             impact="LOW",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module1.name,
+            ps_update_stream=ps_update_stream11.name,
         )
-        ps_update_stream11 = PsUpdateStreamFactory(ps_module=ps_module1)
         tracker1 = TrackerFactory(
             affects=[affect1],
             embargoed=flaw.embargoed,
@@ -795,8 +794,15 @@ class TestEndpointsAffectsUpdateTrackers:
             type=Tracker.BTS2TYPE[ps_module1.bts_name],
         )
         ps_update_stream12 = PsUpdateStreamFactory(ps_module=ps_module1)
+        affect2 = AffectFactory(
+            flaw=flaw,
+            impact="LOW",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream12.name,
+        )
         TrackerFactory(
-            affects=[affect1],
+            affects=[affect2],
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream12.name,
             status="CLOSED",  # already resolved
@@ -805,16 +811,16 @@ class TestEndpointsAffectsUpdateTrackers:
         # one more community affect-tracker context
         ps_product2 = PsProductFactory(business_unit="Community")
         ps_module2 = PsModuleFactory(ps_product=ps_product2)
-        affect2 = AffectFactory(
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
+        affect3 = AffectFactory(
             flaw=flaw,
             impact="LOW",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module2.name,
+            ps_update_stream=ps_update_stream2.name,
         )
-        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
         TrackerFactory(
-            affects=[affect2],
+            affects=[affect3],
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream2.name,
             status="NEW",
@@ -826,7 +832,7 @@ class TestEndpointsAffectsUpdateTrackers:
             "flaw": flaw.uuid,
             "impact": "MODERATE",  # tracker update trigger
             "ps_component": affect1.ps_component,
-            "ps_module": affect1.ps_module,
+            "ps_update_stream": affect1.ps_update_stream,
             "updated_dt": affect1.updated_dt,
         }
         affect2_data = {
@@ -834,8 +840,16 @@ class TestEndpointsAffectsUpdateTrackers:
             "flaw": flaw.uuid,
             "impact": "MODERATE",  # tracker update trigger
             "ps_component": affect2.ps_component,
-            "ps_module": affect2.ps_module,
+            "ps_update_stream": affect2.ps_update_stream,
             "updated_dt": affect2.updated_dt,
+        }
+        affect3_data = {
+            "embargoed": flaw.embargoed,
+            "flaw": flaw.uuid,
+            "impact": "MODERATE",  # tracker update trigger
+            "ps_component": affect3.ps_component,
+            "ps_update_stream": affect3.ps_update_stream,
+            "updated_dt": affect3.updated_dt,
         }
 
         # enable autospec to get self as part of the method call args
@@ -861,6 +875,15 @@ class TestEndpointsAffectsUpdateTrackers:
             )
             assert response.status_code == status.HTTP_200_OK
             assert mock_save.call_count == 1  # no change
+            response = auth_client().put(
+                f"{test_api_uri}/affects/{affect3.uuid}",
+                affect3_data,
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+            assert response.status_code == status.HTTP_200_OK
+            assert mock_save.call_count == 1  # no change
 
     @pytest.mark.parametrize(
         "to_create,to_update,triggered",
@@ -876,14 +899,14 @@ class TestEndpointsAffectsUpdateTrackers:
         """
         flaw = FlawFactory(impact="LOW")
         ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             **to_create,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect],
             embargoed=flaw.embargoed,
@@ -895,7 +918,7 @@ class TestEndpointsAffectsUpdateTrackers:
             "embargoed": flaw.embargoed,
             "flaw": flaw.uuid,
             "ps_component": affect.ps_component,
-            "ps_module": affect.ps_module,
+            "ps_update_stream": affect.ps_update_stream,
             "updated_dt": affect.updated_dt,
         }
         for attribute, value in to_update.items():
@@ -918,13 +941,13 @@ class TestEndpointsAffectsUpdateTrackers:
         """
         flaw1 = FlawFactory()
         ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw1,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect],
             embargoed=flaw1.embargoed,
@@ -937,7 +960,7 @@ class TestEndpointsAffectsUpdateTrackers:
             "embargoed": flaw2.embargoed,
             "flaw": flaw2.uuid,  # re-link the affect
             "ps_component": affect.ps_component,
-            "ps_module": affect.ps_module,
+            "ps_update_stream": affect.ps_update_stream,
             "updated_dt": affect.updated_dt,
         }
 
@@ -970,7 +993,7 @@ class TestEndpointsAffectsPurl:
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,
             "resolution": Affect.AffectResolution.NOVALUE,
-            "ps_module": "rhacm-2",
+            "ps_update_stream": "rhacm-2.11.z",
             "ps_component": ps_component,
             "purl": purl,
             "embargoed": False,
@@ -1057,7 +1080,7 @@ class TestEndpointsAffectsPurl:
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,
             "resolution": Affect.AffectResolution.NOVALUE,
-            "ps_module": "rhacm-2",
+            "ps_update_stream": "rhacm-2.11.z",
             "ps_component": ps_component,
             "purl": purl,
             "embargoed": False,
