@@ -2520,6 +2520,88 @@ paths:
                     version:
                       type: string
           description: ''
+  /osidb/api/v1/available-flaws/{cve_id}:
+    get:
+      operationId: osidb_api_v1_available_flaws_retrieve
+      description: |-
+        Report whether a flaw is available for public consumption purposes
+        based on the following criteria:
+        1) The work on the flaw is done, or the flaw is public:
+            - 204 status (yes, flaw is available for public consumption)
+        2) The work on the flaw is not done yet, or the flaw doesn't exist in the DB:
+            - 404 status (no, flaw is unavailable for public consumption)
+        3) Invalid CVE ID:
+            - 400 status
+
+        The intention is that this API is consumed by an agent that publishes pages
+        with information about individual CVEs. As long as this API returns 404,
+        the agent waits and doesn't publish the CVE page. Once this API first returns 204,
+        the agent stops polling this API and publishes the CVE page. The consumers of such
+        CVE pages are then informed about the CVE in such a way that the general affectedness
+        ("Does the CVE affect products shipped by the organization that publishes the CVE
+        page, or not?") most likely doesn't change. So this is to prevent public confusion
+        during the early stages of security analysis where the preliminary analysis might
+        switch between "this CVE affects our products" and "this CVE doesn't affect our products".
+      parameters:
+      - in: path
+        name: cve_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
   /osidb/api/v1/flaws:
     get:
       operationId: osidb_api_v1_flaws_list
