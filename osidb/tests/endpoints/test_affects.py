@@ -572,7 +572,7 @@ class TestEndpointsAffects:
         expected_without_trackers,
     ):
         """
-        test that trackers__isempty filter is working correctly
+        test that tracker__isempty filter is working correctly
         """
         flaw = FlawFactory()
 
@@ -593,7 +593,7 @@ class TestEndpointsAffects:
         affect_without_trackers = AffectFactory(flaw=flaw)
 
         response = auth_client().get(
-            f"{test_api_uri}/affects?trackers__isempty={str(filter_value).lower()}"
+            f"{test_api_uri}/affects?tracker__isempty={str(filter_value).lower()}"
         )
 
         assert response.status_code == status.HTTP_200_OK

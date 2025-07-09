@@ -33,7 +33,7 @@ def forwards_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0194_affects_v2_data_migration'),
+        ('osidb', '0195_affects_v2_data_migration'),
     ]
 
     operations = [

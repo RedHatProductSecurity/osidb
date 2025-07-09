@@ -33,7 +33,7 @@ def forwards_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0192_cisa_cveorg_cvss_score_update'),
+        ('osidb', '0193_alter_tracker_special_handling_and_more'),
     ]
 
     operations = [
