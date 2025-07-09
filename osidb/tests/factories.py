@@ -298,7 +298,7 @@ class AffectFactory(BaseFactory):
             else ""
         )
     )
-    ps_module = factory.sequence(lambda n: f"ps-module-{n}")
+    ps_update_stream = factory.sequence(lambda n: f"ps-update-stream-{n}")
     ps_component = factory.sequence(lambda n: f"ps-component-{n}")
     impact = factory.Faker(
         "random_element",

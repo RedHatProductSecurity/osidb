@@ -445,7 +445,7 @@ class TestEndpointsAtomicity:
     API atomicity specific tests
     """
 
-    def test_atomic_api(self, auth_client, monkeypatch, test_api_uri):
+    def test_atomic_api(self, auth_client, monkeypatch, test_api_v2_uri):
         """
         test that the API requests are atomic
 
@@ -474,7 +474,7 @@ class TestEndpointsAtomicity:
             m.setattr(Flaw, "save", failure_factory)
 
             response = auth_client().delete(
-                f"{test_api_uri}/affects/{affect.uuid}",
+                f"{test_api_v2_uri}/affects/{affect.uuid}",
                 HTTP_BUGZILLA_API_KEY="SECRET",
                 HTTP_JIRA_API_KEY="SECRET",
             )
@@ -484,7 +484,7 @@ class TestEndpointsAtomicity:
         # check that no affect was deleted
         assert Affect.objects.count() == 2
 
-    def test_atomic_error_handling(self, auth_client, monkeypatch, test_api_uri):
+    def test_atomic_error_handling(self, auth_client, monkeypatch, test_api_v2_uri):
         """
         test that the API requests are atomic even when handling an error
         """
@@ -508,7 +508,7 @@ class TestEndpointsAtomicity:
             m.setattr(Flaw, "save", failure_factory)
 
             response = auth_client().delete(
-                f"{test_api_uri}/affects/{affect.uuid}",
+                f"{test_api_v2_uri}/affects/{affect.uuid}",
                 HTTP_BUGZILLA_API_KEY="SECRET",
                 HTTP_JIRA_API_KEY="SECRET",
             )
@@ -518,7 +518,7 @@ class TestEndpointsAtomicity:
         # check that no affect was deleted
         assert Affect.objects.count() == 2
 
-    def test_nonatomic_api(self, auth_client, monkeypatch, test_api_uri):
+    def test_nonatomic_api(self, auth_client, monkeypatch, test_api_v2_uri):
         """
         test that the API requests are not atomic when the settings option is disabled
         """
@@ -547,7 +547,7 @@ class TestEndpointsAtomicity:
             m.setattr(settings, "DATABASES", db_settings)
 
             response = auth_client().delete(
-                f"{test_api_uri}/affects/{affect.uuid}",
+                f"{test_api_v2_uri}/affects/{affect.uuid}",
                 HTTP_BUGZILLA_API_KEY="SECRET",
                 HTTP_JIRA_API_KEY="SECRET",
             )

@@ -30,6 +30,7 @@ from osidb.tests.factories import (
     FlawFactory,
     PsModuleFactory,
     PsProductFactory,
+    PsUpdateStreamFactory,
 )
 
 from .test_flaw import tzdatetime
@@ -592,12 +593,13 @@ class TestBugzillaJiraMixinIntegration:
             force_synchronous_sync=True,
         )
 
-        PsModuleFactory(name="ps-module-0")
+        ps_module = PsModuleFactory(name="ps-module-0")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         assert flaw.bz_id
         assert flaw.task_key
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
 
-        AffectFactory(flaw=flaw, ps_module="ps-module-0")
+        AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         flaw = Flaw.objects.get(uuid=flaw.uuid)
 
         flaw.promote(jira_token=jira_token, bz_api_key=bugzilla_token)
@@ -654,11 +656,12 @@ class TestBugzillaJiraMixinIntegration:
         created_uuid = body["uuid"]
         flaw = Flaw.objects.get(pk=created_uuid)
 
-        PsModuleFactory(name="ps-module-0")
+        ps_module = PsModuleFactory(name="ps-module-0")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         assert flaw.task_key
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
 
-        AffectFactory(flaw=flaw, ps_module="ps-module-0")
+        AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
 
         response = auth_client().post(
             f"{test_api_uri}/flaws/{created_uuid}/promote",
@@ -739,6 +742,15 @@ class TestMultiMixinIntegration:
         )
         ps_module.save()
 
+        stream = PsUpdateStream(
+            name="rhel-8",
+            ps_module=ps_module,
+            default_to_ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            version="40",
+        )
+        stream.save()
+
         JiraProjectFieldsFactory(
             project_key=ps_module.bts_key,
             field_id="priority",
@@ -768,20 +780,11 @@ class TestMultiMixinIntegration:
 
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=stream.name,
             ps_component="kernel",
             affectedness="NEW",
             resolution=Affect.AffectResolution.DEFER,
         )
-
-        stream = PsUpdateStream(
-            name="rhel-8",
-            ps_module=ps_module,
-            default_to_ps_module=ps_module,
-            active_to_ps_module=ps_module,
-            version="40",
-        )
-        stream.save()
 
         tracker_data = {
             "affects": [affect.uuid],
@@ -803,7 +806,7 @@ class TestMultiMixinIntegration:
             for error in response.json()["non_field_errors"]
         )
         assert response.status_code == 400
-        assert affect.trackers.count() == 0
+        assert affect.tracker is None
         assert Tracker.objects.all().count() == 0
 
     @pytest.mark.vcr
@@ -879,7 +882,7 @@ class TestMultiMixinIntegration:
                 "flaw": str(flaw.uuid),
                 "affectedness": "AFFECTED",
                 "resolution": "DELEGATED",
-                "ps_module": ps_module.name,
+                "ps_update_stream": ps_update_stream.name,
                 "ps_component": "kernel",
                 "impact": "MODERATE",
                 "embargoed": False,
@@ -1014,7 +1017,7 @@ class TestMultiMixinIntegration:
                 "flaw": str(flaw.uuid),
                 "affectedness": "AFFECTED",
                 "resolution": "DELEGATED",
-                "ps_module": ps_module.name,
+                "ps_update_stream": ps_update_stream.name,
                 "ps_component": "kernel",
                 "impact": "MODERATE",
                 "embargoed": False,
@@ -1099,13 +1102,14 @@ class TestMultiMixinIntegration:
 
         monkeypatch.setattr(AlertMixin, "validate", counter_validate)
         ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         JiraBugIssuetype(project=ps_module.bts_key).save()
         affects_data = [
             {
                 "flaw": str(flaw.uuid),
                 "affectedness": "NEW",
                 "resolution": "",
-                "ps_module": ps_module.name,
+                "ps_update_stream": ps_update_stream.name,
                 "ps_component": "kernel",
                 "impact": "MODERATE",
                 "embargoed": flaw.embargoed,
@@ -1197,7 +1201,8 @@ class TestMultiMixinIntegration:
         flaw = Flaw.objects.get(uuid=body["uuid"])
 
         ps_module = PsModuleFactory()
-        AffectFactory(flaw=flaw, ps_module=ps_module.name)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         flaw_data["title"] = "new test validations"
         flaw_data["updated_dt"] = flaw.updated_dt
 
