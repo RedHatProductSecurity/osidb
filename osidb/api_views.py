@@ -47,7 +47,7 @@ from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import Affect, AffectCVSS, AffectV1, Flaw, FlawLabel, Tracker
 from osidb.models.flaw.cvss import FlawCVSS
 
-from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
+from .constants import OSIDB_API_VERSION_NEXT, PYPI_URL, URL_REGEX
 from .filters import (
     AffectCVSSFilter,
     AffectFilter,
@@ -626,11 +626,13 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         response.data = {
             "uuid": response.data["uuid"],
         }
-        response["Location"] = f"/api/{OSIDB_API_VERSION}/flaws/{response.data['uuid']}"
+        response[
+            "Location"
+        ] = f"/api/{OSIDB_API_VERSION_NEXT}/flaws/{response.data['uuid']}"
         return response
 
 
-class FlawV1View(FlawView):
+class FlawV1View(FlawView, ReadOnlyModelViewSet):
     """View for the flaw model adapted to affects v1"""
 
     serializer_class = FlawV1Serializer
@@ -1311,7 +1313,7 @@ class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         return self.serializer_class
 
 
-class TrackerV1View(TrackerView):
+class TrackerV1View(TrackerView, ReadOnlyModelViewSet):
     """View for the tracker model adapted to affects v1"""
 
     queryset = Tracker.objects.prefetch_related("alerts", "errata").all()
