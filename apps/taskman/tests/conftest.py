@@ -3,7 +3,7 @@ import uuid
 import pytest
 from django.conf import settings
 
-from osidb.constants import OSIDB_API_VERSION
+from osidb.constants import OSIDB_API_VERSION_NEXT
 from taskman.constants import TASKMAN_API_VERSION
 
 
@@ -73,7 +73,7 @@ def test_osidb_scheme_host():
 
 @pytest.fixture
 def osidb_api_version():
-    return OSIDB_API_VERSION
+    return OSIDB_API_VERSION_NEXT
 
 
 @pytest.fixture
