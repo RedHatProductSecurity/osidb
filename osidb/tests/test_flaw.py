@@ -703,6 +703,40 @@ class TestFlaw:
             f.save()
             assert f.major_incident_start_dt == timezone.now()
 
+    @pytest.mark.enable_signals
+    def test_flaw_cve_id_propagates(self):
+        original_cve_id = "CVE-2025-1111"
+        f = FlawFactory(
+            cve_id=original_cve_id,
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        a = AffectFactory(
+            flaw=f,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.NEW,
+        )
+        t = TrackerFactory(
+            affects=(a,),
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+            embargoed=f.is_embargoed,
+        )
+
+        assert f.cve_id == a.cve_id == t.cve_id
+
+        f.cve_id = "CVE-2025-1234"
+        f.save()
+        f.refresh_from_db()
+
+        assert f.cve_id != original_cve_id
+        a.refresh_from_db()
+        t.refresh_from_db()
+
+        assert f.cve_id == a.cve_id == t.cve_id
+
 
 class TestImpact:
     @pytest.mark.parametrize(

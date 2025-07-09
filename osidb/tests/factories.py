@@ -274,6 +274,7 @@ class AffectFactory(BaseFactory):
         model = Affect
         django_get_or_create = ("flaw", "ps_module", "ps_component")
 
+    cve_id = factory.sequence(lambda n: f"CVE-2020-1000{n}")
     affectedness = factory.fuzzy.FuzzyChoice(
         [
             Affect.AffectAffectedness.NEW,
@@ -554,6 +555,7 @@ class TrackerFactory(BaseFactory):
         model = Tracker
         django_get_or_create = ("type", "external_system_id")
 
+    cve_id = factory.sequence(lambda n: f"CVE-2020-1000{n}")
     type = factory.Faker("random_element", elements=list(Tracker.TrackerType))
     external_system_id = factory.LazyAttributeSequence(
         lambda o, n: f"{o.type}-{n}" if o.type else f"{n}"

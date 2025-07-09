@@ -34,6 +34,7 @@ from osidb.mixins import (
     TrackingMixinManager,
 )
 from osidb.models import FlawSource, Impact, PsModule, SpecialConsiderationPackage
+from osidb.models.fields import CVEIDField
 from osidb.query_sets import CustomQuerySetUpdatedDt
 from osidb.sync_manager import (
     BZSyncManager,
@@ -42,7 +43,7 @@ from osidb.sync_manager import (
     JiraTaskSyncManager,
     JiraTaskTransitionManager,
 )
-from osidb.validators import no_future_date, validate_cve_id, validate_cwe_id
+from osidb.validators import no_future_date, validate_cwe_id
 
 logger = logging.getLogger(__name__)
 
@@ -185,13 +186,7 @@ class Flaw(
 
     # CVE-ID, should be unique, from BZ alias
     # but may be also unset temporarily or permanently
-    cve_id = models.CharField(
-        max_length=500,
-        null=True,
-        unique=True,
-        validators=[validate_cve_id],
-        blank=True,
-    )
+    cve_id = CVEIDField()
 
     impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
 
