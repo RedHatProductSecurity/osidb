@@ -351,7 +351,7 @@ class TestEndpointsFlawsCVSSScores:
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component=ps_component,
         )
         TrackerFactory(

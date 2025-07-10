@@ -10,6 +10,7 @@ from .snippet import Snippet
 
 __all__ = (
     "Affect",
+    "AffectV1",
     "AffectCVSS",
     "ComparableTextChoices",
     "CVSS",
@@ -36,7 +37,7 @@ __all__ = (
     "Tracker",
 )
 
-from .affect import Affect, AffectCVSS, NotAffectedJustification
+from .affect import Affect, AffectCVSS, AffectV1, NotAffectedJustification
 from .erratum import Erratum
 from .flaw.acknowledgment import FlawAcknowledgment
 from .flaw.comment import FlawComment

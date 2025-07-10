@@ -15,7 +15,7 @@ from dotenv import dotenv_values
 from rest_framework.test import APIClient
 
 from apps.trackers.models import JiraBugIssuetype, JiraProjectFields
-from osidb.constants import OSIDB_API_VERSION
+from osidb.constants import OSIDB_API_VERSION_NEXT
 from osidb.core import set_user_acls
 from osidb.exceptions import InvalidTestEnvironmentException
 from osidb.helpers import get_env
@@ -166,7 +166,7 @@ def test_scheme_host():
 
 @pytest.fixture
 def api_version():
-    return OSIDB_API_VERSION
+    return OSIDB_API_VERSION_NEXT
 
 
 @pytest.fixture
