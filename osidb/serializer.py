@@ -1139,7 +1139,9 @@ class AffectSerializer(
     ps_component = serializers.CharField(
         max_length=255, allow_blank=True, allow_null=True, required=False
     )
-    purl = serializers.CharField(allow_blank=True, allow_null=True, required=False)
+    purl = serializers.CharField(
+        allow_blank=True, allow_null=True, required=False, default=""
+    )
     resolved_dt = serializers.DateTimeField(read_only=True, allow_null=True)
 
     @extend_schema_field(
