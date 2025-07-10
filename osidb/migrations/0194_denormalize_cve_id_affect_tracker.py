@@ -101,34 +101,4 @@ class Migration(migrations.Migration):
             model_name='tracker',
             trigger=pgtrigger.compiler.Trigger(name='delete_delete', sql=pgtrigger.compiler.UpsertTriggerSql(func='INSERT INTO "osidb_trackeraudit" ("acl_read", "acl_write", "bz_download_manager_id", "bz_link_manager_id", "created_dt", "cve_id", "external_system_id", "jira_download_manager_id", "jira_link_manager_id", "last_impact_increase_dt", "last_validated_dt", "not_affected_justification", "pgh_context_id", "pgh_created_at", "pgh_label", "pgh_obj_id", "ps_update_stream", "resolution", "resolved_dt", "special_handling", "status", "type", "updated_dt", "uuid") VALUES (OLD."acl_read", OLD."acl_write", OLD."bz_download_manager_id", OLD."bz_link_manager_id", OLD."created_dt", OLD."cve_id", OLD."external_system_id", OLD."jira_download_manager_id", OLD."jira_link_manager_id", OLD."last_impact_increase_dt", OLD."last_validated_dt", OLD."not_affected_justification", _pgh_attach_context(), NOW(), \'delete\', OLD."uuid", OLD."ps_update_stream", OLD."resolution", OLD."resolved_dt", OLD."special_handling", OLD."status", OLD."type", OLD."updated_dt", OLD."uuid"); RETURN NULL;', hash='8eef330cc96ea0e00a9112f47afce5d208f6f34c', operation='DELETE', pgid='pgtrigger_delete_delete_d12e8', table='osidb_tracker', when='AFTER')),
         ),
-        migrations.RunPython(lambda apps, schema_editor: set_user_acls(settings.ALL_GROUPS), reverse_code=migrations.RunPython.noop),
-        migrations.RunSQL(
-            """
-                UPDATE
-                    osidb_affect AS a
-                SET
-                    cve_id = f.cve_id
-                FROM
-                    osidb_flaw AS f
-                WHERE
-                    a.flaw_id = f.uuid;
-            """,
-            "UPDATE osidb_affect SET cve_id = NULL;",
-        ),
-        migrations.RunSQL(
-            """
-                UPDATE
-                    osidb_tracker AS t
-                SET
-                    cve_id = a.cve_id
-                FROM
-                    osidb_affect AS a,
-                    osidb_tracker_affects AS ta
-                WHERE
-                    t.uuid = ta.tracker_id
-                    AND
-                    a.uuid = ta.affect_id;
-            """,
-            "UPDATE osidb_tracker SET cve_id = NULL;",
-        ),
     ]
