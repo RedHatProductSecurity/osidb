@@ -610,6 +610,26 @@ class TestEndpointsAffects:
             affect_uuids = [result["uuid"] for result in body["results"]]
             assert str(affect_without_trackers.uuid) in affect_uuids
 
+    @pytest.mark.enable_signals
+    def test_get_affect_with_cve_id(self, auth_client, test_api_uri):
+        """append cve_id from parent flaw to the Affect serializer"""
+        flaw = FlawFactory(cve_id="CVE-2025-1234")
+        affect = AffectFactory(flaw=flaw)
+
+        response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["cve_id"] == flaw.cve_id
+
+    @pytest.mark.enable_signals
+    def test_filter_affect_by_cve_id(self, auth_client, test_api_uri):
+        flaw = FlawFactory(cve_id="CVE-2025-1234")
+        AffectFactory(flaw=flaw)
+
+        response = auth_client().get(f"{test_api_uri}/affects?cve_id={flaw.cve_id}")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 1
+        assert response.data["results"][0]["cve_id"] == flaw.cve_id
+
 
 class TestEndpointsAffectsBulk:
     """
@@ -657,6 +677,7 @@ class TestEndpointsAffectsBulk:
         assert orig_uuids == new_uuids
         assert len(body["results"]) == len(request_affects)
 
+    @pytest.mark.enable_signals
     def test_affect_create_bulk(self, auth_client, test_api_uri):
         """
         Test the bulk creation of Affect records via a REST API PUT request.

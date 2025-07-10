@@ -575,6 +575,7 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
+            "cve_id": ["exact"],
             "updated_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
@@ -663,6 +664,7 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
+            "cve_id": ["exact"],
             "updated_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
