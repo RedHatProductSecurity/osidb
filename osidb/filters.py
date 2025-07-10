@@ -861,8 +861,8 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
     flaw__components = CharInFilter(
         field_name="flaw__components", lookup_expr="contains"
     )
-    trackers__embargoed = BooleanFilter(field_name="trackers__embargoed")
-    trackers__isempty = NullForeignKeyFilter(field_name="trackers")
+    tracker__embargoed = BooleanFilter(field_name="tracker__embargoed")
+    tracker__isempty = NullForeignKeyFilter(field_name="tracker")
 
     class Meta:
         model = Affect
