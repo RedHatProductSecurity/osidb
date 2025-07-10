@@ -215,3 +215,29 @@ def update_last_impact_increase_dt_flaw(sender, instance, **kwargs):
             Tracker.objects.filter(uuid__in=to_update).update(
                 last_impact_increase_dt=timezone.now()
             )
+
+
+@receiver(pre_save, sender=Flaw)
+def update_denormalized_cve_ids_on_flaw_update(sender, instance, **kwargs):
+    # while it's very unlikely for a Flaw's CVE ID to be updated, it's best
+    # to cover this scenario for denormalized CVE IDs in other models.
+    if not instance._state.adding:
+        db_instance = Flaw.objects.get(pk=instance.pk)
+        if instance.cve_id != db_instance.cve_id:
+            Affect.objects.filter(cve_id=db_instance.cve_id).update(
+                cve_id=instance.cve_id
+            )
+            Tracker.objects.filter(cve_id=db_instance.cve_id).update(
+                cve_id=instance.cve_id
+            )
+
+
+@receiver(pre_save, sender=Affect)
+@receiver(pre_save, sender=Tracker)
+def mirror_parent_cve_id(sender, instance, **kwargs):
+    if sender is Affect:
+        parent = instance.flaw
+    else:
+        parent = instance.affects.first()
+    if parent:
+        instance.cve_id = parent.cve_id

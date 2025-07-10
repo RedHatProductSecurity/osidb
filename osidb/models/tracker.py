@@ -22,6 +22,7 @@ from osidb.mixins import (
     TrackingMixinManager,
 )
 from osidb.models.affect import Affect, NotAffectedJustification
+from osidb.models.fields import CVEIDField
 from osidb.sync_manager import (
     BZTrackerDownloadManager,
     BZTrackerLinkManager,
@@ -106,6 +107,9 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
+    # CVE id denormalized from parent flaw, should not be manually set
+    cve_id = CVEIDField(unique=False)
+
     # type
     type = models.CharField(choices=TrackerType.choices, max_length=100)
 
@@ -155,6 +159,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         ]
 
         indexes = TrackingMixin.Meta.indexes + [
+            models.Index(fields=["cve_id"]),
             models.Index(fields=["external_system_id"]),
             GinIndex(fields=["acl_read"]),
         ]

@@ -24,6 +24,7 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
+from osidb.models.fields import CVEIDField
 from osidb.query_sets import CustomQuerySetUpdatedDt
 
 from .abstract import CVSS, Impact
@@ -147,6 +148,9 @@ class Affect(
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
+    # CVE id denormalized from parent flaw, should not be manually set
+    cve_id = CVEIDField(unique=False)
+
     # affectedness:resolution status
     affectedness = models.CharField(
         choices=AffectAffectedness.choices,
@@ -196,6 +200,7 @@ class Affect(
         )
         verbose_name = "Affect"
         indexes = TrackingMixin.Meta.indexes + [
+            models.Index(fields=["cve_id"]),
             models.Index(fields=["flaw", "ps_module"]),
             models.Index(fields=["flaw", "ps_component"]),
             GinIndex(fields=["acl_read"]),

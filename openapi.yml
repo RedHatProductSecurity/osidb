@@ -9909,7 +9909,6 @@ components:
         cve_id:
           type: string
           nullable: true
-          maxLength: 500
         affects:
           type: array
           items:

@@ -1,4 +1,5 @@
 from .abstract import CVSS, ComparableTextChoices, Impact
+from .fields import CVEIDField
 from .flaw import FlawSource
 from .profile import Profile
 from .ps_constants import SpecialConsiderationPackage
@@ -13,6 +14,7 @@ __all__ = (
     "AffectCVSS",
     "ComparableTextChoices",
     "CVSS",
+    "CVEIDField",
     "Erratum",
     "Flaw",
     "FlawAcknowledgment",
