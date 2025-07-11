@@ -8174,6 +8174,7 @@ components:
         purl:
           type: string
           nullable: true
+          default: ''
         not_affected_justification:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
@@ -8263,6 +8264,7 @@ components:
         purl:
           type: string
           nullable: true
+          default: ''
         not_affected_justification:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
@@ -8568,6 +8570,7 @@ components:
         purl:
           type: string
           nullable: true
+          default: ''
         not_affected_justification:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
@@ -8636,6 +8639,7 @@ components:
         purl:
           type: string
           nullable: true
+          default: ''
         not_affected_justification:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
