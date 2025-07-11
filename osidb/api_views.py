@@ -913,6 +913,21 @@ class FlawCommentView(
     permission_classes = [IsAuthenticatedOrReadOnly]
     lookup_url_kwarg = "comment_id"
 
+    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        """Create a new comment, ignoring the creator field in the request body."""
+        # Remove creator field from request data if present
+        request.data.pop("creator", None)
+        # Set creator field to current user safely
+        if request.user and request.user.is_authenticated:
+            request.data["creator"] = getattr(
+                request.user, "username", str(request.user)
+            )
+        else:
+            raise ValidationError(
+                {"creator": "User must be authenticated to create comments."}
+            )
+        return super().create(request, *args, **kwargs)
+
 
 @include_exclude_fields_extend_schema_view
 @extend_schema_view(
