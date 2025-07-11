@@ -30,6 +30,7 @@ from .api_views import (
     ManifestView,
     StatusView,
     TrackerView,
+    flaw_available,
     healthy,
     integration_tokens,
     whoami,
@@ -87,6 +88,11 @@ urlpatterns = [
     path("healthy", healthy),
     path("whoami", whoami),
     path("integrations", integration_tokens),
+    re_path(
+        rf"^api/{OSIDB_API_VERSION}/available-flaws/(?P<cve_id>[^/.]+)",
+        flaw_available,
+        name="flawavailable",
+    ),
     re_path(
         rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/promote$",
         promote.as_view(),
