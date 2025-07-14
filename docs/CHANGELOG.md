@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [4.13.0] - 2025-07-14
 ### Added
 - Trigger Jira tracker sync when Red Hat's CVSS change (OSIDB-4186)
 - Extend `Special Handling` tracker values (OSIDB-4337)
