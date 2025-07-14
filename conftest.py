@@ -605,19 +605,6 @@ def setup_sample_external_resources():
             "KEV (active exploit case)",
         ],
     ).save()
-    JiraProjectFields(
-        project_key=ps_module.bts_key,
-        field_id="customfield_12324940",
-        field_name="CVE Severity",
-        allowed_values=[
-            "Critical",
-            "Important",
-            "Moderate",
-            "Low",
-            "An Irrelevant Value To Be Ignored",
-            "None",
-        ],
-    ).save()
     JiraBugIssuetype(project=ps_module.bts_key).save()
 
     # 4) list some valid components accepeted for the
