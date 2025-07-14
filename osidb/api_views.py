@@ -918,14 +918,7 @@ class FlawCommentView(
         # Remove creator field from request data if present
         request.data.pop("creator", None)
         # Set creator field to current user safely
-        if request.user and request.user.is_authenticated:
-            request.data["creator"] = getattr(
-                request.user, "username", str(request.user)
-            )
-        else:
-            raise ValidationError(
-                {"creator": "User must be authenticated to create comments."}
-            )
+        request.data["creator"] = getattr(request.user, "email", "")
         return super().create(request, *args, **kwargs)
 
 
