@@ -8,6 +8,7 @@ from django.utils.timezone import datetime, make_aware
 from freezegun import freeze_time
 from rest_framework import status
 
+from apps.workflows.workflow import WorkflowModel
 from osidb.core import set_user_acls
 from osidb.filters import FlawFilter
 from osidb.models import (
@@ -1819,3 +1820,66 @@ class TestEndpointsFlaws:
         body = response.json()
         flaw_json = body["results"][0]
         assert "pgh_diff" not in flaw_json["history"]
+
+    @pytest.mark.parametrize(
+        "workflow_status",
+        (
+            WorkflowModel.WorkflowState.NEW,
+            WorkflowModel.WorkflowState.REJECTED,
+            WorkflowModel.WorkflowState.DONE,
+        ),
+    )
+    @pytest.mark.parametrize(
+        "embargoed, internal", [(True, False), (False, False), (False, True)]
+    )
+    def test_flaw_available(
+        self,
+        workflow_status,
+        embargoed,
+        internal,
+        client,
+        test_api_uri,
+    ):
+        """
+        Test that API endpoint reports whether a flaw is available
+        based on the following criteria:
+
+        1) Public or work on flaw is done: 204 status
+        2) Not public and work not done / flaw does not exist: 404 status
+        3) CVE ID is not valid: 400 status
+        """
+
+        if internal:
+            flaw = FlawFactory(embargoed=False)
+            flaw.set_internal()
+        else:
+            # not embargoed is defaulted to public
+            flaw = FlawFactory(embargoed=embargoed)
+
+        AffectFactory(flaw=flaw)
+
+        flaw.workflow_state = workflow_status
+        assert flaw.save() is None
+
+        # response should return a state with no data
+        response = client.get(f"{test_api_uri}/available-flaws/{flaw.cve_id}")
+        assert response.data is None
+
+        if (
+            flaw.is_public
+            or flaw.workflow_state == WorkflowModel.WorkflowState.REJECTED
+            or flaw.workflow_state == WorkflowModel.WorkflowState.DONE
+        ):
+            assert response.status_code == 204
+        else:
+            assert response.status_code == 404
+
+        # check for non-existent flaw (should be the same as criterion (2))
+        response = client.get(f"{test_api_uri}/available-flaws/CVE-2999-9999")
+        assert response.status_code == 404
+        assert response.data is None
+
+        # check for invalid flaw id
+        response = client.get(f"{test_api_uri}/available-flaws/not-an-id")
+        assert response.status_code == 400
+        assert response.data is None

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Filter affects based on absence/presence of related trackers (OSIDB-3893)
 - Allow excluding streams with existing trackers from tracker file offer (OSIDB-3893)
 - Add `cve_id` to affect and trackers endpoints (OSIDB-4293)
+- Add endpoint that checks if flaw is public or has its work completed (OSIDB-4328)
 
 ### Fixed
 - CVE.org and CISA CVSS correctly recalculate and persist the numeric

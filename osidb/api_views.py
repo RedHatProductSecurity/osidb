@@ -31,7 +31,12 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
+)
 from rest_framework.views import APIView
 from rest_framework.viewsets import (
     ModelViewSet,
@@ -41,7 +46,9 @@ from rest_framework.viewsets import (
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from apps.workflows.workflow import WorkflowModel
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
+from osidb.core import set_user_acls
 from osidb.helpers import get_bugzilla_api_key
 from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import Affect, AffectCVSS, Flaw, FlawLabel, Tracker
@@ -809,6 +816,59 @@ class FlawCVSSV2View(
         if cvss.issuer != FlawCVSS.CVSSIssuer.REDHAT:
             raise ValidationError({"issuer": "Only Red Hat CVSS scores can be edited"})
         return super().destroy(request, *args, **kwargs)
+
+
+@extend_schema(
+    responses={
+        204: {},
+        400: {},
+        404: {},
+    },
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def flaw_available(request: Request, *args, **kwargs) -> Response:
+    """
+    Report whether a flaw is available for public consumption purposes
+    based on the following criteria:
+    1) The work on the flaw is done, or the flaw is public:
+        - 204 status (yes, flaw is available for public consumption)
+    2) The work on the flaw is not done yet, or the flaw doesn't exist in the DB:
+        - 404 status (no, flaw is unavailable for public consumption)
+    3) Invalid CVE ID:
+        - 400 status
+
+    The intention is that this API is consumed by an agent that publishes pages
+    with information about individual CVEs. As long as this API returns 404,
+    the agent waits and doesn't publish the CVE page. Once this API first returns 204,
+    the agent stops polling this API and publishes the CVE page. The consumers of such
+    CVE pages are then informed about the CVE in such a way that the general affectedness
+    ("Does the CVE affect products shipped by the organization that publishes the CVE
+    page, or not?") most likely doesn't change. So this is to prevent public confusion
+    during the early stages of security analysis where the preliminary analysis might
+    switch between "this CVE affects our products" and "this CVE doesn't affect our products".
+    """
+
+    cve_id = kwargs["cve_id"]
+    if not CVE_RE_STR.match(cve_id):
+        return Response(status=HTTP_400_BAD_REQUEST)
+
+    try:
+        set_user_acls(settings.ALL_GROUPS)
+        flaw = Flaw.objects.get(cve_id=cve_id)
+        set_user_acls([])
+    except Flaw.DoesNotExist:
+        set_user_acls([])
+        return Response(status=HTTP_404_NOT_FOUND)
+
+    if (
+        flaw.is_public
+        or flaw.workflow_state == WorkflowModel.WorkflowState.REJECTED
+        or flaw.workflow_state == WorkflowModel.WorkflowState.DONE
+    ):
+        return Response(status=HTTP_204_NO_CONTENT)
+
+    return Response(status=HTTP_404_NOT_FOUND)
 
 
 @extend_schema(responses={200: OpenApiResponse(response=UserSerializer)})
