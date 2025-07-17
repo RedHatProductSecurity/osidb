@@ -1,6 +1,7 @@
 """
 collector URLs
 """
+
 from django.urls import include, path
 
 from .api import healthy, index, status

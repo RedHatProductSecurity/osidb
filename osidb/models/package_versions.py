@@ -167,6 +167,7 @@ class PackageVer(models.Model):
     """Model representing a package version"""
 
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    version = models.CharField(max_length=1024)
 
     package = models.ForeignKey(
         Package,
@@ -176,5 +177,3 @@ class PackageVer(models.Model):
 
     class Meta:
         verbose_name = "Version"
-
-    version = models.CharField(max_length=1024)

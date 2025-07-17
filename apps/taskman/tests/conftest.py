@@ -2,9 +2,9 @@ import uuid
 
 import pytest
 from django.conf import settings
-from taskman.constants import TASKMAN_API_VERSION
 
 from osidb.constants import OSIDB_API_VERSION
+from taskman.constants import TASKMAN_API_VERSION
 
 
 @pytest.fixture(autouse=True)

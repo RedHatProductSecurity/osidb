@@ -3,13 +3,30 @@
 ############################################################################
 
 #***********************************
-### flake8, bandit
+### Lint/security check with ruff
 #***********************************
 .PHONY : lint
 lint: osidb collectors apps check-testenv
 	@echo ">running lint"
-	$(tox) -e flake8,bandit
+	$(tox) -e ruff-check
 
+
+#***********************************
+### Isort with ruff
+#***********************************
+.PHONY : ruff-isort
+ruff-isort: osidb collectors apps check-testenv
+	@echo ">running ruff's isort"
+	$(tox) -e ruff-isort
+
+
+#***********************************
+### Autoformat with ruff
+#***********************************
+.PHONY : format
+format: osidb collectors apps check-testenv
+	@echo ">running formatting"
+	$(tox) -e ruff-format
 
 
 #***********************************
@@ -19,15 +36,6 @@ lint: osidb collectors apps check-testenv
 typecheck: osidb collectors apps check-testenv
 	@echo ">running mypy"
 	$(tox) -e mypy
-
-
-#***********************************
-### Autoformat with black
-#***********************************
-.PHONY : format
-format: osidb collectors apps check-testenv
-	@echo ">running formatting"
-	$(tox) -e black
 
 
 #***********************************

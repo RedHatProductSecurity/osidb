@@ -48,7 +48,7 @@ def sync_flaw_labels(context_based: dict, product_family: dict):
             FlawLabel(
                 name=flaw_label,
                 type=FlawLabel.FlawLabelType.CONTEXT_BASED,
-                **filtered_data
+                **filtered_data,
             )
         )
 
@@ -62,7 +62,7 @@ def sync_flaw_labels(context_based: dict, product_family: dict):
             FlawLabel(
                 name=flaw_label,
                 type=FlawLabel.FlawLabelType.PRODUCT_FAMILY,
-                **filtered_data
+                **filtered_data,
             )
         )
 

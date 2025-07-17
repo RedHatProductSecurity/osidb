@@ -1,5 +1,5 @@
 """
-    osidb-service
+osidb-service
 """
 
 from django.apps import AppConfig

@@ -43,9 +43,9 @@ class TestCVEorgProcessing:
         assert cvss and cvss.vector == "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N"
 
         # edit the content with a modified CVSS score and check that it's *not* reflected in the flaw
-        content["cvss_scores"][0][
-            "vector"
-        ] = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+        content["cvss_scores"][0]["vector"] = (
+            "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+        )
         collector.save_snippet_and_flaw(content)
         cvss: Optional[FlawCVSS] = FlawCVSS.objects.get(flaw=flaw)
         assert cvss and cvss.vector == "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N"
@@ -73,9 +73,9 @@ class TestCVEorgProcessing:
         )
 
         # finally we update the existing CVSS score
-        original_cvss_scores[0][
-            "vector"
-        ] = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+        original_cvss_scores[0]["vector"] = (
+            "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+        )
         collector.upsert_cvss_scores(content["cve_id"], original_cvss_scores)
         cvss: Optional[FlawCVSS] = FlawCVSS.objects.first()
         assert flaw.cvss_scores.count() == 1

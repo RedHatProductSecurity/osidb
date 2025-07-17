@@ -1,6 +1,7 @@
 """
 Implement filters for OSIDB REST API results
 """
+
 from typing import Union
 
 from django.contrib.postgres.search import (
@@ -318,7 +319,8 @@ def search_helper(
     return (
         queryset.annotate(rank=rank, similarity=similarity)
         # The similarity threshold of 0.7 has been found by trial and error to work best with CVEs
-        .filter(Q(rank__gt=0) | Q(similarity__gt=0.7)).order_by("-rank")
+        .filter(Q(rank__gt=0) | Q(similarity__gt=0.7))
+        .order_by("-rank")
     )
     # Add "rank" column to queryset based on search result relevance
     # Exclude results that don't match (rank 0)
@@ -547,7 +549,6 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
 
 
 class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
-
     DISTINCT_FIELDS_PREFIXES = ("flaw__", "affects__")
 
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
@@ -641,7 +642,6 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
 
 
 class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
-
     DISTINCT_FIELDS_PREFIXES = ("affects__",)
 
     embargoed = BooleanFilter(field_name="embargoed")

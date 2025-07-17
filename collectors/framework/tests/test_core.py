@@ -114,7 +114,6 @@ class TestCollectorFramework:
             CollectorMetadata.DataState.EMPTY,
             CollectorMetadata.DataState.PARTIAL,
         ]:
-
             collector6_metadata.data_state = incomplete_data_state
             collector6_metadata.save()
 

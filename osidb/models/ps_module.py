@@ -13,7 +13,6 @@ from .ps_product import PsProduct
 
 
 class PsModule(NullStrFieldsMixin, ValidateMixin):
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 

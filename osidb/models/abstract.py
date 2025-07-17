@@ -3,6 +3,7 @@ abstract models here are not necessarily that in the Django sense
 however they are not meant to be the data holders themselves but
 rather building blocks of the other models or model structures
 """
+
 import uuid
 
 from cvss import CVSS2, CVSS3, CVSS4, CVSSError

@@ -1,0 +1,9 @@
+[tool.ruff]
+extend-exclude = ["**/migrations/*"]
+
+[tool.ruff.lint]
+extend-select = ["I", "S", "W", "DJ"]
+ignore = ["S101", "S102", "S301", "E203", "E501", "DJ008"]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"**/tests/*" = ["S"]

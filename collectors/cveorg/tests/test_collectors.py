@@ -104,7 +104,6 @@ class TestCVEorgCollector:
 
 
 class TestCVEorgCollectorException:
-
     repo_path = Path(__file__).resolve().parent
 
     def test_fail_clone_repo(self, monkeypatch):

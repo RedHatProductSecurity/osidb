@@ -1,5 +1,5 @@
 """
-    Jiraffe service
+Jiraffe service
 """
 
 from django.apps import AppConfig

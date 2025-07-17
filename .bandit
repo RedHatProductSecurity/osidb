@@ -1,3 +1,0 @@
-[bandit]
-exclude: osidb/tests, collectors/bzimport/tests, collectors/jiraffe/tests, apps/workflows/tests, src, .git, .tox,
-skips: B101,B102,B301

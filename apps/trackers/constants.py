@@ -1,6 +1,7 @@
 """
 common tracker constants
 """
+
 from osidb.helpers import get_env
 
 TRACKERS_API_VERSION = "v1"

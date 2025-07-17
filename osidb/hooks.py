@@ -49,9 +49,9 @@ def response_metadata_postprocess_hook(result, generator, **kwargs):
                 # finally re-assign the copied schema so as to not pollute
                 # other schemas for different content-types that might
                 # share the same dict (due to aforementioned bug)
-                response.get("content", {}).get("application/json", {})[
-                    "schema"
-                ] = schema
+                response.get("content", {}).get("application/json", {})["schema"] = (
+                    schema
+                )
 
                 # In general, drf-spectacular doesn't do much with APIView
                 # and @api_view views, thus we do this "hack" to provide

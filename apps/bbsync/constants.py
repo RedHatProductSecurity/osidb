@@ -1,6 +1,7 @@
 """
 BBSync constants
 """
+
 from osidb.helpers import get_env
 
 DATE_FMT = "%Y-%m-%d"

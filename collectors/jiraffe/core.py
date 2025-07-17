@@ -125,7 +125,6 @@ class JiraQuerier(JiraConnector):
         """
         query_items = []
         for name, operator, value in query_list:
-
             query_value = (
                 f"({value})" if operator.upper() in ("IN", "NOT IN") else f'"{value}"'
             )
@@ -200,7 +199,6 @@ class JiraQuerier(JiraConnector):
             comment = self.jira_conn.add_comment(issue_key, body)
             return Response(data=comment.raw, status=201)
         except JIRAError as e:
-
             response_content = safe_get_response_content(e.response)
             logger.error(
                 (

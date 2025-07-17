@@ -1,6 +1,7 @@
 """
 transform Bugzilla flaw bug into OSIDB flaw model
 """
+
 import json
 import logging
 import uuid
@@ -669,9 +670,11 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
             meta_attr_dump = {}
             for key, value in meta_attr.items():
                 if not isinstance(
-                    value, timezone.datetime  # datetime is not JSON serializable
+                    value,
+                    timezone.datetime,  # datetime is not JSON serializable
                 ) and not isinstance(
-                    value, str  # the string values result in extra quotes
+                    value,
+                    str,  # the string values result in extra quotes
                 ):
                     value = json.dumps(value)
 
@@ -704,7 +707,6 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
         affects_cvss_scores = []
 
         for affect_json in self.srtnotes.get("affects", []):
-
             # PS module is identifier so the fixup must be applied before the lookup
             ps_module = AffectFixer.fixplace_ps_module(affect_json.get("ps_module"))
             ps_component = affect_json.get("ps_component")

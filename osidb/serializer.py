@@ -557,7 +557,6 @@ class AlertMixinSerializer(serializers.ModelSerializer):
 
 
 class AuditSerializer(serializers.ModelSerializer):
-
     pgh_data = serializers.SerializerMethodField()
 
     def get_pgh_data(self, obj):
@@ -603,7 +602,6 @@ class HistoricalEventSerializer(serializers.ModelSerializer):
 
 
 class HistoryMixinSerializer(serializers.ModelSerializer):
-
     history = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
@@ -1096,13 +1094,11 @@ class AffectCVSSV2Serializer(AbstractCVSSSerializer):
 
 
 @extend_schema_serializer(exclude_fields=["affect", "updated_dt"])
-class AffectCVSSV2PostSerializer(AffectCVSSV2Serializer):
-    ...
+class AffectCVSSV2PostSerializer(AffectCVSSV2Serializer): ...
 
 
 @extend_schema_serializer(exclude_fields=["affect"])
-class AffectCVSSV2PutSerializer(AffectCVSSV2Serializer):
-    ...
+class AffectCVSSV2PutSerializer(AffectCVSSV2Serializer): ...
 
 
 class AffectSerializer(
@@ -1779,13 +1775,11 @@ class FlawCVSSV2Serializer(AbstractCVSSSerializer):
 
 
 @extend_schema_serializer(exclude_fields=["flaw", "updated_dt"])
-class FlawCVSSV2PostSerializer(FlawCVSSV2Serializer):
-    ...
+class FlawCVSSV2PostSerializer(FlawCVSSV2Serializer): ...
 
 
 @extend_schema_serializer(exclude_fields=["flaw"])
-class FlawCVSSV2PutSerializer(FlawCVSSV2Serializer):
-    ...
+class FlawCVSSV2PutSerializer(FlawCVSSV2Serializer): ...
 
 
 class FlawLabelSerializer(serializers.ModelSerializer):
@@ -1918,7 +1912,6 @@ class FlawSerializer(
 
         request = self.context.get("request")
         if request:
-
             # Filter only affects with trackers corresponding to specified IDs
             tracker_ids = request.query_params.get("tracker_ids")
             if tracker_ids:
@@ -1999,9 +1992,9 @@ class FlawSerializer(
             or validated_data["requires_cve_description"]
             == Flaw.FlawRequiresCVEDescription.NOVALUE
         ):
-            validated_data[
-                "requires_cve_description"
-            ] = Flaw.FlawRequiresCVEDescription.REQUESTED
+            validated_data["requires_cve_description"] = (
+                Flaw.FlawRequiresCVEDescription.REQUESTED
+            )
 
         return super().create(validated_data)
 
@@ -2037,9 +2030,9 @@ class FlawSerializer(
             and new_flaw.requires_cve_description
             == Flaw.FlawRequiresCVEDescription.NOVALUE
         ):
-            validated_data[
-                "requires_cve_description"
-            ] = Flaw.FlawRequiresCVEDescription.REQUESTED
+            validated_data["requires_cve_description"] = (
+                Flaw.FlawRequiresCVEDescription.REQUESTED
+            )
 
         # Force Jira task creation if requested
         request = self.context.get("request")

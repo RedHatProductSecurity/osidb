@@ -1,6 +1,7 @@
 """
 fixups
 """
+
 import re
 from typing import Any, List, Tuple
 
@@ -43,8 +44,7 @@ class AffectFixer:
         affectedness = (
             # there maybe be explicite None so
             # the default value does not help
-            self.affect_json.get("affectedness")
-            or Affect.AffectAffectedness.NOVALUE
+            self.affect_json.get("affectedness") or Affect.AffectAffectedness.NOVALUE
         ).upper()
 
         try:
@@ -67,8 +67,7 @@ class AffectFixer:
         resolution = (
             # there maybe be explicite None so
             # the default value does not help
-            self.affect_json.get("resolution")
-            or Affect.AffectResolution.NOVALUE
+            self.affect_json.get("resolution") or Affect.AffectResolution.NOVALUE
         ).upper()
 
         try:

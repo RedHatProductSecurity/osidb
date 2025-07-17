@@ -17,7 +17,7 @@ jobs:
         run: pip install tox==3.24.4
       - name: Check for secret lekeage
         run: tox -e secrets
-  black:
+  ruff-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,9 +26,9 @@ jobs:
           python-version: 3.9
       - name: Install dependencies
         run: pip install tox==3.24.4
-      - name: Check that code is formatted with black
-        run: tox -e black
-  isort:
+      - name: Lint codebase and check it for security issues with ruff
+        run: tox -e ruff-check
+  ruff-isort:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,9 +37,9 @@ jobs:
           python-version: 3.9
       - name: Install dependencies
         run: pip install tox==3.24.4
-      - name: Check that imports are formatted with isort
-        run: tox -e isort
-  flake8:
+      - name: Check that imports are formatted with ruff
+        run: tox -e ruff-isort
+  ruff-format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,19 +48,8 @@ jobs:
           python-version: 3.9
       - name: Install dependencies
         run: pip install tox==3.24.4
-      - name: Lint codebase with flake8
-        run: tox -e flake8
-  bandit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.9
-      - name: Install dependencies
-        run: pip install tox==3.24.4
-      - name: Scan codebase for security issues
-        run: tox -e bandit
+      - name: Check that code is formatted with ruff
+        run: tox -e ruff-format
   migrations:
     runs-on: ubuntu-latest
     steps:

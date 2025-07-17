@@ -1,6 +1,7 @@
 """
 custom time-related functions tests
 """
+
 import pytest
 from django.utils.timezone import datetime, timedelta
 from pytz import timezone

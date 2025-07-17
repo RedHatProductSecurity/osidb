@@ -1,6 +1,7 @@
 """
-    osidb exceptions
+osidb exceptions
 """
+
 from rest_framework import status
 
 

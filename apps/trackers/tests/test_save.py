@@ -144,7 +144,8 @@ class TestTrackerSaver:
         )
 
         assert isinstance(
-            TrackerSaver(tracker, jira_token="SECRET"), TrackerJiraSaver  # nosec
+            TrackerSaver(tracker, jira_token="SECRET"),
+            TrackerJiraSaver,  # nosec
         )
 
     def test_jira_no_secret(self):
@@ -392,9 +393,7 @@ class TestTrackerJiraSaverIssuetype:
             type=Tracker.TrackerType.JIRA,
         )
 
-        i = TrackerSaver(
-            tracker, jira_token="SECRET", jira_issuetype=issuetype_param
-        )  # nosec
+        i = TrackerSaver(tracker, jira_token="SECRET", jira_issuetype=issuetype_param)  # nosec
         assert isinstance(i, TrackerJiraSaver)
         assert i._jira_issuetype == issuetype_param
         if expected_builder is not None:

@@ -129,7 +129,6 @@ CISA_COLLECTOR_CRONTAB = crontab(minute=0)
 # Use either logstash logging or basic file logging based
 # on the instance configuration
 if get_env("MPP_LOGSTASH_LOGGING_ENABLED", is_bool=True, default="False"):
-
     LOGSTASH_PORT = 5140
     LOGSTASH_HOST = "logstash"
 
@@ -151,7 +150,6 @@ if get_env("MPP_LOGSTASH_LOGGING_ENABLED", is_bool=True, default="False"):
     }
 
 elif get_env("MPP_LOGFILE_LOGGING_ENABLED", is_bool=True, default="False"):
-
     # Setup rotation logging into filesystem
     LOG_FILE_SIZE = 1024 * 1024 * 100  # 100mb
     LOG_FILE_COUNT = 3

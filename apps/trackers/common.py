@@ -101,7 +101,6 @@ class TrackerQueryBuilder:
         # try to compose the summary
         # until it is short enough
         while True:
-
             cve_string = " ".join(cves) + " " if cves else ""
             summary = f"{prefixes}{cve_string}{self.ps_component}: {description} [{self.ps_update_stream.name}]"
 
@@ -168,7 +167,6 @@ class TrackerQueryBuilder:
         #    even though it may seem random is taken from
         #    SFM2 exactly the way it was defined there
         else:
-
             # 3a) Jira header
             if self.tracker.type == Tracker.TrackerType.JIRA:
                 description_parts.extend(self._description_jira_header())
@@ -218,7 +216,6 @@ class TrackerQueryBuilder:
         description_parts = []
 
         if self.tracker.is_embargoed:
-
             if self.ps_component in KERNEL_PACKAGES:
                 description_parts.append(
                     "Information with regards to this bug is considered Red Hat Confidential "

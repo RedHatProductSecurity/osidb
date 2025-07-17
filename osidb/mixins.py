@@ -43,7 +43,6 @@ class TrackingMixin(models.Model):
         """
         # allow disabling timestamp auto-updates
         if auto_timestamps:
-
             # get DB counterpart of self if any
             db_self = type(self).objects.filter(pk=self.pk).first()
 
@@ -112,6 +111,9 @@ class NullStrFieldsMixin(models.Model):
     See https://docs.djangoproject.com/en/4.0/ref/models/fields/#django.db.models.Field.null
     """
 
+    class Meta:
+        abstract = True
+
     # TODO: Once OSIDB is autoritative source, we can stop using this compatibility
     # mixin as we would not allow the null values for the Char/Text fields anymore
     def clean(self):
@@ -129,9 +131,6 @@ class NullStrFieldsMixin(models.Model):
             if getattr(self, field.attname) is None:
                 setattr(self, field.attname, "")
 
-    class Meta:
-        abstract = True
-
 
 class ValidateMixin(models.Model):
     """
@@ -139,13 +138,8 @@ class ValidateMixin(models.Model):
     raising ValidationError to ensure minimal necessary data quality
     """
 
-    def validate(self):
-        """
-        validate model
-        """
-        # standard validations
-        # exclude meta attributes
-        self.full_clean(exclude=["meta_attr"])
+    class Meta:
+        abstract = True
 
     def save(self, *args, **kwargs):
         """
@@ -154,8 +148,13 @@ class ValidateMixin(models.Model):
         self.validate()
         super().save(*args, **kwargs)
 
-    class Meta:
-        abstract = True
+    def validate(self):
+        """
+        validate model
+        """
+        # standard validations
+        # exclude meta attributes
+        self.full_clean(exclude=["meta_attr"])
 
 
 class ACLMixinManager(models.Manager):
@@ -194,6 +193,9 @@ class ACLMixin(models.Model):
     # to be able to meaningfully print the ACL related alerts
     # we have to keep the mapping from the hashes to names
     acl_group_map = {}
+
+    class Meta:
+        abstract = True
 
     def __init__(self, *args, **kwargs):
         """
@@ -515,9 +517,6 @@ class ACLMixin(models.Model):
                     + ("embargoed" if self.flaw.is_embargoed else "public")
                 )
 
-    class Meta:
-        abstract = True
-
     def unembargo(self):
         """
         unembargo the whole instance context internally
@@ -665,20 +664,9 @@ class Alert(ACLMixin):
     object_id = models.CharField(max_length=36)
     content_object = GenericForeignKey("content_type", "object_id")
 
-    objects = AlertManager()
-
     created_dt = models.DateTimeField(blank=True, default=timezone.now)
 
-    def _validate_acl_identical_to_parent(self, **kwargs):
-        if (
-            self.acl_read != self.content_object.acl_read
-            or self.acl_write != self.content_object.acl_write
-        ):
-            raise ValidationError("Alert ACLs must match the parent object's ACLs.")
-
-    def __str__(self):
-        """String representaion of an alert."""
-        return self.name
+    objects = AlertManager()
 
     class Meta:
         constraints = [
@@ -690,6 +678,17 @@ class Alert(ACLMixin):
         indexes = [
             GinIndex(fields=["acl_read"]),
         ]
+
+    def __str__(self):
+        """String representaion of an alert."""
+        return self.name
+
+    def _validate_acl_identical_to_parent(self, **kwargs):
+        if (
+            self.acl_read != self.content_object.acl_read
+            or self.acl_write != self.content_object.acl_write
+        ):
+            raise ValidationError("Alert ACLs must match the parent object's ACLs.")
 
 
 class AlertMixin(ValidateMixin):
@@ -706,6 +705,26 @@ class AlertMixin(ValidateMixin):
     alerts = GenericRelation(Alert)
 
     last_validated_dt = models.DateTimeField(blank=True, default=timezone.now)
+
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        """
+        Save with validate call parametrized by raise_validation_error
+        """
+
+        dry_run = kwargs.pop("no_alerts", False)
+        if not dry_run:
+            self.last_validated_dt = timezone.now()
+
+        self.validate(
+            raise_validation_error=kwargs.pop("raise_validation_error", True),
+            dry_run=dry_run,
+        )
+        # here we have to skip ValidateMixin level save as otherwise
+        # it would run validate again and without proper arguments
+        super(ValidateMixin, self).save(*args, **kwargs)
 
     @property
     def valid_alerts(self):
@@ -873,23 +892,3 @@ class AlertMixin(ValidateMixin):
             # array fields were already validated before
             + [f.name for f in self._meta.fields if isinstance(f, fields.ArrayField)]
         )
-
-    def save(self, *args, **kwargs):
-        """
-        Save with validate call parametrized by raise_validation_error
-        """
-
-        dry_run = kwargs.pop("no_alerts", False)
-        if not dry_run:
-            self.last_validated_dt = timezone.now()
-
-        self.validate(
-            raise_validation_error=kwargs.pop("raise_validation_error", True),
-            dry_run=dry_run,
-        )
-        # here we have to skip ValidateMixin level save as otherwise
-        # it would run validate again and without proper arguments
-        super(ValidateMixin, self).save(*args, **kwargs)
-
-    class Meta:
-        abstract = True

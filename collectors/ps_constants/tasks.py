@@ -98,10 +98,7 @@ def ps_constants_collector(collector_obj) -> str:
     ) = collect_step_1_fetch()
 
     logger.info(
-        (
-            f"and {len(sc_packages)} special consideration packages data."
-            f"Going to sync."
-        )
+        (f"and {len(sc_packages)} special consideration packages data.Going to sync.")
     )
 
     collect_step_2_sync(

@@ -1,6 +1,7 @@
 """
 EPSS data collector
 """
+
 import csv
 import gzip
 import io

@@ -55,15 +55,30 @@ class SyncManager(models.Model):
     last_started_dt = models.DateTimeField(blank=True, null=True)
     last_finished_dt = models.DateTimeField(blank=True, null=True)
     last_failed_dt = models.DateTimeField(blank=True, null=True)
-    last_failed_reason = models.TextField(blank=True, null=True)  # noqa: DJ01
+    last_failed_reason = models.TextField(blank=True, null=True)  # noqa: DJ001
     last_consecutive_failures = models.IntegerField(default=0)
     permanently_failed = models.BooleanField(default=False)
     last_rescheduled_dt = models.DateTimeField(blank=True, null=True)
-    last_rescheduled_reason = models.TextField(blank=True, null=True)  # noqa: DJ01
+    last_rescheduled_reason = models.TextField(blank=True, null=True)  # noqa: DJ001
     last_consecutive_reschedules = models.IntegerField(default=0)
 
     class Meta:
         abstract = True
+
+    def __str__(self):
+        self.refresh_from_db()
+        result = ""
+        result += f"Sync ID: {self.sync_id}\n"
+        result += f"Scheduled: {self.last_scheduled_dt}\n"
+        result += f"Started: {self.last_started_dt}\n"
+        result += f"Finished: {self.last_finished_dt}\n"
+        result += f"Failed: {self.last_failed_dt}\n"
+        result += f"Failed consecutive: {self.last_consecutive_failures}\n"
+        result += f"Failed reason: {self.last_failed_reason}\n"
+        result += f"Rescheduled: {self.last_rescheduled_dt}\n"
+        result += f"Rescheduled consecutive: {self.last_consecutive_reschedules}\n"
+        result += f"Rescheduled reason: {self.last_rescheduled_reason}\n"
+        return result
 
     @staticmethod
     def sync_task():
@@ -267,7 +282,6 @@ class SyncManager(models.Model):
         need to re-schedule tasks for any reason (like previous failure).
         """
         for sync_manager in cls.objects.all():
-
             # TODO: Find a cause and remove this workaround OSIDB-3131
             # TODO: Should be fixed, check from time to time to see if this problem is logged
             if (
@@ -426,26 +440,22 @@ class SyncManager(models.Model):
             )
         )
 
-    def __str__(self):
-        self.refresh_from_db()
-        result = ""
-        result += f"Sync ID: {self.sync_id}\n"
-        result += f"Scheduled: {self.last_scheduled_dt}\n"
-        result += f"Started: {self.last_started_dt}\n"
-        result += f"Finished: {self.last_finished_dt}\n"
-        result += f"Failed: {self.last_failed_dt}\n"
-        result += f"Failed consecutive: {self.last_consecutive_failures}\n"
-        result += f"Failed reason: {self.last_failed_reason}\n"
-        result += f"Rescheduled: {self.last_rescheduled_dt}\n"
-        result += f"Rescheduled consecutive: {self.last_consecutive_reschedules}\n"
-        result += f"Rescheduled reason: {self.last_rescheduled_reason}\n"
-        return result
-
 
 class FlawDownloadManager(SyncManager):
     """
     Sync manager class for Bugzilla => OSIDB Flaw synchronization.
     """
+
+    def __str__(self):
+        from osidb.models import Flaw
+
+        result = super().__str__()
+
+        flaws = Flaw.objects.filter(meta_attr__bz_id=self.sync_id)
+        cves = [f.cve_id or f.uuid for f in flaws]
+        result += f"Flaws: {cves}\n"
+
+        return result
 
     @staticmethod
     @app.task(name="sync_manager.flaw_download", bind=True)
@@ -472,22 +482,22 @@ class FlawDownloadManager(SyncManager):
 
         Flaw.objects.filter(meta_attr__bz_id=self.sync_id).update(download_manager=self)
 
-    def __str__(self):
-        from osidb.models import Flaw
-
-        result = super().__str__()
-
-        flaws = Flaw.objects.filter(meta_attr__bz_id=self.sync_id)
-        cves = [f.cve_id or f.uuid for f in flaws]
-        result += f"Flaws: {cves}\n"
-
-        return result
-
 
 class BZTrackerDownloadManager(SyncManager):
     """
     Sync manager class for Bugzilla => OSIDB Tracker synchronization.
     """
+
+    def __str__(self):
+        from osidb.models import Tracker
+
+        result = super().__str__()
+
+        trackers = Tracker.objects.filter(external_system_id=self.sync_id)
+        tracker_ids = [t.external_system_id for t in trackers]
+        result += f"Bugzilla trackers: {tracker_ids}\n"
+
+        return result
 
     @staticmethod
     @app.task(name="sync_manager.bz_tracker_download", bind=True)
@@ -519,23 +529,25 @@ class BZTrackerDownloadManager(SyncManager):
             bz_download_manager=self
         )
 
-    def __str__(self):
-        from osidb.models import Tracker
-
-        result = super().__str__()
-
-        trackers = Tracker.objects.filter(external_system_id=self.sync_id)
-        tracker_ids = [t.external_system_id for t in trackers]
-        result += f"Bugzilla trackers: {tracker_ids}\n"
-
-        return result
-
 
 class BZTrackerLinkManager(SyncManager):
     """
     Sync manager class for Bugzilla => OSIDB Tracker synchronization where only links between
     Tracker and Affects are updated.
     """
+
+    def __str__(self):
+        from osidb.models import Affect
+
+        result = super().__str__()
+
+        affects = Affect.objects.filter(trackers__external_system_id=self.sync_id)
+        affect_strings = [
+            f"{a.flaw.bz_id}|{a.ps_module}|{a.ps_component}" for a in affects
+        ]
+        result += f"Affects: {affect_strings}\n"
+
+        return result
 
     @staticmethod
     def link_tracker_with_affects(tracker_id):
@@ -661,24 +673,21 @@ class BZTrackerLinkManager(SyncManager):
             bz_link_manager=self
         )
 
-    def __str__(self):
-        from osidb.models import Affect
-
-        result = super().__str__()
-
-        affects = Affect.objects.filter(trackers__external_system_id=self.sync_id)
-        affect_strings = [
-            f"{a.flaw.bz_id}|{a.ps_module}|{a.ps_component}" for a in affects
-        ]
-        result += f"Affects: {affect_strings}\n"
-
-        return result
-
 
 class BZSyncManager(SyncManager):
     """
     Sync manager class for OSIDB => Bugzilla synchronization.
     """
+
+    def __str__(self):
+        from osidb.models import Flaw
+
+        result = super().__str__()
+        flaws = Flaw.objects.filter(uuid=self.sync_id)
+        cves = [f.cve_id or f.uuid for f in flaws]
+        result += f"Flaws: {cves}\n"
+
+        return result
 
     @classmethod
     def schedule(cls, sync_id, *args, **kwargs):
@@ -764,21 +773,22 @@ class BZSyncManager(SyncManager):
 
         Flaw.objects.filter(uuid=self.sync_id).update(bzsync_manager=self)
 
-    def __str__(self):
-        from osidb.models import Flaw
-
-        result = super().__str__()
-        flaws = Flaw.objects.filter(uuid=self.sync_id)
-        cves = [f.cve_id or f.uuid for f in flaws]
-        result += f"Flaws: {cves}\n"
-
-        return result
-
 
 class JiraTaskDownloadManager(SyncManager):
     """
     Sync manager class for Jira => OSIDB Task synchronization.
     """
+
+    def __str__(self):
+        from osidb.models import Flaw
+
+        result = super().__str__()
+
+        flaws = Flaw.objects.filter(task_key=self.sync_id)
+        flaw_ids = [f.cve_id if f.cve_id else f.uuid for f in flaws]
+        result += f"Jira tasks for flaws: {flaw_ids}\n"
+
+        return result
 
     @staticmethod
     @app.task(name="sync_manager.jira_task_download", bind=True)
@@ -839,22 +849,21 @@ class JiraTaskDownloadManager(SyncManager):
 
         Flaw.objects.filter(task_key=self.sync_id).update(task_download_manager=self)
 
-    def __str__(self):
-        from osidb.models import Flaw
-
-        result = super().__str__()
-
-        flaws = Flaw.objects.filter(task_key=self.sync_id)
-        flaw_ids = [f.cve_id if f.cve_id else f.uuid for f in flaws]
-        result += f"Jira tasks for flaws: {flaw_ids}\n"
-
-        return result
-
 
 class JiraTaskSyncManager(SyncManager):
     """
     Sync manager class for OSIDB => Jira Task synchronization.
     """
+
+    def __str__(self):
+        from osidb.models import Flaw
+
+        result = super().__str__()
+        flaws = Flaw.objects.filter(uuid=self.sync_id)
+        cves = [f.cve_id or f.uuid for f in flaws]
+        result += f"Flaws: {cves}\n"
+
+        return result
 
     @staticmethod
     @app.task(name="sync_manager.jira_task_sync", bind=True)
@@ -885,6 +894,14 @@ class JiraTaskSyncManager(SyncManager):
 
         Flaw.objects.filter(uuid=self.sync_id).update(task_sync_manager=self)
 
+
+class JiraTaskTransitionManager(SyncManager):
+    """
+    Transition manager class for OSIDB => Jira Task state synchronization.
+    """
+
+    MODE = SyncManager.SyncManagerMode.EXCLUSIVE
+
     def __str__(self):
         from osidb.models import Flaw
 
@@ -894,14 +911,6 @@ class JiraTaskSyncManager(SyncManager):
         result += f"Flaws: {cves}\n"
 
         return result
-
-
-class JiraTaskTransitionManager(SyncManager):
-    """
-    Transition manager class for OSIDB => Jira Task state synchronization.
-    """
-
-    MODE = SyncManager.SyncManagerMode.EXCLUSIVE
 
     @staticmethod
     @app.task(
@@ -937,21 +946,22 @@ class JiraTaskTransitionManager(SyncManager):
 
         Flaw.objects.filter(uuid=self.sync_id).update(task_transition_manager=self)
 
-    def __str__(self):
-        from osidb.models import Flaw
-
-        result = super().__str__()
-        flaws = Flaw.objects.filter(uuid=self.sync_id)
-        cves = [f.cve_id or f.uuid for f in flaws]
-        result += f"Flaws: {cves}\n"
-
-        return result
-
 
 class JiraTrackerDownloadManager(SyncManager):
     """
     Sync manager class for Jira => OSIDB Tracker synchronization.
     """
+
+    def __str__(self):
+        from osidb.models import Tracker
+
+        result = super().__str__()
+
+        trackers = Tracker.objects.filter(external_system_id=self.sync_id)
+        tracker_ids = [t.external_system_id for t in trackers]
+        result += f"Jira trackers: {tracker_ids}\n"
+
+        return result
 
     @staticmethod
     @app.task(name="sync_manager.jira_tracker_download", bind=True)
@@ -982,23 +992,25 @@ class JiraTrackerDownloadManager(SyncManager):
             jira_download_manager=self
         )
 
-    def __str__(self):
-        from osidb.models import Tracker
-
-        result = super().__str__()
-
-        trackers = Tracker.objects.filter(external_system_id=self.sync_id)
-        tracker_ids = [t.external_system_id for t in trackers]
-        result += f"Jira trackers: {tracker_ids}\n"
-
-        return result
-
 
 class JiraTrackerLinkManager(SyncManager):
     """
     Sync manager class for Jira => OSIDB Tracker synchronization where only links between
     Tracker and Affects are updated.
     """
+
+    def __str__(self):
+        from osidb.models import Affect
+
+        result = super().__str__()
+
+        affects = Affect.objects.filter(trackers__external_system_id=self.sync_id)
+        affect_strings = [
+            f"{a.flaw.bz_id}|{a.ps_module}|{a.ps_component}" for a in affects
+        ]
+        result += f"Affects: {affect_strings}\n"
+
+        return result
 
     @staticmethod
     def link_tracker_with_affects(tracker_id):
@@ -1120,16 +1132,3 @@ class JiraTrackerLinkManager(SyncManager):
         Tracker.objects.filter(external_system_id=self.sync_id).update(
             jira_link_manager=self
         )
-
-    def __str__(self):
-        from osidb.models import Affect
-
-        result = super().__str__()
-
-        affects = Affect.objects.filter(trackers__external_system_id=self.sync_id)
-        affect_strings = [
-            f"{a.flaw.bz_id}|{a.ps_module}|{a.ps_component}" for a in affects
-        ]
-        result += f"Affects: {affect_strings}\n"
-
-        return result

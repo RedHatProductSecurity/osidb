@@ -1,6 +1,7 @@
 """
 collector API endpoints
 """
+
 import logging
 
 from drf_spectacular.utils import extend_schema
