@@ -3,6 +3,8 @@ import pytest
 from osidb.models import Affect, Impact
 from osidb.tests.factories import AffectFactory, FlawFactory, PsModuleFactory
 
+pytestmark = pytest.mark.unit
+
 
 class TestAffect:
     @pytest.mark.parametrize(
@@ -110,3 +112,21 @@ class TestAffect:
         affect = AffectFactory(purl=purl, ps_component=None)
 
         assert affect.ps_component == ps_component
+
+    def test_same_module_component_diff_purl(self):
+        a1 = AffectFactory(
+            ps_module="quarkus-3",
+            ps_component=None,
+            purl="pkg:maven/software.amazon.awssdk/glue@2.27.20.redhat-00001?type=jar",
+        )
+        a2 = AffectFactory(
+            flaw=a1.flaw,
+            ps_module="quarkus-3",
+            ps_component=None,
+            purl="pkg:maven/software.amazon.awssdk/glue@2.30.36.redhat-00001?type=jar",
+        )
+
+        assert a1.flaw == a2.flaw
+        assert a1.ps_module == a2.ps_module
+        assert a1.ps_component == a2.ps_component
+        assert a1.purl != a2.purl
