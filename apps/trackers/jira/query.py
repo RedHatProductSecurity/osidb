@@ -119,28 +119,6 @@ FLAW_SOURCE_TO_JIRA_SOURCE = {
 }
 
 
-class JiraCVESeverity:
-    """
-    Allowed Jira "CVE Severity" field values compatible with
-    https://access.redhat.com/security/updates/classification
-    """
-
-    CRITICAL = "Critical"
-    IMPORTANT = "Important"
-    MODERATE = "Moderate"
-    LOW = "Low"
-    NONE = "None"
-
-
-IMPACT_TO_JIRA_CVE_SEVERITY = {
-    Impact.CRITICAL: JiraCVESeverity.CRITICAL,
-    Impact.IMPORTANT: JiraCVESeverity.IMPORTANT,
-    Impact.MODERATE: JiraCVESeverity.MODERATE,
-    Impact.LOW: JiraCVESeverity.LOW,
-    # NONE exists in Jira, but not allowable for OSIDB to set.
-}
-
-
 class JiraSeverity:
     """
     allowed Jira Severity field values compatible with
@@ -622,27 +600,7 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         self.generate_additional_fields()
         self.generate_cc()
         self.generate_target_release()
-
-        # in the future we will standardize on Severity deprecating CVE Severity but it first
-        # needs to standardize in Jira so for the time being we still set both if available
-        # however we require at least one to be set so if neither is available we raise
-        severity_error = False
-        for severity_method in [
-            self.generate_cve_severity,
-            self.generate_severity,
-        ]:
-            try:
-                severity_method()
-            except (MissingSeverityError, MissingVulnerabilityIssueFieldError):
-                if severity_error:
-                    raise TrackerCreationError(
-                        "Neither CVE Severity nor Severity field is available as expected for "
-                        f"Vulnerability issuetype in Jira project {self.ps_module.bts_key} while "
-                        "at least one of the two fields is required to be available with allowed "
-                        "values containing Critical, Important, Moderate, and Low."
-                    )
-                severity_error = True
-
+        self.generate_severity()
         self.generate_source()
         self.generate_cve_id()
         self.generate_cvss_score()
@@ -782,24 +740,6 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         allowed_values = field.allowed_values
         field_id = field.field_id
         return allowed_values, field_id
-
-    def generate_cve_severity(self):
-        field_name = "CVE Severity"
-        # Allowed should be ['Critical', 'Important', 'Moderate', 'Low', 'None']
-        allowed_values, field_id = self.field_check_and_get_values_and_id(field_name)
-
-        if self.impact is Impact.NOVALUE:
-            raise TrackerCreationError(
-                "Tracker has disallowed Impact value Impact.NOVALUE (empty string)."
-            )
-
-        severity = IMPACT_TO_JIRA_CVE_SEVERITY[self.impact]
-        if severity not in allowed_values:
-            raise MissingSeverityError(
-                f"Jira project {self.ps_module.bts_key} does not have the {field_name} field value "
-                f"{severity}; allowed values are: {', '.join(allowed_values)}"
-            )
-        self._query["fields"][field_id] = {"value": severity}
 
     def generate_severity(self):
         field_name = "Severity"

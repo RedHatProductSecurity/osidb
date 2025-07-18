@@ -73,8 +73,8 @@ def clean_policies():
     SLAPolicy.objects.all().delete()
 
 
-def jira_vulnissuetype_fields_setup_without_severity_versions():
-    # CVE Severity field and Affects Versions field not set up here so that tests can customize it
+def jira_vulnissuetype_fields_setup_without_versions():
+    # Affects Versions field not set up here so that tests can customize it
     JiraProjectFields(
         project_key="FOOPROJECT",
         field_id="customfield_12324746",
@@ -137,10 +137,25 @@ def jira_vulnissuetype_fields_setup_without_severity_versions():
         ],
     ).save()
 
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_12316142",
+        field_name="Severity",
+        allowed_values=[
+            "Critical",
+            "Important",
+            "Moderate",
+            "Low",
+            "unexpected mess here",
+            "Informational",
+            "None",
+        ],
+    ).save()
+
 
 @pytest.fixture()
 def setup_vulnerability_issue_type_fields() -> None:
-    jira_vulnissuetype_fields_setup_without_severity_versions()
+    jira_vulnissuetype_fields_setup_without_versions()
 
 
 @pytest.fixture

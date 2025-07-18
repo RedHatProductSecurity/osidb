@@ -792,17 +792,6 @@ class TestTrackerQueryBuilderSLA:
             type=Tracker.TrackerType.JIRA,
         )
 
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="customfield_123",
-            field_name="CVE Severity",
-            allowed_values=[
-                "Critical",
-                "Important",
-                "Moderate",
-                "Low",
-            ],
-        ).save()
         target_start_id = "customfield_12313941"
         JiraProjectFields(
             project_key=ps_module2.bts_key,
