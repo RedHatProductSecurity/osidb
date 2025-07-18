@@ -2,6 +2,8 @@ import uuid
 
 from django.db import models
 
+from osidb.helpers import deprecate_field
+
 
 class PsProduct(models.Model):
 
@@ -15,7 +17,7 @@ class PsProduct(models.Model):
     name = models.CharField(max_length=100)
 
     # team responsible for the product
-    team = models.CharField(max_length=50)
+    team = deprecate_field(models.CharField(max_length=50))
 
     # the business unit to which the product belongs
     business_unit = models.CharField(max_length=50)
