@@ -426,7 +426,6 @@ class PsProductFactory(factory.django.DjangoModelFactory):
 
     short_name = factory.sequence(lambda n: f"ps_product_{n}")
     name = factory.LazyAttribute(lambda c: f"{c.short_name} long name")
-    team = factory.Faker("word")
     business_unit = factory.Faker("word")
 
 
