@@ -13,7 +13,7 @@ from jira.exceptions import JIRAError
 from apps.trackers.jira.query import JiraPriority
 from collectors.jiraffe.core import JiraQuerier
 from osidb.helpers import safe_get_response_content
-from osidb.models import Flaw, Impact, PsProduct
+from osidb.models import Flaw, Impact
 
 from .constants import (
     JIRA_STORY_ISSUE_TYPE_ID,
@@ -191,12 +191,7 @@ class JiraTaskmanQuerier(JiraQuerier):
             )
 
     def _generate_task_data(self, flaw: Flaw):
-        modules = flaw.affects.values_list("ps_module", flat=True).distinct()
-        products = PsProduct.objects.filter(ps_modules__name__in=modules)
         labels = [f"flawuuid:{str(flaw.uuid)}", f"impact:{flaw.impact}"]
-        for product in products:
-            if product.team:
-                labels.append(f"team:{product.team}")
         if flaw.major_incident_state in [
             Flaw.FlawMajorIncident.APPROVED,
             Flaw.FlawMajorIncident.CISA_APPROVED,
