@@ -20,7 +20,6 @@ def summary_shorten(cves, description):
     """
     # first shorten CVE list
     if len(cves) > 1:
-
         # remove the last CVE
         cves = cves[0:-1]
         # add the dots to the new last
@@ -261,7 +260,6 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         # until it is short enough
         description = self.flaw.title
         while True:
-
             cve_string = " ".join(cve_ids) + " " if cve_ids else ""
             summary = f"{embargoed}{cve_string}{components}{description}"
 

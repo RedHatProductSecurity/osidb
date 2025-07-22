@@ -28,7 +28,7 @@ pytestmark = pytest.mark.unit
 
 
 def assert_state_equals(current, expected):
-    message = f'flaw classified as {current.name}, expected {expected["name"]}'
+    message = f"flaw classified as {current.name}, expected {expected['name']}"
     assert current.name == expected["name"], message
 
 
@@ -58,9 +58,9 @@ class TestCheck:
         """
         flaw = FlawFactory(source=FlawSource.CVE, embargoed=False)
         check = Check(f"has {field}")
-        assert not check(
-            flaw
-        ), f'check for "{check.name}" should have failed, but passed.'
+        assert not check(flaw), (
+            f'check for "{check.name}" should have failed, but passed.'
+        )
 
         factory(flaw)
         assert check(flaw), f'check for "{check.name}" failed.'
@@ -129,9 +129,9 @@ class TestCheck:
         assert check(flaw), f'check for "{check.name}" failed.'
 
         setattr(flaw, field, "")
-        assert not check(
-            flaw
-        ), f'check for "{check.name}" should have failed, but passed.'
+        assert not check(flaw), (
+            f'check for "{check.name}" should have failed, but passed.'
+        )
 
     @pytest.mark.parametrize(
         "attribute,value,check_desc",
@@ -165,9 +165,9 @@ class TestCheck:
         test that equality check fails with unexpected value
         """
         check = Check("cwe is CWE-99")
-        assert not check(
-            FlawFactory(cwe_id="CWE-100")
-        ), f'check for "{check.name}" should have failed, but passed.'
+        assert not check(FlawFactory(cwe_id="CWE-100")), (
+            f'check for "{check.name}" should have failed, but passed.'
+        )
 
     def test_equals_text_choices_property(self):
         """
@@ -226,9 +226,9 @@ class TestCheck:
         test that negative equality check fails with expected value
         """
         check = Check("cwe not is CWE-100")
-        assert not check(
-            FlawFactory(cwe_id="CWE-100")
-        ), f'check for "{check.name}" should have failed, but passed.'
+        assert not check(FlawFactory(cwe_id="CWE-100")), (
+            f'check for "{check.name}" should have failed, but passed.'
+        )
 
     @pytest.mark.parametrize(
         "cls,factory,field,value",
@@ -459,20 +459,20 @@ class TestState:
         flaw.comment_zero = ""
         flaw.title = ""
 
-        assert state.accepts(
-            flaw
-        ), f'flaw doesn\'t met the requirements "{requirements}"'
+        assert state.accepts(flaw), (
+            f'flaw doesn\'t met the requirements "{requirements}"'
+        )
 
         flaw.cwe_id = "CWE-1"
-        assert not state.accepts(
-            flaw
-        ), f'state accepted flaw without the requirements "{requirements}"'
+        assert not state.accepts(flaw), (
+            f'state accepted flaw without the requirements "{requirements}"'
+        )
 
         flaw.cwe_id = ""
         flaw.impact = Impact.NOVALUE
-        assert not state.accepts(
-            flaw
-        ), f'state accepted flaw without the requirements "{requirements}"'
+        assert not state.accepts(flaw), (
+            f'state accepted flaw without the requirements "{requirements}"'
+        )
 
     def test_condition_requirements(self):
         """
@@ -555,9 +555,9 @@ class TestWorkflow:
             elif mode == "not":
                 setattr(flaw, attr, "")
 
-        assert workflow.accepts(
-            flaw
-        ), f'flaw was rejected by workflow conditions "{conditions}"'
+        assert workflow.accepts(flaw), (
+            f'flaw was rejected by workflow conditions "{conditions}"'
+        )
 
     @pytest.mark.parametrize(
         "conditions",
@@ -590,9 +590,9 @@ class TestWorkflow:
             elif mode == "not":
                 setattr(flaw, attr, "invalid value in a 'not' condition")
 
-        assert not workflow.accepts(
-            flaw
-        ), f'flaw was wrongly accepted by workflow conditions "{conditions}"'
+        assert not workflow.accepts(flaw), (
+            f'flaw was wrongly accepted by workflow conditions "{conditions}"'
+        )
 
         # conditions partially satisfied
         if len(conditions) > 1:
@@ -603,9 +603,9 @@ class TestWorkflow:
                 setattr(flaw, attr, "valid value")
             elif mode == "not":
                 setattr(flaw, attr, "")
-        assert not workflow.accepts(
-            flaw
-        ), f'flaw was wrongly accepted by workflow conditions "{conditions}"'
+        assert not workflow.accepts(flaw), (
+            f'flaw was wrongly accepted by workflow conditions "{conditions}"'
+        )
 
     def test_classify(self):
         """test that a flaw is correctly classified in the workflow states"""

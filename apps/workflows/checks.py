@@ -1,6 +1,7 @@
 """
 Workflows entity requirement check definition
 """
+
 import inspect
 
 from django.db import models

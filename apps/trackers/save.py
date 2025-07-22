@@ -1,6 +1,7 @@
 """
 common tracker save funtionality
 """
+
 from osidb.models import Flaw, Tracker
 
 from .bugzilla.save import TrackerBugzillaSaver

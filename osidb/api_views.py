@@ -517,7 +517,6 @@ class FlawSuggestionsView(RudimentaryUserPathLoggingMixin, APIView):
 @permission_classes((IsAuthenticatedOrReadOnly,))
 class FlawIntrospectionView(RudimentaryUserPathLoggingMixin, APIView):
     def get(self, request):
-
         return Response(
             SuggestionsAPISerializer(
                 request.build_absolute_uri("suggestions")
@@ -1114,7 +1113,6 @@ class AffectView(
         flaws = set()
         validated_serializers = []
         for datum in request.data:
-
             try:
                 flaw_uuid = datum["flaw"]
             except KeyError:
@@ -1165,7 +1163,6 @@ class AffectView(
         flaws = set()
         uuids = set()
         for uuid in request.data:
-
             if uuid in uuids:
                 raise ValidationError(
                     {"uuid": "Multiple objects with the same uuid provided."}

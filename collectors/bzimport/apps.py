@@ -1,5 +1,5 @@
 """
-    bzimport service
+bzimport service
 """
 
 from django.apps import AppConfig

@@ -6,7 +6,6 @@ from osidb.helpers import deprecate_field
 
 
 class PsProduct(models.Model):
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 

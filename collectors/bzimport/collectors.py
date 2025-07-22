@@ -219,7 +219,7 @@ class BugzillaQuerier(BugzillaConnector):
         bugs = []
 
         logger.debug(
-            "Running Bugzilla query with the following parameters: " f"{updated_query}"
+            f"Running Bugzilla query with the following parameters: {updated_query}"
         )
 
         while True:
@@ -552,7 +552,6 @@ class FlawCollector(Collector):
 
 
 class BugzillaTrackerCollector(Collector):
-
     # according to the Bugzilla advanced search the longest non-updated
     # security trackers going chronologically were last updated in 2010
     BEGINNING = timezone.datetime(2010, 1, 1, tzinfo=timezone.get_current_timezone())

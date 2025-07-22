@@ -1,30 +1,27 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
--   repo: https://github.com/psf/black
-    rev: 22.12.0
-    hooks:
-    -   id: black
-        language_version: python3.9
-        stages: [commit]
-        exclude: ^.*\b(migrations)\b.*$
--   repo: https://github.com/pycqa/isort
-    rev: 5.12.0
-    hooks:
-    -   id: isort
-        name: isort
-        language_version: python3.9
-        stages: [commit]
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  # Ruff version.
+  rev: v0.12.3
+  hooks:
+    # Run the linter.
+    -   id: ruff-check
+        name: ruff-lint 
+        files: ^(osidb/|collectors/|apps/).*
+        args: [--extend-ignore=I]
+    # Run ruff's I rule
+    -   id: ruff-check
+        name: ruff-isort 
+        args: [--select=I, --fix]
+    # Run the formatter.
+    -   id: ruff-format
+        name: ruff-format
 -   repo: local
     hooks:
     -   id: detect-secrets-hook
         name: detect-secrets-hook
         entry: scripts/secrets-hook.sh
-        language: script
-        stages: [commit]
-    -   id: lint
-        name: lint
-        entry: scripts/lint.sh
         language: script
         stages: [commit]
     -   id: migrations-check

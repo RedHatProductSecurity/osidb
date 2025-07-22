@@ -1,6 +1,7 @@
 """
 Jira tracker query module
 """
+
 import json
 import logging
 

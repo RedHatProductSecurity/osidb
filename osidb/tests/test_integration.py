@@ -1,9 +1,10 @@
 """
-    Integration tests assume access to running osidb-service and osidb-data tiers
+Integration tests assume access to running osidb-service and osidb-data tiers
 
-    Curl is used to independently test api
+Curl is used to independently test api
 
 """
+
 import json
 import subprocess
 

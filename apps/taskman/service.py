@@ -1,6 +1,7 @@
 """
 Task Manager API endpoints
 """
+
 import json
 import logging
 from typing import List, Optional, Tuple
@@ -129,7 +130,8 @@ class JiraTaskmanQuerier(JiraQuerier):
                 flaw.task_key = issue.key
                 if flaw.team_id:  # Jira does not allow setting team during creation
                     self.create_or_update_task(
-                        flaw, check_token=False  # no need to check the token again
+                        flaw,
+                        check_token=False,  # no need to check the token again
                     )
                 return flaw.task_key
             else:  # task exists; update
@@ -208,7 +210,7 @@ class JiraTaskmanQuerier(JiraQuerier):
 
         if len(summary) > JIRA_SUMMARY_MAX_LENGTH:
             # Trim the maximum summary length by 3 to account for the triple dots
-            summary = f"{summary[:JIRA_SUMMARY_MAX_LENGTH-3]}..."
+            summary = f"{summary[: JIRA_SUMMARY_MAX_LENGTH - 3]}..."
 
         data = {
             "fields": {

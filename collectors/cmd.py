@@ -17,7 +17,7 @@ class Cmd:
         # because we usually call with fixed arguments, so there's no user-provided / injectable data to escape
         # Use shell=False with a list of arguments if you want to guarantee safe behavior regardless
         # https://security.stackexchange.com/questions/221565/are-alphanumeric-strings-safe-to-pass-to-a-bash-script
-        result = subprocess.run(  # nosec: B602
+        result = subprocess.run(  # noqa: S603
             command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

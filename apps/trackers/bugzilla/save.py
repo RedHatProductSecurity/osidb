@@ -1,6 +1,7 @@
 """
 Bugzilla tracker funtionality module
 """
+
 from apps.bbsync.save import BugzillaSaver
 from osidb.models import Tracker
 

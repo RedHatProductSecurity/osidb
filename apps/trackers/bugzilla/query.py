@@ -58,9 +58,9 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
             "version": self.ps_update_stream.version,
         }
         # priority and severity is mirrored
-        self._query["priority"] = self._query[
-            "severity"
-        ] = self.IMPACT_TO_SEVERITY_PRIORITY[self.tracker.aggregated_impact]
+        self._query["priority"] = self._query["severity"] = (
+            self.IMPACT_TO_SEVERITY_PRIORITY[self.tracker.aggregated_impact]
+        )
 
     def generate_blocks(self):
         """
@@ -140,7 +140,8 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         # (1) RHSCL special component handling
         if self.ps_module.is_rhscl:
             collection, self._query["component"] = RHSCLAffectCCBuilder(
-                self.tracker.affects.first(), None  # embargoed is unused here
+                self.tracker.affects.first(),
+                None,  # embargoed is unused here
             ).collection_component()
 
             # RHSCL overrides the version
@@ -158,7 +159,8 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         # (2) common component handling
         else:
             self._query["component"] = AffectCCBuilder(
-                self.tracker.affects.first(), None  # embargoed is unused here
+                self.tracker.affects.first(),
+                None,  # embargoed is unused here
             ).ps2bz_component()
 
         # (3) define subcomponent

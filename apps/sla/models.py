@@ -260,6 +260,9 @@ class SLAPolicy(models.Model):
         # Order of SLA is important, so by default retrieve them using the order field
         ordering = ["order"]
 
+    def __str__(self):
+        return self.name
+
     @classmethod
     def create_from_description(self, policy_desc, order=None):
         """Creates an SLA policy from a YAML description."""
@@ -351,6 +354,3 @@ class SLAPolicy(models.Model):
         # return the context resulting
         # in the earliest deadline
         return min(sla_contexts)
-
-    def __str__(self):
-        return self.name

@@ -1316,9 +1316,7 @@ class TestFlawConvertor:
         flaw_bug.pop("cf_release_notes")
         # removing public and reported timestamps
         # plus also all the CVSS stuff
-        flaw_bug[
-            "cf_srtnotes"
-        ] = """
+        flaw_bug["cf_srtnotes"] = """
         {
             "affects": [
                 {

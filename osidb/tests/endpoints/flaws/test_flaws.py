@@ -1764,7 +1764,6 @@ class TestEndpointsFlaws:
         """ """
 
         with pghistory.context(source="testcase"):
-
             flaw = FlawFactory()
             FlawFactory()
 

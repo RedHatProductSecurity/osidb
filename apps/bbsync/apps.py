@@ -1,7 +1,7 @@
 """
 
-    BBSync - Bugzilla Backwards Synchronization
-        osidb.bbsync to be precise
+BBSync - Bugzilla Backwards Synchronization
+    osidb.bbsync to be precise
 
 """
 

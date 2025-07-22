@@ -38,7 +38,7 @@ class BugzillaSyncMixin(models.Model):
                 *args,
                 bz_api_key=bz_api_key,
                 force_synchronous_sync=force_synchronous_sync,
-                **kwargs
+                **kwargs,
             )
 
     def bzsync(self, *args, bz_api_key, **kwargs):
