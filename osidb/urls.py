@@ -16,13 +16,18 @@ from .api_views import (
     AffectView,
     AlertView,
     AuditView,
+    FlawAcknowledgmentV1View,
     FlawAcknowledgmentView,
+    FlawCommentV1View,
     FlawCommentView,
     FlawCVSSV2View,
     FlawCVSSView,
     FlawIntrospectionView,
+    FlawLabelV1View,
     FlawLabelView,
+    FlawPackageVersionV1View,
     FlawPackageVersionView,
+    FlawReferenceV1View,
     FlawReferenceView,
     FlawSuggestionsView,
     FlawV1View,
@@ -44,28 +49,28 @@ router = routers.DefaultRouter(trailing_slash=False)
 router.register(r"flaws", FlawV1View)
 router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/acknowledgments",
-    FlawAcknowledgmentView,
+    FlawAcknowledgmentV1View,
     basename="flawacknowledgments",
 )
 router.register(
-    r"flaws/(?P<flaw_id>[^/.]+)/comments", FlawCommentView, basename="flawcomments"
+    r"flaws/(?P<flaw_id>[^/.]+)/comments", FlawCommentV1View, basename="flawcomments"
 )
 router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/cvss_scores", FlawCVSSView, basename="flawcvss"
 )
 router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/package_versions",
-    FlawPackageVersionView,
+    FlawPackageVersionV1View,
     basename="flawpackageversions",
 )
 router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/references",
-    FlawReferenceView,
+    FlawReferenceV1View,
     basename="flawreferences",
 )
 router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/labels",
-    FlawLabelView,
+    FlawLabelV1View,
     basename="flawlabels",
 )
 router.register("labels", LabelView)
@@ -102,9 +107,6 @@ vnext_router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/comments", FlawCommentView, basename="flawcomments"
 )
 vnext_router.register(
-    r"flaws/(?P<flaw_id>[^/.]+)/cvss_scores", FlawCVSSView, basename="flawcvss"
-)
-vnext_router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/package_versions",
     FlawPackageVersionView,
     basename="flawpackageversions",
@@ -132,14 +134,6 @@ urlpatterns = [
         rf"^api/{OSIDB_API_VERSION}/available-flaws/(?P<cve_id>[^/.]+)",
         flaw_available,
         name="flawavailable",
-    ),
-    re_path(
-        rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/promote$",
-        promote.as_view(),
-    ),
-    re_path(
-        rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/reject$",
-        reject.as_view(),
     ),
     re_path(
         rf"^api/{OSIDB_API_VERSION_NEXT}/flaws/(?P<flaw_id>[^/.]+)/promote$",
