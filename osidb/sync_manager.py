@@ -55,11 +55,11 @@ class SyncManager(models.Model):
     last_started_dt = models.DateTimeField(blank=True, null=True)
     last_finished_dt = models.DateTimeField(blank=True, null=True)
     last_failed_dt = models.DateTimeField(blank=True, null=True)
-    last_failed_reason = models.TextField(blank=True, null=True)  # noqa: DJ01
+    last_failed_reason = models.TextField(blank=True, null=True)  # noqa: DJ001
     last_consecutive_failures = models.IntegerField(default=0)
     permanently_failed = models.BooleanField(default=False)
     last_rescheduled_dt = models.DateTimeField(blank=True, null=True)
-    last_rescheduled_reason = models.TextField(blank=True, null=True)  # noqa: DJ01
+    last_rescheduled_reason = models.TextField(blank=True, null=True)  # noqa: DJ001
     last_consecutive_reschedules = models.IntegerField(default=0)
 
     class Meta:

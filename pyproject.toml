@@ -1,0 +1,17 @@
+[tool.ruff]
+extend-exclude = ["**/migrations/*"]
+
+[tool.ruff.lint]
+# Default enable Pyflakes (`F`) and some pycodestyle (`E`) codes.
+# See documentation: https://docs.astral.sh/ruff/configuration/
+
+extend-select = ["I", "S", "W", "DJ"]
+
+# Some `S` rules are ignored based on original .bandit configuration.
+# E203 (whitespace-before-punctuation) and E501 (line-too-long)
+# are ignored for the formatter to handle.
+
+ignore = ["S101", "S102", "S301", "E203", "E501", "DJ008"]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"**/tests/*" = ["S"]
