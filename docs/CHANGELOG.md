@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Deprecate `team` field from PsProduct (OSIDB-4319)
 
+### Removed
+- Remove CVE Severity usage for tracker filing (OSIDB-3840)
+
 ## [4.13.0] - 2025-07-14
 ### Added
 - Trigger Jira tracker sync when Red Hat's CVSS change (OSIDB-4186)
