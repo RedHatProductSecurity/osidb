@@ -1662,6 +1662,19 @@ class TestEndpointsFlaws:
         # Behaves like an ordinary non-idempotent POST endpoint. You can just simply post comments.
         response = get_response(flaw, "ANOTHER HELLO WORLD COMMENT", 2)
         assert response.status_code == 201
+        response = auth_client().post(
+            f"{test_api_uri}/flaws/{flaw.uuid}/comments",
+            {
+                "creator": "illegal field setting",
+                "embargoed": False,
+                "text": "shouldn't be able to set creator",
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        body = response.json()
+        assert body["creator"] != "illegal field setting"
 
     def test_flaw_delete(self, auth_client, test_api_uri):
         """

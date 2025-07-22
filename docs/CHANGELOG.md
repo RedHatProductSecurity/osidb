@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Provide PURLs for Middleware engineering trackers when available (OSIDB-3704)
+- Prevent setting creator field in flaw comments via REST (OSIDB-4184)
 
 ### Removed
 - Remove Bugzilla flaw link(s) from tracker description (OSIDB-4223)
