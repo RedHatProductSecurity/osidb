@@ -836,6 +836,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
             ("fooproj", True, "barfoo", None, "foobar", False),
             ("fooproj", True, "imaginary", None, "imaginary", True),
             ("fooproj", True, "mod:compo/nent", None, "nent", False),
+            ("fooproj", True, "mod:10.4/component", None, "component", False),
             ("fooproj", True, "compo/nent", None, "compo/nent", False),
             ("fooproj", True, "comp/onent", None, "comp/onent", True),
             ("fooproj", False, "comp/onent", None, "comp/onent", False),
