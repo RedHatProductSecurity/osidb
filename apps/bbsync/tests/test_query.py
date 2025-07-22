@@ -683,9 +683,9 @@ class TestGenerateFixedIn:
         - New versions are added to fixed_in with space separator.
         """
         flaw = FlawFactory(source=FlawSource.CUSTOMER)
-        flaw.meta_attr[
-            "fixed_in"
-        ] = "bazfoo-2.3.4.5, something 4.5, foobar 1.2.3.4, foobar-2.3.4.5"
+        flaw.meta_attr["fixed_in"] = (
+            "bazfoo-2.3.4.5, something 4.5, foobar 1.2.3.4, foobar-2.3.4.5"
+        )
         AffectFactory(flaw=flaw)
 
         pkg_a = PackageFactory(package="foobar", flaw=flaw)

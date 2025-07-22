@@ -1,6 +1,7 @@
 """
 Jira tracker query generation module
 """
+
 import json
 import logging
 import re
@@ -376,9 +377,9 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         if sla_context.sla is not None:
             self._query["fields"]["duedate"] = sla_context.end.isoformat()
             if target_start.exists():
-                self._query["fields"][
-                    target_start.first().field_id
-                ] = sla_context.start.isoformat()
+                self._query["fields"][target_start.first().field_id] = (
+                    sla_context.start.isoformat()
+                )
         else:
             # explicitly set the empty dates so they are cleared
             # out in case of falling out of SLA later on update
@@ -897,7 +898,6 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         flaw_uuids = self.tracker.affects.values_list("flaw__uuid", flat=True)
 
         for flaw in Flaw.objects.filter(uuid__in=flaw_uuids):
-
             choice_major_incident |= (
                 flaw.major_incident_state == Flaw.FlawMajorIncident.APPROVED
             )

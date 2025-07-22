@@ -4,7 +4,6 @@ becuase in order to be able to opensource OSIDB we need to get rid of the prodse
 library which is not public.
 """
 
-
 import json
 import re
 import warnings
@@ -221,7 +220,6 @@ def parse_whiteboard(whiteboard):
     wb = {"affects": []}
 
     for wb_attr in whiteboard.split(","):
-
         if not wb_attr:
             continue
 

@@ -286,7 +286,7 @@ class OSVCollector(Collector):
             cvss_data = []
             highest_score = Decimal("0.0")
             for cvss in data.get("severity", []):
-                if not cvss["type"] in self.CVSS_TO_FLAWCVSS:
+                if cvss["type"] not in self.CVSS_TO_FLAWCVSS:
                     # Skip unsupported score types
                     continue
                 vector = cvss["score"]

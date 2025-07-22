@@ -1,6 +1,7 @@
 """
 Bugzilla specific tracker test cases
 """
+
 import json
 
 import pytest

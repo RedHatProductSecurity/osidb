@@ -262,12 +262,9 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             except (IntegrityError, ValidationError) as e:
                 exc_msg = str(e)
                 if (
-                    (
-                        "duplicate key value violates unique constraint" in exc_msg
-                        and "osidb_tracker_type_external_system_id" in exc_msg
-                    )
-                    or "Constraint “unique_external_system_id” is violated." in exc_msg
-                ):
+                    "duplicate key value violates unique constraint" in exc_msg
+                    and "osidb_tracker_type_external_system_id" in exc_msg
+                ) or "Constraint “unique_external_system_id” is violated." in exc_msg:
                     # Tracker collector collected this tracker before the whole saving process finished
                     # in the OSIDB, skip the saving and log it
                     warning_msg = (
@@ -455,7 +452,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         for affect in self.affects.all():
             trackers = affect.trackers.filter(ps_update_stream=self.ps_update_stream)
             if trackers.count() > 1:
-
                 raise ValidationError(
                     f"Tracker with the update stream {self.ps_update_stream} ({self.external_system_id}) "
                     "is already associated with the affect "
@@ -506,9 +502,9 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         shortcut to enable unified Bugzilla Flaw and Tracker handling when meaningful
         """
         # this should be always asserted or we failed
-        assert (
-            self.type == self.TrackerType.BUGZILLA
-        ), "Only Bugzilla trackers have Bugzilla IDs"
+        assert self.type == self.TrackerType.BUGZILLA, (
+            "Only Bugzilla trackers have Bugzilla IDs"
+        )
         return self.external_system_id or None
 
     @bz_id.setter

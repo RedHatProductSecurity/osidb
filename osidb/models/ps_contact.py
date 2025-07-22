@@ -6,7 +6,6 @@ from osidb.mixins import NullStrFieldsMixin, ValidateMixin
 
 
 class PsContact(NullStrFieldsMixin, ValidateMixin):
-
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 

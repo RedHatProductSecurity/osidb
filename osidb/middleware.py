@@ -1,6 +1,6 @@
 """
-    osidb middleware is responsible for injecting ldap user acls into all sql calls.
-    For a user to access rows in a table it must have the correct acl.
+osidb middleware is responsible for injecting ldap user acls into all sql calls.
+For a user to access rows in a table it must have the correct acl.
 
 """
 

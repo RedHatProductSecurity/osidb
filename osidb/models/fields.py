@@ -1,6 +1,7 @@
 """
 Custom model fields for OSIDB
 """
+
 from django.db import models
 
 from osidb.validators import validate_cve_id

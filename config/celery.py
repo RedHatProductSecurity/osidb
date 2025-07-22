@@ -1,6 +1,7 @@
 """
 Celery configuration
 """
+
 from celery import Celery, signals
 from django.conf import settings
 

@@ -1,6 +1,7 @@
 """
 Taskman requests serializers
 """
+
 from rest_framework import serializers
 
 from osidb.serializer import AffectSerializer

@@ -2085,7 +2085,6 @@ class TestTrackerJiraQueryBuilder:
         }
 
         if missing:
-
             JiraProjectFields.objects.filter(field_name="Embargo Status").delete()
             with pytest.raises(MissingVulnerabilityIssueFieldError):
                 TrackerJiraQueryBuilder(tracker).generate()
@@ -2184,7 +2183,6 @@ class TestTrackerJiraQueryBuilder:
         }
 
         if missing:
-
             JiraProjectFields.objects.filter(field_name="Special Handling").delete()
             with pytest.raises(MissingVulnerabilityIssueFieldError):
                 TrackerJiraQueryBuilder(tracker).generate()

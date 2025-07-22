@@ -31,7 +31,7 @@ class JiraTaskSyncMixin(models.Model):
                 diff=diff,
                 force_creation=force_creation,
                 jira_token=jira_token,
-                **kwargs
+                **kwargs,
             )
 
     def tasksync(self, *args, jira_token, force_creation=False, **kwargs):

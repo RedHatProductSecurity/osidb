@@ -1,6 +1,7 @@
 """
 Jira specific tracker constants
 """
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from osidb.helpers import get_env

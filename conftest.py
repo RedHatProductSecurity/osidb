@@ -3,7 +3,6 @@ import re
 
 import pytest
 from django.conf import settings
-from django.contrib.auth.models import Group, User
 from django.db.models.signals import (
     m2m_changed,
     post_delete,
@@ -18,7 +17,6 @@ from apps.trackers.models import JiraBugIssuetype, JiraProjectFields
 from osidb.constants import OSIDB_API_VERSION
 from osidb.core import set_user_acls
 from osidb.exceptions import InvalidTestEnvironmentException
-from osidb.helpers import get_env
 from osidb.models import PsModule, PsUpdateStream
 from osidb.tests.factories import PsModuleFactory, PsProductFactory
 

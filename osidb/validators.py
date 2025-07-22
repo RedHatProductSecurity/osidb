@@ -1,6 +1,7 @@
 """
-    flaw validators confirm flaw model data is correct
+flaw validators confirm flaw model data is correct
 """
+
 import re
 from datetime import datetime
 
