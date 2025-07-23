@@ -22,7 +22,8 @@ from collectors.cveorg.constants import (
     KEYWORDS_CHECK_ENABLED,
 )
 from collectors.cveorg.keywords import should_create_snippet, get_keywords
-from collectors.framework.models import Collector, Keyword
+from collectors.cveorg.models import Keyword
+from collectors.framework.models import Collector
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
 from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
