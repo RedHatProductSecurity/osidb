@@ -195,8 +195,8 @@ class CVEorgCollector(Collector):
             file_content = json.load(file)
 
         assignerOrgId = file_content["cveMetadata"]["assignerOrgId"]
-        
-        if assignerOrgId in get_keywords(Keyword.Type.CNA_ASSIGNERORGID_BLOCKLIST):
+
+        if assignerOrgId in get_keywords(Keyword.Type.ASSIGNERORGID_BLOCKLIST):
             return f"Skipping '{cve}' because it assigned by a blocked CNA. assignerOrgId: {assignerOrgId}"
 
         if file_content["cveMetadata"]["state"] != "PUBLISHED":
