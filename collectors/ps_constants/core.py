@@ -82,6 +82,7 @@ def sync_cveorg_keywords(source: dict) -> None:
             (Keyword.Type.ALLOWLIST_SPECIAL_CASE, source["allowlist_special_cases"]),
             (Keyword.Type.BLOCKLIST, source["blocklist"]),
             (Keyword.Type.BLOCKLIST_SPECIAL_CASE, source["blocklist_special_cases"]),
+            (Keyword.Type.CNA_ASSIGNERORGID_BLOCKLIST, source["cna_assignerOrgId_blocklist"]),
         ]
     except KeyError:
         raise KeyError(
