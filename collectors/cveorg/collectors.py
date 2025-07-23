@@ -193,6 +193,9 @@ class CVEorgCollector(Collector):
         with open(file_path) as file:
             file_content = json.load(file)
 
+        if file_content["cveMetadata"]["assignerOrgId"] in get_keywords(Keyword.Type.CNA_ASSIGNERORGID_BLOCKLIST):
+            return f"Skipping '{cve}' because it assigned by a blocked CNA. assignerOrgId {file_content["cveMetadata"]["assignerOrgId"]}"
+
         if file_content["cveMetadata"]["state"] != "PUBLISHED":
             return f"Cannot create '{cve}' because it was rejected by CVE Program."
 
