@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Deprecate `team` field from PsProduct (OSIDB-4319)
 
+### Fixed
+- Fix regex used to match new modular component name convention (OSIDB-4369)
+
 ### Removed
 - Remove CVE Severity usage for tracker filing (OSIDB-3840)
 

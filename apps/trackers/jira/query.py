@@ -570,7 +570,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         Check if the component matches the pattern module:stream/package
         and extracts the package part, otherwise returns None.
         """
-        match = re.match(r"^[\w-]+:[\w-]+\/([\w-]+)$", self.ps_component)
+        match = re.match(r"^[\w-]+:[^/]+\/([\w-]+)$", self.ps_component)
         if match:
             return match.group(1)
         return None
