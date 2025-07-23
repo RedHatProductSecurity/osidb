@@ -82,6 +82,7 @@ class TestPsConstantsCollection:
             "allowlist_special_cases": [r"(?:\W|^)\.NET\b"],
             "blocklist": [".*plugin.*for WordPress", "Cisco", "IBM Tivoli", "iTunes"],
             "blocklist_special_cases": ["iOS"],
+            "assignerOrgId_blocklist": ["123fakeAssignerOrgId"],
         }
 
         sync_cveorg_keywords(mock_keywords)
