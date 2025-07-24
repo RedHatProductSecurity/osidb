@@ -632,9 +632,9 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         response.data = {
             "uuid": response.data["uuid"],
         }
-        response[
-            "Location"
-        ] = f"/api/{OSIDB_API_VERSION_NEXT}/flaws/{response.data['uuid']}"
+        response["Location"] = (
+            f"/api/{OSIDB_API_VERSION_NEXT}/flaws/{response.data['uuid']}"
+        )
         return response
 
 
