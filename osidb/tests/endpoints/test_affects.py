@@ -1026,24 +1026,26 @@ class TestEndpointsAffectsPurl:
         assert body["purl"] == purl
 
     @pytest.mark.parametrize(
-        "ps_component,purl,error",
+        "ps_component,purl,error,warning",
         [
             (
                 "",
                 "rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25",
                 "invalid purl",
+                None,
             ),
             (
                 "podman",
                 "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25",
-                "ps_component that does not match the one included in purl",
+                None,
+                "purl_ps_component_mismatch",
             ),
-            ("", "", "must have either purl or ps_component"),
-            (None, None, "must have either purl or ps_component"),
+            ("", "", "must have either purl or ps_component", None),
+            (None, None, "must have either purl or ps_component", None),
         ],
     )
     def test_invalid_data_create(
-        self, auth_client, test_api_uri, ps_component, purl, error
+        self, auth_client, test_api_uri, ps_component, purl, error, warning
     ):
         """
         Test that Affect is not created when new data contains incorrect purl,
@@ -1067,28 +1069,34 @@ class TestEndpointsAffectsPurl:
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert error in str(response.content)
+        if error:
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert error in str(response.content)
+        elif warning:
+            assert response.status_code == status.HTTP_201_CREATED
+            assert flaw.alerts.filter(name=warning).exists()
 
     @pytest.mark.parametrize(
-        "ps_component,purl,error",
+        "ps_component,purl,error,warning",
         [
             (
                 "",
                 "rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25",
                 "invalid purl",
+                None,
             ),
             (
                 "podman",
                 "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25",
-                "ps_component that does not match the one included in purl",
+                None,
+                "purl_ps_component_mismatch",
             ),
-            ("", "", "must have either purl or ps_component"),
-            (None, None, "must have either purl or ps_component"),
+            ("", "", "must have either purl or ps_component", None),
+            (None, None, "must have either purl or ps_component", None),
         ],
     )
     def test_invalid_data_update(
-        self, auth_client, test_api_uri, ps_component, purl, error
+        self, auth_client, test_api_uri, ps_component, purl, error, warning
     ):
         """
         Test that Affect's purl and ps_component are not updated when new data contains incorrect purl,
@@ -1109,8 +1117,12 @@ class TestEndpointsAffectsPurl:
             HTTP_BUGZILLA_API_KEY="SECRET",
             HTTP_JIRA_API_KEY="SECRET",
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert error in str(response.content)
+        if error:
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert error in str(response.content)
+        elif warning:
+            assert response.status_code == status.HTTP_200_OK
+            assert flaw.alerts.filter(name=warning).exists()
 
 
 class TestEndpointsAffectsCVSSScoresV2:

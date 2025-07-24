@@ -558,17 +558,27 @@ class Affect(
                     f"{affected_special_consideration_package} is missing statement.",
                 )
 
-    def _validate_purl_and_ps_component(self, **kwargs):
+    def _validate_either_purl_or_ps_component_provided(self, **kwargs) -> None:
         """
-        Validate that purl and ps_component comply with one of the following options:
-        * purl is correct and ps_component is not provided
-        * purl is correct and ps_component matches the one included in purl
+        Check that either a PURL or PsComponent has been provided.
+
+        This is essential to determine "what" is affected by a vulnerability.
         """
         if not self.purl and not self.ps_component:
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_module} must have either purl or ps_component."
             )
 
+    def _validate_purl_and_ps_component(self, **kwargs):
+        """
+        Validate the provided PURL and warn in case of ps_component mismatch.
+
+        This method checks that the PURL is syntactically valid, but also that
+        it contains valid required qualifiers.
+
+        It will also emit an alert if the extrapolated ps_component doesn't match
+        the provided ps_component.
+        """
         if self.purl:
             try:
                 ps_component_from_purl = self.ps_component_from_purl(True)
@@ -579,10 +589,11 @@ class Affect(
                 )
 
             if self.ps_component and self.ps_component != ps_component_from_purl:
-                raise ValidationError(
-                    f"Affect ({self.uuid}) for {self.ps_module} has a ps_component "
-                    "that does not match the one included in purl: "
-                    f"ps_component: {self.ps_component}, purl: {self.purl}."
+                self.flaw.alert(
+                    "purl_ps_component_mismatch",
+                    f"Extrapolated ps_component ({ps_component_from_purl}) "
+                    f"from PURL ({self.purl}) "
+                    f"does not match user-provided ps_component ({self.ps_component}).",
                 )
 
     def _validate_not_affected_justification(self, **kwargs):
