@@ -193,7 +193,7 @@ class Affect(
     class Meta:
         """define meta"""
 
-        unique_together = ("flaw", "ps_module", "ps_component")
+        unique_together = ("flaw", "ps_module", "ps_component", "purl")
         ordering = (
             "created_dt",
             "uuid",
