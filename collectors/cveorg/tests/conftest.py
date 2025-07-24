@@ -65,7 +65,7 @@ def mock_repo(monkeypatch, repo_path) -> None:
         return stdout, period_end
 
     def get_cve_file_path(self, cve):
-        return f"{repo_path}/CVE-2024-0181.json"
+        return f"{repo_path}/{cve}.json"
 
     monkeypatch.setattr(CVEorgCollector, "REPO_PATH", repo_path)
     monkeypatch.setattr(CVEorgCollector, "CVE_PATH", cve_path)
