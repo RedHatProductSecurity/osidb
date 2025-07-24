@@ -77,6 +77,9 @@ class TestCVEorgCollector:
         assert not Flaw.objects.filter(cve_id="CVE-2024-0203")  # not passing keywords
         assert not Flaw.objects.filter(cve_id="CVE-2024-1087")  # rejected flaw
 
+    # def test_ignored_cve_with_blocked_cna_assignerid(self, mock_keywords, mock_repo):
+        
+
     @pytest.mark.vcr
     @pytest.mark.default_cassette(
         "TestCVEorgCollector.test_collect_cveorg_records.yaml"
