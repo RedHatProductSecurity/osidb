@@ -357,7 +357,7 @@ interactions:
         \ - publify\n  - puppyCMS\n  - rap2hpoutre Laravel Log Viewer\n  - rdiffweb\n
         \ - siteserver (CMS|SSCMS)\n  - swftools\n  - totaljs\n  - trudesk\n  - usememos/memos\n
         \ - vBulletin\n  - win32k\\.sys\n  - wityCMS\n  - wuzhicms\n  - yetiforcecrm\n
-        \ - zzcms\n\nblocklist_special_cases:\n  - iOS\n\nassignerOrgId_blocklist:\n  - 123fakeAssignerOrgId\n"
+        \ - zzcms\n\nblocklist_special_cases:\n  - iOS\n\nassigner_org_id_blocklist:\n  - 123fakeAssignerOrgId\n"
     headers:
       Cache-Control:
       - max-age=60, public, must-revalidate, stale-while-revalidate=60, stale-if-error=300,
