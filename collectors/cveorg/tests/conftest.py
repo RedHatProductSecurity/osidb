@@ -37,6 +37,10 @@ def mock_keywords(monkeypatch) -> None:
     Keyword(keyword="IBM Tivoli", type=Keyword.Type.BLOCKLIST).save()
     Keyword(keyword="iTunes", type=Keyword.Type.BLOCKLIST).save()
     Keyword(keyword="iOS", type=Keyword.Type.BLOCKLIST_SPECIAL_CASE).save()
+    Keyword(
+        keyword="461b2335-328f-427d-ae3d-eff7d6814455",
+        type=Keyword.Type.ASSIGNER_ORG_ID_BLOCKLIST,
+    ).save()  # Assigner id for larry cashdollar
 
 
 @pytest.fixture

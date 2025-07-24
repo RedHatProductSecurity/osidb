@@ -39,7 +39,7 @@ class TestPsConstantsCollection:
             "allowlist_special_cases",
             "blocklist",
             "blocklist_special_cases",
-            "assignerOrgId_blocklist",
+            "assigner_org_id_blocklist",
         ]
 
         # TODO: Record cassette for jira_bug_issuetype, tracked in OSIDB-2980
@@ -83,7 +83,7 @@ class TestPsConstantsCollection:
             "allowlist_special_cases": [r"(?:\W|^)\.NET\b"],
             "blocklist": [".*plugin.*for WordPress", "Cisco", "IBM Tivoli", "iTunes"],
             "blocklist_special_cases": ["iOS"],
-            "assignerOrgId_blocklist": ["123fakeAssignerOrgId"],
+            "assigner_org_id_blocklist": ["123fakeAssignerOrgId"],
         }
 
         sync_cveorg_keywords(mock_keywords)
@@ -99,7 +99,7 @@ class TestPsConstantsCollection:
             == 1
         )
         assert (
-            Keyword.objects.filter(type=Keyword.Type.ASSIGNERORGID_BLOCKLIST).count()
+            Keyword.objects.filter(type=Keyword.Type.ASSIGNER_ORG_ID_BLOCKLIST).count()
             == 1
         )
 

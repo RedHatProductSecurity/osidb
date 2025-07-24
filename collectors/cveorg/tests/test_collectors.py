@@ -81,16 +81,14 @@ class TestCVEorgCollector:
         """
         Test that snippets and flaws are not created when the assigning cna is blocked by ps_constants
         """
-        cve_id = "CVE-2024-0203"
+        cve_id = "CVE-2018-9208"
 
         cc = CVEorgCollector()
         cc.snippet_creation_enabled = True
         cc.snippet_creation_start_date = None
-        result = cc.collect_cve(cve_id)
+        cc.collect_cve(cve_id)
 
-        assert Snippet.objects.count() == 1
-        assert Flaw.objects.count() == 1
-
+        assert Flaw.objects.count() == 0
 
     @pytest.mark.vcr
     @pytest.mark.default_cassette(
