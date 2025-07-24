@@ -8,6 +8,8 @@ from collectors.cveorg.models import Keyword
 class MissingKeywordsException(Exception):
     pass
 
+def get_keywords(_type: Keyword.Type) -> QuerySet:
+        return Keyword.objects.filter(type=_type).values_list("keyword", flat=True)
 
 def check_keywords(text):
     """
@@ -15,9 +17,6 @@ def check_keywords(text):
 
     Returns tuple of matched blocklisted and allowlisted keywords.
     """
-
-    def get_keywords(_type: Keyword.Type) -> QuerySet:
-        return Keyword.objects.filter(type=_type).values_list("keyword", flat=True)
 
     allowlisted_keywords = [
         re.compile(rf"\b{keyword}\b", re.IGNORECASE)
