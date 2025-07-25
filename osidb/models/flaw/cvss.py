@@ -57,7 +57,11 @@ class FlawCVSS(CVSS):
             if affect.is_community:
                 continue
 
-            for tracker in affect.trackers.all():
-                if not tracker.is_closed and tracker.type == Tracker.TrackerType.JIRA:
-                    # default save already sync with Jira when needed
-                    tracker.save(jira_token=jira_token)
+            tracker = affect.tracker
+            if (
+                tracker
+                and not tracker.is_closed
+                and tracker.type == Tracker.TrackerType.JIRA
+            ):
+                # default save already sync with Jira when needed
+                tracker.save(jira_token=jira_token)

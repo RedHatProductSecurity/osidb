@@ -3,8 +3,7 @@ from unittest.mock import patch
 import pytest
 from rest_framework import status
 
-from apps.trackers.save import TrackerJiraSaver
-from osidb.models import Affect, AffectCVSS, PsUpdateStream, Tracker
+from osidb.models import Affect, AffectCVSS, Tracker
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,
@@ -64,7 +63,7 @@ class TestEndpointsAffects:
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,
             "resolution": Affect.AffectResolution.NOVALUE,
-            "ps_module": "rhacm-2",
+            "ps_update_stream": "rhacm-2.11.z",
             "ps_component": "curl",
             "embargoed": affect_embargo,
         }
@@ -86,7 +85,7 @@ class TestEndpointsAffects:
             response = auth_client().get(f"{test_api_uri}/affects/{created_uuid}")
             assert response.status_code == 200
             body = response.json()
-            assert body["ps_module"] == "rhacm-2"
+            assert body["ps_update_stream"] == "rhacm-2.11.z"
 
     @pytest.mark.parametrize("embargoed", [False, True])
     def test_affect_update(self, auth_client, test_api_uri, embargoed):
@@ -103,7 +102,7 @@ class TestEndpointsAffects:
             f"{test_api_uri}/affects/{affect.uuid}",
             {
                 **original_body,
-                "ps_module": f"different {affect.ps_module}",
+                "ps_update_stream": f"different {affect.ps_update_stream}",
             },
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
@@ -111,7 +110,7 @@ class TestEndpointsAffects:
         )
         assert response.status_code == 200
         body = response.json()
-        assert original_body["ps_module"] != body["ps_module"]
+        assert original_body["ps_update_stream"] != body["ps_update_stream"]
 
     def test_affect_delete(self, auth_client, test_api_uri):
         """
@@ -147,9 +146,9 @@ class TestEndpointsAffects:
             "embargoed": flaw.embargoed,
         }
 
-        # Tests "POST" on affects/{uuid}/cvss_scores
+        # Tests "POST" on affects/{uuid}/cvss-scores
         response = auth_client().post(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores",
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss-scores",
             data=cvss_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
@@ -157,288 +156,19 @@ class TestEndpointsAffects:
         assert response.status_code == status.HTTP_201_CREATED
         cvss_uuid = response.data["uuid"]
 
-        # Tests "GET" on affects/{uuid}/cvss_scores
+        # Tests "GET" on affects/{uuid}/cvss-scores
         response = auth_client().get(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores"
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss-scores"
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["count"] == 1
 
-        # Tests "GET" on affects/{uuid}/cvss_scores/{uuid}
+        # Tests "GET" on affects/{uuid}/cvss-scores/{uuid}
         response = auth_client().get(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss_uuid}"
+            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss-scores/{cvss_uuid}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.data["uuid"] == cvss_uuid
-
-    @pytest.mark.enable_signals
-    def test_affectcvss_create_non_rh(self, auth_client, test_api_uri):
-        flaw = FlawFactory()
-        affect = AffectFactory(flaw=flaw)
-        cvss_data = {
-            "issuer": AffectCVSS.CVSSIssuer.NIST,
-            "cvss_version": AffectCVSS.CVSSVersion.VERSION3,
-            "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
-            "embargoed": flaw.embargoed,
-        }
-
-        # Tests "POST" on affects/{uuid}/cvss_scores
-        response = auth_client().post(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores",
-            data=cvss_data,
-            format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-        )
-        assert response.status_code == status.HTTP_201_CREATED
-        cvss_uuid = response.data["uuid"]
-
-        # Tests "GET" on affects/{uuid}/cvss_scores
-        response = auth_client().get(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores"
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json()["count"] == 1
-
-        # Tests "GET" on affects/{uuid}/cvss_scores/{uuid}
-        response = auth_client().get(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss_uuid}"
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["uuid"] == cvss_uuid
-        assert response.data["issuer"] == AffectCVSS.CVSSIssuer.REDHAT
-
-    @pytest.mark.parametrize(
-        "skip_value,request_provided_value,resulting_value",
-        [
-            (False, "something", "something"),
-            (False, "", ""),
-            (False, None, ""),  # null converted to ""
-            (True, None, ""),  # omitted value converted to ""
-        ],
-    )
-    @pytest.mark.enable_signals
-    def test_affectcvss_create_comment(
-        self,
-        auth_client,
-        test_api_uri,
-        skip_value,
-        request_provided_value,
-        resulting_value,
-    ):
-        """
-        Test the behavior of comment in creation of AffectCVSS records via a REST API POST request.
-        """
-        flaw = FlawFactory()
-        affect = AffectFactory(flaw=flaw)
-        cvss_data = {
-            "comment": request_provided_value,
-            "issuer": AffectCVSS.CVSSIssuer.REDHAT,
-            "cvss_version": AffectCVSS.CVSSVersion.VERSION3,
-            "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
-            "embargoed": flaw.embargoed,
-        }
-        if skip_value:
-            del cvss_data["comment"]
-
-        # Tests "POST" on affects/{uuid}/cvss_scores
-        response = auth_client().post(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores",
-            data=cvss_data,
-            format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-        )
-        cvss_uuid = response.data["uuid"]
-        assert response.data["comment"] == resulting_value
-
-        # Tests "GET" on affects/{uuid}/cvss_scores/{uuid}
-        response = auth_client().get(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss_uuid}"
-        )
-        assert response.data["comment"] == resulting_value
-
-    @pytest.mark.enable_signals
-    def test_affectcvss_update(self, auth_client, test_api_uri):
-        """
-        Test the update of AffectCVSS records via a REST API PUT request.
-        """
-        affect = AffectFactory()
-        cvss = AffectCVSSFactory(
-            affect=affect, issuer=AffectCVSS.CVSSIssuer.REDHAT, comment=""
-        )
-
-        response = auth_client().get(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}"
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["comment"] == ""
-
-        updated_data = response.json().copy()
-        updated_data["comment"] = "text"
-
-        # Tests "PUT" on affects/{uuid}/cvss_scores/{uuid}
-        response = auth_client().put(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}",
-            data=updated_data,
-            format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["comment"] == "text"
-
-    @pytest.mark.enable_signals
-    def test_affectcvss_update_non_rh(self, auth_client, test_api_uri):
-        affect = AffectFactory()
-        cvss = AffectCVSSFactory(
-            affect=affect, issuer=AffectCVSS.CVSSIssuer.NIST, comment=""
-        )
-
-        response = auth_client().get(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}"
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["comment"] == ""
-
-        updated_data = response.json().copy()
-        updated_data["comment"] = "text"
-
-        # Tests "PUT" on affects/{uuid}/cvss_scores/{uuid}
-        response = auth_client().put(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}",
-            data=updated_data,
-            format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["comment"] == ""
-
-    @pytest.mark.enable_signals
-    def test_affectcvss_update_issuer(self, auth_client, test_api_uri):
-        affect = AffectFactory()
-        cvss = AffectCVSSFactory(
-            affect=affect,
-            issuer=AffectCVSS.CVSSIssuer.REDHAT,
-            comment="",
-        )
-
-        response = auth_client().get(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}"
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["issuer"] == AffectCVSS.CVSSIssuer.REDHAT
-
-        updated_data = response.json().copy()
-        updated_data["issuer"] = AffectCVSS.CVSSIssuer.CVEORG
-
-        # Tests "PUT" on affects/{uuid}/cvss_scores/{uuid}
-        response = auth_client().put(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}",
-            data=updated_data,
-            format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["issuer"] == AffectCVSS.CVSSIssuer.REDHAT
-
-    @pytest.mark.enable_signals
-    def test_affectcvss_update_tracker(
-        self,
-        monkeypatch,
-        enable_jira_tracker_sync,
-        setup_sample_external_resources,
-        auth_client,
-        test_api_uri,
-    ):
-        """Test that changes in AffectCVSS API triggers a sync with Jira trackers related"""
-        save_performed = False
-
-        def mock_save(self):
-            nonlocal save_performed
-            save_performed = True
-            return self.tracker
-
-        monkeypatch.setattr(TrackerJiraSaver, "save", mock_save)
-
-        ps_update_stream = (
-            PsUpdateStream.objects.filter(active_to_ps_module__bts_name="jboss")
-            .order_by("name")
-            .first()
-        )
-        ps_module = ps_update_stream.active_to_ps_module
-        ps_component = setup_sample_external_resources["jboss_components"][0]
-
-        flaw = FlawFactory(embargoed=False)
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.NEW,
-            ps_module=ps_module.name,
-            ps_component=ps_component,
-        )
-        TrackerFactory(
-            affects=[affect],
-            type=Tracker.TrackerType.JIRA,
-            ps_update_stream=ps_update_stream.name,
-        )
-        cvss = AffectCVSSFactory(
-            affect=affect,
-            issuer=AffectCVSS.CVSSIssuer.REDHAT,
-            comment="",
-            vector="CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
-            version=AffectCVSS.CVSSVersion.VERSION3,
-        )
-
-        response = auth_client().get(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}"
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["issuer"] == AffectCVSS.CVSSIssuer.REDHAT
-        assert response.data["score"] == 8.1
-
-        updated_data = response.json().copy()
-        updated_data["vector"] = "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"
-
-        # Tests "PUT" on affects/{uuid}/cvss_scores/{uuid}
-        response = auth_client().put(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}",
-            data=updated_data,
-            format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["issuer"] == AffectCVSS.CVSSIssuer.REDHAT
-        assert response.data["score"] == 7.8
-        assert save_performed
-
-    @pytest.mark.enable_signals
-    def test_affectcvss_delete(self, auth_client, test_api_uri):
-        """
-        Test the deletion of AffectCVSS records via a REST API DELETE request.
-        """
-        affect = AffectFactory()
-        cvss = AffectCVSSFactory(affect=affect, issuer=AffectCVSS.CVSSIssuer.REDHAT)
-
-        url = f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}"
-        response = auth_client().get(url)
-        assert response.status_code == status.HTTP_200_OK
-
-        # Tests "DELETE" on affects/{uuid}/cvss_scores/{uuid}
-        response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
-        assert response.status_code == status.HTTP_200_OK
-        assert AffectCVSS.objects.count() == 0
-
-    @pytest.mark.enable_signals
-    def test_affectcvss_delete_non_rh(self, auth_client, test_api_uri):
-        affect = AffectFactory()
-        cvss = AffectCVSSFactory(affect=affect, issuer=AffectCVSS.CVSSIssuer.CVEORG)
-
-        url = f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss.uuid}"
-        response = auth_client().get(url)
-        assert response.status_code == status.HTTP_200_OK
-
-        # Tests "DELETE" on affects/{uuid}/cvss_scores/{uuid}
-        response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
-        assert response.status_code == status.HTTP_200_OK
-        assert AffectCVSS.objects.count() == 1
 
     def test_affect_resolved_dt(
         self,
@@ -454,7 +184,7 @@ class TestEndpointsAffects:
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,
             "resolution": Affect.AffectResolution.NOVALUE,
-            "ps_module": "rhacm-2",
+            "ps_update_stream": "rhacm-2.11.z",
             "ps_component": "curl",
             "embargoed": flaw.is_embargoed,
         }
@@ -572,7 +302,7 @@ class TestEndpointsAffects:
         expected_without_trackers,
     ):
         """
-        test that trackers__isempty filter is working correctly
+        test that tracker__isempty filter is working correctly
         """
         flaw = FlawFactory()
 
@@ -580,7 +310,7 @@ class TestEndpointsAffects:
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect_with_trackers = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
         )
         TrackerFactory(
@@ -593,7 +323,7 @@ class TestEndpointsAffects:
         affect_without_trackers = AffectFactory(flaw=flaw)
 
         response = auth_client().get(
-            f"{test_api_uri}/affects?trackers__isempty={str(filter_value).lower()}"
+            f"{test_api_uri}/affects?tracker__isempty={str(filter_value).lower()}"
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -656,7 +386,7 @@ class TestEndpointsAffectsBulk:
             orig_uuids.add(aff["uuid"])
             aff["affectedness"] = "AFFECTED"
             aff["resolution"] = "DELEGATED"
-            aff["ps_module"] = f"different {aff['ps_module']}"
+            aff["ps_update_stream"] = f"different {aff['ps_update_stream']}"
 
         response = auth_client().put(
             f"{test_api_uri}/affects/bulk",
@@ -672,7 +402,7 @@ class TestEndpointsAffectsBulk:
             new_uuids.add(returned_aff["uuid"])
             assert returned_aff["affectedness"] == "AFFECTED"
             assert returned_aff["resolution"] == "DELEGATED"
-            assert returned_aff["ps_module"].startswith("different ")
+            assert returned_aff["ps_update_stream"].startswith("different ")
         assert len(orig_uuids) == len(new_uuids)
         assert orig_uuids == new_uuids
         assert len(body["results"]) == len(request_affects)
@@ -703,7 +433,7 @@ class TestEndpointsAffectsBulk:
             del tmp_aff["updated_dt"]
             del tmp_aff["resolved_dt"]
             del tmp_aff["alerts"]
-            tmp_aff["ps_module"] = f"psmodule{i}"
+            tmp_aff["ps_update_stream"] = f"ps_update_stream{i}"
             bulk_request[i] = tmp_aff
             i += 1
 
@@ -722,7 +452,7 @@ class TestEndpointsAffectsBulk:
         assert Affect.objects.count() == 20
 
         for returned_aff in response.json()["results"]:
-            i = int(returned_aff["ps_module"][8:])
+            i = int(returned_aff["ps_update_stream"][16:])
             requested_aff = bulk_request[i]
             received_aff = dict(returned_aff)
             del received_aff["uuid"]
@@ -779,14 +509,14 @@ class TestEndpointsAffectsUpdateTrackers:
         flaw = FlawFactory(impact="LOW")
         ps_product1 = PsProductFactory(business_unit="Corporate")
         ps_module1 = PsModuleFactory(ps_product=ps_product1)
+        ps_update_stream11 = PsUpdateStreamFactory(ps_module=ps_module1)
         affect1 = AffectFactory(
             flaw=flaw,
             impact="LOW",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module1.name,
+            ps_update_stream=ps_update_stream11.name,
         )
-        ps_update_stream11 = PsUpdateStreamFactory(ps_module=ps_module1)
         tracker1 = TrackerFactory(
             affects=[affect1],
             embargoed=flaw.embargoed,
@@ -795,8 +525,15 @@ class TestEndpointsAffectsUpdateTrackers:
             type=Tracker.BTS2TYPE[ps_module1.bts_name],
         )
         ps_update_stream12 = PsUpdateStreamFactory(ps_module=ps_module1)
+        affect2 = AffectFactory(
+            flaw=flaw,
+            impact="LOW",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream12.name,
+        )
         TrackerFactory(
-            affects=[affect1],
+            affects=[affect2],
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream12.name,
             status="CLOSED",  # already resolved
@@ -805,16 +542,16 @@ class TestEndpointsAffectsUpdateTrackers:
         # one more community affect-tracker context
         ps_product2 = PsProductFactory(business_unit="Community")
         ps_module2 = PsModuleFactory(ps_product=ps_product2)
-        affect2 = AffectFactory(
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
+        affect3 = AffectFactory(
             flaw=flaw,
             impact="LOW",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module2.name,
+            ps_update_stream=ps_update_stream2.name,
         )
-        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
         TrackerFactory(
-            affects=[affect2],
+            affects=[affect3],
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream2.name,
             status="NEW",
@@ -826,7 +563,7 @@ class TestEndpointsAffectsUpdateTrackers:
             "flaw": flaw.uuid,
             "impact": "MODERATE",  # tracker update trigger
             "ps_component": affect1.ps_component,
-            "ps_module": affect1.ps_module,
+            "ps_update_stream": affect1.ps_update_stream,
             "updated_dt": affect1.updated_dt,
         }
         affect2_data = {
@@ -834,8 +571,16 @@ class TestEndpointsAffectsUpdateTrackers:
             "flaw": flaw.uuid,
             "impact": "MODERATE",  # tracker update trigger
             "ps_component": affect2.ps_component,
-            "ps_module": affect2.ps_module,
+            "ps_update_stream": affect2.ps_update_stream,
             "updated_dt": affect2.updated_dt,
+        }
+        affect3_data = {
+            "embargoed": flaw.embargoed,
+            "flaw": flaw.uuid,
+            "impact": "MODERATE",  # tracker update trigger
+            "ps_component": affect3.ps_component,
+            "ps_update_stream": affect3.ps_update_stream,
+            "updated_dt": affect3.updated_dt,
         }
 
         # enable autospec to get self as part of the method call args
@@ -861,6 +606,15 @@ class TestEndpointsAffectsUpdateTrackers:
             )
             assert response.status_code == status.HTTP_200_OK
             assert mock_save.call_count == 1  # no change
+            response = auth_client().put(
+                f"{test_api_uri}/affects/{affect3.uuid}",
+                affect3_data,
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+            assert response.status_code == status.HTTP_200_OK
+            assert mock_save.call_count == 1  # no change
 
     @pytest.mark.parametrize(
         "to_create,to_update,triggered",
@@ -876,14 +630,14 @@ class TestEndpointsAffectsUpdateTrackers:
         """
         flaw = FlawFactory(impact="LOW")
         ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             **to_create,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect],
             embargoed=flaw.embargoed,
@@ -895,7 +649,7 @@ class TestEndpointsAffectsUpdateTrackers:
             "embargoed": flaw.embargoed,
             "flaw": flaw.uuid,
             "ps_component": affect.ps_component,
-            "ps_module": affect.ps_module,
+            "ps_update_stream": affect.ps_update_stream,
             "updated_dt": affect.updated_dt,
         }
         for attribute, value in to_update.items():
@@ -918,13 +672,13 @@ class TestEndpointsAffectsUpdateTrackers:
         """
         flaw1 = FlawFactory()
         ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw1,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect],
             embargoed=flaw1.embargoed,
@@ -937,7 +691,7 @@ class TestEndpointsAffectsUpdateTrackers:
             "embargoed": flaw2.embargoed,
             "flaw": flaw2.uuid,  # re-link the affect
             "ps_component": affect.ps_component,
-            "ps_module": affect.ps_module,
+            "ps_update_stream": affect.ps_update_stream,
             "updated_dt": affect.updated_dt,
         }
 
@@ -970,7 +724,7 @@ class TestEndpointsAffectsPurl:
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,
             "resolution": Affect.AffectResolution.NOVALUE,
-            "ps_module": "rhacm-2",
+            "ps_update_stream": "rhacm-2.11.z",
             "ps_component": ps_component,
             "purl": purl,
             "embargoed": False,
@@ -1057,7 +811,7 @@ class TestEndpointsAffectsPurl:
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,
             "resolution": Affect.AffectResolution.NOVALUE,
-            "ps_module": "rhacm-2",
+            "ps_update_stream": "rhacm-2.11.z",
             "ps_component": ps_component,
             "purl": purl,
             "embargoed": False,

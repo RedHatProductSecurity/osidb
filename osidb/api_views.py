@@ -51,13 +51,14 @@ from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
 from osidb.core import set_user_acls
 from osidb.helpers import get_bugzilla_api_key
 from osidb.integrations import IntegrationRepository, IntegrationSettings
-from osidb.models import Affect, AffectCVSS, Flaw, FlawLabel, Tracker
+from osidb.models import Affect, AffectCVSS, AffectV1, Flaw, FlawLabel, Tracker
 from osidb.models.flaw.cvss import FlawCVSS
 
-from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
+from .constants import OSIDB_API_VERSION_NEXT, PYPI_URL, URL_REGEX
 from .filters import (
     AffectCVSSFilter,
     AffectFilter,
+    AffectV1Filter,
     AlertFilter,
     FlawAcknowledgmentFilter,
     FlawCommentFilter,
@@ -66,7 +67,9 @@ from .filters import (
     FlawPackageVersionFilter,
     FlawQLSchema,
     FlawReferenceFilter,
+    FlawV1Filter,
     TrackerFilter,
+    TrackerV1Filter,
 )
 from .mixins import Alert
 from .serializer import (
@@ -80,6 +83,7 @@ from .serializer import (
     AffectCVSSV2Serializer,
     AffectPostSerializer,
     AffectSerializer,
+    AffectV1Serializer,
     AlertSerializer,
     AuditSerializer,
     FlawAcknowledgmentPostSerializer,
@@ -104,10 +108,12 @@ from .serializer import (
     FlawReferencePutSerializer,
     FlawReferenceSerializer,
     FlawSerializer,
+    FlawV1Serializer,
     IntegrationTokenGetSerializer,
     IntegrationTokenPatchSerializer,
     TrackerPostSerializer,
     TrackerSerializer,
+    TrackerV1Serializer,
     UserSerializer,
 )
 from .validators import CVE_RE_STR
@@ -591,9 +597,9 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         "acknowledgments",
         "affects",
         "affects__cvss_scores",
-        "affects__trackers",
-        "affects__trackers__errata",
-        "affects__trackers__affects",
+        "affects__tracker",
+        "affects__tracker__errata",
+        "affects__tracker__affects",
         "comments",
         "cvss_scores",
         "package_versions",
@@ -626,8 +632,28 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         response.data = {
             "uuid": response.data["uuid"],
         }
-        response["Location"] = f"/api/{OSIDB_API_VERSION}/flaws/{response.data['uuid']}"
+        response["Location"] = (
+            f"/api/{OSIDB_API_VERSION_NEXT}/flaws/{response.data['uuid']}"
+        )
         return response
+
+
+class FlawV1View(FlawView):
+    """View for the flaw model adapted to affects v1"""
+
+    serializer_class = FlawV1Serializer
+    queryset = Flaw.objects.prefetch_related(
+        "acknowledgments",
+        "comments",
+        "cvss_scores",
+        "package_versions",
+        "references",
+        "labels",
+    ).all()
+    http_method_names = get_valid_http_methods(
+        ModelViewSet, excluded=["post", "put", "delete"]
+    )
+    filterset_class = FlawV1Filter
 
 
 class SubFlawViewDestroyMixin:
@@ -712,6 +738,12 @@ class FlawAcknowledgmentView(
     filterset_class = FlawAcknowledgmentFilter
 
 
+class FlawAcknowledgmentV1View(FlawAcknowledgmentView):
+    http_method_names = get_valid_http_methods(
+        ModelViewSet, excluded=["post", "put", "delete"]
+    )
+
+
 @include_exclude_fields_extend_schema_view
 @extend_schema_view(
     create=extend_schema(
@@ -735,6 +767,12 @@ class FlawReferenceView(
     filterset_class = FlawReferenceFilter
 
 
+class FlawReferenceV1View(FlawReferenceView):
+    http_method_names = get_valid_http_methods(
+        ModelViewSet, excluded=["post", "put", "delete"]
+    )
+
+
 @include_exclude_fields_extend_schema_view
 @extend_schema_view(
     create=extend_schema(
@@ -753,32 +791,11 @@ class FlawCVSSView(
     ModelViewSet,
 ):
     serializer_class = FlawCVSSSerializer
-    http_method_names = get_valid_http_methods(ModelViewSet)
+    http_method_names = get_valid_http_methods(
+        ModelViewSet, excluded=["post", "put", "delete"]
+    )
     permission_classes = [IsAuthenticatedOrReadOnly]
     filterset_class = FlawCVSSFilter
-
-    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        request.data.pop("issuer", None)
-        return super().create(request, *args, **kwargs)
-
-    def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        request.data.pop("issuer", None)
-        cvss: FlawCVSS = self.get_object()
-        if cvss.issuer == FlawCVSS.CVSSIssuer.REDHAT:
-            return super().update(request, *args, **kwargs)
-        return Response(FlawCVSSSerializer(cvss).data)
-
-    @extend_schema(
-        responses={
-            200: {},
-        },
-        parameters=[bz_api_key_param],
-    )
-    def destroy(self, request, *args, **kwargs):
-        cvss: FlawCVSS = self.get_object()
-        if cvss.issuer == FlawCVSS.CVSSIssuer.REDHAT:
-            return super().destroy(request, *args, **kwargs)
-        return Response(status=HTTP_200_OK)
 
 
 @include_exclude_fields_extend_schema_view
@@ -981,6 +998,12 @@ class FlawCommentView(
         return super().create(request, *args, **kwargs)
 
 
+class FlawCommentV1View(FlawCommentView):
+    http_method_names = get_valid_http_methods(
+        ModelViewSet, excluded=["post", "put", "delete"]
+    )
+
+
 @include_exclude_fields_extend_schema_view
 @extend_schema_view(
     create=extend_schema(
@@ -1004,6 +1027,12 @@ class FlawPackageVersionView(
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
+class FlawPackageVersionV1View(FlawPackageVersionView):
+    http_method_names = get_valid_http_methods(
+        ModelViewSet, excluded=["post", "put", "delete"]
+    )
+
+
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
 @include_history_extend_schema_view
@@ -1021,10 +1050,10 @@ class AffectView(
         "alerts",
         "cvss_scores",
         "cvss_scores__alerts",
-        "trackers",
-        "trackers__errata",
-        "trackers__affects",
-        "trackers__alerts",
+        "tracker",
+        "tracker__errata",
+        "tracker__affects",
+        "tracker__alerts",
     ).all()
     serializer_class = AffectSerializer
     filterset_class = AffectFilter
@@ -1192,6 +1221,14 @@ class AffectView(
         return Response(status=HTTP_200_OK)
 
 
+@extend_schema(description="Read-only view for affects v1")
+class AffectV1View(ReadOnlyModelViewSet):
+    queryset = AffectV1.objects.all()
+    serializer_class = AffectV1Serializer
+    filterset_class = AffectV1Filter
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
 @include_exclude_fields_extend_schema_view
 @extend_schema_view(
     create=extend_schema(
@@ -1203,7 +1240,7 @@ class AffectView(
         parameters=[bz_api_key_param],
     ),
 )
-class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
+class AffectCVSSView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
     serializer_class = AffectCVSSSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -1240,36 +1277,6 @@ class AffectCVSSView(RudimentaryUserPathLoggingMixin, ModelViewSet):
             data["affect"] = str(self.get_affect().uuid)
             kwargs["data"] = data
         return super().get_serializer(*args, **kwargs)
-
-    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        request.data.pop("issuer", None)
-        return super().create(request, *args, **kwargs)
-
-    def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        request.data.pop("issuer", None)
-        cvss: AffectCVSS = self.get_object()
-        if cvss.issuer == AffectCVSS.CVSSIssuer.REDHAT:
-            return super().update(request, *args, **kwargs)
-        return Response(AffectCVSSPutSerializer(cvss).data)
-
-    @extend_schema(
-        responses={
-            200: {},
-        },
-        parameters=[bz_api_key_param],
-    )
-    def destroy(self, request, *args, **kwargs):
-        """
-        Destroy the instance and proxy the delete to Bugzilla.
-        """
-        bz_api_key = get_bugzilla_api_key(request)
-
-        instance: AffectCVSS = self.get_object()
-        if instance.issuer == AffectCVSS.CVSSIssuer.REDHAT:
-            affect = instance.affect
-            instance.delete()
-            affect.save(bz_api_key=bz_api_key)
-        return Response(status=HTTP_200_OK)
 
 
 @include_exclude_fields_extend_schema_view
@@ -1345,6 +1352,17 @@ class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         if self.action == "create":
             return TrackerPostSerializer
         return self.serializer_class
+
+
+class TrackerV1View(TrackerView):
+    """View for the tracker model adapted to affects v1"""
+
+    queryset = Tracker.objects.prefetch_related("alerts", "errata").all()
+    http_method_names = get_valid_http_methods(
+        ModelViewSet, excluded=["post", "put", "delete"]
+    )
+    serializer_class = TrackerV1Serializer
+    filterset_class = TrackerV1Filter
 
 
 @include_exclude_fields_extend_schema_view
@@ -1428,6 +1446,12 @@ class FlawLabelView(
                 {"label": "Product family labels cannot be deleted."}
             )
         return super().destroy(request, *args, **kwargs)
+
+
+class FlawLabelV1View(FlawLabelView):
+    http_method_names = get_valid_http_methods(
+        ModelViewSet, excluded=["post", "put", "delete"]
+    )
 
 
 class LabelView(

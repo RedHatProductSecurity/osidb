@@ -53,9 +53,11 @@ class TestFlawCollaborator:
         )
 
         flaw = FlawFactory(embargoed=False)
-        AffectFactory(flaw=flaw, ps_component="test_component", ps_module="test_module")
         AffectFactory(
-            flaw=flaw, ps_component="test_component", ps_module="other_module"
+            flaw=flaw, ps_component="test_component", ps_update_stream="test_stream"
+        )
+        AffectFactory(
+            flaw=flaw, ps_component="test_component", ps_update_stream="other_stream"
         )
 
         assert flaw.labels.count() == 0
@@ -78,14 +80,14 @@ class TestFlawCollaborator:
 
         flaw = FlawFactory(embargoed=False)
         affect = AffectFactory(
-            flaw=flaw, ps_component="test_component", ps_module="test_module"
+            flaw=flaw, ps_component="test_component", ps_update_stream="test_stream"
         )
         flaw.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
         flaw.save()
 
         assert flaw.labels.count() == 2
 
-        affect.ps_module = "other_module"
+        affect.ps_update_stream = "other_stream"
         affect.save()
 
         assert flaw.labels.count() == 2
@@ -100,7 +102,7 @@ class TestFlawCollaborator:
         )
 
         flaw = FlawFactory(embargoed=False)
-        AffectFactory(flaw=flaw, ps_module="test_module")
+        AffectFactory(flaw=flaw, ps_update_stream="test_stream")
         flaw.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
         flaw.save()
 
@@ -128,6 +130,8 @@ class TestFlawCollaborator:
         FlawCollaborator.objects.create_from_flaw(flaw)
         assert FlawCollaborator.objects.count() == 0
 
-        AffectFactory(flaw=flaw, ps_module="test_module", ps_component="test_component")
+        AffectFactory(
+            flaw=flaw, ps_update_stream="test_stream", ps_component="test_component"
+        )
         FlawCollaborator.objects.create_from_flaw(flaw)
         assert FlawCollaborator.objects.count() == 1

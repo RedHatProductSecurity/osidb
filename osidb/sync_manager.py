@@ -541,9 +541,9 @@ class BZTrackerLinkManager(SyncManager):
 
         result = super().__str__()
 
-        affects = Affect.objects.filter(trackers__external_system_id=self.sync_id)
+        affects = Affect.objects.filter(tracker__external_system_id=self.sync_id)
         affect_strings = [
-            f"{a.flaw.bz_id}|{a.ps_module}|{a.ps_component}" for a in affects
+            f"{a.flaw.bz_id}|{a.ps_update_stream}|{a.ps_component}" for a in affects
         ]
         result += f"Affects: {affect_strings}\n"
 
@@ -1004,9 +1004,9 @@ class JiraTrackerLinkManager(SyncManager):
 
         result = super().__str__()
 
-        affects = Affect.objects.filter(trackers__external_system_id=self.sync_id)
+        affects = Affect.objects.filter(tracker__external_system_id=self.sync_id)
         affect_strings = [
-            f"{a.flaw.bz_id}|{a.ps_module}|{a.ps_component}" for a in affects
+            f"{a.flaw.bz_id}|{a.ps_update_stream}|{a.ps_component}" for a in affects
         ]
         result += f"Affects: {affect_strings}\n"
 

@@ -51,11 +51,12 @@ class TestEndpointsFlawsUnembargo:
             unembargo_dt=datetime(2030, 10, 10, tzinfo=timezone.utc),
         )
         ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.NOTAFFECTED,
             resolution=Affect.AffectResolution.NOVALUE,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
 
         assert Affect.objects.first().is_embargoed
@@ -97,38 +98,35 @@ class TestEndpointsFlawsUnembargo:
         FlawReferenceFactory(flaw=flaw)
         PackageFactory(flaw=flaw)
         ps_module = PsModuleFactory()
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
+
         affect1 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream1.name,
         )
         AffectCVSSFactory(affect=affect1)
         AffectCVSSFactory(affect=affect1)
+
         affect2 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream2.name,
         )
-        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
-        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
+
         TrackerFactory(
             affects=[affect1],
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream1.name,
-            type=Tracker.BTS2TYPE[ps_module.bts_name],
-        )
-        TrackerFactory(
-            affects=[affect1],
-            embargoed=flaw.embargoed,
-            ps_update_stream=ps_update_stream2.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
         TrackerFactory(
             affects=[affect2],
             embargoed=flaw.embargoed,
-            ps_update_stream=ps_update_stream1.name,
+            ps_update_stream=ps_update_stream2.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
@@ -195,6 +193,8 @@ class TestEndpointsFlawsUnembargo:
         test that a combined flaw context of multiple flaws can be correctly unembargoed
         """
         ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
         flaw1 = FlawFactory(
             embargoed=True,
             unembargo_dt=datetime(2030, 10, 10, tzinfo=timezone.utc),
@@ -203,8 +203,9 @@ class TestEndpointsFlawsUnembargo:
             flaw=flaw1,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
+
         flaw2 = FlawFactory(
             embargoed=flaw1.embargoed,
             unembargo_dt=datetime(2040, 10, 10, tzinfo=timezone.utc),
@@ -213,10 +214,10 @@ class TestEndpointsFlawsUnembargo:
             flaw=flaw2,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component=affect1.ps_component,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
         TrackerFactory(
             affects=[affect1, affect2],
             embargoed=flaw1.embargoed,
