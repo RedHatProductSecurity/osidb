@@ -1,33 +1,28 @@
 import django.contrib.postgres.fields
 from django.conf import settings
 from django.db import migrations, models
+from django.db.models import F
 import pgtrigger.compiler
 import pgtrigger.migrations
 import psqlextra.fields.hstore_field
 from osidb.core import set_user_acls
+from osidb.helpers import bypass_rls
 
 
 BATCH_SIZE = 1000
 
+@bypass_rls
 def forwards_func(apps, schema_editor):
     """
     Initialize ps_update_stream to ps_module to avoid it being empty as it is a
     required field. It will be filled correctly in the data migration.
     """
-    set_user_acls(settings.ALL_GROUPS)
     Affect = apps.get_model("osidb", "Affect")
 
-    batch = []
-    for affect in Affect.objects.all():
-        affect.ps_update_stream = affect.ps_module
-        batch.append(affect)
-        if len(batch) >= BATCH_SIZE:
-            Affect.objects.bulk_update(batch, ["ps_update_stream"])
-            batch.clear()
-    
-    if batch:
-        Affect.objects.bulk_update(batch, ["ps_update_stream"])
-        batch.clear()
+    affects_to_update = Affect.objects.all()
+    for affect in affects_to_update:
+        affect.ps_update_stream  = F("ps_module")
+    Affect.objects.bulk_update(affects_to_update, ["ps_update_stream"], BATCH_SIZE)
 
 
 class Migration(migrations.Migration):
@@ -60,26 +55,26 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='affect',
             name='ps_update_stream',
-            field=models.CharField(default='', max_length=100),
+            field=models.CharField(default=''),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='affectaudit',
             name='ps_update_stream',
-            field=models.CharField(default='', max_length=100),
+            field=models.CharField(default=''),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='affect',
             name='ps_module',
-            field=models.CharField(blank=True, max_length=100),
+            field=models.CharField(blank=True),
         ),
         migrations.AlterField(
             model_name='affectaudit',
             name='ps_module',
-            field=models.CharField(blank=True, max_length=100),
+            field=models.CharField(blank=True),
         ),
-        migrations.RunPython(forwards_func),
+        migrations.RunPython(forwards_func, migrations.RunPython.noop),
         migrations.AlterUniqueTogether(
             name='affect',
             unique_together={('flaw', 'ps_update_stream', 'ps_component')},

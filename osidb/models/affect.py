@@ -166,9 +166,9 @@ class Affect(
         blank=True,
     )
 
-    ps_update_stream = models.CharField(max_length=100)
+    ps_update_stream = models.CharField()
     # ps_module is denormalized as it is still used extensively
-    ps_module = models.CharField(max_length=100, blank=True)
+    ps_module = models.CharField(blank=True)
 
     tracker = models.ForeignKey(
         "Tracker",
@@ -679,15 +679,20 @@ class Affect(
     @property
     def delegated_not_affected_justification(self):
         """
-        Delegated not affected justification based on the not affected justifications of
-        its related Jira trackers.
+        Delegated not affected justification based on the not affected justification of
+        its related Jira tracker.
 
         If the related tracker is closed as 'Not a Bug' then use its justification, otherwise
         the delegated justification is empty.
         """
         from apps.taskman.service import TaskResolution
+        from osidb.models.tracker import Tracker
 
-        if self.tracker is None or self.tracker.resolution != TaskResolution.NOT_A_BUG:
+        if (
+            self.tracker is None
+            or self.tracker.type == Tracker.TrackerType.JIRA
+            or self.tracker.resolution != TaskResolution.NOT_A_BUG
+        ):
             return NotAffectedJustification.NOVALUE
         return self.tracker.not_affected_justification
 

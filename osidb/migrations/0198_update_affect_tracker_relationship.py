@@ -4,15 +4,16 @@ import django.db.models.deletion
 import pgtrigger.compiler
 import pgtrigger.migrations
 from osidb.core import set_user_acls
+from osidb.helpers import bypass_rls
 
 
 BATCH_SIZE = 1000
 
+@bypass_rls
 def forwards_func(apps, schema_editor):
     """
     Migrate the old m2m affect-tracker relationship to the new m2o relationship.
     """
-    set_user_acls(settings.ALL_GROUPS)
     Affect = apps.get_model("osidb", "Affect")
     Tracker = apps.get_model("osidb", "Tracker")
 
@@ -54,7 +55,7 @@ class Migration(migrations.Migration):
             name='tracker',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='new_affects', to='osidb.tracker'),
         ),
-        migrations.RunPython(forwards_func),
+        migrations.RunPython(forwards_func, migrations.RunPython.noop),
         migrations.AlterField(
             model_name='affect',
             name='tracker',
