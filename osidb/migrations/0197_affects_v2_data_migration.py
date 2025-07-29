@@ -136,6 +136,32 @@ def forwards_func(apps, schema_editor):
     migrate_trackers(apps)
 
 
+@bypass_rls
+def backwards_func(apps, schema_editor):
+    # Group affects by the old identifiers: flaw, ps_module and ps_component
+    v1_affect_groups = Affect.objects.values(
+        "flaw_id", "ps_module", "ps_component"
+    ).distinct()
+
+    for group in v1_affect_groups:
+        if not group["flaw_id"] or not group["ps_module"] or not group["ps_component"]:
+            continue
+
+        # Get the first affect in the group and keep only that one
+        v2_affects_in_group = Affect.objects.filter(**group)
+        if not v2_affects_in_group.exists():
+            continue
+
+        v1_affect = v2_affects_in_group.first()
+        redundant_affects = v2_affects_in_group.exclude(pk=v1_affect.pk)
+        for affect in redundant_affects:
+            for tracker in affect.trackers:
+                tracker.affects.add(v1_affect)
+
+        if redundant_affects.exists():
+            redundant_affects.delete()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -143,5 +169,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(forwards_func),
+        migrations.RunPython(forwards_func, backwards_func),
     ]
