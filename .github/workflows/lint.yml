@@ -13,10 +13,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.9
-      - name: Install dependencies
-        run: pip install tox==3.24.4
-      - name: Check for secret lekeage
-        run: tox -e secrets
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.3"
+      - name: Install tox and tox-uv
+        run: uv tool install tox==4.28.1 -w tox-uv==1.26.2
+      - name: Check for secret leakage
+        run: uvx tox -e secrets
   ruff-check:
     runs-on: ubuntu-latest
     steps:
@@ -24,10 +28,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.9
-      - name: Install dependencies
-        run: pip install tox==3.24.4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.3"
+      - name: Install tox and tox-uv
+        run: uv tool install tox==4.28.1 -w tox-uv==1.26.2
       - name: Lint codebase and check it for security issues with ruff
-        run: tox -e ruff-check
+        run: uvx tox -e ruff-check
   ruff-isort:
     runs-on: ubuntu-latest
     steps:
@@ -35,10 +43,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.9
-      - name: Install dependencies
-        run: pip install tox==3.24.4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.3"
+      - name: Install tox and tox-uv
+        run: uv tool install tox==4.28.1 -w tox-uv==1.26.2
       - name: Check that imports are formatted with ruff
-        run: tox -e ruff-isort
+        run: uvx tox -e ruff-isort
   ruff-format:
     runs-on: ubuntu-latest
     steps:
@@ -46,10 +58,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.9
-      - name: Install dependencies
-        run: pip install tox==3.24.4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.3"
+      - name: Install tox and tox-uv
+        run: uv tool install tox==4.28.1 -w tox-uv==1.26.2
       - name: Check that code is formatted with ruff
-        run: tox -e ruff-format
+        run: uvx tox -e ruff-format
   migrations:
     runs-on: ubuntu-latest
     steps:
@@ -59,10 +75,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.9
-      - name: Install dependencies
-        run: pip install tox==3.24.4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.3"
+      - name: Install tox and tox-uv
+        run: uv tool install tox==4.28.1 -w tox-uv==1.26.2
       - name: Ensure Django migrations have been generated
-        run: tox -e migrations
+        run: uvx tox -e migrations
   schema:
     runs-on: ubuntu-latest
     steps:
@@ -72,7 +92,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.9
-      - name: Install dependencies
-        run: pip install tox==3.24.4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.3"
+      - name: Install tox and tox-uv
+        run: uv tool install tox==4.28.1 -w tox-uv==1.26.2
       - name: Ensure the OpenAPI schema has been generated
-        run: tox -e schema
+        run: uvx tox -e schema-check
