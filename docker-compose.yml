@@ -108,6 +108,7 @@ services:
       command: ./scripts/setup-osidb-service.sh
       volumes:
         - ${PWD}:/opt/app-root/src:z
+        - /opt/app-root/src/.venv/
       depends_on: ["osidb-data"]
       # See "NOTE about healthchecks":
       # depends_on:
@@ -156,6 +157,7 @@ services:
         replicas: ${OSIDB_CELERY_WORKERS_NO:-2}
       volumes:
         - ${PWD}:/opt/app-root/src:z
+        - /opt/app-root/src/.venv/
       environment:
         BZ_METADATA_COLLECTOR_ENABLED: ${BZ_METADATA_COLLECTOR_ENABLED}
         BZ_TRACKER_COLLECTOR_ENABLED: ${BZ_TRACKER_COLLECTOR_ENABLED}
@@ -202,6 +204,7 @@ services:
       command: ./scripts/run-celery-beat.sh
       volumes:
         - ${PWD}:/opt/app-root/src:z
+        - /opt/app-root/src/.venv/
       environment:
         BZIMPORT_BZ_API_KEY: ${BZIMPORT_BZ_API_KEY:?Variable BZIMPORT_BZ_API_KEY must be set.}
         BZIMPORT_BZ_URL: ${BZIMPORT_BZ_URL}
@@ -244,6 +247,7 @@ services:
         - "5555:5555"
       volumes:
         - ${PWD}:/opt/app-root/src:z
+        - /opt/app-root/src/.venv/
       environment:
         DJANGO_SETTINGS_MODULE: "config.settings_local"
         ET_URL: ${ET_URL}
