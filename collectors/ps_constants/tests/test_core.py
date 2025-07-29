@@ -99,7 +99,7 @@ class TestPsConstantsCollection:
             == 1
         )
         assert (
-            Keyword.objects.filter(type=Keyword.Type.ASSIGNERORGID_BLOCKLIST).count()
+            Keyword.objects.filter(type=Keyword.Type.ASSIGNER_ORG_ID_BLOCKLIST).count()
             == 1
         )
 
