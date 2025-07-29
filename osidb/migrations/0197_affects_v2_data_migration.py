@@ -29,6 +29,34 @@ def migrate_trackers(apps):
                     continue
 
 
+def migrate_cvss_scores(apps, new_affects_with_cvss):
+    """
+    Copy the CVSS scores of the v1 affect to the v2 affects.
+    """
+    Affect = apps.get_model("osidb", "Affect")
+
+    cvss_create_batch = []
+    for item in new_affects_with_cvss:
+        affect = item["affect"]
+        for cvss in item["cvss_scores"]:
+            cvss_copy = AffectCVSS(
+                affect=new_affect_instance,
+                issuer=cvss.issuer,
+                score=cvss.score,
+                vector=cvss.vector,
+                version=cvss.version,
+                comment=cvss.comment,
+                created_dt=cvss.created_dt,
+                updated_dt=cvss.updated_dt,
+                acl_read=cvss.acl_read,
+                acl_write=cvss.acl_write,
+            )
+            cvss_create_batch.append(cvss_copy)
+
+    if cvss_create_batch:
+        AffectCVSS.objects.bulk_create(cvss_create_batch, batch_size=BATCH_SIZE)
+
+
 @bypass_rls
 def forwards_func(apps, schema_editor):
     """
@@ -44,8 +72,9 @@ def forwards_func(apps, schema_editor):
 
     update_batch = []
     create_batch = []
+    new_affects_with_cvss = []
 
-    affects_v1 = Affect.objects.all()
+    affects_v1 = Affect.objects.all().prefetch_related("cvss_scores", "trackers")
     for affect in affects_v1:
         v1_affects_processed += 1
 
@@ -65,6 +94,8 @@ def forwards_func(apps, schema_editor):
             ps_update_streams = ps_module.ps_update_streams.filter(
                 name__in=trackers.values_list("ps_update_stream", flat=True)
             )
+
+        cvss_scores = list(affect.cvss_scores.all())
 
         v2_skipped_iter = 0
         first = True
@@ -102,6 +133,12 @@ def forwards_func(apps, schema_editor):
                         acl_write=affect.acl_write,
                     )
                     create_batch.append(affect_v2)
+                    # If the original affect had CVSS scores, store a reference
+                    # so we can copy them later
+                    if cvss_scores:
+                        new_affects_with_cvss.append(
+                            {"affect": affect_v2, "cvss_scores": cvss_scores}
+                        )
                 except Exception as e:
                     print(
                         f"[ERROR] creating AffectV2 for Affect {affect.uuid}, Stream {ps_update_stream.name}: {e}"
@@ -114,6 +151,10 @@ def forwards_func(apps, schema_editor):
                 update_batch.clear()
             if len(create_batch) >= BATCH_SIZE:
                 Affect.objects.bulk_create(create_batch)
+
+                migrate_cvss_scores(apps, new_affects_with_cvss)
+                new_affects_with_cvss.clear()
+
                 v2_affects_created_total += len(create_batch)
                 v2_affects_skipped_total += v2_skipped_iter
                 create_batch.clear()
@@ -128,6 +169,7 @@ def forwards_func(apps, schema_editor):
         update_batch.clear()
     if create_batch:
         Affect.objects.bulk_create(create_batch)
+        migrate_cvss_scores(apps, new_affects_with_cvss)
         v2_affects_created_total += len(create_batch)
         create_batch.clear()
 
