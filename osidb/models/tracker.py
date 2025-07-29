@@ -310,25 +310,11 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not self.affects.exists():
             return
 
-        affect_ps_update_stream = PsUpdateStream.objects.filter(
-            name=self.affects.first().ps_update_stream
-        ).first()
-        if not affect_ps_update_stream:
+        affect_ps_update_stream = self.affects.first().ps_update_stream
+        if affect_ps_update_stream != self.ps_update_stream:
             raise ValidationError(
-                "Tracker must be associated to an affect with a valid PS update stream"
-            )
-
-        ps_update_stream = PsUpdateStream.objects.filter(
-            name=self.ps_update_stream
-        ).first()
-        # PS update stream is checked by a different validation
-        if not ps_update_stream:
-            return
-
-        if ps_update_stream.name != affect_ps_update_stream.name:
-            raise ValidationError(
-                f"Tracker PS update stream {ps_update_stream.name} does not correspond "
-                f"to the related affect's PS update stream {affect_ps_update_stream.name}"
+                f"Tracker PS update stream {self.ps_update_stream} does not correspond "
+                f"to the related affect's PS update stream {affect_ps_update_stream}"
             )
 
     def _validate_tracker_flaw_accesses(self, **kwargs):

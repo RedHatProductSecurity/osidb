@@ -18,6 +18,8 @@ from osidb.models import (
     FlawCVSS,
     Impact,
     Profile,
+    PsModule,
+    PsUpdateStream,
     Tracker,
 )
 from osidb.models.flaw.acknowledgment import FlawAcknowledgment
@@ -232,6 +234,28 @@ def update_denormalized_cve_ids_on_flaw_update(sender, instance, **kwargs):
                     tracker.cve_id = instance.cve_id
                     trackers.add(tracker)
             Tracker.objects.bulk_update(list(trackers), fields=["cve_id"])
+
+
+@receiver(pre_save, sender=PsModule)
+@receiver(pre_save, sender=PsUpdateStream)
+def update_denormalized_ps_module(sender, instance, **kwargs):
+    # Cover the extremely unlikely case in which a ps_module changes name or a
+    # ps_update_stream changes module
+    if not instance._state.adding:
+        if sender is PsModule:
+            db_instance = PsModule.objects.get(pk=instance.pk)
+            if instance.name != db_instance.name:
+                Affect.objects.filter(ps_module=db_instance.name).update(
+                    ps_module=instance.name
+                )
+        elif sender is PsUpdateStream:
+            db_instance = PsUpdateStream.objects.get(pk=instance.pk)
+            new_ps_module = PsModule.objects.filter(name=instance.ps_module).first()
+            old_ps_module = PsModule.objects.filter(name=db_instance.ps_module).first()
+            if new_ps_module != old_ps_module:
+                Affect.objects.filter(ps_module=db_instance.ps_module).update(
+                    ps_module=new_ps_module.name
+                )
 
 
 @receiver(pre_save, sender=Affect)

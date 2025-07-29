@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import migrations
 from osidb.core import set_user_acls
+from osidb.helpers import bypass_rls
 
 BATCH_SIZE = 1000
 
@@ -16,23 +17,24 @@ def migrate_trackers(apps):
         current_affects = list(tracker.affects.all())
         for affect in current_affects:
             if tracker.ps_update_stream != affect.ps_update_stream:
-                affect_v2 = Affect.objects.filter(
-                    flaw=affect.flaw,
-                    ps_component=affect.ps_component,
-                    ps_update_stream=tracker.ps_update_stream,
-                ).first()
-                if affect_v2:
-                    tracker.affects.add(affect_v2)
+                try:
+                    affect_v2 = Affect.objects.get(
+                        flaw=affect.flaw,
+                        ps_component=affect.ps_component,
+                        ps_update_stream=tracker.ps_update_stream,
+                    )
                     tracker.affects.remove(affect)
+                    tracker.affects.add(affect_v2)
+                except Affect.DoesNotExist:
+                    continue
 
 
+@bypass_rls
 def forwards_func(apps, schema_editor):
     """
     Generate affects v2 from affects v1, by expanding the ps_modules into the available
     ps_update_streams.
     """
-    set_user_acls(settings.ALL_GROUPS)
-
     Affect = apps.get_model("osidb", "Affect")
     PsModule = apps.get_model("osidb", "PsModule")
 
