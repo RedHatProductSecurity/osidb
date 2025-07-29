@@ -14,34 +14,26 @@ jobs:
       # it much simpler to transition from GitLab to GitHub as we use the
       # same image and dependencies / setup as before, it should probably
       # be revisited in the not-so-distant future
-      image: quay.io/fedora/fedora:latest
-      credentials:
-        username: ${{ secrets.QUAY_REGISTRY_USERNAME }}
-        password: ${{ secrets.QUAY_REGISTRY_TOKEN }}
+      image: registry.access.redhat.com/ubi9/ubi:9.6
     services:
       postgres:
-        image: registry.redhat.io/rhel8/postgresql-13:1
+        image: mirror.gcr.io/library/postgres:13
         env:
-          POSTGRESQL_ADMIN_PASSWORD: test
+          POSTGRES_PASSWORD: test
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        credentials:
-          username: ${{ secrets.RH_REGISTRY_USERNAME }}
-          password: ${{ secrets.RH_REGISTRY_TOKEN }}
       testldap:
-        image: quay.io/prodsecdev/openldap:2.5.7-debian-10-r57
+        image: mirror.gcr.io/bitnami/openldap:2.5
         env:
           LDAP_ROOT: dc=redhat,dc=com
           LDAP_ADMIN_USERNAME: admin
           LDAP_ADMIN_PASSWORD: adminpassword
-        credentials:
-          username: ${{ secrets.QUAY_REGISTRY_USERNAME }}
-          password: ${{ secrets.QUAY_REGISTRY_TOKEN }}
+          BITNAMI_DEBUG: true
       redis:
-        image: redis
+        image: mirror.gcr.io/library/redis:6
     steps:
       - uses: actions/checkout@v4
       # This step is required in order to install python-ldap
@@ -50,54 +42,33 @@ jobs:
         run: echo "INPUT ( libldap.so )" > /usr/lib64/libldap_r.so
       - name: Install required packages
         run: >
-          dnf install -y
-          asciidoc
-          asciidoctor
-          bandit
-          cpio
-          dnf-plugins-core
-          enchant
-          findutils
+          dnf --nodocs --setopt install_weak_deps=false -y install
+          cargo
           gcc
           git
           krb5-devel
-          krb5-server
           krb5-workstation
-          libcap-devel
+          libffi-devel
+          libpq-devel
           make
           openldap-clients
           openldap-devel
-          openssh
-          openssh-clients
           openssl-devel
-          postgresql-contrib
-          postgresql-devel
-          postgresql-server-devel
-          python-srpm-macros
+          postgresql
           python3-devel
-          python3-pycodestyle
-          python3-pylint
-          python3-pytest
-          python3-pytest-cov
-          python3.9
-          python36
+          python3-pip
+          python3-wheel
           redhat-rpm-config
-          rpm-build
-          rpmlint
-          rsync
-          tox
-          wget
-          which
       - name: Setup PostgreSQL service
         run: psql -f etc/pg/local-dev-app-user.sql postgres://postgres:test@postgres:5432/
       - name: Setup LDAP service
         run: ldapadd -c -H "ldap://testldap:1389" -x -D "cn=admin,dc=redhat,dc=com" -w "adminpassword" -f etc/openldap/local-export.ldif || true
+      - name: Install tox
+        run: pip3 install tox==3.25.1
       - name: Run OSIDB tests
         env:
-          ET_URL: ${{ secrets.ET_URL }}
-          PRODUCT_DEF_URL: ${{ secrets.PRODUCT_DEF_URL }}
-          PS_CONSTANTS_URL: ${{ secrets.PS_CONSTANTS_URL }}
-          HTTPS_TASKMAN_PROXY: ${{ secrets.HTTPS_TASKMAN_PROXY }}
-          JIRA_TASKMAN_URL: ${{ secrets.JIRA_TASKMAN_URL }}
-          JIRA_TASKMAN_PROJECT_KEY: ${{ secrets.JIRA_TASKMAN_PROJECT_KEY }}
+          ET_URL: https://example.com
+          PRODUCT_DEF_URL: https://example.com
+          PS_CONSTANTS_URL: https://example.com
+          JIRA_TASKMAN_URL: https://example.com
         run: tox -e ci-osidb
