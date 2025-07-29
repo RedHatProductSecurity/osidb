@@ -20,7 +20,7 @@ check-reg:
 .PHONY: check-venv
 check-venv:
 	@echo ">Checking local dev venv existence"
-	@([[ ! -z "${CI}" ]] && exit 0) || ([[ -d venv ]] || [[ -f .python-version ]] || { echo "venv not created! Read about make dev-env in DEVELOPMENT.md." ; exit 1 ; })
+	@([[ ! -z "${CI}" ]] && exit 0) || ([[ -d .venv ]] || [[ -f .python-version ]] || { echo "venv not created! Read about make dev-env in DEVELOPMENT.md." ; exit 1 ; })
 
 
 #***********************************
