@@ -57,8 +57,11 @@ PRODUCT_DEF_BRANCH="master"
 # PS Constants git URL
 PS_CONSTANTS_URL="https://foo.bar"
 
-# Repository from which to pull packages (optional)
+# Repository from which to pull packages for images (optional)
 PIP_INDEX_URL="https://foo.bar"
+
+# Repository from which to pull packages for development (optional)
+DEV_INDEX_URL="https://foo.bar"
 
 # URL from which to pull Red Hat internal certificates (optional)
 RH_CERT_URL="https://foo.bar"
@@ -590,8 +593,15 @@ Instead of running commands manually for project/local lockfiles, you can use
 $ make sync-deps
 ```
 
-Note that the command will re-install local packages since `uv sync` will remove them. `uv sync` calls in the
-make commands are also called with `--locked`.
+You can also sync the dependencies by pulling from a specific repository. To do so, set `DEV_INDEX_URL`
+in `.env` and run
+
+```bash
+$ make sync-deps-index
+```
+
+Note that the commands will re-install local packages defined in `local-requirements.txt`
+since `uv sync` removes them. 
 
 As for what each requirements file holds, here's a quick explanation for each:
 - `uv.lock`: dependencies necessary for OSIDB split into two sections (see `pyproject.toml`):

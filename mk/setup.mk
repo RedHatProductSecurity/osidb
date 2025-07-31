@@ -2,6 +2,7 @@
 ## Development environment setup
 ############################################################################
 
+-include .env
 
 #***********************************
 ### Delete environment, containers
@@ -69,6 +70,18 @@ sync-deps: check-venv-active
 	@echo ">synchronizing python dependencies in local venv"
 	$(uv) sync --locked && \
 	[ ! -f local-requirements.txt ] || $(uv) pip install -r 'local-requirements.txt' --no-deps
+
+
+#***********************************
+### Sync local venv using a specified repository
+#***********************************
+# Note that DEV_INDEX_URL should be set without quotation marks
+.PHONY: sync-deps-index
+sync-deps-index: check-venv-active
+	@echo ">synchronizing python dependencies via specified index"
+	[ -n "$(DEV_INDEX_URL)" ] && \
+	$(uv) sync --frozen --native-tls --index $(DEV_INDEX_URL) && \
+	$(uv) pip install --native-tls --index $(DEV_INDEX_URL) -r 'local-requirements.txt' --no-deps
 
 
 #***********************************
