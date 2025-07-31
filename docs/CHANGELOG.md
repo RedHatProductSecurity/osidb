@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Emit a warning instead of an error when the PURL-derived PsComponent doesn't
   match a user-provided PsComponent (OSIDB-4367)
 
+### Fixed
+- Fix the available-flaws API giving a 404 on non-existent flaws instead of 204 (OSIDB-4397).
+
 ## [4.14.0] - 2025-07-23
 ### Added
 - Add endpoint that checks if flaw is public or has its work completed (OSIDB-4328)
