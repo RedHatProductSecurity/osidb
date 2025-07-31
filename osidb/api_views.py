@@ -830,9 +830,9 @@ def flaw_available(request: Request, *args, **kwargs) -> Response:
     """
     Report whether a flaw is available for public consumption purposes
     based on the following criteria:
-    1) The work on the flaw is done, or the flaw is public:
+    1) The work on the flaw is done, or the flaw is public, or the flaw doesn't exist in the DB:
         - 204 status (yes, flaw is available for public consumption)
-    2) The work on the flaw is not done yet, or the flaw doesn't exist in the DB:
+    2) The work on the flaw is not done yet:
         - 404 status (no, flaw is unavailable for public consumption)
     3) Invalid CVE ID:
         - 400 status
@@ -858,7 +858,7 @@ def flaw_available(request: Request, *args, **kwargs) -> Response:
         set_user_acls([])
     except Flaw.DoesNotExist:
         set_user_acls([])
-        return Response(status=HTTP_404_NOT_FOUND)
+        return Response(status=HTTP_204_NO_CONTENT)
 
     if (
         flaw.is_public
