@@ -84,7 +84,7 @@ def sync_cveorg_keywords(source: dict) -> None:
             (Keyword.Type.BLOCKLIST_SPECIAL_CASE, source["blocklist_special_cases"]),
             (
                 Keyword.Type.ASSIGNER_ORG_ID_BLOCKLIST,
-                source["assigner_org_id_blocklist"],
+                source.get("assigner_org_id_blocklist", []), # default to empty list
             ),
         ]
     except KeyError:
