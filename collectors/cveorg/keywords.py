@@ -8,8 +8,10 @@ from collectors.cveorg.models import Keyword
 class MissingKeywordsException(Exception):
     pass
 
+
 def get_keywords(_type: Keyword.Type) -> QuerySet:
-        return Keyword.objects.filter(type=_type).values_list("keyword", flat=True)
+    return Keyword.objects.filter(type=_type).values_list("keyword", flat=True)
+
 
 def check_keywords(text):
     """

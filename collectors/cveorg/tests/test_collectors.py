@@ -77,7 +77,6 @@ class TestCVEorgCollector:
         assert not Flaw.objects.filter(cve_id="CVE-2024-0203")  # not passing keywords
         assert not Flaw.objects.filter(cve_id="CVE-2024-1087")  # rejected flaw
 
-
     def test_ignored_cve_with_blocked_cna_assignerid(self, mock_keywords, mock_repo):
         """
         Test that snippets and flaws are not created when the assigning cna is blocked by ps_constants
@@ -90,7 +89,6 @@ class TestCVEorgCollector:
         cc.collect_cve(cve_id)
 
         assert Flaw.objects.count() == 0
-
 
     @pytest.mark.vcr
     @pytest.mark.default_cassette(
