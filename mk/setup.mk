@@ -2,6 +2,7 @@
 ## Development environment setup
 ############################################################################
 
+-include .env
 
 #***********************************
 ### Delete environment, containers
@@ -21,7 +22,7 @@ clean:
 	rm -rf osidbcov
 	rm -rf mypyreport
 	rm -rf src/prodsec
-	rm -rf venv
+	rm -rf .venv
 	rm -f etc/pg/local-server.*
 
 
@@ -41,60 +42,75 @@ githooks: check-venv-active
 .PHONY: dev-env
 dev-env:
 	@echo -n "This will check installed RPMs, create certificate files within the current directory, build local podman images, and create a python venv within the current directory. Continue? [y/N]" && read ans && [ $${ans:-N} = y ]
-	make dev-rpm-install
-	make check-reg
-	make generate_local_pg_tls_cert
-	make build
-	make venv
-	make check-venv
-	source venv/bin/activate && make sync-deps
-
+	$(MAKE) dev-rpm-install
+	$(MAKE) check-reg
+	$(MAKE) generate_local_pg_tls_cert
+	$(MAKE) build
+	$(MAKE) venv
+	$(MAKE) check-venv
 
 #***********************************
-### Compile deps from requirements*.in into requirements*.txt
+### Compile deps from pyproject.toml to uv.lock
 #***********************************
 .PHONY : compile-deps
 compile-deps: check-venv-active
 	@echo ">compiling python dependencies"
-	$(pc) --generate-hashes --allow-unsafe --no-emit-index-url requirements.in
-	$(pc) --generate-hashes --allow-unsafe --no-emit-index-url devel-requirements.in
-	[ -f local-requirements.in ] && $(pc) --generate-hashes --allow-unsafe --no-emit-index-url local-requirements.in || true
-
+	$(uv) lock && \
+	[ ! -f local-requirements.in ] || \
+	($(uv) export -o cons-requirements.txt && \
+	$(uv) pip compile --generate-hashes 'local-requirements.in' -o 'local-requirements.txt'; \
+	rm cons-requirements.txt)
+	
 
 #***********************************
-### Sync local venv to match requirements*.txt
+### Sync local venv to match uv.lock
 #***********************************
 .PHONY : sync-deps
 sync-deps: check-venv-active
 	@echo ">synchronizing python dependencies in local venv"
-	$(ps) requirements.txt devel-requirements.txt $$([ -f local-requirements.txt ] && echo 'local-requirements.txt')
+	$(uv) sync --locked && \
+	[ ! -f local-requirements.txt ] || $(uv) pip install -r 'local-requirements.txt' --no-deps
 
 
 #***********************************
-### Upgrade pinned package selectively. Read DEVELOP.md for details. Example: make upgrade-dep package=requests==2.0.0 reqfile=requirements.in
+### Sync local venv using a specified repository
+#***********************************
+# Note that DEV_INDEX_URL should be set without quotation marks
+.PHONY: sync-deps-index
+sync-deps-index: check-venv-active
+	@echo ">synchronizing python dependencies via specified index"
+	[ -n "$(DEV_INDEX_URL)" ] && \
+	$(uv) sync --frozen --native-tls --index $(DEV_INDEX_URL) && \
+	$(uv) pip install --native-tls --index $(DEV_INDEX_URL) -r 'local-requirements.txt' --no-deps
+
+
+#***********************************
+### Upgrade pinned package selectively. Read DEVELOP.md for details
 #***********************************
 .PHONY : upgrade-dep
 upgrade-dep: check-venv-active
-	@echo ">upgrading specified packages"
-	$(pc) --allow-unsafe --generate-hashes --no-emit-index-url -P $(package) $(reqfile)
+	@echo ">upgrading specified packages. Local package? [y/N] " && read ans && [ $${ans:-N} = y ] && \
+	$(uv) pip compile --generate-hashes -P $(package) 'local-requirements.in' -o 'local-requirements.txt' || \
+	$(uv) lock -P $(package) 
+	
 
 #***********************************
-### Update installed python packages based on requirements.txt both in local venv and in all containers
+### Update installed python packages based on uv.lock both in local venv and in all containers
 #***********************************
-.PHONY : apply-requirements-txt
+.PHONY : apply-uv-sync
 apply-requirements-txt: check-reg check-venv sync-deps compose-up
-	@echo ">appyling requirements.txt on osidb-service"
-	$(podman) exec -it osidb-service pip3 install -r /opt/app-root/src/requirements.txt
-	@echo ">appyling requirements.txt on osidb_celery_1"
-	$(podman) exec -it osidb_celery_1 pip3 install -r /opt/app-root/src/requirements.txt
-	@echo ">appyling requirements.txt on osidb_celery_2" # if you have more celery replicas, you're on your own
-	$(podman) exec -it osidb_celery_2 pip3 install -r /opt/app-root/src/requirements.txt || true  # do not fail if only 1 host is configured
-	@echo ">appyling requirements.txt on celery_beat"
-	$(podman) exec -it celery_beat pip3 install -r /opt/app-root/src/requirements.txt
-	@echo ">appyling requirements.txt on flower"
-	$(podman) exec -it flower pip3 install -r /opt/app-root/src/requirements.txt
-	@echo ">appyling requirements.txt on testrunner"
-	$(podman) exec -it testrunner pip install -r /opt/app-root/src/devel-requirements.txt
+	@echo ">appyling uv sync on osidb-service"
+	$(podman) exec -it osidb-service uv sync --frozen --no-dev
+	@echo ">appyling uv sync on osidb_celery_1"
+	$(podman) exec -it osidb_celery_1 uv sync --frozen  --no-dev
+	@echo ">appyling uv sync on osidb_celery_2" # if you have more celery replicas, you're on your own
+	$(podman) exec -it osidb_celery_2 uv sync --frozen --no-dev || true  # do not fail if only 1 host is configured
+	@echo ">appyling uv sync on celery_beat"
+	$(podman) exec -it celery_beat uv sync --frozen --no-dev
+	@echo ">appyling uv sync on flower"
+	$(podman) exec -it flower uv sync --frozen --no-dev
+	@echo ">appyling uv sync on testrunner"
+	$(podman) exec -it testrunner uv sync --frozen --only-dev
 	make stop-local
 	@echo "FYI, containers stopped"
 
@@ -130,9 +146,9 @@ build:
 .PHONY: venv
 venv:
 	@echo ">Creating venv for local development environment"
-	python3.9 -m venv venv
-	# --no-deps is a workaround to https://github.com/pypa/pip/issues/9644, see tox.ini for more info
-	source venv/bin/activate && pip install wheel && pip install -r requirements.txt -r devel-requirements.txt $$([ -f local-requirements.txt ] && echo '-r local-requirements.txt') --no-deps
+	python3.9 -m venv .venv
+	source .venv/bin/activate && pip install uv==0.8.3 && $(uv) sync && \
+	[ ! -f local-requirements.txt ] || $(uv) pip install -r 'local-requirements.txt' --no-deps 
 
 
 #***********************************

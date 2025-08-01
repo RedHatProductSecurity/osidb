@@ -3,4 +3,6 @@ attic
 adrs
 docs
 venv
+.venv
+
 etc/pg/local-server.*

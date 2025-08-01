@@ -63,12 +63,16 @@ jobs:
         run: psql -f etc/pg/local-dev-app-user.sql postgres://postgres:test@postgres:5432/
       - name: Setup LDAP service
         run: ldapadd -c -H "ldap://testldap:1389" -x -D "cn=admin,dc=redhat,dc=com" -w "adminpassword" -f etc/openldap/local-export.ldif || true
-      - name: Install tox
-        run: pip3 install tox==3.25.1
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.3"
+      - name: Install tox and tox-uv
+        run: uv tool install tox==4.28.1 -w tox-uv==1.26.2
       - name: Run OSIDB tests
         env:
           ET_URL: https://example.com
           PRODUCT_DEF_URL: https://example.com
           PS_CONSTANTS_URL: https://example.com
           JIRA_TASKMAN_URL: https://example.com
-        run: tox -e ci-osidb
+        run: uvx tox -e ci-osidb
