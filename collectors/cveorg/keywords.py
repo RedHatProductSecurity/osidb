@@ -9,15 +9,16 @@ class MissingKeywordsException(Exception):
     pass
 
 
+def get_keywords(_type: Keyword.Type) -> QuerySet:
+    return Keyword.objects.filter(type=_type).values_list("keyword", flat=True)
+
+
 def check_keywords(text):
     """
     Checks if a specified text is relevant or not based on found keywords.
 
     Returns tuple of matched blocklisted and allowlisted keywords.
     """
-
-    def get_keywords(_type: Keyword.Type) -> QuerySet:
-        return Keyword.objects.filter(type=_type).values_list("keyword", flat=True)
 
     allowlisted_keywords = [
         re.compile(rf"\b{keyword}\b", re.IGNORECASE)

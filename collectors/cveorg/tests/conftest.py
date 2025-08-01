@@ -37,6 +37,10 @@ def mock_keywords(monkeypatch) -> None:
     Keyword(keyword="IBM Tivoli", type=Keyword.Type.BLOCKLIST).save()
     Keyword(keyword="iTunes", type=Keyword.Type.BLOCKLIST).save()
     Keyword(keyword="iOS", type=Keyword.Type.BLOCKLIST_SPECIAL_CASE).save()
+    Keyword(
+        keyword="461b2335-328f-427d-ae3d-eff7d6814455",
+        type=Keyword.Type.ASSIGNER_ORG_ID_BLOCKLIST,
+    ).save()  # Assigner id for larry cashdollar
 
 
 @pytest.fixture
@@ -65,7 +69,7 @@ def mock_repo(monkeypatch, repo_path) -> None:
         return stdout, period_end
 
     def get_cve_file_path(self, cve):
-        return f"{repo_path}/CVE-2024-0181.json"
+        return f"{repo_path}/{cve}.json"
 
     monkeypatch.setattr(CVEorgCollector, "REPO_PATH", repo_path)
     monkeypatch.setattr(CVEorgCollector, "CVE_PATH", cve_path)
