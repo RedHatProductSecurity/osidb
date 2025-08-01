@@ -3,6 +3,7 @@ import re
 import uuid
 
 import pghistory
+from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
@@ -55,7 +56,7 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
             super()
             .get_queryset()
             .prefetch_related(
-                "trackers",
+                "tracker",
             )
             .annotate(
                 ps_product_name=models.Subquery(
@@ -67,12 +68,12 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
         )
 
     @staticmethod
-    def create_affect(flaw, ps_module, ps_component, **extra_fields):
+    def create_affect(flaw, ps_update_stream, ps_component, **extra_fields):
         """return a new affect or update an existing affect without saving"""
 
         try:
             affect = Affect.objects.get(
-                flaw=flaw, ps_module=ps_module, ps_component=ps_component
+                flaw=flaw, ps_update_stream=ps_update_stream, ps_component=ps_component
             )
             for attr, value in extra_fields.items():
                 setattr(affect, attr, value)
@@ -80,7 +81,7 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
         except ObjectDoesNotExist:
             return Affect(
                 flaw=flaw,
-                ps_module=ps_module,
+                ps_update_stream=ps_update_stream,
                 ps_component=ps_component,
                 **extra_fields,
             )
@@ -92,7 +93,7 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
 
         fields_to_search = (
             "ps_component",
-            "ps_module",
+            "ps_update_stream",
             "resolution",
             "affectedness",
             "type",
@@ -165,7 +166,17 @@ class Affect(
         blank=True,
     )
 
-    ps_module = models.CharField(max_length=100)
+    ps_update_stream = models.CharField()
+    # ps_module is denormalized as it is still used extensively
+    ps_module = models.CharField(blank=True)
+
+    tracker = models.ForeignKey(
+        "Tracker",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="affects",
+    )
 
     # the length 255 does not have any special meaning in Postgres
     # but it is the maximum SFM2 value so let us just keep parity for now
@@ -193,7 +204,7 @@ class Affect(
     class Meta:
         """define meta"""
 
-        unique_together = ("flaw", "ps_module", "ps_component")
+        unique_together = ("flaw", "ps_update_stream", "ps_component")
         ordering = (
             "created_dt",
             "uuid",
@@ -201,7 +212,7 @@ class Affect(
         verbose_name = "Affect"
         indexes = TrackingMixin.Meta.indexes + [
             models.Index(fields=["cve_id"]),
-            models.Index(fields=["flaw", "ps_module"]),
+            models.Index(fields=["flaw", "ps_update_stream"]),
             models.Index(fields=["flaw", "ps_component"]),
             GinIndex(fields=["acl_read"]),
         ]
@@ -254,6 +265,14 @@ class Affect(
         else:
             # Not resolved affects should never have resolved_dt
             self.resolved_dt = None
+
+        ps_update_stream = PsUpdateStream.objects.filter(
+            name=self.ps_update_stream
+        ).first()
+        if ps_update_stream:
+            self.ps_module = ps_update_stream.ps_module.name
+        else:
+            self.ps_module = None
 
         super().save(*args, **kwargs)
 
@@ -357,7 +376,7 @@ class Affect(
                 or self.resolution != old_affect.resolution
             ):
                 raise ValidationError(
-                    f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has an invalid "
+                    f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} has an invalid "
                     f"affectedness/resolution combination: {self.resolution} is not a valid resolution "
                     f"for {self.affectedness}."
                 )
@@ -366,7 +385,7 @@ class Affect(
             # impact, throw an alert
             self.alert(
                 "flaw_historical_affect_status",
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has a "
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} has a "
                 "historical affectedness/resolution combination which is not valid anymore: "
                 f"{self.resolution} is not a valid resolution for {self.affectedness}.",
                 **kwargs,
@@ -383,7 +402,7 @@ class Affect(
             not in AFFECTEDNESS_HISTORICAL_VALID_RESOLUTIONS[self.affectedness]
         ):
             raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has an invalid "
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} has an invalid "
                 f"affectedness/resolution combination: {self.resolution} is not a valid resolution "
                 f"for {self.affectedness}."
             )
@@ -394,12 +413,11 @@ class Affect(
         """
         if (
             self.affectedness == Affect.AffectAffectedness.NOTAFFECTED
-            and self.trackers.exclude(
-                status__iexact="CLOSED"
-            ).exists()  # see tracker.is_closed
+            and self.tracker is not None
+            and self.tracker.status != "CLOSED"  # see tracker.is_closed
         ):
             raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as "
                 "NOTAFFECTED but has open tracker(s).",
             )
 
@@ -409,12 +427,11 @@ class Affect(
         """
         if (
             self.resolution == Affect.AffectResolution.OOSS
-            and self.trackers.exclude(
-                status__iexact="CLOSED"
-            ).exists()  # see tracker.is_closed
+            and self.tracker is not None
+            and self.tracker.status != "CLOSED"  # see tracker.is_closed
         ):
             raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as "
                 "OOSS but has open tracker(s).",
             )
 
@@ -424,12 +441,11 @@ class Affect(
         """
         if (
             self.resolution == Affect.AffectResolution.WONTFIX
-            and self.trackers.exclude(
-                status__iexact="CLOSED"
-            ).exists()  # see tracker.is_closed
+            and self.tracker is not None
+            and self.tracker.status != "CLOSED"  # see tracker.is_closed
         ):
             raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as "
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as "
                 "WONTFIX but has open tracker(s).",
             )
 
@@ -439,10 +455,11 @@ class Affect(
         """
         if (
             self.resolution == Affect.AffectResolution.DEFER
-            and self.trackers.exclude(status__iexact="CLOSED").exists()
+            and self.tracker is not None
+            and self.tracker.status != "CLOSED"  # see tracker.is_closed
         ):
             raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} cannot have "
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} cannot have "
                 "resolution DEFER with open tracker(s).",
             )
 
@@ -515,7 +532,7 @@ class Affect(
                 or ps_module.ps_product.short_name not in SERVICES_PRODUCTS
             ):
                 raise ValidationError(
-                    f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} is marked as WONTREPORT, "
+                    f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as WONTREPORT, "
                     f"which can only be used for service products."
                 )
 
@@ -529,7 +546,7 @@ class Affect(
             and self.impact not in [Impact.LOW, Impact.MODERATE]
         ):
             raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module}/{self.ps_component} has impact {self.impact} "
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} has impact {self.impact} "
                 f"and is marked as WONTREPORT, which can only be used with low or moderate impact."
             )
 
@@ -566,7 +583,7 @@ class Affect(
         """
         if not self.purl and not self.ps_component:
             raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_module} must have either purl or ps_component."
+                f"Affect ({self.uuid}) for {self.ps_update_stream} must have either purl or ps_component."
             )
 
     def _validate_purl_and_ps_component(self, **kwargs):
@@ -584,7 +601,7 @@ class Affect(
                 ps_component_from_purl = self.ps_component_from_purl(True)
             except ValueError as exc:
                 raise ValidationError(
-                    f"Affect ({self.uuid}) for {self.ps_module} has "
+                    f"Affect ({self.uuid}) for {self.ps_update_stream} has "
                     f"an invalid purl '{self.purl}': {exc}."
                 )
 
@@ -610,6 +627,190 @@ class Affect(
             raise ValidationError(
                 f"Affect ({self.uuid}) is set as NOTAFFECTED but the 'not affected justification' is empty."
             )
+
+    @property
+    def aggregated_impact(self):
+        """
+        this property equals Flaw's impact if the Affect's impact is blank, or
+        equals the Affect's impact if the Affect's impact is not blank
+        """
+        if not self.impact:
+            return Impact(self.flaw.impact)
+        else:
+            return Impact(self.impact)
+
+    @property
+    def delegated_resolution(self):
+        """affect delegated resolution based on the resolution of its related tracker"""
+        if not (
+            self.affectedness == Affect.AffectAffectedness.AFFECTED
+            and self.resolution == Affect.AffectResolution.DELEGATED
+        ):
+            return None
+
+        # exclude the trackers closed as duplicate or migrated from Bugzilla
+        trackers_regex = re.compile(r"(duplicate|migrated)", re.IGNORECASE)
+        if not self.tracker or trackers_regex.match(self.tracker.resolution):
+            return Affect.AffectFix.AFFECTED
+
+        tracker_status = self.tracker.fix_state
+        for status in (
+            Affect.AffectFix.AFFECTED,
+            Affect.AffectFix.WONTFIX,
+            Affect.AffectFix.OOSS,
+            Affect.AffectFix.DEFER,
+            Affect.AffectFix.NOTAFFECTED,
+        ):
+            if status == tracker_status:
+                if (
+                    self.aggregated_impact == Impact.LOW
+                    and status == Affect.AffectFix.WONTFIX
+                ):
+                    # special handling for LOWs
+                    return Affect.AffectFix.DEFER
+
+                return status
+
+        # We don't know. Maybe the tracker doesn't have a valid resolution; default to "Affected".
+        logger.error("How did we get here??? %s, %s", self.tracker, tracker_status)
+
+        return Affect.AffectFix.AFFECTED
+
+    @property
+    def delegated_not_affected_justification(self):
+        """
+        Delegated not affected justification based on the not affected justification of
+        its related Jira tracker.
+
+        If the related tracker is closed as 'Not a Bug' then use its justification, otherwise
+        the delegated justification is empty.
+        """
+        from apps.taskman.service import TaskResolution
+        from osidb.models.tracker import Tracker
+
+        if (
+            self.tracker is None
+            or self.tracker.type == Tracker.TrackerType.JIRA
+            or self.tracker.resolution != TaskResolution.NOT_A_BUG
+        ):
+            return NotAffectedJustification.NOVALUE
+        return self.tracker.not_affected_justification
+
+    @property
+    def is_community(self) -> bool:
+        """
+        check and return whether the given affect is community one
+        """
+        return PsModule.objects.filter(
+            name=self.ps_module, ps_product__business_unit="Community"
+        ).exists()
+
+    @property
+    def is_notaffected(self) -> bool:
+        """
+        check and return whether the given affect is set as not affected or not to be fixed
+        """
+        return (
+            self.affectedness == Affect.AffectFix.NOTAFFECTED
+            or self.resolution == Affect.AffectResolution.WONTFIX
+        )
+
+    @property
+    def is_resolved(self) -> bool:
+        """
+        check and return whether the given affect is considered resolved
+        and should have a resolution date
+        """
+        return (
+            self.affectedness not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS
+            or self.resolution
+            not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS[self.affectedness]
+        )
+
+    @property
+    def is_rhscl(self) -> bool:
+        """
+        check and return whether the given affect is RHSCL one
+        """
+        return PsModule.objects.filter(
+            name=self.ps_module, bts_key=RHSCL_BTS_KEY
+        ).exists()
+
+    @property
+    def is_unknown(self) -> bool:
+        """
+        check and return whether the given affect has unknown PS module
+        """
+        return not PsModule.objects.filter(name=self.ps_module).exists()
+
+    @property
+    def ps_product(self):
+        if hasattr(self, "ps_product_name"):
+            # If the queryset was annotated with ps_product_name, use it
+            return self.ps_product_name
+        ps_module = PsModule.objects.filter(name=self.ps_module).first()
+        if not ps_module:
+            return None
+        return ps_module.ps_product.name
+
+    def bzsync(self, *args, **kwargs):
+        """
+        Bugzilla sync of the Affect instance
+        """
+        self.save()
+        # Affect needs to be synced through flaw
+        self.flaw.save(*args, **kwargs)
+
+
+class AffectV1(models.Model):
+    """
+    Read-only model that maps to the 'affect_v1' database view, used to maintain
+    compatibility with v1 of the API.
+    """
+
+    uuid = models.UUIDField(primary_key=True, editable=False)
+    affectedness = models.CharField(
+        max_length=100, choices=Affect.AffectAffectedness.choices
+    )
+    resolution = models.CharField(
+        max_length=100, choices=Affect.AffectResolution.choices
+    )
+    ps_module = models.CharField(max_length=100)
+    ps_component = models.CharField(max_length=255)
+    purl = models.TextField(blank=True)
+    impact = models.CharField(max_length=20, blank=True, choices=Impact.choices)
+    not_affected_justification = models.CharField(max_length=100, blank=True)
+    resolved_dt = models.DateTimeField(null=True, blank=True)
+    meta_attr = HStoreField(default=dict)
+    flaw = models.ForeignKey(
+        Flaw, null=True, on_delete=models.DO_NOTHING, db_column="flaw_id"
+    )
+
+    # Mirrored fields from mixins
+    last_validated_dt = models.DateTimeField(blank=True, default=timezone.now)
+    created_dt = models.DateTimeField()
+    updated_dt = models.DateTimeField()
+    acl_read = fields.ArrayField(models.UUIDField(), default=list)
+    acl_write = fields.ArrayField(models.UUIDField(), default=list)
+
+    # Map to the array_agg SQL field that have all the related trackers/cvss scores
+    # from the v2 affects
+    all_tracker_ids = fields.ArrayField(models.UUIDField(), blank=True, null=True)
+    all_cvss_score_ids = fields.ArrayField(models.UUIDField(), blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = "affect_v1"
+        verbose_name = "Affect V1"
+        ordering = ["created_dt", "uuid"]
+
+    @property
+    def trackers(self):
+        from osidb.models import Tracker
+
+        if not self.all_tracker_ids:
+            return Tracker.objects.none()
+        return Tracker.objects.filter(uuid__in=self.all_tracker_ids)
 
     @property
     def aggregated_impact(self):
@@ -760,13 +961,18 @@ class Affect(
             return None
         return ps_module.ps_product.name
 
-    def bzsync(self, *args, **kwargs):
-        """
-        Bugzilla sync of the Affect instance
-        """
-        self.save()
-        # Affect needs to be synced through flaw
-        self.flaw.save(*args, **kwargs)
+    # Mirrored properties from mixins
+    @property
+    def is_embargoed(self):
+        return self.acl_read == ACLMixin.get_embargoed_acl()
+
+    @property
+    def is_internal(self):
+        return set(self.acl_read + self.acl_write) == self.acls_internal
+
+    @property
+    def is_public(self):
+        return set(self.acl_read + self.acl_write) == self.acls_public
 
 
 class AffectCVSSManager(ACLMixinManager, TrackingMixinManager):
@@ -818,16 +1024,20 @@ class AffectCVSS(CVSS):
         self.affect.save(*args, **kwargs)
 
     def sync_to_trackers(self, jira_token):
-        """Sync this CVSS in the related Jira trackers."""
+        """Sync this CVSS in the related Jira tracker."""
         from osidb.models.tracker import Tracker
 
         if self.affect.is_community:
             return
 
-        for tracker in self.affect.trackers.all():
-            if not tracker.is_closed and tracker.type == Tracker.TrackerType.JIRA:
-                # default save already sync with Jira when needed
-                tracker.save(jira_token=jira_token)
+        tracker = self.affect.tracker
+        if (
+            tracker
+            and not tracker.is_closed
+            and tracker.type == Tracker.TrackerType.JIRA
+        ):
+            # default save already sync with Jira when needed
+            tracker.save(jira_token=jira_token)
 
 
 # List of all states an Affect is considered open/not resolved

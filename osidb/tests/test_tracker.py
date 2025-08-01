@@ -41,26 +41,26 @@ class TestTracker:
         """
         test that the aggregated impact is properly computed
         """
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw1 = FlawFactory(impact=flaw1_impact)
         flaw2 = FlawFactory(embargoed=flaw1.embargoed, impact=flaw2_impact)
 
         affect1 = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             flaw=flaw1,
+            ps_update_stream=ps_update_stream.name,
             impact=affect1_impact,
             resolution=Affect.AffectResolution.DELEGATED,
         )
         affect2 = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             flaw=flaw2,
+            ps_update_stream=ps_update_stream.name,
             impact=affect2_impact,
-            ps_module=affect1.ps_module,
             ps_component=affect1.ps_component,
             resolution=Affect.AffectResolution.DELEGATED,
         )
-
-        ps_module = PsModuleFactory(name=affect1.ps_module)
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
 
         tracker = TrackerFactory(
             affects=[affect1, affect2],
@@ -75,24 +75,25 @@ class TestTracker:
         """
         Test that the last impact increase date is correctly recorded in the tracker.
         """
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw1 = FlawFactory(embargoed=False)
         flaw2 = FlawFactory(embargoed=flaw1.embargoed)
         affect1 = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             flaw=flaw1,
+            ps_update_stream=ps_update_stream.name,
             impact="LOW",
             resolution=Affect.AffectResolution.DELEGATED,
         )
         affect2 = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             flaw=flaw2,
+            ps_update_stream=ps_update_stream.name,
             impact="LOW",
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=affect1.ps_module,
             ps_component=affect1.ps_component,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
-        ps_module = PsModuleFactory(name=affect1.ps_module)
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
 
         tracker = TrackerFactory(
             affects=[affect1, affect2],
@@ -133,11 +134,10 @@ class TestTracker:
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
             impact="",
             resolution=Affect.AffectResolution.DELEGATED,
         )
-        ps_module = PsModuleFactory(name=affect.ps_module)
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=flaw.embargoed,
@@ -168,21 +168,26 @@ class TestTracker:
             unacked_to_ps_module=ps_module,
         )
 
-        affect = AffectFactory(
+        affect1 = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=acked_ps_update_stream.name,
+        )
+        affect2 = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=unacked_ps_update_stream.name,
         )
 
         acked_tracker = TrackerFactory(
-            affects=[affect],
-            embargoed=affect.flaw.embargoed,
+            affects=[affect1],
+            embargoed=affect1.flaw.embargoed,
             ps_update_stream=acked_ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
         unacked_tracker = TrackerFactory(
-            affects=[affect],
-            embargoed=affect.flaw.embargoed,
+            affects=[affect2],
+            embargoed=affect2.flaw.embargoed,
             ps_update_stream=unacked_ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
@@ -200,22 +205,27 @@ class TestTracker:
         stream1 = PsUpdateStreamFactory(ps_module=ps_module)
         stream2 = PsUpdateStreamFactory(ps_module=ps_module)
 
-        affect = AffectFactory(
+        affect1 = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=stream1.name,
+        )
+        affect2 = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=stream2.name,
         )
 
         tracker1 = TrackerFactory(
-            affects=[affect],
-            embargoed=affect.flaw.embargoed,
+            affects=[affect1],
+            embargoed=affect1.flaw.embargoed,
             ps_update_stream=stream1.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
             external_system_id="",
         )
         tracker2 = TrackerFactory(
-            affects=[affect],
-            embargoed=affect.flaw.embargoed,
+            affects=[affect2],
+            embargoed=affect2.flaw.embargoed,
             ps_update_stream=stream2.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
             external_system_id="",
@@ -228,62 +238,47 @@ class TestTracker:
             tracker2.save()
 
     @pytest.mark.parametrize(
-        "resolution1,resolution2,justification1,justification2,expected_justification",
+        "resolution,justification,expected_justification",
         [
             (
                 "Not a Bug",
-                "Not a Bug",
-                "Inline Mitigations already Exist",
                 "Inline Mitigations already Exist",
                 "Inline Mitigations already Exist",
             ),
             (
                 "Not a Bug",
-                "Not a Bug",
-                "Inline Mitigations already Exist",
                 "Vulnerable Code not Present",
-                "Component not Present",
+                "Vulnerable Code not Present",
             ),
-            ("Not a Bug", "Done", "Inline Mitigations already Exist", "", ""),
+            ("Done", "Inline Mitigations already Exist", ""),
         ],
     )
     def test_delegated_not_affected_justifications(
         self,
-        resolution1,
-        resolution2,
-        justification1,
-        justification2,
+        resolution,
+        justification,
         expected_justification,
     ):
         """
-        Test that the delegated not affected justification for affects based on its trackers is
+        Test that the delegated not affected justification for affects based on its tracker is
         correctly computed.
         """
         ps_module = PsModuleFactory(bts_name="jboss")
-        stream1 = PsUpdateStreamFactory(ps_module=ps_module)
-        stream2 = PsUpdateStreamFactory(ps_module=ps_module)
+        stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory(embargoed=False)
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
         TrackerFactory(
             affects=[affect],
             embargoed=flaw.embargoed,
-            ps_update_stream=stream1.name,
+            ps_update_stream=stream.name,
             type=Tracker.TrackerType.JIRA,
-            resolution=resolution1,
-            not_affected_justification=justification1,
-        )
-        TrackerFactory(
-            affects=[affect],
-            embargoed=flaw.embargoed,
-            ps_update_stream=stream2.name,
-            type=Tracker.TrackerType.JIRA,
-            resolution=resolution2,
-            not_affected_justification=justification2,
+            resolution=resolution,
+            not_affected_justification=justification,
         )
         assert affect.delegated_not_affected_justification == expected_justification
 
@@ -296,13 +291,13 @@ class TestTrackerValidators:
         try:
             flaw = FlawFactory()
             ps_module = PsModuleFactory()
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affect = AffectFactory(
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
             )
-            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             # do not raise here
             # validation is run on save
             TrackerFactory(
@@ -328,40 +323,18 @@ class TestTrackerValidators:
                 ps_update_stream=ps_update_stream.name,
             )
 
-    def test_validate_no_ps_module(self):
-        """
-        test that creation of a tracker without a valid PS module results in an exception
-        """
-        flaw = FlawFactory()
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_module="unknown",
-        )
-        ps_update_stream = PsUpdateStreamFactory()
-
-        with pytest.raises(
-            ValidationError,
-            match="Tracker must be associated with a valid PS module",
-        ):
-            TrackerFactory(
-                affects=[affect],
-                embargoed=flaw.embargoed,
-                ps_update_stream=ps_update_stream.name,
-            )
-
     def test_validate_no_ps_update_stream(self):
         """
         test that creation of a tracker without a valid PS update stream results in an exception
         """
         flaw = FlawFactory()
         ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
 
         with pytest.raises(
@@ -384,17 +357,17 @@ class TestTrackerValidators:
         flaw2 = FlawFactory()
         affect1 = AffectFactory(
             flaw=flaw1,
-            ps_module="first",
+            ps_update_stream="first",
             ps_component="component",
         )
         affect2 = AffectFactory(
             flaw=flaw2,
-            ps_module="second",
+            ps_update_stream="second",
             ps_component="component",
         )
         with pytest.raises(
             ValidationError,
-            match="Tracker must be associated only with affects with the same PS module",
+            match="Tracker must be associated only with affects with the same PS update stream",
         ):
             TrackerFactory(affects=[affect1, affect2])
 
@@ -407,12 +380,12 @@ class TestTrackerValidators:
         flaw2 = FlawFactory()
         affect1 = AffectFactory(
             flaw=flaw1,
-            ps_module="module",
+            ps_update_stream="stream",
             ps_component="firts",
         )
         affect2 = AffectFactory(
             flaw=flaw2,
-            ps_module="module",
+            ps_update_stream="stream",
             ps_component="second",
         )
         with pytest.raises(
@@ -437,7 +410,8 @@ class TestTrackerValidators:
         ps_module = PsModuleFactory(bts_name=bts)
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
-            affectedness=Affect.AffectAffectedness.NEW, ps_module=ps_module.name
+            affectedness=Affect.AffectAffectedness.NEW,
+            ps_update_stream=ps_update_stream.name,
         )
 
         if raises:
@@ -471,7 +445,7 @@ class TestTrackerValidators:
         flaw = FlawFactory(embargoed=False)
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
 
         with pytest.raises(

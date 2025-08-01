@@ -344,14 +344,13 @@ class TestEndpointsFlawsCVSSScores:
             .order_by("name")
             .first()
         )
-        ps_module = ps_update_stream.active_to_ps_module
         ps_component = setup_sample_external_resources["jboss_components"][0]
 
         flaw = FlawFactory(embargoed=False)
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component=ps_component,
         )
         TrackerFactory(

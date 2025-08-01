@@ -29,6 +29,7 @@ from osidb.models import (
     CVSS,
     Affect,
     AffectCVSS,
+    AffectV1,
     Erratum,
     Flaw,
     FlawAcknowledgment,
@@ -1052,12 +1053,12 @@ class AffectCVSSSerializer(
         """Handles CVSS update and sync with Jira trackers if needed."""
         old_cvss = AffectCVSS.objects.get(uuid=instance.uuid)
         new_cvss = super().update(instance, validated_data)
-        self.update_trackers(old_cvss, new_cvss)
+        self.update_tracker(old_cvss, new_cvss)
         return new_cvss
 
-    def update_trackers(self, old_cvss, new_cvss):
+    def update_tracker(self, old_cvss, new_cvss):
         """
-        Updates the related Jira trackers if needed.
+        Updates the related Jira tracker if needed.
         """
         if old_cvss is not None and not differ(
             old_cvss, new_cvss, ["score", "vector", "issuer"]
@@ -1125,13 +1126,14 @@ class AffectSerializer(
         "impact",
         "module_name",
         "module_stream",
+        "ps_update_stream",
         "ps_component",
         "ps_module",
         "ps_product",
         "resolution",
     )
 
-    trackers = serializers.SerializerMethodField()
+    tracker = serializers.SerializerMethodField()
     meta_attr = serializers.SerializerMethodField()
     cvss_scores = AffectCVSSSerializer(many=True, read_only=True)
     # at least one of ps_component or purl is required
@@ -1151,17 +1153,20 @@ class AffectSerializer(
     def get_meta_attr(self, obj):
         return super().get_meta_attr(obj)
 
-    @extend_schema_field(TrackerSerializer(many=True))
-    def get_trackers(self, obj):
+    @extend_schema_field(TrackerSerializer())
+    def get_tracker(self, obj):
         """tracker serializer getter"""
+        if obj.tracker is None:
+            return None
+
         context = {
-            "include_fields": self._next_level_include_fields.get("trackers", []),
-            "exclude_fields": self._next_level_exclude_fields.get("trackers", []),
-            "include_meta_attr": self._next_level_include_meta_attr.get("trackers", []),
+            "include_fields": self._next_level_include_fields.get("tracker", []),
+            "exclude_fields": self._next_level_exclude_fields.get("tracker", []),
+            "include_meta_attr": self._next_level_include_meta_attr.get("tracker", []),
         }
 
         serializer = TrackerSerializer(
-            instance=obj.trackers.all(), many=True, read_only=True, context=context
+            instance=obj.tracker, read_only=True, context=context
         )
         return serializer.data
 
@@ -1175,12 +1180,13 @@ class AffectSerializer(
                 "flaw",
                 "affectedness",
                 "resolution",
+                "ps_update_stream",
                 "ps_module",
                 "cve_id",
                 "ps_product",
                 "ps_component",
                 "impact",
-                "trackers",
+                "tracker",
                 "meta_attr",
                 "delegated_resolution",
                 "cvss_scores",
@@ -1218,7 +1224,7 @@ class AffectSerializer(
         ##########################
 
         # update trackers if needed
-        self.update_trackers(old_affect, new_affect)
+        self.update_tracker(old_affect, new_affect)
 
         #####################
         # 4) return updated #
@@ -1226,20 +1232,21 @@ class AffectSerializer(
 
         return new_affect
 
-    def update_trackers(self, old_affect, new_affect):
+    def update_tracker(self, old_affect, new_affect):
         """
-        update the related trackers if needed
+        update the related tracker if needed
         """
         # no tracker updates for community affects
         # because it was requested not to spam them
         if old_affect.is_community:
             return
 
+        if (tracker := new_affect.tracker) is None:
+            # No tracker to update
+            return
+
         promote = False
-        # we only need to sync the trackers when crucial attributes change
-        #
-        # in the case of PS module we cannot auto-adjust the trackers
-        # since we simply cannot guess which PS update stream is correct
+        # we only need to sync the tracker when crucial attributes change
         #
         # in the case of impact we should ideally check whether the change actually
         # changes the tracker aggregated impact (in cases of multi-flaw trackers)
@@ -1248,7 +1255,7 @@ class AffectSerializer(
         if not differ(old_affect, new_affect, ["flaw", "ps_component"]) and Impact(
             old_affect.impact
         ) == Impact(new_affect.impact):
-            # regenerate trackers on affect promotion from NEW to
+            # regenerate tracker on affect promotion from NEW to
             # other value to remove the validation-requested label
             if not (
                 old_affect.affectedness
@@ -1259,27 +1266,26 @@ class AffectSerializer(
 
             promote = True  # remember to only regenarate Jira trackers
 
-        for tracker in new_affect.trackers.all():
-            # no tracker updates for the closed ones
-            # because we consider these already done
-            if tracker.is_closed:
-                continue
+        # no tracker updates for the closed ones
+        # because we consider these already done
+        if tracker.is_closed:
+            return
 
-            # only Jira trackers are regenerated on affect promotion
-            if promote and tracker.type != Tracker.TrackerType.JIRA:
-                continue
+        # only Jira trackers are regenerated on affect promotion
+        if promote and tracker.type != Tracker.TrackerType.JIRA:
+            return
 
-            # perform the tracker update
-            # could be done async eventually
-            tracker.save(
-                # the serializer does not care for the backend system
-                # therefore at this point we simply require both secrets
-                bz_api_key=self.get_bz_api_key(),
-                jira_token=self.get_jira_token(),
-                # do not raise validation errors here as the tracker is not what
-                # the user touches which would make the errors hard to understand
-                raise_validation_error=False,
-            )
+        # perform the tracker update
+        # could be done async eventually
+        tracker.save(
+            # the serializer does not care for the backend system
+            # therefore at this point we simply require both secrets
+            bz_api_key=self.get_bz_api_key(),
+            jira_token=self.get_jira_token(),
+            # do not raise validation errors here as the tracker is not what
+            # the user touches which would make the errors hard to understand
+            raise_validation_error=False,
+        )
 
 
 @extend_schema_serializer(exclude_fields=["updated_dt"])
@@ -1310,6 +1316,104 @@ class AffectBulkPostPutResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Affect
         fields = ["results"]
+
+
+class AffectV1Serializer(
+    ACLMixinSerializer,
+    AlertMixinSerializer,
+    TrackingMixinSerializer,
+    IncludeExcludeFieldsMixin,
+    IncludeMetaAttrMixin,
+    HistoryMixinSerializer,
+):
+    """Read-only serializer for the AffectV1 database view."""
+
+    META_ATTR_KEYS = AffectSerializer.META_ATTR_KEYS
+
+    trackers = serializers.SerializerMethodField()
+    meta_attr = serializers.SerializerMethodField()
+    ps_product = serializers.CharField(read_only=True)
+    ps_component = serializers.CharField(read_only=True)
+    purl = serializers.CharField(read_only=True)
+    resolved_dt = serializers.DateTimeField(read_only=True, allow_null=True)
+    cvss_scores = serializers.SerializerMethodField()
+
+    @extend_schema_field(
+        {
+            "type": "object",
+            "properties": {key: {"type": "string"} for key in META_ATTR_KEYS},
+        }
+    )
+    def get_meta_attr(self, obj):
+        return super().get_meta_attr(obj)
+
+    @extend_schema_field(TrackerSerializer(many=True))
+    def get_trackers(self, obj):
+        context = {
+            "include_fields": self._next_level_include_fields.get("trackers", []),
+            "exclude_fields": self._next_level_exclude_fields.get("trackers", []),
+            "include_meta_attr": self._next_level_include_meta_attr.get("trackers", []),
+        }
+
+        serializer = TrackerV1Serializer(
+            instance=obj.trackers.all(), many=True, read_only=True, context=context
+        )
+        return serializer.data
+
+    def get_cvss_scores(self, obj):
+        """
+        Takes the JSON data from the view's cvss_scores field
+        and serializes it using the existing AffectCVSSSerializer.
+        """
+        if not obj.all_cvss_score_ids:
+            return []
+        cvss_objects = AffectCVSS.objects.filter(uuid__in=obj.all_cvss_score_ids)
+
+        return AffectCVSSSerializer(instance=cvss_objects, many=True).data
+
+    class Meta:
+        model = AffectV1
+        fields = (
+            [
+                "uuid",  # This is aliased as 'id' in the model but we can expose it as uuid
+                "flaw",
+                "affectedness",
+                "resolution",
+                "ps_module",
+                "ps_product",
+                "ps_component",
+                "impact",
+                "trackers",
+                "meta_attr",
+                "delegated_resolution",
+                "cvss_scores",
+                "purl",
+                "not_affected_justification",
+                "delegated_not_affected_justification",
+                "resolved_dt",
+            ]
+            + ACLMixinSerializer.Meta.fields
+            + AlertMixinSerializer.Meta.fields
+            + TrackingMixinSerializer.Meta.fields
+            + HistoryMixinSerializer.Meta.fields
+        )
+
+
+class TrackerV1Serializer(TrackerSerializer):
+    """Serializer for the tracker model adapted to affects v1"""
+
+    affects = serializers.SerializerMethodField()
+
+    @extend_schema_field(
+        {
+            "type": "array",
+            "items": {"type": "string", "format": "uuid"},
+        }
+    )
+    def get_affects(self, obj):
+        return AffectV1.objects.filter(
+            all_tracker_ids__contains=[obj.uuid]
+        ).values_list("uuid", flat=True)
 
 
 @extend_schema_serializer(deprecate_fields=["status"])
@@ -1344,9 +1448,8 @@ class FlawAffectsTrackersField(serializers.Field):
     def to_representation(self, value):
         trackers = set()
         for affect in value.affects.all():
-            trackers.update(
-                [tracker.external_system_id for tracker in affect.trackers.all()]
-            )
+            if affect.tracker:
+                trackers.update(affect.tracker.external_system_id)
         return list(trackers)
 
 
@@ -1916,7 +2019,7 @@ class FlawSerializer(
             tracker_ids = request.query_params.get("tracker_ids")
             if tracker_ids:
                 affects = affects.filter(
-                    trackers__external_system_id__in=tracker_ids.split(",")
+                    tracker__external_system_id__in=tracker_ids.split(",")
                 )
 
             # If we have requested history on Flaw, then apply it to affects as well
@@ -2108,38 +2211,41 @@ class FlawSerializer(
             if affect.is_community:
                 continue
 
-            for tracker in affect.trackers.all():
-                # no tracker updates for the closed ones
-                # because we consider these already done
-                if tracker.is_closed:
-                    continue
+            tracker = affect.tracker
+            if tracker is None:
+                continue
 
-                if (
-                    tracker.meta_attr.get("jira_issuetype") != "Vulnerability"
-                    or tracker.type != Tracker.TrackerType.JIRA
-                ) and (
-                    not differ(
-                        old_flaw, new_flaw, ["cve_id", "is_embargoed", "unembargo_dt"]
-                    )
-                    and not mi_differ(old_flaw, new_flaw)
-                    and Impact(old_flaw.impact) == Impact(new_flaw.impact)
-                ):
-                    # If the non-components attributes are unchanged, a tracker update is
-                    # necessary only for Vulnerability issuetype Jira trackers because only
-                    # those contain components. And this tracker is not Vuln. issuetype.
-                    continue
+            # no tracker updates for the closed ones
+            # because we consider these already done
+            if tracker.is_closed:
+                continue
 
-                # perform the tracker update
-                # could be done async eventually
-                tracker.save(
-                    # the serializer does not care for the backend system
-                    # therefore at this point we simply require both secrets
-                    bz_api_key=self.get_bz_api_key(),
-                    jira_token=self.get_jira_token(),
-                    # do not raise validation errors here as the tracker is not what
-                    # the user touches which would make the errors hard to understand
-                    raise_validation_error=False,
+            if (
+                tracker.meta_attr.get("jira_issuetype") != "Vulnerability"
+                or tracker.type != Tracker.TrackerType.JIRA
+            ) and (
+                not differ(
+                    old_flaw, new_flaw, ["cve_id", "is_embargoed", "unembargo_dt"]
                 )
+                and not mi_differ(old_flaw, new_flaw)
+                and Impact(old_flaw.impact) == Impact(new_flaw.impact)
+            ):
+                # If the non-components attributes are unchanged, a tracker update is
+                # necessary only for Vulnerability issuetype Jira trackers because only
+                # those contain components. And this tracker is not Vuln. issuetype.
+                continue
+
+            # perform the tracker update
+            # could be done async eventually
+            tracker.save(
+                # the serializer does not care for the backend system
+                # therefore at this point we simply require both secrets
+                bz_api_key=self.get_bz_api_key(),
+                jira_token=self.get_jira_token(),
+                # do not raise validation errors here as the tracker is not what
+                # the user touches which would make the errors hard to understand
+                raise_validation_error=False,
+            )
 
 
 @extend_schema_serializer(exclude_fields=["updated_dt"])
@@ -2147,6 +2253,42 @@ class FlawPostSerializer(FlawSerializer):
     # extra serializer for POST request as there is no last update
     # timestamp but we need to make the field mandatory otherwise
     pass
+
+
+class FlawV1Serializer(FlawSerializer):
+    """Serializer for the flaw model adapted to affects v1"""
+
+    @extend_schema_field(AffectV1Serializer(many=True))
+    def get_affects(self, obj):
+        # Query the AffectV1 read-only model instead of the original Affect model.
+        affects_v1 = AffectV1.objects.filter(flaw=obj)
+
+        context = {
+            "include_fields": self._next_level_include_fields.get("affects", []),
+            "exclude_fields": self._next_level_exclude_fields.get("affects", []),
+            "include_meta_attr": self._next_level_include_meta_attr.get("affects", []),
+        }
+
+        request = self.context.get("request")
+        if request:
+            # Filter only affects with trackers corresponding to specified IDs
+            tracker_ids_param = request.query_params.get("tracker_ids")
+            if tracker_ids_param:
+                tracker_uuids = Tracker.objects.filter(
+                    external_system_id__in=tracker_ids_param.split(",")
+                ).values_list("uuid", flat=True)
+                affects_v1 = affects_v1.filter(
+                    all_tracker_ids__overlap=list(tracker_uuids)
+                )
+
+            # If we have requested history on Flaw, then apply it to affects as well
+            if request.query_params.get("include_history"):
+                context["include_history"] = request.query_params.get("include_history")
+
+        serializer = AffectV1Serializer(
+            instance=affects_v1, many=True, read_only=True, context=context
+        )
+        return serializer.data
 
 
 class ProfileSerializer(serializers.ModelSerializer):

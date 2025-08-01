@@ -127,9 +127,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     # non operational meta data
     meta_attr = HStoreField(default=dict)
 
-    # An Affect can have many trackers, and a tracker can track multiple flaw/affects
-    affects = models.ManyToManyField(Affect, related_name="trackers", blank=True)
-
     last_impact_increase_dt = models.DateTimeField(null=True, blank=True)
     resolved_dt = models.DateTimeField(null=True, blank=True)
 
@@ -211,10 +208,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             and bz_api_key is not None
             and self.type == self.TrackerType.BUGZILLA
         ):
-            # avoid creating tracker in duplicity
-            # from places where skips validations
-            if not self.external_system_id:
-                self._validate_tracker_duplicate()
             # sync to Bugzilla
             tracker_instance = TrackerSaver(self, bz_api_key=bz_api_key).save()
             # no save or fetch to prevent collisions
@@ -230,10 +223,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             and jira_token is not None
             and self.type == self.TrackerType.JIRA
         ):
-            # avoid creating tracker in duplicity
-            # from places where skips validations
-            if not self.external_system_id:
-                self._validate_tracker_duplicate()
             # sync to Jira
             actual_jira_issuetype = "Vulnerability"
             if JiraBugIssuetype.objects.filter(
@@ -304,16 +293,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not self.affects.exists():
             raise ValidationError("Tracker must be associated with an affect")
 
-    def _validate_tracker_ps_module(self, **kwargs):
-        """
-        check that the tracker is associated with a valid PS module
-        """
-        if not self.affects.exists():
-            return
-
-        if not PsModule.objects.filter(name=self.affects.first().ps_module):
-            raise ValidationError("Tracker must be associated with a valid PS module")
-
     def _validate_tracker_ps_update_stream(self, **kwargs):
         """
         check that the tracker is associated with a valid PS update stream
@@ -323,29 +302,19 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 "Tracker must be associated with a valid PS update stream"
             )
 
-    def _validate_tracker_ps_module_ps_update_stream(self, **kwargs):
+    def _validate_tracker_affect_ps_update_stream(self, **kwargs):
         """
-        check that the tracker is associated with a PS update stream corresponding to its PS module
+        check that the tracker is associated with a PS update stream corresponding to the
+        related affect's PS update stream
         """
         if not self.affects.exists():
             return
 
-        ps_module = PsModule.objects.filter(name=self.affects.first().ps_module).first()
-        # PS module is checked by a different validation
-        if not ps_module:
-            return
-
-        ps_update_stream = PsUpdateStream.objects.filter(
-            name=self.ps_update_stream
-        ).first()
-        # PS update stream is checked by a different validation
-        if not ps_update_stream:
-            return
-
-        if ps_update_stream not in ps_module.ps_update_streams.all():
+        affect_ps_update_stream = self.affects.first().ps_update_stream
+        if affect_ps_update_stream != self.ps_update_stream:
             raise ValidationError(
-                f"PS update stream {ps_update_stream.name} does "
-                f"not belong to PS module {ps_module.name}."
+                f"Tracker PS update stream {self.ps_update_stream} does not correspond "
+                f"to the related affect's PS update stream {affect_ps_update_stream}"
             )
 
     def _validate_tracker_flaw_accesses(self, **kwargs):
@@ -356,7 +325,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
         if (
             not self.is_embargoed
-            and Flaw.objects.filter(affects__trackers=self, embargoed=True).exists()
+            and Flaw.objects.filter(affects__tracker=self, embargoed=True).exists()
         ):
             raise ValidationError(
                 "Tracker is public but is associated with an embargoed flaw."
@@ -373,7 +342,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not self.is_closed and affect:
             raise ValidationError(
                 "The tracker is associated with a NOTAFFECTED affect: "
-                f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
+                f"{affect.ps_update_stream}/{affect.ps_component} ({affect.uuid})"
             )
 
     def _validate_ooss_open_tracker(self, **kwargs):
@@ -384,7 +353,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not self.is_closed and affect:
             raise ValidationError(
                 "The tracker is associated with an OOSS affect: "
-                f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
+                f"{affect.ps_update_stream}/{affect.ps_component} ({affect.uuid})"
             )
 
     def _validate_wontfix_open_tracker(self, **kwargs):
@@ -395,7 +364,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not self.is_closed and affect:
             raise ValidationError(
                 "The tracker is associated with a WONTFIX affect: "
-                f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
+                f"{affect.ps_update_stream}/{affect.ps_component} ({affect.uuid})"
             )
 
     def _validate_defer_open_tracker(self, **kwargs):
@@ -406,7 +375,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not self.is_closed and affect:
             raise ValidationError(
                 "The tracker is associated with a DEFER affect: "
-                f"{affect.ps_module}/{affect.ps_component} ({affect.uuid})"
+                f"{affect.ps_update_stream}/{affect.ps_component} ({affect.uuid})"
             )
 
     def _validate_multi_flaw_tracker(self, **kwargs):
@@ -418,9 +387,9 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
         first_affect = self.affects.first()
         for affect in self.affects.exclude(uuid=first_affect.uuid):
-            if first_affect.ps_module != affect.ps_module:
+            if first_affect.ps_update_stream != affect.ps_update_stream:
                 raise ValidationError(
-                    "Tracker must be associated only with affects with the same PS module"
+                    "Tracker must be associated only with affects with the same PS update stream"
                 )
 
             if first_affect.ps_component != affect.ps_component:
@@ -444,26 +413,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             raise ValidationError(
                 f"Tracker type and BTS mismatch: {self.type} versus {ps_module.bts_name}"
             )
-
-    def _validate_tracker_duplicate(self, **kwargs):
-        """
-        validate that there is only one tracker with this update stream associated with each affect
-        """
-        for affect in self.affects.all():
-            trackers = affect.trackers.filter(ps_update_stream=self.ps_update_stream)
-            if trackers.count() > 1:
-                raise ValidationError(
-                    f"Tracker with the update stream {self.ps_update_stream} ({self.external_system_id}) "
-                    "is already associated with the affect "
-                    f"{affect.ps_module}/{affect.ps_component} ({affect.uuid}) "
-                    f"by the tracker(s) {', '.join([str(tracker.external_system_id) for tracker in trackers if tracker.uuid != self.uuid])}",
-                    params={
-                        "resolution_steps": "When manually cloning a tracker, please ensure that each affect has a unique update stream, "
-                        "which can be identified in the tracker's title. "
-                        "If the tracker is a duplicate, remove the 'SecurityTracking' label from the tracker in the external system. "
-                        "If the tracker is not expected to be a duplicate, please contact the Vulnerability Tooling team for further assistance."
-                    },
-                )
 
     def _validate_not_affected_justification(self, **kwargs):
         """
@@ -586,7 +535,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         from osidb.models.flaw.flaw import Flaw
         from osidb.models.flaw.reference import FlawReference
 
-        flaws = Flaw.objects.filter(affects__trackers=self)
+        flaws = Flaw.objects.filter(affects__tracker=self)
         return FlawReference.objects.filter(flaw__in=flaws)
 
     bz_download_manager = models.ForeignKey(
