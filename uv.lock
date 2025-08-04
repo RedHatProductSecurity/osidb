@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = "==3.9.*"
 
 [[package]]
@@ -1438,12 +1438,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/eb/72/4a7965cf54e341006
 
 [[package]]
 name = "psycopg2"
-version = "2.9.2"
+version = "2.9.10"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/33/ed/79434011d773e5ea4c51262f6ebfb86680c2908d7677f31ebccd5aa9f1b3/psycopg2-2.9.2.tar.gz", hash = "sha256:a84da9fa891848e0270e8e04dcca073bc9046441eeb47069f5c0e36783debbea", size = 380253, upload-time = "2021-11-12T00:44:04.611Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/62/51/2007ea29e605957a17ac6357115d0c1a1b60c8c984951c19419b3474cdfd/psycopg2-2.9.10.tar.gz", hash = "sha256:12ec0b40b0273f95296233e8750441339298e6a572f7039da5b260e3c8b60e11", size = 385672, upload-time = "2024-10-16T11:24:54.832Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ed/69/beb6a64cf5f11209a950efa957427e6ca85e6e7b7308a6af4287f8fcc23d/psycopg2-2.9.2-cp39-cp39-win32.whl", hash = "sha256:a761b60da0ecaf6a9866985bcde26327883ac3cdb90535ab68b8d784f02b05ef", size = 1025551, upload-time = "2021-11-12T13:44:37.058Z" },
-    { url = "https://files.pythonhosted.org/packages/39/c7/34b02adbcae31de7cc1540f93cf9d795833d87546ca937afd7dfc94f2579/psycopg2-2.9.2-cp39-cp39-win_amd64.whl", hash = "sha256:fd7ddab7d6afee4e21c03c648c8b667b197104713e57ec404d5b74097af21e31", size = 1168149, upload-time = "2021-11-12T13:44:41.185Z" },
+    { url = "https://files.pythonhosted.org/packages/5f/29/bc9639b9c50abd93a8274fd2deffbf70b2a65aa9e7881e63ea6bc4319e84/psycopg2-2.9.10-cp39-cp39-win32.whl", hash = "sha256:9d5b3b94b79a844a986d029eee38998232451119ad653aea42bb9220a8c5066b", size = 1025259, upload-time = "2024-10-16T11:18:48.181Z" },
+    { url = "https://files.pythonhosted.org/packages/2c/f8/0be7d99d24656b689d83ac167240c3527efb0b161d814fb1dd58329ddf75/psycopg2-2.9.10-cp39-cp39-win_amd64.whl", hash = "sha256:88138c8dedcbfa96408023ea2b0c369eda40fe5d75002c0964c78f46f11fa442", size = 1163878, upload-time = "2024-10-16T11:18:52.549Z" },
 ]
 
 [[package]]
