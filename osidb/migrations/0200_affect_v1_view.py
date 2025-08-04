@@ -88,13 +88,18 @@ WHERE
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0198_update_affect_tracker_relationship'),
+        ('osidb', '0199_affect_tracker_data_migration'),
     ]
 
     operations = [
         migrations.RemoveField(
             model_name='tracker',
             name='affects',
+        ),
+        migrations.AlterField(
+            model_name='affect',
+            name='tracker',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='affects', to='osidb.tracker'),
         ),
         migrations.CreateModel(
             name='AffectV1',

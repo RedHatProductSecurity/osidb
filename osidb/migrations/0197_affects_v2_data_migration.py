@@ -34,13 +34,14 @@ def migrate_cvss_scores(apps, new_affects_with_cvss):
     Copy the CVSS scores of the v1 affect to the v2 affects.
     """
     Affect = apps.get_model("osidb", "Affect")
+    AffectCVSS = apps.get_model("osidb", "AffectCVSS")
 
     cvss_create_batch = []
     for item in new_affects_with_cvss:
         affect = item["affect"]
         for cvss in item["cvss_scores"]:
             cvss_copy = AffectCVSS(
-                affect=new_affect_instance,
+                affect=affect,
                 issuer=cvss.issuer,
                 score=cvss.score,
                 vector=cvss.vector,
@@ -53,8 +54,12 @@ def migrate_cvss_scores(apps, new_affects_with_cvss):
             )
             cvss_create_batch.append(cvss_copy)
 
+        if len(cvss_create_batch) >= BATCH_SIZE:
+            AffectCVSS.objects.bulk_create(cvss_create_batch)
+            cvss_create_batch.clear()
+
     if cvss_create_batch:
-        AffectCVSS.objects.bulk_create(cvss_create_batch, batch_size=BATCH_SIZE)
+        AffectCVSS.objects.bulk_create(cvss_create_batch)
 
 
 @bypass_rls
