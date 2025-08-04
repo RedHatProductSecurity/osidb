@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = "==3.9.*"
 
 [[package]]
@@ -408,14 +408,14 @@ sdist = { url = "https://files.pythonhosted.org/packages/e1/b7/c7d1d938367c49cd4
 
 [[package]]
 name = "django-deprecate-fields"
-version = "0.1.1"
+version = "0.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b7/a9/984c8ae3bd7880839c153023fba2cae49824c13e617c7f60a7907e06350d/django-deprecate-fields-0.1.1.tar.gz", hash = "sha256:ea512e3f0f70b4f511bba8ced1f10c22c68278d8557eb40d6df24e71187df44d", size = 3491, upload-time = "2021-01-08T18:15:30.75Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5d/bc/bb6cff1e462a258cc077915e928aec62ccfeeaf2ea1eb035865891ab91a3/django_deprecate_fields-0.2.2.tar.gz", hash = "sha256:ddca9afbf95639d550afc66f9ec7e28f6ffe5b7c3d0b8eadb7a5c54bc90c44e2", size = 7437, upload-time = "2025-07-15T11:52:45.156Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1e/f5/6f2340c8bdc7c0bdef51f64d210bca00fa9877e32e5676a19cd6f6a67270/django_deprecate_fields-0.1.1-py3-none-any.whl", hash = "sha256:81904dbc28cf4575535517f69b88dcbc1a64fe73b6c35a4e4f71d193e419ac10", size = 7922, upload-time = "2021-01-08T18:15:29.637Z" },
+    { url = "https://files.pythonhosted.org/packages/9a/85/2d62f543dc74169da6e130a7e428b7b9ea1fe51466eb5a0940d982d838f6/django_deprecate_fields-0.2.2-py3-none-any.whl", hash = "sha256:0f28ee320a2196119d13959a2286aa3441d8aeed33c1683250b3477622f6c1a1", size = 8276, upload-time = "2025-07-15T11:52:42.964Z" },
 ]
 
 [[package]]
