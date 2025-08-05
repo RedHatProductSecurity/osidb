@@ -124,6 +124,7 @@ def forwards_func(apps, schema_editor):
                         flaw=affect.flaw,
                         ps_update_stream=ps_update_stream.name,
                         ps_module=ps_module.name,
+                        cve_id=affect.cve_id,
                         ps_component=affect.ps_component,
                         affectedness=affect.affectedness,
                         resolution=affect.resolution,

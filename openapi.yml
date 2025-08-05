@@ -11625,6 +11625,9 @@ components:
         ps_module:
           type: string
           maxLength: 100
+        cve_id:
+          type: string
+          readOnly: true
         ps_product:
           type: string
           readOnly: true
@@ -11683,6 +11686,7 @@ components:
       - affectedness
       - alerts
       - created_dt
+      - cve_id
       - cvss_scores
       - delegated_not_affected_justification
       - delegated_resolution

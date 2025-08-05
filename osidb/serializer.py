@@ -1337,6 +1337,7 @@ class AffectV1Serializer(
     purl = serializers.CharField(read_only=True)
     resolved_dt = serializers.DateTimeField(read_only=True, allow_null=True)
     cvss_scores = serializers.SerializerMethodField()
+    cve_id = serializers.CharField(allow_blank=True, read_only=True)
 
     @extend_schema_field(
         {
@@ -1380,6 +1381,7 @@ class AffectV1Serializer(
                 "affectedness",
                 "resolution",
                 "ps_module",
+                "cve_id",
                 "ps_product",
                 "ps_component",
                 "impact",

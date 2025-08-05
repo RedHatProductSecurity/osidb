@@ -649,7 +649,7 @@ class TestFlaw:
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         a = AffectFactory(
             flaw=f,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.NEW,
         )
         t = TrackerFactory(
