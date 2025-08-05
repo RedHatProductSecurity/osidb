@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = "==3.9.*"
 
 [[package]]
@@ -733,14 +733,14 @@ wheels = [
 
 [[package]]
 name = "freezegun"
-version = "1.1.0"
+version = "1.5.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "python-dateutil" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1f/3a/92d1dbf22d7227548a15900bbeff64ed8f43e9b1aeba3a5850ff4e439508/freezegun-1.1.0.tar.gz", hash = "sha256:177f9dd59861d871e27a484c3332f35a6e3f5d14626f2bf91be37891f18927f3", size = 29923, upload-time = "2021-01-20T07:45:21.832Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0b/75/6836248e614b057076a9b46c482079789a7aed22c41a8bc253e1ae94aa94/freezegun-1.5.4.tar.gz", hash = "sha256:798b9372fdd4d907f33e8b6a58bc64e682d9ffa8d494ce60f780197ee81faed1", size = 35644, upload-time = "2025-07-30T18:24:06.814Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0b/db/00008ccad284d2dfd2701245fef219b9018687d8ce1d835cd2965b9fb6b8/freezegun-1.1.0-py2.py3-none-any.whl", hash = "sha256:2ae695f7eb96c62529f03a038461afe3c692db3465e215355e1bb4b0ab408712", size = 16066, upload-time = "2021-01-20T07:45:20.132Z" },
+    { url = "https://files.pythonhosted.org/packages/f1/c7/86b729df4367449d666b2cca0f4d9cb1dd38a799e6bd5bc40a5d75083c0a/freezegun-1.5.4-py3-none-any.whl", hash = "sha256:8bdd75c9d790f53d5a173d273064ccd7900984b36635be552befeedb0cd47b20", size = 19145, upload-time = "2025-07-30T18:24:05.639Z" },
 ]
 
 [[package]]
