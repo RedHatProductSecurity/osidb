@@ -1,6 +1,7 @@
 import django.contrib.postgres.fields
 from django.db import migrations, models
 from django.utils import timezone
+import osidb.models.fields
 import psqlextra.fields.hstore_field
 
 
@@ -60,6 +61,7 @@ SELECT
     ra.affectedness,
     ra.resolution,
     ra.ps_module,
+    ra.cve_id,
     ra.ps_update_stream,
     ra.ps_component,
     ra.impact,
@@ -105,6 +107,7 @@ class Migration(migrations.Migration):
             name='AffectV1',
             fields=[
                 ('uuid', models.UUIDField(editable=False, primary_key=True, serialize=False)),
+                ('cve_id', osidb.models.fields.CVEIDField(blank=True, null=True, unique=False)),
                 ('affectedness', models.CharField(max_length=100)),
                 ('resolution', models.CharField(max_length=100)),
                 ('ps_module', models.CharField(max_length=100)),
