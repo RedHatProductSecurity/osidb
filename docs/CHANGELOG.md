@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [4.14.0] - 2025-07-23
 ### Added
 - Add endpoint that checks if flaw is public or has its work completed (OSIDB-4328)
+- Add CVE numbering authority (CNA) blocking with CNA ids loaded from ps_constants (OSIDB-4305)
 
 ### Changed
 - Deprecate `team` field from PsProduct (OSIDB-4319)
