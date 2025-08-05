@@ -1449,7 +1449,7 @@ class FlawAffectsTrackersField(serializers.Field):
         trackers = set()
         for affect in value.affects.all():
             if affect.tracker:
-                trackers.update(affect.tracker.external_system_id)
+                trackers.update([affect.tracker.external_system_id])
         return list(trackers)
 
 
