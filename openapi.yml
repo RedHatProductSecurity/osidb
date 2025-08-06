@@ -12240,7 +12240,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/SourceBe0Enum'
+          - $ref: '#/components/schemas/FlawSource'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
@@ -13022,7 +13022,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/SourceBe0Enum'
+          - $ref: '#/components/schemas/FlawSource'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
@@ -13241,7 +13241,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/SourceBe0Enum'
+          - $ref: '#/components/schemas/FlawSource'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
@@ -13285,6 +13285,98 @@ components:
       - embargoed
       - title
       - updated_dt
+    FlawSource:
+      enum:
+      - ADOBE
+      - APPLE
+      - ASF
+      - BIND
+      - BK
+      - BUGTRAQ
+      - BUGZILLA
+      - CERT
+      - CERTIFI
+      - CORELABS
+      - CUSTOMER
+      - CVE
+      - CVEORG
+      - DAILYDAVE
+      - DEBIAN
+      - DISTROS
+      - FEDORA
+      - FETCHMAIL
+      - FREEDESKTOP
+      - FREERADIUS
+      - FRSIRT
+      - FULLDISCLOSURE
+      - GAIM
+      - GENTOO
+      - GENTOOBZ
+      - GIT
+      - GNOME
+      - GNUPG
+      - GOOGLE
+      - HP
+      - HW_VENDOR
+      - IBM
+      - IDEFENSE
+      - INTERNET
+      - ISC
+      - ISEC
+      - IT
+      - JBOSS
+      - JPCERT
+      - KERNELBUGZILLA
+      - KERNELSEC
+      - LKML
+      - LWN
+      - MACROMEDIA
+      - MAGEIA
+      - MAILINGLIST
+      - MILW0RM
+      - MIT
+      - MITRE
+      - MOZILLA
+      - MUTTDEV
+      - NETDEV
+      - NISCC
+      - NVD
+      - OCERT
+      - OPENOFFICE
+      - OPENSSL
+      - OPENSUSE
+      - ORACLE
+      - OSS
+      - OSSSECURITY
+      - OSV
+      - PHP
+      - PIDGIN
+      - POSTGRESQL
+      - PRESS
+      - REAL
+      - REDHAT
+      - RESEARCHER
+      - RT
+      - SAMBA
+      - SECALERT
+      - SECUNIA
+      - SECURITYFOCUS
+      - SKO
+      - SQUID
+      - SQUIRRELMAIL
+      - SUN
+      - SUNSOLVE
+      - SUSE
+      - TWITTER
+      - UBUNTU
+      - UPSTREAM
+      - VENDORSEC
+      - VULNWATCH
+      - WIRESHARK
+      - XCHAT
+      - XEN
+      - XPDF
+      type: string
     FlawUUIDListRequest:
       type: object
       properties:
@@ -14310,98 +14402,6 @@ components:
       - OOSS
       - DELEGATED
       - WONTREPORT
-      type: string
-    SourceBe0Enum:
-      enum:
-      - ADOBE
-      - APPLE
-      - ASF
-      - BIND
-      - BK
-      - BUGTRAQ
-      - BUGZILLA
-      - CERT
-      - CERTIFI
-      - CORELABS
-      - CUSTOMER
-      - CVE
-      - CVEORG
-      - DAILYDAVE
-      - DEBIAN
-      - DISTROS
-      - FEDORA
-      - FETCHMAIL
-      - FREEDESKTOP
-      - FREERADIUS
-      - FRSIRT
-      - FULLDISCLOSURE
-      - GAIM
-      - GENTOO
-      - GENTOOBZ
-      - GIT
-      - GNOME
-      - GNUPG
-      - GOOGLE
-      - HP
-      - HW_VENDOR
-      - IBM
-      - IDEFENSE
-      - INTERNET
-      - ISC
-      - ISEC
-      - IT
-      - JBOSS
-      - JPCERT
-      - KERNELBUGZILLA
-      - KERNELSEC
-      - LKML
-      - LWN
-      - MACROMEDIA
-      - MAGEIA
-      - MAILINGLIST
-      - MILW0RM
-      - MIT
-      - MITRE
-      - MOZILLA
-      - MUTTDEV
-      - NETDEV
-      - NISCC
-      - NVD
-      - OCERT
-      - OPENOFFICE
-      - OPENSSL
-      - OPENSUSE
-      - ORACLE
-      - OSS
-      - OSSSECURITY
-      - OSV
-      - PHP
-      - PIDGIN
-      - POSTGRESQL
-      - PRESS
-      - REAL
-      - REDHAT
-      - RESEARCHER
-      - RT
-      - SAMBA
-      - SECALERT
-      - SECUNIA
-      - SECURITYFOCUS
-      - SKO
-      - SQUID
-      - SQUIRRELMAIL
-      - SUN
-      - SUNSOLVE
-      - SUSE
-      - TWITTER
-      - UBUNTU
-      - UPSTREAM
-      - VENDORSEC
-      - VULNWATCH
-      - WIRESHARK
-      - XCHAT
-      - XEN
-      - XPDF
       type: string
     SpecialHandlingEnum:
       enum:
