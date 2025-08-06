@@ -291,6 +291,7 @@ SPECTACULAR_SETTINGS = {
         "osidb.hooks.response_metadata_postprocess_hook",
     ],
     "ENUM_NAME_OVERRIDES": {
+        "FlawSource": "osidb.models.flaw.source.FlawSource",
         "FlawReferenceType": "osidb.models.flaw.reference.FlawReference.FlawReferenceType",
         "TrackerType": "osidb.models.Tracker.TrackerType",
     },
