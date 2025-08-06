@@ -33,12 +33,13 @@ class TestPsConstantsCollection:
 
         keywords_url = f"{ps_constant_base_url}/cveorg_keywords.yml"
         keywords = fetch_ps_constants(keywords_url)
-        assert len(keywords) == 4
+        assert len(keywords) == 5
         assert [*keywords.keys()] == [
             "allowlist",
             "allowlist_special_cases",
             "blocklist",
             "blocklist_special_cases",
+            "assigner_org_id_blocklist",
         ]
 
         # TODO: Record cassette for jira_bug_issuetype, tracked in OSIDB-2980
@@ -82,6 +83,7 @@ class TestPsConstantsCollection:
             "allowlist_special_cases": [r"(?:\W|^)\.NET\b"],
             "blocklist": [".*plugin.*for WordPress", "Cisco", "IBM Tivoli", "iTunes"],
             "blocklist_special_cases": ["iOS"],
+            "assigner_org_id_blocklist": ["123fakeAssignerOrgId"],
         }
 
         sync_cveorg_keywords(mock_keywords)
@@ -94,6 +96,10 @@ class TestPsConstantsCollection:
         assert Keyword.objects.filter(type=Keyword.Type.BLOCKLIST).count() == 4
         assert (
             Keyword.objects.filter(type=Keyword.Type.BLOCKLIST_SPECIAL_CASE).count()
+            == 1
+        )
+        assert (
+            Keyword.objects.filter(type=Keyword.Type.ASSIGNER_ORG_ID_BLOCKLIST).count()
             == 1
         )
 

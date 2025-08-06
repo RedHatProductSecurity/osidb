@@ -21,7 +21,8 @@ from collectors.cveorg.constants import (
     CVEORG_START_DATE,
     KEYWORDS_CHECK_ENABLED,
 )
-from collectors.cveorg.keywords import should_create_snippet
+from collectors.cveorg.keywords import get_keywords, should_create_snippet
+from collectors.cveorg.models import Keyword
 from collectors.framework.models import Collector
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
@@ -192,6 +193,11 @@ class CVEorgCollector(Collector):
 
         with open(file_path) as file:
             file_content = json.load(file)
+
+        assigner_org_id = file_content["cveMetadata"]["assignerOrgId"]
+
+        if assigner_org_id in get_keywords(Keyword.Type.ASSIGNER_ORG_ID_BLOCKLIST):
+            return f"Skipping '{cve}' because it assigned by a blocked CNA. assignerOrgId: {assigner_org_id}"
 
         if file_content["cveMetadata"]["state"] != "PUBLISHED":
             return f"Cannot create '{cve}' because it was rejected by CVE Program."

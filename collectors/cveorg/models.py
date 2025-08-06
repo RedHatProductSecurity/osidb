@@ -16,8 +16,9 @@ class Keyword(models.Model):
         ALLOWLIST_SPECIAL_CASE = "ALLOWLIST_SPECIAL_CASE"
         BLOCKLIST = "BLOCKLIST"
         BLOCKLIST_SPECIAL_CASE = "BLOCKLIST_SPECIAL_CASE"
+        ASSIGNER_ORG_ID_BLOCKLIST = "ASSIGNER_ORG_ID_BLOCKLIST"
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     keyword = models.CharField(max_length=255, unique=True)
-    type = models.CharField(choices=Type.choices, max_length=25)
+    type = models.CharField(choices=Type.choices, max_length=50)
