@@ -1856,8 +1856,8 @@ class TestEndpointsFlaws:
         Test that API endpoint reports whether a flaw is available
         based on the following criteria:
 
-        1) Public or work on flaw is done: 204 status
-        2) Not public and work not done / flaw does not exist: 404 status
+        1) Public or work on flaw is done / flaw does not exist: 204 status
+        2) Not public and work not done: 404 status
         3) CVE ID is not valid: 400 status
         """
 
@@ -1886,9 +1886,9 @@ class TestEndpointsFlaws:
         else:
             assert response.status_code == 404
 
-        # check for non-existent flaw (should be the same as criterion (2))
+        # check for non-existent flaw
         response = client.get(f"{test_api_uri}/available-flaws/CVE-2999-9999")
-        assert response.status_code == 404
+        assert response.status_code == 204
         assert response.data is None
 
         # check for invalid flaw id
