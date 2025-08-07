@@ -671,6 +671,64 @@ class TestFlaw:
 
         assert f.cve_id == a.cve_id == t.cve_id
 
+    @pytest.mark.enable_signals
+    def test_flaw_cve_id_assignment_propagates(self):
+        # test that assigning a cve_id to a cve-less flaw only converts
+        # propagates the cve_id to the affects linked to said flaw
+
+        # this is the flaw to change
+        f = FlawFactory(
+            cve_id=None,
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        a = AffectFactory(
+            flaw=f,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.NEW,
+        )
+        t = TrackerFactory(
+            affects=(a,),
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+            embargoed=f.is_embargoed,
+        )
+
+        # this is some other flaw that we won't change
+        f2 = FlawFactory(
+            cve_id=None,
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        a2 = AffectFactory(
+            flaw=f2,
+            ps_module=ps_module.name,
+            affectedness=Affect.AffectAffectedness.NEW,
+        )
+        t2 = TrackerFactory(
+            affects=(a2,),
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+            embargoed=f.is_embargoed,
+        )
+
+        f.cve_id = "CVE-2025-1234"
+        f.save()
+        f.refresh_from_db()
+
+        assert f.cve_id is not None
+        a.refresh_from_db()
+        a2.refresh_from_db()
+        t.refresh_from_db()
+        t2.refresh_from_db()
+
+        assert f.cve_id == a.cve_id == t.cve_id
+        assert f.cve_id != a2.cve_id
+        assert f.cve_id != t2.cve_id
+        assert f2.cve_id == a2.cve_id == t2.cve_id
+
 
 class TestImpact:
     @pytest.mark.parametrize(
