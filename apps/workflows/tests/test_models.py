@@ -339,7 +339,8 @@ class TestCheck:
             assert not check(flaw)
             tracker = TrackerFactory.build()
             tracker.save(raise_validation_error=False)
-            tracker.affects.add(affect)
+            affect.tracker = tracker
+            affect.save(raise_validation_error=False)
             assert check(flaw)
 
 

@@ -778,7 +778,8 @@ class TrackerSerializer(
         tracker.save(no_alerts=True, auto_timestamps=False)
         # create affect-tracker links
         for affect in affects:
-            tracker.affects.add(affect)
+            affect.tracker = tracker
+            affect.save()
 
         #####################
         # 3) create actions #
@@ -843,7 +844,8 @@ class TrackerSerializer(
         # which will both delete the old and add the new
         tracker.affects.clear()
         for affect in validated_data.pop("affects", []):
-            tracker.affects.add(affect)
+            affect.tracker = tracker
+            affect.save()
 
         #####################
         # 3) update actions #
