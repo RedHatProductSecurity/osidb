@@ -223,13 +223,14 @@ def update_denormalized_cve_ids_on_flaw_update(sender, instance, **kwargs):
     # to cover this scenario for denormalized CVE IDs in other models.
     if not instance._state.adding:
         db_instance = Flaw.objects.get(pk=instance.pk)
+        trackers = set()
         if instance.cve_id != db_instance.cve_id:
-            Affect.objects.filter(cve_id=db_instance.cve_id).update(
-                cve_id=instance.cve_id
-            )
-            Tracker.objects.filter(cve_id=db_instance.cve_id).update(
-                cve_id=instance.cve_id
-            )
+            instance.affects.all().update(cve_id=instance.cve_id)
+            for affect in instance.affects.all():
+                for tracker in affect.trackers.all():
+                    tracker.cve_id = instance.cve_id
+                    trackers.add(tracker)
+            Tracker.objects.bulk_update(list(trackers), fields=["cve_id"])
 
 
 @receiver(pre_save, sender=Affect)
