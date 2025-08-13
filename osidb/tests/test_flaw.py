@@ -2329,7 +2329,8 @@ class TestFlawValidators:
             type=Tracker.TrackerType.BUGZILLA,
         )
         tracker.save(raise_validation_error=False)
-        tracker.affects.add(affect)
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
         error_message = (
             f"The tracker is associated with a {Affect.AffectAffectedness.NOTAFFECTED} affect: "
             f"{affect.ps_update_stream}/{affect.ps_component} \\({affect.uuid}\\)"
@@ -2394,7 +2395,8 @@ class TestFlawValidators:
             type=Tracker.TrackerType.BUGZILLA,
         )
         tracker.save(raise_validation_error=False)
-        tracker.affects.add(affect)
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
         error_message = (
             "The tracker is associated with an OOSS affect: "
             f"{affect.ps_update_stream}/{affect.ps_component} \\({affect.uuid}\\)"
@@ -2453,7 +2455,8 @@ class TestFlawValidators:
             type=Tracker.TrackerType.BUGZILLA,
         )
         tracker.save(raise_validation_error=False)
-        tracker.affects.add(affect)
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
         error_message = (
             f"The tracker is associated with a {Affect.AffectResolution.DEFER} affect: "
             f"{affect.ps_update_stream}/{affect.ps_component} \\({affect.uuid}\\)"
@@ -2512,7 +2515,8 @@ class TestFlawValidators:
             type=Tracker.TrackerType.BUGZILLA,
         )
         tracker.save(raise_validation_error=False)
-        tracker.affects.add(affect)
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
         error_message = (
             f"The tracker is associated with a {Affect.AffectResolution.WONTFIX} affect: "
             f"{affect.ps_update_stream}/{affect.ps_component} \\({affect.uuid}\\)"
