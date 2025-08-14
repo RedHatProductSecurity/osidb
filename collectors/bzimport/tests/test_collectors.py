@@ -196,7 +196,7 @@ class TestBugzillaTrackerCollector:
     @pytest.mark.vcr
     def test_sync_with_affect(self, bz_tracker_collector):
         ps_module = PsModuleFactory(bts_name="bugzilla", name="epel-all")
-        PsUpdateStreamFactory(name="epel-all", ps_module=ps_module)
+        ps_update_stream = PsUpdateStreamFactory(name="epel-all", ps_module=ps_module)
 
         flaw = FlawFactory(
             bz_id="1629662",
@@ -205,11 +205,10 @@ class TestBugzillaTrackerCollector:
         affect = AffectFactory.create(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module="epel-all",
+            ps_update_stream=ps_update_stream.name,
             ps_component="jhead",
         )
         creation_dt = datetime(2011, 1, 1, tzinfo=timezone.utc)
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory.create(
             affects=(affect,),
             external_system_id="1629664",
@@ -243,7 +242,7 @@ class TestBugzillaTrackerCollector:
     @pytest.mark.vcr
     def test_sync_with_multiple_affects(self, bz_tracker_collector):
         ps_module = PsModuleFactory(bts_name="bugzilla", name="epel-7")
-        PsUpdateStreamFactory(name="epel-7", ps_module=ps_module)
+        ps_update_stream = PsUpdateStreamFactory(name="epel-7", ps_module=ps_module)
 
         flaw1 = FlawFactory(
             bz_id="1343538",
@@ -252,7 +251,7 @@ class TestBugzillaTrackerCollector:
         affect1 = AffectFactory(
             flaw=flaw1,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module="epel-7",
+            ps_update_stream=ps_update_stream.name,
             ps_component="struts",
         )
 
@@ -263,7 +262,7 @@ class TestBugzillaTrackerCollector:
         affect2 = AffectFactory(
             flaw=flaw2,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module="epel-7",
+            ps_update_stream=ps_update_stream.name,
             ps_component="struts",
         )
 
@@ -278,7 +277,9 @@ class TestBugzillaTrackerCollector:
     @pytest.mark.vcr
     def test_sync_with_removed_affect(self, bz_tracker_collector):
         ps_module = PsModuleFactory(bts_name="bugzilla", name="openstack-rdo")
-        PsUpdateStreamFactory(name="openstack-rdo", ps_module=ps_module)
+        ps_update_stream = PsUpdateStreamFactory(
+            name="openstack-rdo", ps_module=ps_module
+        )
 
         flaw1 = FlawFactory(
             bz_id="1765660",
@@ -287,7 +288,7 @@ class TestBugzillaTrackerCollector:
         affect1 = AffectFactory(
             flaw=flaw1,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module="openstack-rdo",
+            ps_update_stream=ps_update_stream.name,
             ps_component="novnc",
         )
 
@@ -298,11 +299,10 @@ class TestBugzillaTrackerCollector:
         affect2 = AffectFactory(
             flaw=flaw2,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module="openstack-rdo",
+            ps_update_stream=ps_update_stream.name,
             ps_component="novnc",
         )
 
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect1, affect2],
             external_system_id="1765663",
@@ -329,7 +329,9 @@ class TestBugzillaTrackerCollector:
     @pytest.mark.vcr
     def test_sync_with_non_bz_flaws(self, bz_tracker_collector):
         ps_module = PsModuleFactory(bts_name="bugzilla", name="rhcertification-9")
-        PsUpdateStreamFactory(name="rhcertification-9", ps_module=ps_module)
+        ps_update_stream = PsUpdateStreamFactory(
+            name="rhcertification-9", ps_module=ps_module
+        )
 
         flaw1 = FlawFactory(
             uuid="12472365-87e0-4376-be09-c1d4b4cbc6b0",
@@ -339,7 +341,7 @@ class TestBugzillaTrackerCollector:
         affect1 = AffectFactory(
             flaw=flaw1,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module="rhcertification-9",
+            ps_update_stream=ps_update_stream.name,
             ps_component="ssh",
         )
 
@@ -351,7 +353,7 @@ class TestBugzillaTrackerCollector:
         affect2 = AffectFactory(
             flaw=flaw2,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module="rhcertification-9",
+            ps_update_stream=ps_update_stream.name,
             ps_component="ssh",
         )
         # no Bugzilla flaws
