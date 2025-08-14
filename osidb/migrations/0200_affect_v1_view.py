@@ -1,6 +1,7 @@
 import django.contrib.postgres.fields
 from django.db import migrations, models
 from django.utils import timezone
+import osidb.models.fields
 import psqlextra.fields.hstore_field
 
 
@@ -60,6 +61,7 @@ SELECT
     ra.affectedness,
     ra.resolution,
     ra.ps_module,
+    ra.cve_id,
     ra.ps_update_stream,
     ra.ps_component,
     ra.impact,
@@ -88,7 +90,7 @@ WHERE
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0198_update_affect_tracker_relationship'),
+        ('osidb', '0199_affect_tracker_data_migration'),
     ]
 
     operations = [
@@ -96,10 +98,16 @@ class Migration(migrations.Migration):
             model_name='tracker',
             name='affects',
         ),
+        migrations.AlterField(
+            model_name='affect',
+            name='tracker',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='affects', to='osidb.tracker'),
+        ),
         migrations.CreateModel(
             name='AffectV1',
             fields=[
                 ('uuid', models.UUIDField(editable=False, primary_key=True, serialize=False)),
+                ('cve_id', osidb.models.fields.CVEIDField(blank=True, null=True, unique=False)),
                 ('affectedness', models.CharField(max_length=100)),
                 ('resolution', models.CharField(max_length=100)),
                 ('ps_module', models.CharField(max_length=100)),

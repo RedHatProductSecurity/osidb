@@ -11,6 +11,7 @@ from functools import cached_property
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from collectors.bzimport.srtnotes_parser import parse_cf_srtnotes
@@ -28,6 +29,7 @@ from osidb.models import (
     FlawReference,
     Package,
     PackageVer,
+    PsModule,
     Tracker,
 )
 
@@ -270,18 +272,18 @@ class FlawSaver:
         PackageVer.objects.filter(package__isnull=True).delete()
 
     def clean_affects(self):
-        """clean obsoleted affects"""
-        # TODO: potentially optimize?
-        for old_affect in self.flaw.affects.all():
-            for new_affect in self.affects:
-                if (
-                    old_affect.ps_module == new_affect.ps_module
-                    and old_affect.ps_component == new_affect.ps_component
-                ):
-                    break
-            else:
-                # affect does not exist any more
-                old_affect.delete()
+        """clean obsolete affects"""
+        if not self.affects:
+            self.flaw.affects.all().delete()
+
+        affects_to_keep = Q()
+        for new_affect in self.affects:
+            affects_to_keep |= Q(
+                ps_update_stream=new_affect.ps_update_stream,
+                ps_component=new_affect.ps_component,
+            )
+
+        self.flaw.affects.exclude(affects_to_keep).delete()
 
     def clean_affects_cvss_scores(self):
         """clean obsoleted affect cvss scores"""
@@ -712,53 +714,66 @@ class FlawConvertor(BugzillaGroupsConvertorMixin):
             ps_component = affect_json.get("ps_component")
             affect_json["acl_labels"] = self.groups
 
-            affect_obj = Affect.objects.create_affect(
-                flaw,
-                ps_module,
-                ps_component,
-                meta_attr=affect_json,
-                acl_read=self.acl_read,
-                acl_write=self.acl_write,
-                # affects are part of Bugzilla flaw metadata
-                # and their timestamps are complicated to parse
-                # so let us simply duplicate the flaw ones
-                created_dt=self.flaw_bug["creation_time"],
-                updated_dt=self.flaw_bug["last_change_time"],
-            )
+            try:
+                ps_module = PsModule.objects.get(name=ps_module)
+            except PsModule.DoesNotExist:
+                # If the PS module does not exist, we cannot create an affect
+                logger.warning(
+                    f"Non existing PS module {ps_module} in affect data for flaw {flaw.uuid}."
+                )
+                continue
 
-            affect_obj, errors = AffectFixer(
-                affect_obj, affect_json, ps_module, ps_component
-            ).fix()
-            self.record_errors(errors)
-            affects.append(affect_obj)
+            # Expand the specified PS module into the required streams
+            ps_update_streams = ps_module.active_ps_update_streams.all()
+            for stream in ps_update_streams:
+                affect_obj = Affect.objects.create_affect(
+                    flaw,
+                    stream.name,
+                    ps_component,
+                    meta_attr=affect_json,
+                    acl_read=self.acl_read,
+                    acl_write=self.acl_write,
+                    # affects are part of Bugzilla flaw metadata
+                    # and their timestamps are complicated to parse
+                    # so let us simply duplicate the flaw ones
+                    created_dt=self.flaw_bug["creation_time"],
+                    updated_dt=self.flaw_bug["last_change_time"],
+                )
+                affect_obj, errors = AffectFixer(
+                    affect_obj, affect_json, ps_component
+                ).fix()
+                self.record_errors(errors)
+                affects.append(affect_obj)
 
-            # AffectCVSS is created here because it requires an affect object
-            for cvss_pair in [
-                ("cvss2", AffectCVSS.CVSSVersion.VERSION2),
-                ("cvss3", AffectCVSS.CVSSVersion.VERSION3),
-                ("cvss4", AffectCVSS.CVSSVersion.VERSION4),
-            ]:
-                cvss, version = cvss_pair
+                # AffectCVSS is created here because it requires an affect object
+                for cvss_pair in [
+                    ("cvss2", AffectCVSS.CVSSVersion.VERSION2),
+                    ("cvss3", AffectCVSS.CVSSVersion.VERSION3),
+                    ("cvss4", AffectCVSS.CVSSVersion.VERSION4),
+                ]:
+                    cvss, version = cvss_pair
 
-                if affect_json.get(cvss) and "/" in affect_json[cvss]:
-                    cvss_obj = AffectCVSS.objects.create_cvss(
-                        affect_obj,
-                        AffectCVSS.CVSSIssuer.REDHAT,
-                        version,
-                        vector=affect_json[cvss].split("/", 1)[1],
-                        acl_read=self.acl_read,
-                        acl_write=self.acl_write,
-                        created_dt=self.flaw_bug["creation_time"],
-                        updated_dt=self.flaw_bug["last_change_time"],
-                    )
-                    affects_cvss_scores.append(cvss_obj)
+                    if affect_json.get(cvss) and "/" in affect_json[cvss]:
+                        cvss_obj = AffectCVSS.objects.create_cvss(
+                            affect_obj,
+                            AffectCVSS.CVSSIssuer.REDHAT,
+                            version,
+                            vector=affect_json[cvss].split("/", 1)[1],
+                            acl_read=self.acl_read,
+                            acl_write=self.acl_write,
+                            created_dt=self.flaw_bug["creation_time"],
+                            updated_dt=self.flaw_bug["last_change_time"],
+                        )
+                        affects_cvss_scores.append(cvss_obj)
 
         # fixup might result in duplicate affects (rhel-5.0 and rhel-5.1 fixed to rhel-5)
         # so we need to deduplicate them - simply choosing one of the duplicates by random
         #
         # this has consequences when the duplicate affects have different affectednes etc.
         # which is price for fixing the PS module which is prior - these are old data anyway
-        affects = list({a.ps_module + a.ps_component: a for a in affects}.values())
+        affects = list(
+            {a.ps_update_stream + a.ps_component: a for a in affects}.values()
+        )
 
         return [affects, affects_cvss_scores]
 

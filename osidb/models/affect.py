@@ -769,6 +769,7 @@ class AffectV1(models.Model):
     """
 
     uuid = models.UUIDField(primary_key=True, editable=False)
+    cve_id = CVEIDField(unique=False)
     affectedness = models.CharField(
         max_length=100, choices=Affect.AffectAffectedness.choices
     )
