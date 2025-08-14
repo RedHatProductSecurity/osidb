@@ -27,6 +27,8 @@ from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,
     FlawFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
     TrackerFactory,
 )
 
@@ -79,10 +81,10 @@ class TestFlawSaver:
         minimal affects getter
         """
         return [
-            Affect(
-                flaw=flaw,
-                ps_module="module",
-                ps_component="component",
+            Affect.objects.create_affect(
+                flaw,
+                "stream",
+                "component",
                 created_dt=timezone.now(),
                 updated_dt=timezone.now(),
                 acl_read=self.get_acls(),
@@ -230,12 +232,12 @@ class TestFlawSaver:
         assert flaw.nist_cvss_validation == Flaw.FlawNistCvssValidation.REJECTED
 
         assert affect is not None
-        assert affect.ps_module == "module"
+        assert affect.ps_update_stream == "stream"
         assert affect.ps_component == "component"
         assert affect.acl_read == acls
         assert affect.acl_write == acls
         assert affect.flaw == flaw
-        assert affect.trackers.count() == 0
+        assert affect.tracker is None
         assert affect.cvss_scores.first() == affect_cvss_score
 
         assert affect_cvss_score is not None
@@ -585,21 +587,22 @@ class TestFlawSaver:
         assert flaw.affects.count() == 1
         assert flaw.affects.first() == affect
         assert affect.flaw == flaw
-        assert affect.trackers.count() == 0
+        assert affect.tracker is None
         assert Tracker.objects.count() == 0
 
         # add the tracker to affect
         tracker = TrackerFactory.build()
         tracker.save(raise_validation_error=False)  # ignore validations
-        tracker.affects.add(affect)
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
 
         affect = Affect.objects.first()
         tracker = Tracker.objects.first()
-        assert affect.trackers.count() == 1
-        assert affect.trackers.first() == tracker
+        assert affect.tracker == tracker
         assert tracker.affects.count() == 1
         assert tracker.affects.first() == affect
 
+        affects = self.get_affects(flaw)
         FlawSaver(
             flaw,
             [affects, []],
@@ -622,8 +625,7 @@ class TestFlawSaver:
         assert flaw.affects.count() == 1
         assert flaw.affects.first() == affect
         assert affect.flaw == flaw
-        assert affect.trackers.count() == 1
-        assert affect.trackers.first() == tracker
+        assert affect.tracker == tracker
         assert tracker.affects.count() == 1
         assert tracker.affects.first() == affect
 
@@ -872,6 +874,8 @@ class TestFlawConvertor:
 
         this tests that https://issues.redhat.com/browse/OSIDB-152 is fixed
         """
+        ps_module = PsModuleFactory(name="rhel-6")
+        PsUpdateStreamFactory(name="rhel-6.0", ps_module=ps_module)
         flaw_bug = self.get_flaw_bug()
         srtnotes = """
         {
@@ -929,6 +933,8 @@ class TestFlawConvertor:
 
         this tests that /merge_requests/310#note_101271 is fixed
         """
+        ps_module = PsModuleFactory(name="rhel-6")
+        PsUpdateStreamFactory(name="rhel-6.0", ps_module=ps_module)
         flaw_bug = self.get_flaw_bug()
         srtnotes = """
         {
@@ -970,6 +976,47 @@ class TestFlawConvertor:
         affect = flaw.affects.first()
         assert affect.ps_module == "rhel-6"
         assert affect.ps_component == "firefox"
+
+    def test_affects_created_for_all_streams(self):
+        """
+        test that affects are created for all active streams of a module
+        """
+        ps_module = PsModuleFactory(name="rhel-6")
+        PsUpdateStreamFactory(name="rhel-6.0", ps_module=ps_module)
+        PsUpdateStreamFactory(name="rhel-6.1", ps_module=ps_module)
+        flaw_bug = self.get_flaw_bug()
+        srtnotes = """
+        {
+            "affects": [
+                {
+                    "ps_module": "rhel-6",
+                    "ps_component": "firefox",
+                    "affectedness": "affected",
+                    "resolution": "delegated"
+                }
+            ],
+            "impact": "moderate",
+            "public": "2000-04-04T00:00:00Z",
+            "reported": "2000-01-01T00:00:00Z",
+            "source": "customer"
+        }
+        """
+        flaw_bug["cf_srtnotes"] = srtnotes
+
+        fbc = FlawConvertor(
+            flaw_bug,
+            [],
+            None,
+        )
+        flaws = fbc.bug2flaws()
+        assert not fbc.errors
+        assert len(flaws) == 1
+        flaw = flaws[0]
+        flaw.save()
+
+        flaw = Flaw.objects.first()
+        assert flaw is not None
+        assert flaw.affects.count() == 2
 
     def test_cve_changed(self):
         """
@@ -1291,6 +1338,9 @@ class TestFlawConvertor:
 
         OSIDB-910 reproducer (old non-empty values were not emptied)
         """
+        ps_module = PsModuleFactory(name="rhel-8")
+        PsUpdateStreamFactory(name="rhel-8.0", ps_module=ps_module)
+
         flaw = FlawFactory(
             bz_id="123",
             embargoed=False,

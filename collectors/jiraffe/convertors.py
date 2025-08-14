@@ -229,10 +229,6 @@ class TrackerSaver:
         # wrap this in an atomic transaction so that
         # we don't query this tracker during the process
         with transaction.atomic():
-            # re-create all affect links
-            # in case some were removed
-            self.tracker.affects.clear()
-            self.tracker.affects.add(*self.affects)  # bulk add
             self.tracker.save(
                 # we want to store the original timestamps
                 # so we turn off assigning the automatic ones
@@ -242,6 +238,9 @@ class TrackerSaver:
                 raise_validation_error=False,
                 **kwargs,
             )
+            # re-create all affect links
+            # in case some were removed
+            self.tracker.affects.set(self.affects)
 
             # store alerts
             for alert in self.alerts:
