@@ -9,7 +9,6 @@ import re
 import ssl
 import sys
 import warnings
-from distutils.util import strtobool
 from os import getenv
 from typing import Any, Callable, List, Type, Union, cast
 
@@ -70,6 +69,17 @@ def filter_cves(strings, inverse=False):
         if inverse
         else [s for s in strings if re.match(restrict_regex(CVE_RE_STR), s)]
     )
+
+
+# Replaces strtobool from the deprecated distutils library
+def strtobool(val):
+    val = val.lower()
+    if val in ("y", "yes", "t", "true", "on", "1"):
+        return 1
+    elif val in ("n", "no", "f", "false", "off", "0"):
+        return 0
+
+    raise ValueError("invalid truth value {!r}".format(val))
 
 
 def get_env(
