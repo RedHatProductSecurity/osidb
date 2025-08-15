@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi:9.6
+FROM registry.access.redhat.com/ubi10:10.0
 
 LABEL summary="OSIDB" \
       maintainer="Product Security DevOps <prodsec-dev@redhat.com>"
@@ -10,6 +10,7 @@ ENV PYTHONUNBUFFERED=1 \
     UV_DEFAULT_INDEX=$PYPI_MIRROR \
     UV_NO_CACHE=off \
     UV_NATIVE_TLS=true \
+    UV_PROJECT_ENVIRONMENT="/opt/app-root/.venv" \
     REQUESTS_CA_BUNDLE="/etc/pki/tls/certs/ca-bundle.crt"
 
 EXPOSE 8080
@@ -64,7 +65,8 @@ RUN uv sync --frozen --no-dev && \
 # Copy the project into the image
 COPY . /opt/app-root/src
 
-ENV PATH="/opt/app-root/src/.venv/bin:$PATH"
+ENV VIRTUAL_ENV=$UV_PROJECT_ENVIRONMENT
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 RUN chgrp -R 0 /opt/app-root && \
     chmod -R g=u /opt/app-root
