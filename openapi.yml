@@ -8226,7 +8226,6 @@ components:
         flaw:
           type: string
           format: uuid
-          nullable: true
         affectedness:
           oneOf:
           - $ref: '#/components/schemas/AffectednessEnum'
@@ -8333,7 +8332,6 @@ components:
         flaw:
           type: string
           format: uuid
-          nullable: true
         affectedness:
           oneOf:
           - $ref: '#/components/schemas/AffectednessEnum'
@@ -8638,7 +8636,6 @@ components:
         flaw:
           type: string
           format: uuid
-          nullable: true
         affectedness:
           oneOf:
           - $ref: '#/components/schemas/AffectednessEnum'
@@ -8706,7 +8703,6 @@ components:
         flaw:
           type: string
           format: uuid
-          nullable: true
         affectedness:
           oneOf:
           - $ref: '#/components/schemas/AffectednessEnum'

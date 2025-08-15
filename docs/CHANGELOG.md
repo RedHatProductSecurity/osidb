@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Emit a warning instead of an error when the PURL-derived PsComponent doesn't
   match a user-provided PsComponent (OSIDB-4367)
+- Make `affect` model's `flaw` field un-nullable (OSIDB-4202)
 
 ### Fixed
 - Fix the available-flaws API giving a 404 on non-existent flaws instead of 204 (OSIDB-4397).
