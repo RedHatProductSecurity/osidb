@@ -43,7 +43,6 @@ services:
       environment: []
       volumes:
         - ${PWD}:/opt/app-root/src:z
-        - /opt/app-root/src/.venv/
 
     locust:
       container_name: locust
