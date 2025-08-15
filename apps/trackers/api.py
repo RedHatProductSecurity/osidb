@@ -1,5 +1,3 @@
-from distutils.util import strtobool
-
 from django.db.models import Q
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
@@ -7,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from osidb.api_views import RudimentaryUserPathLoggingMixin
+from osidb.helpers import strtobool
 from osidb.mixins import ACLMixin
 from osidb.models import Affect, PsModule
 
@@ -42,8 +41,8 @@ class TrackerFileSuggestionView(RudimentaryUserPathLoggingMixin, APIView):
         (e.g. unacked streams rules)
         """
 
-        exclude_existing_trackers = bool(
-            strtobool(request.query_params.get("exclude_existing_trackers", "false"))
+        exclude_existing_trackers = strtobool(
+            request.query_params.get("exclude_existing_trackers", "false")
         )
         serializer = FlawUUIDListSerializer(data=request.data)
 

@@ -5,7 +5,6 @@ serialize flaw model
 import logging
 import uuid
 from collections import defaultdict
-from distutils.util import strtobool
 from typing import Dict, List, Tuple
 
 import pghistory
@@ -25,6 +24,7 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.serializers import WorkflowModelSerializer
+from osidb.helpers import strtobool
 from osidb.models import (
     CVSS,
     Affect,
@@ -470,7 +470,7 @@ class ACLMixinSerializer(BaseSerializer):
             embargoed = embargoed_values_dedup[0]
 
         if isinstance(embargoed, str):
-            embargoed = bool(strtobool(embargoed))
+            embargoed = strtobool(embargoed)
 
         acl_read, acl_write = self.get_acls(embargoed)
         validated_data["acl_read"] = acl_read
@@ -1712,7 +1712,7 @@ class FlawPackageVersionACLMixinSerializer(serializers.ModelSerializer):
             embargoed = embargoed_values_dedup[0]
 
         if isinstance(embargoed, str):
-            embargoed = bool(strtobool(embargoed))
+            embargoed = strtobool(embargoed)
 
         acl_read, acl_write = self.get_acls(embargoed)
         validated_data["acl_read"] = acl_read
