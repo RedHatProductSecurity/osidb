@@ -40,5 +40,5 @@ check-venv-active: check-venv
 .PHONY: check-testenv
 check-testenv:
 	@echo ">Checking that the testing environment has the requisite python version"
-	@command -v python3.9 || { echo "Python 3.9 not installed! Read about testrunner and tox testing in DEVELOPMENT.md." ; exit 1 ; }
+	@command -v python3.12 || { echo "Python 3.12 not installed! Read about testrunner and tox testing in DEVELOPMENT.md." ; exit 1 ; }
 	@command -v tox || { echo "tox not installed! Read about testrunner and tox testing in DEVELOPMENT.md." ; exit 1 ; }
