@@ -186,9 +186,7 @@ class Affect(
     meta_attr = HStoreField(default=dict)
 
     # A Flaw can have many Affects
-    flaw = models.ForeignKey(
-        Flaw, null=True, on_delete=models.CASCADE, related_name="affects"
-    )
+    flaw = models.ForeignKey(Flaw, on_delete=models.CASCADE, related_name="affects")
 
     class Meta:
         """define meta"""
