@@ -9,7 +9,6 @@ import re
 import ssl
 import sys
 import warnings
-from distutils.util import strtobool
 from os import getenv
 from typing import Any, Callable, List, Type, Union, cast
 
@@ -72,6 +71,17 @@ def filter_cves(strings, inverse=False):
     )
 
 
+# Replaces strtobool from the deprecated distutils library
+def strtobool(val: str):
+    val = val.lower()
+    if val in {"y", "yes", "t", "true", "on", "1"}:
+        return True
+    elif val in {"n", "no", "f", "false", "off", "0"}:
+        return False
+
+    raise ValueError(f"invalid truth value {val}")
+
+
 def get_env(
     key: str,
     default: Union[None, str] = None,
@@ -93,7 +103,7 @@ def get_env(
         value = default
 
     if is_bool:
-        value = bool(strtobool(value))
+        value = strtobool(value)
     if is_int:
         value = int(value)
     if is_json:
