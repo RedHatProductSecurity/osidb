@@ -194,8 +194,8 @@ The following dependencies are required for development, if running tests in Tox
 * krb5-devel
 * libpq-devel
 * openldap-devel
-* python3.9
-* python39-devel
+* python3.12
+* python312-devel
 * tox
 
 The following dependencies are now required to build the cryptography Python library from source:
@@ -299,7 +299,7 @@ $ podman logs -f osidb-service
 
 ### Updating python packages
 
-If you have new `uv.lock` (e.g. after `git pull`) and want to apply them to the **local venv** only (this will install, uninstall, and upgrade/downgrade packages as needed to reflect `uv.lock` exactly):
+If you have new `uv.lock` (e.g. after `git pull`) and want to apply them to the **local venv** only (this will install, uninstall, and upgrade/downgrade packages as needed to reflect `uv.lock` and `local-requirements.txt` exactly):
 
 ```bash
 $ make sync-deps
@@ -452,7 +452,7 @@ This wouldn't work when run locally on a modern Fedora:
 ```bash
 $ make lint
 >Checking that the testing environment has the requisite python version
-Python 3.9 not installed! Read about testrunner and tox testing in DEVELOPMENT.md.
+Python 3.12 not installed! Read about testrunner and tox testing in DEVELOPMENT.md.
 make: *** [Makefile:522: check-testenv] Error 1
 $
 ```
@@ -567,7 +567,7 @@ Updating dependencies between the tools is largely the same (use the command for
 `-P` flag along with the package or package version to update). The command for doing so with `uv` is the following:
 
 ```bash
-$ source venv/bin/activate
+$ source .venv/bin/activate
 $ uv sync -P django -P requests==2.0.0
 ```
 
@@ -619,30 +619,28 @@ Database running inside a container can be complemented with a locally running D
 Setup before running the shell for the first time:
 ```bash
 $ make dev-env  # create python virtual environment and build database container
-$ source venv/bin/activate  # source into the python virtual environment
+$ source .venv/bin/activate  # source into the python virtual environment
 ```
 
 `make dev-env` already created the virtual environment, but if you want to synchronize which packages are installed inside the venv manually, you can:
 
 ```bash
-$ source venv/bin/activate  # source into the python virtual environment, if you haven't already
-$ pip install -r devel-requirements.txt
-$ pip-sync requirements.txt devel-requirements.txt # install python dependencies
+$ source .venv/bin/activate  # source into the python virtual environment, if you haven't already
+$ uv sync
+$ pip install -r 'local-requirements.txt' --no-deps # install local python dependencies
 ```
-
-> Note: you can also install dependencies with pip, but we recommend using pip-sync to make sure that you have only the absolutely necessary.
 
 The same pip-sync synchronization can be performed using `make sync-deps`.
 
 For a more clever shell with command history, auto-completions, etc.
 you can install **ipython**. It is used by Django shell by default.
 ```bash
-$ source venv/bin/activate  # source into the python virtual environment, if you haven't already
+$ source .venv/bin/activate  # source into the python virtual environment, if you haven't already
 $ touch local-requirements.in
-$ echo "-c devel-requirements.txt" >> local-requirements.in
+$ echo "-c cons-requirements.txt" >> local-requirements.in
 $ echo "ipython" >> local-requirements.in
-$ pip-compile local-requirements.in
-$ pip-sync requirements.txt devel-requirements.txt local-requirements.txt
+$ make compile-deps
+$ make sync-deps
 ```
 
 The last line can be also performed using `make sync-deps`.
@@ -650,7 +648,7 @@ The last line can be also performed using `make sync-deps`.
 Running the shell
 ```bash
 make start-local  # run all the containers including the DB container
-source venv/bin/activate  # source into the python virtual environment
+source .venv/bin/activate  # source into the python virtual environment
 export OSIDB_DB_PORT="$( podman port osidb-data | awk -F':' '/5432/ { print $2 }' )"  # get the local port of psql
 export OSIDB_DB_PASSWORD=passw0rd  # this is the password used in docker-compose.yml
 # ...set other necessary variables...
