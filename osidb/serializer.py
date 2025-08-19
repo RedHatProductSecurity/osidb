@@ -778,7 +778,8 @@ class TrackerSerializer(
         tracker.save(no_alerts=True, auto_timestamps=False)
         # create affect-tracker links
         for affect in affects:
-            tracker.affects.add(affect)
+            affect.tracker = tracker
+            affect.save()
 
         #####################
         # 3) create actions #
@@ -843,7 +844,8 @@ class TrackerSerializer(
         # which will both delete the old and add the new
         tracker.affects.clear()
         for affect in validated_data.pop("affects", []):
-            tracker.affects.add(affect)
+            affect.tracker = tracker
+            affect.save()
 
         #####################
         # 3) update actions #
@@ -1337,6 +1339,7 @@ class AffectV1Serializer(
     purl = serializers.CharField(read_only=True)
     resolved_dt = serializers.DateTimeField(read_only=True, allow_null=True)
     cvss_scores = serializers.SerializerMethodField()
+    cve_id = serializers.CharField(allow_blank=True, read_only=True)
 
     @extend_schema_field(
         {
@@ -1380,6 +1383,7 @@ class AffectV1Serializer(
                 "affectedness",
                 "resolution",
                 "ps_module",
+                "cve_id",
                 "ps_product",
                 "ps_component",
                 "impact",
@@ -1449,7 +1453,7 @@ class FlawAffectsTrackersField(serializers.Field):
         trackers = set()
         for affect in value.affects.all():
             if affect.tracker:
-                trackers.update(affect.tracker.external_system_id)
+                trackers.update([affect.tracker.external_system_id])
         return list(trackers)
 
 

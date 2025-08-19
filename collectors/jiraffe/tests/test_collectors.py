@@ -291,13 +291,13 @@ class TestJiraTrackerCollector:
         which should result in updating the known one and no duplicates
         """
         ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         tracker_id = "ENTMQ-755"
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect],
             type=Tracker.TrackerType.JIRA,
@@ -336,19 +336,19 @@ class TestJiraTrackerCollector:
             meta_attr={"jira_trackers": json.dumps([{"key": tracker_id}])},
         )
         ps_module = PsModuleFactory(bts_name="jboss", name="module")
+        ps_update_stream = PsUpdateStreamFactory(name="stream", ps_module=ps_module)
         affect1 = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             flaw=flaw1,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
         affect2 = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             flaw=flaw2,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
-        ps_update_stream = PsUpdateStreamFactory(name="stream", ps_module=ps_module)
         TrackerFactory(
             ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.JIRA,
@@ -366,7 +366,7 @@ class TestJiraTrackerCollector:
         tracker = Tracker.objects.first()
         assert tracker.external_system_id == tracker_id
         assert tracker.affects.count() == 2
-        assert all(tracker in affect.trackers.all() for affect in Affect.objects.all())
+        assert all(tracker == affect.tracker for affect in Affect.objects.all())
 
     @pytest.mark.vcr
     def test_collect_tracker_with_multi_cve_flaw(self):

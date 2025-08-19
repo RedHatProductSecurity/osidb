@@ -61,8 +61,8 @@ class TrackerManager(ACLMixinManager, TrackingMixinManager):
             # to newly created trackers
             tracker.save(raise_validation_error=raise_validation_error)
         if affect is not None:
-            tracker.affects.add(affect)
-            tracker.save(raise_validation_error=raise_validation_error)  # revalidate
+            affect.tracker = tracker
+            affect.save(raise_validation_error=raise_validation_error)  # revalidate
         return tracker
 
 
