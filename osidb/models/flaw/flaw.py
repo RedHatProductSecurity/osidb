@@ -553,13 +553,13 @@ class Flaw(
 
     def _validate_public_unembargo_date(self, **kwargs):
         """
-        Check that an unembargo date (public date) exists and is in the past if the Flaw is public
+        Check that an unembargo date (public date) exists and is in the past if the Flaw is not embargoed
         """
         if not self.is_embargoed:
             if self.unembargo_dt is None:
-                raise ValidationError("Public flaw has an empty unembargo_dt")
+                raise ValidationError("Non-embargoed flaw has an empty unembargo_dt")
             if self.unembargo_dt > timezone.now():
-                raise ValidationError("Public flaw has a future unembargo_dt")
+                raise ValidationError("Non-embargoed flaw has a future unembargo_dt")
 
     def _validate_future_unembargo_date(self, **kwargs):
         """

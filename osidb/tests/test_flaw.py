@@ -1519,8 +1519,12 @@ class TestFlawValidators:
     @pytest.mark.parametrize(
         "embargoed,unembargo_date,error_str",
         [
-            (False, None, "Public flaw has an empty unembargo_dt"),
-            (False, tzdatetime(2022, 11, 22), "Public flaw has a future unembargo_dt"),
+            (False, None, "Non-embargoed flaw has an empty unembargo_dt"),
+            (
+                False,
+                tzdatetime(2022, 11, 22),
+                "Non-embargoed flaw has a future unembargo_dt",
+            ),
             (False, tzdatetime(2021, 11, 22), None),
             (True, None, None),
             (
