@@ -558,7 +558,7 @@ class Flaw(
         if not self.is_embargoed:
             if self.unembargo_dt is None:
                 raise ValidationError("Public flaw has an empty unembargo_dt")
-            if self.unembargo_dt > timezone.now():
+            if self.unembargo_dt > timezone.now() and not self.is_internal:
                 raise ValidationError("Public flaw has a future unembargo_dt")
 
     def _validate_future_unembargo_date(self, **kwargs):

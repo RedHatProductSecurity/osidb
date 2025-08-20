@@ -428,11 +428,20 @@ class ACLMixinSerializer(BaseSerializer):
         """
         generate ACLs based on embargo status
         """
+        internal = self.context["request"].method == "POST"
         acl_read = (
-            settings.EMBARGO_READ_GROUP if embargoed else settings.PUBLIC_READ_GROUPS
+            settings.EMBARGO_READ_GROUP
+            if embargoed
+            else settings.PUBLIC_READ_GROUPS
+            if not internal
+            else [settings.INTERNAL_READ_GROUP]
         )
         acl_write = (
-            settings.EMBARGO_WRITE_GROUP if embargoed else settings.PUBLIC_WRITE_GROUP
+            settings.EMBARGO_WRITE_GROUP
+            if embargoed
+            else settings.PUBLIC_WRITE_GROUP
+            if not internal
+            else [settings.INTERNAL_WRITE_GROUP]
         )
         acl_read, acl_write = ensure_list(acl_read), ensure_list(acl_write)
         return self.hash_acl(acl_read), self.hash_acl(acl_write)
