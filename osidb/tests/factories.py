@@ -196,9 +196,9 @@ class FlawFactory(BaseFactory):
         lambda o: (
             [
                 uuid.uuid5(
-                    uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}"
+                    uuid.NAMESPACE_URL,
+                    f"https://osidb.prod.redhat.com/ns/acls#{settings.INTERNAL_READ_GROUP}",
                 )
-                for group in settings.INTERNAL_READ_GROUP
             ]
             if o.embargoed is False
             else [
