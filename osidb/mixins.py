@@ -206,6 +206,17 @@ class ACLMixin(models.Model):
         # caching the ACLs and building the group map
         self.acls_all
 
+    def save(self, *args, **kwargs):
+        if not self.acl_read and not self.acl_write:
+            self.acl_read = [
+                uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])
+            ]
+            self.acl_write = [
+                uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
+            ]
+
+        super().save(*args, **kwargs)
+
     def get_embargoed_acl():
         return [uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])]
 
