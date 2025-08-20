@@ -338,10 +338,10 @@ class EmbargoedField(serializers.BooleanField):
 
     def validate_acl(self, embargoed):
         acl_read = (
-            settings.EMBARGO_READ_GROUP if embargoed else settings.PUBLIC_READ_GROUPS
+            settings.EMBARGO_READ_GROUP if embargoed else settings.INTERNAL_READ_GROUP
         )
         acl_write = (
-            settings.EMBARGO_WRITE_GROUP if embargoed else settings.PUBLIC_WRITE_GROUP
+            settings.EMBARGO_WRITE_GROUP if embargoed else settings.INTERNAL_WRITE_GROUP
         )
         acl_read, acl_write = ensure_list(acl_read), ensure_list(acl_write)
 
@@ -429,10 +429,10 @@ class ACLMixinSerializer(BaseSerializer):
         generate ACLs based on embargo status
         """
         acl_read = (
-            settings.EMBARGO_READ_GROUP if embargoed else settings.PUBLIC_READ_GROUPS
+            settings.EMBARGO_READ_GROUP if embargoed else settings.INTERNAL_READ_GROUP
         )
         acl_write = (
-            settings.EMBARGO_WRITE_GROUP if embargoed else settings.PUBLIC_WRITE_GROUP
+            settings.EMBARGO_WRITE_GROUP if embargoed else settings.INTERNAL_WRITE_GROUP
         )
         acl_read, acl_write = ensure_list(acl_read), ensure_list(acl_write)
         return self.hash_acl(acl_read), self.hash_acl(acl_write)
@@ -1556,10 +1556,10 @@ class FlawPackageVersionACLMixinSerializer(serializers.ModelSerializer):
         generate ACLs based on embargo status
         """
         acl_read = (
-            settings.EMBARGO_READ_GROUP if embargoed else settings.PUBLIC_READ_GROUPS
+            settings.EMBARGO_READ_GROUP if embargoed else settings.INTERNAL_READ_GROUP
         )
         acl_write = (
-            settings.EMBARGO_WRITE_GROUP if embargoed else settings.PUBLIC_WRITE_GROUP
+            settings.EMBARGO_WRITE_GROUP if embargoed else settings.INTERNAL_WRITE_GROUP
         )
         acl_read, acl_write = ensure_list(acl_read), ensure_list(acl_write)
         return self.hash_acl(acl_read), self.hash_acl(acl_write)
@@ -1969,6 +1969,17 @@ class FlawSerializer(
             + HistoryMixinSerializer.Meta.fields
         )
 
+    def _is_internal(self, flaw, validated_data):
+        """
+        check whether the flaw is internal
+        based on the preliminary raw ACLs
+        """
+        return all(
+            group in flaw.acls_internal
+            # the read groups need to be gathered from validated data
+            for group in self.embargoed2acls(validated_data)["acl_read"]
+        )
+
     def _is_public(self, flaw, validated_data):
         """
         check whether the flaw is public
@@ -2019,9 +2030,10 @@ class FlawSerializer(
         # the only possible change of the embargo visibility is
         # the unembargo as the validations prevent the opposite
         #
-        # we have to check whether the new flaw is public
+        # this used to check whether the new flaw is public
+        # now we check whether the new flaw is internal
         # based on the raw ACLs as it was not yet updated
-        if old_flaw.is_embargoed and self._is_public(new_flaw, validated_data):
+        if old_flaw.is_embargoed and self._is_internal(new_flaw, validated_data):
             new_flaw.unembargo()
 
         # Update cve_description if required

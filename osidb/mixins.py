@@ -535,7 +535,7 @@ class ACLMixin(models.Model):
             return
 
         # unembargo
-        self.set_public()
+        self.set_internal()
         refs = pghistory.models.Events.objects.references(self).all()
         for ref in refs:
             db, model_name = ref.pgh_model.split(".")
@@ -545,8 +545,8 @@ class ACLMixin(models.Model):
 
             with pgtrigger.ignore(f"{db}.{model_name}:append_only"):
                 model_audit.update(
-                    acl_read=list(self.acls_public_read),
-                    acl_write=list(self.acls_public_write),
+                    acl_read=list(self.acls_internal_read),
+                    acl_write=list(self.acls_internal_write),
                 )
         kwargs = {}
         if issubclass(type(self), AlertMixin):
@@ -574,6 +574,7 @@ class ACLMixin(models.Model):
             # continue deeper into the related context
             related_instance.unembargo()
 
+    # TODO: provide internal ACL setting for nested objects
     def set_public_nested(self):
         """
         Change internal ACLs to public ACLs for all related Flaw objects and save them.
