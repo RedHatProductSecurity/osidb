@@ -469,7 +469,7 @@ class TestFlawDraft:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
         TrackerFactory(
@@ -482,7 +482,8 @@ class TestFlawDraft:
         )
         # and thus they have incorrect internal ACLs
         assert flaw.affects.first().is_internal
-        assert flaw.affects.first().trackers.first().is_internal
+        assert flaw.affects.first().tracker is not None
+        assert flaw.affects.first().tracker.is_internal
 
         headers = {"HTTP_JIRA_API_KEY": jira_token}
         response = auth_client().post(
@@ -506,8 +507,8 @@ class TestFlawDraft:
         assert flaw.is_internal
         assert flaw.affects.count() == 1
         assert flaw.affects.first().is_internal
-        assert flaw.affects.first().trackers.count() == 1
-        assert flaw.affects.first().trackers.first().is_internal
+        assert flaw.affects.first().tracker is not None
+        assert flaw.affects.first().tracker.is_internal
         assert flaw.cvss_scores.count() == 1
         assert flaw.cvss_scores.first().is_internal
         assert flaw.references.count() == 5
@@ -544,8 +545,8 @@ class TestFlawDraft:
         assert flaw.is_public
         assert flaw.affects.count() == 1
         assert flaw.affects.first().is_public
-        assert flaw.affects.first().trackers.count() == 1
-        assert flaw.affects.first().trackers.first().is_public
+        assert flaw.affects.first().tracker is not None
+        assert flaw.affects.first().tracker.is_public
         assert flaw.cvss_scores.count() == 1
         assert flaw.cvss_scores.first().is_public
         assert flaw.references.count() == 5

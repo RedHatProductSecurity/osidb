@@ -175,15 +175,15 @@ class TestCheck:
         of the property returning TextChoices values
         """
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory(embargoed=False, impact=Impact.LOW)
         affect = AffectFactory(
             flaw=flaw,
             impact=None,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=False,
