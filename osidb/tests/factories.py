@@ -196,9 +196,9 @@ class FlawFactory(BaseFactory):
         lambda o: (
             [
                 uuid.uuid5(
-                    uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}"
+                    uuid.NAMESPACE_URL,
+                    f"https://osidb.prod.redhat.com/ns/acls#{settings.INTERNAL_READ_GROUP}",
                 )
-                for group in settings.PUBLIC_READ_GROUPS
             ]
             if o.embargoed is False
             else [
@@ -214,7 +214,7 @@ class FlawFactory(BaseFactory):
             [
                 uuid.uuid5(
                     uuid.NAMESPACE_URL,
-                    f"https://osidb.prod.redhat.com/ns/acls#{settings.PUBLIC_WRITE_GROUP}",
+                    f"https://osidb.prod.redhat.com/ns/acls#{settings.INTERNAL_WRITE_GROUP}",
                 )
             ]
             if o.embargoed is False
@@ -577,7 +577,7 @@ class TrackerFactory(BaseFactory):
                 uuid.uuid5(
                     uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}"
                 )
-                for group in settings.PUBLIC_READ_GROUPS
+                for group in settings.INTERNAL_READ_GROUP
             ]
             if o.embargoed is False
             else [
@@ -593,7 +593,7 @@ class TrackerFactory(BaseFactory):
             [
                 uuid.uuid5(
                     uuid.NAMESPACE_URL,
-                    f"https://osidb.prod.redhat.com/ns/acls#{settings.PUBLIC_WRITE_GROUP}",
+                    f"https://osidb.prod.redhat.com/ns/acls#{settings.INTERNAL_WRITE_GROUP}",
                 )
             ]
             if o.embargoed is False

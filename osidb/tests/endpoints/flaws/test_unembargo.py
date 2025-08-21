@@ -184,8 +184,8 @@ class TestEndpointsFlawsUnembargo:
                 for model in models
             ]
             assert (
-                audit_model["acls_read"] == settings.PUBLIC_READ_GROUPS
-                and audit_model["acls_write"] == [settings.PUBLIC_WRITE_GROUP]
+                audit_model["acls_read"] == settings.INTERNAL_READ_GROUP
+                and audit_model["acls_write"] == [settings.INTERNAL_WRITE_GROUP]
                 for audit_model in audit_models
             )
 
