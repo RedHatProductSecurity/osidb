@@ -10,6 +10,7 @@ ENV PYTHONUNBUFFERED=1 \
     UV_DEFAULT_INDEX=$PYPI_MIRROR \
     UV_NO_CACHE=off \
     UV_NATIVE_TLS=true \
+    UV_PROJECT_ENVIRONMENT="/opt/app-root/.venv" \
     REQUESTS_CA_BUNDLE="/etc/pki/tls/certs/ca-bundle.crt"
 
 EXPOSE 8080
@@ -40,9 +41,9 @@ RUN dnf --nodocs --setopt install_weak_deps=false -y install \
         openssl-devel \
         postgresql-devel \
         procps-ng \
-        python3-devel \
-        python3-pip \
-        python3-wheel \
+        python3.12-devel \
+        python3.12-pip \
+        python3.12-wheel \
         redhat-rpm-config \
         which \
     && dnf --nodocs --setopt install_weak_deps=false -y upgrade --security \
@@ -54,7 +55,7 @@ RUN dnf --nodocs --setopt install_weak_deps=false -y install \
 COPY ./pyproject.toml ./uv.lock /opt/app-root/src/
 
 # Install uv
-RUN pip3 install uv==0.8.3
+RUN pip3.12 install uv==0.8.3
 
 # Sync project dependencies into a virtual environment 
 RUN uv sync --frozen --no-dev && \
@@ -64,7 +65,8 @@ RUN uv sync --frozen --no-dev && \
 # Copy the project into the image
 COPY . /opt/app-root/src
 
-ENV PATH="/opt/app-root/src/.venv/bin:$PATH"
+ENV VIRTUAL_ENV=$UV_PROJECT_ENVIRONMENT
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 RUN chgrp -R 0 /opt/app-root && \
     chmod -R g=u /opt/app-root

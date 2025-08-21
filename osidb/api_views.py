@@ -4,11 +4,11 @@ implement osidb rest api views
 
 import logging
 from datetime import datetime
+from importlib.metadata import distributions
 from typing import Any, Type, cast
 from urllib.parse import urljoin
 
 import pghistory
-import pkg_resources
 import requests
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -26,6 +26,7 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 from packageurl import PackageURL
+from packaging.utils import canonicalize_name
 from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
@@ -54,7 +55,7 @@ from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import Affect, AffectCVSS, Flaw, FlawLabel, Tracker
 from osidb.models.flaw.cvss import FlawCVSS
 
-from .constants import OSIDB_API_VERSION, PYPI_URL, URL_REGEX
+from .constants import OSIDB_API_VERSION, PYPI_URL
 from .filters import (
     AffectCVSSFilter,
     AffectFilter,
@@ -247,27 +248,20 @@ class ManifestView(RudimentaryUserPathLoggingMixin, APIView):
         SKIP = ["prodsec"]  # packages to remain unlisted
         packages = []
 
-        for pkg in pkg_resources.working_set:
-            if pkg.key not in SKIP:
-                home_page = next(
-                    (
-                        line
-                        for line in pkg._get_metadata(pkg.PKG_INFO)
-                        if line.startswith("Home-page")
-                    ),
-                    "",
-                )
-                home_page_url = URL_REGEX.search(home_page)
-                home_page_url = home_page_url.group(0) if home_page_url else None
-                purl = PackageURL(type="pypi", name=pkg.key, version=pkg.version)
+        for pkg in distributions():
+            pkg_key = canonicalize_name(pkg.name)
+            if pkg_key not in SKIP:
+                home_page_url = pkg.metadata.get("home-page")
+
+                purl = PackageURL(type="pypi", name=pkg_key, version=pkg.version)
                 # PyPI treats '-' and '_' as the same character and is not case sensitive. A PyPI package
                 # name must be lowercased with underscores replaced with a dash (e.g. 'apscheduler'). A
                 # project name may contain the original case and underscores (e.g. 'APScheduler').
                 entry = {
-                    "pkg_name": pkg.key,
-                    "project_name": pkg.project_name,
+                    "pkg_name": pkg_key,
+                    "project_name": pkg.name,
                     "version": pkg.version,
-                    "source": urljoin(PYPI_URL, pkg.project_name),
+                    "source": urljoin(PYPI_URL, pkg.name),
                     "home_page": home_page_url,
                     "purl": purl.to_string(),
                 }

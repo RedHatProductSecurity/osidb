@@ -98,7 +98,7 @@ upgrade-dep: check-venv-active
 ### Update installed python packages based on uv.lock both in local venv and in all containers
 #***********************************
 .PHONY : apply-uv-sync
-apply-requirements-txt: check-reg check-venv sync-deps compose-up
+apply-uv-sync: check-reg check-venv sync-deps
 	@echo ">appyling uv sync on osidb-service"
 	$(podman) exec -it osidb-service uv sync --frozen --no-dev
 	@echo ">appyling uv sync on osidb_celery_1"
@@ -111,14 +111,12 @@ apply-requirements-txt: check-reg check-venv sync-deps compose-up
 	$(podman) exec -it flower uv sync --frozen --no-dev
 	@echo ">appyling uv sync on testrunner"
 	$(podman) exec -it testrunner uv sync --frozen --only-dev
-	make stop-local
-	@echo "FYI, containers stopped"
 
 
 #***********************************
 ### Install necessary development packages
 #***********************************
-DEVRPMS = make podman podman-compose libpq-devel python3-devel gcc openldap-devel krb5-devel openldap-clients python3.9 black openssl libffi-devel libxslt-devel
+DEVRPMS = make podman podman-compose libpq-devel python3-devel gcc openldap-devel krb5-devel openldap-clients python3.12 black openssl libffi-devel libxslt-devel
 .PHONY: dev-rpm-install
 dev-rpm-install:
 	@echo ">Checking whether necessary development RPMs are installed."
@@ -146,7 +144,7 @@ build:
 .PHONY: venv
 venv:
 	@echo ">Creating venv for local development environment"
-	python3.9 -m venv .venv
+	python3.12 -m venv .venv
 	source .venv/bin/activate && pip install uv==0.8.3 && $(uv) sync && \
 	[ ! -f local-requirements.txt ] || $(uv) pip install -r 'local-requirements.txt' --no-deps 
 
