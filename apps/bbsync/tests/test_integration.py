@@ -162,10 +162,11 @@ class TestBBSyncIntegration:
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="rhel-8")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         AffectFactory(
             flaw=flaw,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream.name,
             ps_component="kernel",
         )
 
@@ -212,16 +213,17 @@ class TestBBSyncIntegration:
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             embargoed=False,
         )
-        PsModuleFactory(name="jbcs-1")
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="jbcs-1")
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
         AffectFactory(
             flaw=flaw,
-            ps_module="jbcs-1",
+            ps_update_stream=ps_update_stream1.name,
             ps_component="ssh",
         )
         AffectFactory(
             flaw=flaw,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream2.name,
             ps_component="libssh",
         )
 
@@ -266,16 +268,17 @@ class TestBBSyncIntegration:
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             embargoed=False,
         )
-        PsModuleFactory(name="jbcs-1")
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="jbcs-1")
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
         AffectFactory(
             flaw=flaw,
-            ps_module="jbcs-1",
+            ps_update_stream=ps_update_stream1.name,
             ps_component="ssh",
         )
         AffectFactory(
             flaw=flaw,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream2.name,
             ps_component="libssh",
         )
 
@@ -322,16 +325,17 @@ class TestBBSyncIntegration:
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             embargoed=False,
         )
-        PsModuleFactory(name="jbcs-1")
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="jbcs-1")
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
         AffectFactory(
             flaw=flaw,
-            ps_module="jbcs-1",
+            ps_update_stream=ps_update_stream1.name,
             ps_component="ssh",
         )
         AffectFactory(
             flaw=flaw,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream2.name,
             ps_component="libssh",
         )
 
@@ -382,10 +386,11 @@ class TestBBSyncIntegration:
             updated_dt=last_change_time,
         )
         flaw.save(raise_validation_error=False)
-        PsModuleFactory(component_cc={}, default_cc=[], name="rhel-9")
+        ps_module = PsModuleFactory(component_cc={}, default_cc=[], name="rhel-9")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         AffectFactory(
             flaw=flaw,
-            ps_module="rhel-9",
+            ps_update_stream=ps_update_stream.name,
             ps_component="samba",
             affectedness="AFFECTED",
             resolution="DELEGATED",
@@ -436,14 +441,15 @@ class TestBBSyncIntegration:
                 },
                 embargoed=True,
             )
-        PsModuleFactory(
+        ps_module = PsModuleFactory(
             name="rhcertification-8",
             default_cc=[],
             component_cc={},
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
-            ps_module="rhcertification-8",
+            ps_update_stream=ps_update_stream.name,
             ps_component="openssl",
         )
         assert Affect.objects.get(uuid=affect.uuid).is_embargoed
@@ -528,18 +534,18 @@ class TestBBSyncIntegration:
             default_cc=[],
             component_cc={},
         )
-        affect1 = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module1.name,
-            ps_component="openssl",
-            impact=None,
-        )
         ps_update_stream1 = PsUpdateStreamFactory(
             name="rhcertification-8-default",
             ps_module=ps_module1,
             version="1.0",
+        )
+        affect1 = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream1.name,
+            ps_component="openssl",
+            impact=None,
         )
         tracker1 = TrackerFactory(
             affects=[affect1],
@@ -564,18 +570,18 @@ class TestBBSyncIntegration:
             default_cc=[],
             component_cc={},
         )
+        ps_update_stream2 = PsUpdateStreamFactory(
+            name="costmanagement-metrics-operator-container",
+            ps_module=ps_module2,
+        )
         JiraBugIssuetype(project=ps_module2.bts_key).save()
         affect2 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module2.name,
+            ps_update_stream=ps_update_stream2.name,
             ps_component="cost-management",
             impact=None,
-        )
-        ps_update_stream2 = PsUpdateStreamFactory(
-            name="costmanagement-metrics-operator-container",
-            ps_module=ps_module2,
         )
         tracker2 = TrackerFactory(
             affects=[affect2],
@@ -653,7 +659,9 @@ class TestBBSyncIntegration:
         assert not Tracker.objects.get(uuid=tracker2.uuid).is_embargoed
 
     @pytest.mark.vcr
-    def test_affect_create(self, auth_client, bugzilla_token, test_api_uri):
+    def test_affect_create(
+        self, auth_client, bugzilla_token, test_api_uri, test_api_v2_uri
+    ):
         """
         test creating a flaw affect with Bugzilla two-way sync
         """
@@ -669,18 +677,19 @@ class TestBBSyncIntegration:
             acl_write=self.acl_write,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="rhel-8")
+        PsUpdateStreamFactory(name="rhel-8.1", ps_module=ps_module)
 
         affect_data = {
             "flaw": flaw.uuid,
-            "ps_module": "rhel-8",
+            "ps_update_stream": "rhel-8.1",
             "ps_component": "kernel",
             "affectedness": "AFFECTED",
             "resolution": "DELEGATED",
             "embargoed": False,
         }
         response = auth_client().post(
-            f"{test_api_uri}/affects",
+            f"{test_api_v2_uri}/affects",
             affect_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -689,15 +698,18 @@ class TestBBSyncIntegration:
         body = response.json()
         created_uuid = body["uuid"]
 
-        response = auth_client().get(f"{test_api_uri}/affects/{created_uuid}")
+        response = auth_client().get(f"{test_api_v2_uri}/affects/{created_uuid}")
         assert response.status_code == 200
+        assert response.json()["ps_update_stream"] == "rhel-8.1"
         assert response.json()["ps_module"] == "rhel-8"
         assert response.json()["ps_component"] == "kernel"
         assert response.json()["affectedness"] == "AFFECTED"
         assert response.json()["resolution"] == "DELEGATED"
 
     @pytest.mark.vcr
-    def test_affect_update(self, auth_client, bugzilla_token, jira_token, test_api_uri):
+    def test_affect_update(
+        self, auth_client, bugzilla_token, jira_token, test_api_uri, test_api_v2_uri
+    ):
         """
         test updating a flaw affect with Bugzilla two-way sync
         """
@@ -713,10 +725,11 @@ class TestBBSyncIntegration:
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="rhel-8")
+        ps_update_stream = PsUpdateStreamFactory(name="rhel-8.1", ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream.name,
             ps_component="kernel",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
@@ -725,14 +738,14 @@ class TestBBSyncIntegration:
 
         affect_data = {
             "flaw": flaw.uuid,
-            "ps_module": "rhel-8",
+            "ps_update_stream": "rhel-8.1",
             "ps_component": "kernel",
             "resolution": "WONTFIX",
             "embargoed": False,
             "updated_dt": affect.updated_dt,
         }
         response = auth_client().put(
-            f"{test_api_uri}/affects/{affect.uuid}",
+            f"{test_api_v2_uri}/affects/{affect.uuid}",
             affect_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -740,15 +753,18 @@ class TestBBSyncIntegration:
         )
         assert response.status_code == 200
 
-        response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
+        response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
+        assert response.json()["ps_update_stream"] == "rhel-8.1"
         assert response.json()["ps_module"] == "rhel-8"
         assert response.json()["ps_component"] == "kernel"
         assert response.json()["affectedness"] == "AFFECTED"
         assert response.json()["resolution"] == "WONTFIX"
 
     @pytest.mark.vcr
-    def test_affect_delete(self, auth_client, bugzilla_token, test_api_uri):
+    def test_affect_delete(
+        self, auth_client, bugzilla_token, test_api_uri, test_api_v2_uri
+    ):
         """
         test deleting a flaw affect with Bugzilla two-way sync
         """
@@ -764,29 +780,30 @@ class TestBBSyncIntegration:
             acl_write=self.acl_write,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="rhel-8")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         # we need to create an extra affect
         # not to result in an affect-less flaw
         # which would not pass the validations
         AffectFactory(
             flaw=flaw,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream.name,
             ps_component="kernel",
         )
         affect = AffectFactory(
             flaw=flaw,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream.name,
             ps_component="openssl",
         )
 
         response = auth_client().delete(
-            f"{test_api_uri}/affects/{affect.uuid}",
+            f"{test_api_v2_uri}/affects/{affect.uuid}",
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
         )
         assert response.status_code == 200
 
-        response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
+        response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
         assert response.status_code == 404
 
     @pytest.mark.vcr(
@@ -842,15 +859,16 @@ class TestBBSyncIntegration:
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="rhel-8")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         AffectFactory(
             flaw=flaw1,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream.name,
             ps_component="kernel",
         )
         AffectFactory(
             flaw=flaw2,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream.name,
             ps_component="kernel",
         )
 
