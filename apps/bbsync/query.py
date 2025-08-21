@@ -429,10 +429,10 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
 
         if self.flaw.is_embargoed:
             # get names of all affected PS modules
-            # we care for affects with trackers only
+            # we care for affects with a tracker only
             module_names = [
                 affect.ps_module
-                for affect in self.flaw.affects.filter(trackers__isnull=False)
+                for affect in self.flaw.affects.filter(tracker__isnull=False)
             ]
             # gat all embargoed groups of all affected PS modules
             module_groups = chain(
