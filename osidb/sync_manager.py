@@ -569,14 +569,14 @@ class BZTrackerLinkManager(SyncManager):
             for flaw in flaws:
                 try:
                     affect = flaw.affects.get(
-                        ps_module=tracker.meta_attr["ps_module"],
+                        ps_update_stream=tracker.ps_update_stream,
                         ps_component=tracker.meta_attr["ps_component"],
                     )
                 except Affect.DoesNotExist:
                     failed_affects.append(
                         (
                             bz_id,
-                            tracker.meta_attr["ps_module"],
+                            tracker.ps_update_stream,
                             tracker.meta_attr["ps_component"],
                         )
                     )
@@ -604,7 +604,7 @@ class BZTrackerLinkManager(SyncManager):
 
                 try:
                     affect = flaw.affects.get(
-                        ps_module=tracker.meta_attr["ps_module"],
+                        ps_update_stream=tracker.ps_update_stream,
                         ps_component=tracker.meta_attr["ps_component"],
                     )
                 except Affect.DoesNotExist:
@@ -613,7 +613,7 @@ class BZTrackerLinkManager(SyncManager):
                     failed_affects.append(
                         (
                             flaw_uuid,
-                            tracker.meta_attr["ps_module"],
+                            tracker.ps_update_stream,
                             tracker.meta_attr["ps_component"],
                         )
                     )
@@ -1067,7 +1067,7 @@ class JiraTrackerLinkManager(SyncManager):
         for flaw in flaws:
             try:
                 affect = flaw.affects.get(
-                    ps_module=tracker.meta_attr["ps_module"],
+                    ps_update_stream=tracker.ps_update_stream,
                     ps_component=tracker.meta_attr["ps_component"],
                 )
             except Affect.DoesNotExist:
@@ -1076,7 +1076,7 @@ class JiraTrackerLinkManager(SyncManager):
                 failed_affects.append(
                     (
                         flaw.bz_id,
-                        tracker.meta_attr["ps_module"],
+                        tracker.ps_update_stream,
                         tracker.meta_attr["ps_component"],
                     )
                 )
