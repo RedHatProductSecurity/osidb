@@ -560,8 +560,8 @@ class ACLMixin(models.Model):
 
         self.save(**kwargs)
 
-        # chain all the related instances as we
-        # only care for the ACLs which are unified
+        # chain all the related instances in reverse relationships (o2m, m2m)
+        # as we only care for the ACLs which are unified
         for related_instance in chain.from_iterable(
             getattr(self, name).all()
             for name in [
@@ -573,6 +573,15 @@ class ACLMixin(models.Model):
         ):
             # continue deeper into the related context
             related_instance.unembargo()
+
+        # chain related instances in forward relationships (m2o, o2o)
+        for field in self._meta.concrete_fields:
+            if isinstance(
+                field, (models.ForeignKey, models.OneToOneField)
+            ) and issubclass(field.related_model, ACLMixin):
+                related_instance = getattr(self, field.name)
+                if related_instance:
+                    related_instance.unembargo()
 
     def set_public_nested(self):
         """
@@ -597,8 +606,8 @@ class ACLMixin(models.Model):
             self.set_public()
             self.save(**kwargs)
 
-        # chain all the related instances as we
-        # only care for the ACLs which are unified
+        # chain all the related instances in reverse relationships (o2m, m2m)
+        # as we only care for the ACLs which are unified
         for related_instance in chain.from_iterable(
             getattr(self, name).all()
             for name in [
@@ -613,6 +622,15 @@ class ACLMixin(models.Model):
         ):
             # continue deeper into the related context
             related_instance.set_public_nested()
+
+        # chain related instances in forward relationships (m2o, o2o)
+        for field in self._meta.concrete_fields:
+            if isinstance(
+                field, (models.ForeignKey, models.OneToOneField)
+            ) and issubclass(field.related_model, ACLMixin):
+                related_instance = getattr(self, field.name)
+                if related_instance:
+                    related_instance.set_public_nested()
 
 
 class AlertManager(ACLMixinManager):
