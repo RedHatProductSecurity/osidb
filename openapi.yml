@@ -11545,10 +11545,8 @@ components:
           oneOf:
           - $ref: '#/components/schemas/ResolutionEnum'
           - $ref: '#/components/schemas/BlankEnum'
-        trackers:
-          type: array
-          items:
-            $ref: '#/components/schemas/TrackerReportData'
+        tracker:
+          $ref: '#/components/schemas/TrackerReportData'
       required:
       - ps_component
     AffectRequest:
