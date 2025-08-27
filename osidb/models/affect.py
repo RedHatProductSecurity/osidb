@@ -103,6 +103,39 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
         # If search has no results, this will now return an empty queryset
 
 
+class AffectV1Manager(ACLMixinManager, TrackingMixinManager):
+    """affect v1 manager"""
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                ps_product_name=models.Subquery(
+                    PsModule.objects.filter(name=models.OuterRef("ps_module")).values(
+                        "ps_product__name"
+                    )
+                )
+            )
+        )
+
+    @staticmethod
+    def fts_search(q):
+        """full text search using postgres FTS via django.contrib.postgres"""
+        from osidb.filters import search_helper
+
+        fields_to_search = (
+            "ps_component",
+            "ps_module",
+            "resolution",
+            "affectedness",
+            "type",
+        )
+        return search_helper(AffectV1.objects.get_queryset(), fields_to_search, q)
+        # Search Affect fields specified with equal weights
+        # If search has no results, this will now return an empty queryset
+
+
 @pghistory.track(
     pghistory.InsertEvent(),
     pghistory.UpdateEvent(),
@@ -762,7 +795,7 @@ class Affect(
         self.flaw.save(*args, **kwargs)
 
 
-class AffectV1(models.Model):
+class AffectV1(AffectExploitExtensionMixin):
     """
     Read-only model that maps to the 'affect_v1' database view, used to maintain
     compatibility with v1 of the API.
@@ -804,6 +837,8 @@ class AffectV1(models.Model):
         db_table = "affect_v1"
         verbose_name = "Affect V1"
         ordering = ["created_dt", "uuid"]
+
+    objects = AffectV1Manager.from_queryset(AffectQuerySetExploitExtension)()
 
     @property
     def trackers(self):
