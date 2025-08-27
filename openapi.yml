@@ -403,7 +403,7 @@ paths:
   /exploits/api/v1/flaw_data:
     get:
       operationId: exploits_api_v1_flaw_data_list
-      description: Flaw, affect, and tracker data for Exploits
+      description: Flaw, affect v1, and tracker data for Exploits
       parameters:
       - name: limit
         required: false
@@ -427,7 +427,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/PaginatedFlawReportDataList'
+                - $ref: '#/components/schemas/PaginatedFlawV1ReportDataList'
                 - type: object
                   properties:
                     dt:
@@ -705,6 +705,197 @@ paths:
                       type: string
                     version:
                       type: string
+          description: ''
+  /exploits/api/v2beta/flaw_data:
+    get:
+      operationId: exploits_api_v2beta_flaw_data_list
+      description: Flaw, affect v2, and tracker data for Exploits
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - exploits
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedFlawReportDataList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /exploits/api/v2beta/report/date/{date}:
+    get:
+      operationId: exploits_api_v2beta_report_date_retrieve
+      description: |-
+        API endpoint for getting date based report for Incident Response.
+
+        Format of results:
+        ```
+        {
+          "cutoff_date": <Date>,
+          "evaluated_cves": <Number of new CVEs with exploits>,
+          "action_required": [<List of affects requiring action>],
+          "no_action": [<List of CVEs not requiring action with reason>],
+          "not_relevant": [<List of CVEs which are not in the database with reason>],
+        }
+        ```
+
+        **NOTE:** No pagination is performed on this endpoint as data is limited by date and is expected
+                  to be fairly small. Also, because data is broken into three categories it is not
+                  exactly obvious how to create pages.
+      parameters:
+      - in: path
+        name: date
+        schema:
+          type: string
+          format: date
+        description: 'Date format: YYYY-MM-DD'
+        required: true
+      tags:
+      - exploits
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  action_required:
+                    type: array
+                    items:
+                      type: object
+                  cutoff_date:
+                    type: string
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  evaluated_cves:
+                    type: integer
+                  no_action:
+                    type: array
+                    items:
+                      type: object
+                  not_relevant:
+                    type: array
+                    items:
+                      type: object
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+  /exploits/api/v2beta/report/explanations:
+    get:
+      operationId: exploits_api_v2beta_report_explanations_retrieve
+      description: |-
+        API endpoint for getting a report of all CVEs with exploit and their status
+        for Incident Response.
+
+        Format of results:
+        ```
+        {
+           "page_size": <Number of CVEs on the page>,
+           "explanations": [<List of CVEs with exploit together with current status explanation>],
+        }
+        ```
+      tags:
+      - exploits
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  explanations:
+                    type: array
+                    items:
+                      type: object
+                  page_size:
+                    type: integer
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+  /exploits/api/v2beta/report/pending:
+    get:
+      operationId: exploits_api_v2beta_report_pending_retrieve
+      description: |-
+        API endpoint for getting a report of pending actions for Incident Response.
+
+        Format of results:
+        ```
+        {
+          "pending_actions": [<List of affects requiring action>],
+          "pending_actions_count": <Number of affects requiring action>,
+        }
+        ```
+
+        **NOTE:** No pagination is performed on this endpoint as it is expected that the size of
+                  the list of pending actions will be mostly stable. Also, the paging cannot be done on
+                  the query level, as additional analysis of every exploit is required before a decision
+                  to include it in this report is done.
+      tags:
+      - exploits
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  pending_actions:
+                    type: array
+                    items:
+                      type: object
+                  pending_actions_count:
+                    type: integer
+                  revision:
+                    type: string
+                  version:
+                    type: string
           description: ''
   /osidb/api/v1/affects:
     get:
@@ -11532,7 +11723,7 @@ components:
     AffectReportData:
       type: object
       properties:
-        ps_module:
+        ps_update_stream:
           type: string
         ps_component:
           type: string
@@ -11549,6 +11740,7 @@ components:
           $ref: '#/components/schemas/TrackerReportData'
       required:
       - ps_component
+      - ps_update_stream
     AffectRequest:
       type: object
       description: Affect serializer
@@ -11698,6 +11890,32 @@ components:
       - trackers
       - updated_dt
       - uuid
+    AffectV1ReportData:
+      type: object
+      properties:
+        ps_module:
+          type: string
+          maxLength: 100
+        ps_component:
+          type: string
+          maxLength: 255
+        affectedness:
+          oneOf:
+          - $ref: '#/components/schemas/AffectednessEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        resolution:
+          oneOf:
+          - $ref: '#/components/schemas/ResolutionEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        trackers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrackerReportData'
+      required:
+      - affectedness
+      - ps_component
+      - ps_module
+      - resolution
     AffectednessEnum:
       enum:
       - NEW
@@ -13232,6 +13450,16 @@ components:
       - trackers
       - updated_dt
       - uuid
+    FlawV1ReportData:
+      type: object
+      properties:
+        cve_id:
+          type: string
+          nullable: true
+        affects:
+          type: array
+          items:
+            $ref: '#/components/schemas/AffectV1ReportData'
     FlawV1Request:
       type: object
       description: Serializer for the flaw model adapted to affects v1
@@ -13916,6 +14144,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FlawV1'
+    PaginatedFlawV1ReportDataList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawV1ReportData'
     PaginatedSupportedProductsList:
       type: object
       required:
