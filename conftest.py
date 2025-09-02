@@ -374,7 +374,7 @@ def set_recording_environments(
             f"{bz_url} is not suitable for integration tests. Make sure BZIMPORT_BZ_URL env is properly set."
         )
 
-    monkeypatch.setenv("HTTPS_PROXY", config.get("HTTPS_PROXY"))
+    monkeypatch.setenv("HTTPS_PROXY", config.get("HTTPS_JIRA_PROXY"))
 
     # Classes that sets urls and tokens at class level (e.g. connectors) and
     # files that imports environments from constants need specific patches
