@@ -10,7 +10,13 @@ from rest_framework.response import Response
 
 from osidb.helpers import safe_get_response_content
 
-from .constants import JIRA_DT_FMT, JIRA_MAX_CONNECTION_AGE, JIRA_SERVER, JIRA_TOKEN
+from .constants import (
+    HTTPS_PROXY,
+    JIRA_DT_FMT,
+    JIRA_MAX_CONNECTION_AGE,
+    JIRA_SERVER,
+    JIRA_TOKEN,
+)
 from .exceptions import NonRecoverableJiraffeException
 
 logger = get_task_logger(__name__)
@@ -50,6 +56,9 @@ class JiraConnector:
             },
             token_auth=self._jira_token,
             get_server_info=False,
+            proxies={
+                "https": HTTPS_PROXY,
+            },
         )
 
     @property
