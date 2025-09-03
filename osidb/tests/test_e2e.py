@@ -146,10 +146,13 @@ class TestE2E:
         flaw._perform_bzsync(bz_api_key=bugzilla_token)
         flaw._create_or_update_task(jira_token)
 
+        access_method = client if not flaw.is_internal else auth_client()
+
         # 1.3) validate access control
-        response = client.get(
+        response = access_method.get(
             f"{test_api_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id&include_history=true"
         )
+
         assert response.status_code == expected_status
         if not embargoed:
             assert response.json()["title"] == "test validations"
@@ -188,7 +191,7 @@ class TestE2E:
         affect = Affect.objects.get(uuid=body["results"][0]["uuid"])
 
         # 3.1) validate access control for affects
-        response = client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = access_method.get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == expected_status
         if not embargoed:
             assert len(response.json()["affects"]) == 1
@@ -235,7 +238,7 @@ class TestE2E:
             JiraTrackerLinkManager.link_tracker_with_affects(tracker_id)
 
         # 5.1) validate access control for trackers
-        response = client.get(
+        response = access_method.get(
             f"{test_api_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id&include_history=true"
         )
         assert response.status_code == expected_status
@@ -332,6 +335,7 @@ class TestE2E:
         assert "curl" in body["components"]
         assert body["meta_attr"]["bz_id"]
         # test modifications made while embargoed are now public
+        print(body["history"])
         assert any(
             h["pgh_diff"] and "task_key" in h["pgh_diff"] for h in body["history"]
         )

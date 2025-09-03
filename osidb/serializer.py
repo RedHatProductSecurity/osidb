@@ -2041,7 +2041,9 @@ class FlawSerializer(
         #
         # we have to check whether the new flaw is public
         # based on the raw ACLs as it was not yet updated
-        if old_flaw.is_embargoed and self._is_public(new_flaw, validated_data):
+        if (old_flaw.is_embargoed or old_flaw.is_internal) and self._is_public(
+            new_flaw, validated_data
+        ):
             new_flaw.unembargo()
 
         # Update cve_description if required
