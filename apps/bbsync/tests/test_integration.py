@@ -64,6 +64,7 @@ class TestBBSyncIntegration:
         self,
         auth_client,
         test_api_uri,
+        test_api_v2_uri,
         bugzilla_token,
         jira_token,
         enable_bz_async_sync,
@@ -89,7 +90,7 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         response = auth_client().post(
-            f"{test_api_uri}/flaws",
+            f"{test_api_v2_uri}/flaws",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -146,8 +147,17 @@ class TestBBSyncIntegration:
         assert "curl" in response.json()["components"]
         assert response.json()["mitigation"] == "mitigation"
 
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/{created_uuid}")
+        assert response.status_code == 200
+        assert response.json()["cve_id"] == "CVE-2024-0126"
+        assert response.json()["title"] == "Foo"
+        assert "curl" in response.json()["components"]
+        assert response.json()["mitigation"] == "mitigation"
+
     @pytest.mark.vcr
-    def test_flaw_update(self, auth_client, bugzilla_token, jira_token, test_api_uri):
+    def test_flaw_update(
+        self, auth_client, bugzilla_token, jira_token, test_api_uri, test_api_v2_uri
+    ):
         """
         test updating a flaw with Bugzilla two-way sync
         """
@@ -180,7 +190,7 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -192,9 +202,13 @@ class TestBBSyncIntegration:
         assert response.status_code == 200
         assert response.json()["title"] == "Bar"
 
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        assert response.json()["title"] == "Bar"
+
     @pytest.mark.vcr
     def test_flaw_update_add_cve(
-        self, auth_client, bugzilla_token, jira_token, test_api_uri
+        self, auth_client, bugzilla_token, jira_token, test_api_uri, test_api_v2_uri
     ):
         """
         test adding a CVE to an existing CVE-less flaw
@@ -221,6 +235,7 @@ class TestBBSyncIntegration:
             ps_update_stream=ps_update_stream1.name,
             ps_component="ssh",
         )
+        ps_module = PsModuleFactory(name="rhel-8")
         AffectFactory(
             flaw=flaw,
             ps_update_stream=ps_update_stream2.name,
@@ -235,7 +250,7 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -247,9 +262,13 @@ class TestBBSyncIntegration:
         assert response.status_code == 200
         assert response.json()["cve_id"] == "CVE-2000-3000"
 
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        assert response.json()["cve_id"] == "CVE-2000-3000"
+
     @pytest.mark.vcr
     def test_flaw_update_remove_cve(
-        self, auth_client, bugzilla_token, jira_token, test_api_uri
+        self, auth_client, bugzilla_token, jira_token, test_api_uri, test_api_v2_uri
     ):
         """
         test removing of a CVE from a flaw
@@ -290,7 +309,7 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -302,9 +321,13 @@ class TestBBSyncIntegration:
         assert response.status_code == 200
         assert response.json()["cve_id"] is None
 
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        assert response.json()["cve_id"] is None
+
     @pytest.mark.vcr
     def test_flaw_update_modify_cve(
-        self, auth_client, bugzilla_token, jira_token, test_api_uri
+        self, auth_client, bugzilla_token, jira_token, test_api_uri, test_api_v2_uri
     ):
         """
         Test modifying the CVE of an existing flaw which already had a CVE.
@@ -359,9 +382,13 @@ class TestBBSyncIntegration:
         assert response.status_code == 200
         assert response.json()["cve_id"] == "CVE-2024-666666"
 
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        assert response.json()["cve_id"] == "CVE-2024-666666"
+
     @pytest.mark.vcr
     def test_flaw_update_remove_unembargo_dt(
-        self, auth_client, bugzilla_token, test_api_uri
+        self, auth_client, bugzilla_token, test_api_uri, test_api_v2_uri
     ):
         """
         test removing unembargo_dt from an embargoed flaw
@@ -405,7 +432,7 @@ class TestBBSyncIntegration:
             "updated_dt": flaw.updated_dt,
         }
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -416,8 +443,12 @@ class TestBBSyncIntegration:
         assert response.status_code == 200
         assert response.json()["unembargo_dt"] is None
 
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        assert response.json()["unembargo_dt"] is None
+
     @pytest.mark.vcr
-    def test_flaw_unembargo(self, auth_client, bugzilla_token, test_api_uri):
+    def test_flaw_unembargo(self, auth_client, bugzilla_token, test_api_v2_uri):
         """
         test flaw unembargo with Bugzilla two-way sync
         """
@@ -465,11 +496,12 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
         )
+
         assert response.status_code == 200
         assert not Affect.objects.get(uuid=affect.uuid).is_embargoed
         assert not Flaw.objects.get(uuid=flaw.uuid).is_embargoed
@@ -482,7 +514,7 @@ class TestBBSyncIntegration:
         enable_bz_sync,
         enable_jira_tracker_sync,
         jira_token,
-        test_api_uri,
+        test_api_v2_uri,
     ):
         """
         test flaw unembargo with Bugzilla two-way sync
@@ -637,7 +669,7 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -698,6 +730,13 @@ class TestBBSyncIntegration:
         body = response.json()
         created_uuid = body["uuid"]
 
+        response = auth_client().get(f"{test_api_uri}/affects/{created_uuid}")
+        assert response.status_code == 200
+        assert response.json()["ps_module"] == "rhel-8"
+        assert response.json()["ps_component"] == "kernel"
+        assert response.json()["affectedness"] == "AFFECTED"
+        assert response.json()["resolution"] == "DELEGATED"
+
         response = auth_client().get(f"{test_api_v2_uri}/affects/{created_uuid}")
         assert response.status_code == 200
         assert response.json()["ps_update_stream"] == "rhel-8.1"
@@ -753,6 +792,13 @@ class TestBBSyncIntegration:
         )
         assert response.status_code == 200
 
+        response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
+        assert response.status_code == 200
+        assert response.json()["ps_module"] == "rhel-8"
+        assert response.json()["ps_component"] == "kernel"
+        assert response.json()["affectedness"] == "AFFECTED"
+        assert response.json()["resolution"] == "WONTFIX"
+
         response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
         assert response.json()["ps_update_stream"] == "rhel-8.1"
@@ -803,13 +849,16 @@ class TestBBSyncIntegration:
         )
         assert response.status_code == 200
 
+        response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
+        assert response.status_code == 404
+
         response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
         assert response.status_code == 404
 
     @pytest.mark.vcr(
         vcr_cassette_name="cassettes/TestBBSyncIntegration.test_flaw_create.yaml"
     )
-    def test_flaw_validations(self, auth_client, bugzilla_token, test_api_uri):
+    def test_flaw_validations(self, auth_client, bugzilla_token, test_api_v2_uri):
         """
         test that flaw validations are not bypassed when syncing to Bugzilla
         """
@@ -822,7 +871,7 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         response = auth_client().post(
-            f"{test_api_uri}/flaws",
+            f"{test_api_v2_uri}/flaws",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -830,7 +879,7 @@ class TestBBSyncIntegration:
         assert response.status_code == 400
         assert "Components value is required" in str(response.content)
 
-    def test_flaw_update_multi_cve_restricted(self, auth_client, test_api_uri):
+    def test_flaw_update_multi_cve_restricted(self, auth_client, test_api_v2_uri):
         """
         test that CVE ID cannot be removed from a multi-CVE flaw
 
@@ -885,7 +934,7 @@ class TestBBSyncIntegration:
         }
         with pytest.raises(UnsaveableFlawError, match="Unable to remove a CVE ID"):
             auth_client().put(
-                f"{test_api_uri}/flaws/{flaw1.uuid}",
+                f"{test_api_v2_uri}/flaws/{flaw1.uuid}",
                 flaw_data,
                 format="json",
                 HTTP_BUGZILLA_API_KEY="SECRET",

@@ -839,11 +839,19 @@ class TrackerSerializer(
         # 2) pre-update actions #
         #########################
 
-        affects = set(tracker.affects.all())
-        # update the relations by simply recreating them
-        # which will both delete the old and add the new
-        tracker.affects.clear()
-        for affect in validated_data.pop("affects", []):
+        old_affects = set(tracker.affects.all())
+        new_affects = set(validated_data.pop("affects", []))
+
+        removed_affects = old_affects - new_affects
+        added_affects = new_affects - old_affects
+
+        # Remove tracker from affects that are no longer associated
+        for affect in removed_affects:
+            affect.tracker = None
+            affect.save()
+
+        # Add tracker to newly associated affects
+        for affect in added_affects:
             affect.tracker = tracker
             affect.save()
 
@@ -851,7 +859,8 @@ class TrackerSerializer(
         # 3) update actions #
         #####################
 
-        # update the attributes
+        tracker.refresh_from_db()
+
         for attr, value in validated_data.items():
             setattr(tracker, attr, value)
 
@@ -870,7 +879,7 @@ class TrackerSerializer(
         # (Bugzilla trackers are linked naturally through Bugzilla relations)
         if tracker.type == Tracker.TrackerType.JIRA:
             # iterate over both added and removed affects
-            for affect in affects ^ set(tracker.affects.all()):
+            for affect in old_affects ^ set(tracker.affects.all()):
                 # do not raise validation errors here as the flaw is not what the user touches
                 # which would make the errors hard to understand and cause the tracker to orphan
                 affect.flaw.save(
