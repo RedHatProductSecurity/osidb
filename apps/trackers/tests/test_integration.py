@@ -44,7 +44,7 @@ class TestTrackerSaver:
         )
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
@@ -116,7 +116,7 @@ class TestTrackerSaver:
         )
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
@@ -185,7 +185,7 @@ class TestTrackerAPI:
         enable_bz_sync,
         jira_token,
         setup_sample_external_resources,
-        test_api_uri,
+        test_api_v2_uri,
     ):
         """
         test the whole stack Bugzilla tracker creation
@@ -209,7 +209,7 @@ class TestTrackerAPI:
         )
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
@@ -222,7 +222,7 @@ class TestTrackerAPI:
             "ps_update_stream": ps_update_stream.name,
         }
         response = auth_client().post(
-            f"{test_api_uri}/trackers",
+            f"{test_api_v2_uri}/trackers",
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -243,6 +243,7 @@ class TestTrackerAPI:
         assert tracker_json["type"] == Tracker.TrackerType.BUGZILLA
         assert tracker_json["ps_update_stream"] == ps_update_stream.name
 
+    # Stuck since the time syncing is throwing an ERROR
     @pytest.mark.vcr
     def test_tracker_update_bugzilla(
         self,
@@ -251,7 +252,7 @@ class TestTrackerAPI:
         enable_bz_sync,
         jira_token,
         setup_sample_external_resources,
-        test_api_uri,
+        test_api_v2_uri,
     ):
         """
         test the whole stack Bugzilla tracker update
@@ -271,7 +272,7 @@ class TestTrackerAPI:
         )
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_streams[0].name,
             ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
@@ -296,16 +297,22 @@ class TestTrackerAPI:
             "affects": [affect.uuid],
             "embargoed": flaw.embargoed,
             "ps_update_stream": ps_update_streams[1].name,  # new value
-            "status": "NEW",  # this one is mandatory even though ignored in the backend query for now
             "updated_dt": updated_dt,
         }
+
+        # update the affect's PS update stream since the tracker's ps_update_stream would be changed
+        # validation requires the update streams to be the same.
+        affect.ps_update_stream = ps_update_streams[1].name
+        affect.save(auto_timestamps=False)
+
         response = auth_client().put(
-            f"{test_api_uri}/trackers/{tracker.uuid}",
+            f"{test_api_v2_uri}/trackers/{tracker.uuid}",
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
+
         assert response.status_code == 200
 
         # 5) the actual update in the database happens async
@@ -331,7 +338,7 @@ class TestTrackerAPI:
         enable_jira_tracker_sync,
         jira_token,
         setup_sample_external_resources,
-        test_api_uri,
+        test_api_v2_uri,
     ):
         """
         test the whole stack Jira tracker creation
@@ -358,7 +365,7 @@ class TestTrackerAPI:
         )
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
@@ -372,7 +379,7 @@ class TestTrackerAPI:
             "ps_update_stream": ps_update_stream.name,
         }
         response = auth_client().post(
-            f"{test_api_uri}/trackers",
+            f"{test_api_v2_uri}/trackers",
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -394,6 +401,7 @@ class TestTrackerAPI:
         assert tracker_json["type"] == Tracker.TrackerType.JIRA
         assert tracker_json["ps_update_stream"] == ps_update_stream.name
 
+    # Same time syncing ERROR as the one previously
     @pytest.mark.vcr
     def test_tracker_update_jira(
         self,
@@ -403,7 +411,7 @@ class TestTrackerAPI:
         enable_jira_tracker_sync,
         jira_token,
         setup_sample_external_resources,
-        test_api_uri,
+        test_api_v2_uri,
     ):
         """
         test the whole stack Jira tracker update
@@ -428,7 +436,7 @@ class TestTrackerAPI:
         )
         affect1 = AffectFactory(
             flaw=flaw1,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_streams[0].name,
             ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
@@ -446,7 +454,7 @@ class TestTrackerAPI:
         )
         affect2 = AffectFactory(
             flaw=flaw2,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_streams[0].name,
             ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
@@ -464,7 +472,7 @@ class TestTrackerAPI:
         )
         affect3 = AffectFactory(
             flaw=flaw3,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_streams[0].name,
             ps_component=ps_module.default_component,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
@@ -494,13 +502,22 @@ class TestTrackerAPI:
             "ps_update_stream": ps_update_streams[2].name,  # new value
             "updated_dt": updated_dt,
         }
+
+        # update the affect1 and affect3's PS update stream since the tracker's ps_update_stream would be changed
+        # validation requires the update streams to be the same.
+        affect1.ps_update_stream = ps_update_streams[2].name
+        affect1.save(auto_timestamps=False)
+        affect3.ps_update_stream = ps_update_streams[2].name
+        affect3.save(auto_timestamps=False)
+
         response = auth_client().put(
-            f"{test_api_uri}/trackers/{tracker.uuid}",
+            f"{test_api_v2_uri}/trackers/{tracker.uuid}",
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
             HTTP_JIRA_API_KEY=jira_token,
         )
+
         assert response.status_code == 200
 
         # 5) the actual update in the database happens async
@@ -528,7 +545,7 @@ class TestTrackerAPI:
         enable_jira_tracker_sync,
         jira_token,
         setup_sample_external_resources,
-        test_api_uri,
+        test_api_v2_uri,
         monkeypatch,
     ):
         """
@@ -587,7 +604,7 @@ class TestTrackerAPI:
             "embargoed": False,
         }
         response = auth_client().post(
-            f"{test_api_uri}/flaws",
+            f"{test_api_v2_uri}/flaws",
             flaw_data,
             format="json",
             # TODO sanitize keys both here and in VCRs
@@ -611,7 +628,7 @@ class TestTrackerAPI:
         affect = AffectFactory(
             uuid="7cb199fd-86eb-45eb-aa3a-8fd7ecd32c1d",
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_streams[0].name,
             ps_component=ps_component1,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
@@ -634,7 +651,7 @@ class TestTrackerAPI:
             "ps_update_stream": ps_update_streams[0].name,
         }
         response = auth_client().post(
-            f"{test_api_uri}/trackers",
+            f"{test_api_v2_uri}/trackers",
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -709,7 +726,7 @@ class TestTrackerAPI:
         affect2 = AffectFactory(
             uuid="8db199fd-86eb-45eb-aa3a-8fd7ecd32c2e",
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_streams[1].name,
             ps_component=ps_component2,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
@@ -725,7 +742,7 @@ class TestTrackerAPI:
             "updated_dt": tracker_new.updated_dt,
         }
         response = auth_client().put(
-            f"{test_api_uri}/trackers/{tracker_new.uuid}",
+            f"{test_api_v2_uri}/trackers/{tracker_new.uuid}",
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
