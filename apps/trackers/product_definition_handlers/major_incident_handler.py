@@ -1,4 +1,4 @@
-from osidb.models import Affect, Flaw, Impact, PsModule
+from osidb.models import Affect, Flaw, Impact, PsUpdateStream
 
 from .default_handler import DefaultHandler
 
@@ -12,7 +12,9 @@ class MajorIncidentHandler(DefaultHandler):
     """
 
     @staticmethod
-    def is_applicable(affect: Affect, impact: Impact, ps_module: PsModule) -> bool:
+    def is_applicable(
+        affect: Affect, impact: Impact, ps_update_stream: PsUpdateStream
+    ) -> bool:
         """
         check whether the hanler is applicable to the given affect
         the caller is responsible for checking the applicability before getting the offer
