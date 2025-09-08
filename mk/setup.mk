@@ -60,7 +60,7 @@ compile-deps: check-venv-active
 	($(uv) export -o cons-requirements.txt && \
 	$(uv) pip compile --generate-hashes 'local-requirements.in' -o 'local-requirements.txt'; \
 	rm cons-requirements.txt)
-	
+
 
 #***********************************
 ### Sync local venv to match uv.lock
@@ -92,7 +92,16 @@ upgrade-dep: check-venv-active
 	@echo ">upgrading specified packages. Local package? [y/N] " && read ans && [ $${ans:-N} = y ] && \
 	$(uv) pip compile --generate-hashes -P $(package) 'local-requirements.in' -o 'local-requirements.txt' || \
 	$(uv) lock -P $(package) 
-	
+
+
+#***********************************
+### Export uv.lock to requirements.txt. For security scanning purposes. Read DEVELOP.md for details
+#***********************************
+.PHONY : generate-requirements
+generate-requirements: check-venv-active
+	@echo ">generating requirements.txt"
+	$(uv) export --output-file 'requirements.txt'
+
 
 #***********************************
 ### Update installed python packages based on uv.lock both in local venv and in all containers
@@ -116,7 +125,7 @@ apply-uv-sync: check-reg check-venv sync-deps
 #***********************************
 ### Install necessary development packages
 #***********************************
-DEVRPMS = make podman podman-compose libpq-devel python3-devel gcc openldap-devel krb5-devel openldap-clients python3.12 black openssl libffi-devel libxslt-devel
+DEVRPMS = make podman podman-compose libpq-devel python3.12-devel gcc openldap-devel krb5-devel openldap-clients python3.12 black openssl libffi-devel libxslt-devel
 .PHONY: dev-rpm-install
 dev-rpm-install:
 	@echo ">Checking whether necessary development RPMs are installed."
