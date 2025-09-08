@@ -108,8 +108,20 @@ colorama==0.4.6 \
     #   click
     #   pytest
     #   tox
-coverage==6.1.2 \
-    --hash=sha256:d9a635114b88c0ab462e0355472d00a180a5fbfd8511e7f18e4ac32652e7d972
+coverage==7.10.6 \
+    --hash=sha256:282b1b20f45df57cc508c1e033403f02283adfb67d4c9c35a90281d81e5c52c5 \
+    --hash=sha256:388d80e56191bf846c485c14ae2bc8898aa3124d9d35903fef7d907780477634 \
+    --hash=sha256:5b2dd6059938063a2c9fee1af729d4f2af28fd1a545e9b7652861f0d752ebcea \
+    --hash=sha256:856986eadf41f52b214176d894a7de05331117f6035a28ac0016c0f63d887629 \
+    --hash=sha256:8cdbe264f11afd69841bd8c0d83ca10b5b32853263ee62e6ac6a0ab63895f972 \
+    --hash=sha256:90cb5b1a4670662719591aa92d0095bb41714970c0b065b02a2610172dbf0af6 \
+    --hash=sha256:92c4ecf6bf11b2e85fd4d8204814dc26e6a19f0c9d938c207c5cb0eadfcabbe3 \
+    --hash=sha256:961834e2f2b863a0e14260a9a273aff07ff7818ab6e66d2addf5628590c628f9 \
+    --hash=sha256:99c4283e2a0e147b9c9cc6bc9c96124de9419d6044837e9799763a0e29a7321a \
+    --hash=sha256:a517feaf3a0a3eca1ee985d8373135cfdedfbba3882a5eab4362bda7c7cf518d \
+    --hash=sha256:acf36b8268785aad739443fa2780c16260ee3fa09d12b3a70f772ef100939d80 \
+    --hash=sha256:bf9a19f5012dab774628491659646335b1928cfc931bf8d97b0d5918dd58033c \
+    --hash=sha256:f644a3ae5933a552a29dbb9aa2f90c677a875f80ebea028e5a52a4f429044b90
     # via pytest-cov
 cvss==3.0 \
     --hash=sha256:705995aa6f99efdd600f83997c78b625bc81be0603ec00a91465ad2eb613cd7b
@@ -451,6 +463,7 @@ pluggy==1.6.0 \
     --hash=sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746
     # via
     #   pytest
+    #   pytest-cov
     #   tox
 ply==3.11 \
     --hash=sha256:00c7c1aaa88358b9c765b6d3000c6eec0ba42abca5351b095321aef446081da3 \
@@ -541,9 +554,9 @@ pytest==7.4.4 \
     #   pytest-recording
     #   pytest-sugar
     #   pytest-xdist
-pytest-cov==5.0.0 \
-    --hash=sha256:4f0764a1219df53214206bf1feea4633c3b558a2925c8b59f144f682861ce652 \
-    --hash=sha256:5837b58e9f6ebd335b0f8060eecce69b662415b16dc503883a02f45dfeb14857
+pytest-cov==6.3.0 \
+    --hash=sha256:35c580e7800f87ce892e687461166e1ac2bcb8fb9e13aea79032518d6e503ff2 \
+    --hash=sha256:440db28156d2468cafc0415b4f8e50856a0d11faefa38f30906048fe490f1749
 pytest-django==4.9.0 \
     --hash=sha256:1d83692cb39188682dbb419ff0393867e9904094a549a7d38a3154d5731b2b99 \
     --hash=sha256:8bf7bc358c9ae6f6fc51b6cebb190fe20212196e6807121f11bd6a3b03428314
@@ -717,9 +730,7 @@ tomli==2.2.1 \
     --hash=sha256:cb55c73c5f4408779d0cf3eef9f762b9c9f147a77de7b258bef0a5628adc85cc \
     --hash=sha256:cd45e1dc79c835ce60f7404ec8119f2eb06d38b1deba146f07ced3bbc44505ff \
     --hash=sha256:db2b95f9de79181805df90bedc5a5ab4c165e6ec3fe99f970d0e302f384ad222
-    # via
-    #   coverage
-    #   django-stubs
+    # via django-stubs
 tornado==6.5 \
     --hash=sha256:007f036f7b661e899bd9ef3fa5f87eb2cb4d1b2e7d67368e778e140a2f101a7a \
     --hash=sha256:03576ab51e9b1677e4cdaae620d6700d9823568b7939277e4690fe4085886c55 \
