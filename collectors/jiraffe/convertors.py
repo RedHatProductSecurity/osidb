@@ -179,6 +179,7 @@ class JiraTaskSaver:
             "team_id",
             "task_key",
             "task_updated_dt",
+            "owner",
             # the ACLs are not really directly fetched but can
             # get modified due to state or resolution changes
             "acl_read",

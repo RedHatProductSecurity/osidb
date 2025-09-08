@@ -1,0 +1,192 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*/*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.32.4
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://example.com/rest/api/2/issue/OSIM-36885?expand=changelog
+  response:
+    body:
+      string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+        "id": "17154413", "self": "https://example.com/rest/api/2/issue/17154413",
+        "key": "OSIM-36885", "fields": {"customfield_12324540": "0.0", "fixVersions":
+        [], "resolution": null, "customfield_12314740": "{summaryBean=com.atlassian.jira.plugin.devstatus.rest.SummaryBean@765093c5[summary={pullrequest=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@dd7a973[overall=PullRequestOverallBean{stateCount=0,
+        state=''OPEN'', details=PullRequestOverallDetails{openCount=0, mergedCount=0,
+        declinedCount=0}},byInstanceType={}], build=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@7e726250[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BuildOverallBean@4edec0dc[failedBuildCount=0,successfulBuildCount=0,unknownBuildCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        review=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@51065704[overall=com.atlassian.jira.plugin.devstatus.summary.beans.ReviewsOverallBean@2d8118bd[stateCount=0,state=<null>,dueDate=<null>,overDue=false,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        deployment-environment=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@400c8fbf[overall=com.atlassian.jira.plugin.devstatus.summary.beans.DeploymentOverallBean@786c7f42[topEnvironments=[],showProjects=false,successfulCount=0,count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        repository=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1bb1a93c[overall=com.atlassian.jira.plugin.devstatus.summary.beans.CommitOverallBean@3e500e07[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}],
+        branch=com.atlassian.jira.plugin.devstatus.rest.SummaryItemBean@1a050f05[overall=com.atlassian.jira.plugin.devstatus.summary.beans.BranchOverallBean@108f568[count=0,lastUpdated=<null>,lastUpdatedTimestamp=<null>],byInstanceType={}]},errors=[],configErrors=[]],
+        devSummaryJson={\"cachedValue\":{\"errors\":[],\"configErrors\":[],\"summary\":{\"pullrequest\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":\"OPEN\",\"details\":{\"openCount\":0,\"mergedCount\":0,\"declinedCount\":0,\"total\":0},\"open\":true},\"byInstanceType\":{}},\"build\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"failedBuildCount\":0,\"successfulBuildCount\":0,\"unknownBuildCount\":0},\"byInstanceType\":{}},\"review\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"stateCount\":0,\"state\":null,\"dueDate\":null,\"overDue\":false,\"completed\":false},\"byInstanceType\":{}},\"deployment-environment\":{\"overall\":{\"count\":0,\"lastUpdated\":null,\"topEnvironments\":[],\"showProjects\":false,\"successfulCount\":0},\"byInstanceType\":{}},\"repository\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}},\"branch\":{\"overall\":{\"count\":0,\"lastUpdated\":null},\"byInstanceType\":{}}}},\"isStale\":false}}",
+        "customfield_12315950": null, "customfield_12310940": null, "lastViewed":
+        "2025-09-08T08:58:18.149+0000", "customfield_12325242": [], "customfield_12325241":
+        null, "customfield_12325243": null, "customfield_12313140": null, "priority":
+        {"self": "https://example.com/rest/api/2/priority/2", "iconUrl": "https://example.com/images/icons/priorities/critical.svg",
+        "name": "Critical", "id": "2"}, "labels": ["CVE-2025-34159", "flawuuid:511a6bd2-27dc-4d5a-812a-502a4f842160",
+        "impact:CRITICAL"], "aggregatetimeoriginalestimate": null, "timeestimate":
+        null, "versions": [], "issuelinks": [], "customfield_12325240": null, "assignee":
+        {"self": "https://example.com/rest/api/2/user?username=rh-ee-atinocom", "name":
+        "rh-ee-atinocom", "key": "JIRAUSER239615", "emailAddress": "atinocom+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER239615&avatarId=55570",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER239615&avatarId=55570",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER239615&avatarId=55570",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER239615&avatarId=55570"},
+        "displayName": "Alvaro Tinoco", "active": true, "timeZone": "Europe/Madrid"},
+        "customfield_12313942": null, "customfield_12313941": null, "status": {"self":
+        "https://example.com/rest/api/2/status/15021", "description": "Work is being
+        scoped and discussed (To Do status category; see also Draft)", "iconUrl":
+        "https://example.com/images/icons/statuses/generic.png", "name": "Refinement",
+        "id": "15021", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/2",
+        "id": 2, "key": "new", "colorName": "default", "name": "To Do"}}, "components":
+        [], "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
+        null, "customfield_12320842": null, "customfield_12310243": null, "aggregatetimeestimate":
+        null, "customfield_12317313": null, "creator": {"self": "https://example.com/rest/api/2/user?username=osidb-prod",
+        "name": "osidb-prod", "key": "JIRAUSER180219", "emailAddress": "prodsec-dev+osidb-prod+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/avatar/7991bffc48ea3a7752a96e93fbebe1f1?d=mm&s=48",
+        "24x24": "https://example.com/avatar/7991bffc48ea3a7752a96e93fbebe1f1?d=mm&s=24",
+        "16x16": "https://example.com/avatar/7991bffc48ea3a7752a96e93fbebe1f1?d=mm&s=16",
+        "32x32": "https://example.com/avatar/7991bffc48ea3a7752a96e93fbebe1f1?d=mm&s=32"},
+        "displayName": "OSI DB", "active": true, "timeZone": "UTC"}, "customfield_12325342":
+        null, "customfield_12325343": null, "subtasks": [], "customfield_12321140":
+        null, "customfield_12325340": null, "customfield_12325341": null, "customfield_12320850":
+        null, "reporter": {"self": "https://example.com/rest/api/2/user?username=osidb-prod",
+        "name": "osidb-prod", "key": "JIRAUSER180219", "emailAddress": "prodsec-dev+osidb-prod+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/avatar/7991bffc48ea3a7752a96e93fbebe1f1?d=mm&s=48",
+        "24x24": "https://example.com/avatar/7991bffc48ea3a7752a96e93fbebe1f1?d=mm&s=24",
+        "16x16": "https://example.com/avatar/7991bffc48ea3a7752a96e93fbebe1f1?d=mm&s=16",
+        "32x32": "https://example.com/avatar/7991bffc48ea3a7752a96e93fbebe1f1?d=mm&s=32"},
+        "displayName": "OSI DB", "active": true, "timeZone": "UTC"}, "aggregateprogress":
+        {"progress": 0, "total": 0}, "customfield_12315542": null, "customfield_12313240":
+        null, "customfield_12319742": null, "progress": {"progress": 0, "total": 0},
+        "votes": {"self": "https://example.com/rest/api/2/issue/OSIM-36885/votes",
+        "votes": 0, "hasVoted": false}, "customfield_12319743": null, "worklog": {"startAt":
+        0, "maxResults": 20, "total": 0, "worklogs": []}, "archivedby": null, "issuetype":
+        {"self": "https://example.com/rest/api/2/issuetype/17", "id": "17", "description":
+        "Created by Jira Software - do not edit or delete. Issue type for a user story.",
+        "iconUrl": "https://example.com/secure/viewavatar?size=xsmall&avatarId=13275&avatarType=issuetype",
+        "name": "Story", "subtask": false, "avatarId": 13275}, "customfield_12318341":
+        null, "timespent": null, "customfield_12320940": null, "project": {"self":
+        "https://example.com/rest/api/2/project/12337520", "id": "12337520", "key":
+        "OSIM", "name": "Open Security Issue Manager", "projectTypeKey": "software",
+        "avatarUrls": {"48x48": "https://example.com/secure/projectavatar?pid=12337520&avatarId=12560",
+        "24x24": "https://example.com/secure/projectavatar?size=small&pid=12337520&avatarId=12560",
+        "16x16": "https://example.com/secure/projectavatar?size=xsmall&pid=12337520&avatarId=12560",
+        "32x32": "https://example.com/secure/projectavatar?size=medium&pid=12337520&avatarId=12560"}},
+        "aggregatetimespent": null, "customfield_12310220": null, "resolutiondate":
+        null, "workratio": -1, "customfield_12316840": null, "customfield_12316841":
+        null, "customfield_12319040": null, "watches": {"self": "https://example.com/rest/api/2/issue/OSIM-36885/watchers",
+        "watchCount": 1, "isWatching": false}, "customfield_12325840": null, "customfield_12325441":
+        null, "customfield_12325442": null, "created": "2025-08-27T17:05:05.504+0000",
+        "customfield_12321240": null, "customfield_12325440": null, "customfield_12320947":
+        [{"self": "https://example.com/rest/api/2/customFieldOption/27714", "value":
+        "Unclassified", "id": "27714", "disabled": false}], "customfield_12320946":
+        {"self": "https://example.com/rest/api/2/customFieldOption/27705", "value":
+        "False", "id": "27705", "disabled": false}, "updated": "2025-09-08T09:25:14.404+0000",
+        "customfield_12316142": null, "timeoriginalestimate": null, "description":
+        "Coolify versions prior to v4.0.0-beta.420.6 are vulnerable to a remote code
+        execution vulnerability in the application deployment workflow. The platform
+        allows authenticated users, with low-level member privileges, to inject arbitrary
+        Docker Compose directives during project creation. By crafting a malicious
+        service definition that mounts the host root filesystem, an attacker can gain
+        full root access to the underlying server.", "timetracking": {}, "attachment":
+        [], "customfield_12316542": {"self": "https://example.com/rest/api/2/customFieldOption/14655",
+        "value": "False", "id": "14655", "disabled": false}, "customfield_12316543":
+        {"self": "https://example.com/rest/api/2/customFieldOption/14657", "value":
+        "False", "id": "14657", "disabled": false}, "customfield_12316544": "None",
+        "customfield_12310840": "9223372036854775807", "summary": "CVE-2025-34159
+        Coolify Docker Compose Directive Injection in Application Deployment Workflow",
+        "customfield_12323640": null, "customfield_12323642": null, "customfield_12323641":
+        null, "customfield_12323644": null, "customfield_12323643": null, "customfield_12323646":
+        null, "customfield_12323645": null, "environment": null, "customfield_12315740":
+        null, "customfield_12313441": "", "customfield_12313440": "0.0", "duedate":
+        null, "customfield_12311140": null, "comment": {"comments": [], "maxResults":
+        0, "total": 0, "startAt": 0}, "customfield_12327041": null, "customfield_12310213":
+        null, "customfield_12327040": null, "customfield_12311940": "1|i0bl5j:"},
+        "changelog": {"startAt": 0, "maxResults": 2, "total": 2, "histories": [{"id":
+        "67233061", "author": {"self": "https://example.com/rest/api/2/user?username=rh-ee-atinocom",
+        "name": "rh-ee-atinocom", "key": "JIRAUSER239615", "emailAddress": "atinocom+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER239615&avatarId=55570",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER239615&avatarId=55570",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER239615&avatarId=55570",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER239615&avatarId=55570"},
+        "displayName": "Alvaro Tinoco", "active": true, "timeZone": "Europe/Madrid"},
+        "created": "2025-09-08T08:58:16.189+0000", "items": [{"field": "assignee",
+        "fieldtype": "jira", "from": null, "fromString": null, "to": "JIRAUSER239615",
+        "toString": "Alvaro Tinoco"}]}, {"id": "67233160", "author": {"self": "https://example.com/rest/api/2/user?username=rh-ee-atinocom",
+        "name": "rh-ee-atinocom", "key": "JIRAUSER239615", "emailAddress": "atinocom+stage@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER239615&avatarId=55570",
+        "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER239615&avatarId=55570",
+        "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER239615&avatarId=55570",
+        "32x32": "https://example.com/secure/useravatar?size=medium&ownerId=JIRAUSER239615&avatarId=55570"},
+        "displayName": "Alvaro Tinoco", "active": true, "timeZone": "Europe/Madrid"},
+        "created": "2025-09-08T09:25:14.405+0000", "items": [{"field": "status", "fieldtype":
+        "jira", "from": "10016", "fromString": "New", "to": "15021", "toString": "Refinement"}]}]}}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Mon, 08 Sep 2025 09:25:38 GMT
+      Expires:
+      - Mon, 08 Sep 2025 09:25:38 GMT
+      Pragma:
+      - no-cache
+      Retry-After:
+      - '0'
+      Vary:
+      - User-Agent
+      - Accept-Encoding
+      X-RateLimit-Limit:
+      - '3'
+      X-RateLimit-Remaining:
+      - '2'
+      content-length:
+      - '11919'
+      referrer-policy:
+      - strict-origin-when-cross-origin
+      strict-transport-security:
+      - max-age=31536000
+      x-anodeid:
+      - rh1-jira-dc-stg-mpp-1
+      x-arequestid:
+      - 565x127x1
+      x-asessionid:
+      - 5fsxgh
+      x-content-type-options:
+      - nosniff
+      x-frame-options:
+      - SAMEORIGIN
+      x-ratelimit-fillrate:
+      - '3'
+      x-ratelimit-interval-seconds:
+      - '1'
+      x-rh-edge-cache-status:
+      - NotCacheable from child
+      x-rh-edge-reference-id:
+      - 0.4762645f.1757323537.a7c389b1
+      x-rh-edge-request-id:
+      - a7c389b1
+      x-seraph-loginreason:
+      - OK
+      x-xss-protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1
