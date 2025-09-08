@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from osidb.api_views import RudimentaryUserPathLoggingMixin
 from osidb.helpers import strtobool
 from osidb.mixins import ACLMixin
-from osidb.models import Affect, PsModule
+from osidb.models import Affect, PsModule, PsUpdateStream
 
 from .product_definition_handlers.base import ProductDefinitionRules
 from .serializer import FlawUUIDListSerializer, TrackerSuggestionSerializer
@@ -34,21 +34,20 @@ class TrackerFileSuggestionView(RudimentaryUserPathLoggingMixin, APIView):
 
         From the user's flaw provided list, this method will:
         - use only affected flaws that will be fixed or delegated
-        - use only affects related to modules with active_ps_update_streams
+        - use only affects related to active update streams
         - remove any embargoed flaw/affects related to modules that does not contains the private_trackers_allowed flag
 
         This method will also considers specific rules from product definition
         (e.g. unacked streams rules)
         """
 
-        exclude_existing_trackers = strtobool(
-            request.query_params.get("exclude_existing_trackers", "false")
+        # Validate input
+        exclude_existing_trackers = bool(
+            strtobool(request.query_params.get("exclude_existing_trackers", "false"))
         )
         serializer = FlawUUIDListSerializer(data=request.data)
-
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
         flaw_uuids = serializer.validated_data["flaw_uuids"]
 
         # select all active PS modules
@@ -94,10 +93,8 @@ class TrackerFileSuggestionView(RudimentaryUserPathLoggingMixin, APIView):
 
         targets = {}
         for affect in affects:
-            key = (affect.ps_module, affect.ps_component)
+            key = (affect.ps_update_stream, affect.ps_component)
             impact = max(affect.impact, affect.flaw.impact)
-
-            ps_module = active_modules.get(name=affect.ps_module)
 
             if (
                 key in targets
@@ -107,20 +104,25 @@ class TrackerFileSuggestionView(RudimentaryUserPathLoggingMixin, APIView):
                 # component is already suggested for a higher impact flaw/affect -- no-op
                 continue
 
-            offers = ProductDefinitionRules().file_tracker_offers(
+            ps_update_stream = PsUpdateStream.objects.get(name=affect.ps_update_stream)
+            offer = ProductDefinitionRules().file_tracker_offer(
                 affect,
                 impact,
-                ps_module,
+                ps_update_stream,
                 exclude_existing_trackers=exclude_existing_trackers,
             )
-            targets[key] = {
-                "affect": affect,
-                "ps_module": affect.ps_module,
-                "ps_component": affect.ps_component,
-                "streams": list(offers.values()),
-                "impact": impact,
-                "selected": False,  # each module is deselected by default
-            }
+
+            if key in targets and offer is not None:
+                targets[key]["streams"].append(offer)
+            else:
+                targets[key] = {
+                    "affect": affect,
+                    "ps_module": affect.ps_module,
+                    "ps_component": affect.ps_component,
+                    "streams": [offer] if offer is not None else [],
+                    "impact": impact,
+                    "selected": False,  # each module is deselected by default
+                }
 
         serializer = TrackerSuggestionSerializer(
             {

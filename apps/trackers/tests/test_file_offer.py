@@ -76,17 +76,18 @@ class TestTrackerSuggestions:
         """
 
         flaw = FlawFactory(embargoed=False)
-        ps_module_regular = PsModuleFactory(name="regular-module")
+        ps_module = PsModuleFactory(name="regular-module")
+        ps_update_stream = PsUpdateStreamFactory(
+            name="regular-stream-1",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+        )
         affect = AffectFactory(
             flaw=flaw,
             affectedness=affectedness,
             resolution=resolution,
             ps_component="component-1",
-            ps_module="regular-module",
-        )
-        PsUpdateStreamFactory(
-            name="regular-stream-1",
-            active_to_ps_module=ps_module_regular,
+            ps_update_stream=ps_update_stream.name,
         )
 
         headers = {"HTTP_JiraAuthentication": "SECRET"}
@@ -123,16 +124,17 @@ class TestTrackerSuggestions:
             name="regular-module",
             private_trackers_allowed=True,
         )
+        ps_update_stream_regular = PsUpdateStreamFactory(
+            name="regular-stream-1",
+            ps_module=ps_module_regular,
+            active_to_ps_module=ps_module_regular,
+        )
         AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             ps_component="component-1",
-            ps_module="regular-module",
-        )
-        PsUpdateStreamFactory(
-            name="regular-stream-1",
-            active_to_ps_module=ps_module_regular,
+            ps_update_stream=ps_update_stream_regular.name,
         )
 
         flaw_embargoed = FlawFactory(embargoed=True)
@@ -140,8 +142,9 @@ class TestTrackerSuggestions:
             name="public-only-module",
             private_trackers_allowed=False,
         )
-        PsUpdateStreamFactory(
+        ps_update_stream_public = PsUpdateStreamFactory(
             name="public-only-stream-1",
+            ps_module=ps_module_public,
             active_to_ps_module=ps_module_public,
         )
         affect_embargoed = AffectFactory(
@@ -149,7 +152,7 @@ class TestTrackerSuggestions:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             ps_component="component-1",
-            ps_module="public-only-module",
+            ps_update_stream=ps_update_stream_public.name,
         )
 
         headers = {"HTTP_JiraAuthentication": "SECRET"}
@@ -218,6 +221,12 @@ class TestTrackerSuggestions:
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
         ps_module = PsModuleFactory(name="test-module")
+        PsUpdateStream(
+            name="stream-2",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            unacked_to_ps_module=ps_module,
+        ).save()
 
         affect = Affect(
             impact=Impact.MODERATE,
@@ -225,20 +234,13 @@ class TestTrackerSuggestions:
             affectedness=affectedness,
             resolution=resolution,
             ps_component="component-1",
-            ps_module=ps_module.name,
+            ps_update_stream="stream-2",
             acl_read=flaw.acl_read,
             acl_write=flaw.acl_write,
         )
         affect.save(
             raise_validation_error=False
         )  # allow legacy (affectedness,resolution)
-
-        PsUpdateStream(
-            name="stream-2",
-            ps_module=ps_module,
-            active_to_ps_module=ps_module,
-            unacked_to_ps_module=ps_module,
-        ).save()
 
         headers = {"HTTP_JiraAuthentication": "SECRET"}
         response = auth_client().post(
@@ -266,7 +268,7 @@ class TestTrackerSuggestions:
             supported_from_dt=timezone.now() + timezone.timedelta(1),
             supported_until_dt=timezone.now() + timezone.timedelta(2),
         )
-        PsUpdateStreamFactory(
+        ps_update_stream = PsUpdateStreamFactory(
             ps_module=ps_module,
             active_to_ps_module=ps_module,
             default_to_ps_module=ps_module,
@@ -278,7 +280,7 @@ class TestTrackerSuggestions:
             impact=flaw.impact,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
 
         headers = {"HTTP_JiraAuthentication": "SECRET"}
@@ -464,7 +466,7 @@ class TestTrackerSuggestions:
                 ["stream2"],
                 Flaw.FlawMajorIncident.NOVALUE,
                 ["stream1", "stream2"],
-                ["stream1"],  # moderate beats unacked
+                ["stream1", "stream2"],  # both moderate and unacked selected
             ),
             (
                 Impact.LOW,
@@ -564,7 +566,6 @@ class TestTrackerSuggestions:
         integration tests various tracker file offer scenarios
         """
         # 1) context
-
         ps_module = PsModuleFactory()
 
         flaw = FlawFactory(
@@ -572,17 +573,9 @@ class TestTrackerSuggestions:
             impact=impact,
             major_incident_state=major_incident_state,
         )
-        AffectFactory(
-            flaw=flaw,
-            impact=flaw.impact,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_component="component",
-            ps_module=ps_module.name,
-        )
 
         for stream in streams:
-            PsUpdateStreamFactory(
+            ps_update_stream = PsUpdateStreamFactory(
                 name=stream,
                 ps_module=ps_module,
                 active_to_ps_module=ps_module if stream in active_streams else None,
@@ -590,9 +583,16 @@ class TestTrackerSuggestions:
                 moderate_to_ps_module=ps_module if stream in moderate_streams else None,
                 unacked_to_ps_module=ps_module if stream in unacked_streams else None,
             )
+            AffectFactory(
+                flaw=flaw,
+                impact=flaw.impact,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_component="component",
+                ps_update_stream=ps_update_stream.name,
+            )
 
         # 2) query
-
         headers = {"HTTP_JiraAuthentication": "SECRET"}
         response = auth_client().post(
             f"{test_app_api_uri}/file",
@@ -603,22 +603,18 @@ class TestTrackerSuggestions:
         res = response.json()
 
         # 3) response processing
-
         if not res["modules_components"]:
             available_streams, selected_streams = [], []
         else:
-            available_streams = sorted(
-                stream["ps_update_stream"]
-                for stream in res["modules_components"][0]["streams"]
-            )
+            streams = [
+                r["streams"][0] for r in res["modules_components"] if r["streams"]
+            ]
+            available_streams = sorted(stream["ps_update_stream"] for stream in streams)
             selected_streams = sorted(
-                stream["ps_update_stream"]
-                for stream in res["modules_components"][0]["streams"]
-                if stream["selected"]
+                stream["ps_update_stream"] for stream in streams if stream["selected"]
             )
 
         # 4) assertions
-
         assert available_streams == expected_available_streams
         assert selected_streams == expected_selected_streams
 
@@ -648,12 +644,6 @@ class TestTrackerSuggestions:
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
         ps_module = PsModuleFactory(name="test-module")
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
-        )
 
         # Create two update streams
         stream1 = PsUpdateStreamFactory(
@@ -667,9 +657,23 @@ class TestTrackerSuggestions:
             moderate_to_ps_module=ps_module,
         )
 
+        # Create an affect for each stream
+        affect1 = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=stream1.name,
+        )
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=stream2.name,
+        )
+
         # Create an existing tracker for stream1
         TrackerFactory(
-            affects=[affect],
+            affects=[affect1],
             ps_update_stream=stream1.name,
             embargoed=flaw.embargoed,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
@@ -692,10 +696,11 @@ class TestTrackerSuggestions:
         )
         res = response.json()
 
-        assert len(res["modules_components"]) == 1
+        assert len(res["modules_components"]) == 2
         available_streams = [
             stream["ps_update_stream"]
-            for stream in res["modules_components"][0]["streams"]
+            for module in res["modules_components"]
+            for stream in module["streams"]
         ]
 
         # Check expectations
@@ -715,14 +720,14 @@ class TestTrackerSuggestions:
         )
         def test_is_applicable_impact(self, impact, is_applicable):
             ps_module = PsModuleFactory()
-            affect = AffectFactory(ps_module=ps_module.name)
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+            affect = AffectFactory(ps_update_stream=ps_update_stream.name)
             assert is_applicable == DefaultHandler.is_applicable(
                 affect, impact, ps_module
             )
 
         def test_get_offer_no_active_default(self):
             ps_module = PsModuleFactory()
-            affect = AffectFactory(ps_module=ps_module.name)
             ps_update_stream1 = PsUpdateStreamFactory(
                 ps_module=ps_module,
                 active_to_ps_module=None,  # inactive
@@ -733,43 +738,45 @@ class TestTrackerSuggestions:
                 active_to_ps_module=ps_module,
                 default_to_ps_module=None,  # non-default
             )
+            affect1 = AffectFactory(ps_update_stream=ps_update_stream1.name)
+            affect2 = AffectFactory(ps_update_stream=ps_update_stream2.name)
 
             framework = ProductDefinitionRules()
             framework.handlers = [DefaultHandler()]
             # no existing active default to be selected
-            offer = framework.file_tracker_offers(affect, Impact.CRITICAL, ps_module)
-            assert offer
-            assert len(offer) == 1
-            assert ps_update_stream1.name not in offer
-            assert ps_update_stream2.name in offer
-            assert offer[ps_update_stream2.name]["selected"] is False
+            offer1 = framework.file_tracker_offer(
+                affect1, Impact.CRITICAL, ps_update_stream1
+            )
+            assert offer1 is None
+            offer2 = framework.file_tracker_offer(
+                affect2, Impact.CRITICAL, ps_update_stream2
+            )
+            assert offer2
+            assert ps_update_stream2.name == offer2["ps_update_stream"]
+            assert offer2["selected"] is False
 
         def test_get_offer(self):
             ps_module = PsModuleFactory()
-            affect = AffectFactory(ps_module=ps_module.name)
             stream1 = PsUpdateStreamFactory(
                 ps_module=ps_module,
                 active_to_ps_module=ps_module,
                 default_to_ps_module=ps_module,
             )
-            stream2 = PsUpdateStreamFactory(
+            PsUpdateStreamFactory(
                 ps_module=ps_module,
                 active_to_ps_module=ps_module,
                 default_to_ps_module=ps_module,
             )
+            affect1 = AffectFactory(ps_update_stream=stream1.name)
+            AffectFactory(ps_update_stream=stream1.name)
 
             framework = ProductDefinitionRules()
             framework.handlers = [DefaultHandler()]
-            # both default streams should be included in the offer
-            offer = framework.file_tracker_offers(affect, Impact.CRITICAL, ps_module)
+            # the offer for a single affect should include a single stream
+            offer = framework.file_tracker_offer(affect1, Impact.CRITICAL, stream1)
             assert offer
-            assert len(offer) == 2
-            assert stream1.name in offer
-            assert stream2.name in offer
-            assert offer[stream1.name]["ps_update_stream"] == stream1.name
-            assert offer[stream1.name]["selected"] is True
-            assert offer[stream2.name]["ps_update_stream"] == stream2.name
-            assert offer[stream2.name]["selected"] is True
+            assert stream1.name == offer["ps_update_stream"]
+            assert offer["selected"] is True
 
     class TestMajorIncidentHandler:
         @pytest.mark.parametrize(
@@ -786,12 +793,13 @@ class TestTrackerSuggestions:
         )
         def test_is_applicable(self, major_incident_state, is_applicable):
             ps_module = PsModuleFactory()
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affect = AffectFactory(
                 flaw__major_incident_state=major_incident_state,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
             )
             assert is_applicable == MajorIncidentHandler.is_applicable(
-                affect, affect.impact, ps_module
+                affect, affect.impact, ps_update_stream
             )
 
         # the offer creation works completely the save way as for the DefaultHandler
@@ -809,13 +817,13 @@ class TestTrackerSuggestions:
         )
         def test_is_applicable_impact(self, impact, is_applicable):
             ps_module = PsModuleFactory()
-            PsUpdateStreamFactory(
+            ps_update_stream = PsUpdateStreamFactory(
                 active_to_ps_module=ps_module,
                 moderate_to_ps_module=ps_module,
             )
-            affect = AffectFactory(ps_module=ps_module.name)
+            affect = AffectFactory(ps_update_stream=ps_update_stream.name)
             assert is_applicable == ModerateHandler.is_applicable(
-                affect, impact, ps_module
+                affect, impact, ps_update_stream
             )
 
         @pytest.mark.parametrize(
@@ -827,23 +835,23 @@ class TestTrackerSuggestions:
         )
         def test_is_applicable_moderate_stream(self, moderate_stream, is_applicable):
             ps_module = PsModuleFactory()
-            PsUpdateStreamFactory(
+            ps_update_stream = PsUpdateStreamFactory(
                 active_to_ps_module=ps_module,
                 moderate_to_ps_module=ps_module if moderate_stream else None,
             )
-            affect = AffectFactory(ps_module=ps_module.name)
+            affect = AffectFactory(ps_update_stream=ps_update_stream.name)
             assert is_applicable == ModerateHandler.is_applicable(
-                affect, Impact.MODERATE, ps_module
+                affect, Impact.MODERATE, ps_update_stream
             )
 
         def test_get_offer(self):
+            # TODO: Parametrize
             ps_module = PsModuleFactory()
-            affect = AffectFactory(ps_module=ps_module.name)
 
             framework = ProductDefinitionRules()
             framework.handlers = [ModerateHandler()]
 
-            PsUpdateStreamFactory(
+            ps_update_stream1 = PsUpdateStreamFactory(
                 active_to_ps_module=None,
                 moderate_to_ps_module=None,
             )
@@ -855,16 +863,30 @@ class TestTrackerSuggestions:
                 active_to_ps_module=ps_module,
                 moderate_to_ps_module=ps_module,
             )
+            affect1 = AffectFactory(ps_update_stream=ps_update_stream1.name)
+            affect2 = AffectFactory(ps_update_stream=ps_update_stream2.name)
+            affect3 = AffectFactory(ps_update_stream=ps_update_stream3.name)
 
             # active streams should be included in the offer
             # and the moderate one should be pre-selected
-            offer = framework.file_tracker_offers(affect, Impact.MODERATE, ps_module)
-            assert offer
-            assert len(offer) == 2
-            assert ps_update_stream2.name in offer
-            assert ps_update_stream3.name in offer
-            assert offer[ps_update_stream2.name]["selected"] is False
-            assert offer[ps_update_stream3.name]["selected"] is True
+            offer1 = framework.file_tracker_offer(
+                affect1, Impact.MODERATE, ps_update_stream1
+            )
+            assert offer1 is None
+
+            offer2 = framework.file_tracker_offer(
+                affect2, Impact.MODERATE, ps_update_stream2
+            )
+            assert offer2
+            assert ps_update_stream2.name == offer2["ps_update_stream"]
+            assert offer2["selected"] is False
+
+            offer3 = framework.file_tracker_offer(
+                affect3, Impact.MODERATE, ps_update_stream3
+            )
+            assert offer3
+            assert ps_update_stream3.name == offer3["ps_update_stream"]
+            assert offer3["selected"] is True
 
     class TestUnackedHandler:
         @pytest.mark.parametrize(
@@ -878,39 +900,37 @@ class TestTrackerSuggestions:
         )
         def test_is_applicable(self, impact, is_applicable):
             ps_module = PsModuleFactory()
-            affect = AffectFactory(ps_module=ps_module.name)
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+            affect = AffectFactory(ps_update_stream=ps_update_stream.name)
             assert is_applicable == UnackedHandler.is_applicable(
-                affect, impact, ps_module
+                affect, impact, ps_update_stream
             )
 
         def test_get_offer_present(self):
             ps_module = PsModuleFactory()
-            affect = AffectFactory(ps_module=ps_module.name)
+            ps_update_stream = PsUpdateStreamFactory(
+                active_to_ps_module=None,
+                unacked_to_ps_module=ps_module,
+            )
+            affect = AffectFactory(ps_update_stream=ps_update_stream.name)
 
             framework = ProductDefinitionRules()
             framework.handlers = [UnackedHandler()]
 
             # no existing unacked stream to be offered
             assert (
-                framework.file_tracker_offers(affect, Impact.MODERATE, ps_module) == {}
-            )
-
-            ps_update_stream = PsUpdateStreamFactory(
-                active_to_ps_module=None,
-                unacked_to_ps_module=ps_module,
-            )
-            # no active unacked stream to be offered
-            assert (
-                framework.file_tracker_offers(affect, Impact.MODERATE, ps_module) == {}
+                framework.file_tracker_offer(affect, Impact.MODERATE, ps_update_stream)
+                is None
             )
 
             ps_update_stream.active_to_ps_module = ps_module
             ps_update_stream.save()
             # unacked stream should be included in the offer
-            offer = framework.file_tracker_offers(affect, Impact.MODERATE, ps_module)
+            offer = framework.file_tracker_offer(
+                affect, Impact.MODERATE, ps_update_stream
+            )
             assert offer
-            assert len(offer) == 1
-            assert ps_update_stream.name in offer
+            assert ps_update_stream.name == offer["ps_update_stream"]
 
         @pytest.mark.parametrize(
             "impact,preselected",
@@ -921,17 +941,16 @@ class TestTrackerSuggestions:
         )
         def test_get_offer_preselected(self, impact, preselected):
             ps_module = PsModuleFactory()
-            affect = AffectFactory(ps_module=ps_module.name)
             ps_update_stream = PsUpdateStreamFactory(
                 active_to_ps_module=ps_module,
                 unacked_to_ps_module=ps_module,
             )
+            affect = AffectFactory(ps_update_stream=ps_update_stream.name)
 
             framework = ProductDefinitionRules()
             framework.handlers = [UnackedHandler()]
 
-            offer = framework.file_tracker_offers(affect, impact, ps_module)
+            offer = framework.file_tracker_offer(affect, impact, ps_update_stream)
             assert offer
-            assert len(offer) == 1
-            assert ps_update_stream.name in offer
-            assert offer[ps_update_stream.name]["selected"] == preselected
+            assert ps_update_stream.name == offer["ps_update_stream"]
+            assert offer["selected"] == preselected
