@@ -41,7 +41,7 @@ class TestTrackerBugzillaQueryBuilder:
                 flaw__bz_id=idx,
                 flaw__embargoed=False,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 ps_component="component",
             )
             affects.append(affect)
@@ -75,7 +75,7 @@ class TestTrackerBugzillaQueryBuilder:
                 flaw__bz_id=f"{idx}",
                 flaw__embargoed=False,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 ps_component="component",
             )
             affects.append(affect)
@@ -104,13 +104,13 @@ class TestTrackerBugzillaQueryBuilder:
             reported_dt=make_aware(datetime(2000, 1, 1)),
         )
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=flaw.embargoed,
@@ -161,7 +161,7 @@ sla:
 
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component=ps_component,
         )
         tracker = TrackerFactory(
@@ -210,7 +210,7 @@ sla:
 
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component=ps_component,
         )
         tracker = TrackerFactory(
@@ -260,7 +260,7 @@ sla:
 
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="original-component",
         )
         tracker = TrackerFactory(
@@ -304,7 +304,7 @@ sla:
 
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="podman",
         )
         tracker = TrackerFactory(
@@ -351,7 +351,7 @@ sla:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             impact=None,  # no override here
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -393,7 +393,7 @@ sla:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -436,7 +436,7 @@ sla:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -468,7 +468,7 @@ sla:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -497,7 +497,7 @@ sla:
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -572,7 +572,7 @@ sla:
         flaw = FlawFactory()
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             ps_component=component,
         )
