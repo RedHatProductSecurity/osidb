@@ -30,7 +30,7 @@ testrun.ini
 tests/htmlcov
 .tox/
 /venv
-/.venv
+.venv
 .vscode/
 *.db.gz
 osidb_data_backup_dump*
