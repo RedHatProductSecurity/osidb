@@ -610,7 +610,6 @@ class Flaw(
         * has a mitigation
         * has a statement
         * has a cve_description
-        * requires_cve_description is APPROVED
         * has exactly one article
         """
         from .reference import FlawReference
@@ -642,13 +641,6 @@ class Flaw(
                 **kwargs,
             )
 
-        if self.requires_cve_description != self.FlawRequiresCVEDescription.APPROVED:
-            self.alert(
-                "mi_cve_description_not_reviewed",
-                "Flaw marked as Major Incident does not have a cve_description reviewed.",
-                **kwargs,
-            )
-
         article = self.references.filter(type=FlawReference.FlawReferenceType.ARTICLE)
         if article.count() != 1:
             self.alert(
@@ -662,7 +654,6 @@ class Flaw(
         Validate that a Flaw that is CISA Major Incident complies with the following:
         * has a statement
         * has a cve_description
-        * requires_cve_description is APPROVED
         """
         if self.major_incident_state != Flaw.FlawMajorIncident.CISA_APPROVED:
             return
@@ -678,13 +669,6 @@ class Flaw(
             self.alert(
                 "cisa_mi_cve_description_missing",
                 "Flaw marked as CISA Major Incident does not have a cve_description.",
-                **kwargs,
-            )
-
-        if self.requires_cve_description != self.FlawRequiresCVEDescription.APPROVED:
-            self.alert(
-                "cisa_mi_cve_description_not_reviewed",
-                "Flaw marked as CISA Major Incident does not have a cve_description reviewed.",
                 **kwargs,
             )
 
