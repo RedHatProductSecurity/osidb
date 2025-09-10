@@ -5,6 +5,7 @@ import pytest
 from apps.bbsync.cc import AffectCCBuilder, CCBuilder, RHSCLAffectCCBuilder
 from apps.bbsync.constants import RHSCL_BTS_KEY, USER_BLACKLIST
 from apps.bbsync.tests.factories import BugzillaComponentFactory, BugzillaProductFactory
+from osidb.cc import JiraAffectCCBuilder
 from osidb.models import Affect, Flaw, PsModule
 from osidb.tests.factories import (
     AffectFactory,
@@ -859,3 +860,33 @@ class TestRHSCLAffectCCBuilder:
         assert RHSCLAffectCCBuilder(affect, flaw.embargoed).collection is None
         assert add_cc == ["you@redhat.com"]
         assert not remove_cc
+
+
+class TestJiraAffectCCBuilder:
+    """Test JiraAffectCCBuilder functionality"""
+
+    @pytest.mark.parametrize(
+        "ps_module,component_cc,ps_component,cc_contact",
+        [
+            ("rhel10", "firefox", "rhel10/firefox", "me@redhat.com"),
+            (
+                "rhel10",
+                "rhel10/firefox-flatpak",
+                "rhel10/firefox-flatpak",
+                "me@redhat.com",
+            ),
+            ("idm", "idm:DL1/ipa", "idm:DL1/ipa", "me@redhat.com"),
+        ],
+    )
+    def test_component_cc(self, ps_module, component_cc, ps_component, cc_contact):
+        PsModuleFactory(
+            name=ps_module,
+            bts_name="jboss",
+            component_cc={
+                component_cc: [cc_contact],
+            },
+        )
+        affect = AffectFactory(ps_module=ps_module, ps_component=ps_component)
+        cc = JiraAffectCCBuilder(affect, False)
+
+        assert cc.generate_cc() == [cc_contact]

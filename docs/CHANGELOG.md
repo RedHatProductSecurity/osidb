@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix `owner` update in Jira not reflected in OSIDB (OSIDB-4306)
 - Fix not affected justifications from Jira not being collected by OSIDB (OSIDB-4418)
+- Fix use full component name for CC lists (OSIDB-4371)
 
 ### Changed
 - Make `affect` model's `flaw` field un-nullable (OSIDB-4202)
