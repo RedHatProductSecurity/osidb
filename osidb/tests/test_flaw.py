@@ -1740,46 +1740,7 @@ class TestFlawValidators:
                     "https://access.redhat.com/link123",
                 ],
                 True,
-                ["mi_cve_description_missing", "mi_cve_description_not_reviewed"],
-            ),
-            # cve_description review missing
-            (
-                "mitigation text",
-                "statement text",
-                "cve_description text",
-                Flaw.FlawRequiresCVEDescription.NOVALUE,
-                [
-                    FlawReference.FlawReferenceType.ARTICLE,
-                    "https://access.redhat.com/link123",
-                ],
-                True,
-                ["mi_cve_description_not_reviewed"],
-            ),
-            # cve_description review requested
-            (
-                "mitigation text",
-                "statement text",
-                "cve_description text",
-                Flaw.FlawRequiresCVEDescription.REQUESTED,
-                [
-                    FlawReference.FlawReferenceType.ARTICLE,
-                    "https://access.redhat.com/link123",
-                ],
-                True,
-                ["mi_cve_description_not_reviewed"],
-            ),
-            # cve_description review not required
-            (
-                "mitigation text",
-                "statement text",
-                "cve_description text",
-                Flaw.FlawRequiresCVEDescription.REJECTED,
-                [
-                    FlawReference.FlawReferenceType.ARTICLE,
-                    "https://access.redhat.com/link123",
-                ],
-                True,
-                ["mi_cve_description_not_reviewed"],
+                ["mi_cve_description_missing"],
             ),
             # article missing
             (
@@ -1811,7 +1772,6 @@ class TestFlawValidators:
         * has a mitigation
         * has a statement
         * has a cve_description
-        * requires_cve_description is APPROVED
         * has exactly one article
         """
         flaw = FlawFactory(
@@ -1867,32 +1827,7 @@ class TestFlawValidators:
                 True,
                 [
                     "cisa_mi_cve_description_missing",
-                    "cisa_mi_cve_description_not_reviewed",
                 ],
-            ),
-            # cve_description review missing
-            (
-                "statement text",
-                "cve_description text",
-                Flaw.FlawRequiresCVEDescription.NOVALUE,
-                True,
-                ["cisa_mi_cve_description_not_reviewed"],
-            ),
-            # cve_description review requested
-            (
-                "statement text",
-                "cve_description text",
-                Flaw.FlawRequiresCVEDescription.REQUESTED,
-                True,
-                ["cisa_mi_cve_description_not_reviewed"],
-            ),
-            # cve_description review not required
-            (
-                "statement text",
-                "cve_description text",
-                Flaw.FlawRequiresCVEDescription.REJECTED,
-                True,
-                ["cisa_mi_cve_description_not_reviewed"],
             ),
         ],
     )
@@ -1908,7 +1843,6 @@ class TestFlawValidators:
         Tests that a Flaw that is CISA Major Incident complies with the following:
         * has a statement
         * has a cve_description
-        * requires_cve_description is APPROVED
         """
         flaw = FlawFactory(
             major_incident_state=Flaw.FlawMajorIncident.CISA_APPROVED,

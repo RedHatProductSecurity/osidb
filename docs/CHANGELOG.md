@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Make `affect` model's `flaw` field un-nullable (OSIDB-4202)
+- Remove CVE description validation for Major Incident Flaws (OSIDB-4440)
 
 ## [4.15.0] - 2025-08-21
 ### Fixed
