@@ -3,7 +3,7 @@ from datetime import datetime
 import requests
 from django.utils.timezone import make_aware
 
-from collectors.bzimport.collectors import BugzillaQuerier, FlawCollector
+from collectors.bzimport.collectors import BugzillaQuerier
 from osidb.constants import DATETIME_FMT
 from osidb.exceptions import DataInconsistencyException
 from osidb.models import Flaw
@@ -82,11 +82,6 @@ class BugzillaSaver(BugzillaQuerier):
             except DataInconsistencyException:
                 if not isinstance(self.instance, Flaw):
                     raise
-
-                # to mitigate user discomfort and also possible service errors
-                # we handle the flaws more gently here attempting to resync
-                flaw_collector = FlawCollector()
-                flaw_collector.sync_flaw(self.instance.bz_id)
 
                 # resync from the DB and repeat the query building
                 self.instance.meta_attr = Flaw.objects.get(

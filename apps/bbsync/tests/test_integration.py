@@ -10,7 +10,7 @@ from apps.bbsync.exceptions import UnsaveableFlawError
 from apps.bbsync.save import FlawBugzillaSaver
 from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
-from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
+from collectors.bzimport.collectors import BugzillaTrackerCollector
 from collectors.jiraffe.collectors import JiraTrackerCollector
 from osidb.models import (
     Affect,
@@ -679,7 +679,7 @@ class TestBBSyncIntegration:
 
         # explicitly reload to make sure the
         # changes happened in Bugzilla and Jira
-        FlawCollector().collect_flaw(flaw.bz_id)
+
         BugzillaTrackerCollector().sync_tracker(tracker1.external_system_id)
         JiraTrackerCollector().collect(tracker2.external_system_id)
 

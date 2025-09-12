@@ -100,7 +100,6 @@ CELERY_PVC_PATH="/home/output-files/"
 KEYWORDS_CHECK_ENABLED=1
 
 # Collector switches: set to 0 to turn each collector off, or 1 to turn it on (default)
-FLAW_COLLECTOR_ENABLED=1
 BZ_TRACKER_COLLECTOR_ENABLED=1
 BZ_METADATA_COLLECTOR_ENABLED=1
 ERRATA_COLLECTOR_ENABLED=1

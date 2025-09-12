@@ -12,7 +12,6 @@ from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from apps.workflows.models import Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
-from collectors.bzimport.convertors import FlawConvertor
 from osidb.core import generate_acls
 from osidb.exceptions import DataInconsistencyException
 from osidb.mixins import Alert, AlertMixin
@@ -414,52 +413,6 @@ class TestTrackingMixin:
             "status": "NEW",
             "resolution": "",
         }
-
-    def get_flaw_bug_convertor(self):
-        """shortcut to create minimal flaw bug convertor"""
-        return FlawConvertor(
-            flaw_bug=self.get_flaw_bug(),
-            flaw_comments=[],
-            task_bug=None,
-        )
-
-    @freeze_time(tzdatetime(2022, 12, 24))
-    def test_import_new(self):
-        """
-        test Bugzilla flaw bug convertion and save when importing a new flaw
-        """
-        convertor = self.get_flaw_bug_convertor()
-        pre_flaw = convertor.flaws[0]
-        pre_flaw.save()
-        # assume a flaw can be loaded multiple times by collector
-        # and it should always respect the collected timestamps
-        # - resync or some collector debugging ...
-        pre_flaw.save()
-
-        flaw = Flaw.objects.get(cve_id="CVE-2020-12345")
-        assert flaw.created_dt == tzdatetime(2020, 12, 24)
-        assert flaw.updated_dt == tzdatetime(2021, 12, 24)
-
-    @freeze_time(tzdatetime(2022, 12, 24))
-    def test_import_existing(self):
-        """
-        test Bugzilla flaw bug convertion and save when importing an existing flaw
-        """
-        meta_attr = {"bz_id": "12345"}
-        flaw = self.create_flaw(cve_id="CVE-2020-12345", meta_attr=meta_attr)
-        flaw.save()
-
-        convertor = self.get_flaw_bug_convertor()
-        pre_flaw = convertor.flaws[0]
-        pre_flaw.save()
-        # assume a flaw can be loaded multiple times by collector
-        # and it should always respect the collected timestamps
-        # - resync or some collector debugging ...
-        pre_flaw.save()
-
-        flaw = Flaw.objects.get(cve_id="CVE-2020-12345")
-        assert flaw.created_dt == tzdatetime(2020, 12, 24)
-        assert flaw.updated_dt == tzdatetime(2021, 12, 24)
 
     @freeze_time(tzdatetime(2023, 10, 11))
     def test_tracking_mixin_manager_auto_timestamps(self):
