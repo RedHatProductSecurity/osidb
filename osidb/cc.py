@@ -240,6 +240,16 @@ class JiraAffectCCBuilder(BaseAffectCCBuilder):
         else:
             self.bz_component = self.ps_component
 
+    def component_cc(self):
+        # exact match
+        for key in [
+            self.ps_component,
+            self.ps_component.split(":")[-1],
+        ]:
+            if key in self.ps_module_obj.component_cc:
+                return self.ps_module_obj.component_cc[key]
+        return super().component_cc()
+
 
 class BugzillaAffectCCBuilder(BaseAffectCCBuilder):
     """
