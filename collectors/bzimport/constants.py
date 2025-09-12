@@ -27,11 +27,13 @@ FLAW_PLACEHOLDER_KEYWORD = "Tracking"
 # Maximum age of connection to Bugzilla in seconds, recommended value is 60
 BZ_MAX_CONNECTION_AGE = get_env("BZ_MAX_CONNECTION_AGE")
 
-# Switches to turn each collector on/off
-FLAW_COLLECTOR_ENABLED = get_env("FLAW_COLLECTOR_ENABLED", default="True", is_bool=True)
+# Switches to turn each collector on/off (defaults to False due to deprecation)
+FLAW_COLLECTOR_ENABLED = get_env(
+    "FLAW_COLLECTOR_ENABLED", default="False", is_bool=True
+)
 BZ_TRACKER_COLLECTOR_ENABLED = get_env(
-    "BZ_TRACKER_COLLECTOR_ENABLED", default="True", is_bool=True
+    "BZ_TRACKER_COLLECTOR_ENABLED", default="False", is_bool=True
 )
 BZ_METADATA_COLLECTOR_ENABLED = get_env(
-    "BZ_METADATA_COLLECTOR_ENABLED", default="True", is_bool=True
+    "BZ_METADATA_COLLECTOR_ENABLED", default="False", is_bool=True
 )

@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     "apps.sla",
     "apps.trackers",
     "apps.workflows",
-    "collectors.bzimport",
+    # "collectors.bzimport",  # DEPRECATED: Disabled by default, will be removed
     "collectors.cveorg",
     "collectors.epss",
     "collectors.errata",
@@ -245,7 +245,7 @@ LOGGING = {
                 "propagate": True,
             }
             for collector_name in [
-                "collectors.bzimport",
+                # "collectors.bzimport",  # DEPRECATED
                 "collectors.cveorg",
                 "collectors.epss",
                 "collectors.errata",

@@ -74,6 +74,7 @@ class TestTrackerSaver:
         created_tracker.save()
 
         # 4) load tracker from Bugzilla
+        # Bugzilla collector is deprecated but keeping this here for now for syncing
         btc = BugzillaTrackerCollector()
         btc.sync_tracker(created_tracker.bz_id)
         BZTrackerLinkManager.link_tracker_with_affects(created_tracker.bz_id)
@@ -151,6 +152,7 @@ class TestTrackerSaver:
         updated_tracker.save(auto_timestamps=False)
 
         # 5) load tracker from Bugzilla
+        # Can deprecate but will mess up the save test (will error out)
         btc = BugzillaTrackerCollector()
         btc.bz_querier._bz_api_key = bugzilla_token
 

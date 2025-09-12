@@ -296,7 +296,7 @@ TIMEZONE = timezone.get_current_timezone()
 
 
 class FlawCollector(Collector):
-    """Bugzilla flaw collector"""
+    """Bugzilla flaw collector (deprecated)"""
 
     # date before the first flaw was created
     BEGINNING = timezone.datetime(2000, 1, 1, tzinfo=TIMEZONE)

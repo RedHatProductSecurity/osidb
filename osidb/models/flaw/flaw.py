@@ -24,6 +24,7 @@ from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.workflow import WorkflowModel, WorkflowModelManager
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 from osidb.constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
+from osidb.helpers import deprecate_field
 from osidb.mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -1125,8 +1126,10 @@ class Flaw(
 
         jtq.transition_task(self)
 
-    download_manager = models.ForeignKey(
-        FlawDownloadManager, null=True, blank=True, on_delete=models.CASCADE
+    download_manager = deprecate_field(
+        models.ForeignKey(
+            FlawDownloadManager, null=True, blank=True, on_delete=models.CASCADE
+        )
     )
     task_download_manager = models.ForeignKey(
         JiraTaskDownloadManager, null=True, blank=True, on_delete=models.CASCADE

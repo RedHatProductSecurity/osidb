@@ -444,6 +444,8 @@ class SyncManager(models.Model):
 class FlawDownloadManager(SyncManager):
     """
     Sync manager class for Bugzilla => OSIDB Flaw synchronization.
+
+    Uses deprecated Bugzilla collector. Remove when Bugzilla collector is removed.
     """
 
     def __str__(self):

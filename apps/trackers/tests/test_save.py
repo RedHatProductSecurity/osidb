@@ -247,6 +247,8 @@ class TestTrackerModelSave:
             tracker.save(bz_api_key="SECRET")
 
             assert not bugzilla_save_mock.called
+
+            # This check and the patch can be removed once the Bugzilla collectors are removed.
             assert not bugzilla_load_mock.called
 
     def test_bugzilla_backend(self, enable_bz_sync):
@@ -284,7 +286,10 @@ class TestTrackerModelSave:
             tracker.save(bz_api_key="SECRET")
 
             assert bugzilla_save_mock.called
-            # the rest is done async
+
+            # The collector and manager would usually be called by BZTrackerDownloadManager in the tracker model.
+            # The save would usually be done asynchronously but since the download manager is commented out,
+            # the load and link parts are not called.
             assert not bugzilla_load_mock.called
             assert not bugzilla_tracker_link_mock.called
 

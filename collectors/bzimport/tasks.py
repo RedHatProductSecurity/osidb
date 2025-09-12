@@ -1,5 +1,7 @@
 """
 Bugzilla collector celery tasks
+
+DEPRECATED
 """
 
 from celery.schedules import crontab
