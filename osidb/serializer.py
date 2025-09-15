@@ -5,6 +5,7 @@ serialize flaw model
 import logging
 import uuid
 from collections import defaultdict
+from enum import Enum
 from typing import Dict, List, Tuple
 
 import pghistory
@@ -405,6 +406,18 @@ class ACLMixinSerializer(BaseSerializer):
     translates embargoed boolean to ACLs
     """
 
+    # Define ACL types and groups as class attributes
+    class ACLType(Enum):
+        PUBLIC = "public"
+        INTERNAL = "internal"
+        EMBARGOED = "embargoed"
+
+    ACL_GROUPS = {
+        ACLType.PUBLIC: (settings.PUBLIC_READ_GROUPS, settings.PUBLIC_WRITE_GROUP),
+        ACLType.INTERNAL: (settings.INTERNAL_READ_GROUP, settings.INTERNAL_WRITE_GROUP),
+        ACLType.EMBARGOED: (settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP),
+    }
+
     embargoed = EmbargoedField(
         source="*",
         help_text=(
@@ -424,20 +437,16 @@ class ACLMixinSerializer(BaseSerializer):
         """
         return [uuid.UUID(ac) for ac in generate_acls(acl)]
 
-    def get_acls(self, embargoed):
+    def get_acls(self, acl_type=ACLType.PUBLIC):
         """
-        generate ACLs based on embargo status
+        generate ACLs based on visibility status
         """
-        acl_read = (
-            settings.EMBARGO_READ_GROUP if embargoed else settings.PUBLIC_READ_GROUPS
-        )
-        acl_write = (
-            settings.EMBARGO_WRITE_GROUP if embargoed else settings.PUBLIC_WRITE_GROUP
-        )
-        acl_read, acl_write = ensure_list(acl_read), ensure_list(acl_write)
+
+        read_group, write_group = self.ACL_GROUPS[acl_type]
+        acl_read, acl_write = ensure_list(read_group), ensure_list(write_group)
         return self.hash_acl(acl_read), self.hash_acl(acl_write)
 
-    def embargoed2acls(self, validated_data):
+    def embargoed2acls(self, validated_data, internal=False):
         """
         process validated data converting embargoed status into the ACLs
         """
@@ -471,14 +480,25 @@ class ACLMixinSerializer(BaseSerializer):
         if isinstance(embargoed, str):
             embargoed = strtobool(embargoed)
 
-        acl_read, acl_write = self.get_acls(embargoed)
+        acl_type = self.get_acl_type(embargoed=embargoed, internal=internal)
+
+        acl_read, acl_write = self.get_acls(acl_type=acl_type)
         validated_data["acl_read"] = acl_read
         validated_data["acl_write"] = acl_write
 
         return validated_data
 
+    def get_acl_type(self, embargoed=False, internal=False):
+        return (
+            self.ACLType.EMBARGOED
+            if embargoed
+            else self.ACLType.INTERNAL
+            if internal
+            else self.ACLType.PUBLIC
+        )
+
     def create(self, validated_data):
-        validated_data = self.embargoed2acls(validated_data)
+        validated_data = self.embargoed2acls(validated_data, internal=True)
         return super().create(validated_data)
 
     def update(self, instance, validated_data, *args, **kwargs):

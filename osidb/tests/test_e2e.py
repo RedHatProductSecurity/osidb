@@ -1,3 +1,4 @@
+import uuid
 from pathlib import Path
 
 import pytest
@@ -145,10 +146,13 @@ class TestE2E:
         flaw._perform_bzsync(bz_api_key=bugzilla_token)
         flaw._create_or_update_task(jira_token)
 
+        access_method = client if not flaw.is_internal else auth_client()
+
         # 1.3) validate access control
-        response = client.get(
+        response = access_method.get(
             f"{test_api_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id&include_history=true"
         )
+
         assert response.status_code == expected_status
         if not embargoed:
             assert response.json()["title"] == "test validations"
@@ -187,7 +191,7 @@ class TestE2E:
         affect = Affect.objects.get(uuid=body["results"][0]["uuid"])
 
         # 3.1) validate access control for affects
-        response = client.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = access_method.get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == expected_status
         if not embargoed:
             assert len(response.json()["affects"]) == 1
@@ -234,7 +238,7 @@ class TestE2E:
             JiraTrackerLinkManager.link_tracker_with_affects(tracker_id)
 
         # 5.1) validate access control for trackers
-        response = client.get(
+        response = access_method.get(
             f"{test_api_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id&include_history=true"
         )
         assert response.status_code == expected_status
@@ -320,7 +324,8 @@ class TestE2E:
                 )
                 assert response.status_code == 200
 
-        response = client.get(
+        client_or_auth_client = client if not flaw.is_internal else auth_client()
+        response = client_or_auth_client.get(
             f"{test_api_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id&include_history=true"
         )
         assert response.status_code == 200
@@ -330,7 +335,6 @@ class TestE2E:
         assert len(body["affects"][0]["trackers"]) == 2
         assert "curl" in body["components"]
         assert body["meta_attr"]["bz_id"]
-        # test modifications made while embargoed are now public
         assert any(
             h["pgh_diff"] and "task_key" in h["pgh_diff"] for h in body["history"]
         )
@@ -644,3 +648,132 @@ class TestE2E:
         assert response.status_code == 200
         body = response.json()
         assert body["classification"]["state"] == WorkflowModel.WorkflowState.REJECTED
+
+    @pytest.mark.vcr
+    @freeze_time(tzdatetime(2024, 8, 6))
+    def test_flaw_acl_values(
+        self,
+        auth_client,
+        bugzilla_token,
+        client,
+        enable_bz_async_sync,
+        enable_jira_task_async_sync,
+        enable_jira_tracker_sync,
+        jira_token,
+        monkeypatch,
+        test_api_uri,
+    ):
+        """
+        Test that a flaw created via REST API has correct ACL values
+        and that access control works properly based on these ACLs
+        """
+        # Simulates user behavior for task sync
+        monkeypatch.setattr(JiraTaskmanQuerier, "is_service_account", lambda x: False)
+
+        # 1) Create a flaw via REST API
+        flaw_data = {
+            "title": "Test ACL values",
+            "comment_zero": "This is a test for ACL validation",
+            "impact": "MODERATE",
+            "components": ["curl"],
+            "source": "REDHAT",
+            "reported_dt": "2024-08-06T00:00:00.000Z",
+            "unembargo_dt": "2024-08-06T00:00:00.000Z",
+            "embargoed": False,
+        }
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+
+        # 1.1) Validate flaw was created successfully
+        assert response.status_code == 201
+        body = response.json()
+        flaw_uuid = body["uuid"]
+
+        # 1.2) Get the created flaw from database to check ACLs
+        flaw = Flaw.objects.get(uuid=flaw_uuid)
+
+        # 1.3) Verify ACL values are set correctly for public flaw
+        assert not flaw.is_embargoed
+        assert flaw.is_internal
+
+        # Check that ACLs match expected public groups
+        from django.conf import settings
+
+        from osidb.core import generate_acls
+
+        expected_read_acls = [
+            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])
+        ]
+        expected_write_acls = [
+            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
+        ]
+
+        assert flaw.acl_read == expected_read_acls
+        assert flaw.acl_write == expected_write_acls
+
+        # 2) Create an embargoed flaw via REST API
+        embargoed_flaw_data = {
+            "title": "Test Embargoed ACL values",
+            "comment_zero": "This is a test for embargoed ACL validation",
+            "impact": "CRITICAL",
+            "components": ["kernel"],
+            "source": "REDHAT",
+            "reported_dt": "2024-08-06T00:00:00.000Z",
+            "unembargo_dt": "2024-08-07T00:00:00.000Z",
+            "embargoed": True,
+        }
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws",
+            embargoed_flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+
+        # 2.1) Validate embargoed flaw was created successfully
+        assert response.status_code == 201
+        embargoed_body = response.json()
+        embargoed_flaw_uuid = embargoed_body["uuid"]
+
+        # 2.2) Get the created embargoed flaw from database to check ACLs
+        embargoed_flaw = Flaw.objects.get(uuid=embargoed_flaw_uuid)
+
+        # 2.3) Verify ACL values are set correctly for embargoed flaw
+        assert embargoed_flaw.is_embargoed
+        assert not embargoed_flaw.is_public
+        assert not embargoed_flaw.is_internal
+
+        # Check that ACLs match expected embargoed groups
+        expected_embargoed_read_acls = [
+            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+        ]
+        expected_embargoed_write_acls = [
+            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_WRITE_GROUP])
+        ]
+
+        assert embargoed_flaw.acl_read == expected_embargoed_read_acls
+        assert embargoed_flaw.acl_write == expected_embargoed_write_acls
+
+        # 3) Test access control based on ACLs
+        # 3.1) Internal flaw should be inaccessible to unauthenticated client
+        response = client.get(f"{test_api_uri}/flaws/{flaw_uuid}")
+        assert response.status_code == 404
+
+        # 3.2) Embargoed flaw should NOT be accessible to unauthenticated client
+        response = client.get(f"{test_api_uri}/flaws/{embargoed_flaw_uuid}")
+        assert response.status_code == 404
+
+        # 3.3) Authenticated client should be able to access both flaws
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw_uuid}")
+        assert response.status_code == 200
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{embargoed_flaw_uuid}")
+
+        assert response.status_code == 200

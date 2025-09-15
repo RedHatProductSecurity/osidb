@@ -517,25 +517,10 @@ class ACLMixin(models.Model):
                     + ("embargoed" if self.flaw.is_embargoed else "public")
                 )
 
-    def unembargo(self):
+    def set_history_public(self):
         """
-        unembargo the whole instance context internally
-
-        in the Bugzilla world a lot of OSIDB entities are actually parts
-        of the flaw bug and we will update them by a single query afterwards
+        set the history to public
         """
-        # not every related model class has
-        # to have the same visibility logic
-        if not self.is_embargoed:
-            return
-
-        # allow individual model class special handling
-        # which is specifically important in multi-relations
-        if hasattr(self, "can_unembargo") and not self.can_unembargo():
-            return
-
-        # unembargo
-        self.set_public()
         refs = pghistory.models.Events.objects.references(self).all()
         for ref in refs:
             db, model_name = ref.pgh_model.split(".")
@@ -548,6 +533,25 @@ class ACLMixin(models.Model):
                     acl_read=list(self.acls_public_read),
                     acl_write=list(self.acls_public_write),
                 )
+
+    def unembargo(self):
+        """
+        unembargo the whole instance context internally
+
+        in the Bugzilla world a lot of OSIDB entities are actually parts
+        of the flaw bug and we will update them by a single query afterwards
+        """
+        # Since ACLMixin is used across related classes, each must be permitted to implement their own
+        # visibility logic. Bailing out allows for unique visibility handling across such classes
+        isnt_embargoed = not self.is_embargoed
+        cant_unembargo = hasattr(self, "can_unembargo") and not self.can_unembargo()
+        if isnt_embargoed or cant_unembargo:
+            return
+
+        # unembargo
+        self.set_public()
+        self.set_history_public()
+
         kwargs = {}
         if issubclass(type(self), AlertMixin):
             # suppress the validation errors as we expect that during
