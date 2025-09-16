@@ -9087,6 +9087,7 @@ components:
           items:
             $ref: '#/components/schemas/Comment'
           readOnly: true
+        aegis_meta: {}
         package_versions:
           type: array
           items:
@@ -9859,6 +9860,7 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NistCvssValidationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        aegis_meta: {}
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -10078,6 +10080,7 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NistCvssValidationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        aegis_meta: {}
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as

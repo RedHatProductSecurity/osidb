@@ -9,7 +9,7 @@ from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
-from django.db.models import Q
+from django.db.models import JSONField, Q
 from django.utils import timezone
 from psqlextra.fields import HStoreField
 
@@ -237,6 +237,8 @@ class Flaw(
 
     # non operational meta data
     meta_attr = HStoreField(default=dict)
+    # aegis metadata
+    aegis_meta = JSONField(default=dict, blank=True)
 
     nist_cvss_validation = models.CharField(
         choices=FlawNistCvssValidation.choices, max_length=20, blank=True
