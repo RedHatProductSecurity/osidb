@@ -1,6 +1,6 @@
 [project]
 name = "osidb"
-version = "4.15.0"
+version = "4.16.0"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "backoff>=1.11.1",
