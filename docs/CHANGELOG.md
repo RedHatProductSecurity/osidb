@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make `affect` model's `flaw` field un-nullable (OSIDB-4202)
 - Remove CVE description validation for Major Incident Flaws (OSIDB-4440)
 
+### Added
+- Add `aegis_meta` field on `Flaw` objects for Aegis metadata (OSIDB-4454)
+
 ## [4.15.0] - 2025-08-21
 ### Fixed
 - Fix FlawSource enum reference in OpenAPI schema (OSIDB-4401)

@@ -1976,6 +1976,7 @@ class FlawSerializer(
                 "affects",
                 "comments",
                 "meta_attr",
+                "aegis_meta",
                 "package_versions",
                 "acknowledgments",
                 "references",
