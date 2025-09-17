@@ -13429,7 +13429,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/SourceBe0Enum'
+          - $ref: '#/components/schemas/FlawSource'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
@@ -13599,7 +13599,7 @@ components:
           nullable: true
         source:
           oneOf:
-          - $ref: '#/components/schemas/SourceBe0Enum'
+          - $ref: '#/components/schemas/FlawSource'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
           type: string
