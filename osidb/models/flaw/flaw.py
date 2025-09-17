@@ -38,7 +38,6 @@ from osidb.models.fields import CVEIDField
 from osidb.query_sets import CustomQuerySetUpdatedDt
 from osidb.sync_manager import (
     BZSyncManager,
-    FlawDownloadManager,
     JiraTaskDownloadManager,
     JiraTaskSyncManager,
     JiraTaskTransitionManager,
@@ -1125,9 +1124,6 @@ class Flaw(
 
         jtq.transition_task(self)
 
-    download_manager = models.ForeignKey(
-        FlawDownloadManager, null=True, blank=True, on_delete=models.CASCADE
-    )
     task_download_manager = models.ForeignKey(
         JiraTaskDownloadManager, null=True, blank=True, on_delete=models.CASCADE
     )
