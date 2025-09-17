@@ -3249,6 +3249,10 @@ paths:
           may be separated by commas. Dot notation can be used to filter on related
           model fields. Example: `exclude_fields=field,related_model_field.field`'
       - in: query
+        name: flaw_has_no_non_community_affects_trackers
+        schema:
+          type: boolean
+      - in: query
         name: impact
         schema:
           type: string

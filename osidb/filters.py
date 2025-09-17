@@ -372,6 +372,9 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
         field_name="affects__trackers__embargoed"
     )
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
+    flaw_has_no_non_community_affects_trackers = BooleanFilter(
+        method="flaw_has_no_non_community_affects_trackers_filter"
+    )
 
     # Emptiness filters
     cve_id__isempty = EmptyOrNullStringFilter(field_name="cve_id")
@@ -413,6 +416,41 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
         Returns a Flaw if it or any of its affects/trackers have been updated before `value`
         """
         return queryset.filter(local_updated_dt__lte=value)
+
+    def flaw_has_no_non_community_affects_trackers_filter(self, queryset, name, value):
+        """Check if a flaw has non-community affects AND all of them are missing trackers."""
+
+        from django.db.models import Exists, OuterRef
+
+        from osidb.models import Affect
+        from osidb.models.ps_module import PsModule
+
+        community_modules = PsModule.objects.filter(
+            ps_product__business_unit="Community"
+        ).values_list("name", flat=True)
+
+        has_non_community_affects_with_trackers = Exists(
+            Affect.objects.filter(flaw=OuterRef("pk"), trackers__isnull=False).exclude(
+                ps_module__in=community_modules
+            )
+        )
+
+        # This filter is in place since the flaw filter doesn't
+        # seem to work if there are no non-community affects.
+        has_non_community_affects = Exists(
+            Affect.objects.filter(flaw=OuterRef("pk")).exclude(
+                ps_module__in=community_modules
+            )
+        )
+
+        if value:
+            return queryset.filter(
+                has_non_community_affects & ~has_non_community_affects_with_trackers
+            )
+        else:
+            return queryset.filter(
+                ~has_non_community_affects | has_non_community_affects_with_trackers
+            )
 
     class Meta:
         """
