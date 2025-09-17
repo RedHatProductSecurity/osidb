@@ -5,13 +5,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [4.16.0] - 2025-09-16
+### Fixed
+- Fix `owner` update in Jira not reflected in OSIDB (OSIDB-4306)
+- Fix not affected justifications from Jira not being collected by OSIDB (OSIDB-4418)
+- Fix use full component name for CC lists (OSIDB-4371)
+
+### Changed
+- Make `affect` model's `flaw` field un-nullable (OSIDB-4202)
+- Remove CVE description validation for Major Incident Flaws (OSIDB-4440)
+
+## [4.15.0] - 2025-08-21
+### Fixed
+- Fix FlawSource enum reference in OpenAPI schema (OSIDB-4401)
+- Fix the available-flaws API giving a 404 on non-existent flaws instead of 204 (OSIDB-4397).
+- Prevent emails from being sent for *rejected* critical flaws (OSIDB-4274)
+
 ### Changed
 - Emit a warning instead of an error when the PURL-derived PsComponent doesn't
   match a user-provided PsComponent (OSIDB-4367)
+- Initialize ACLs as internal (OSIDB-4274)
 
 ## [4.14.0] - 2025-07-23
 ### Added
 - Add endpoint that checks if flaw is public or has its work completed (OSIDB-4328)
+- Add CVE numbering authority (CNA) blocking with CNA ids loaded from ps_constants (OSIDB-4305)
 
 ### Changed
 - Deprecate `team` field from PsProduct (OSIDB-4319)

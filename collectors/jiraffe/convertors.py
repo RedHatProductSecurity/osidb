@@ -179,6 +179,7 @@ class JiraTaskSaver:
             "team_id",
             "task_key",
             "task_updated_dt",
+            "owner",
             # the ACLs are not really directly fetched but can
             # get modified due to state or resolution changes
             "acl_read",
@@ -428,7 +429,7 @@ class JiraTrackerConvertor(TrackerConvertor):
             "status": self.get_field_attr(self._raw, "status", "name"),
             "resolution": self.get_field_attr(self._raw, "resolution", "name"),
             "not_affected_justification": self.get_field_attr(
-                self._raw, "customfield_12326140", "value"
+                self._raw, "customfield_12325940", "value"
             ),
             "special_handling": self.get_array_field_attr(
                 self._raw, "customfield_12324753", "value"

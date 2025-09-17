@@ -57,8 +57,11 @@ PRODUCT_DEF_BRANCH="master"
 # PS Constants git URL
 PS_CONSTANTS_URL="https://foo.bar"
 
-# Repository from which to pull pip packages (optional)
+# Repository from which to pull packages for images (optional)
 PIP_INDEX_URL="https://foo.bar"
+
+# Repository from which to pull packages for development (optional)
+DEV_INDEX_URL="https://foo.bar"
 
 # URL from which to pull Red Hat internal certificates (optional)
 RH_CERT_URL="https://foo.bar"
@@ -77,13 +80,10 @@ BBSYNC_SYNC_TRACKERS_TO_BZ=1
 # otherwise all the writes are performed only locally in OSIDB
 TRACKERS_SYNC_TO_JIRA=1
 
-# Run taskman tests behind a proxy (optional)
-# This variable is only necessary if rewriting the taskman cassettes locally and using the Stage Red Hat JIRA instance, which requires a proxy to be accessed.
+# Connect to Jira through a proxy (optional)
+# This variable is only necessary if rewriting the taskman cassettes locally or using the Stage Red Hat JIRA instance, which requires a proxy to be accessed.
 # Some tests apply the HTTPS_PROXY variable hardcoded in respective conftest files.
-HTTPS_TASKMAN_PROXY="http://foo.bar"
-
-# This variable is only necessary when using osidb locally and using the Stage Red Hat JIRA instance, which requires a proxy to be accessed. The jira library detects this env variable and uses it automatically.
-HTTPS_PROXY="http://foo.bar"
+HTTPS_JIRA_PROXY="http://foo.bar"
 
 # OSIDB CORS URLs
 OSIDB_CORS_ALLOWED_ORIGINS='["http://localhost:8000", "http://127.0.0.1:8000", "http://0.0.0.0:8000"]'
@@ -190,8 +190,8 @@ The following dependencies are required for development, if running tests in Tox
 * krb5-devel
 * libpq-devel
 * openldap-devel
-* python3.9
-* python39-devel
+* python3.12
+* python312-devel
 * tox
 
 The following dependencies are now required to build the cryptography Python library from source:
@@ -295,19 +295,19 @@ $ podman logs -f osidb-service
 
 ### Updating python packages
 
-If you have new `requirements*.txt` (e.g. after `git pull`) and want to apply them to the **local venv** only (this will install, uninstall, and upgrade/downgrade packages as needed to reflect `requirements*.txt` exactly):
+If you have new `uv.lock` (e.g. after `git pull`) and want to apply them to the **local venv** only (this will install, uninstall, and upgrade/downgrade packages as needed to reflect `uv.lock` and `local-requirements.txt` exactly):
 
 ```bash
 $ make sync-deps
 ```
 
-If you have new `requirements*.txt` and want to apply them to the local venv **and osidb containers** (so that you don't need to rebuild images and containers):
+If you have new `uv.lock` and want to apply them to the local venv **and osidb containers** (so that you don't need to rebuild images and containers):
 
 ```bash
-$ make apply-requirements-txt
+$ make apply-uv-sync
 ```
 
-For more information about changing `requirements*.txt` see the chapter "Using pip-tools" below.
+For more information about changing `uv.lock` see the chapter "Using uv" below.
 
 ### Updating images and containers
 
@@ -448,7 +448,7 @@ This wouldn't work when run locally on a modern Fedora:
 ```bash
 $ make lint
 >Checking that the testing environment has the requisite python version
-Python 3.9 not installed! Read about testrunner and tox testing in DEVELOPMENT.md.
+Python 3.12 not installed! Read about testrunner and tox testing in DEVELOPMENT.md.
 make: *** [Makefile:522: check-testenv] Error 1
 $
 ```
@@ -512,9 +512,9 @@ $ make testrunner.all-tests
 6) raise MR against master ensuring good title/description and bullet point
    all significant commits
 
-### Using pip-tools
-OSIDB has adopted `pip-tools` as its tool of choice for python dependency management,
-in this section we'll go over the basics, the similarities and the differences between `pip-tools` and `pip`,
+### Using `uv`
+OSIDB has migrated from using `pip-tool` to using `uv` as its tool of choice for python dependency management,
+in this section we'll go over the basics, the similarities and the differences between `uv`, `pip-tools` and `pip`,
 as well as how to use it effectively.
 
 With `pip`, adding a dependency is as simple as adding it to the `requirements.txt`,
@@ -524,86 +524,97 @@ With `pip-tools`, the dependency (versioned or not) is added to either `requirem
 `devel-requirements.in` or `local-requirements.in`, then we must execute the `pip-compile`
 command in order to generate the corresponding `*-requirements.txt`.
 
+With `uv`, the dependency is added to `pyproject.toml`. Note that there are two dependency sections 
+to `pyproject.toml`, a base section and a development section. `uv lock` can be called
+to generate the corresponding lockfile (`uv.lock`). `uv sync` can also be used to generate 
+the lockfile. `uv sync` will create a venv (defaults to `.venv`) if one does not exist and 
+then sync the dependencies to the environment.
+
+Note that local dependencies still uses the `local-requirements.in`/`local-requirements.txt`
+format. To compile local dependencies, we can use `uv`'s interface for pip:
+
 ```bash
-$ source venv/bin/activate
-$ pip-compile --generate-hashes --allow-unsafe	# this will compile requirements.in -> requirements.txt
-$ pip-compile --generate-hashes --allow-unsafe devel-requirements.in	# be explicit for alternate requirements files
+uv pip compile --generate-hashes local-requirements.in -o local-requirements.txt
 ```
 
-Instead of typing these commands manually you can simply do
+`uv` defaults to printing the compilation which is why an explicit output file is necessary.
+
+For project locking:
+
+```bash
+$ source .venv/bin/activate
+$ uv lock	# this will compile pyproject.toml dependencies to uv.lock
+```
+
+To compile both project and local dependencies you can simply do
 
 ```bash
 $ make compile-deps
 ```
 
-and all the necessary `requirements.txt` files will be compiled correctly.
+and all the necessary `uv.lock`/`local-requirements.txt` files will be compiled correctly.
 
-So far the differences between `pip` and `pip-tools` are minimal, both use a `requirements.txt` file to express its dependencies, however the dependency tree generated by `pip-compile` is more thorough, it will include all implicit dependencies of the ones explicitly defined in the `*.in` files and will pin them to a very specific version.
+Local dependencies could potentially have compatiblity issues with project dependencies. You can use `uv export -o [constraint-file]` and using the file generated as a constraint file for `local-requirements.in` (e.g. `-c constraint-file`) before compiling. `make compile-deps` will export the project dependencies to `cons-requirements.txt` (can be used by `local-requirements.in`), compile, and then delete `cons-requirements.txt`.
+
+So far the differences between `pip` and `pip-tools` are minimal, both use a `requirements.txt` file to express its dependencies, however the dependency tree generated by `pip-compile` is more thorough, it will include all implicit dependencies of the ones explicitly defined in the `*.in` files and will pin them to a very specific version. `uv` similarly to `pip-tools` will also include pin specific versions of the dependencies in `uv.lock`.
 Not only does this make it easier to reproduce prod/dev environments, but it can also be helpful for later security vulnerabilities scanning.
 
-Note that if any dependencies are added to the `*.in` files, and then `pip-compile` is ran, the versions of the existing pinned dependencies will not change and only the new dependencies will be added to the `requirements.txt`
-
-Updating dependencies with `pip` and `pip-tools` is largely the same, the command for doing so with `pip-tools` is the following
-
-```bash
-$ source venv/bin/activate
-$ pip-compile --generate-hashes --allow-unsafe --upgrade-package django --upgrade-package requests==2.0.0
-```
-
-Instead of running this command manually, you can use the following make entrypoint:
+Note that security scanning for `uv.lock` is not yet supported by dependabot. For a temporary workaround please
+export to a `requirements.txt` file by running `uv export --output-file requirements.txt` or using the make command:
 
 ```bash
-$ make upgrade-dep package=requests==2.0.0 reqfile=requirements.in
+$ make generate-requirements
 ```
+
+Updating dependencies between the tools is largely the same (use the command for compiling/locking and add the
+`-P` flag along with the package or package version to update). The command for doing so with `uv` is the following:
+
+```bash
+$ source .venv/bin/activate
+$ uv sync -P django -P requests==2.0.0
+```
+
+Updates to either project or local dependencies you can use the following make entrypoint:
+
+```bash
+$ make upgrade-dep package=requests==2.0.0
+```
+
+Input either `y` for local dependencies or `N` for project dependencies after running the make command. 
 
 To install the dependencies with `pip`, you simply pass the requirements file(s) to the `-r` option and all the requirements in the file will be installed, even if the file was generated by `pip-compile`!
 
 With `pip-tools`, the command for installing dependencies is `pip-sync requirements.txt` (or any other file generated by `pip-compile`), however `pip-sync` will not only install the requirements, but it will also uninstall any packages or versions that do **not** match the one defined in the requirements file.
 
-If installing multiple requirements files, they can simply be passed as additional positional arguments to `pip-sync`
+The command for `uv`, `uv sync`, will behave similarly to `pip-tools`'s command but will instead rely on `uv.lock`. The `--locked` flag can set to check that the lockfile is up-to-date and does not require changes, without updating
+the lockfile. `--frozen` can be set to have `uv` sync dependencies from the lockfile as is, without checking if 
+it is up-to-date.
 
-```bash
-$ source venv/bin/activate
-$ pip-sync requirements.txt devel-requirements.txt local-requirements.txt
-```
-
-Instead of running this command manually, you can also use
+Instead of running commands manually for project/local lockfiles, you can use
 
 ```bash
 $ make sync-deps
 ```
 
-> :warning: Make sure to run `pip-sync` within a virtual environment, otherwise you risk having system-wide packages that are not in the `requirements.txt` be uninstalled
+You can also sync the dependencies by pulling from a specific repository. To do so, set `DEV_INDEX_URL`
+in `.env` and run
+
+```bash
+$ make sync-deps-index
+```
+
+Note that the commands will re-install local packages defined in `local-requirements.txt`
+since `uv sync` removes them. 
 
 As for what each requirements file holds, here's a quick explanation for each:
-- `requirements.txt`: dependencies necessary for running OSIDB
-- `devel-requirements.txt`: dependencies necessary to develop OSIDB
+- `uv.lock`: dependencies necessary for OSIDB split into two sections (see `pyproject.toml`):
+  - Base: dependencies necessary to run OSIDB
+  - Dev: dependencies necessary to develop OSIDB
 - `local-requirements.txt`: dependencies specific to your workflow (e.g. `ipython` or any other custom shell/debugger)
 
-`local-requirements.txt` is a special case, it is ignored in the `.gitignore` because it's specific to every developer. Without it, every time `pip-sync` is ran any packages specific to your workflow would be uninstalled and would have to be manually installed.
+`local-requirements.txt` is a special case, it is ignored in the `.gitignore` because it's specific to every developer. Without it, every time `uv sync` is ran any packages specific to your workflow would be uninstalled and would have to be manually installed.
 
-When synchronizing multiple requirements files, it is important that every subsequent requirements files "includes" the previous one, e.g.:
-
-```
-# requirements.in
-django
-```
-
-```
-# devel-requirements.in
--c requirements.txt
-pytest
-```
-
-```
-# local-requirements.in
--c devel-requirements.txt
-ipython
-```
-
-This is so `pip-sync` can properly synchronize the versions of dependencies that appear in all the requirements files.
-
-For more information on `pip-tools` and its usage, check the [official documentation](https://pip-tools.readthedocs.io/en/latest/).
+For more information on `uv` and its usage, check the [official documentation](https://docs.astral.sh/uv/)
 
 ### Run local development shell
 Database running inside a container can be complemented with a locally running Django development shell.
@@ -611,30 +622,28 @@ Database running inside a container can be complemented with a locally running D
 Setup before running the shell for the first time:
 ```bash
 $ make dev-env  # create python virtual environment and build database container
-$ source venv/bin/activate  # source into the python virtual environment
+$ source .venv/bin/activate  # source into the python virtual environment
 ```
 
 `make dev-env` already created the virtual environment, but if you want to synchronize which packages are installed inside the venv manually, you can:
 
 ```bash
-$ source venv/bin/activate  # source into the python virtual environment, if you haven't already
-$ pip install -r devel-requirements.txt
-$ pip-sync requirements.txt devel-requirements.txt # install python dependencies
+$ source .venv/bin/activate  # source into the python virtual environment, if you haven't already
+$ uv sync
+$ pip install -r 'local-requirements.txt' --no-deps # install local python dependencies
 ```
-
-> Note: you can also install dependencies with pip, but we recommend using pip-sync to make sure that you have only the absolutely necessary.
 
 The same pip-sync synchronization can be performed using `make sync-deps`.
 
 For a more clever shell with command history, auto-completions, etc.
 you can install **ipython**. It is used by Django shell by default.
 ```bash
-$ source venv/bin/activate  # source into the python virtual environment, if you haven't already
+$ source .venv/bin/activate  # source into the python virtual environment, if you haven't already
 $ touch local-requirements.in
-$ echo "-c devel-requirements.txt" >> local-requirements.in
+$ echo "-c cons-requirements.txt" >> local-requirements.in
 $ echo "ipython" >> local-requirements.in
-$ pip-compile local-requirements.in
-$ pip-sync requirements.txt devel-requirements.txt local-requirements.txt
+$ make compile-deps
+$ make sync-deps
 ```
 
 The last line can be also performed using `make sync-deps`.
@@ -642,7 +651,7 @@ The last line can be also performed using `make sync-deps`.
 Running the shell
 ```bash
 make start-local  # run all the containers including the DB container
-source venv/bin/activate  # source into the python virtual environment
+source .venv/bin/activate  # source into the python virtual environment
 export OSIDB_DB_PORT="$( podman port osidb-data | awk -F':' '/5432/ { print $2 }' )"  # get the local port of psql
 export OSIDB_DB_PASSWORD=passw0rd  # this is the password used in docker-compose.yml
 # ...set other necessary variables...
@@ -665,7 +674,7 @@ For any customization you can export the following env variables to change the D
  * OSIDB_DB_HOST (default "localhost")
  * OSIDB_DB_PORT (default "5432")
 
-If you do that, it is recommended to also add these env variables to your virtual environment's activate script (eg. `venv/bin/activate`).
+If you do that, it is recommended to also add these env variables to your virtual environment's activate script (eg. `.venv/bin/activate`).
 
 ### Deprecate fields
 

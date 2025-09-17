@@ -68,7 +68,7 @@ interactions:
         "name": "kernel / Other", "description": " Other"}], "customfield_12320841":
         null, "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
         null, "customfield_12320842": null, "customfield_12310243": null, "aggregatetimeestimate":
-        null, "customfield_12317313": null, "customfield_12326140": {"self": "https://example.com/rest/api/2/customFieldOption/41651",
+        null, "customfield_12317313": null, "customfield_12325940": {"self": "https://example.com/rest/api/2/customFieldOption/41651",
         "value": "Inline Mitigations already Exist", "id": "41651", "disabled": false},
         "customfield_12321540": null, "customfield_12323840": null, "customfield_12325740":
         null, "creator": {"self": "https://example.com/rest/api/2/user?username=rh-ee-dmonzoni",

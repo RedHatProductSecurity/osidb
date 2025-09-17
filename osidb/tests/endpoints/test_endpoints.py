@@ -157,7 +157,7 @@ class TestEndpointsACLs:
     @pytest.mark.parametrize(
         "embargoed,acl_read,acl_write",
         [
-            (False, settings.PUBLIC_READ_GROUPS, settings.PUBLIC_WRITE_GROUP),
+            (False, settings.INTERNAL_READ_GROUP, settings.INTERNAL_WRITE_GROUP),
             (True, settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP),
         ],
     )
