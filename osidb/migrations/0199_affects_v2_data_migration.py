@@ -215,7 +215,7 @@ def backwards_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("osidb", "0196_affects_v2_fields"),
+        ("osidb", "0198_affects_v2_fields"),
     ]
 
     operations = [
