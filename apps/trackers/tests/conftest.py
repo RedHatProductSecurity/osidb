@@ -1,7 +1,7 @@
 import pytest
 
 from apps.sla.framework import SLAPolicy
-from apps.trackers.constants import TRACKERS_API_VERSION
+from apps.trackers.constants import TRACKERS_API_V1, TRACKERS_API_VERSION
 from apps.trackers.models import JiraProjectFields
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from osidb.models import Affect, Flaw, Impact, PsModule, PsUpdateStream, Tracker
@@ -53,8 +53,18 @@ def api_version() -> str:
 
 
 @pytest.fixture
+def api_version_v1() -> str:
+    return TRACKERS_API_V1
+
+
+@pytest.fixture
 def test_app_api_uri(test_app_scheme_host, api_version) -> str:
     return f"{test_app_scheme_host}/api/{api_version}"
+
+
+@pytest.fixture
+def test_app_api_v1_uri(test_app_scheme_host, api_version_v1) -> str:
+    return f"{test_app_scheme_host}/api/{api_version_v1}"
 
 
 @pytest.fixture()
