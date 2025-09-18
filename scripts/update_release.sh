@@ -9,6 +9,9 @@ if [[ $1 =~ [0-9]*\.[0-9]*\.[0-9]* ]]; then
     echo "Replacing version in config/settings.py"
     sed -i 's/"VERSION": "[0-9]*\.[0-9]*\.[0-9]*"/"VERSION": "'$1'"/g' config/settings.py
 
+    echo "Replacing version in pyproject.toml"
+    sed -i 's/version = "[0-9]*\.[0-9]*\.[0-9]*"/version = "'$1'"/g' pyproject.toml
+
     echo "Replacing version in openapi.yml"
     ./scripts/schema-check.sh
 

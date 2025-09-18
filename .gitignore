@@ -3,6 +3,7 @@
 bzimport_requests_cache.sqlite
 .cache
 celerybeat-schedule
+cons-requirements.*
 .coverage
 coverage.xml
 dist
@@ -18,6 +19,7 @@ mypyreport/
 __pycache__/
 .pytest_cache/
 .python-version
+.ruff_cache
 .run-celery
 .run-celery-beat
 *.sqlite
@@ -28,6 +30,7 @@ testrun.ini
 tests/htmlcov
 .tox/
 /venv
+.venv
 .vscode/
 *.db.gz
 osidb_data_backup_dump*

@@ -67,7 +67,7 @@ interactions:
         "id": "12370079", "name": "kernel / Other", "description": " Other"}], "customfield_12320841":
         null, "customfield_12314040": null, "customfield_12320844": null, "archiveddate":
         null, "customfield_12320842": null, "customfield_12310243": null, "aggregatetimeestimate":
-        null, "customfield_12317313": null, "customfield_12326140": null, "customfield_12321540":
+        null, "customfield_12317313": null, "customfield_12325940": null, "customfield_12321540":
         null, "customfield_12323840": null, "customfield_12325740": null, "creator":
         {"self": "https://example.com/rest/api/2/user?username=rh-ee-dmonzoni", "name":
         "rh-ee-dmonzoni", "key": "JIRAUSER227953", "emailAddress": "dmonzoni+stage@redhat.com",

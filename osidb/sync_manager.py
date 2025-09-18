@@ -441,48 +441,6 @@ class SyncManager(models.Model):
         )
 
 
-class FlawDownloadManager(SyncManager):
-    """
-    Sync manager class for Bugzilla => OSIDB Flaw synchronization.
-    """
-
-    def __str__(self):
-        from osidb.models import Flaw
-
-        result = super().__str__()
-
-        flaws = Flaw.objects.filter(meta_attr__bz_id=self.sync_id)
-        cves = [f.cve_id or f.uuid for f in flaws]
-        result += f"Flaws: {cves}\n"
-
-        return result
-
-    @staticmethod
-    @app.task(name="sync_manager.flaw_download", bind=True)
-    def sync_task(self, flaw_id):
-        from collectors.bzimport import collectors
-
-        FlawDownloadManager.started(flaw_id, self)
-
-        set_user_acls(settings.ALL_GROUPS)
-
-        # Code adapted from collectors.bzimport.collectors.FlawCollector.collect
-        collector = collectors.FlawCollector()
-        try:
-            collector.sync_flaw(flaw_id)
-        except Exception as e:
-            FlawDownloadManager.failed(flaw_id, e)
-        else:
-            FlawDownloadManager.finished(flaw_id)
-        finally:
-            collector.free_queriers()
-
-    def update_synced_links(self):
-        from osidb.models import Flaw
-
-        Flaw.objects.filter(meta_attr__bz_id=self.sync_id).update(download_manager=self)
-
-
 class BZTrackerDownloadManager(SyncManager):
     """
     Sync manager class for Bugzilla => OSIDB Tracker synchronization.

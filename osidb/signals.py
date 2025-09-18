@@ -8,6 +8,7 @@ from django.utils import timezone
 from jira import JIRA
 
 from apps.workflows.workflow import WorkflowModel
+from collectors.jiraffe.constants import HTTPS_PROXY
 from osidb.helpers import get_env
 from osidb.models import (
     Affect,
@@ -61,6 +62,9 @@ def get_jira_user_id(email: str) -> str:
             },
             token_auth=auth_token,
             get_server_info=False,
+            proxies={
+                "https": HTTPS_PROXY,
+            },
         )
         users = jira_api.search_users([email])
     except Exception:
@@ -222,13 +226,14 @@ def update_denormalized_cve_ids_on_flaw_update(sender, instance, **kwargs):
     # to cover this scenario for denormalized CVE IDs in other models.
     if not instance._state.adding:
         db_instance = Flaw.objects.get(pk=instance.pk)
+        trackers = set()
         if instance.cve_id != db_instance.cve_id:
-            Affect.objects.filter(cve_id=db_instance.cve_id).update(
-                cve_id=instance.cve_id
-            )
-            Tracker.objects.filter(cve_id=db_instance.cve_id).update(
-                cve_id=instance.cve_id
-            )
+            instance.affects.all().update(cve_id=instance.cve_id)
+            for affect in instance.affects.all():
+                for tracker in affect.trackers.all():
+                    tracker.cve_id = instance.cve_id
+                    trackers.add(tracker)
+            Tracker.objects.bulk_update(list(trackers), fields=["cve_id"])
 
 
 @receiver(pre_save, sender=PsModule)

@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 
 import pytest
-from django.db.utils import IntegrityError
 
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.collectors import BugzillaQuerier, MetadataCollector
@@ -68,97 +67,6 @@ class TestBugzillaQuerier:
         assert affect is None
         assert package_version is None
         assert comment is None
-
-
-class TestBZImportCollector:
-    def test_end_period_heuristic(self, flaw_collector):
-        """
-        test that the heuristic of getting the end of the currect
-        sync period correctly proceeds till the present time
-        """
-        period_start = flaw_collector.BEGINNING
-
-        while True:
-            period_end = flaw_collector.end_period_heuristic(period_start)
-            assert period_start < period_end
-
-            period_start = period_end
-            if period_start > datetime.now().replace(tzinfo=timezone.utc):
-                break
-
-    def test_end_period_heuristic_migrations(self, flaw_collector):
-        """
-        test that the heuristic of getting the end of the currect
-        sync period correctly accounts for the data migration periods
-        """
-        for migration in flaw_collector.MIGRATIONS:
-            assert migration["start"] + migration[
-                "step"
-            ] == flaw_collector.end_period_heuristic(migration["start"])
-
-    @pytest.mark.vcr
-    def test_get_batch(self, flaw_collector):
-        first_batch = flaw_collector.get_batch()
-        assert first_batch
-        assert first_batch[0][0] == "240155"
-        # update metadata so that next batch returns the next batch of flaws
-        flaw_collector.metadata.updated_until_dt = first_batch[-1][1]
-
-        second_batch = flaw_collector.get_batch()
-        assert second_batch
-        # the batches should be different
-        assert first_batch != second_batch
-        # avoid fetching the boundary flaw multiple times
-        assert not set(first_batch) & set(second_batch)
-
-    @pytest.mark.vcr
-    def test_sync_flaw(self, flaw_collector, bz_bug_id):
-        """
-        Simply test that sync_flaw works and related objects are correctly created.
-        """
-        # define all necessary product info
-        # so the test does not produce warnings
-        ps_module = PsModuleFactory(name="rhel-6")
-        PsUpdateStreamFactory(name="rhel-6.0", ps_module=ps_module)
-        ps_module = PsModuleFactory(name="rhel-5")
-        PsUpdateStreamFactory(name="rhel-5.5.z", ps_module=ps_module)
-        PsUpdateStreamFactory(name="rhel-5.6", ps_module=ps_module)
-        ps_module = PsModuleFactory(name="fedora-all")
-        PsUpdateStreamFactory(name="fedora-all", ps_module=ps_module)
-
-        assert Flaw.objects.count() == 0
-        assert Affect.objects.count() == 0
-        assert Tracker.objects.count() == 0
-
-        flaw_collector.sync_flaw(str(bz_bug_id))
-
-        assert Flaw.objects.count() != 0
-        assert Affect.objects.count() != 0
-        assert Tracker.objects.count() == 0
-
-    @pytest.mark.vcr
-    def test_sync_embargoed_flaw(self, flaw_collector):
-        """
-        test that an embargoed flaw loaded from Bugzilla is preserved as embargoed
-        """
-        flaw_id = "1629662"
-        assert Flaw.objects.count() == 0
-        flaw_collector.sync_flaw(flaw_id)
-        assert Flaw.objects.filter(meta_attr__bz_id=flaw_id).exists()
-        assert Flaw.objects.get(meta_attr__bz_id=flaw_id).is_embargoed
-
-    @pytest.mark.vcr
-    def test_empty_affiliation(self, flaw_collector):
-        """
-        test that syncing a flaw with an acknowledgment with an empty (null) affilitation works
-        this is a reproducer of the bug tracked by https://issues.redhat.com/browse/OSIDB-1195
-        """
-        try:
-            # known public flaw with empty
-            # acknowledgment affiliation
-            flaw_collector.sync_flaw("1824033")
-        except IntegrityError:
-            pytest.fail("Flaw synchronization failed")
 
 
 class TestBugzillaTrackerCollector:

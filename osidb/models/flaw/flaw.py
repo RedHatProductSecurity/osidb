@@ -38,7 +38,6 @@ from osidb.models.fields import CVEIDField
 from osidb.query_sets import CustomQuerySetUpdatedDt
 from osidb.sync_manager import (
     BZSyncManager,
-    FlawDownloadManager,
     JiraTaskDownloadManager,
     JiraTaskSyncManager,
     JiraTaskTransitionManager,
@@ -553,13 +552,13 @@ class Flaw(
 
     def _validate_public_unembargo_date(self, **kwargs):
         """
-        Check that an unembargo date (public date) exists and is in the past if the Flaw is public
+        Check that an unembargo date (public date) exists and is in the past if the Flaw is not embargoed
         """
         if not self.is_embargoed:
             if self.unembargo_dt is None:
-                raise ValidationError("Public flaw has an empty unembargo_dt")
+                raise ValidationError("Non-embargoed flaw has an empty unembargo_dt")
             if self.unembargo_dt > timezone.now():
-                raise ValidationError("Public flaw has a future unembargo_dt")
+                raise ValidationError("Non-embargoed flaw has a future unembargo_dt")
 
     def _validate_future_unembargo_date(self, **kwargs):
         """
@@ -610,7 +609,6 @@ class Flaw(
         * has a mitigation
         * has a statement
         * has a cve_description
-        * requires_cve_description is APPROVED
         * has exactly one article
         """
         from .reference import FlawReference
@@ -642,13 +640,6 @@ class Flaw(
                 **kwargs,
             )
 
-        if self.requires_cve_description != self.FlawRequiresCVEDescription.APPROVED:
-            self.alert(
-                "mi_cve_description_not_reviewed",
-                "Flaw marked as Major Incident does not have a cve_description reviewed.",
-                **kwargs,
-            )
-
         article = self.references.filter(type=FlawReference.FlawReferenceType.ARTICLE)
         if article.count() != 1:
             self.alert(
@@ -662,7 +653,6 @@ class Flaw(
         Validate that a Flaw that is CISA Major Incident complies with the following:
         * has a statement
         * has a cve_description
-        * requires_cve_description is APPROVED
         """
         if self.major_incident_state != Flaw.FlawMajorIncident.CISA_APPROVED:
             return
@@ -678,13 +668,6 @@ class Flaw(
             self.alert(
                 "cisa_mi_cve_description_missing",
                 "Flaw marked as CISA Major Incident does not have a cve_description.",
-                **kwargs,
-            )
-
-        if self.requires_cve_description != self.FlawRequiresCVEDescription.APPROVED:
-            self.alert(
-                "cisa_mi_cve_description_not_reviewed",
-                "Flaw marked as CISA Major Incident does not have a cve_description reviewed.",
                 **kwargs,
             )
 
@@ -1125,9 +1108,6 @@ class Flaw(
 
         jtq.transition_task(self)
 
-    download_manager = models.ForeignKey(
-        FlawDownloadManager, null=True, blank=True, on_delete=models.CASCADE
-    )
     task_download_manager = models.ForeignKey(
         JiraTaskDownloadManager, null=True, blank=True, on_delete=models.CASCADE
     )

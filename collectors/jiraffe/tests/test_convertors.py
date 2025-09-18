@@ -3,9 +3,12 @@ import json
 
 import pytest
 
-from collectors.jiraffe.convertors import JiraTrackerConvertor
+from collectors.jiraffe.convertors import (
+    JiraTaskConvertor,
+    JiraTrackerConvertor,
+)
 from collectors.jiraffe.core import JiraQuerier
-from osidb.models import Affect, Tracker
+from osidb.models import Affect, Flaw, Tracker
 from osidb.sync_manager import JiraTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,
@@ -328,3 +331,46 @@ class TestJiraTrackerConvertor:
             "KEV (active exploit case)",
             "compliance-priority",
         ]
+
+
+class TestJiraTaskConvertor:
+    """
+    test that Jira issue to OSIDB task convertor works
+    """
+
+    task_id = "OSIM-36885"
+
+    @pytest.mark.vcr
+    def test_convert(self):
+        """
+        test that the convertor works
+        """
+        task_data = JiraQuerier().get_issue(self.task_id, expand="changelog")
+        task_convertor = JiraTaskConvertor(task_data)
+
+        # Create an empty flaw with same uuid and CVE to hold the data comming from Jira
+        flaw_uuid = next(
+            label
+            for label in task_convertor.task_data["labels"]
+            if label.startswith("flawuuid:")
+        ).split(":")[1]
+        cve_id = next(
+            label
+            for label in task_convertor.task_data["labels"]
+            if label.startswith("CVE")
+        )
+        FlawFactory(uuid=flaw_uuid, cve_id=cve_id, embargoed=False)
+
+        # Trigger the conversion
+        task_convertor.flaw.save()
+        flaw = Flaw.objects.get(uuid=flaw_uuid)
+
+        assert flaw is not None
+        assert flaw.task_key == self.task_id
+        assert flaw.team_id == ""
+        assert flaw.task_updated_dt == datetime.datetime(
+            2025, 9, 8, 9, 25, 14, 405000, tzinfo=datetime.timezone.utc
+        )
+        assert flaw.workflow_name == "DEFAULT"
+        assert flaw.workflow_state == "TRIAGE"
+        assert flaw.owner == "rh-ee-atinocom"

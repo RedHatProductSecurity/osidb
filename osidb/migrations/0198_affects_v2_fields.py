@@ -28,7 +28,7 @@ def forwards_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0195_alter_psproduct_team'),
+        ('osidb', '0197_alter_affect_flaw'),
     ]
 
     operations = [
