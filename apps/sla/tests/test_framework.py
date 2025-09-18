@@ -2,7 +2,7 @@ import pytest
 import yaml
 from django.utils.timezone import datetime, make_aware, timedelta
 
-from apps.sla.framework import SLAContext, SLAPolicy, sla_classify
+from apps.sla.framework import SLAContext, SLAPolicy
 from osidb.models import Affect, Flaw, Impact, PsUpdateStream, Tracker
 from osidb.tests.factories import (
     AffectFactory,
@@ -287,7 +287,7 @@ sla:
 """
 
             load_sla_policies(sla_file)
-            sla_context = sla_classify(tracker)
+            sla_context = SLAPolicy.classify(tracker)
 
             assert sla_context.sla
             assert sla_context.start == flaw.created_dt
@@ -395,7 +395,7 @@ sla:
                 )
             )
 
-            sla_context = sla_classify(tracker)
+            sla_context = SLAPolicy.classify(tracker)
 
             # the first context is the one resulting in the earlist SLA
             # end so it should be the outcome of the classification
@@ -469,7 +469,7 @@ sla:
 """
 
             load_sla_policies(sla_file)
-            sla_context = sla_classify(tracker)
+            sla_context = SLAPolicy.classify(tracker)
 
             if is_closed:
                 assert sla_context.sla
@@ -545,7 +545,7 @@ sla:
             )
 
             load_sla_policies(sla_file)
-            sla_context = sla_classify(tracker)
+            sla_context = SLAPolicy.classify(tracker)
             if excluded:
                 assert not sla_context.sla
             else:
