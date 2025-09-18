@@ -29,6 +29,19 @@ class ModuleComponentSerializer(serializers.Serializer):
     affect = AffectSerializer()
 
 
-class TrackerSuggestionSerializer(serializers.Serializer):
+class StreamComponentSerializer(serializers.Serializer):
+    ps_update_stream = serializers.CharField()
+    ps_component = serializers.CharField()
+    offer = PsStreamSelectionSerializer()
+    selected = serializers.BooleanField()
+    affect = AffectSerializer()
+
+
+class TrackerSuggestionV1Serializer(serializers.Serializer):
     modules_components = ModuleComponentSerializer(many=True)
+    not_applicable = AffectSerializer(many=True)
+
+
+class TrackerSuggestionSerializer(serializers.Serializer):
+    streams_components = StreamComponentSerializer(many=True)
     not_applicable = AffectSerializer(many=True)
