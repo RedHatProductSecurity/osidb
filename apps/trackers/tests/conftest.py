@@ -1,6 +1,6 @@
 import pytest
 
-from apps.sla.framework import SLAPolicy
+from apps.sla.models import SLAPolicy, SLOPolicy
 from apps.trackers.constants import TRACKERS_API_V1, TRACKERS_API_VERSION
 from apps.trackers.models import JiraProjectFields
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
@@ -70,7 +70,7 @@ def test_app_api_v1_uri(test_app_scheme_host, api_version_v1) -> str:
 @pytest.fixture()
 def clean_policies():
     """
-    clean SLA framework before and after every test
+    clean SLA/SLO policies before and after every test
 
         * before so it is not mixed with some leftovers
         * after so we do not leave any leftovers
@@ -79,8 +79,10 @@ def clean_policies():
     when run in batch than when run alone so better to be safe then sorry
     """
     SLAPolicy.objects.all().delete()
+    SLOPolicy.objects.all().delete()
     yield  # run test here
     SLAPolicy.objects.all().delete()
+    SLOPolicy.objects.all().delete()
 
 
 def jira_vulnissuetype_fields_setup_without_versions():
