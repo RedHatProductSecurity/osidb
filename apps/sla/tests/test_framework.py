@@ -2,7 +2,7 @@ import pytest
 import yaml
 from django.utils.timezone import datetime, make_aware, timedelta
 
-from apps.sla.framework import SLAContext, SLAPolicy, sla_classify
+from apps.sla.models import SLAPolicy, TemporalContext
 from osidb.models import Affect, Flaw, Impact, PsUpdateStream, Tracker
 from osidb.tests.factories import (
     AffectFactory,
@@ -287,9 +287,9 @@ sla:
 """
 
             load_sla_policies(sla_file)
-            sla_context = sla_classify(tracker)
+            sla_context = SLAPolicy.classify(tracker)
 
-            assert sla_context.sla
+            assert sla_context.policy
             assert sla_context.start == flaw.created_dt
             assert sla_context.end == flaw.created_dt + timedelta(days=5)
 
@@ -381,21 +381,21 @@ sla:
 
             policies = SLAPolicy.objects.all()
             assert policies[0].accepts(
-                SLAContext(
+                TemporalContext(
                     affect=affect1,
                     flaw=flaw1,
                     tracker=tracker,
                 )
             )
             assert policies[1].accepts(
-                SLAContext(
+                TemporalContext(
                     affect=affect2,
                     flaw=flaw2,
                     tracker=tracker,
                 )
             )
 
-            sla_context = sla_classify(tracker)
+            sla_context = SLAPolicy.classify(tracker)
 
             # the first context is the one resulting in the earlist SLA
             # end so it should be the outcome of the classification
@@ -405,7 +405,7 @@ sla:
             assert sla_context["affect"] == affect1
             assert "tracker" in sla_context
             assert sla_context["tracker"] == tracker
-            assert sla_context.sla
+            assert sla_context.policy
             assert sla_context.start == flaw1.reported_dt
             assert sla_context.end == flaw1.reported_dt + timedelta(days=mi_duration)
 
@@ -469,14 +469,14 @@ sla:
 """
 
             load_sla_policies(sla_file)
-            sla_context = sla_classify(tracker)
+            sla_context = SLAPolicy.classify(tracker)
 
             if is_closed:
-                assert sla_context.sla
+                assert sla_context.policy
                 assert sla_context.start == flaw.created_dt
                 assert sla_context.end == flaw.created_dt + timedelta(days=5)
             else:
-                assert not sla_context.sla
+                assert not sla_context.policy
 
         @pytest.mark.parametrize(
             "component,excluded",
@@ -545,10 +545,10 @@ sla:
             )
 
             load_sla_policies(sla_file)
-            sla_context = sla_classify(tracker)
+            sla_context = SLAPolicy.classify(tracker)
             if excluded:
-                assert not sla_context.sla
+                assert not sla_context.policy
             else:
-                assert sla_context.sla
+                assert sla_context.policy
                 assert sla_context.start == flaw.reported_dt
                 assert sla_context.end == flaw.created_dt + timedelta(days=5)

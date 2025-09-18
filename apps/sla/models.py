@@ -13,9 +13,9 @@ from .exceptions import SLAExecutionError
 from .time import add_business_days, add_days, skip_week_ending
 
 
-class SLA(models.Model):
+class TemporalPolicy(models.Model):
     """
-    SLA definition and computation model
+    Abstract temporal policy definition and computation model
     """
 
     class DurationTypes(models.TextChoices):
@@ -57,8 +57,11 @@ class SLA(models.Model):
     start_criteria = models.CharField(max_length=20, choices=StartCriteria.choices)
     start_dates = models.JSONField(default=dict)
 
+    class Meta:
+        abstract = True
+
     @classmethod
-    def create_from_description(cls, sla_desc):
+    def create_from_description(cls, desc):
         def parse_date(date_desc):
             """
             translate human-readable date description into the attribute name
@@ -67,8 +70,8 @@ class SLA(models.Model):
 
         def parse_type(type_desc):
             """
-            translate human-readable SLA type description
-            into the actual SLA type and its optional ending
+            translate human-readable description into the actual
+            TemporalPolicy type and its optional ending
             """
             ending = cls.EndingTypes.ANY_DAY
             for ending_type, _ in cls.EndingTypes.choices:
@@ -79,13 +82,13 @@ class SLA(models.Model):
 
             return type_desc, ending
 
-        if sla_desc is None:
+        if desc is None:
             return None
 
-        duration = int(sla_desc["duration"])
-        sla_type, ending = parse_type(sla_desc["type"])
+        duration = int(desc["duration"])
+        policy_type, ending = parse_type(desc["type"])
 
-        start_desc = sla_desc["start"]
+        start_desc = desc["start"]
         if isinstance(start_desc, str):
             start_desc = {"latest": [start_desc]}
 
@@ -101,30 +104,28 @@ class SLA(models.Model):
         for date_source, date_desc_list in date_source_desc.items():
             if date_source not in cls.VALID_DATE_SOURCES:
                 raise SLAExecutionError(
-                    f"SLA contains an invalid start date source. Valid sources: {', '.join(cls.VALID_DATE_SOURCES)}"
+                    "Policy contains an invalid start date source. "
+                    f"Valid sources: {', '.join(cls.VALID_DATE_SOURCES)}"
                 )
-            start_dates[date_source] = [
-                parse_date(date_desc) for date_desc in date_desc_list
-            ]
+            start_dates[date_source] = [parse_date(d) for d in date_desc_list]
 
-        sla = SLA(
+        obj = cls(
             duration=duration,
-            duration_type=sla_type,
+            duration_type=policy_type,
             ending=ending,
             start_criteria=start_criteria,
             start_dates=start_dates,
         )
 
-        return sla
+        return obj
 
-    def start(self, sla_context):
+    def start(self, context):
         """
-        compute SLA start moment for the given instance
+        compute start moment for the given instance
         """
-        # Populate with the actual dates
         start_dates = []
         for model, dates in self.start_dates.items():
-            instance = sla_context.get(model, None)
+            instance = context.get(model, None)
             start_dates += [
                 getattr(instance, date) for date in dates if instance is not None
             ]
@@ -134,15 +135,12 @@ class SLA(models.Model):
 
         return self.get_start(start_dates)
 
-    def end(self, sla_context):
+    def end(self, context):
         """
-        compute SLA end moment for the given instance
+        compute end moment for the given instance
         """
         return self.SET_ENDING[self.ending](
-            self.add_days(
-                self.start(sla_context),
-                self.duration,
-            )
+            self.add_days(self.start(context), self.duration)
         )
 
     @property
@@ -154,9 +152,9 @@ class SLA(models.Model):
         return self.ADD_DAYS[self.duration_type]
 
 
-class SLAContext(dict):
+class TemporalContext(dict):
     """
-    SLA context holder
+    temporal policy context holder
     """
 
     def __init__(self, **kwargs):
@@ -164,30 +162,30 @@ class SLAContext(dict):
         initialize the context based on given entities
 
         keyword arguments should comply with ENTITY2CLASS
-        mapping defined within the SLAPolicy class
+        mapping defined within the TemporalPolicy class
         """
         for name, obj in kwargs.items():
             self[name] = obj
 
-        # empty initial SLA
-        self.sla = None
+        # empty initial policy
+        self.policy = None
         # this flag determines if this should take priority over other
-        # SLAs as it's used to exclude certain trackers from SLA
+        # policies as it's used to exclude certain trackers from SLA/SLO
         self.is_exclusion = False
 
     def __eq__(self, other):
         """
-        empty SLA contexts are not equal
+        empty policies contexts are not equal
         otherwise compare the end dates
         """
-        if self.sla is None or other.sla is None:
+        if self.policy is None or other.policy is None:
             return False
         return self.end == other.end
 
     def __lt__(self, other):
         """
-        empty SLA context is greater,
-        exclusion SLA is smaller,
+        empty policy context is greater,
+        exclusion policy is smaller,
         otherwise compare the end dates
         """
         # Exclusion takes priority
@@ -195,51 +193,51 @@ class SLAContext(dict):
             return True
         if other.is_exclusion:
             return False
-        # SLAs that didn't match but are not exclusion SLAs
-        if self.sla is None:
+        # Policies that didn't match but are not exclusion policy
+        if self.policy is None:
             return False
-        if other.sla is None:
+        if other.policy is None:
             return True
         return self.end < other.end
 
     @property
     def start(self):
         """
-        compute SLA start for the given instance
+        compute policy start for the given instance
 
-        returns None if there is no SLA policy
-        assigned possibly meaning that this SLA
-        context is accepted by no SLA policy
+        returns None if there is no policy
+        assigned possibly meaning that this
+        context is accepted by no policy
         """
-        if self.sla is None:
+        if self.policy is None:
             return None
 
-        return self.sla.start(self)
+        return self.policy.start(self)
 
     @property
     def end(self):
         """
-        compute SLA end for the given instance
+        compute policy end for the given instance
 
-        returns None if there is no SLA policy
-        assigned possibly meaning that this SLA
-        context is accepted by no SLA policy
+        returns None if there is no policy
+        assigned possibly meaning that this
+        context is accepted by no policy
         """
-        if self.sla is None:
+        if self.policy is None:
             return None
 
-        return self.sla.end(self)
+        return self.policy.end(self)
 
 
-class SLAPolicy(models.Model):
+class PolicyBase(models.Model):
     """
-    SLA policy model
+    Generic temporal policy
 
     has name and description
     has conditions which is a list of checks
-    has SLA definition
+    has policy definition
 
-    provides SLA start and end computation
+    provides policy start and end computation
     """
 
     ENTITY2CLASS = {
@@ -250,40 +248,42 @@ class SLAPolicy(models.Model):
 
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
-    sla = models.ForeignKey(
-        SLA, on_delete=models.CASCADE, null=True, related_name="policies"
-    )
     condition_descriptions = models.JSONField(default=dict)
     order = models.IntegerField(unique=True)
 
     class Meta:
-        # Order of SLA is important, so by default retrieve them using the order field
+        # Order of the policy is important, so by default retrieve them using the order field
         ordering = ["order"]
+        abstract = True
 
     def __str__(self):
         return self.name
 
+    @property
+    def temporal_policy(self) -> TemporalPolicy:
+        """
+        Concrete subclasses (e.g. SLAPolicy) must
+        return the bound TemporalPolicy instance (or None for exclusions).
+        """
+        raise NotImplementedError
+
     @classmethod
-    def create_from_description(self, policy_desc, order=None):
+    def classify(cls, instance: models.Model):
+        """
+        Evaluate all policies of this concrete subclass against the instance
+        and return the TemporalContext that yields the earliest end.
+        Returns an empty TemporalContext if there are no policies.
+        """
+
+        policies = cls.objects.all()
+        if not policies.exists():
+            return TemporalContext()
+        return min(policy.context(instance) for policy in policies)
+
+    @classmethod
+    def create_from_description(cls, policy_desc, order=None):
         """Creates an SLA policy from a YAML description."""
-        name = policy_desc["name"]
-        description = policy_desc["description"]
-        sla = SLA.create_from_description(policy_desc["sla"])
-        if sla is not None:
-            sla.save()
-
-        if order is None:
-            # Order is implied by the number of already existing SLA policies
-            order = SLAPolicy.objects.count()
-
-        policy = SLAPolicy(
-            name=name,
-            description=description,
-            condition_descriptions=policy_desc["conditions"],
-            sla=sla,
-            order=order,
-        )
-        return policy
+        raise NotImplementedError
 
     @cached_property
     def conditions(self):
@@ -296,22 +296,69 @@ class SLAPolicy(models.Model):
             ]
         return conditions
 
-    def accepts(self, sla_context):
+    def accepts(self, context):
         """
-        accepts the SLA context if it contains all the entities required
-        by the SLA policy and each of them meets all the defined conditions
+        accepts the context if it contains all the entities required
+        by the policy and each of them meets all the defined conditions
         """
         for entity, conditions in self.conditions.items():
-            if entity not in sla_context:
+            if entity not in context:
                 return False
 
-            if not all(condition(sla_context[entity]) for condition in conditions):
+            if not all(condition(context[entity]) for condition in conditions):
                 return False
 
         else:
             # all conditions were met
-            # SLA context is accepted
+            # context is accepted
             return True
+
+    def context(self, instance) -> TemporalContext:
+        """
+        find the right context as there may be multiple ones
+        which is the one resulting in the earliest deadline
+        """
+        raise NotImplementedError
+
+
+class SLA(TemporalPolicy):
+    """
+    SLA definition and computation model
+    """
+
+
+class SLAPolicy(PolicyBase):
+    """
+    SLA policy model responsible for interpreting description fields and context
+    """
+
+    sla = models.ForeignKey(
+        SLA, on_delete=models.CASCADE, null=True, related_name="policies"
+    )
+
+    @property
+    def temporal_policy(self) -> TemporalPolicy:
+        return self.sla
+
+    @classmethod
+    def create_from_description(cls, policy_desc, order=None):
+        """Creates an SLA policy from a YAML description."""
+        name = policy_desc["name"]
+        description = policy_desc["description"]
+        sla = SLA.create_from_description(policy_desc["sla"])
+        if sla is not None:
+            sla.save()
+
+        if order is None:
+            order = SLAPolicy.objects.count()
+
+        return SLAPolicy(
+            name=name,
+            description=description,
+            condition_descriptions=policy_desc["conditions"],
+            sla=sla,
+            order=order,
+        )
 
     def context(self, instance):
         """
@@ -324,7 +371,7 @@ class SLAPolicy(models.Model):
 
         ps_update_stream = PsUpdateStream.objects.get(name=instance.ps_update_stream)
         if not ps_update_stream.rhsa_sla_applicable:
-            return SLAContext()
+            return TemporalContext()
 
         # computing the SLA is not simple as we have to consider multi-flaw trackers where
         # the SLA start must be computed for the flaw which results in the earlist SLA end
@@ -334,7 +381,7 @@ class SLAPolicy(models.Model):
             # incomplete data from the tracker which may be being saved
             affect = Affect.objects.get(uuid=affect.uuid)
             sla_contexts.append(
-                SLAContext(affect=affect, flaw=affect.flaw, tracker=instance)
+                TemporalContext(affect=affect, flaw=affect.flaw, tracker=instance)
             )
 
         # filter out the SLA contexts not accepted by this SLA policy
@@ -342,11 +389,11 @@ class SLAPolicy(models.Model):
         if not sla_contexts:
             # return an empty context
             # if none is accepted
-            return SLAContext()
+            return TemporalContext()
 
         # assign SLA policies
         for context in sla_contexts:
-            context.sla = self.sla
+            context.policy = self.sla
             if self.sla is None:
                 # Exclusion SLA is defined as null in the policy
                 context.is_exclusion = True

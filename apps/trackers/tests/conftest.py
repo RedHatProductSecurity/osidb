@@ -1,6 +1,6 @@
 import pytest
 
-from apps.sla.framework import SLAPolicy
+from apps.sla.models import SLAPolicy
 from apps.trackers.constants import TRACKERS_API_VERSION
 from apps.trackers.models import JiraProjectFields
 from apps.trackers.tests.factories import JiraProjectFieldsFactory

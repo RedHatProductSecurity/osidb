@@ -1,7 +1,7 @@
 import pytest
 from django.utils.timezone import datetime, make_aware, timedelta
 
-from apps.sla.models import SLA, SLAContext, SLAPolicy
+from apps.sla.models import SLA, SLAPolicy, TemporalContext
 from apps.sla.time import add_business_days, add_days
 from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.tests.factories import (
@@ -137,7 +137,7 @@ class TestSLA:
             flaw = FlawFactory()
             setattr(flaw, attribute, value)
 
-            sla_context = SLAContext(flaw=flaw)
+            sla_context = TemporalContext(flaw=flaw)
             assert sla.start(sla_context) == value
 
         @pytest.mark.parametrize(
@@ -207,7 +207,7 @@ class TestSLA:
             flaw = FlawFactory()
             for attribute, value in context:
                 setattr(flaw, attribute, make_aware(value))
-            sla_context = SLAContext(flaw=flaw)
+            sla_context = TemporalContext(flaw=flaw)
 
             assert sla.start(sla_context) == make_aware(expected)
 
@@ -278,7 +278,7 @@ class TestSLA:
             flaw = FlawFactory()
             for attribute, value in context:
                 setattr(flaw, attribute, make_aware(value))
-            sla_context = SLAContext(flaw=flaw)
+            sla_context = TemporalContext(flaw=flaw)
 
             assert sla.start(sla_context) == make_aware(expected)
 
@@ -342,7 +342,7 @@ class TestSLA:
             for attribute, value in context.get("tracker", {}):
                 setattr(tracker, attribute, make_aware(value))
 
-            sla_context = SLAContext(flaw=flaw, affect=affect, tracker=tracker)
+            sla_context = TemporalContext(flaw=flaw, affect=affect, tracker=tracker)
 
             assert sla.start(sla_context) == make_aware(expected)
 
@@ -375,7 +375,7 @@ class TestSLA:
             }
             sla = SLA.create_from_description(sla_desc)
             flaw = FlawFactory(reported_dt=make_aware(datetime(2023, 11, 13, 1, 1, 1)))
-            sla_context = SLAContext(flaw=flaw)
+            sla_context = TemporalContext(flaw=flaw)
 
             assert sla.end(sla_context) == make_aware(expected)
 
@@ -399,7 +399,7 @@ class TestSLA:
             }
             sla = SLA.create_from_description(sla_desc)
             flaw = FlawFactory(reported_dt=make_aware(datetime(2023, 11, 13, 5, 5, 5)))
-            sla_context = SLAContext(flaw=flaw)
+            sla_context = TemporalContext(flaw=flaw)
 
             assert sla.end(sla_context) == make_aware(expected)
 
@@ -426,19 +426,19 @@ class TestSLA:
             sla = SLA.create_from_description(sla_desc)
             # Wednesday
             flaw = FlawFactory(reported_dt=make_aware(datetime(2024, 11, 13, 5, 5, 5)))
-            sla_context = SLAContext(flaw=flaw)
+            sla_context = TemporalContext(flaw=flaw)
 
             assert sla.end(sla_context) == make_aware(expected)
 
 
-class TestSLAContext:
+class TestTemporalContext:
     """
-    test SLAContext functionality
+    test TemporalContext functionality
     """
 
     class TestMin:
         """
-        test minimal SLAContext determination
+        test minimal TemporalContext determination
         """
 
         @pytest.mark.parametrize(
@@ -526,8 +526,8 @@ class TestSLAContext:
             policy1 = SLAPolicy.create_from_description(policy_desc1)
             flaw1 = FlawFactory()
             setattr(flaw1, attribute1, value1)
-            sla_context1 = SLAContext(flaw=flaw1)
-            sla_context1.sla = policy1.sla
+            sla_context1 = TemporalContext(flaw=flaw1)
+            sla_context1.policy = policy1.sla
 
             policy_desc2 = {
                 "name": "fantastic SLA policy",
@@ -538,8 +538,8 @@ class TestSLAContext:
             policy2 = SLAPolicy.create_from_description(policy_desc2)
             flaw2 = FlawFactory()
             setattr(flaw2, attribute2, value1)
-            sla_context2 = SLAContext(flaw=flaw2)
-            sla_context2.sla = policy2.sla
+            sla_context2 = TemporalContext(flaw=flaw2)
+            sla_context2.policy = policy2.sla
 
             assert min(sla_context1, sla_context2) is sla_context1
 
@@ -559,17 +559,17 @@ class TestSLAContext:
             }
             policy = SLAPolicy.create_from_description(policy_desc)
             flaw = FlawFactory()
-            sla_context1 = SLAContext(flaw=flaw)
-            sla_context1.sla = policy.sla
+            sla_context1 = TemporalContext(flaw=flaw)
+            sla_context1.policy = policy.sla
 
             # an empty SLA context
-            sla_context2 = SLAContext()
+            sla_context2 = TemporalContext()
 
             assert min(sla_context1, sla_context2) is sla_context1
 
     class TestTimestamps:
         """
-        test SLAContext timestamps computation
+        test TemporalContext timestamps computation
         """
 
         def test_empty(self):
@@ -578,7 +578,7 @@ class TestSLAContext:
             """
             # an empty SLA context
             # with fake flaw entity
-            sla_context = SLAContext(flaw="fake")
+            sla_context = TemporalContext(flaw="fake")
             assert sla_context.start is None
             assert sla_context.end is None
 
@@ -774,7 +774,7 @@ class TestSLAPolicy:
 
             # provide SLA context
             assert policy.accepts(
-                SLAContext(
+                TemporalContext(
                     flaw=flaw,
                     affect=affect,
                     tracker=tracker,
@@ -850,7 +850,7 @@ class TestSLAPolicy:
             # first flaw context should be accepted
             # because it meets the conditions
             assert policy.accepts(
-                SLAContext(
+                TemporalContext(
                     flaw=flaw1,
                     affect=affect1,
                     tracker=tracker,
@@ -859,7 +859,7 @@ class TestSLAPolicy:
             # second flaw context should not be accepted
             # because it does not meet the conditions
             assert not policy.accepts(
-                SLAContext(
+                TemporalContext(
                     flaw=flaw2,
                     affect=affect2,
                     tracker=tracker,
@@ -914,7 +914,9 @@ class TestSLAPolicy:
             )
 
             assert (
-                policy.accepts(SLAContext(flaw=flaw, affect=affect, tracker=tracker))
+                policy.accepts(
+                    TemporalContext(flaw=flaw, affect=affect, tracker=tracker)
+                )
                 == accepted
             )
 
@@ -967,7 +969,7 @@ class TestSLAPolicy:
             assert sla_context["affect"] == affect
             assert sla_context["flaw"] == flaw
             assert sla_context["tracker"] == tracker
-            assert sla_context.sla == policy.sla
+            assert sla_context.policy == policy.sla
             assert sla_context.start == flaw.unembargo_dt
             assert sla_context.end == flaw.unembargo_dt + timedelta(days=5)
 
@@ -1030,14 +1032,14 @@ class TestSLAPolicy:
 
             # both context are accepted
             assert policy.accepts(
-                SLAContext(
+                TemporalContext(
                     flaw=flaw1,
                     affect=affect1,
                     tracker=tracker,
                 )
             )
             assert policy.accepts(
-                SLAContext(
+                TemporalContext(
                     flaw=flaw2,
                     affect=affect2,
                     tracker=tracker,
@@ -1050,7 +1052,7 @@ class TestSLAPolicy:
             assert sla_context["affect"] == affect1
             assert sla_context["flaw"] == flaw1
             assert sla_context["tracker"] == tracker
-            assert sla_context.sla == policy.sla
+            assert sla_context.policy == policy.sla
             assert sla_context.start == flaw1.unembargo_dt
             assert sla_context.end == flaw1.unembargo_dt + timedelta(days=5)
 

@@ -11,7 +11,7 @@ from typing import Optional
 
 from django.utils.timezone import make_aware
 
-from apps.sla.framework import sla_classify
+from apps.sla.models import SLAPolicy
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import (
     ComponentUnavailableError,
@@ -372,9 +372,9 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
             project_key=self.ps_module.bts_key, field_name="Target start"
         )
 
-        sla_context = sla_classify(self.tracker)
+        sla_context = SLAPolicy.classify(self.tracker)
         # the tracker may or may not be under SLA
-        if sla_context.sla is not None:
+        if sla_context.policy is not None:
             self._query["fields"]["duedate"] = sla_context.end.isoformat()
             if target_start.exists():
                 self._query["fields"][target_start.first().field_id] = (
