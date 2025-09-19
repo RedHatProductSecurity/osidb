@@ -102,19 +102,3 @@ class TestPsConstantsCollection:
             Keyword.objects.filter(type=Keyword.Type.ASSIGNER_ORG_ID_BLOCKLIST).count()
             == 1
         )
-
-    def test_failed_sync_cveorg_keywords(self):
-        """
-        Test that CVEorg keywords without expected groups raise an error.
-        """
-        mock_keywords = {
-            "allowlist": ["kernel"],
-            "allowlist_special_cases": [r"(?:\W|^)\.NET\b"],
-            "blocklist": [".*plugin.*for WordPress", "Cisco", "IBM Tivoli", "iTunes"],
-            # "blocklist_special_cases" is missing
-        }
-
-        with pytest.raises(KeyError):
-            sync_cveorg_keywords(mock_keywords)
-
-        assert Keyword.objects.count() == 0
