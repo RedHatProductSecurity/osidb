@@ -195,7 +195,9 @@ class TestAuditFlaw:
         assert snippet.acl_write == internal_write_groups
 
         assert pghistory.models.Events.objects.tracks(flaw).count() == 1
-        assert pghistory.models.Events.objects.tracks(affect).count() == 1
+        # Affect has 2 operations: one when creating the affect and an update when the tracker is linked to it,
+        # since the relationship is stored on the Affect side
+        assert pghistory.models.Events.objects.tracks(affect).count() == 2
         assert pghistory.models.Events.objects.tracks(tracker).count() == 1
         assert pghistory.models.Events.objects.tracks(flaw_ack).count() == 1
         assert pghistory.models.Events.objects.tracks(flaw_ref).count() == 1

@@ -772,7 +772,7 @@ class TestMultiMixinIntegration:
         enable_jira_tracker_sync,
         jira_token,
         monkeypatch,
-        test_api_uri,
+        test_api_v2_uri,
     ):
         """Test that bugzilla Tracker endpoint only recreates alerts when needed"""
         validation_counter = {}
@@ -820,7 +820,7 @@ class TestMultiMixinIntegration:
         }
 
         response = auth_client().post(
-            f"{test_api_uri}/flaws",
+            f"{test_api_v2_uri}/flaws",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -842,7 +842,7 @@ class TestMultiMixinIntegration:
             }
         ]
         response = auth_client().post(
-            f"{test_api_uri}/affects/bulk",
+            f"{test_api_v2_uri}/affects/bulk",
             affects_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -859,7 +859,7 @@ class TestMultiMixinIntegration:
         }
         monkeypatch.setattr(AlertMixin, "validate", counter_validate)
         response = auth_client().post(
-            f"{test_api_uri}/trackers",
+            f"{test_api_v2_uri}/trackers",
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -880,7 +880,7 @@ class TestMultiMixinIntegration:
         enable_jira_tracker_sync,
         jira_token,
         monkeypatch,
-        test_api_uri,
+        test_api_v2_uri,
     ):
         """Test that jira Tracker endpoint only recreates alerts when needed"""
         validation_counter = {}
@@ -955,7 +955,7 @@ class TestMultiMixinIntegration:
         }
 
         response = auth_client().post(
-            f"{test_api_uri}/flaws",
+            f"{test_api_v2_uri}/flaws",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -977,7 +977,7 @@ class TestMultiMixinIntegration:
             }
         ]
         response = auth_client().post(
-            f"{test_api_uri}/affects/bulk",
+            f"{test_api_v2_uri}/affects/bulk",
             affects_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -994,7 +994,7 @@ class TestMultiMixinIntegration:
         }
         monkeypatch.setattr(AlertMixin, "validate", counter_validate)
         response = auth_client().post(
-            f"{test_api_uri}/trackers",
+            f"{test_api_v2_uri}/trackers",
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -1015,7 +1015,7 @@ class TestMultiMixinIntegration:
         enable_jira_task_sync,
         enable_jira_tracker_sync,
         jira_token,
-        test_api_uri,
+        test_api_v2_uri,
         monkeypatch,
     ):
         """Test that Affect endpoint only recreates alerts when needed"""
@@ -1044,7 +1044,7 @@ class TestMultiMixinIntegration:
         }
 
         response = auth_client().post(
-            f"{test_api_uri}/flaws",
+            f"{test_api_v2_uri}/flaws",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -1069,7 +1069,7 @@ class TestMultiMixinIntegration:
             }
         ]
         response = auth_client().post(
-            f"{test_api_uri}/affects/bulk",
+            f"{test_api_v2_uri}/affects/bulk",
             affects_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -1090,7 +1090,7 @@ class TestMultiMixinIntegration:
         validation_counter = {}
 
         response = auth_client().put(
-            f"{test_api_uri}/affects/bulk",
+            f"{test_api_v2_uri}/affects/bulk",
             affects_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,

@@ -799,7 +799,7 @@ class TrackerSerializer(
         # create affect-tracker links
         for affect in affects:
             affect.tracker = tracker
-            affect.save()
+            affect.save(no_alerts=True, raise_validation_error=False)
 
         #####################
         # 3) create actions #

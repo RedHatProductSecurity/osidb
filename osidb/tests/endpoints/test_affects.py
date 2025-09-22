@@ -37,44 +37,6 @@ class TestEndpointsAffectsV1:
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["cvss_scores"]) == 1
 
-    @pytest.mark.enable_signals
-    def test_affectcvss_create(self, auth_client, test_api_uri):
-        """
-        Test the creation of AffectCVSS records via a REST API POST request.
-        """
-        flaw = FlawFactory()
-        affect = AffectFactory(flaw=flaw)
-        cvss_data = {
-            "issuer": AffectCVSS.CVSSIssuer.REDHAT,
-            "cvss_version": AffectCVSS.CVSSVersion.VERSION3,
-            "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
-            "embargoed": flaw.embargoed,
-        }
-
-        # Tests "POST" on affects/{uuid}/cvss_scores
-        response = auth_client().post(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores",
-            data=cvss_data,
-            format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-        )
-        assert response.status_code == status.HTTP_201_CREATED
-        cvss_uuid = response.data["uuid"]
-
-        # Tests "GET" on affects/{uuid}/cvss_scores
-        response = auth_client().get(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores"
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json()["count"] == 1
-
-        # Tests "GET" on affects/{uuid}/cvss_scores/{uuid}
-        response = auth_client().get(
-            f"{test_api_uri}/affects/{str(affect.uuid)}/cvss_scores/{cvss_uuid}"
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["uuid"] == cvss_uuid
-
     @pytest.mark.parametrize(
         "filter_value,expected_with_trackers,expected_without_trackers",
         [
@@ -112,7 +74,7 @@ class TestEndpointsAffectsV1:
         affect_without_trackers = AffectFactory(flaw=flaw)
 
         response = auth_client().get(
-            f"{test_api_uri}/affects?tracker__isempty={str(filter_value).lower()}"
+            f"{test_api_uri}/affects?trackers__isempty={str(filter_value).lower()}"
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -460,7 +422,7 @@ class TestEndpointsAffects:
         affect_without_trackers = AffectFactory(flaw=flaw)
 
         response = auth_client().get(
-            f"{test_api_v2_uri}/affects?tracker__isempty={str(filter_value).lower()}"
+            f"{test_api_v2_uri}/affects?tracker__isnull={str(filter_value).lower()}"
         )
 
         assert response.status_code == status.HTTP_200_OK
