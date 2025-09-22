@@ -2475,51 +2475,6 @@ paths:
                     version:
                       type: string
           description: ''
-    put:
-      operationId: osidb_api_v1_audit_update
-      description: basic view of audit history events
-      parameters:
-      - in: path
-        name: pgh_slug
-        schema:
-          type: string
-          description: The unique identifier across all event tables.
-        required: true
-      tags:
-      - osidb
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuditRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/AuditRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/AuditRequest'
-        required: true
-      security:
-      - OsidbTokenAuthentication: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                allOf:
-                - $ref: '#/components/schemas/Audit'
-                - type: object
-                  properties:
-                    dt:
-                      type: string
-                      format: date-time
-                    env:
-                      type: string
-                    revision:
-                      type: string
-                    version:
-                      type: string
-          description: ''
   /osidb/api/v1/available-flaws/{cve_id}:
     get:
       operationId: osidb_api_v1_available_flaws_retrieve
@@ -8824,37 +8779,6 @@ components:
       required:
       - pgh_created_at
       - pgh_data
-      - pgh_diff
-      - pgh_label
-      - pgh_obj_model
-      - pgh_slug
-    AuditRequest:
-      type: object
-      properties:
-        pgh_slug:
-          type: string
-          minLength: 1
-          description: The unique identifier across all event tables.
-        pgh_obj_model:
-          type: string
-          minLength: 1
-          description: The object model.
-          maxLength: 64
-        pgh_obj_id:
-          type: string
-          nullable: true
-          minLength: 1
-          description: The primary key of the object.
-        pgh_label:
-          type: string
-          minLength: 1
-          description: The event label.
-        pgh_context:
-          nullable: true
-          description: The context associated with the event.
-        pgh_diff:
-          description: The diff between the previous event of the same label.
-      required:
       - pgh_diff
       - pgh_label
       - pgh_obj_model
