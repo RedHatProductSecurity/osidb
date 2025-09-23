@@ -907,14 +907,17 @@ class TestJiraAffectCCBuilder:
         ],
     )
     def test_component_cc(self, ps_module, component_cc, ps_component, cc_contact):
-        PsModuleFactory(
+        ps_module = PsModuleFactory(
             name=ps_module,
             bts_name="jboss",
             component_cc={
                 component_cc: [cc_contact],
             },
         )
-        affect = AffectFactory(ps_module=ps_module, ps_component=ps_component)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            ps_update_stream=ps_update_stream.name, ps_component=ps_component
+        )
         cc = JiraAffectCCBuilder(affect, False)
 
         assert cc.generate_cc() == [cc_contact]

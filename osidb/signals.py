@@ -230,9 +230,9 @@ def update_denormalized_cve_ids_on_flaw_update(sender, instance, **kwargs):
         if instance.cve_id != db_instance.cve_id:
             instance.affects.all().update(cve_id=instance.cve_id)
             for affect in instance.affects.all():
-                for tracker in affect.trackers.all():
-                    tracker.cve_id = instance.cve_id
-                    trackers.add(tracker)
+                if affect.tracker is not None:
+                    affect.tracker.cve_id = instance.cve_id
+                    trackers.add(affect.tracker)
             Tracker.objects.bulk_update(list(trackers), fields=["cve_id"])
 
 

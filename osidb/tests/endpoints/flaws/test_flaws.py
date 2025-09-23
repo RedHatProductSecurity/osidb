@@ -237,9 +237,9 @@ class TestEndpointsFlaws:
             body["count"] == 1
         )  # One Flaw that was changed after a past date AND before a future date
 
-    def test_list_flaws_filters(self, auth_client, test_api_uri):
+    def test_list_flaws_filters(self, auth_client, test_api_v2_uri):
         """retrieve list of flaws from endpoint"""
-        response = auth_client().get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_v2_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -247,7 +247,7 @@ class TestEndpointsFlaws:
         flaw = FlawFactory()
 
         for field_filter in FlawFilter.get_fields():
-            response = auth_client().get(f"{test_api_uri}/flaws?{field_filter}=0")
+            response = auth_client().get(f"{test_api_v2_uri}/flaws?{field_filter}=0")
             if response.status_code == 200:
                 assert response.json()["count"] == 0 or getattr(flaw, field_filter) == 0
                 # There can be either no match or a matching boolean value
@@ -740,9 +740,9 @@ class TestEndpointsFlaws:
                 for tracker_field in tracker_exclude_fields:
                     assert tracker_field not in affect["tracker"]
 
-    def test_list_flaws_include_fields(self, auth_client, test_api_uri):
+    def test_list_flaws_include_fields(self, auth_client, test_api_v2_uri):
         """retrieve list of flaws from endpoint"""
-        response = auth_client().get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_v2_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -775,7 +775,7 @@ class TestEndpointsFlaws:
         )
 
         response = auth_client().get(
-            f"{test_api_uri}/flaws?include_fields={include_fields_param}"
+            f"{test_api_v2_uri}/flaws?include_fields={include_fields_param}"
         )
         assert response.status_code == 200
         body = response.json()
@@ -799,12 +799,12 @@ class TestEndpointsFlaws:
                 for tracker_field in tracker_include_fields:
                     assert tracker_field in affect["tracker"]
 
-    def test_list_flaws_nested_include_fields_only(self, auth_client, test_api_uri):
+    def test_list_flaws_nested_include_fields_only(self, auth_client, test_api_v2_uri):
         """
         retrieve list of flaws from endpoint with included
         fields only in nested serializers
         """
-        response = auth_client().get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_v2_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -833,7 +833,7 @@ class TestEndpointsFlaws:
         )
 
         response = auth_client().get(
-            f"{test_api_uri}/flaws?include_fields={include_fields_param}"
+            f"{test_api_v2_uri}/flaws?include_fields={include_fields_param}"
         )
         assert response.status_code == 200
         body = response.json()
@@ -851,9 +851,9 @@ class TestEndpointsFlaws:
             for field in affect_include_fields:
                 assert field in affect
 
-    def test_list_flaws_include_and_exclude_fields(self, auth_client, test_api_uri):
+    def test_list_flaws_include_and_exclude_fields(self, auth_client, test_api_v2_uri):
         """retrieve list of flaws from endpoint"""
-        response = auth_client().get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_v2_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -896,7 +896,7 @@ class TestEndpointsFlaws:
         )
 
         response = auth_client().get(
-            f"{test_api_uri}/flaws?include_fields={include_fields_param}&exclude_fields={exclude_fields_param}"
+            f"{test_api_v2_uri}/flaws?include_fields={include_fields_param}&exclude_fields={exclude_fields_param}"
         )
         assert response.status_code == 200
         body = response.json()
@@ -1247,7 +1247,7 @@ class TestEndpointsFlaws:
         assert body["classification"]["workflow"] is not None
         assert body["classification"]["state"] is not None
 
-    def test_flaw_including_delegated_resolution(self, auth_client, test_api_uri):
+    def test_flaw_including_delegated_resolution(self, auth_client, test_api_v2_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
         ps_update_stream = PsUpdateStreamFactory(
             name="rhel-7.0", active_to_ps_module=ps_module, ps_module=ps_module
@@ -1268,7 +1268,7 @@ class TestEndpointsFlaws:
             type=Tracker.TrackerType.BUGZILLA,
         )
 
-        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.cve_id}")
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.cve_id}")
         assert response.status_code == 200
         body = response.json()
         assert "affects" in body
@@ -1693,7 +1693,7 @@ class TestEndpointsFlaws:
         # define the conditions under which a flaw can be deleted
         assert response.status_code == 405
 
-    def test_list_flaws_tracker_ids(self, auth_client, test_api_uri):
+    def test_list_flaws_tracker_ids(self, auth_client, test_api_v2_uri):
         """
         retrieve list of flaws that are related to specified trackers
         through affects and ensure that only those affects related to
@@ -1745,7 +1745,7 @@ class TestEndpointsFlaws:
         tracker_ids = {str(tracker.external_system_id) for tracker in trackers_to_fetch}
 
         response = auth_client().get(
-            f"{test_api_uri}/flaws?tracker_ids={','.join(tracker_ids)}"
+            f"{test_api_v2_uri}/flaws?tracker_ids={','.join(tracker_ids)}"
         )
         assert response.status_code == 200
         body = response.json()
@@ -1762,7 +1762,7 @@ class TestEndpointsFlaws:
         assert fetched_affect_ids == affect_ids
         assert fetched_tracker_ids == tracker_ids
 
-    def test_flaw_history(self, auth_client, test_api_uri):
+    def test_flaw_history(self, auth_client, test_api_v2_uri):
         """ """
 
         with pghistory.context(source="testcase"):
@@ -1793,7 +1793,7 @@ class TestEndpointsFlaws:
             assert len(affects_other) == 5
 
             response = auth_client().get(
-                f"{test_api_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
+                f"{test_api_v2_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
             )
 
             assert response.status_code == 200
@@ -1814,7 +1814,7 @@ class TestEndpointsFlaws:
             flaw.save()
 
             response = auth_client().get(
-                f"{test_api_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
+                f"{test_api_v2_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
             )
 
             body = response.json()
@@ -1823,13 +1823,13 @@ class TestEndpointsFlaws:
             assert flaw_json["history"][1]["pgh_diff"]
             assert "last_validated_dt" not in flaw_json["history"][1]["pgh_diff"]
 
-    def test_flaw_history_no_history(self, auth_client, test_api_uri):
+    def test_flaw_history_no_history(self, auth_client, test_api_v2_uri):
         with pghistory.context(disable=True):
             flaw = FlawFactory()
             flaw.save()
 
         response = auth_client().get(
-            f"{test_api_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
+            f"{test_api_v2_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
         )
 
         body = response.json()

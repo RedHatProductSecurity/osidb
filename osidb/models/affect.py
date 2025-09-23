@@ -721,7 +721,7 @@ class Affect(
 
         if (
             self.tracker is None
-            or self.tracker.type == Tracker.TrackerType.JIRA
+            or self.tracker.type != Tracker.TrackerType.JIRA
             or self.tracker.resolution != TaskResolution.NOT_A_BUG
         ):
             return NotAffectedJustification.NOVALUE

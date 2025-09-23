@@ -96,6 +96,7 @@ class TestE2E:
         monkeypatch,
         setup_sample_external_resources,
         test_api_uri,
+        test_api_v2_uri,
         test_trackers_api_uri,
     ):
         """
@@ -128,7 +129,7 @@ class TestE2E:
         }
 
         response = auth_client().post(
-            f"{test_api_uri}/flaws",
+            f"{test_api_v2_uri}/flaws",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -150,7 +151,7 @@ class TestE2E:
 
         # 1.3) validate access control
         response = access_method.get(
-            f"{test_api_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id&include_history=true"
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id&include_history=true"
         )
 
         assert response.status_code == expected_status
@@ -167,20 +168,22 @@ class TestE2E:
         ps_module.private_trackers_allowed = True
         ps_module.save()
 
-        # 3) create affect
-        affects_data = [
-            {
-                "flaw": str(flaw.uuid),
-                "affectedness": "AFFECTED",
-                "resolution": "DELEGATED",
-                "ps_module": ps_module.name,
-                "ps_component": ps_module.default_component,
-                "impact": "CRITICAL",
-                "embargoed": embargoed,
-            }
-        ]
+        # 3) create affects
+        affects_data = []
+        for stream in ps_update_streams:
+            affects_data.append(
+                {
+                    "flaw": str(flaw.uuid),
+                    "affectedness": "AFFECTED",
+                    "resolution": "DELEGATED",
+                    "ps_update_stream": stream.name,
+                    "ps_component": ps_module.default_component,
+                    "impact": "CRITICAL",
+                    "embargoed": embargoed,
+                }
+            )
         response = auth_client().post(
-            f"{test_api_uri}/affects/bulk",
+            f"{test_api_v2_uri}/affects/bulk",
             affects_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -188,13 +191,12 @@ class TestE2E:
         )
         assert response.status_code == 200
         body = response.json()
-        affect = Affect.objects.get(uuid=body["results"][0]["uuid"])
 
         # 3.1) validate access control for affects
-        response = access_method.get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        response = access_method.get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
         assert response.status_code == expected_status
         if not embargoed:
-            assert len(response.json()["affects"]) == 1
+            assert len(response.json()["affects"]) == ps_update_streams.count()
 
         # 4) get and validate trackers suggestions
         response = auth_client().post(
@@ -205,23 +207,31 @@ class TestE2E:
             HTTP_JIRA_API_KEY=jira_token,
         )
         body = response.json()
-        comp = body["modules_components"][0]
-        assert comp["ps_module"] == ps_module.name
-        assert comp["ps_component"] == ps_module.default_component
+        sorted_streams = sorted(
+            stream["ps_update_stream"] for stream in body["streams_components"]
+        )
+        assert sorted_streams == sorted(stream.name for stream in ps_update_streams)
+        assert (
+            body["streams_components"][0]["ps_component"] == ps_module.default_component
+        )
 
-        suggested_trackers = [stream["ps_update_stream"] for stream in comp["streams"]]
+        suggested_trackers = [
+            stream["ps_update_stream"] for stream in body["streams_components"]
+        ]
         assert ps_update_streams[0].name in suggested_trackers
-        assert ps_update_streams[1].name in suggested_trackers
 
         # 5) create trackers
         for stream in ps_update_streams:
+            affect = affect = Affect.objects.get(
+                flaw=flaw, ps_update_stream=stream.name
+            )
             tracker_data = {
                 "affects": [affect.uuid],
                 "embargoed": flaw.embargoed,
                 "ps_update_stream": stream.name,
             }
             response = auth_client().post(
-                f"{test_api_uri}/trackers",
+                f"{test_api_v2_uri}/trackers",
                 tracker_data,
                 format="json",
                 HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -239,13 +249,12 @@ class TestE2E:
 
         # 5.1) validate access control for trackers
         response = access_method.get(
-            f"{test_api_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id&include_history=true"
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id&include_history=true"
         )
         assert response.status_code == expected_status
         if not embargoed:
             assert len(response.json()["trackers"]) == 2
-            assert len(response.json()["affects"]) == 1
-            assert len(response.json()["affects"][0]["trackers"]) == 2
+            assert len(response.json()["affects"]) == 2
             assert "curl" in response.json()["components"]
             assert response.json()["meta_attr"]["bz_id"]
 
@@ -291,7 +300,7 @@ class TestE2E:
 
         # 6.3) validate promotion were applied
         response = auth_client().get(
-            f"{test_api_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id&include_history=true"
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id&include_history=true"
         )
         assert response.status_code == 200
         body = response.json()
@@ -316,7 +325,7 @@ class TestE2E:
                     "embargoed": False,
                 }
                 response = auth_client().put(
-                    f"{test_api_uri}/flaws/{flaw.uuid}",
+                    f"{test_api_v2_uri}/flaws/{flaw.uuid}",
                     flaw_data,
                     format="json",
                     HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -326,13 +335,12 @@ class TestE2E:
 
         client_or_auth_client = client if not flaw.is_internal else auth_client()
         response = client_or_auth_client.get(
-            f"{test_api_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id&include_history=true"
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id&include_history=true"
         )
         assert response.status_code == 200
         body = response.json()
         assert len(body["trackers"]) == 2
-        assert len(body["affects"]) == 1
-        assert len(body["affects"][0]["trackers"]) == 2
+        assert len(body["affects"]) == 2
         assert "curl" in body["components"]
         assert body["meta_attr"]["bz_id"]
         assert any(
