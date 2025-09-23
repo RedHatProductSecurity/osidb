@@ -565,8 +565,17 @@ class Flaw(
 
     def _validate_future_unembargo_date(self, **kwargs):
         """
-        Check that an enbargoed flaw has an unembargo date in the future
+        Check that an embargoed flaw has an unembargo date in the future.
+        Only validates when the unembargo date is newly set or has changed.
         """
+
+        try:
+            old_flaw = Flaw.objects.get(pk=self.pk)
+            if old_flaw.unembargo_dt == self.unembargo_dt:
+                return
+        except Flaw.DoesNotExist:
+            pass
+
         if (
             self.is_embargoed
             and self.unembargo_dt is not None
