@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add query for finding flaw whose non-community affects are missing trackers (OSIDB-4104)
 
+### Changed
+- Ignore flaw embargo date validation when adding new affects in bulk to resolve deadlock (OSIDB-4296)
+
 ## [4.16.0] - 2025-09-16
 ### Fixed
 - Fix `owner` update in Jira not reflected in OSIDB (OSIDB-4306)
